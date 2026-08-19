@@ -1,0 +1,43 @@
+name: Update LCS data
+
+on:
+  schedule:
+    # Runs at 09:00 and 21:00 UTC daily. Adjust to taste — LCS games are
+    # usually done by ~03:00 UTC, so a morning run after a game day catches
+    # everything. GitHub may delay scheduled runs by a few minutes.
+    - cron: "0 9,21 * * *"
+  workflow_dispatch: {}  # lets you trigger it manually from the Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Scrape gol.gg (player stats + past match results)
+        run: python scripts/scrape_lcs.py
+
+      - name: Scrape schedule (LoL Esports API)
+        run: python scripts/scrape_schedule.py
+        continue-on-error: true  # don't block the whole update if this one API hiccups
+
+      - name: Merge into final data.json
+        run: python scripts/merge.py
+
+      - name: Commit updated data.json
+        run: |
+          git config user.name "lcs-data-bot"
+          git config user.email "actions@github.com"
+          git add data.json
+          git diff --quiet --cached || git commit -m "Update LCS data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push
