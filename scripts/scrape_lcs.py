@@ -44,7 +44,8 @@ def parse_player_list(tournament):
     players = {}
     if not table:
         return players
-    for row in table.find("tbody").find_all("tr"):
+    rows = table.find_all("tr")
+    for row in rows[1:]:  # skip header row (no <tbody> wrapper on this page)
         cells = row.find_all("td")
         if len(cells) < 10:
             continue
@@ -75,7 +76,7 @@ def parse_match_list(tournament):
     table = soup.find("table")
     if not table:
         return matches
-    for row in table.find("tbody").find_all("tr"):
+    for row in table.find_all("tr")[1:]:  # skip header row (no <tbody> wrapper on this page)
         cells = row.find_all("td")
         if len(cells) < 6:
             continue
@@ -193,7 +194,7 @@ def main():
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "teams": teams_payload,
         "past_matches": past_matches,
-        # Upcoming schedule isn't reliably on gol.gg early â left for manual/second
+        # Upcoming schedule isn't reliably on gol.gg early — left for manual/second
         # source integration (see scrape_schedule.py).
     }
 
