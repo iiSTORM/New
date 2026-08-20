@@ -41,13 +41,32 @@ def parse_player_list(tournament):
     html = get(url)
     soup = BeautifulSoup(html, "html.parser")
     table = soup.find("table", class_="table_list")
+    if not table:
+        # Fall back to "first table on the page" and log what we actually got,
+        # so the Action log shows us the real structure instead of guessing again.
+        print(f"  ! no table.table_list found for {tournament} — dumping diagnostics", file=sys.stderr)
+        all_tables = soup.find_all("table")
+        print(f"    tables on page: {len(all_tables)}", file=sys.stderr)
+        for t in all_tables[:3]:
+            classes = t.get("class")
+            print(f"    table classes: {classes}", file=sys.stderr)
+        table = all_tables[0] if all_tables else None
     players = {}
     if not table:
         return players
     rows = table.find_all("tr")
-    for row in rows[1:]:  # skip header row (no <tbody> wrapper on this page)
+    print(f"  {tournament}: found table with {len(rows)} <tr> rows", file=sys.stderr)
+    if rows:
+        header_cells = rows[0].find_all(["th", "td"])
+        print(f"    header row has {len(header_cells)} cells: "
+              f"{[c.get_text(strip=True) for c in header_cells]}", file=sys.stderr)
+    parsed_ok = 0
+    for i, row in enumerate(rows[1:], start=1):
         cells = row.find_all("td")
         if len(cells) < 10:
+            if i == 1:  # log the first data row regardless, even if it's short
+                print(f"    row 1 has only {len(cells)} <td> cells: "
+                      f"{[c.get_text(strip=True) for c in cells]}", file=sys.stderr)
             continue
         try:
             name = cells[0].get_text(strip=True)
@@ -58,27 +77,50 @@ def parse_player_list(tournament):
             d = float(cells[6].get_text(strip=True))
             a = float(cells[7].get_text(strip=True))
             kp = float(cells[9].get_text(strip=True).replace("%", ""))
-        except (ValueError, IndexError):
+        except (ValueError, IndexError) as e:
+            if i == 1:
+                print(f"    row 1 parse failed ({e}); cell texts: "
+                      f"{[c.get_text(strip=True) for c in cells]}", file=sys.stderr)
             continue
+        parsed_ok += 1
         players[(team, name)] = {
             "name": name, "team": team, "role": ROLE_ORDER.get(role, role.upper()[:3]),
             "g": games, "k": k, "d": d, "a": a, "kp": kp,
         }
+    print(f"    parsed {parsed_ok}/{len(rows) - 1} rows successfully", file=sys.stderr)
     return players
 
 
+def clean_team_name(raw):
+    """gol.gg's team header divs often read like 'Dignitas - LOSS' or
+    'Dignitas- WIN' — strip the result suffix to get just the team name."""
+    return re.sub(r"\s*-?\s*(WIN|LOSS)\s*$", "", raw, flags=re.IGNORECASE).strip()
+
+
 def parse_match_list(tournament):
-    """Returns list of completed series with gol.gg game IDs, most recent first."""
+    """Returns list of completed series with gol.gg game IDs, most recent first.
+    Rows for matches that haven't been played yet (score is a placeholder like
+    '-' or 'vs') are skipped — those belong in the schedule, not past results."""
     url = f"{BASE}/tournament/tournament-matchlist/{tournament.replace(' ', '%20')}/"
     html = get(url)
     soup = BeautifulSoup(html, "html.parser")
     matches = []
     table = soup.find("table")
     if not table:
+        print(f"  ! no table found on matchlist page for {tournament}", file=sys.stderr)
         return matches
-    for row in table.find_all("tr")[1:]:  # skip header row (no <tbody> wrapper on this page)
+    rows = table.find_all("tr")
+    print(f"  {tournament} matchlist: {len(rows)} <tr> rows", file=sys.stderr)
+    if rows:
+        header_cells = rows[0].find_all(["th", "td"])
+        print(f"    header: {[c.get_text(strip=True) for c in header_cells]}", file=sys.stderr)
+    skipped_unplayed = 0
+    for i, row in enumerate(rows[1:], start=1):
         cells = row.find_all("td")
         if len(cells) < 6:
+            if i == 1:
+                print(f"    row 1 has only {len(cells)} cells: "
+                      f"{[c.get_text(strip=True) for c in cells]}", file=sys.stderr)
             continue
         link = cells[0].find("a")
         if not link:
@@ -89,6 +131,11 @@ def parse_match_list(tournament):
         team_left = cells[1].get_text(strip=True)
         score = cells[2].get_text(strip=True)
         team_right = cells[3].get_text(strip=True)
+        # Skip unplayed matches — score should look like "2 - 0", "1 - 2", etc.
+        if not re.match(r"^\d+\s*-\s*\d+$", score):
+            skipped_unplayed += 1
+            continue
+        score = re.sub(r"\s+", "", score)  # normalize "2 - 1" -> "2-1"
         week_digits = re.sub(r"\D", "", cells[4].get_text(strip=True))
         week = int(week_digits) if week_digits else None
         date = cells[5].get_text(strip=True)
@@ -97,6 +144,7 @@ def parse_match_list(tournament):
             "team_left": team_left, "score": score, "team_right": team_right,
             "week": week, "date": date,
         })
+    print(f"    {len(matches)} completed, {skipped_unplayed} unplayed/skipped", file=sys.stderr)
     return matches
 
 
@@ -111,15 +159,29 @@ def parse_game_kills(game_id):
     for side in [blue, red]:
         if not side:
             continue
-        team_name = side.get_text(strip=True)
+        team_name = clean_team_name(side.get_text(strip=True))
         result[team_name] = {}
     tables = soup.find_all("table", class_="playersInfos")
+    if not tables:
+        print(f"  ! game {game_id}: no table.playersInfos found — dumping diagnostics", file=sys.stderr)
+        all_tables = soup.find_all("table")
+        print(f"    tables on page: {len(all_tables)}", file=sys.stderr)
+        for t in all_tables[:4]:
+            print(f"    table classes: {t.get('class')}", file=sys.stderr)
+        # try falling back to any table that has a "kda"-ish column
+        tables = [t for t in all_tables if t.find("td", class_="kda")]
+        print(f"    tables with a .kda cell: {len(tables)}", file=sys.stderr)
     team_names = list(result.keys())
+    if not team_names:
+        print(f"  ! game {game_id}: no blue/red-line-header found for team names", file=sys.stderr)
+        headers = soup.find_all(["div", "h1", "h2"], class_=re.compile("header", re.I))
+        print(f"    header-ish elements: {[h.get('class') for h in headers[:6]]}", file=sys.stderr)
     for i, table in enumerate(tables[:2]):
         if i >= len(team_names):
             break
         team = team_names[i]
-        for row in table.find_all("tr")[1:]:
+        rows_found = table.find_all("tr")
+        for row in rows_found[1:]:
             name_cell = row.find("a", class_="text-decoration-none")
             kda_cell = row.find("td", class_="kda")
             if not name_cell or not kda_cell:
@@ -128,6 +190,9 @@ def parse_game_kills(game_id):
             m = re.match(r"(\d+)\s*/\s*(\d+)\s*/\s*(\d+)", kda_cell.get_text(strip=True))
             if m:
                 result[team][name] = int(m.group(1))
+        if not result[team]:
+            print(f"  ! game {game_id}, team {team}: matched table but extracted 0 players "
+                  f"({len(rows_found)} rows in table)", file=sys.stderr)
     return result
 
 
