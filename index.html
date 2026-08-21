@@ -9,12 +9,32 @@
 <title>LCS Kill Projector</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" />
 <style>
-  html, body { margin: 0; padding: 0; background: #0a0e14; }
+  html, body { margin: 0; padding: 0; background: #0a0e14; color: #e8ecf1; font-family: -apple-system, sans-serif; }
   #root { min-height: 100vh; }
+  #boot-status { padding: 24px 16px; font-size: 13px; color: #8b98a9; }
+  #error-box { margin: 16px; padding: 14px; background: #2a1418; border: 1px solid #5c2a2a; border-radius: 8px;
+               color: #ff9a9a; font-family: 'IBM Plex Mono', monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; }
 </style>
 </head>
 <body>
-<div id="root"></div>
+<div id="root"><div id="boot-status">Loading app…</div></div>
+
+<script>
+  // Catches ANY script error (including inside the Babel-transpiled block
+  // below) and prints it directly on the page, since mobile Safari has no
+  // easy console access. If you see this, screenshot it — that's the exact
+  // bug to fix, not a guess.
+  window.addEventListener('error', function (e) {
+    var root = document.getElementById('root');
+    var box = document.createElement('div');
+    box.id = 'error-box';
+    box.textContent = 'Script error: ' + e.message +
+      '\n  at ' + (e.filename || 'inline') + ':' + e.lineno + ':' + e.colno +
+      (e.error && e.error.stack ? '\n\n' + e.error.stack : '');
+    root.innerHTML = '';
+    root.appendChild(box);
+  });
+</script>
 
 <!-- React + ReactDOM (production builds) -->
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -22,7 +42,26 @@
 <!-- Babel standalone: transpiles the JSX below directly in the browser, no build step -->
 <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+<script>
+  // Sanity check that the three CDN scripts above actually loaded before we
+  // even attempt the Babel transpile — a failed CDN load is a different
+  // problem than a syntax error, and this tells them apart immediately.
+  (function () {
+    var missing = [];
+    if (typeof React === 'undefined') missing.push('React');
+    if (typeof ReactDOM === 'undefined') missing.push('ReactDOM');
+    if (typeof Babel === 'undefined') missing.push('Babel');
+    if (missing.length) {
+      document.getElementById('root').innerHTML =
+        '<div id="error-box">Failed to load from CDN: ' + missing.join(', ') +
+        '. Check your internet connection, or the CDN (unpkg.com) may be blocked on this network.</div>';
+    }
+  })();
+</script>
+
 <script type="text/babel" data-presets="react">
+try {
+
 const { useState, useEffect } = React;
 
 
@@ -619,6 +658,11 @@ function KillProjector() {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<KillProjector />);
+
+} catch (err) {
+  document.getElementById('root').innerHTML =
+    '<div id="error-box">Render error: ' + err.message + '\n\n' + (err.stack || '') + '</div>';
+}
 </script>
 </body>
 </html>
