@@ -244,12 +244,6 @@ const STAT_TYPES = {
    come from a live fetch instead of the module-level fallback.
    ============================================================ */
 
-function blendedBase(player, historyWeight, statKey) {
-  const cur = player.cur[statKey];
-  if (!player.hist) return cur;
-  return historyWeight * player.hist[statKey] + (1 - historyWeight) * cur;
-}
-
 function kpMultiplier(player, historyWeight, kpStrength) {
   const curKP = player.cur.kp;
   const histKP = player.hist ? player.hist.kp : curKP;
@@ -265,9 +259,57 @@ function opponentMultiplier(teams, opponentTeam, oppStrength, oppBasisKey) {
   return 1 + oppStrength * (ratio - 1);
 }
 
-function project(teams, player, opponentTeam, games, weights, statType) {
+function getActualStat(match, team, playerName, statKey) {
+  const raw = match.actual && match.actual[team] && match.actual[team][playerName];
+  if (raw === undefined) return undefined;
+  if (typeof raw === "number") return statKey === "k" ? raw : null; // legacy kills-only format
+  return raw[statKey];
+}
+
+/* ============================================================
+   RECENCY-WEIGHTED RATE — replaces a flat season average with an
+   exponential decay by match recency, so a hot streak or a roster
+   swap shows up faster than waiting for a whole season of games to
+   dilute it. cutoffDate=null means "use every completed match in
+   the split" (for live Future-tab projections); a real date means
+   "only matches strictly before this one" (for point-in-time Past
+   Results backtesting) — same function, same decay logic, either way.
+
+   halfLife is in MATCHES (not individual games) since that's the
+   granularity pastMatches stores — each entry is already a game-1
+   + game-2 combined total, not two separate rows. A halfLife of 20+
+   is treated as "off" (flat average) since decay is negligible over
+   a realistic split length at that point.
+   ============================================================ */
+
+function recencyWeightedRate(pastMatches, team, playerName, statKey, cutoffDate, halfLife) {
+  const entries = [];
+  for (const m of pastMatches) {
+    if (cutoffDate !== null && (!m.date || m.date >= cutoffDate)) continue;
+    if (!m.actual || !(m.teamA === team || m.teamB === team) || !m.actual[team]) continue;
+    const val = getActualStat(m, team, playerName, statKey);
+    if (val === undefined || val === null) continue; // didn't play, or legacy data missing this stat
+    entries.push({ date: m.date || "", val });
+  }
+  if (entries.length === 0) return { rate: null, games: 0 };
+  entries.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0)); // oldest first
+  const n = entries.length;
+  const flat = halfLife >= 20;
+  let weightedSum = 0, weightedGames = 0;
+  entries.forEach((e, idx) => {
+    const matchesAgo = (n - 1) - idx; // 0 = most recent match
+    const weight = flat ? 1 : Math.pow(0.5, matchesAgo / halfLife);
+    weightedSum += e.val * weight;
+    weightedGames += 2 * weight; // each match entry = game-1 + game-2 combined
+  });
+  return { rate: weightedGames > 0 ? weightedSum / weightedGames : null, games: n * 2 };
+}
+
+function project(teams, pastMatches, player, team, opponentTeam, games, weights, statType) {
   const cfg = STAT_TYPES[statType];
-  const base = blendedBase(player, weights.history, cfg.key);
+  const weighted = recencyWeightedRate(pastMatches, team, player.name, cfg.key, null, weights.recencyHalfLife);
+  const curRate = weighted.rate !== null ? weighted.rate : player.cur[cfg.key]; // safety net if pastMatches is thin
+  const base = player.hist ? weights.history * player.hist[cfg.key] + (1 - weights.history) * curRate : curRate;
   const oppMult = opponentMultiplier(teams, opponentTeam, weights.opponent, cfg.oppBasis);
   const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp) : 1;
   const perGame = base * oppMult * kpMult;
@@ -280,42 +322,17 @@ function project(teams, player, opponentTeam, games, weights, statType) {
    before that match was played, not the final season averages.
    Derived entirely from pastMatches (which already has dated,
    per-player K/D/A for every completed match) — no extra
-   scraping needed.
+   scraping needed. Uses the same recencyWeightedRate() as the
+   live model above, just with cutoffDate set to the match's own
+   date instead of null.
 
-   Backward compatible with the older kills-only fallback snapshot,
-   where match.actual[team][player] is a bare number instead of a
-   {k,d,a} object — getActualStat() below handles both shapes, and
-   this model returns null for deaths/assists on that older data
-   rather than guessing.
-
-   Known simplification: kill-participation multiplier still uses
-   full-season KP, since per-match KP isn't captured in pastMatches
-   (only K/D/A are). Base rate and opponent-strength — the two
-   biggest drivers — are fully point-in-time; KP is a smaller,
-   secondary adjustment, so this is a reasonable gap rather than
-   one that undermines the backtest.
+   Known simplifications: kill-participation multiplier still uses
+   full-season KP (per-match KP isn't captured in pastMatches), and
+   the opponent-strength side (below) is a flat average rather than
+   recency-weighted — base rate is the biggest lever and the one
+   this feature targets; opponent-side recency would be a further
+   refinement, not implemented here.
    ============================================================ */
-
-function getActualStat(match, team, playerName, statKey) {
-  const raw = match.actual && match.actual[team] && match.actual[team][playerName];
-  if (raw === undefined) return undefined;
-  if (typeof raw === "number") return statKey === "k" ? raw : null; // legacy kills-only format
-  return raw[statKey];
-}
-
-function pointInTimePlayerRate(pastMatches, team, playerName, statKey, cutoffDate) {
-  let total = 0, games = 0, unavailable = false;
-  for (const m of pastMatches) {
-    if (!m.date || m.date >= cutoffDate) continue; // strictly before this match
-    if (!m.actual || !(m.teamA === team || m.teamB === team) || !m.actual[team]) continue;
-    const val = getActualStat(m, team, playerName, statKey);
-    if (val === undefined) continue;
-    if (val === null) { unavailable = true; continue; } // legacy data, stat not tracked
-    total += val;
-    games += 2; // every pastMatches entry is game-1 + game-2 combined
-  }
-  return { total, games, rate: games > 0 ? total / games : null, unavailable: unavailable && games === 0 };
-}
 
 function pointInTimeTeamStat(pastMatches, team, statKey, cutoffDate) {
   // "opponent's kills" and "opponent's deaths" are two different vantage
@@ -349,13 +366,14 @@ function pointInTimeLeagueAvgStat(pastMatches, teams, statKey, cutoffDate) {
 
 function projectPointInTime(pastMatches, teams, player, team, opponentTeam, games, weights, cutoffDate, statType) {
   const cfg = STAT_TYPES[statType];
-  const pt = pointInTimePlayerRate(pastMatches, team, player.name, cfg.key, cutoffDate);
+  const pt = recencyWeightedRate(pastMatches, team, player.name, cfg.key, cutoffDate, weights.recencyHalfLife);
   const histRate = player.hist ? player.hist[cfg.key] : null;
 
-  // Base rate: blend point-in-time current-split rate with prior-split rate,
-  // same weighting the live model uses. Early in a split (no prior games yet)
-  // there's nothing to blend, so fall back to prior-split alone, and only to
-  // the final-season number as a last resort (true cold start, no data at all).
+  // Base rate: blend point-in-time (recency-weighted) current-split rate
+  // with prior-split rate, same weighting the live model uses. Early in a
+  // split (no prior games yet) there's nothing to blend, so fall back to
+  // prior-split alone, and only to the final-season number as a last
+  // resort (true cold start, no data at all).
   let base;
   if (pt.rate !== null) {
     base = histRate !== null ? weights.history * histRate + (1 - weights.history) * pt.rate : pt.rate;
@@ -373,10 +391,10 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
   const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp) : 1;
 
   const perGame = base * oppMult * kpMult;
-  return { base, oppMult, kpMult, perGame, total: perGame * games, priorGames: pt.games, unavailable: pt.unavailable };
+  return { base, oppMult, kpMult, perGame, total: perGame * games, priorGames: pt.games };
 }
 
-const DEFAULT_WEIGHTS = { history: 0.3, opponent: 1.0, kp: 0.3 };
+const DEFAULT_WEIGHTS = { history: 0.3, opponent: 1.0, kp: 0.3, recencyHalfLife: 6 };
 
 /* ============================================================
    SHARED UI PIECES
@@ -394,9 +412,9 @@ function Slider({ label, value, onChange, min, max, step, format }) {
   );
 }
 
-function PlayerRow({ teams, p, opponentTeam, games, weights, teamColor, statType }) {
+function PlayerRow({ teams, pastMatches, p, team, opponentTeam, games, weights, teamColor, statType }) {
   const cfg = STAT_TYPES[statType];
-  const r = project(teams, p, opponentTeam, games, weights, statType);
+  const r = project(teams, pastMatches, p, team, opponentTeam, games, weights, statType);
   const [open, setOpen] = useState(false);
   return (
     <div onClick={() => setOpen(!open)} style={{ cursor: "pointer", borderBottom: "1px solid #1f2733", padding: "10px 12px", background: open ? "#141b26" : "transparent" }}>
@@ -415,12 +433,12 @@ function PlayerRow({ teams, p, opponentTeam, games, weights, teamColor, statType
       </div>
       {open && (
         <div style={{ marginTop: 10, fontSize: 11, color: "#8b98a9", fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.8 }}>
-          <div>blended base rate &nbsp;→&nbsp; {r.base.toFixed(2)} {cfg.label.toLowerCase()}/game</div>
+          <div>recency-weighted base rate &nbsp;→&nbsp; {r.base.toFixed(2)} {cfg.label.toLowerCase()}/game</div>
           <div>opponent multiplier &nbsp;→&nbsp; ×{r.oppMult.toFixed(2)}</div>
           {cfg.useKP && <div>kill-participation multiplier &nbsp;→&nbsp; ×{r.kpMult.toFixed(2)}</div>}
           <div style={{ color: "#e8c15c" }}>= {r.perGame.toFixed(2)} {cfg.label.toLowerCase()}/game × {games} games = {r.total.toFixed(1)}</div>
           <div style={{ marginTop: 4, color: "#4a5568" }}>
-            current split: {p.cur[cfg.key].toFixed(1)} {cfg.key}/g ({p.cur.g}g) &nbsp;|&nbsp; historical: {p.hist ? `${p.hist[cfg.key].toFixed(1)} ${cfg.key}/g (${p.hist.g}g)` : "no data on file"}
+            flat season avg: {p.cur[cfg.key].toFixed(1)} {cfg.key}/g ({p.cur.g}g) &nbsp;|&nbsp; historical: {p.hist ? `${p.hist[cfg.key].toFixed(1)} ${cfg.key}/g (${p.hist.g}g)` : "no data on file"}
           </div>
         </div>
       )}
@@ -428,9 +446,9 @@ function PlayerRow({ teams, p, opponentTeam, games, weights, teamColor, statType
   );
 }
 
-function MatchupPanel({ teams, teamA, teamB, games, weights, statType }) {
-  const totalsA = teams[teamA].players.reduce((s, p) => s + project(teams, p, teamB, games, weights, statType).total, 0);
-  const totalsB = teams[teamB].players.reduce((s, p) => s + project(teams, p, teamA, games, weights, statType).total, 0);
+function MatchupPanel({ teams, pastMatches, teamA, teamB, games, weights, statType }) {
+  const totalsA = teams[teamA].players.reduce((s, p) => s + project(teams, pastMatches, p, teamA, teamB, games, weights, statType).total, 0);
+  const totalsB = teams[teamB].players.reduce((s, p) => s + project(teams, pastMatches, p, teamB, teamA, games, weights, statType).total, 0);
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
       {[[teamA, teamB, totalsA], [teamB, teamA, totalsB]].map(([team, opp, total], i) => (
@@ -440,7 +458,7 @@ function MatchupPanel({ teams, teamA, teamB, games, weights, statType }) {
             <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, color: teams[team].color }}>Σ {total.toFixed(1)}</span>
           </div>
           {teams[team].players.map((p) => (
-            <PlayerRow key={p.name} teams={teams} p={p} opponentTeam={opp} games={games} weights={weights} teamColor={teams[team].color} statType={statType} />
+            <PlayerRow key={p.name} teams={teams} pastMatches={pastMatches} p={p} team={team} opponentTeam={opp} games={games} weights={weights} teamColor={teams[team].color} statType={statType} />
           ))}
         </div>
       ))}
@@ -468,7 +486,7 @@ function StatTypeSelector({ statType, setStatType }) {
   );
 }
 
-function WeightControls({ games, setGames, historyWeight, setHistoryWeight, oppStrength, setOppStrength, kpStrength, setKpStrength }) {
+function WeightControls({ games, setGames, historyWeight, setHistoryWeight, oppStrength, setOppStrength, kpStrength, setKpStrength, recencyHalfLife, setRecencyHalfLife }) {
   return (
     <div style={{ background: "#0f1420", border: "1px solid #1f2733", borderRadius: 10, padding: 16, marginBottom: 20 }}>
       <div style={{ fontSize: 11, letterSpacing: 2, color: "#5c6b7f", marginBottom: 12, fontFamily: "'IBM Plex Mono', monospace" }}>MODEL WEIGHTS</div>
@@ -476,20 +494,29 @@ function WeightControls({ games, setGames, historyWeight, setHistoryWeight, oppS
       <Slider label="Historical (prior split) weight" value={historyWeight} onChange={setHistoryWeight} min={0} max={1} step={0.05} format={(v) => `${Math.round(v * 100)}% history / ${Math.round((1 - v) * 100)}% this split`} />
       <Slider label="Opponent-strength adjustment" value={oppStrength} onChange={setOppStrength} min={0} max={2} step={0.1} format={(v) => `${v.toFixed(1)}×`} />
       <Slider label="Kill-participation influence" value={kpStrength} onChange={setKpStrength} min={0} max={1} step={0.05} format={(v) => `${Math.round(v * 100)}%`} />
+      <Slider
+        label="Recency half-life (this split)"
+        value={recencyHalfLife}
+        onChange={setRecencyHalfLife}
+        min={2}
+        max={20}
+        step={1}
+        format={(v) => (v >= 20 ? "flat average (no decay)" : `${v} match${v > 1 ? "es" : ""} — recent form weighted higher`)}
+      />
     </div>
   );
 }
 
 /* ---------- Future tab (card list, like Past, predicted only) ---------- */
 
-function FutureMatchCard({ teams, match, weights, statType }) {
+function FutureMatchCard({ teams, pastMatches, match, weights, statType }) {
   const [open, setOpen] = useState(false);
   const teamKeys = [match.teamA, match.teamB];
 
   const rows = teamKeys.flatMap((team) => {
     const opp = team === match.teamA ? match.teamB : match.teamA;
     return teams[team].players.map((p) => ({
-      team, name: p.name, role: p.role, proj: project(teams, p, opp, 2, weights, statType).total,
+      team, name: p.name, role: p.role, proj: project(teams, pastMatches, p, team, opp, 2, weights, statType).total,
     }));
   });
   const totalProj = rows.reduce((s, r) => s + r.proj, 0);
@@ -555,7 +582,7 @@ function WeekHeader({ label }) {
   );
 }
 
-function FutureTab({ teams, upcomingMatches, weights, statType }) {
+function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType }) {
   const [customMode, setCustomMode] = useState(false);
   const teamNames = Object.keys(teams);
   const [customA, setCustomA] = useState(teamNames[0]);
@@ -584,7 +611,7 @@ function FutureTab({ teams, upcomingMatches, weights, statType }) {
       {grouped.map(([label, matches]) => (
         <div key={label}>
           <WeekHeader label={label} />
-          {matches.map((m, i) => <FutureMatchCard key={i} teams={teams} match={m} weights={weights} statType={statType} />)}
+          {matches.map((m, i) => <FutureMatchCard key={i} teams={teams} pastMatches={pastMatches} match={m} weights={weights} statType={statType} />)}
         </div>
       ))}
 
@@ -604,7 +631,7 @@ function FutureTab({ teams, upcomingMatches, weights, statType }) {
               </select>
             ))}
           </div>
-          <MatchupPanel teams={teams} teamA={customA} teamB={customB} games={2} weights={weights} statType={statType} />
+          <MatchupPanel teams={teams} pastMatches={pastMatches} teamA={customA} teamB={customB} games={2} weights={weights} statType={statType} />
         </div>
       )}
     </div>
@@ -780,7 +807,8 @@ function KillProjector() {
   const [historyWeight, setHistoryWeight] = useState(DEFAULT_WEIGHTS.history);
   const [oppStrength, setOppStrength] = useState(DEFAULT_WEIGHTS.opponent);
   const [kpStrength, setKpStrength] = useState(DEFAULT_WEIGHTS.kp);
-  const weights = { history: historyWeight, opponent: oppStrength, kp: kpStrength };
+  const [recencyHalfLife, setRecencyHalfLife] = useState(DEFAULT_WEIGHTS.recencyHalfLife);
+  const weights = { history: historyWeight, opponent: oppStrength, kp: kpStrength, recencyHalfLife };
 
   const [regionsData, setRegionsData] = useState(FALLBACK_REGIONS);
   const [status, setStatus] = useState(DATA_URL ? "loading" : "no-url");
@@ -890,6 +918,7 @@ function KillProjector() {
           historyWeight={historyWeight} setHistoryWeight={setHistoryWeight}
           oppStrength={oppStrength} setOppStrength={setOppStrength}
           kpStrength={kpStrength} setKpStrength={setKpStrength}
+          recencyHalfLife={recencyHalfLife} setRecencyHalfLife={setRecencyHalfLife}
         />
 
         {!hasData ? (
@@ -902,7 +931,7 @@ function KillProjector() {
             </div>
           </div>
         ) : tab === "future" ? (
-          <FutureTab teams={current.teams} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} />
+          <FutureTab teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} />
         ) : (
           <PastResultsTab teams={current.teams} pastMatches={current.past_matches || []} weights={weights} statType={statType} />
         )}
