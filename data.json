@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T16:47:18.208032+00:00",
+  "generated_at": "2026-08-21T16:59:23.091141+00:00",
   "regions": {
     "LCS": {
       "teams": {
@@ -1146,10 +1146,28 @@
           "block": "Week 6"
         },
         {
+          "date": "2026-08-29T23:00:00Z",
+          "teamA": "Cloud9",
+          "teamB": "LYON",
+          "block": "Week 6"
+        },
+        {
           "date": "2026-08-30T20:00:00Z",
           "teamA": "LYON",
           "teamB": "Team Liquid",
           "block": "Week 6"
+        },
+        {
+          "date": "2026-08-30T23:00:00Z",
+          "teamA": "Cloud9",
+          "teamB": "Shopify Rebellion",
+          "block": "Week 6"
+        },
+        {
+          "date": "2026-09-05T20:00:00Z",
+          "teamA": "Sentinels",
+          "teamB": "Cloud9",
+          "block": "Week 7"
         },
         {
           "date": "2026-09-05T23:00:00Z",
@@ -4700,9 +4718,27 @@
       ],
       "upcoming_matches": [
         {
+          "date": "2026-08-22T08:00:00Z",
+          "teamA": "Dplus KIA",
+          "teamB": "Gen.G",
+          "block": "Week 13"
+        },
+        {
+          "date": "2026-08-22T10:00:00Z",
+          "teamA": "DN SOOPers",
+          "teamB": "Kiwoom DRX",
+          "block": "Week 13"
+        },
+        {
           "date": "2026-08-23T08:00:00Z",
           "teamA": "Hanwha Life Esports",
           "teamB": "T1",
+          "block": "Week 13"
+        },
+        {
+          "date": "2026-08-23T10:00:00Z",
+          "teamA": "BNK FearX",
+          "teamB": "Nongshim RedForce",
           "block": "Week 13"
         }
       ]
@@ -7310,7 +7346,44 @@
           }
         }
       ],
-      "upcoming_matches": []
+      "upcoming_matches": [
+        {
+          "date": "2026-08-22T07:00:00Z",
+          "teamA": "LGD Gaming",
+          "teamB": "Team WE",
+          "block": "Week 5"
+        },
+        {
+          "date": "2026-08-22T09:00:00Z",
+          "teamA": "Ninjas in Pyjamas",
+          "teamB": "Invictus Gaming",
+          "block": "Week 5"
+        },
+        {
+          "date": "2026-08-22T11:00:00Z",
+          "teamA": "JD Gaming",
+          "teamB": "Top Esports",
+          "block": "Week 5"
+        },
+        {
+          "date": "2026-08-23T07:00:00Z",
+          "teamA": "ThunderTalk Gaming",
+          "teamB": "LGD Gaming",
+          "block": "Week 5"
+        },
+        {
+          "date": "2026-08-23T09:00:00Z",
+          "teamA": "JD Gaming",
+          "teamB": "EDward Gaming",
+          "block": "Week 5"
+        },
+        {
+          "date": "2026-08-23T11:00:00Z",
+          "teamA": "Anyone s Legend",
+          "teamB": "Bilibili Gaming",
+          "block": "Week 5"
+        }
+      ]
     }
   }
 }
