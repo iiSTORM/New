@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#0a0e14" />
+<title>LCS Kill Projector</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" />
+<style>
+  html, body { margin: 0; padding: 0; background: #0a0e14; }
+  #root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- React + ReactDOM (production builds) -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<!-- Babel standalone: transpiles the JSX below directly in the browser, no build step -->
+<script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect } = React;
+
+
+/* ============================================================
+   LIVE DATA SOURCE
+   Set this to your GitHub repo's raw data.json URL once you've set up
+   the scraper (see README.md). Format:
+   https://raw.githubusercontent.com/<user>/<repo>/main/data.json
+   Leave blank to always use the embedded fallback snapshot below.
+   ============================================================ */
+const DATA_URL = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/data.json";
+
+/* ============================================================
+   FALLBACK DATA — used if DATA_URL is blank or the fetch fails.
+   This is a snapshot as of Aug 17, 2026 (through Week 4). Two
+   splits per player: "cur" (Summer) and "hist" (Spring).
+   ============================================================ */
+
+const FALLBACK_TEAMS = {
+  LYON: {
+    color: "#e0c341",
+    players: [
+      { name: "Dhokla", role: "TOP", cur: { g: 7, k: 3.4, d: 2.7, a: 5.3, kp: 43.4 }, hist: { g: 15, k: 2.9, d: 2.4, a: 6.3, kp: 56.5 } },
+      { name: "Armao", role: "JNG", cur: { g: 7, k: 3.1, d: 2.6, a: 11.4, kp: 73.2 }, hist: null },
+      { name: "Saint", role: "MID", cur: { g: 7, k: 4.9, d: 2.1, a: 7.7, kp: 63.6 }, hist: { g: 18, k: 4.7, d: 2.6, a: 5.2, kp: 66.0 } },
+      { name: "Berserker", role: "BOT", cur: { g: 7, k: 7.6, d: 1.7, a: 5.1, kp: 60.6 }, hist: { g: 18, k: 4.4, d: 2.2, a: 6.1, kp: 70.6 } },
+      { name: "Isles", role: "SUP", cur: { g: 7, k: 1.0, d: 2.4, a: 13.1, kp: 69.8 }, hist: { g: 18, k: 0.4, d: 1.9, a: 11.3, kp: 77.4 } },
+    ],
+  },
+  Sentinels: {
+    color: "#8a9bb5",
+    players: [
+      { name: "Impact", role: "TOP", cur: { g: 9, k: 2.1, d: 3.3, a: 5.9, kp: 44.0 }, hist: { g: 18, k: 2.4, d: 2.9, a: 3.9, kp: 51.4 } },
+      { name: "HamBak", role: "JNG", cur: { g: 9, k: 5.6, d: 2.9, a: 6.1, kp: 71.9 }, hist: { g: 18, k: 3.3, d: 2.4, a: 6.1, kp: 76.9 } },
+      { name: "DarkWings", role: "MID", cur: { g: 9, k: 3.0, d: 3.7, a: 7.3, kp: 70.0 }, hist: { g: 18, k: 1.7, d: 2.6, a: 5.5, kp: 55.8 } },
+      { name: "Rahel", role: "BOT", cur: { g: 9, k: 4.7, d: 1.7, a: 5.7, kp: 68.5 }, hist: { g: 18, k: 3.7, d: 2.1, a: 4.4, kp: 72.4 } },
+      { name: "Huhi", role: "SUP", cur: { g: 9, k: 0.7, d: 3.1, a: 11.2, kp: 79.5 }, hist: { g: 18, k: 0.8, d: 2.4, a: 8.8, kp: 81.8 } },
+    ],
+  },
+  Cloud9: {
+    color: "#4fa8e0",
+    players: [
+      { name: "Thanatos", role: "TOP", cur: { g: 10, k: 4.2, d: 2.2, a: 4.4, kp: 48.3 }, hist: { g: 18, k: 2.8, d: 2.0, a: 5.2, kp: 50.5 } },
+      { name: "Blaber", role: "JNG", cur: { g: 10, k: 2.6, d: 2.9, a: 9.9, kp: 73.6 }, hist: { g: 18, k: 3.6, d: 1.8, a: 8.4, kp: 72.8 } },
+      { name: "Loki", role: "MID", cur: { g: 10, k: 5.0, d: 2.9, a: 7.8, kp: 75.2 }, hist: null },
+      { name: "Tactical", role: "BOT", cur: { g: 10, k: 4.1, d: 2.3, a: 6.3, kp: 61.3 }, hist: null },
+      { name: "Vulcan", role: "SUP", cur: { g: 10, k: 1.0, d: 2.4, a: 11.9, kp: 75.1 }, hist: { g: 18, k: 1.1, d: 1.3, a: 12.1, kp: 79.1 } },
+    ],
+  },
+  "Shopify Rebellion": {
+    color: "#7ed957",
+    players: [
+      { name: "Fudge", role: "TOP", cur: { g: 10, k: 3.5, d: 2.0, a: 5.1, kp: 58.2 }, hist: { g: 15, k: 1.9, d: 3.3, a: 3.7, kp: 44.8 } },
+      { name: "Contractz", role: "JNG", cur: { g: 10, k: 2.5, d: 2.4, a: 7.3, kp: 73.1 }, hist: { g: 15, k: 3.5, d: 3.2, a: 6.2, kp: 78.8 } },
+      { name: "Zinie", role: "MID", cur: { g: 10, k: 2.0, d: 3.0, a: 6.3, kp: 61.0 }, hist: { g: 15, k: 2.5, d: 3.1, a: 5.7, kp: 61.8 } },
+      { name: "Bvoy", role: "BOT", cur: { g: 10, k: 4.2, d: 2.2, a: 5.0, kp: 70.5 }, hist: { g: 15, k: 4.0, d: 2.3, a: 4.7, kp: 67.1 } },
+      { name: "Zeyzal", role: "SUP", cur: { g: 10, k: 1.2, d: 2.8, a: 8.4, kp: 68.9 }, hist: null },
+    ],
+  },
+  Dignitas: {
+    color: "#c95050",
+    players: [
+      { name: "Denathor", role: "TOP", cur: { g: 11, k: 1.8, d: 3.5, a: 4.2, kp: 54.9 }, hist: null },
+      { name: "eXyu", role: "JNG", cur: { g: 6, k: 2.7, d: 5.7, a: 8.5, kp: 79.2 }, hist: { g: 17, k: 1.8, d: 3.8, a: 4.8, kp: 76.1 } },
+      { name: "Dardoch", role: "JNG", cur: { g: 5, k: 1.4, d: 3.4, a: 4.2, kp: 96.7 }, hist: null },
+      { name: "Palafox", role: "MID", cur: { g: 11, k: 2.7, d: 2.9, a: 4.5, kp: 65.4 }, hist: { g: 17, k: 1.9, d: 3.7, a: 3.5, kp: 57.8 } },
+      { name: "FBI", role: "BOT", cur: { g: 11, k: 3.1, d: 3.5, a: 4.0, kp: 65.5 }, hist: { g: 17, k: 2.8, d: 2.8, a: 3.6, kp: 61.1 } },
+      { name: "IgNar", role: "SUP", cur: { g: 11, k: 0.5, d: 3.1, a: 7.5, kp: 71.8 }, hist: { g: 17, k: 0.4, d: 2.4, a: 6.4, kp: 77.1 } },
+    ],
+  },
+  FlyQuest: {
+    color: "#3fbf7f",
+    players: [
+      { name: "Gakgos", role: "TOP", cur: { g: 8, k: 1.6, d: 3.1, a: 4.1, kp: 33.8 }, hist: { g: 19, k: 2.4, d: 1.9, a: 6.4, kp: 57.6 } },
+      { name: "Gryffinn", role: "JNG", cur: { g: 8, k: 4.8, d: 3.9, a: 5.1, kp: 72.4 }, hist: { g: 19, k: 4.2, d: 2.8, a: 7.2, kp: 75.0 } },
+      { name: "Quad", role: "MID", cur: { g: 8, k: 3.4, d: 3.1, a: 6.4, kp: 74.2 }, hist: { g: 19, k: 3.2, d: 2.4, a: 7.5, kp: 70.4 } },
+      { name: "Massu", role: "BOT", cur: { g: 8, k: 3.4, d: 4.0, a: 6.0, kp: 65.0 }, hist: { g: 19, k: 4.6, d: 3.0, a: 5.9, kp: 63.3 } },
+      { name: "Cryogen", role: "SUP", cur: { g: 8, k: 0.9, d: 4.5, a: 8.8, kp: 66.4 }, hist: { g: 19, k: 0.7, d: 3.1, a: 11.3, kp: 81.1 } },
+    ],
+  },
+  "Team Liquid": {
+    color: "#1e90c8",
+    players: [
+      { name: "Morgan", role: "TOP", cur: { g: 8, k: 3.1, d: 1.6, a: 8.3, kp: 54.8 }, hist: { g: 18, k: 2.1, d: 2.7, a: 4.9, kp: 45.4 } },
+      { name: "Josedeodo", role: "JNG", cur: { g: 8, k: 4.1, d: 1.9, a: 9.8, kp: 68.3 }, hist: { g: 18, k: 4.8, d: 2.2, a: 7.1, kp: 77.9 } },
+      { name: "Quid", role: "MID", cur: { g: 8, k: 5.8, d: 1.4, a: 8.8, kp: 71.3 }, hist: { g: 18, k: 3.3, d: 2.7, a: 6.4, kp: 63.3 } },
+      { name: "Yeon", role: "BOT", cur: { g: 8, k: 6.5, d: 1.6, a: 6.9, kp: 66.3 }, hist: { g: 18, k: 3.7, d: 2.4, a: 6.2, kp: 63.0 } },
+      { name: "CoreJJ", role: "SUP", cur: { g: 8, k: 1.1, d: 1.6, a: 14.9, kp: 77.5 }, hist: { g: 18, k: 1.3, d: 2.1, a: 11.0, kp: 80.9 } },
+    ],
+  },
+  Disguised: {
+    color: "#b06fd1",
+    players: [
+      { name: "Srtty", role: "TOP", cur: { g: 9, k: 2.7, d: 3.8, a: 2.4, kp: 37.9 }, hist: { g: 4, k: 2.5, d: 2.3, a: 6.3, kp: 61.2 } },
+      { name: "KryRa", role: "JNG", cur: { g: 9, k: 2.1, d: 4.3, a: 5.4, kp: 70.8 }, hist: { g: 15, k: 2.3, d: 3.9, a: 5.5, kp: 71.8 } },
+      { name: "Callme", role: "MID", cur: { g: 9, k: 2.1, d: 3.9, a: 4.2, kp: 61.1 }, hist: { g: 15, k: 2.8, d: 3.7, a: 3.8, kp: 60.4 } },
+      { name: "sajed", role: "BOT", cur: { g: 9, k: 2.1, d: 4.6, a: 4.7, kp: 64.0 }, hist: { g: 15, k: 2.3, d: 3.6, a: 3.1, kp: 49.4 } },
+      { name: "Lyonz", role: "SUP", cur: { g: 9, k: 0.2, d: 4.2, a: 7.0, kp: 68.4 }, hist: { g: 15, k: 0.5, d: 2.9, a: 6.7, kp: 69.8 } },
+    ],
+  },
+};
+
+const teamDeathsPerGame = (teams, teamName) =>
+  teams[teamName].players.reduce((sum, p) => sum + p.cur.d, 0) /
+  new Set(teams[teamName].players.map((p) => p.role)).size;
+
+const leagueAvgDeaths = (teams) => {
+  const names = Object.keys(teams);
+  return names.reduce((s, t) => s + teamDeathsPerGame(teams, t), 0) / names.length;
+};
+
+/* ============================================================
+   FALLBACK SCHEDULE
+   ============================================================ */
+
+const FALLBACK_PAST_MATCHES = [
+  { week: 1, date: "Jul 25", teamA: "FlyQuest", teamB: "LYON", winner: "LYON", score: "0-2",
+    actual: { FlyQuest: { Gakgos: 5, Gryffinn: 10, Quad: 5, Massu: 7, Cryogen: 1 }, LYON: { Dhokla: 11, Armao: 5, Saint: 9, Berserker: 16, Isles: 4 } } },
+  { week: 1, date: "Jul 25", teamA: "Dignitas", teamB: "Sentinels", winner: "Sentinels", score: "1-2",
+    actual: { Dignitas: { Denathor: 4, eXyu: 3, Palafox: 9, FBI: 8, IgNar: 0 }, Sentinels: { Impact: 4, HamBak: 19, DarkWings: 9, Rahel: 3, Huhi: 2 } } },
+  { week: 1, date: "Jul 26", teamA: "Team Liquid", teamB: "Cloud9", winner: "Team Liquid", score: "2-0",
+    actual: { "Team Liquid": { Morgan: 2, Josedeodo: 6, Quid: 14, Yeon: 13, CoreJJ: 3 }, Cloud9: { Thanatos: 8, Blaber: 2, Loki: 4, Tactical: 5, Vulcan: 1 } } },
+  { week: 1, date: "Jul 26", teamA: "Shopify Rebellion", teamB: "Disguised", winner: "Shopify Rebellion", score: "2-0",
+    actual: { "Shopify Rebellion": { Fudge: 13, Contractz: 5, Zinie: 4, Bvoy: 10, Zeyzal: 4 }, Disguised: { Srtty: 5, KryRa: 3, Callme: 4, sajed: 3, Lyonz: 1 } } },
+  { week: 2, date: "Aug 1", teamA: "Cloud9", teamB: "Dignitas", winner: "Cloud9", score: "2-1",
+    actual: { Dignitas: { Denathor: 5, eXyu: 8, Palafox: 10, FBI: 10, IgNar: 1 }, Cloud9: { Thanatos: 10, Blaber: 10, Loki: 9, Tactical: 4, Vulcan: 4 } } },
+  { week: 2, date: "Aug 1", teamA: "Disguised", teamB: "FlyQuest", winner: "FlyQuest", score: "0-2",
+    actual: { Disguised: { Srtty: 5, KryRa: 8, Callme: 5, sajed: 5, Lyonz: 0 }, FlyQuest: { Gakgos: 5, Gryffinn: 17, Quad: 10, Massu: 16, Cryogen: 5 } } },
+  { week: 2, date: "Aug 2", teamA: "LYON", teamB: "Shopify Rebellion", winner: "LYON", score: "2-0",
+    actual: { "Shopify Rebellion": { Fudge: 5, Contractz: 4, Zinie: 1, Bvoy: 7, Zeyzal: 4 }, LYON: { Dhokla: 6, Armao: 7, Saint: 12, Berserker: 20, Isles: 2 } } },
+  { week: 2, date: "Aug 2", teamA: "Team Liquid", teamB: "Sentinels", winner: "Team Liquid", score: "2-0",
+    actual: { "Team Liquid": { Morgan: 4, Josedeodo: 3, Quid: 6, Yeon: 17, CoreJJ: 2 }, Sentinels: { Impact: 2, HamBak: 6, DarkWings: 2, Rahel: 4, Huhi: 0 } } },
+  { week: 3, date: "Aug 8", teamA: "Cloud9", teamB: "Disguised", winner: "Cloud9", score: "2-1",
+    actual: { Disguised: { Srtty: 11, KryRa: 5, Callme: 5, sajed: 6, Lyonz: 1 }, Cloud9: { Thanatos: 4, Blaber: 2, Loki: 12, Tactical: 12, Vulcan: 1 } } },
+  { week: 3, date: "Aug 8", teamA: "Sentinels", teamB: "Shopify Rebellion", winner: "Shopify Rebellion", score: "1-2",
+    actual: { "Shopify Rebellion": { Fudge: 13, Contractz: 6, Zinie: 2, Bvoy: 6, Zeyzal: 2 }, Sentinels: { Impact: 5, HamBak: 9, DarkWings: 3, Rahel: 13, Huhi: 4 } } },
+  { week: 3, date: "Aug 9", teamA: "Dignitas", teamB: "LYON", winner: "LYON", score: "0-2",
+    actual: { Dignitas: { Denathor: 1, Dardoch: 2, Palafox: 4, FBI: 3, IgNar: 0 }, LYON: { Dhokla: 2, Armao: 6, Saint: 5, Berserker: 11, Isles: 1 } } },
+  { week: 3, date: "Aug 9", teamA: "FlyQuest", teamB: "Team Liquid", winner: "Team Liquid", score: "0-2",
+    actual: { "Team Liquid": { Morgan: 10, Josedeodo: 4, Quid: 14, Yeon: 10, CoreJJ: 4 }, FlyQuest: { Gakgos: 1, Gryffinn: 6, Quad: 7, Massu: 1, Cryogen: 0 } } },
+  { week: 4, date: "Aug 15", teamA: "Disguised", teamB: "Team Liquid", winner: "Team Liquid", score: "0-2",
+    actual: { "Team Liquid": { Morgan: 9, Josedeodo: 20, Quid: 12, Yeon: 12, CoreJJ: 0 }, Disguised: { Srtty: 3, KryRa: 3, Callme: 5, sajed: 5, Lyonz: 0 } } },
+  { week: 4, date: "Aug 16", teamA: "Cloud9", teamB: "FlyQuest", winner: "Cloud9", score: "2-0",
+    actual: { FlyQuest: { Gakgos: 2, Gryffinn: 5, Quad: 5, Massu: 3, Cryogen: 1 }, Cloud9: { Thanatos: 10, Blaber: 3, Loki: 12, Tactical: 11, Vulcan: 3 } } },
+];
+
+// Confirmed Week 5 slate (Liquipedia regular-season schedule) — used only
+// if the live fetch is unavailable.
+const FALLBACK_UPCOMING_MATCHES = [
+  { week: 5, date: "Aug 22", time: "1:00 PM PT", teamA: "Team Liquid", teamB: "Shopify Rebellion" },
+  { week: 5, date: "Aug 22", time: "4:00 PM PT", teamA: "Cloud9", teamB: "LYON" },
+  { week: 5, date: "Aug 23", time: "1:00 PM PT", teamA: "Disguised", teamB: "Sentinels" },
+  { week: 5, date: "Aug 23", time: "4:00 PM PT", teamA: "Dignitas", teamB: "FlyQuest" },
+];
+
+/* ============================================================
+   MODEL — all functions take `teams` explicitly since it can now
+   come from a live fetch instead of the module-level fallback.
+   ============================================================ */
+
+function blendedBase(player, historyWeight) {
+  const cur = player.cur;
+  if (!player.hist) return cur.k;
+  return historyWeight * player.hist.k + (1 - historyWeight) * cur.k;
+}
+
+function kpMultiplier(player, historyWeight, kpStrength) {
+  const curKP = player.cur.kp;
+  const histKP = player.hist ? player.hist.kp : curKP;
+  const blendedKP = historyWeight * histKP + (1 - historyWeight) * curKP;
+  const teamAvgKP = 66;
+  const relative = blendedKP / teamAvgKP;
+  return 1 + kpStrength * (relative - 1);
+}
+
+function opponentMultiplier(teams, opponentTeam, oppStrength) {
+  const oppDeaths = teamDeathsPerGame(teams, opponentTeam);
+  const ratio = oppDeaths / leagueAvgDeaths(teams);
+  return 1 + oppStrength * (ratio - 1);
+}
+
+function project(teams, player, opponentTeam, games, weights) {
+  const base = blendedBase(player, weights.history);
+  const oppMult = opponentMultiplier(teams, opponentTeam, weights.opponent);
+  const kpMult = kpMultiplier(player, weights.history, weights.kp);
+  const perGame = base * oppMult * kpMult;
+  return { base, oppMult, kpMult, perGame, total: perGame * games };
+}
+
+const DEFAULT_WEIGHTS = { history: 0.3, opponent: 1.0, kp: 0.3 };
+
+/* ============================================================
+   SHARED UI PIECES
+   ============================================================ */
+
+function Slider({ label, value, onChange, min, max, step, format }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#9fb0c3", marginBottom: 4, fontFamily: "'IBM Plex Mono', monospace" }}>
+        <span>{label}</span>
+        <span style={{ color: "#e8c15c" }}>{format ? format(value) : value}</span>
+      </div>
+      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(parseFloat(e.target.value))} style={{ width: "100%", accentColor: "#e8c15c" }} />
+    </div>
+  );
+}
+
+function PlayerRow({ teams, p, opponentTeam, games, weights, teamColor }) {
+  const r = project(teams, p, opponentTeam, games, weights);
+  const [open, setOpen] = useState(false);
+  return (
+    <div onClick={() => setOpen(!open)} style={{ cursor: "pointer", borderBottom: "1px solid #1f2733", padding: "10px 12px", background: open ? "#141b26" : "transparent" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ width: 6, height: 24, background: teamColor, borderRadius: 2 }} />
+          <div>
+            <div style={{ fontWeight: 600, color: "#e8ecf1", fontSize: 14 }}>{p.name}</div>
+            <div style={{ fontSize: 10, letterSpacing: 1, color: "#5c6b7f" }}>{p.role}</div>
+          </div>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 20, color: "#e8c15c", fontWeight: 700 }}>{r.total.toFixed(1)}</div>
+          <div style={{ fontSize: 10, color: "#5c6b7f" }}>proj. kills / {games}g</div>
+        </div>
+      </div>
+      {open && (
+        <div style={{ marginTop: 10, fontSize: 11, color: "#8b98a9", fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.8 }}>
+          <div>blended base rate &nbsp;→&nbsp; {r.base.toFixed(2)} kills/game</div>
+          <div>opponent multiplier &nbsp;→&nbsp; ×{r.oppMult.toFixed(2)}</div>
+          <div>kill-participation multiplier &nbsp;→&nbsp; ×{r.kpMult.toFixed(2)}</div>
+          <div style={{ color: "#e8c15c" }}>= {r.perGame.toFixed(2)} kills/game × {games} games = {r.total.toFixed(1)}</div>
+          <div style={{ marginTop: 4, color: "#4a5568" }}>
+            current split: {p.cur.k.toFixed(1)} k/g ({p.cur.g}g) &nbsp;|&nbsp; historical: {p.hist ? `${p.hist.k.toFixed(1)} k/g (${p.hist.g}g)` : "no data on file"}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MatchupPanel({ teams, teamA, teamB, games, weights }) {
+  const totalsA = teams[teamA].players.reduce((s, p) => s + project(teams, p, teamB, games, weights).total, 0);
+  const totalsB = teams[teamB].players.reduce((s, p) => s + project(teams, p, teamA, games, weights).total, 0);
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+      {[[teamA, teamB, totalsA], [teamB, teamA, totalsB]].map(([team, opp, total], i) => (
+        <div key={i} style={{ background: "#0f1420", border: `1px solid ${teams[team].color}33`, borderRadius: 10, overflow: "hidden" }}>
+          <div style={{ padding: "10px 12px", background: `${teams[team].color}18`, borderBottom: `1px solid ${teams[team].color}33`, display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+            <span style={{ fontWeight: 700, fontSize: 14 }}>{team}</span>
+            <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, color: teams[team].color }}>Σ {total.toFixed(1)}</span>
+          </div>
+          {teams[team].players.map((p) => (
+            <PlayerRow key={p.name} teams={teams} p={p} opponentTeam={opp} games={games} weights={weights} teamColor={teams[team].color} />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function WeightControls({ games, setGames, historyWeight, setHistoryWeight, oppStrength, setOppStrength, kpStrength, setKpStrength }) {
+  return (
+    <div style={{ background: "#0f1420", border: "1px solid #1f2733", borderRadius: 10, padding: 16, marginBottom: 20 }}>
+      <div style={{ fontSize: 11, letterSpacing: 2, color: "#5c6b7f", marginBottom: 12, fontFamily: "'IBM Plex Mono', monospace" }}>MODEL WEIGHTS</div>
+      <Slider label="Games in series" value={games} onChange={setGames} min={1} max={3} step={1} format={(v) => `${v} game${v > 1 ? "s" : ""}`} />
+      <Slider label="Historical (Spring) weight" value={historyWeight} onChange={setHistoryWeight} min={0} max={1} step={0.05} format={(v) => `${Math.round(v * 100)}% history / ${Math.round((1 - v) * 100)}% this split`} />
+      <Slider label="Opponent-strength adjustment" value={oppStrength} onChange={setOppStrength} min={0} max={2} step={0.1} format={(v) => `${v.toFixed(1)}×`} />
+      <Slider label="Kill-participation influence" value={kpStrength} onChange={setKpStrength} min={0} max={1} step={0.05} format={(v) => `${Math.round(v * 100)}%`} />
+    </div>
+  );
+}
+
+/* ---------- Future tab (card list, like Past, predicted only) ---------- */
+
+function FutureMatchCard({ teams, match, weights }) {
+  const [open, setOpen] = useState(false);
+  const teamKeys = [match.teamA, match.teamB];
+
+  const rows = teamKeys.flatMap((team) => {
+    const opp = team === match.teamA ? match.teamB : match.teamA;
+    return teams[team].players.map((p) => ({
+      team, name: p.name, role: p.role, proj: project(teams, p, opp, 2, weights).total,
+    }));
+  });
+  const totalProj = rows.reduce((s, r) => s + r.proj, 0);
+
+  return (
+    <div style={{ background: "#0f1420", border: "1px solid #1f2733", borderRadius: 10, marginBottom: 10, overflow: "hidden" }}>
+      <div onClick={() => setOpen(!open)} style={{ cursor: "pointer", padding: "12px 14px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
+            <span style={{ color: teams[match.teamA].color, fontWeight: 700 }}>{match.teamA}</span>
+            <span style={{ color: "#4a5568", fontSize: 11 }}>vs</span>
+            <span style={{ color: teams[match.teamB].color, fontWeight: 700 }}>{match.teamB}</span>
+          </div>
+          <span style={{ fontSize: 11, color: "#5c6b7f", fontFamily: "'IBM Plex Mono', monospace" }}>{match.week ? `W${match.week} · ` : ""}{match.date}{match.time ? `, ${match.time}` : ""}</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
+          <span style={{ fontSize: 11, color: "#8b98a9" }}>tap to expand player projections</span>
+          <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#5c6b7f" }}>Σ {totalProj.toFixed(0)} proj kills</span>
+        </div>
+      </div>
+      {open && (
+        <div style={{ borderTop: "1px solid #1f2733" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 60px", padding: "6px 14px", fontSize: 10, letterSpacing: 1, color: "#4a5568", fontFamily: "'IBM Plex Mono', monospace" }}>
+            <span>PLAYER</span><span style={{ textAlign: "right" }}>PROJ</span>
+          </div>
+          {rows.map((r) => (
+            <div key={r.team + r.name} style={{ display: "grid", gridTemplateColumns: "1fr 60px", padding: "7px 14px", fontSize: 12, borderTop: "1px solid #161d28", alignItems: "center" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ width: 5, height: 16, background: teams[r.team].color, borderRadius: 2 }} />
+                {r.name}
+                <span style={{ color: "#4a5568", fontSize: 10 }}>{r.role}</span>
+              </span>
+              <span style={{ textAlign: "right", color: "#e8c15c", fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700 }}>{r.proj.toFixed(1)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FutureTab({ teams, upcomingMatches, weights }) {
+  const [customMode, setCustomMode] = useState(false);
+  const teamNames = Object.keys(teams);
+  const [customA, setCustomA] = useState(teamNames[0]);
+  const [customB, setCustomB] = useState(teamNames[1]);
+
+  return (
+    <div>
+      <div style={{ fontSize: 11, color: "#4a5568", marginBottom: 12, lineHeight: 1.5 }}>
+        Projected kills (games 1+2 combined) for each upcoming matchup, using
+        current model weights.
+      </div>
+      {upcomingMatches.length === 0 && (
+        <div style={{ background: "#0f1420", border: "1px solid #1f2733", borderRadius: 10, padding: "16px", textAlign: "center", fontSize: 12, color: "#8b98a9", marginBottom: 10 }}>
+          No upcoming matches loaded. Use the custom matchup tool below.
+        </div>
+      )}
+      {upcomingMatches.map((m, i) => <FutureMatchCard key={i} teams={teams} match={m} weights={weights} />)}
+
+      <button
+        onClick={() => setCustomMode(!customMode)}
+        style={{ width: "100%", marginTop: 8, padding: "10px", background: "#141b26", border: "1px solid #2a3441", borderRadius: 8, color: "#e8c15c", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+      >
+        {customMode ? "Hide custom matchup" : "Explore a custom matchup →"}
+      </button>
+
+      {customMode && (
+        <div style={{ marginTop: 16 }}>
+          <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+            {[[customA, setCustomA], [customB, setCustomB]].map(([val, setter], i) => (
+              <select key={i} value={val} onChange={(e) => setter(e.target.value)} style={{ flex: 1, background: "#141b26", color: "#e8ecf1", border: `1px solid ${teams[val].color}55`, borderRadius: 8, padding: "10px 8px", fontSize: 14, fontWeight: 600 }}>
+                {teamNames.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            ))}
+          </div>
+          <MatchupPanel teams={teams} teamA={customA} teamB={customB} games={2} weights={weights} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Past Results tab ---------- */
+
+function PastMatchCard({ teams, match, weights }) {
+  const [open, setOpen] = useState(false);
+  const teamKeys = [match.teamA, match.teamB];
+
+  const rows = teamKeys.flatMap((team) => {
+    const opp = team === match.teamA ? match.teamB : match.teamA;
+    return teams[team].players
+      .filter((p) => match.actual[team][p.name] !== undefined)
+      .map((p) => {
+        const proj = project(teams, p, opp, 2, weights).total;
+        const actual = match.actual[team][p.name];
+        return { team, name: p.name, role: p.role, proj, actual, diff: actual - proj };
+      });
+  });
+
+  const totalProj = rows.reduce((s, r) => s + r.proj, 0);
+  const totalActual = rows.reduce((s, r) => s + r.actual, 0);
+  const avgAbsDiff = rows.reduce((s, r) => s + Math.abs(r.diff), 0) / rows.length;
+
+  return (
+    <div style={{ background: "#0f1420", border: "1px solid #1f2733", borderRadius: 10, marginBottom: 10, overflow: "hidden" }}>
+      <div onClick={() => setOpen(!open)} style={{ cursor: "pointer", padding: "12px 14px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
+            <span style={{ color: teams[match.teamA].color, fontWeight: 700 }}>{match.teamA}</span>
+            <span style={{ color: "#4a5568", fontSize: 11 }}>vs</span>
+            <span style={{ color: teams[match.teamB].color, fontWeight: 700 }}>{match.teamB}</span>
+          </div>
+          <span style={{ fontSize: 11, color: "#5c6b7f", fontFamily: "'IBM Plex Mono', monospace" }}>{match.week ? `W${match.week} · ` : ""}{match.date}</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
+          <span style={{ fontSize: 11, color: "#8b98a9" }}>
+            <strong style={{ color: teams[match.winner].color }}>{match.winner}</strong> won {match.score} · model missed by avg <strong style={{ color: "#e8c15c" }}>{avgAbsDiff.toFixed(1)}</strong> kills/player
+          </span>
+          <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#5c6b7f" }}>{totalProj.toFixed(0)} proj / {totalActual} actual</span>
+        </div>
+      </div>
+      {open && (
+        <div style={{ borderTop: "1px solid #1f2733" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 44px 44px 44px", padding: "6px 14px", fontSize: 10, letterSpacing: 1, color: "#4a5568", fontFamily: "'IBM Plex Mono', monospace" }}>
+            <span>PLAYER</span><span style={{ textAlign: "right" }}>PROJ</span><span style={{ textAlign: "right" }}>ACT</span><span style={{ textAlign: "right" }}>DIFF</span>
+          </div>
+          {rows.map((r) => (
+            <div key={r.team + r.name} style={{ display: "grid", gridTemplateColumns: "1fr 44px 44px 44px", padding: "7px 14px", fontSize: 12, borderTop: "1px solid #161d28", alignItems: "center" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ width: 5, height: 16, background: teams[r.team].color, borderRadius: 2 }} />
+                {r.name}
+              </span>
+              <span style={{ textAlign: "right", color: "#8b98a9", fontFamily: "'IBM Plex Mono', monospace" }}>{r.proj.toFixed(1)}</span>
+              <span style={{ textAlign: "right", color: "#e8ecf1", fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}>{r.actual}</span>
+              <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: r.diff > 0 ? "#5fd97a" : r.diff < 0 ? "#e05f5f" : "#5c6b7f" }}>
+                {r.diff > 0 ? "+" : ""}{r.diff.toFixed(1)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PastResultsTab({ teams, pastMatches, weights }) {
+  const sorted = [...pastMatches].reverse();
+  return (
+    <div>
+      <div style={{ fontSize: 11, color: "#4a5568", marginBottom: 12, lineHeight: 1.5 }}>
+        Projections here use today's model weights applied retroactively — they're not
+        exactly what the model would have said before each game, since current-split
+        rates now include games that happened after these matches too.
+      </div>
+      {sorted.map((m, i) => <PastMatchCard key={i} teams={teams} match={m} weights={weights} />)}
+    </div>
+  );
+}
+
+/* ---------- Data status banner ---------- */
+
+function DataStatus({ status, lastUpdated, errorDetail, onRetry }) {
+  const color = status === "live" ? "#5fd97a" : status === "loading" ? "#8b98a9" : "#e0c341";
+  const label =
+    status === "live" ? `Live data · updated ${lastUpdated}` :
+    status === "loading" ? "Loading live data…" :
+    status === "no-url" ? "Using bundled snapshot (no live source configured)" :
+    "Live fetch failed — using bundled snapshot";
+  return (
+    <div style={{ marginBottom: 16, padding: "8px 12px", background: "#0f1420", border: "1px solid #1f2733", borderRadius: 8 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#8b98a9" }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: color }} />
+          {label}
+        </div>
+        {status !== "loading" && (
+          <button onClick={onRetry} style={{ background: "none", border: "none", color: "#5c6b7f", fontSize: 11, cursor: "pointer", textDecoration: "underline" }}>
+            refresh
+          </button>
+        )}
+      </div>
+      {status === "error" && errorDetail && (
+        <div style={{ marginTop: 6, fontSize: 10, color: "#e05f5f", fontFamily: "'IBM Plex Mono', monospace", wordBreak: "break-word" }}>
+          {errorDetail}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   ROOT
+   ============================================================ */
+
+function formatUpcoming(rawList) {
+  // Normalizes either the live API's ISO timestamps or fallback {date,time}.
+  return rawList.map((m) => {
+    if (m.date && m.date.includes("T")) {
+      const d = new Date(m.date);
+      return {
+        ...m,
+        date: d.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+        time: d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }),
+      };
+    }
+    return m;
+  });
+}
+
+function KillProjector() {
+  const [tab, setTab] = useState("future");
+  const [games, setGames] = useState(2);
+  const [historyWeight, setHistoryWeight] = useState(DEFAULT_WEIGHTS.history);
+  const [oppStrength, setOppStrength] = useState(DEFAULT_WEIGHTS.opponent);
+  const [kpStrength, setKpStrength] = useState(DEFAULT_WEIGHTS.kp);
+  const weights = { history: historyWeight, opponent: oppStrength, kp: kpStrength };
+
+  const [teams, setTeams] = useState(FALLBACK_TEAMS);
+  const [pastMatches, setPastMatches] = useState(FALLBACK_PAST_MATCHES);
+  const [upcomingMatches, setUpcomingMatches] = useState(FALLBACK_UPCOMING_MATCHES);
+  const [status, setStatus] = useState(DATA_URL ? "loading" : "no-url");
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [errorDetail, setErrorDetail] = useState(null);
+
+  const fetchLiveData = () => {
+    if (!DATA_URL) {
+      setStatus("no-url");
+      return;
+    }
+    setStatus("loading");
+    setErrorDetail(null);
+    fetch(DATA_URL, { cache: "no-store" })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+        return res.json();
+      })
+      .then((data) => {
+        // Guard against a technically-valid-but-empty payload (e.g. {} for
+        // teams) silently overwriting good fallback data with nothing.
+        if (!data.teams || Object.keys(data.teams).length === 0) {
+          throw new Error("Fetched data.json but 'teams' was empty");
+        }
+        setTeams(data.teams);
+        if (data.past_matches) setPastMatches(data.past_matches);
+        if (data.upcoming_matches) setUpcomingMatches(data.upcoming_matches);
+        setLastUpdated(data.generated_at ? new Date(data.generated_at).toLocaleString() : "just now");
+        setStatus("live");
+      })
+      .catch((err) => {
+        console.warn("Live data fetch failed, using bundled snapshot:", err);
+        setErrorDetail(err && err.message ? err.message : String(err));
+        setStatus("error");
+      });
+  };
+
+  useEffect(() => {
+    fetchLiveData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const normalizedUpcoming = formatUpcoming(upcomingMatches);
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#0a0e14", color: "#e8ecf1", fontFamily: "'Inter', -apple-system, sans-serif", padding: "24px 16px 60px" }}>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" />
+      <div style={{ maxWidth: 640, margin: "0 auto" }}>
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, letterSpacing: 3, color: "#e8c15c", fontFamily: "'IBM Plex Mono', monospace" }}>LCS 2026 SUMMER — KILL PROJECTOR</div>
+          <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4 }}>Weighted kill projections</div>
+          <div style={{ fontSize: 13, color: "#8b98a9", marginTop: 2 }}>Blends this split's rates with Spring 2026 history, opponent strength, and kill-participation.</div>
+        </div>
+
+        <DataStatus status={status} lastUpdated={lastUpdated} errorDetail={errorDetail} onRetry={fetchLiveData} />
+
+        <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+          {[["future", "Future"], ["past", "Past Results"]].map(([id, label]) => (
+            <button
+              key={id}
+              onClick={() => setTab(id)}
+              style={{
+                flex: 1, padding: "10px 0", borderRadius: 8, border: "1px solid " + (tab === id ? "#e8c15c" : "#1f2733"),
+                background: tab === id ? "#e8c15c18" : "#0f1420", color: tab === id ? "#e8c15c" : "#8b98a9",
+                fontSize: 13, fontWeight: 700, cursor: "pointer",
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <WeightControls
+          games={games} setGames={setGames}
+          historyWeight={historyWeight} setHistoryWeight={setHistoryWeight}
+          oppStrength={oppStrength} setOppStrength={setOppStrength}
+          kpStrength={kpStrength} setKpStrength={setKpStrength}
+        />
+
+        {tab === "future"
+          ? <FutureTab teams={teams} upcomingMatches={normalizedUpcoming} weights={weights} />
+          : <PastResultsTab teams={teams} pastMatches={pastMatches} weights={weights} />}
+
+        <div style={{ marginTop: 20, fontSize: 11, color: "#4a5568", lineHeight: 1.6 }}>
+          Tap any match card to expand player-level detail.
+          Data: LCS 2026 Spring &amp; Summer regular-season box scores (gol.gg) and
+          schedule (Liquipedia / LoL Esports API).
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<KillProjector />);
+</script>
+</body>
+</html>
