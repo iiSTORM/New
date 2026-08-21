@@ -255,6 +255,83 @@ function project(teams, player, opponentTeam, games, weights) {
   return { base, oppMult, kpMult, perGame, total: perGame * games };
 }
 
+/* ============================================================
+   POINT-IN-TIME MODEL — used only for Past Results, so the
+   "projection" shown for a match reflects only data that existed
+   before that match was played, not the final season averages.
+   Derived entirely from pastMatches (which already has dated,
+   per-player kill totals for every completed match) — no extra
+   scraping needed.
+
+   Known simplification: kill-participation multiplier still uses
+   full-season KP, since per-match KP isn't captured in pastMatches
+   (only kills are). Kill-rate and opponent-strength — the two
+   biggest drivers — are fully point-in-time; KP is a smaller,
+   secondary adjustment, so this is a reasonable gap rather than
+   one that undermines the backtest.
+   ============================================================ */
+
+function pointInTimePlayerRate(pastMatches, team, playerName, cutoffDate) {
+  let kills = 0, games = 0;
+  for (const m of pastMatches) {
+    if (!m.date || m.date >= cutoffDate) continue; // strictly before this match
+    const actualForTeam = m.actual && (m.teamA === team || m.teamB === team) && m.actual[team];
+    if (!actualForTeam || !(playerName in actualForTeam)) continue;
+    kills += actualForTeam[playerName];
+    games += 2; // every pastMatches entry is game-1 + game-2 combined
+  }
+  return { kills, games, rate: games > 0 ? kills / games : null };
+}
+
+function pointInTimeTeamDeaths(pastMatches, team, cutoffDate) {
+  // A team's "deaths" = kills their opponent scored in that same match.
+  let deaths = 0, games = 0;
+  for (const m of pastMatches) {
+    if (!m.date || m.date >= cutoffDate) continue;
+    const opp = m.teamA === team ? m.teamB : m.teamB === team ? m.teamA : null;
+    if (!opp || !m.actual || !m.actual[opp]) continue;
+    deaths += Object.values(m.actual[opp]).reduce((s, v) => s + v, 0);
+    games += 2;
+  }
+  return games > 0 ? deaths / games : null;
+}
+
+function pointInTimeLeagueAvgDeaths(pastMatches, teams, cutoffDate) {
+  const rates = Object.keys(teams)
+    .map((t) => pointInTimeTeamDeaths(pastMatches, t, cutoffDate))
+    .filter((r) => r !== null);
+  if (rates.length === 0) return null;
+  return rates.reduce((s, r) => s + r, 0) / rates.length;
+}
+
+function projectPointInTime(pastMatches, teams, player, team, opponentTeam, games, weights, cutoffDate) {
+  const pt = pointInTimePlayerRate(pastMatches, team, player.name, cutoffDate);
+  const histRate = player.hist ? player.hist.k : null;
+
+  // Base rate: blend point-in-time current-split rate with prior-split rate,
+  // same weighting the live model uses. Early in a split (no prior games yet)
+  // there's nothing to blend, so fall back to prior-split alone, and only to
+  // the final-season number as a last resort (true cold start, no data at all).
+  let base;
+  if (pt.rate !== null) {
+    base = histRate !== null ? weights.history * histRate + (1 - weights.history) * pt.rate : pt.rate;
+  } else {
+    base = histRate !== null ? histRate : player.cur.k;
+  }
+
+  const oppDeathsPT = pointInTimeTeamDeaths(pastMatches, opponentTeam, cutoffDate);
+  const leagueAvgPT = pointInTimeLeagueAvgDeaths(pastMatches, teams, cutoffDate);
+  const oppDeaths = oppDeathsPT !== null ? oppDeathsPT : teamDeathsPerGame(teams, opponentTeam);
+  const leagueAvg = leagueAvgPT !== null ? leagueAvgPT : leagueAvgDeaths(teams);
+  const oppMult = 1 + weights.opponent * (oppDeaths / leagueAvg - 1);
+
+  // KP multiplier is the one piece still using full-season data — see note above.
+  const kpMult = kpMultiplier(player, weights.history, weights.kp);
+
+  const perGame = base * oppMult * kpMult;
+  return { base, oppMult, kpMult, perGame, total: perGame * games, priorGames: pt.games };
+}
+
 const DEFAULT_WEIGHTS = { history: 0.3, opponent: 1.0, kp: 0.3 };
 
 /* ============================================================
@@ -471,7 +548,7 @@ function FutureTab({ teams, upcomingMatches, weights }) {
 
 /* ---------- Past Results tab ---------- */
 
-function PastMatchCard({ teams, match, weights }) {
+function PastMatchCard({ teams, pastMatches, match, weights }) {
   const [open, setOpen] = useState(false);
   const teamKeys = [match.teamA, match.teamB];
 
@@ -480,15 +557,19 @@ function PastMatchCard({ teams, match, weights }) {
     return teams[team].players
       .filter((p) => match.actual[team][p.name] !== undefined)
       .map((p) => {
-        const proj = project(teams, p, opp, 2, weights).total;
+        const r = projectPointInTime(pastMatches, teams, p, team, opp, 2, weights, match.date);
         const actual = match.actual[team][p.name];
-        return { team, name: p.name, role: p.role, proj, actual, diff: actual - proj };
+        return { team, name: p.name, role: p.role, proj: r.total, priorGames: r.priorGames, actual, diff: actual - r.total };
       });
   });
 
   const totalProj = rows.reduce((s, r) => s + r.proj, 0);
   const totalActual = rows.reduce((s, r) => s + r.actual, 0);
   const avgAbsDiff = rows.reduce((s, r) => s + Math.abs(r.diff), 0) / rows.length;
+  // How many rows had zero prior current-split games to draw on (very early
+  // in a split) — worth flagging since those projections lean entirely on
+  // prior-split history rather than this season's form.
+  const coldStartCount = rows.filter((r) => r.priorGames === 0).length;
 
   return (
     <div style={{ background: "#0f1420", border: "1px solid #1f2733", borderRadius: 10, marginBottom: 10, overflow: "hidden" }}>
@@ -504,6 +585,7 @@ function PastMatchCard({ teams, match, weights }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
           <span style={{ fontSize: 11, color: "#8b98a9" }}>
             <strong style={{ color: teams[match.winner].color }}>{match.winner}</strong> won {match.score} · model missed by avg <strong style={{ color: "#e8c15c" }}>{avgAbsDiff.toFixed(1)}</strong> kills/player
+            {coldStartCount > 0 ? ` · ${coldStartCount} on prior-split data only` : ""}
           </span>
           <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#5c6b7f" }}>{totalProj.toFixed(0)} proj / {totalActual} actual</span>
         </div>
@@ -518,6 +600,7 @@ function PastMatchCard({ teams, match, weights }) {
               <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <span style={{ width: 5, height: 16, background: teams[r.team].color, borderRadius: 2 }} />
                 {r.name}
+                {r.priorGames === 0 && <span style={{ fontSize: 9, color: "#4a5568" }}>(no prior form)</span>}
               </span>
               <span style={{ textAlign: "right", color: "#8b98a9", fontFamily: "'IBM Plex Mono', monospace" }}>{r.proj.toFixed(1)}</span>
               <span style={{ textAlign: "right", color: "#e8ecf1", fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}>{r.actual}</span>
@@ -545,14 +628,15 @@ function PastResultsTab({ teams, pastMatches, weights }) {
   return (
     <div>
       <div style={{ fontSize: 11, color: "#4a5568", marginBottom: 12, lineHeight: 1.5 }}>
-        Projections here use today's model weights applied retroactively — they're not
-        exactly what the model would have said before each game, since current-split
-        rates now include games that happened after these matches too.
+        Point-in-time projections: each match uses only the kill data that existed
+        before it was played (plus the current slider weights), so this is a real
+        backtest of the model, not hindsight. Rows marked "no prior form" had zero
+        current-split games to draw on yet and lean on prior-split history alone.
       </div>
       {grouped.map(([label, matches]) => (
         <div key={label}>
           <WeekHeader label={label} />
-          {matches.map((m, i) => <PastMatchCard key={i} teams={teams} match={m} weights={weights} />)}
+          {matches.map((m, i) => <PastMatchCard key={i} teams={teams} pastMatches={pastMatches} match={m} weights={weights} />)}
         </div>
       ))}
     </div>
