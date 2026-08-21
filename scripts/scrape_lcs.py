@@ -10,6 +10,7 @@ import re
 import time
 import sys
 from datetime import datetime, timezone
+from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 
@@ -103,37 +104,43 @@ def parse_player_list(tournament):
 def parse_team_rosters():
     """gol.gg's team pages list each roster, conventionally in Top/Jungle/Mid/
     ADC/Support order. Used to fill in team/role fields the player-list table
-    doesn't provide."""
+    doesn't provide.
+
+    Note: this page's links are relative to <base href="https://gol.gg/teams/">
+    (e.g. "./team-stats/2812/..."), not root-relative — urljoin against that
+    base is required, not naive string concatenation.
+    """
+    base_href = f"{BASE}/teams/"
     url = f"{BASE}/teams/list/season-ALL/split-ALL/tournament-{SUMMER.replace(' ', '%20')}/"
     html = get(url)
     print(f"  fetched teams-list page, {len(html)} bytes", file=sys.stderr)
     soup = BeautifulSoup(html, "html.parser")
-    team_links = soup.find_all("a", href=re.compile(r"/teams/team-stats/\d+/"))
+    base_tag = soup.find("base", href=True)
+    if base_tag:
+        base_href = base_tag["href"]
+    team_links = soup.find_all("a", href=re.compile(r"team-stats/\d+"))
     team_urls = {}
     for link in team_links:
         name = link.get_text(strip=True)
         if name and name not in team_urls:
-            team_urls[name] = link["href"]
+            team_urls[name] = urljoin(base_href, link["href"])
     print(f"  found {len(team_urls)} teams: {list(team_urls.keys())}", file=sys.stderr)
     if not team_urls:
-        # Something's structurally different from expected — dump enough to diagnose.
         all_links = soup.find_all("a", href=True)
         print(f"    total <a> tags on page: {len(all_links)}", file=sys.stderr)
         team_stats_like = [a["href"] for a in all_links if "team-stats" in a["href"]][:5]
         print(f"    hrefs containing 'team-stats': {team_stats_like}", file=sys.stderr)
-        print(f"    page title/snippet: {html[:300]!r}", file=sys.stderr)
 
     role_sequence = ["TOP", "JNG", "MID", "BOT", "SUP"]
     roster = {}  # player name -> {"team":..., "role":...}
-    for team_name, href in team_urls.items():
-        team_url = href if href.startswith("http") else f"{BASE}{href}"
+    for team_name, team_url in team_urls.items():
         try:
             team_html = get(team_url)
         except Exception as e:
             print(f"  ! failed to fetch roster for {team_name}: {e}", file=sys.stderr)
             continue
         team_soup = BeautifulSoup(team_html, "html.parser")
-        player_links = team_soup.find_all("a", href=re.compile(r"/players/player-stats/\d+/"))
+        player_links = team_soup.find_all("a", href=re.compile(r"player-stats/\d+"))
         seen = []
         for pl in player_links:
             pname = pl.get_text(strip=True)
