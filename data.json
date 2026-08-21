@@ -1,65 +1,17 @@
 {
-  "generated_at": "2026-08-20T20:35:18.111887+00:00",
+  "generated_at": "2026-08-20T21:26:19.569264+00:00",
   "teams": {},
   "past_matches": [
-    {
-      "week": 5,
-      "date": "",
-      "teamA": "Dignitas",
-      "teamB": "FlyQuest",
-      "winner": "FlyQuest",
-      "score": "-",
-      "actual": {
-        "Dignitas- LOSS": {},
-        "FlyQuest- WIN": {}
-      }
-    },
-    {
-      "week": 5,
-      "date": "",
-      "teamA": "Disguised",
-      "teamB": "Sentinels",
-      "winner": "Sentinels",
-      "score": "-",
-      "actual": {
-        "Disguised- LOSS": {},
-        "Sentinels- WIN": {}
-      }
-    },
-    {
-      "week": 5,
-      "date": "",
-      "teamA": "Disguised",
-      "teamB": "Dignitas",
-      "winner": "Dignitas",
-      "score": "-",
-      "actual": {
-        "Disguised- LOSS": {},
-        "Dignitas- WIN": {}
-      }
-    },
-    {
-      "week": 5,
-      "date": "",
-      "teamA": "Sentinels",
-      "teamB": "FlyQuest",
-      "winner": "FlyQuest",
-      "score": "-",
-      "actual": {
-        "Sentinels- LOSS": {},
-        "FlyQuest- WIN": {}
-      }
-    },
     {
       "week": 4,
       "date": "16.16",
       "teamA": "Sentinels",
       "teamB": "LYON",
       "winner": "Sentinels",
-      "score": "2 - 1",
+      "score": "2-1",
       "actual": {
-        "Sentinels- WIN": {},
-        "LYON- LOSS": {}
+        "Sentinels": {},
+        "LYON": {}
       }
     },
     {
@@ -68,10 +20,10 @@
       "teamA": "Cloud9",
       "teamB": "FlyQuest",
       "winner": "Cloud9",
-      "score": "2 - 0",
+      "score": "2-0",
       "actual": {
-        "Cloud9- WIN": {},
-        "FlyQuest- LOSS": {}
+        "Cloud9": {},
+        "FlyQuest": {}
       }
     },
     {
@@ -80,10 +32,10 @@
       "teamA": "Shopify Rebellion",
       "teamB": "Dignitas",
       "winner": "Shopify Rebellion",
-      "score": "2 - 1",
+      "score": "2-1",
       "actual": {
-        "Shopify Rebellion- LOSS": {},
-        "Dignitas- WIN": {}
+        "Shopify Rebellion": {},
+        "Dignitas": {}
       }
     },
     {
@@ -92,10 +44,10 @@
       "teamA": "Team Liquid",
       "teamB": "Disguised",
       "winner": "Team Liquid",
-      "score": "2 - 0",
+      "score": "2-0",
       "actual": {
-        "Team Liquid- WIN": {},
-        "Disguised- LOSS": {}
+        "Team Liquid": {},
+        "Disguised": {}
       }
     },
     {
@@ -104,10 +56,10 @@
       "teamA": "Team Liquid",
       "teamB": "FlyQuest",
       "winner": "Team Liquid",
-      "score": "2 - 0",
+      "score": "2-0",
       "actual": {
-        "Team Liquid- WIN": {},
-        "FlyQuest- LOSS": {}
+        "Team Liquid": {},
+        "FlyQuest": {}
       }
     },
     {
@@ -115,11 +67,11 @@
       "date": "16.15",
       "teamA": "Dignitas",
       "teamB": "LYON",
-      "winner": "Dignitas",
-      "score": "0 - 2",
+      "winner": "LYON",
+      "score": "0-2",
       "actual": {
-        "Dignitas- LOSS": {},
-        "LYON- WIN": {}
+        "Dignitas": {},
+        "LYON": {}
       }
     },
     {
@@ -128,10 +80,10 @@
       "teamA": "Shopify Rebellion",
       "teamB": "Sentinels",
       "winner": "Shopify Rebellion",
-      "score": "2 - 1",
+      "score": "2-1",
       "actual": {
-        "Shopify Rebellion- LOSS": {},
-        "Sentinels- WIN": {}
+        "Shopify Rebellion": {},
+        "Sentinels": {}
       }
     },
     {
@@ -139,11 +91,11 @@
       "date": "16.15",
       "teamA": "Disguised",
       "teamB": "Cloud9",
-      "winner": "Disguised",
-      "score": "1 - 2",
+      "winner": "Cloud9",
+      "score": "1-2",
       "actual": {
-        "Disguised- LOSS": {},
-        "Cloud9- WIN": {}
+        "Disguised": {},
+        "Cloud9": {}
       }
     },
     {
@@ -152,10 +104,10 @@
       "teamA": "Team Liquid",
       "teamB": "Sentinels",
       "winner": "Team Liquid",
-      "score": "2 - 0",
+      "score": "2-0",
       "actual": {
-        "Team Liquid- WIN": {},
-        "Sentinels- LOSS": {}
+        "Team Liquid": {},
+        "Sentinels": {}
       }
     },
     {
@@ -163,11 +115,11 @@
       "date": "16.15",
       "teamA": "Shopify Rebellion",
       "teamB": "LYON",
-      "winner": "Shopify Rebellion",
-      "score": "0 - 2",
+      "winner": "LYON",
+      "score": "0-2",
       "actual": {
-        "Shopify Rebellion- LOSS": {},
-        "LYON- WIN": {}
+        "Shopify Rebellion": {},
+        "LYON": {}
       }
     },
     {
@@ -175,11 +127,11 @@
       "date": "16.15",
       "teamA": "Disguised",
       "teamB": "FlyQuest",
-      "winner": "Disguised",
-      "score": "0 - 2",
+      "winner": "FlyQuest",
+      "score": "0-2",
       "actual": {
-        "Disguised- LOSS": {},
-        "FlyQuest- WIN": {}
+        "Disguised": {},
+        "FlyQuest": {}
       }
     },
     {
@@ -187,11 +139,11 @@
       "date": "16.15",
       "teamA": "Dignitas",
       "teamB": "Cloud9",
-      "winner": "Dignitas",
-      "score": "1 - 2",
+      "winner": "Cloud9",
+      "score": "1-2",
       "actual": {
-        "Dignitas- WIN": {},
-        "Cloud9- LOSS": {}
+        "Dignitas": {},
+        "Cloud9": {}
       }
     },
     {
@@ -200,10 +152,10 @@
       "teamA": "Shopify Rebellion",
       "teamB": "Disguised",
       "winner": "Shopify Rebellion",
-      "score": "2 - 0",
+      "score": "2-0",
       "actual": {
-        "Shopify Rebellion- WIN": {},
-        "Disguised- LOSS": {}
+        "Shopify Rebellion": {},
+        "Disguised": {}
       }
     },
     {
@@ -212,10 +164,10 @@
       "teamA": "Team Liquid",
       "teamB": "Cloud9",
       "winner": "Team Liquid",
-      "score": "2 - 0",
+      "score": "2-0",
       "actual": {
-        "Team Liquid- WIN": {},
-        "Cloud9- LOSS": {}
+        "Team Liquid": {},
+        "Cloud9": {}
       }
     },
     {
@@ -224,10 +176,10 @@
       "teamA": "Sentinels",
       "teamB": "Dignitas",
       "winner": "Sentinels",
-      "score": "2 - 1",
+      "score": "2-1",
       "actual": {
-        "Sentinels- LOSS": {},
-        "Dignitas- WIN": {}
+        "Sentinels": {},
+        "Dignitas": {}
       }
     },
     {
@@ -235,11 +187,11 @@
       "date": "16.14",
       "teamA": "FlyQuest",
       "teamB": "LYON",
-      "winner": "FlyQuest",
-      "score": "0 - 2",
+      "winner": "LYON",
+      "score": "0-2",
       "actual": {
-        "FlyQuest- LOSS": {},
-        "LYON- WIN": {}
+        "FlyQuest": {},
+        "LYON": {}
       }
     }
   ],
