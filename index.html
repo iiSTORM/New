@@ -267,6 +267,37 @@ function getActualStat(match, team, playerName, statKey) {
 }
 
 /* ============================================================
+   PATCH AWARENESS — an off-patch match gets an extra weight
+   discount on top of recency decay, since a kill rate from two
+   patches ago may reflect a meta that no longer exists. Patch
+   strings look like "16.16" — compared numerically (major, minor),
+   not as plain strings, since "16.9" > "16.10" alphabetically but
+   isn't chronologically.
+   ============================================================ */
+
+function parsePatch(patchStr) {
+  if (!patchStr) return null;
+  const m = /^(\d+)\.(\d+)/.exec(patchStr);
+  if (!m) return null;
+  return [parseInt(m[1], 10), parseInt(m[2], 10)];
+}
+
+function comparePatch(a, b) {
+  if (!a || !b) return 0;
+  return a[0] !== b[0] ? a[0] - b[0] : a[1] - b[1];
+}
+
+function latestPatch(pastMatches, cutoffDate) {
+  let best = null;
+  for (const m of pastMatches) {
+    if (cutoffDate !== null && (!m.date || m.date >= cutoffDate)) continue;
+    const p = parsePatch(m.patch);
+    if (p && (!best || comparePatch(p, best) > 0)) best = p;
+  }
+  return best;
+}
+
+/* ============================================================
    RECENCY-WEIGHTED RATE — replaces a flat season average with an
    exponential decay by match recency, so a hot streak or a roster
    swap shows up faster than waiting for a whole season of games to
@@ -280,16 +311,24 @@ function getActualStat(match, team, playerName, statKey) {
    + game-2 combined total, not two separate rows. A halfLife of 20+
    is treated as "off" (flat average) since decay is negligible over
    a realistic split length at that point.
+
+   referencePatch + patchDiscount layer an additional weight penalty
+   on top of recency decay for any match not on the reference patch.
+   referencePatch is passed in rather than always computed as "the
+   true latest patch" because for point-in-time backtesting, the
+   relevant reference is the patch the match being predicted was
+   played on — not today's real-world patch, which would leak
+   future information into a backtest of an old match.
    ============================================================ */
 
-function recencyWeightedRate(pastMatches, team, playerName, statKey, cutoffDate, halfLife) {
+function recencyWeightedRate(pastMatches, team, playerName, statKey, cutoffDate, halfLife, referencePatch, patchDiscount) {
   const entries = [];
   for (const m of pastMatches) {
     if (cutoffDate !== null && (!m.date || m.date >= cutoffDate)) continue;
     if (!m.actual || !(m.teamA === team || m.teamB === team) || !m.actual[team]) continue;
     const val = getActualStat(m, team, playerName, statKey);
     if (val === undefined || val === null) continue; // didn't play, or legacy data missing this stat
-    entries.push({ date: m.date || "", val });
+    entries.push({ date: m.date || "", val, patch: parsePatch(m.patch) });
   }
   if (entries.length === 0) return { rate: null, games: 0 };
   entries.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0)); // oldest first
@@ -298,7 +337,10 @@ function recencyWeightedRate(pastMatches, team, playerName, statKey, cutoffDate,
   let weightedSum = 0, weightedGames = 0;
   entries.forEach((e, idx) => {
     const matchesAgo = (n - 1) - idx; // 0 = most recent match
-    const weight = flat ? 1 : Math.pow(0.5, matchesAgo / halfLife);
+    let weight = flat ? 1 : Math.pow(0.5, matchesAgo / halfLife);
+    if (referencePatch && e.patch && comparePatch(e.patch, referencePatch) !== 0) {
+      weight *= (1 - patchDiscount);
+    }
     weightedSum += e.val * weight;
     weightedGames += 2 * weight; // each match entry = game-1 + game-2 combined
   });
@@ -307,7 +349,8 @@ function recencyWeightedRate(pastMatches, team, playerName, statKey, cutoffDate,
 
 function project(teams, pastMatches, player, team, opponentTeam, games, weights, statType) {
   const cfg = STAT_TYPES[statType];
-  const weighted = recencyWeightedRate(pastMatches, team, player.name, cfg.key, null, weights.recencyHalfLife);
+  const refPatch = latestPatch(pastMatches, null);
+  const weighted = recencyWeightedRate(pastMatches, team, player.name, cfg.key, null, weights.recencyHalfLife, refPatch, weights.patchDiscount);
   const curRate = weighted.rate !== null ? weighted.rate : player.cur[cfg.key]; // safety net if pastMatches is thin
   const base = player.hist ? weights.history * player.hist[cfg.key] + (1 - weights.history) * curRate : curRate;
   const oppMult = opponentMultiplier(teams, opponentTeam, weights.opponent, cfg.oppBasis);
@@ -364,9 +407,10 @@ function pointInTimeLeagueAvgStat(pastMatches, teams, statKey, cutoffDate) {
   return rates.reduce((s, r) => s + r, 0) / rates.length;
 }
 
-function projectPointInTime(pastMatches, teams, player, team, opponentTeam, games, weights, cutoffDate, statType) {
+function projectPointInTime(pastMatches, teams, player, team, opponentTeam, games, weights, cutoffDate, statType, matchPatch) {
   const cfg = STAT_TYPES[statType];
-  const pt = recencyWeightedRate(pastMatches, team, player.name, cfg.key, cutoffDate, weights.recencyHalfLife);
+  const refPatch = parsePatch(matchPatch); // the patch THIS match was played on, not a later one
+  const pt = recencyWeightedRate(pastMatches, team, player.name, cfg.key, cutoffDate, weights.recencyHalfLife, refPatch, weights.patchDiscount);
   const histRate = player.hist ? player.hist[cfg.key] : null;
 
   // Base rate: blend point-in-time (recency-weighted) current-split rate
@@ -394,7 +438,7 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
   return { base, oppMult, kpMult, perGame, total: perGame * games, priorGames: pt.games };
 }
 
-const DEFAULT_WEIGHTS = { history: 0.3, opponent: 1.0, kp: 0.3, recencyHalfLife: 6 };
+const DEFAULT_WEIGHTS = { history: 0.3, opponent: 1.0, kp: 0.3, recencyHalfLife: 6, patchDiscount: 0.4 };
 
 /* ============================================================
    SHARED UI PIECES
@@ -486,7 +530,7 @@ function StatTypeSelector({ statType, setStatType }) {
   );
 }
 
-function WeightControls({ games, setGames, historyWeight, setHistoryWeight, oppStrength, setOppStrength, kpStrength, setKpStrength, recencyHalfLife, setRecencyHalfLife }) {
+function WeightControls({ games, setGames, historyWeight, setHistoryWeight, oppStrength, setOppStrength, kpStrength, setKpStrength, recencyHalfLife, setRecencyHalfLife, patchDiscount, setPatchDiscount }) {
   return (
     <div style={{ background: "#0f1420", border: "1px solid #1f2733", borderRadius: 10, padding: 16, marginBottom: 20 }}>
       <div style={{ fontSize: 11, letterSpacing: 2, color: "#5c6b7f", marginBottom: 12, fontFamily: "'IBM Plex Mono', monospace" }}>MODEL WEIGHTS</div>
@@ -502,6 +546,15 @@ function WeightControls({ games, setGames, historyWeight, setHistoryWeight, oppS
         max={20}
         step={1}
         format={(v) => (v >= 20 ? "flat average (no decay)" : `${v} match${v > 1 ? "es" : ""} — recent form weighted higher`)}
+      />
+      <Slider
+        label="Off-patch discount"
+        value={patchDiscount}
+        onChange={setPatchDiscount}
+        min={0}
+        max={1}
+        step={0.05}
+        format={(v) => (v === 0 ? "ignore patch" : `-${Math.round(v * 100)}% weight for matches on an older patch`)}
       />
     </div>
   );
@@ -651,7 +704,7 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
       .map((p) => ({ p, actual: getActualStat(match, team, p.name, cfg.key) }))
       .filter(({ actual }) => actual !== undefined && actual !== null) // undefined = didn't play; null = legacy data without this stat
       .map(({ p, actual }) => {
-        const r = projectPointInTime(pastMatches, teams, p, team, opp, 2, weights, match.date, statType);
+        const r = projectPointInTime(pastMatches, teams, p, team, opp, 2, weights, match.date, statType, match.patch);
         return { team, name: p.name, role: p.role, proj: r.total, priorGames: r.priorGames, actual, diff: actual - r.total };
       });
   });
@@ -808,7 +861,8 @@ function KillProjector() {
   const [oppStrength, setOppStrength] = useState(DEFAULT_WEIGHTS.opponent);
   const [kpStrength, setKpStrength] = useState(DEFAULT_WEIGHTS.kp);
   const [recencyHalfLife, setRecencyHalfLife] = useState(DEFAULT_WEIGHTS.recencyHalfLife);
-  const weights = { history: historyWeight, opponent: oppStrength, kp: kpStrength, recencyHalfLife };
+  const [patchDiscount, setPatchDiscount] = useState(DEFAULT_WEIGHTS.patchDiscount);
+  const weights = { history: historyWeight, opponent: oppStrength, kp: kpStrength, recencyHalfLife, patchDiscount };
 
   const [regionsData, setRegionsData] = useState(FALLBACK_REGIONS);
   const [status, setStatus] = useState(DATA_URL ? "loading" : "no-url");
@@ -919,6 +973,7 @@ function KillProjector() {
           oppStrength={oppStrength} setOppStrength={setOppStrength}
           kpStrength={kpStrength} setKpStrength={setKpStrength}
           recencyHalfLife={recencyHalfLife} setRecencyHalfLife={setRecencyHalfLife}
+          patchDiscount={patchDiscount} setPatchDiscount={setPatchDiscount}
         />
 
         {!hasData ? (
