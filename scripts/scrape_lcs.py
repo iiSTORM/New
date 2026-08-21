@@ -36,59 +36,102 @@ def get(url, retries=3):
 
 
 def parse_player_list(tournament):
-    """Pulls the rich per-player stats table (avg K/D/A, KP%, games played)."""
+    """Pulls the rich per-player stats table (avg K/D/A, KP%, games played).
+    Note: this table has no Team/Role columns — those get filled in separately
+    via parse_team_rosters()."""
     url = f"{BASE}/players/list/season-ALL/split-ALL/tournament-{tournament.replace(' ', '%20')}/"
     html = get(url)
     soup = BeautifulSoup(html, "html.parser")
     table = soup.find("table", class_="table_list")
     if not table:
-        # Fall back to "first table on the page" and log what we actually got,
-        # so the Action log shows us the real structure instead of guessing again.
-        print(f"  ! no table.table_list found for {tournament} — dumping diagnostics", file=sys.stderr)
+        print(f"  ! no table.table_list found for {tournament}", file=sys.stderr)
         all_tables = soup.find_all("table")
-        print(f"    tables on page: {len(all_tables)}", file=sys.stderr)
-        for t in all_tables[:3]:
-            classes = t.get("class")
-            print(f"    table classes: {classes}", file=sys.stderr)
         table = all_tables[0] if all_tables else None
     players = {}
     if not table:
         return players
     rows = table.find_all("tr")
-    print(f"  {tournament}: found table with {len(rows)} <tr> rows", file=sys.stderr)
-    if rows:
-        header_cells = rows[0].find_all(["th", "td"])
-        print(f"    header row has {len(header_cells)} cells: "
-              f"{[c.get_text(strip=True) for c in header_cells]}", file=sys.stderr)
+    header_cells = rows[0].find_all(["th", "td"]) if rows else []
+    header_labels = [c.get_text(strip=True) for c in header_cells]
+    # Locate columns by header text instead of hardcoded positions — more
+    # resilient to gol.gg reordering columns in future.
+    def col(label):
+        try:
+            return header_labels.index(label)
+        except ValueError:
+            return None
+    idx_games = col("Games")
+    idx_k = col("Avg kills")
+    idx_d = col("Avg deaths")
+    idx_a = col("Avg assists")
+    idx_kp = col("KP%")
+    print(f"  {tournament}: columns -> games={idx_games} k={idx_k} d={idx_d} "
+          f"a={idx_a} kp={idx_kp}", file=sys.stderr)
     parsed_ok = 0
     for i, row in enumerate(rows[1:], start=1):
         cells = row.find_all("td")
-        if len(cells) < 10:
-            if i == 1:  # log the first data row regardless, even if it's short
-                print(f"    row 1 has only {len(cells)} <td> cells: "
-                      f"{[c.get_text(strip=True) for c in cells]}", file=sys.stderr)
+        if len(cells) < 5 or None in (idx_games, idx_k, idx_d, idx_a, idx_kp):
             continue
         try:
             name = cells[0].get_text(strip=True)
-            team = cells[1].get_text(strip=True)
-            role = cells[2].get_text(strip=True)
-            games = int(cells[3].get_text(strip=True))
-            k = float(cells[5].get_text(strip=True))
-            d = float(cells[6].get_text(strip=True))
-            a = float(cells[7].get_text(strip=True))
-            kp = float(cells[9].get_text(strip=True).replace("%", ""))
+            games = int(cells[idx_games].get_text(strip=True))
+            k = float(cells[idx_k].get_text(strip=True))
+            d = float(cells[idx_d].get_text(strip=True))
+            a = float(cells[idx_a].get_text(strip=True))
+            kp = float(cells[idx_kp].get_text(strip=True).replace("%", ""))
         except (ValueError, IndexError) as e:
             if i == 1:
-                print(f"    row 1 parse failed ({e}); cell texts: "
+                print(f"    row 1 parse failed ({e}); cells: "
                       f"{[c.get_text(strip=True) for c in cells]}", file=sys.stderr)
             continue
         parsed_ok += 1
-        players[(team, name)] = {
-            "name": name, "team": team, "role": ROLE_ORDER.get(role, role.upper()[:3]),
+        # team/role filled in by parse_team_rosters(); placeholder for now
+        players[name] = {
+            "name": name, "team": None, "role": None,
             "g": games, "k": k, "d": d, "a": a, "kp": kp,
         }
-    print(f"    parsed {parsed_ok}/{len(rows) - 1} rows successfully", file=sys.stderr)
+    print(f"    parsed {parsed_ok}/{max(len(rows) - 1, 0)} rows successfully", file=sys.stderr)
     return players
+
+
+def parse_team_rosters():
+    """gol.gg's team pages list each roster, conventionally in Top/Jungle/Mid/
+    ADC/Support order. Used to fill in team/role fields the player-list table
+    doesn't provide. Role is inferred from list position — flagged with a
+    diagnostic dump so it can be corrected if a team's page lists it differently."""
+    url = f"{BASE}/teams/list/season-ALL/split-ALL/tournament-{SUMMER.replace(' ', '%20')}/"
+    html = get(url)
+    soup = BeautifulSoup(html, "html.parser")
+    team_links = soup.find_all("a", href=re.compile(r"/teams/team-stats/\d+/"))
+    team_urls = {}
+    for link in team_links:
+        name = link.get_text(strip=True)
+        if name and name not in team_urls:
+            team_urls[name] = link["href"]
+    print(f"  found {len(team_urls)} teams: {list(team_urls.keys())}", file=sys.stderr)
+
+    role_sequence = ["TOP", "JNG", "MID", "BOT", "SUP"]
+    roster = {}  # player name -> {"team":..., "role":...}
+    for team_name, href in team_urls.items():
+        team_url = href if href.startswith("http") else f"{BASE}{href}"
+        try:
+            team_html = get(team_url)
+        except Exception as e:
+            print(f"  ! failed to fetch roster for {team_name}: {e}", file=sys.stderr)
+            continue
+        team_soup = BeautifulSoup(team_html, "html.parser")
+        player_links = team_soup.find_all("a", href=re.compile(r"/players/player-stats/\d+/"))
+        seen = []
+        for pl in player_links:
+            pname = pl.get_text(strip=True)
+            if pname and pname not in seen:
+                seen.append(pname)
+        if team_name == list(team_urls.keys())[0]:  # diagnostic for just the first team
+            print(f"    {team_name} roster order found: {seen}", file=sys.stderr)
+        for idx, pname in enumerate(seen[:5]):
+            roster[pname] = {"team": team_name, "role": role_sequence[idx] if idx < 5 else "SUB"}
+        time.sleep(0.5)
+    return roster
 
 
 def clean_team_name(raw):
@@ -149,7 +192,9 @@ def parse_match_list(tournament):
 
 
 def parse_game_kills(game_id):
-    """Returns {team: {player: kills}} totals for a single game page."""
+    """Returns {team: {player: kills}} totals for a single game page.
+    gol.gg puts all 10 players in one table.playersInfosLine, first 5 rows
+    for the first team, next 5 for the second."""
     url = f"{BASE}/game/stats/{game_id}/page-game/"
     html = get(url)
     soup = BeautifulSoup(html, "html.parser")
@@ -161,38 +206,50 @@ def parse_game_kills(game_id):
             continue
         team_name = clean_team_name(side.get_text(strip=True))
         result[team_name] = {}
-    tables = soup.find_all("table", class_="playersInfos")
-    if not tables:
-        print(f"  ! game {game_id}: no table.playersInfos found — dumping diagnostics", file=sys.stderr)
-        all_tables = soup.find_all("table")
-        print(f"    tables on page: {len(all_tables)}", file=sys.stderr)
-        for t in all_tables[:4]:
-            print(f"    table classes: {t.get('class')}", file=sys.stderr)
-        # try falling back to any table that has a "kda"-ish column
-        tables = [t for t in all_tables if t.find("td", class_="kda")]
-        print(f"    tables with a .kda cell: {len(tables)}", file=sys.stderr)
     team_names = list(result.keys())
-    if not team_names:
-        print(f"  ! game {game_id}: no blue/red-line-header found for team names", file=sys.stderr)
-        headers = soup.find_all(["div", "h1", "h2"], class_=re.compile("header", re.I))
-        print(f"    header-ish elements: {[h.get('class') for h in headers[:6]]}", file=sys.stderr)
-    for i, table in enumerate(tables[:2]):
-        if i >= len(team_names):
-            break
-        team = team_names[i]
-        rows_found = table.find_all("tr")
-        for row in rows_found[1:]:
-            name_cell = row.find("a", class_="text-decoration-none")
-            kda_cell = row.find("td", class_="kda")
-            if not name_cell or not kda_cell:
-                continue
-            name = name_cell.get_text(strip=True)
-            m = re.match(r"(\d+)\s*/\s*(\d+)\s*/\s*(\d+)", kda_cell.get_text(strip=True))
-            if m:
-                result[team][name] = int(m.group(1))
-        if not result[team]:
-            print(f"  ! game {game_id}, team {team}: matched table but extracted 0 players "
-                  f"({len(rows_found)} rows in table)", file=sys.stderr)
+    if len(team_names) != 2:
+        print(f"  ! game {game_id}: expected 2 teams from headers, got {team_names}", file=sys.stderr)
+        return result
+
+    table = soup.find("table", class_="playersInfosLine")
+    if not table:
+        print(f"  ! game {game_id}: no table.playersInfosLine found", file=sys.stderr)
+        all_tables = soup.find_all("table")
+        for t in all_tables[:6]:
+            print(f"    table classes: {t.get('class')}", file=sys.stderr)
+        return result
+
+    rows = table.find_all("tr")
+    data_rows = rows[1:] if rows and rows[0].find_all("th") else rows
+    print(f"  game {game_id}: playersInfosLine has {len(data_rows)} data rows", file=sys.stderr)
+
+    parsed = []
+    for row in data_rows:
+        name_cell = row.find("a", class_="text-decoration-none") or row.find("a")
+        kda_cell = row.find("td", class_="kda")
+        if not kda_cell:
+            # fallback: scan all cells for an "N / N / N" pattern
+            for td in row.find_all("td"):
+                if re.match(r"\s*\d+\s*/\s*\d+\s*/\s*\d+\s*$", td.get_text(strip=True)):
+                    kda_cell = td
+                    break
+        if not name_cell or not kda_cell:
+            continue
+        name = name_cell.get_text(strip=True)
+        m = re.match(r"(\d+)\s*/\s*(\d+)\s*/\s*(\d+)", kda_cell.get_text(strip=True))
+        if m:
+            parsed.append((name, int(m.group(1))))
+
+    if len(parsed) != 10:
+        print(f"  ! game {game_id}: expected 10 players, parsed {len(parsed)}: {parsed}", file=sys.stderr)
+
+    # First half of rows = team_names[0], second half = team_names[1]
+    half = len(parsed) // 2 if len(parsed) >= 2 else 0
+    for name, kills in parsed[:half]:
+        result[team_names[0]][name] = kills
+    for name, kills in parsed[half:]:
+        result[team_names[1]][name] = kills
+
     return result
 
 
@@ -208,32 +265,46 @@ def series_g1_g2_kills(base_id, score):
     return combined
 
 
-def build_teams_payload(cur_players, hist_players):
+def build_teams_payload(cur_players, hist_players, roster):
     teams = {}
-    for (team, name), cur in cur_players.items():
+    unmatched = []
+    for name, cur in cur_players.items():
+        info = roster.get(name)
+        if not info:
+            unmatched.append(name)
+            continue
+        team, role = info["team"], info["role"]
         if team not in teams:
             teams[team] = {"color": TEAM_COLORS.get(team, "#888888"), "players": []}
-        hist = hist_players.get((team, name))
+        hist = hist_players.get(name)
         entry = {
-            "name": name, "role": cur["role"],
+            "name": name, "role": role,
             "cur": {"g": cur["g"], "k": cur["k"], "d": cur["d"], "a": cur["a"], "kp": cur["kp"]},
             "hist": ({"g": hist["g"], "k": hist["k"], "d": hist["d"], "a": hist["a"], "kp": hist["kp"]}
                       if hist else None),
         }
         teams[team]["players"].append(entry)
+    if unmatched:
+        print(f"  ! {len(unmatched)} players had stats but no roster match: {unmatched}",
+              file=sys.stderr)
     return teams
 
 
 def main():
+    print("Fetching team rosters (for team/role assignment)...")
+    roster = parse_team_rosters()
+    print(f"  {len(roster)} players matched to a team/role")
+
     print("Fetching Summer (current) player stats...")
     cur_players = parse_player_list(SUMMER)
-    print(f"  {len(cur_players)} player-team rows")
+    print(f"  {len(cur_players)} players")
 
     print("Fetching Spring (historical) player stats...")
     hist_players = parse_player_list(SPRING)
-    print(f"  {len(hist_players)} player-team rows")
+    print(f"  {len(hist_players)} players")
 
-    teams_payload = build_teams_payload(cur_players, hist_players)
+    teams_payload = build_teams_payload(cur_players, hist_players, roster)
+    print(f"  built payload for {len(teams_payload)} teams: {list(teams_payload.keys())}")
 
     print("Fetching match list...")
     matches = parse_match_list(SUMMER)
@@ -246,7 +317,8 @@ def main():
         except Exception as e:
             print(f"  ! skipped {m['team_left']} vs {m['team_right']}: {e}", file=sys.stderr)
             continue
-        winner = m["team_left"] if m["score"].split("-")[0] > m["score"].split("-")[1] else m["team_right"]
+        left_score, right_score = (int(x) for x in m["score"].split("-"))
+        winner = m["team_left"] if left_score > right_score else m["team_right"]
         past_matches.append({
             "week": m["week"], "date": m["date"],
             "teamA": m["team_left"], "teamB": m["team_right"],
@@ -259,8 +331,7 @@ def main():
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "teams": teams_payload,
         "past_matches": past_matches,
-        # Upcoming schedule isn't reliably on gol.gg early — left for manual/second
-        # source integration (see scrape_schedule.py).
+        # Upcoming schedule merged in separately — see scrape_schedule.py + merge.py.
     }
 
     with open("data.json", "w") as f:
