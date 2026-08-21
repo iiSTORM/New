@@ -20,9 +20,6 @@
 <div id="root"><div id="boot-status">Loading app…</div></div>
 
 <script>
-  // Catches ANY script error (including inside the Babel-transpiled block
-  // below) and prints it directly on the page, since mobile Safari has no
-  // easy console access. If you see this, screenshot it.
   window.addEventListener('error', function (e) {
     var root = document.getElementById('root');
     var box = document.createElement('div');
@@ -35,10 +32,8 @@
   });
 </script>
 
-<!-- React + ReactDOM (production builds) -->
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<!-- Babel standalone v7 (v8 line has shown parser instability on real-world files) -->
 <script crossorigin src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
 
 <script>
@@ -174,43 +169,43 @@ const leagueAvgDeaths = (teams) => {
    ============================================================ */
 
 const FALLBACK_PAST_MATCHES = [
-  { week: 1, date: "Jul 25", teamA: "FlyQuest", teamB: "LYON", winner: "LYON", score: "0-2",
+  { week: "Week 1", date: "2026-07-25", teamA: "FlyQuest", teamB: "LYON", winner: "LYON", score: "0-2",
     actual: { FlyQuest: { Gakgos: 5, Gryffinn: 10, Quad: 5, Massu: 7, Cryogen: 1 }, LYON: { Dhokla: 11, Armao: 5, Saint: 9, Berserker: 16, Isles: 4 } } },
-  { week: 1, date: "Jul 25", teamA: "Dignitas", teamB: "Sentinels", winner: "Sentinels", score: "1-2",
+  { week: "Week 1", date: "2026-07-25", teamA: "Dignitas", teamB: "Sentinels", winner: "Sentinels", score: "1-2",
     actual: { Dignitas: { Denathor: 4, eXyu: 3, Palafox: 9, FBI: 8, IgNar: 0 }, Sentinels: { Impact: 4, HamBak: 19, DarkWings: 9, Rahel: 3, Huhi: 2 } } },
-  { week: 1, date: "Jul 26", teamA: "Team Liquid", teamB: "Cloud9", winner: "Team Liquid", score: "2-0",
+  { week: "Week 1", date: "2026-07-26", teamA: "Team Liquid", teamB: "Cloud9", winner: "Team Liquid", score: "2-0",
     actual: { "Team Liquid": { Morgan: 2, Josedeodo: 6, Quid: 14, Yeon: 13, CoreJJ: 3 }, Cloud9: { Thanatos: 8, Blaber: 2, Loki: 4, Tactical: 5, Vulcan: 1 } } },
-  { week: 1, date: "Jul 26", teamA: "Shopify Rebellion", teamB: "Disguised", winner: "Shopify Rebellion", score: "2-0",
+  { week: "Week 1", date: "2026-07-26", teamA: "Shopify Rebellion", teamB: "Disguised", winner: "Shopify Rebellion", score: "2-0",
     actual: { "Shopify Rebellion": { Fudge: 13, Contractz: 5, Zinie: 4, Bvoy: 10, Zeyzal: 4 }, Disguised: { Srtty: 5, KryRa: 3, Callme: 4, sajed: 3, Lyonz: 1 } } },
-  { week: 2, date: "Aug 1", teamA: "Cloud9", teamB: "Dignitas", winner: "Cloud9", score: "2-1",
+  { week: "Week 2", date: "2026-08-01", teamA: "Cloud9", teamB: "Dignitas", winner: "Cloud9", score: "2-1",
     actual: { Dignitas: { Denathor: 5, eXyu: 8, Palafox: 10, FBI: 10, IgNar: 1 }, Cloud9: { Thanatos: 10, Blaber: 10, Loki: 9, Tactical: 4, Vulcan: 4 } } },
-  { week: 2, date: "Aug 1", teamA: "Disguised", teamB: "FlyQuest", winner: "FlyQuest", score: "0-2",
+  { week: "Week 2", date: "2026-08-01", teamA: "Disguised", teamB: "FlyQuest", winner: "FlyQuest", score: "0-2",
     actual: { Disguised: { Srtty: 5, KryRa: 8, Callme: 5, sajed: 5, Lyonz: 0 }, FlyQuest: { Gakgos: 5, Gryffinn: 17, Quad: 10, Massu: 16, Cryogen: 5 } } },
-  { week: 2, date: "Aug 2", teamA: "LYON", teamB: "Shopify Rebellion", winner: "LYON", score: "2-0",
+  { week: "Week 2", date: "2026-08-02", teamA: "LYON", teamB: "Shopify Rebellion", winner: "LYON", score: "2-0",
     actual: { "Shopify Rebellion": { Fudge: 5, Contractz: 4, Zinie: 1, Bvoy: 7, Zeyzal: 4 }, LYON: { Dhokla: 6, Armao: 7, Saint: 12, Berserker: 20, Isles: 2 } } },
-  { week: 2, date: "Aug 2", teamA: "Team Liquid", teamB: "Sentinels", winner: "Team Liquid", score: "2-0",
+  { week: "Week 2", date: "2026-08-02", teamA: "Team Liquid", teamB: "Sentinels", winner: "Team Liquid", score: "2-0",
     actual: { "Team Liquid": { Morgan: 4, Josedeodo: 3, Quid: 6, Yeon: 17, CoreJJ: 2 }, Sentinels: { Impact: 2, HamBak: 6, DarkWings: 2, Rahel: 4, Huhi: 0 } } },
-  { week: 3, date: "Aug 8", teamA: "Cloud9", teamB: "Disguised", winner: "Cloud9", score: "2-1",
+  { week: "Week 3", date: "2026-08-08", teamA: "Cloud9", teamB: "Disguised", winner: "Cloud9", score: "2-1",
     actual: { Disguised: { Srtty: 11, KryRa: 5, Callme: 5, sajed: 6, Lyonz: 1 }, Cloud9: { Thanatos: 4, Blaber: 2, Loki: 12, Tactical: 12, Vulcan: 1 } } },
-  { week: 3, date: "Aug 8", teamA: "Sentinels", teamB: "Shopify Rebellion", winner: "Shopify Rebellion", score: "1-2",
+  { week: "Week 3", date: "2026-08-08", teamA: "Sentinels", teamB: "Shopify Rebellion", winner: "Shopify Rebellion", score: "1-2",
     actual: { "Shopify Rebellion": { Fudge: 13, Contractz: 6, Zinie: 2, Bvoy: 6, Zeyzal: 2 }, Sentinels: { Impact: 5, HamBak: 9, DarkWings: 3, Rahel: 13, Huhi: 4 } } },
-  { week: 3, date: "Aug 9", teamA: "Dignitas", teamB: "LYON", winner: "LYON", score: "0-2",
+  { week: "Week 3", date: "2026-08-09", teamA: "Dignitas", teamB: "LYON", winner: "LYON", score: "0-2",
     actual: { Dignitas: { Denathor: 1, Dardoch: 2, Palafox: 4, FBI: 3, IgNar: 0 }, LYON: { Dhokla: 2, Armao: 6, Saint: 5, Berserker: 11, Isles: 1 } } },
-  { week: 3, date: "Aug 9", teamA: "FlyQuest", teamB: "Team Liquid", winner: "Team Liquid", score: "0-2",
+  { week: "Week 3", date: "2026-08-09", teamA: "FlyQuest", teamB: "Team Liquid", winner: "Team Liquid", score: "0-2",
     actual: { "Team Liquid": { Morgan: 10, Josedeodo: 4, Quid: 14, Yeon: 10, CoreJJ: 4 }, FlyQuest: { Gakgos: 1, Gryffinn: 6, Quad: 7, Massu: 1, Cryogen: 0 } } },
-  { week: 4, date: "Aug 15", teamA: "Disguised", teamB: "Team Liquid", winner: "Team Liquid", score: "0-2",
+  { week: "Week 4", date: "2026-08-15", teamA: "Disguised", teamB: "Team Liquid", winner: "Team Liquid", score: "0-2",
     actual: { "Team Liquid": { Morgan: 9, Josedeodo: 20, Quid: 12, Yeon: 12, CoreJJ: 0 }, Disguised: { Srtty: 3, KryRa: 3, Callme: 5, sajed: 5, Lyonz: 0 } } },
-  { week: 4, date: "Aug 16", teamA: "Cloud9", teamB: "FlyQuest", winner: "Cloud9", score: "2-0",
+  { week: "Week 4", date: "2026-08-16", teamA: "Cloud9", teamB: "FlyQuest", winner: "Cloud9", score: "2-0",
     actual: { FlyQuest: { Gakgos: 2, Gryffinn: 5, Quad: 5, Massu: 3, Cryogen: 1 }, Cloud9: { Thanatos: 10, Blaber: 3, Loki: 12, Tactical: 11, Vulcan: 3 } } },
 ];
 
 // Confirmed Week 5 slate (Liquipedia regular-season schedule) — used only
 // if the live fetch is unavailable.
 const FALLBACK_UPCOMING_MATCHES = [
-  { week: 5, date: "Aug 22", time: "1:00 PM PT", teamA: "Team Liquid", teamB: "Shopify Rebellion" },
-  { week: 5, date: "Aug 22", time: "4:00 PM PT", teamA: "Cloud9", teamB: "LYON" },
-  { week: 5, date: "Aug 23", time: "1:00 PM PT", teamA: "Disguised", teamB: "Sentinels" },
-  { week: 5, date: "Aug 23", time: "4:00 PM PT", teamA: "Dignitas", teamB: "FlyQuest" },
+  { week: "Week 5", date: "Aug 22", time: "1:00 PM PT", teamA: "Team Liquid", teamB: "Shopify Rebellion" },
+  { week: "Week 5", date: "Aug 22", time: "4:00 PM PT", teamA: "Cloud9", teamB: "LYON" },
+  { week: "Week 5", date: "Aug 23", time: "1:00 PM PT", teamA: "Disguised", teamB: "Sentinels" },
+  { week: "Week 5", date: "Aug 23", time: "4:00 PM PT", teamA: "Dignitas", teamB: "FlyQuest" },
 ];
 
 const REGION_LIST = ["LCS", "LEC", "LCK", "LPL"];
@@ -366,7 +361,7 @@ function FutureMatchCard({ teams, match, weights }) {
             <span style={{ color: "#4a5568", fontSize: 11 }}>vs</span>
             <span style={{ color: teams[match.teamB].color, fontWeight: 700 }}>{match.teamB}</span>
           </div>
-          <span style={{ fontSize: 11, color: "#5c6b7f", fontFamily: "'IBM Plex Mono', monospace" }}>{match.week ? `W${match.week} · ` : ""}{match.date}{match.time ? `, ${match.time}` : ""}</span>
+          <span style={{ fontSize: 11, color: "#5c6b7f", fontFamily: "'IBM Plex Mono', monospace" }}>{match.date}{match.time ? `, ${match.time}` : ""}</span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
           <span style={{ fontSize: 11, color: "#8b98a9" }}>tap to expand player projections</span>
@@ -394,11 +389,44 @@ function FutureMatchCard({ teams, match, weights }) {
   );
 }
 
+/* ---------- Grouping helper ---------- */
+
+function groupByLabel(items, labelFn) {
+  const groups = [];
+  const index = {};
+  for (const item of items) {
+    const label = labelFn(item) || "Other";
+    if (!(label in index)) {
+      index[label] = groups.length;
+      groups.push([label, []]);
+    }
+    groups[index[label]][1].push(item);
+  }
+  return groups;
+}
+
+function WeekHeader({ label }) {
+  return (
+    <div style={{ fontSize: 11, letterSpacing: 2, color: "#5c6b7f", fontFamily: "'IBM Plex Mono', monospace", margin: "16px 0 8px", textTransform: "uppercase" }}>
+      {label}
+    </div>
+  );
+}
+
 function FutureTab({ teams, upcomingMatches, weights }) {
   const [customMode, setCustomMode] = useState(false);
   const teamNames = Object.keys(teams);
   const [customA, setCustomA] = useState(teamNames[0]);
   const [customB, setCustomB] = useState(teamNames[1]);
+
+  // Sort by actual scheduled time (soonest first) before grouping — don't
+  // rely on whatever order the source data happened to arrive in.
+  const sorted = [...upcomingMatches].sort((a, b) => {
+    const ta = a._sortKey || a.date || "";
+    const tb = b._sortKey || b.date || "";
+    return ta < tb ? -1 : ta > tb ? 1 : 0;
+  });
+  const grouped = groupByLabel(sorted, (m) => m.block || m.week || null);
 
   return (
     <div>
@@ -411,7 +439,12 @@ function FutureTab({ teams, upcomingMatches, weights }) {
           No upcoming matches loaded. Use the custom matchup tool below.
         </div>
       )}
-      {upcomingMatches.map((m, i) => <FutureMatchCard key={i} teams={teams} match={m} weights={weights} />)}
+      {grouped.map(([label, matches]) => (
+        <div key={label}>
+          <WeekHeader label={label} />
+          {matches.map((m, i) => <FutureMatchCard key={i} teams={teams} match={m} weights={weights} />)}
+        </div>
+      ))}
 
       <button
         onClick={() => setCustomMode(!customMode)}
@@ -466,7 +499,7 @@ function PastMatchCard({ teams, match, weights }) {
             <span style={{ color: "#4a5568", fontSize: 11 }}>vs</span>
             <span style={{ color: teams[match.teamB].color, fontWeight: 700 }}>{match.teamB}</span>
           </div>
-          <span style={{ fontSize: 11, color: "#5c6b7f", fontFamily: "'IBM Plex Mono', monospace" }}>{match.week ? `W${match.week} · ` : ""}{match.date}</span>
+          <span style={{ fontSize: 11, color: "#5c6b7f", fontFamily: "'IBM Plex Mono', monospace" }}>{match.date}</span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
           <span style={{ fontSize: 11, color: "#8b98a9" }}>
@@ -500,7 +533,15 @@ function PastMatchCard({ teams, match, weights }) {
 }
 
 function PastResultsTab({ teams, pastMatches, weights }) {
-  const sorted = [...pastMatches].reverse();
+  // Sort by actual date (newest first) rather than trusting array order —
+  // the live scraper and the offline fallback snapshot store matches in
+  // opposite orders, so relying on array position was fragile.
+  const sorted = [...pastMatches].sort((a, b) => {
+    const da = a.date || "";
+    const db = b.date || "";
+    return da < db ? 1 : da > db ? -1 : 0;
+  });
+  const grouped = groupByLabel(sorted, (m) => m.week || null);
   return (
     <div>
       <div style={{ fontSize: 11, color: "#4a5568", marginBottom: 12, lineHeight: 1.5 }}>
@@ -508,7 +549,12 @@ function PastResultsTab({ teams, pastMatches, weights }) {
         exactly what the model would have said before each game, since current-split
         rates now include games that happened after these matches too.
       </div>
-      {sorted.map((m, i) => <PastMatchCard key={i} teams={teams} match={m} weights={weights} />)}
+      {grouped.map(([label, matches]) => (
+        <div key={label}>
+          <WeekHeader label={label} />
+          {matches.map((m, i) => <PastMatchCard key={i} teams={teams} match={m} weights={weights} />)}
+        </div>
+      ))}
     </div>
   );
 }
@@ -550,16 +596,19 @@ function DataStatus({ status, lastUpdated, errorDetail, onRetry }) {
 
 function formatUpcoming(rawList) {
   // Normalizes either the live API's ISO timestamps or fallback {date,time}.
+  // Keeps the original value as _sortKey so grouping/sorting isn't affected
+  // by the display-formatted string.
   return rawList.map((m) => {
     if (m.date && m.date.includes("T")) {
       const d = new Date(m.date);
       return {
         ...m,
+        _sortKey: m.date,
         date: d.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
         time: d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }),
       };
     }
-    return m;
+    return { ...m, _sortKey: m.date };
   });
 }
 
