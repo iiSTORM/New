@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 """
-Scrapes gol.gg for LCS Summer 2026 (+ Spring 2026 historical) player stats
-and recent match results, and writes data.json for the kill-projector app.
+Scrapes gol.gg for the four major LoL regions' current + prior-split player
+stats and recent match results, and writes data.json for the kill-projector
+app, nested by region: {"LCS": {...}, "LEC": {...}, "LCK": {...}, "LPL": {...}}
 
 Run via GitHub Actions on a schedule. See ../.github/workflows/scrape.yml
+
+Each region's gol.gg tournament naming differs — LCS/LEC still use Spring/
+Summer, but LCK is mid "Rounds 3-4" (prior stretch: "Rounds 1-2") and LPL is
+on "Split 3" (prior: "Split 2") this year. Update REGIONS below each time a
+region's split rolls over — gol.gg doesn't expose a "current tournament"
+lookup, so this has to be maintained by hand a few times a year.
 """
 import json
 import re
@@ -19,14 +26,22 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                   "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 }
-SUMMER = "LCS 2026 Summer"
-SPRING = "LCS 2026 Spring"
 
-TEAM_COLORS = {
-    "LYON": "#e0c341", "Sentinels": "#8a9bb5", "Cloud9": "#4fa8e0",
-    "Shopify Rebellion": "#7ed957", "Dignitas": "#c95050", "FlyQuest": "#3fbf7f",
-    "Team Liquid": "#1e90c8", "Disguised": "#b06fd1",
+# gol.gg's exact tournament-name strings for each region's current split and
+# the immediately prior one (used as the "historical" blend in the app).
+REGIONS = {
+    "LCS": {"current": "LCS 2026 Summer", "historical": "LCS 2026 Spring"},
+    "LEC": {"current": "LEC 2026 Summer Season", "historical": "LEC 2026 Spring Season"},
+    "LCK": {"current": "LCK 2026 Rounds 3-4", "historical": "LCK 2026 Rounds 1-2"},
+    "LPL": {"current": "LPL 2026 Split 3", "historical": "LPL 2026 Split 2"},
 }
+
+# Cycled per-team as new teams are discovered — not hand-picked brand colors
+# for every org across 4 regions, just enough visual distinction in the app.
+COLOR_PALETTE = [
+    "#e0c341", "#8a9bb5", "#4fa8e0", "#7ed957", "#c95050", "#3fbf7f",
+    "#1e90c8", "#b06fd1", "#e08a3f", "#5fd9c9", "#d15f9a", "#9fd15f",
+]
 ROLE_ORDER = {"Top": "TOP", "Jungle": "JNG", "Mid": "MID", "ADC": "BOT", "Support": "SUP"}
 
 
@@ -101,7 +116,7 @@ def parse_player_list(tournament):
     return players
 
 
-def parse_team_rosters():
+def parse_team_rosters(tournament):
     """gol.gg's team pages list each roster, conventionally in Top/Jungle/Mid/
     ADC/Support order. Used to fill in team/role fields the player-list table
     doesn't provide.
@@ -111,7 +126,7 @@ def parse_team_rosters():
     base is required, not naive string concatenation.
     """
     base_href = f"{BASE}/teams/"
-    url = f"{BASE}/teams/list/season-ALL/split-ALL/tournament-{SUMMER.replace(' ', '%20')}/"
+    url = f"{BASE}/teams/list/season-ALL/split-ALL/tournament-{tournament.replace(' ', '%20')}/"
     html = get(url)
     print(f"  fetched teams-list page, {len(html)} bytes", file=sys.stderr)
     soup = BeautifulSoup(html, "html.parser")
@@ -296,7 +311,8 @@ def build_teams_payload(cur_players, hist_players, roster):
             continue
         team, role = info["team"], info["role"]
         if team not in teams:
-            teams[team] = {"color": TEAM_COLORS.get(team, "#888888"), "players": []}
+            color = COLOR_PALETTE[len(teams) % len(COLOR_PALETTE)]
+            teams[team] = {"color": color, "players": []}
         hist = hist_players.get(name)
         entry = {
             "name": name, "role": role,
@@ -311,24 +327,26 @@ def build_teams_payload(cur_players, hist_players, roster):
     return teams
 
 
-def main():
-    print("Fetching team rosters (for team/role assignment)...")
-    roster = parse_team_rosters()
+def scrape_region(region_key, current_tournament, historical_tournament):
+    print(f"\n=== {region_key} ({current_tournament}) ===")
+
+    print(f"Fetching team rosters (for team/role assignment)...")
+    roster = parse_team_rosters(current_tournament)
     print(f"  {len(roster)} players matched to a team/role")
 
-    print("Fetching Summer (current) player stats...")
-    cur_players = parse_player_list(SUMMER)
+    print(f"Fetching current-split player stats...")
+    cur_players = parse_player_list(current_tournament)
     print(f"  {len(cur_players)} players")
 
-    print("Fetching Spring (historical) player stats...")
-    hist_players = parse_player_list(SPRING)
+    print(f"Fetching historical-split player stats...")
+    hist_players = parse_player_list(historical_tournament)
     print(f"  {len(hist_players)} players")
 
     teams_payload = build_teams_payload(cur_players, hist_players, roster)
     print(f"  built payload for {len(teams_payload)} teams: {list(teams_payload.keys())}")
 
-    print("Fetching match list...")
-    matches = parse_match_list(SUMMER)
+    print(f"Fetching match list...")
+    matches = parse_match_list(current_tournament)
     print(f"  {len(matches)} completed series found")
 
     past_matches = []
@@ -348,16 +366,27 @@ def main():
         })
         time.sleep(1)  # be polite to gol.gg
 
+    return {"teams": teams_payload, "past_matches": past_matches}
+
+
+def main():
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "teams": teams_payload,
-        "past_matches": past_matches,
-        # Upcoming schedule merged in separately — see scrape_schedule.py + merge.py.
+        "regions": {},
     }
+    for region_key, cfg in REGIONS.items():
+        try:
+            payload["regions"][region_key] = scrape_region(
+                region_key, cfg["current"], cfg["historical"]
+            )
+        except Exception as e:
+            print(f"! region {region_key} failed entirely: {e}", file=sys.stderr)
+            # Leave the region out rather than writing partial garbage —
+            # the app falls back to its bundled snapshot for a missing region.
 
     with open("data.json", "w") as f:
         json.dump(payload, f, indent=2)
-    print("Wrote data.json")
+    print(f"\nWrote data.json with regions: {list(payload['regions'].keys())}")
 
 
 if __name__ == "__main__":

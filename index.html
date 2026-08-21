@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="theme-color" content="#0a0e14" />
-<title>LCS Kill Projector</title>
+<title>LoL Esports Kill Projector</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" />
 <style>
   html, body { margin: 0; padding: 0; background: #0a0e14; color: #e8ecf1; font-family: -apple-system, sans-serif; }
@@ -22,8 +22,7 @@
 <script>
   // Catches ANY script error (including inside the Babel-transpiled block
   // below) and prints it directly on the page, since mobile Safari has no
-  // easy console access. If you see this, screenshot it — that's the exact
-  // bug to fix, not a guess.
+  // easy console access. If you see this, screenshot it.
   window.addEventListener('error', function (e) {
     var root = document.getElementById('root');
     var box = document.createElement('div');
@@ -39,13 +38,10 @@
 <!-- React + ReactDOM (production builds) -->
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<!-- Babel standalone: transpiles the JSX below directly in the browser, no build step -->
+<!-- Babel standalone v7 (v8 line has shown parser instability on real-world files) -->
 <script crossorigin src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
 
 <script>
-  // Sanity check that the three CDN scripts above actually loaded before we
-  // even attempt the Babel transpile — a failed CDN load is a different
-  // problem than a syntax error, and this tells them apart immediately.
   (function () {
     var missing = [];
     if (typeof React === 'undefined') missing.push('React');
@@ -216,6 +212,19 @@ const FALLBACK_UPCOMING_MATCHES = [
   { week: 5, date: "Aug 23", time: "1:00 PM PT", teamA: "Disguised", teamB: "Sentinels" },
   { week: 5, date: "Aug 23", time: "4:00 PM PT", teamA: "Dignitas", teamB: "FlyQuest" },
 ];
+
+const REGION_LIST = ["LCS", "LEC", "LCK", "LPL"];
+const REGION_LABELS = { LCS: "LCS", LEC: "LEC", LCK: "LCK", LPL: "LPL" };
+
+// Only LCS has a hand-built offline snapshot (from the original manual data
+// pull). The other three regions rely entirely on the live fetch — if it
+// fails, they'll show an empty state rather than wrong/stale data.
+const FALLBACK_REGIONS = {
+  LCS: { teams: FALLBACK_TEAMS, past_matches: FALLBACK_PAST_MATCHES, upcoming_matches: FALLBACK_UPCOMING_MATCHES },
+  LEC: { teams: {}, past_matches: [], upcoming_matches: [] },
+  LCK: { teams: {}, past_matches: [], upcoming_matches: [] },
+  LPL: { teams: {}, past_matches: [], upcoming_matches: [] },
+};
 
 /* ============================================================
    MODEL — all functions take `teams` explicitly since it can now
@@ -555,6 +564,7 @@ function formatUpcoming(rawList) {
 }
 
 function KillProjector() {
+  const [region, setRegion] = useState("LCS");
   const [tab, setTab] = useState("future");
   const [games, setGames] = useState(2);
   const [historyWeight, setHistoryWeight] = useState(DEFAULT_WEIGHTS.history);
@@ -562,9 +572,7 @@ function KillProjector() {
   const [kpStrength, setKpStrength] = useState(DEFAULT_WEIGHTS.kp);
   const weights = { history: historyWeight, opponent: oppStrength, kp: kpStrength };
 
-  const [teams, setTeams] = useState(FALLBACK_TEAMS);
-  const [pastMatches, setPastMatches] = useState(FALLBACK_PAST_MATCHES);
-  const [upcomingMatches, setUpcomingMatches] = useState(FALLBACK_UPCOMING_MATCHES);
+  const [regionsData, setRegionsData] = useState(FALLBACK_REGIONS);
   const [status, setStatus] = useState(DATA_URL ? "loading" : "no-url");
   const [lastUpdated, setLastUpdated] = useState(null);
   const [errorDetail, setErrorDetail] = useState(null);
@@ -582,14 +590,26 @@ function KillProjector() {
         return res.json();
       })
       .then((data) => {
-        // Guard against a technically-valid-but-empty payload (e.g. {} for
-        // teams) silently overwriting good fallback data with nothing.
-        if (!data.teams || Object.keys(data.teams).length === 0) {
-          throw new Error("Fetched data.json but 'teams' was empty");
+        const fetchedRegions = data.regions || {};
+        const anyTeams = Object.values(fetchedRegions).some(
+          (r) => r.teams && Object.keys(r.teams).length > 0
+        );
+        if (!anyTeams) {
+          throw new Error("Fetched data.json but every region had empty 'teams'");
         }
-        setTeams(data.teams);
-        if (data.past_matches) setPastMatches(data.past_matches);
-        if (data.upcoming_matches) setUpcomingMatches(data.upcoming_matches);
+        // Merge per-region: a region missing or empty in the fetch keeps its
+        // fallback rather than the whole app losing all regions over one
+        // partial failure.
+        setRegionsData((prev) => {
+          const merged = { ...prev };
+          for (const key of REGION_LIST) {
+            const fetched = fetchedRegions[key];
+            if (fetched && fetched.teams && Object.keys(fetched.teams).length > 0) {
+              merged[key] = fetched;
+            }
+          }
+          return merged;
+        });
         setLastUpdated(data.generated_at ? new Date(data.generated_at).toLocaleString() : "just now");
         setStatus("live");
       })
@@ -605,19 +625,37 @@ function KillProjector() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const normalizedUpcoming = formatUpcoming(upcomingMatches);
+  const current = regionsData[region] || { teams: {}, past_matches: [], upcoming_matches: [] };
+  const hasData = Object.keys(current.teams || {}).length > 0;
+  const normalizedUpcoming = formatUpcoming(current.upcoming_matches || []);
 
   return (
     <div style={{ minHeight: "100vh", background: "#0a0e14", color: "#e8ecf1", fontFamily: "'Inter', -apple-system, sans-serif", padding: "24px 16px 60px" }}>
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" />
       <div style={{ maxWidth: 640, margin: "0 auto" }}>
         <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 11, letterSpacing: 3, color: "#e8c15c", fontFamily: "'IBM Plex Mono', monospace" }}>LCS 2026 SUMMER — KILL PROJECTOR</div>
+          <div style={{ fontSize: 11, letterSpacing: 3, color: "#e8c15c", fontFamily: "'IBM Plex Mono', monospace" }}>LOL ESPORTS — KILL PROJECTOR</div>
           <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4 }}>Weighted kill projections</div>
-          <div style={{ fontSize: 13, color: "#8b98a9", marginTop: 2 }}>Blends this split's rates with Spring 2026 history, opponent strength, and kill-participation.</div>
+          <div style={{ fontSize: 13, color: "#8b98a9", marginTop: 2 }}>Blends this split's rates with prior-split history, opponent strength, and kill-participation.</div>
         </div>
 
         <DataStatus status={status} lastUpdated={lastUpdated} errorDetail={errorDetail} onRetry={fetchLiveData} />
+
+        <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+          {REGION_LIST.map((key) => (
+            <button
+              key={key}
+              onClick={() => setRegion(key)}
+              style={{
+                flex: 1, padding: "9px 0", borderRadius: 8, border: "1px solid " + (region === key ? "#4fa8e0" : "#1f2733"),
+                background: region === key ? "#4fa8e018" : "#0f1420", color: region === key ? "#4fa8e0" : "#8b98a9",
+                fontSize: 13, fontWeight: 700, cursor: "pointer",
+              }}
+            >
+              {REGION_LABELS[key]}
+            </button>
+          ))}
+        </div>
 
         <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
           {[["future", "Future"], ["past", "Past Results"]].map(([id, label]) => (
@@ -642,14 +680,24 @@ function KillProjector() {
           kpStrength={kpStrength} setKpStrength={setKpStrength}
         />
 
-        {tab === "future"
-          ? <FutureTab teams={teams} upcomingMatches={normalizedUpcoming} weights={weights} />
-          : <PastResultsTab teams={teams} pastMatches={pastMatches} weights={weights} />}
+        {!hasData ? (
+          <div style={{ background: "#0f1420", border: "1px solid #1f2733", borderRadius: 10, padding: "20px 16px", textAlign: "center" }}>
+            <div style={{ fontSize: 13, color: "#8b98a9" }}>No {REGION_LABELS[region]} data available yet.</div>
+            <div style={{ fontSize: 12, color: "#4a5568", marginTop: 4 }}>
+              {status === "live" || status === "loading"
+                ? "This region may not have loaded from the live source — try refresh above."
+                : "The live source hasn't loaded, and there's no offline snapshot for this region yet."}
+            </div>
+          </div>
+        ) : tab === "future" ? (
+          <FutureTab teams={current.teams} upcomingMatches={normalizedUpcoming} weights={weights} />
+        ) : (
+          <PastResultsTab teams={current.teams} pastMatches={current.past_matches || []} weights={weights} />
+        )}
 
         <div style={{ marginTop: 20, fontSize: 11, color: "#4a5568", lineHeight: 1.6 }}>
           Tap any match card to expand player-level detail.
-          Data: LCS 2026 Spring &amp; Summer regular-season box scores (gol.gg) and
-          schedule (Liquipedia / LoL Esports API).
+          Data: regular-season box scores (gol.gg) and schedule (LoL Esports API).
         </div>
       </div>
     </div>
