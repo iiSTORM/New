@@ -14,7 +14,10 @@ import requests
 from bs4 import BeautifulSoup
 
 BASE = "https://gol.gg"
-HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; lcs-kill-projector/1.0)"}
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                  "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+}
 SUMMER = "LCS 2026 Summer"
 SPRING = "LCS 2026 Spring"
 
@@ -27,11 +30,14 @@ ROLE_ORDER = {"Top": "TOP", "Jungle": "JNG", "Mid": "MID", "ADC": "BOT", "Suppor
 
 
 def get(url, retries=3):
+    last_status = None
     for attempt in range(retries):
         r = requests.get(url, headers=HEADERS, timeout=20)
+        last_status = r.status_code
         if r.status_code == 200:
             return r.text
         time.sleep(2)
+    print(f"  ! GET {url} failed after {retries} tries, last status {last_status}", file=sys.stderr)
     r.raise_for_status()
 
 
@@ -97,10 +103,10 @@ def parse_player_list(tournament):
 def parse_team_rosters():
     """gol.gg's team pages list each roster, conventionally in Top/Jungle/Mid/
     ADC/Support order. Used to fill in team/role fields the player-list table
-    doesn't provide. Role is inferred from list position — flagged with a
-    diagnostic dump so it can be corrected if a team's page lists it differently."""
+    doesn't provide."""
     url = f"{BASE}/teams/list/season-ALL/split-ALL/tournament-{SUMMER.replace(' ', '%20')}/"
     html = get(url)
+    print(f"  fetched teams-list page, {len(html)} bytes", file=sys.stderr)
     soup = BeautifulSoup(html, "html.parser")
     team_links = soup.find_all("a", href=re.compile(r"/teams/team-stats/\d+/"))
     team_urls = {}
@@ -109,6 +115,13 @@ def parse_team_rosters():
         if name and name not in team_urls:
             team_urls[name] = link["href"]
     print(f"  found {len(team_urls)} teams: {list(team_urls.keys())}", file=sys.stderr)
+    if not team_urls:
+        # Something's structurally different from expected — dump enough to diagnose.
+        all_links = soup.find_all("a", href=True)
+        print(f"    total <a> tags on page: {len(all_links)}", file=sys.stderr)
+        team_stats_like = [a["href"] for a in all_links if "team-stats" in a["href"]][:5]
+        print(f"    hrefs containing 'team-stats': {team_stats_like}", file=sys.stderr)
+        print(f"    page title/snippet: {html[:300]!r}", file=sys.stderr)
 
     role_sequence = ["TOP", "JNG", "MID", "BOT", "SUP"]
     roster = {}  # player name -> {"team":..., "role":...}
@@ -193,8 +206,15 @@ def parse_match_list(tournament):
 
 def parse_game_kills(game_id):
     """Returns {team: {player: kills}} totals for a single game page.
-    gol.gg puts all 10 players in one table.playersInfosLine, first 5 rows
-    for the first team, next 5 for the second."""
+
+    gol.gg's per-game table nests a lot of extra markup per player (rune and
+    item breakdowns), which inflates naive <tr> counts and makes position-based
+    row splitting unreliable. Instead: find every row that contains a link to
+    a player's profile (unambiguous signal), and within that same row look for
+    a standalone "N/N/N" KDA pattern. Each player cell also has a champion-icon
+    link before the name link, so we take the *last* link in the cell, not the
+    first, when extracting the name.
+    """
     url = f"{BASE}/game/stats/{game_id}/page-game/"
     html = get(url)
     soup = BeautifulSoup(html, "html.parser")
@@ -211,39 +231,33 @@ def parse_game_kills(game_id):
         print(f"  ! game {game_id}: expected 2 teams from headers, got {team_names}", file=sys.stderr)
         return result
 
-    table = soup.find("table", class_="playersInfosLine")
-    if not table:
-        print(f"  ! game {game_id}: no table.playersInfosLine found", file=sys.stderr)
-        all_tables = soup.find_all("table")
-        for t in all_tables[:6]:
-            print(f"    table classes: {t.get('class')}", file=sys.stderr)
-        return result
-
-    rows = table.find_all("tr")
-    data_rows = rows[1:] if rows and rows[0].find_all("th") else rows
-    print(f"  game {game_id}: playersInfosLine has {len(data_rows)} data rows", file=sys.stderr)
-
+    kda_pattern = re.compile(r"^\s*(\d+)\s*/\s*(\d+)\s*/\s*(\d+)\s*$")
     parsed = []
-    for row in data_rows:
-        name_cell = row.find("a", class_="text-decoration-none") or row.find("a")
-        kda_cell = row.find("td", class_="kda")
-        if not kda_cell:
-            # fallback: scan all cells for an "N / N / N" pattern
-            for td in row.find_all("td"):
-                if re.match(r"\s*\d+\s*/\s*\d+\s*/\s*\d+\s*$", td.get_text(strip=True)):
-                    kda_cell = td
-                    break
-        if not name_cell or not kda_cell:
+    seen_names = set()
+    for row in soup.find_all("tr"):
+        player_links = row.find_all("a", href=re.compile(r"/players/player-stats/\d+/"))
+        if not player_links:
             continue
-        name = name_cell.get_text(strip=True)
-        m = re.match(r"(\d+)\s*/\s*(\d+)\s*/\s*(\d+)", kda_cell.get_text(strip=True))
-        if m:
-            parsed.append((name, int(m.group(1))))
+        name = player_links[-1].get_text(strip=True)  # last link = name, not champion icon
+        if not name or name in seen_names:
+            continue
+        # Look for a cell in this row whose text is EXACTLY a "N/N/N" pattern
+        # (avoids accidentally matching item/rune stat text that merely
+        # contains digits and slashes).
+        kills = None
+        for td in row.find_all("td"):
+            m = kda_pattern.match(td.get_text(strip=True))
+            if m:
+                kills = int(m.group(1))
+                break
+        if kills is None:
+            continue
+        seen_names.add(name)
+        parsed.append((name, kills))
 
     if len(parsed) != 10:
         print(f"  ! game {game_id}: expected 10 players, parsed {len(parsed)}: {parsed}", file=sys.stderr)
 
-    # First half of rows = team_names[0], second half = team_names[1]
     half = len(parsed) // 2 if len(parsed) >= 2 else 0
     for name, kills in parsed[:half]:
         result[team_names[0]][name] = kills
