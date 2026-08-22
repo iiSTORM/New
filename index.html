@@ -641,23 +641,91 @@ function PlayerRow({ teams, pastMatches, p, team, opponentTeam, games, weights, 
   );
 }
 
+/* ============================================================
+   HEAD-TO-HEAD — computed entirely from pastMatches already in
+   memory, no extra data needed. Scoped to whatever pastMatches was
+   passed in (a single region/split), which is correct since two
+   teams only meet within the same region's round robin anyway.
+   ============================================================ */
+
+function getHeadToHead(pastMatches, teamA, teamB) {
+  const meetings = pastMatches.filter(
+    (m) => (m.teamA === teamA && m.teamB === teamB) || (m.teamA === teamB && m.teamB === teamA)
+  );
+  meetings.sort((a, b) => ((a.date || "") < (b.date || "") ? 1 : (a.date || "") > (b.date || "") ? -1 : 0)); // newest first
+  let winsA = 0, winsB = 0;
+  for (const m of meetings) {
+    if (m.winner === teamA) winsA++;
+    else if (m.winner === teamB) winsB++;
+  }
+  return { meetings, winsA, winsB };
+}
+
+function HeadToHeadCard({ teams, pastMatches, teamA, teamB, bare = false }) {
+  const theme = useTheme();
+  const { meetings, winsA, winsB } = getHeadToHead(pastMatches, teamA, teamB);
+  const colorA = teams[teamA] ? teams[teamA].color : theme.text;
+  const colorB = teams[teamB] ? teams[teamB].color : theme.text;
+
+  const content = (
+    <>
+      <div style={{ fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", marginBottom: 10 }}>HEAD-TO-HEAD</div>
+      {meetings.length === 0 ? (
+        <div style={{ fontSize: 12, color: theme.textDim }}>No prior meetings this split.</div>
+      ) : (
+        <>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <span style={{ color: colorA, fontWeight: 700, fontFamily: "'Chakra Petch', sans-serif", fontSize: 14 }}>{teamA}</span>
+            <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 20, fontWeight: 700, color: theme.text }}>{winsA} – {winsB}</span>
+            <span style={{ color: colorB, fontWeight: 700, fontFamily: "'Chakra Petch', sans-serif", fontSize: 14 }}>{teamB}</span>
+          </div>
+          {meetings.map((m, i) => (
+            <div
+              key={i}
+              style={{
+                display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11, padding: "7px 0",
+                borderTop: i > 0 ? `1px solid ${theme.steelSoft}` : "none", color: theme.textDim,
+              }}
+            >
+              <span>{m.week ? `${m.week} · ` : ""}{m.date}</span>
+              <span style={{ fontFamily: "'IBM Plex Mono', monospace", color: m.winner === teamA ? colorA : m.winner === teamB ? colorB : theme.text }}>
+                {m.winner} won {m.score}
+              </span>
+            </div>
+          ))}
+        </>
+      )}
+    </>
+  );
+
+  if (bare) return <div style={{ padding: "12px 14px" }}>{content}</div>;
+  return (
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: 14, marginBottom: 12 }}>
+      {content}
+    </div>
+  );
+}
+
 function MatchupPanel({ teams, pastMatches, teamA, teamB, games, weights, statType }) {
   const theme = useTheme();
   const totalsA = teams[teamA].players.reduce((s, p) => s + project(teams, pastMatches, p, teamA, teamB, games, weights, statType).total, 0);
   const totalsB = teams[teamB].players.reduce((s, p) => s + project(teams, pastMatches, p, teamB, teamA, games, weights, statType).total, 0);
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-      {[[teamA, teamB, totalsA], [teamB, teamA, totalsB]].map(([team, opp, total], i) => (
-        <div key={i} style={{ background: theme.graphite, border: `1px solid ${teams[team].color}33`, ...cardShape(theme.cornerStyle), overflow: "hidden" }}>
-          <div style={{ padding: "10px 12px", background: `${teams[team].color}18`, borderBottom: `1px solid ${teams[team].color}33`, display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <span style={{ fontWeight: 700, fontSize: 14, fontFamily: "'Chakra Petch', sans-serif" }}>{team}</span>
-            <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, color: teams[team].color }}>Σ {total.toFixed(1)}</span>
+    <div>
+      <HeadToHeadCard teams={teams} pastMatches={pastMatches} teamA={teamA} teamB={teamB} />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        {[[teamA, teamB, totalsA], [teamB, teamA, totalsB]].map(([team, opp, total], i) => (
+          <div key={i} style={{ background: theme.graphite, border: `1px solid ${teams[team].color}33`, ...cardShape(theme.cornerStyle), overflow: "hidden" }}>
+            <div style={{ padding: "10px 12px", background: `${teams[team].color}18`, borderBottom: `1px solid ${teams[team].color}33`, display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+              <span style={{ fontWeight: 700, fontSize: 14, fontFamily: "'Chakra Petch', sans-serif" }}>{team}</span>
+              <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, color: teams[team].color }}>Σ {total.toFixed(1)}</span>
+            </div>
+            {teams[team].players.map((p) => (
+              <PlayerRow key={p.name} teams={teams} pastMatches={pastMatches} p={p} team={team} opponentTeam={opp} games={games} weights={weights} teamColor={teams[team].color} statType={statType} />
+            ))}
           </div>
-          {teams[team].players.map((p) => (
-            <PlayerRow key={p.name} teams={teams} pastMatches={pastMatches} p={p} team={team} opponentTeam={opp} games={games} weights={weights} teamColor={teams[team].color} statType={statType} />
-          ))}
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -769,7 +837,8 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType }) {
       </div>
       {open && (
         <div style={{ borderTop: `1px solid ${theme.steel}` }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 60px", padding: "6px 14px", fontSize: 10, letterSpacing: 1, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
+          <HeadToHeadCard teams={teams} pastMatches={pastMatches} teamA={match.teamA} teamB={match.teamB} bare />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 60px", padding: "6px 14px", fontSize: 10, letterSpacing: 1, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", borderTop: `1px solid ${theme.steel}` }}>
             <span>PLAYER</span><span style={{ textAlign: "right" }}>PROJ</span>
           </div>
           {rows.map((r) => (
