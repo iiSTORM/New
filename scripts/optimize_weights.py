@@ -168,7 +168,8 @@ def point_in_time_player_names_stat(past_matches, team, player_names, stat_key, 
             if isinstance(val, (int, float)):
                 total += val
                 games += 2
-    return total / games if games > 0 else None
+    rate = total / games if games > 0 else None
+    return rate, games
 
 
 def point_in_time_league_avg_for_role(past_matches, teams, role, stat_key, cutoff_date):
@@ -177,7 +178,7 @@ def point_in_time_league_avg_for_role(past_matches, teams, role, stat_key, cutof
         role_names = [p["name"] for p in team_data["players"] if p.get("role") == role]
         if not role_names:
             continue
-        r = point_in_time_player_names_stat(past_matches, team_name, role_names, stat_key, cutoff_date)
+        r, _ = point_in_time_player_names_stat(past_matches, team_name, role_names, stat_key, cutoff_date)
         if r is not None:
             rates.append(r)
     return sum(rates) / len(rates) if rates else None
@@ -190,7 +191,7 @@ def lane_opponent_multiplier(past_matches, teams, player, opponent_team, opp_str
     opponent_role_names = [p["name"] for p in teams[opponent_team]["players"] if p.get("role") == role]
     if not opponent_role_names:
         return None
-    opp_stat = point_in_time_player_names_stat(past_matches, opponent_team, opponent_role_names, opp_basis_key, cutoff_date)
+    opp_stat, _ = point_in_time_player_names_stat(past_matches, opponent_team, opponent_role_names, opp_basis_key, cutoff_date)
     league_avg = point_in_time_league_avg_for_role(past_matches, teams, role, opp_basis_key, cutoff_date)
     if opp_stat is None or not league_avg:
         return None
@@ -377,6 +378,12 @@ def correlation(xs, ys):
 
 
 def collect_opponent_diagnosis_rows(region_data, stat_type, weights):
+    """For each player-match, computes the opponent signal exactly the way
+    the model actually would (lane-specific first if this stat uses it,
+    falling back to team-wide) — not a separate hardcoded team-wide-only
+    calculation. Tracks which path was used per row so the report can show
+    how often lane-specific data was actually available versus falling
+    back, alongside the correlation itself."""
     cfg = STAT_TYPES[stat_type]
     rows = []
     for region_key, rd in region_data.items():
@@ -388,35 +395,8 @@ def collect_opponent_diagnosis_rows(region_data, stat_type, weights):
             for side in ("teamA", "teamB"):
                 team = match[side]
                 opp = match["teamB"] if side == "teamA" else match["teamA"]
-                if team not in teams:
+                if team not in teams or opp not in teams:
                     continue
-
-                # Opponent's point-in-time stat, computed the same way the
-                # model does, but also tracking how many prior games back it.
-                opp_total, opp_games = 0.0, 0
-                for m in past_matches:
-                    if not m.get("date") or m["date"] >= match["date"]:
-                        continue
-                    o = m["teamB"] if m["teamA"] == opp else (m["teamA"] if m["teamB"] == opp else None)
-                    if not o or not m.get("actual"):
-                        continue
-                    source_team = o if cfg["oppBasis"] == "d" else opp
-                    source_data = m["actual"].get(source_team)
-                    if not source_data:
-                        continue
-                    for pname in source_data:
-                        val = get_actual_stat(m, source_team, pname, "k")
-                        if isinstance(val, (int, float)):
-                            opp_total += val
-                    opp_games += 2
-                if opp_games == 0:
-                    continue
-                opp_stat = opp_total / opp_games
-                league_avg_pt = point_in_time_league_avg_stat(past_matches, teams, cfg["oppBasis"], match["date"])
-                league_avg = league_avg_pt if league_avg_pt is not None else league_avg_stat(teams, cfg["oppBasis"])
-                if not league_avg:
-                    continue
-                opp_ratio = opp_stat / league_avg
 
                 for player in teams[team]["players"]:
                     actual = get_actual_stat(match, team, player["name"], cfg["key"])
@@ -430,9 +410,33 @@ def collect_opponent_diagnosis_rows(region_data, stat_type, weights):
                         own_rate = player["hist"][cfg["key"]] if player.get("hist") else None
                     if own_rate is None:
                         continue
+
+                    used_lane = False
+                    opp_stat, league_avg, opp_games = None, None, 0
+                    if cfg["laneSpecific"]:
+                        role = player.get("role")
+                        if role:
+                            opponent_role_names = [p["name"] for p in teams[opp]["players"] if p.get("role") == role]
+                            if opponent_role_names:
+                                opp_stat, opp_games = point_in_time_player_names_stat(
+                                    past_matches, opp, opponent_role_names, cfg["oppBasis"], match["date"]
+                                )
+                                league_avg = point_in_time_league_avg_for_role(past_matches, teams, role, cfg["oppBasis"], match["date"])
+                                if opp_stat is not None and league_avg:
+                                    used_lane = True
+                    if not used_lane:
+                        opp_stat = point_in_time_team_stat(past_matches, opp, cfg["oppBasis"], match["date"])
+                        league_avg_pt = point_in_time_league_avg_stat(past_matches, teams, cfg["oppBasis"], match["date"])
+                        league_avg = league_avg_pt if league_avg_pt is not None else league_avg_stat(teams, cfg["oppBasis"])
+                        opp_games = 8  # team-wide estimates aggregate ~5x the data of a single role — treat as "stable" by default
+                        if opp_stat is None:
+                            opp_stat = team_stat_per_game(teams, opp, cfg["oppBasis"])
+                    if not opp_stat or not league_avg:
+                        continue
+
                     rows.append({
-                        "opp_games": opp_games, "opp_ratio": opp_ratio,
-                        "own_base": own_rate * 2, "actual": actual,
+                        "opp_games": opp_games, "opp_ratio": opp_stat / league_avg,
+                        "own_base": own_rate * 2, "actual": actual, "used_lane": used_lane,
                     })
     return rows
 
@@ -444,7 +448,11 @@ def diagnose_opponent_signal(region_data, stat_type, weights, threshold=8):
         return
     n = len(rows)
     avg_opp_games = sum(r["opp_games"] for r in rows) / n
+    lane_count = sum(1 for r in rows if r["used_lane"])
     print(f"  n={n} predictions, avg opponent-estimate sample size = {avg_opp_games:.1f} prior games")
+    if STAT_TYPES[stat_type]["laneSpecific"]:
+        print(f"  lane-specific comparison used for {lane_count}/{n} rows ({100*lane_count/n:.0f}%) "
+              f"— the rest fell back to team-wide (no current opponent on record for that role, or thin data)")
 
     def report(subset, label):
         if len(subset) < 10:
