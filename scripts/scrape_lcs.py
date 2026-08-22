@@ -14,8 +14,9 @@ lookup, so this has to be maintained by hand a few times a year.
 """
 import json
 import re
-import time
 import sys
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from urllib.parse import urljoin
 import requests
@@ -148,12 +149,10 @@ def parse_team_rosters(tournament):
 
     role_sequence = ["TOP", "JNG", "MID", "BOT", "SUP"]
     roster = {}  # player name -> {"team":..., "role":...}
-    for team_name, team_url in team_urls.items():
-        try:
-            team_html = get(team_url)
-        except Exception as e:
-            print(f"  ! failed to fetch roster for {team_name}: {e}", file=sys.stderr)
-            continue
+    first_team_name = list(team_urls.keys())[0] if team_urls else None
+
+    def fetch_roster(team_name, team_url):
+        team_html = get(team_url)
         team_soup = BeautifulSoup(team_html, "html.parser")
         player_links = team_soup.find_all("a", href=re.compile(r"player-stats/\d+"))
         seen = []
@@ -161,11 +160,21 @@ def parse_team_rosters(tournament):
             pname = pl.get_text(strip=True)
             if pname and pname not in seen:
                 seen.append(pname)
-        if team_name == list(team_urls.keys())[0]:  # diagnostic for just the first team
-            print(f"    {team_name} roster order found: {seen}", file=sys.stderr)
-        for idx, pname in enumerate(seen[:5]):
-            roster[pname] = {"team": team_name, "role": role_sequence[idx] if idx < 5 else "SUB"}
-        time.sleep(0.5)
+        return team_name, seen
+
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        futures = {pool.submit(fetch_roster, name, url): name for name, url in team_urls.items()}
+        for future in as_completed(futures):
+            team_name = futures[future]
+            try:
+                team_name, seen = future.result()
+            except Exception as e:
+                print(f"  ! failed to fetch roster for {team_name}: {e}", file=sys.stderr)
+                continue
+            if team_name == first_team_name:  # diagnostic for just the first team
+                print(f"    {team_name} roster order found: {seen}", file=sys.stderr)
+            for idx, pname in enumerate(seen[:5]):
+                roster[pname] = {"team": team_name, "role": role_sequence[idx] if idx < 5 else "SUB"}
     return roster
 
 
@@ -175,10 +184,35 @@ def clean_team_name(raw):
     return re.sub(r"\s*-?\s*(WIN|LOSS)\s*$", "", raw, flags=re.IGNORECASE).strip()
 
 
+def normalize_week_label(raw):
+    """gol.gg's week column reads like 'WEEK4' during regular season, but
+    during playoffs it's a round name like 'PLAYOFFS', 'QUARTERFINALS', or
+    sometimes 'PLAYOFFS - RO8'. Preserve the actual label (title-cased, with
+    a space inserted before a trailing week number) instead of stripping to
+    digits-only, so playoff rounds don't silently collapse to blank/None."""
+    raw = raw.strip()
+    if not raw:
+        return None
+    m = re.match(r"^WEEK\s*(\d+)$", raw, re.IGNORECASE)
+    if m:
+        return f"Week {m.group(1)}"
+    # Title-case everything else ("PLAYOFFS" -> "Playoffs",
+    # "QUARTERFINALS" -> "Quarterfinals") but leave existing mixed-case or
+    # already-formatted labels alone.
+    return raw.title() if raw.isupper() else raw
+
+
 def parse_match_list(tournament):
     """Returns list of completed series with gol.gg game IDs, most recent first.
     Rows for matches that haven't been played yet (score is a placeholder like
-    '-' or 'vs') are skipped — those belong in the schedule, not past results."""
+    '-' or 'vs') are skipped — those belong in the schedule, not past results.
+
+    Cells are identified by CONTENT PATTERN (score looks like "2 - 0", date
+    looks like "2026-08-16", patch looks like "16.16"), not fixed column
+    position. gol.gg has added/reordered columns before without warning (a
+    "Patch" column appeared between Week and Date at some point) — content
+    matching survives that; position-based indexing silently breaks on it.
+    """
     url = f"{BASE}/tournament/tournament-matchlist/{tournament.replace(' ', '%20')}/"
     html = get(url)
     soup = BeautifulSoup(html, "html.parser")
@@ -192,10 +226,15 @@ def parse_match_list(tournament):
     if rows:
         header_cells = rows[0].find_all(["th", "td"])
         print(f"    header: {[c.get_text(strip=True) for c in header_cells]}", file=sys.stderr)
+
+    score_re = re.compile(r"^\d+\s*-\s*\d+$")
+    date_re = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+    patch_re = re.compile(r"^\d+\.\d+[a-zA-Z]?$")
+
     skipped_unplayed = 0
     for i, row in enumerate(rows[1:], start=1):
         cells = row.find_all("td")
-        if len(cells) < 6:
+        if len(cells) < 5:
             if i == 1:
                 print(f"    row 1 has only {len(cells)} cells: "
                       f"{[c.get_text(strip=True) for c in cells]}", file=sys.stderr)
@@ -206,28 +245,43 @@ def parse_match_list(tournament):
         game_id = re.search(r"/game/stats/(\d+)/", link["href"])
         if not game_id:
             continue
-        team_left = cells[1].get_text(strip=True)
-        score = cells[2].get_text(strip=True)
-        team_right = cells[3].get_text(strip=True)
-        # Skip unplayed matches — score should look like "2 - 0", "1 - 2", etc.
-        if not re.match(r"^\d+\s*-\s*\d+$", score):
+
+        texts = [c.get_text(strip=True) for c in cells]
+        score_idx = next((idx for idx, t in enumerate(texts) if score_re.match(t)), None)
+        if score_idx is None or score_idx < 1 or score_idx + 1 >= len(texts):
             skipped_unplayed += 1
+            if i == 1:
+                print(f"    row 1: no score-shaped cell found in {texts}", file=sys.stderr)
             continue
-        score = re.sub(r"\s+", "", score)  # normalize "2 - 1" -> "2-1"
-        week_digits = re.sub(r"\D", "", cells[4].get_text(strip=True))
-        week = int(week_digits) if week_digits else None
-        date = cells[5].get_text(strip=True)
+        score = texts[score_idx]
+        team_left = texts[score_idx - 1]
+        team_right = texts[score_idx + 1]
+        score_norm = re.sub(r"\s+", "", score)
+
+        date = next((t for t in texts if date_re.match(t)), None)
+        patch = next((t for t in texts if patch_re.match(t)), None)
+        # Week/round label: whatever's left over that isn't game/score/teams/
+        # date/patch — typically the cell right after team_right.
+        week_raw = texts[score_idx + 2] if score_idx + 2 < len(texts) and texts[score_idx + 2] not in (date, patch) else None
+        week = normalize_week_label(week_raw) if week_raw else None
+
+        if date is None:
+            if i == 1:
+                print(f"    row 1: no date-shaped cell found in {texts}", file=sys.stderr)
+            continue
+
         matches.append({
             "base_game_id": int(game_id.group(1)),
-            "team_left": team_left, "score": score, "team_right": team_right,
-            "week": week, "date": date,
+            "team_left": team_left, "score": score_norm, "team_right": team_right,
+            "week": week, "date": date, "patch": patch,
         })
     print(f"    {len(matches)} completed, {skipped_unplayed} unplayed/skipped", file=sys.stderr)
     return matches
 
 
 def parse_game_kills(game_id):
-    """Returns {team: {player: kills}} totals for a single game page.
+    """Returns {team: {player: {"k":kills,"d":deaths,"a":assists}}} for a
+    single game page.
 
     gol.gg's per-game table nests a lot of extra markup per player (rune and
     item breakdowns), which inflates naive <tr> counts and makes position-based
@@ -266,38 +320,46 @@ def parse_game_kills(game_id):
         # Look for a cell in this row whose text is EXACTLY a "N/N/N" pattern
         # (avoids accidentally matching item/rune stat text that merely
         # contains digits and slashes).
-        kills = None
+        kda = None
         for td in row.find_all("td"):
             m = kda_pattern.match(td.get_text(strip=True))
             if m:
-                kills = int(m.group(1))
+                kda = {"k": int(m.group(1)), "d": int(m.group(2)), "a": int(m.group(3))}
                 break
-        if kills is None:
+        if kda is None:
             continue
         seen_names.add(name)
-        parsed.append((name, kills))
+        parsed.append((name, kda))
 
     if len(parsed) != 10:
         print(f"  ! game {game_id}: expected 10 players, parsed {len(parsed)}: {parsed}", file=sys.stderr)
 
     half = len(parsed) // 2 if len(parsed) >= 2 else 0
-    for name, kills in parsed[:half]:
-        result[team_names[0]][name] = kills
-    for name, kills in parsed[half:]:
-        result[team_names[1]][name] = kills
+    for name, kda in parsed[:half]:
+        result[team_names[0]][name] = kda
+    for name, kda in parsed[half:]:
+        result[team_names[1]][name] = kda
 
     return result
 
 
 def series_g1_g2_kills(base_id, score):
-    """Given the first game's ID and a '2-0'/'2-1' score string, returns
-    combined game-1 + game-2 kills per player, per team."""
-    is_bo3_full = score.strip() in ("2-1", "1-2")
+    """Given the first game's ID, returns combined game-1 + game-2 K/D/A per
+    player, per team. Works the same regardless of series length (Bo3 or
+    Bo5) since it always fetches exactly the first two individual games."""
     g1 = parse_game_kills(base_id)
     g2 = parse_game_kills(base_id + 1)
+    empty = {"k": 0, "d": 0, "a": 0}
     combined = {}
     for team in g1:
-        combined[team] = {p: g1[team].get(p, 0) + g2.get(team, {}).get(p, 0) for p in g1[team]}
+        combined[team] = {}
+        for p, kda1 in g1[team].items():
+            kda2 = g2.get(team, {}).get(p, empty)
+            combined[team][p] = {
+                "k": kda1["k"] + kda2["k"],
+                "d": kda1["d"] + kda2["d"],
+                "a": kda1["a"] + kda2["a"],
+            }
     return combined
 
 
@@ -349,22 +411,33 @@ def scrape_region(region_key, current_tournament, historical_tournament):
     matches = parse_match_list(current_tournament)
     print(f"  {len(matches)} completed series found")
 
+    # This is the dominant cost of the whole scrape — each match needs 2
+    # page fetches (game 1 + game 2), and with 20-60+ matches per region
+    # that's 100+ sequential requests if done one at a time. Fetching
+    # several matches concurrently (bounded pool, not unlimited) cuts wall
+    # time roughly in proportion to the worker count while staying modest
+    # enough not to look like an attack on gol.gg.
     past_matches = []
-    for m in matches:
-        try:
-            kills = series_g1_g2_kills(m["base_game_id"], m["score"])
-        except Exception as e:
-            print(f"  ! skipped {m['team_left']} vs {m['team_right']}: {e}", file=sys.stderr)
-            continue
+
+    def fetch_one(m):
+        kills = series_g1_g2_kills(m["base_game_id"], m["score"])
         left_score, right_score = (int(x) for x in m["score"].split("-"))
         winner = m["team_left"] if left_score > right_score else m["team_right"]
-        past_matches.append({
-            "week": m["week"], "date": m["date"],
+        return {
+            "week": m["week"], "date": m["date"], "patch": m.get("patch"),
             "teamA": m["team_left"], "teamB": m["team_right"],
             "winner": winner, "score": m["score"],
             "actual": kills,
-        })
-        time.sleep(1)  # be polite to gol.gg
+        }
+
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        futures = {pool.submit(fetch_one, m): m for m in matches}
+        for future in as_completed(futures):
+            m = futures[future]
+            try:
+                past_matches.append(future.result())
+            except Exception as e:
+                print(f"  ! skipped {m['team_left']} vs {m['team_right']}: {e}", file=sys.stderr)
 
     return {"teams": teams_payload, "past_matches": past_matches}
 
