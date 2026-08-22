@@ -1,1319 +1,5014 @@
 {
-  "generated_at": "2026-08-22T12:38:40.016701+00:00",
+  "generated_at": "2026-08-22T12:58:11.744601+00:00",
   "regions": {
     "VCT Americas": {
       "teams": {},
-      "past_matches": [],
-      "upcoming_matches": [
+      "past_matches": [
         {
+          "week": null,
           "date": "2026-07-16",
+          "patch": "13.01",
           "teamA": "LEVIAT\u00c1N",
           "teamB": "FURIA",
-          "block": null
+          "winner": "LEVIAT\u00c1N",
+          "score": "2-0",
+          "actual": {
+            "LEVIAT\u00c1N": {},
+            "FURIA": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-07-16",
+          "patch": "13.01",
           "teamA": "Sentinels",
           "teamB": "Cloud9",
-          "block": null
+          "winner": "Cloud9",
+          "score": "5-20",
+          "actual": {
+            "Sentinels": {},
+            "Cloud9": {}
+          },
+          "games": 25
         },
         {
+          "week": null,
           "date": "2026-07-17",
+          "patch": "13.01",
           "teamA": "ENVY",
           "teamB": "Evil Geniuses",
-          "block": null
+          "winner": "ENVY",
+          "score": "2-0",
+          "actual": {
+            "ENVY": {},
+            "Evil Geniuses": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-07-17",
+          "patch": "13.01",
           "teamA": "KR\u00dc Esports",
           "teamB": "LOUD",
-          "block": null
+          "winner": "LOUD",
+          "score": "4-15",
+          "actual": {
+            "KR\u00dc Esports": {},
+            "LOUD": {}
+          },
+          "games": 19
         },
         {
+          "week": null,
           "date": "2026-07-18",
+          "patch": "13.01",
           "teamA": "G2 Esports",
           "teamB": "100 Thieves",
-          "block": null
+          "winner": "G2 Esports",
+          "score": "2-0",
+          "actual": {
+            "G2 Esports": {},
+            "100 Thieves": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-07-18",
+          "patch": "13.01",
           "teamA": "NRG",
           "teamB": "MIBR",
-          "block": null
+          "winner": "MIBR",
+          "score": "5-30",
+          "actual": {
+            "NRG": {},
+            "MIBR": {}
+          },
+          "games": 35
         },
         {
+          "week": null,
           "date": "2026-07-23",
+          "patch": "13.01",
           "teamA": "Evil Geniuses",
           "teamB": "LEVIAT\u00c1N",
-          "block": null
+          "winner": "Evil Geniuses",
+          "score": "2-0",
+          "actual": {
+            "Evil Geniuses": {},
+            "LEVIAT\u00c1N": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-07-23",
+          "patch": "13.01",
           "teamA": "ENVY",
           "teamB": "MIBR",
-          "block": null
+          "winner": "MIBR",
+          "score": "4-5",
+          "actual": {
+            "ENVY": {},
+            "MIBR": {}
+          },
+          "games": 9
         },
         {
+          "week": null,
           "date": "2026-07-24",
+          "patch": "13.01",
           "teamA": "FURIA",
           "teamB": "NRG",
-          "block": null
+          "winner": "FURIA",
+          "score": "2-0",
+          "actual": {
+            "FURIA": {},
+            "NRG": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-07-24",
+          "patch": "13.01",
           "teamA": "100 Thieves",
           "teamB": "KR\u00dc Esports",
-          "block": null
+          "winner": "KR\u00dc Esports",
+          "score": "4-35",
+          "actual": {
+            "100 Thieves": {},
+            "KR\u00dc Esports": {}
+          },
+          "games": 39
         },
         {
+          "week": null,
           "date": "2026-07-25",
+          "patch": "13.01",
           "teamA": "G2 Esports",
           "teamB": "Cloud9",
-          "block": null
+          "winner": "G2 Esports",
+          "score": "2-0",
+          "actual": {
+            "G2 Esports": {},
+            "Cloud9": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-07-25",
+          "patch": "13.01",
           "teamA": "Sentinels",
           "teamB": "LOUD",
-          "block": null
+          "winner": "LOUD",
+          "score": "3-55",
+          "actual": {
+            "Sentinels": {},
+            "LOUD": {}
+          },
+          "games": 58
         },
         {
+          "week": null,
           "date": "2026-07-26",
+          "patch": "13.01",
           "teamA": "ENVY",
           "teamB": "LEVIAT\u00c1N",
-          "block": null
+          "winner": "ENVY",
+          "score": "2-0",
+          "actual": {
+            "ENVY": {},
+            "LEVIAT\u00c1N": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-07-26",
+          "patch": "13.01",
           "teamA": "FURIA",
           "teamB": "MIBR",
-          "block": null
+          "winner": "FURIA",
+          "score": "4-0",
+          "actual": {
+            "FURIA": {},
+            "MIBR": {}
+          },
+          "games": 4
         },
         {
+          "week": null,
           "date": "2026-07-30",
+          "patch": "13.01",
           "teamA": "KR\u00dc Esports",
           "teamB": "G2 Esports",
-          "block": null
+          "winner": "KR\u00dc Esports",
+          "score": "2-0",
+          "actual": {
+            "KR\u00dc Esports": {},
+            "G2 Esports": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-07-30",
+          "patch": "13.01",
           "teamA": "100 Thieves",
           "teamB": "Sentinels",
-          "block": null
+          "winner": "Sentinels",
+          "score": "4-20",
+          "actual": {
+            "100 Thieves": {},
+            "Sentinels": {}
+          },
+          "games": 24
         },
         {
+          "week": null,
           "date": "2026-07-31",
+          "patch": "13.01",
           "teamA": "Cloud9",
           "teamB": "LOUD",
-          "block": null
+          "winner": "Cloud9",
+          "score": "2-0",
+          "actual": {
+            "Cloud9": {},
+            "LOUD": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-07-31",
+          "patch": "13.01",
           "teamA": "Evil Geniuses",
           "teamB": "MIBR",
-          "block": null
+          "winner": "MIBR",
+          "score": "5-25",
+          "actual": {
+            "Evil Geniuses": {},
+            "MIBR": {}
+          },
+          "games": 30
         },
         {
+          "week": null,
           "date": "2026-08-01",
+          "patch": "13.01",
           "teamA": "ENVY",
           "teamB": "FURIA",
-          "block": null
+          "winner": "ENVY",
+          "score": "2-0",
+          "actual": {
+            "ENVY": {},
+            "FURIA": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-08-01",
+          "patch": "13.01",
           "teamA": "LEVIAT\u00c1N",
           "teamB": "NRG",
-          "block": null
+          "winner": "LEVIAT\u00c1N",
+          "score": "6-0",
+          "actual": {
+            "LEVIAT\u00c1N": {},
+            "NRG": {}
+          },
+          "games": 6
         },
         {
+          "week": null,
           "date": "2026-08-02",
+          "patch": "13.01",
           "teamA": "Cloud9",
           "teamB": "KR\u00dc Esports",
-          "block": null
+          "winner": "Cloud9",
+          "score": "2-0",
+          "actual": {
+            "Cloud9": {},
+            "KR\u00dc Esports": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-08-02",
+          "patch": "13.01",
           "teamA": "G2 Esports",
           "teamB": "Sentinels",
-          "block": null
+          "winner": "Sentinels",
+          "score": "4-5",
+          "actual": {
+            "G2 Esports": {},
+            "Sentinels": {}
+          },
+          "games": 9
         },
         {
+          "week": null,
           "date": "2026-08-06",
+          "patch": "13.01",
           "teamA": "Evil Geniuses",
           "teamB": "FURIA",
-          "block": null
+          "winner": "Evil Geniuses",
+          "score": "2-0",
+          "actual": {
+            "Evil Geniuses": {},
+            "FURIA": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-08-06",
+          "patch": "13.01",
           "teamA": "ENVY",
           "teamB": "NRG",
-          "block": null
+          "winner": "NRG",
+          "score": "4-15",
+          "actual": {
+            "ENVY": {},
+            "NRG": {}
+          },
+          "games": 19
         },
         {
+          "week": null,
           "date": "2026-08-07",
+          "patch": "13.01",
           "teamA": "100 Thieves",
           "teamB": "Cloud9",
-          "block": null
+          "winner": "100 Thieves",
+          "score": "2-0",
+          "actual": {
+            "100 Thieves": {},
+            "Cloud9": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-08-07",
+          "patch": "13.01",
           "teamA": "G2 Esports",
           "teamB": "LOUD",
-          "block": null
+          "winner": "LOUD",
+          "score": "4-40",
+          "actual": {
+            "G2 Esports": {},
+            "LOUD": {}
+          },
+          "games": 44
         },
         {
+          "week": null,
           "date": "2026-08-08",
+          "patch": "13.01",
           "teamA": "KR\u00dc Esports",
           "teamB": "Sentinels",
-          "block": null
+          "winner": "KR\u00dc Esports",
+          "score": "2-0",
+          "actual": {
+            "KR\u00dc Esports": {},
+            "Sentinels": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-08-08",
+          "patch": "13.01",
           "teamA": "LEVIAT\u00c1N",
           "teamB": "MIBR",
-          "block": null
+          "winner": "MIBR",
+          "score": "5-20",
+          "actual": {
+            "LEVIAT\u00c1N": {},
+            "MIBR": {}
+          },
+          "games": 25
         },
         {
+          "week": null,
           "date": "2026-08-09",
+          "patch": "13.01",
           "teamA": "Evil Geniuses",
           "teamB": "NRG",
-          "block": null
+          "winner": "Evil Geniuses",
+          "score": "2-0",
+          "actual": {
+            "Evil Geniuses": {},
+            "NRG": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-08-09",
+          "patch": "13.01",
           "teamA": "LOUD",
           "teamB": "100 Thieves",
-          "block": null
+          "winner": "100 Thieves",
+          "score": "3-55",
+          "actual": {
+            "LOUD": {},
+            "100 Thieves": {}
+          },
+          "games": 58
         },
         {
+          "week": null,
           "date": "2026-08-13",
+          "patch": null,
           "teamA": "KR\u00dc Esports",
           "teamB": "BESTIA",
-          "block": null
+          "winner": "KR\u00dc Esports",
+          "score": "2-0",
+          "actual": {
+            "KR\u00dc Esports": {},
+            "BESTIA": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-08-13",
+          "patch": null,
           "teamA": "ENVY",
           "teamB": "M80",
-          "block": null
+          "winner": "M80",
+          "score": "4-55",
+          "actual": {
+            "ENVY": {},
+            "M80": {}
+          },
+          "games": 59
         },
         {
+          "week": null,
           "date": "2026-08-14",
+          "patch": null,
           "teamA": "FURIA",
           "teamB": "2Game Esports",
-          "block": null
+          "winner": "FURIA",
+          "score": "2-0",
+          "actual": {
+            "FURIA": {},
+            "2Game Esports": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-08-14",
+          "patch": null,
           "teamA": "Cloud9",
           "teamB": "Fluxo W7M",
-          "block": null
+          "winner": "Fluxo W7M",
+          "score": "5-20",
+          "actual": {
+            "Cloud9": {},
+            "Fluxo W7M": {}
+          },
+          "games": 25
         },
         {
+          "week": null,
           "date": "2026-08-15",
+          "patch": null,
           "teamA": "MIBR",
           "teamB": "KR\u00dc Esports",
-          "block": null
+          "winner": "MIBR",
+          "score": "2-0",
+          "actual": {
+            "MIBR": {},
+            "KR\u00dc Esports": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-08-15",
+          "patch": null,
           "teamA": "Sentinels",
           "teamB": "ENVY",
-          "block": null
+          "winner": "ENVY",
+          "score": "4-5",
+          "actual": {
+            "Sentinels": {},
+            "ENVY": {}
+          },
+          "games": 9
         },
         {
+          "week": null,
           "date": "2026-08-16",
+          "patch": null,
           "teamA": "G2 Esports",
           "teamB": "FURIA",
-          "block": null
+          "winner": "G2 Esports",
+          "score": "2-0",
+          "actual": {
+            "G2 Esports": {},
+            "FURIA": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-08-16",
+          "patch": null,
           "teamA": "Evil Geniuses",
           "teamB": "Cloud9",
-          "block": null
+          "winner": "Cloud9",
+          "score": "5-40",
+          "actual": {
+            "Evil Geniuses": {},
+            "Cloud9": {}
+          },
+          "games": 45
         },
         {
+          "week": null,
           "date": "2026-08-19",
+          "patch": null,
           "teamA": "Cloud9",
           "teamB": "BESTIA",
-          "block": null
+          "winner": "Cloud9",
+          "score": "2-0",
+          "actual": {
+            "Cloud9": {},
+            "BESTIA": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-08-19",
+          "patch": null,
           "teamA": "G2 Esports",
           "teamB": "M80",
-          "block": null
+          "winner": "M80",
+          "score": "4-20",
+          "actual": {
+            "G2 Esports": {},
+            "M80": {}
+          },
+          "games": 24
         },
         {
+          "week": null,
           "date": "2026-08-20",
+          "patch": null,
           "teamA": "Sentinels",
           "teamB": "2Game Esports",
-          "block": null
+          "winner": "Sentinels",
+          "score": "2-0",
+          "actual": {
+            "Sentinels": {},
+            "2Game Esports": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-08-20",
+          "patch": null,
           "teamA": "KR\u00dc Esports",
           "teamB": "Fluxo W7M",
-          "block": null
+          "winner": "Fluxo W7M",
+          "score": "4-30",
+          "actual": {
+            "KR\u00dc Esports": {},
+            "Fluxo W7M": {}
+          },
+          "games": 34
         },
         {
+          "week": null,
           "date": "2026-08-21",
+          "patch": null,
           "teamA": "MIBR",
           "teamB": "ENVY",
-          "block": null
+          "winner": "MIBR",
+          "score": "2-0",
+          "actual": {
+            "MIBR": {},
+            "ENVY": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-08-21",
+          "patch": null,
           "teamA": "FURIA",
           "teamB": "Evil Geniuses",
-          "block": null
+          "winner": "FURIA",
+          "score": "5-0",
+          "actual": {
+            "FURIA": {},
+            "Evil Geniuses": {}
+          },
+          "games": 5
         },
         {
+          "week": null,
           "date": "2026-08-22",
+          "patch": null,
           "teamA": "BESTIA",
           "teamB": "G2 Esports",
-          "block": null
+          "winner": "BESTIA",
+          "score": "2-0",
+          "actual": {
+            "BESTIA": {},
+            "G2 Esports": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-08-22",
+          "patch": null,
           "teamA": "Sentinels",
           "teamB": "KR\u00dc Esports",
-          "block": null
+          "winner": "Sentinels",
+          "score": "5-0",
+          "actual": {
+            "Sentinels": {},
+            "KR\u00dc Esports": {}
+          },
+          "games": 5
         }
-      ]
+      ],
+      "upcoming_matches": []
     },
     "VCT EMEA": {
       "teams": {},
-      "past_matches": [],
-      "upcoming_matches": [
+      "past_matches": [
         {
+          "week": null,
           "date": "2026-07-15",
+          "patch": "13.01",
           "teamA": "FUT Esports",
           "teamB": "Natus Vincere",
-          "block": null
+          "winner": "FUT Esports",
+          "score": "8-0",
+          "actual": {
+            "FUT Esports": {},
+            "Natus Vincere": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-07-15",
+          "patch": "13.01",
           "teamA": "Team Liquid",
           "teamB": "Eternal Fire",
-          "block": null
+          "winner": "Eternal Fire",
+          "score": "10-10",
+          "actual": {
+            "Team Liquid": {},
+            "Eternal Fire": {}
+          },
+          "games": 20
         },
         {
+          "week": null,
           "date": "2026-07-16",
+          "patch": "13.01",
           "teamA": "FNATIC",
           "teamB": "GIANTX",
-          "block": null
+          "winner": "FNATIC",
+          "score": "8-0",
+          "actual": {
+            "FNATIC": {},
+            "GIANTX": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-07-16",
+          "patch": "13.01",
           "teamA": "PCIFIC Esports",
           "teamB": "Gentle Mates",
-          "block": null
+          "winner": "Gentle Mates",
+          "score": "10-35",
+          "actual": {
+            "PCIFIC Esports": {},
+            "Gentle Mates": {}
+          },
+          "games": 45
         },
         {
+          "week": null,
           "date": "2026-07-17",
+          "patch": "13.01",
           "teamA": "Karmine Corp",
           "teamB": "Eternal Fire",
-          "block": null
+          "winner": "Karmine Corp",
+          "score": "8-0",
+          "actual": {
+            "Karmine Corp": {},
+            "Eternal Fire": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-07-17",
+          "patch": "13.01",
           "teamA": "Team Vitality",
           "teamB": "Natus Vincere",
-          "block": null
+          "winner": "Natus Vincere",
+          "score": "10-25",
+          "actual": {
+            "Team Vitality": {},
+            "Natus Vincere": {}
+          },
+          "games": 35
         },
         {
+          "week": null,
           "date": "2026-07-18",
+          "patch": "13.01",
           "teamA": "Gentle Mates",
           "teamB": "FUT Esports",
-          "block": null
+          "winner": "Gentle Mates",
+          "score": "8-0",
+          "actual": {
+            "Gentle Mates": {},
+            "FUT Esports": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-07-18",
+          "patch": "13.01",
           "teamA": "Team Heretics",
           "teamB": "Team Liquid",
-          "block": null
+          "winner": "Team Liquid",
+          "score": "10-25",
+          "actual": {
+            "Team Heretics": {},
+            "Team Liquid": {}
+          },
+          "games": 35
         },
         {
+          "week": null,
           "date": "2026-07-19",
+          "patch": "13.01",
           "teamA": "GIANTX",
           "teamB": "Karmine Corp",
-          "block": null
+          "winner": "GIANTX",
+          "score": "7-0",
+          "actual": {
+            "GIANTX": {},
+            "Karmine Corp": {}
+          },
+          "games": 7
         },
         {
+          "week": null,
           "date": "2026-07-19",
+          "patch": "13.01",
           "teamA": "Team Vitality",
           "teamB": "BBL Esports",
-          "block": null
+          "winner": "Team Vitality",
+          "score": "9-5",
+          "actual": {
+            "Team Vitality": {},
+            "BBL Esports": {}
+          },
+          "games": 14
         },
         {
+          "week": null,
           "date": "2026-07-22",
+          "patch": "13.01",
           "teamA": "FUT Esports",
           "teamB": "PCIFIC Esports",
-          "block": null
+          "winner": "FUT Esports",
+          "score": "8-0",
+          "actual": {
+            "FUT Esports": {},
+            "PCIFIC Esports": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-07-22",
+          "patch": "13.01",
           "teamA": "FNATIC",
           "teamB": "Karmine Corp",
-          "block": null
+          "winner": "Karmine Corp",
+          "score": "11-15",
+          "actual": {
+            "FNATIC": {},
+            "Karmine Corp": {}
+          },
+          "games": 26
         },
         {
+          "week": null,
           "date": "2026-07-23",
+          "patch": "13.01",
           "teamA": "Eternal Fire",
           "teamB": "Team Heretics",
-          "block": null
+          "winner": "Eternal Fire",
+          "score": "8-0",
+          "actual": {
+            "Eternal Fire": {},
+            "Team Heretics": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-07-23",
+          "patch": "13.01",
           "teamA": "Gentle Mates",
           "teamB": "Natus Vincere",
-          "block": null
+          "winner": "Natus Vincere",
+          "score": "10-15",
+          "actual": {
+            "Gentle Mates": {},
+            "Natus Vincere": {}
+          },
+          "games": 25
         },
         {
+          "week": null,
           "date": "2026-07-24",
+          "patch": "13.01",
           "teamA": "FUT Esports",
           "teamB": "BBL Esports",
-          "block": null
+          "winner": "FUT Esports",
+          "score": "8-0",
+          "actual": {
+            "FUT Esports": {},
+            "BBL Esports": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-07-24",
+          "patch": "13.01",
           "teamA": "Team Liquid",
           "teamB": "FNATIC",
-          "block": null
+          "winner": "FNATIC",
+          "score": "11-20",
+          "actual": {
+            "Team Liquid": {},
+            "FNATIC": {}
+          },
+          "games": 31
         },
         {
+          "week": null,
           "date": "2026-07-25",
+          "patch": "13.01",
           "teamA": "PCIFIC Esports",
           "teamB": "Team Vitality",
-          "block": null
+          "winner": "PCIFIC Esports",
+          "score": "8-0",
+          "actual": {
+            "PCIFIC Esports": {},
+            "Team Vitality": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-07-25",
+          "patch": "13.01",
           "teamA": "Eternal Fire",
           "teamB": "GIANTX",
-          "block": null
+          "winner": "Eternal Fire",
+          "score": "10-0",
+          "actual": {
+            "Eternal Fire": {},
+            "GIANTX": {}
+          },
+          "games": 10
         },
         {
+          "week": null,
           "date": "2026-07-26",
+          "patch": "13.01",
           "teamA": "BBL Esports",
           "teamB": "Natus Vincere",
-          "block": null
+          "winner": "BBL Esports",
+          "score": "8-0",
+          "actual": {
+            "BBL Esports": {},
+            "Natus Vincere": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-07-26",
+          "patch": "13.01",
           "teamA": "Team Heretics",
           "teamB": "Karmine Corp",
-          "block": null
+          "winner": "Team Heretics",
+          "score": "11-10",
+          "actual": {
+            "Team Heretics": {},
+            "Karmine Corp": {}
+          },
+          "games": 21
         },
         {
+          "week": null,
           "date": "2026-07-29",
+          "patch": "13.01",
           "teamA": "GIANTX",
           "teamB": "Team Liquid",
-          "block": null
+          "winner": "GIANTX",
+          "score": "8-0",
+          "actual": {
+            "GIANTX": {},
+            "Team Liquid": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-07-29",
+          "patch": "13.01",
           "teamA": "Gentle Mates",
           "teamB": "Team Vitality",
-          "block": null
+          "winner": "Team Vitality",
+          "score": "10-15",
+          "actual": {
+            "Gentle Mates": {},
+            "Team Vitality": {}
+          },
+          "games": 25
         },
         {
+          "week": null,
           "date": "2026-07-30",
+          "patch": "13.01",
           "teamA": "Natus Vincere",
           "teamB": "PCIFIC Esports",
-          "block": null
+          "winner": "Natus Vincere",
+          "score": "8-0",
+          "actual": {
+            "Natus Vincere": {},
+            "PCIFIC Esports": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-07-30",
+          "patch": "13.01",
           "teamA": "Eternal Fire",
           "teamB": "FNATIC",
-          "block": null
+          "winner": "FNATIC",
+          "score": "10-35",
+          "actual": {
+            "Eternal Fire": {},
+            "FNATIC": {}
+          },
+          "games": 45
         },
         {
+          "week": null,
           "date": "2026-07-31",
+          "patch": "13.01",
           "teamA": "BBL Esports",
           "teamB": "Gentle Mates",
-          "block": null
+          "winner": "BBL Esports",
+          "score": "8-0",
+          "actual": {
+            "BBL Esports": {},
+            "Gentle Mates": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-07-31",
+          "patch": "13.01",
           "teamA": "GIANTX",
           "teamB": "Team Heretics",
-          "block": null
+          "winner": "Team Heretics",
+          "score": "12-30",
+          "actual": {
+            "GIANTX": {},
+            "Team Heretics": {}
+          },
+          "games": 42
         },
         {
+          "week": null,
           "date": "2026-08-01",
+          "patch": "13.01",
           "teamA": "FUT Esports",
           "teamB": "Team Vitality",
-          "block": null
+          "winner": "FUT Esports",
+          "score": "8-0",
+          "actual": {
+            "FUT Esports": {},
+            "Team Vitality": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-08-01",
+          "patch": "13.01",
           "teamA": "Karmine Corp",
           "teamB": "Team Liquid",
-          "block": null
+          "winner": "Karmine Corp",
+          "score": "11-10",
+          "actual": {
+            "Karmine Corp": {},
+            "Team Liquid": {}
+          },
+          "games": 21
         },
         {
+          "week": null,
           "date": "2026-08-02",
+          "patch": "13.01",
           "teamA": "BBL Esports",
           "teamB": "PCIFIC Esports",
-          "block": null
+          "winner": "BBL Esports",
+          "score": "8-0",
+          "actual": {
+            "BBL Esports": {},
+            "PCIFIC Esports": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-08-02",
+          "patch": "13.01",
           "teamA": "FNATIC",
           "teamB": "Team Heretics",
-          "block": null
+          "winner": "Team Heretics",
+          "score": "11-25",
+          "actual": {
+            "FNATIC": {},
+            "Team Heretics": {}
+          },
+          "games": 36
         },
         {
+          "week": null,
           "date": "2026-08-06",
+          "patch": null,
           "teamA": "GIANTX",
           "teamB": "Eintracht Frankfurt",
-          "block": null
+          "winner": "GIANTX",
+          "score": "8-0",
+          "actual": {
+            "GIANTX": {},
+            "Eintracht Frankfurt": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-08-06",
+          "patch": null,
           "teamA": "Natus Vincere",
           "teamB": "Joblife",
-          "block": null
+          "winner": "Joblife",
+          "score": "11-20",
+          "actual": {
+            "Natus Vincere": {},
+            "Joblife": {}
+          },
+          "games": 31
         },
         {
+          "week": null,
           "date": "2026-08-07",
+          "patch": null,
           "teamA": "PCIFIC Esports",
           "teamB": "Fire Flux Esports",
-          "block": null
+          "winner": "PCIFIC Esports",
+          "score": "8-0",
+          "actual": {
+            "PCIFIC Esports": {},
+            "Fire Flux Esports": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-08-07",
+          "patch": null,
           "teamA": "FNATIC",
           "teamB": "Enterprise Esports",
-          "block": null
+          "winner": "FNATIC",
+          "score": "10-0",
+          "actual": {
+            "FNATIC": {},
+            "Enterprise Esports": {}
+          },
+          "games": 10
         },
         {
+          "week": null,
           "date": "2026-08-08",
+          "patch": null,
           "teamA": "FUT Esports",
           "teamB": "GIANTX",
-          "block": null
+          "winner": "FUT Esports",
+          "score": "8-0",
+          "actual": {
+            "FUT Esports": {},
+            "GIANTX": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-08-08",
+          "patch": null,
           "teamA": "Eternal Fire",
           "teamB": "Joblife",
-          "block": null
+          "winner": "Eternal Fire",
+          "score": "10-0",
+          "actual": {
+            "Eternal Fire": {},
+            "Joblife": {}
+          },
+          "games": 10
         },
         {
+          "week": null,
           "date": "2026-08-09",
+          "patch": null,
           "teamA": "Team Heretics",
           "teamB": "Fire Flux Esports",
-          "block": null
+          "winner": "Team Heretics",
+          "score": "8-0",
+          "actual": {
+            "Team Heretics": {},
+            "Fire Flux Esports": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-08-09",
+          "patch": null,
           "teamA": "Gentle Mates",
           "teamB": "Enterprise Esports",
-          "block": null
+          "winner": "Gentle Mates",
+          "score": "11-5",
+          "actual": {
+            "Gentle Mates": {},
+            "Enterprise Esports": {}
+          },
+          "games": 16
         },
         {
+          "week": null,
           "date": "2026-08-12",
+          "patch": null,
           "teamA": "Gentle Mates",
           "teamB": "Eintracht Frankfurt",
-          "block": null
+          "winner": "Gentle Mates",
+          "score": "8-0",
+          "actual": {
+            "Gentle Mates": {},
+            "Eintracht Frankfurt": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-08-12",
+          "patch": null,
           "teamA": "Team Heretics",
           "teamB": "Natus Vincere",
-          "block": null
+          "winner": "Natus Vincere",
+          "score": "10-25",
+          "actual": {
+            "Team Heretics": {},
+            "Natus Vincere": {}
+          },
+          "games": 35
         },
         {
+          "week": null,
           "date": "2026-08-13",
+          "patch": null,
           "teamA": "Joblife",
           "teamB": "PCIFIC Esports",
-          "block": null
+          "winner": "Joblife",
+          "score": "8-0",
+          "actual": {
+            "Joblife": {},
+            "PCIFIC Esports": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-08-13",
+          "patch": null,
           "teamA": "GIANTX",
           "teamB": "FNATIC",
-          "block": null
+          "winner": "GIANTX",
+          "score": "11-0",
+          "actual": {
+            "GIANTX": {},
+            "FNATIC": {}
+          },
+          "games": 11
         },
         {
+          "week": null,
           "date": "2026-08-14",
+          "patch": null,
           "teamA": "Eintracht Frankfurt",
           "teamB": "Team Heretics",
-          "block": null
+          "winner": "Eintracht Frankfurt",
+          "score": "8-0",
+          "actual": {
+            "Eintracht Frankfurt": {},
+            "Team Heretics": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-08-14",
+          "patch": null,
           "teamA": "Joblife",
           "teamB": "FNATIC",
-          "block": null
+          "winner": "FNATIC",
+          "score": "10-30",
+          "actual": {
+            "Joblife": {},
+            "FNATIC": {}
+          },
+          "games": 40
         },
         {
+          "week": null,
           "date": "2026-08-15",
+          "patch": null,
           "teamA": "Fire Flux Esports",
           "teamB": "Enterprise Esports",
-          "block": null
+          "winner": "Fire Flux Esports",
+          "score": "8-0",
+          "actual": {
+            "Fire Flux Esports": {},
+            "Enterprise Esports": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-08-15",
+          "patch": null,
           "teamA": "FUT Esports",
           "teamB": "Eternal Fire",
-          "block": null
+          "winner": "Eternal Fire",
+          "score": "10-30",
+          "actual": {
+            "FUT Esports": {},
+            "Eternal Fire": {}
+          },
+          "games": 40
         },
         {
+          "week": null,
           "date": "2026-08-16",
+          "patch": null,
           "teamA": "Eternal Fire",
           "teamB": "Eintracht Frankfurt",
-          "block": null
+          "winner": "Eternal Fire",
+          "score": "6-0",
+          "actual": {
+            "Eternal Fire": {},
+            "Eintracht Frankfurt": {}
+          },
+          "games": 6
         },
         {
+          "week": null,
           "date": "2026-08-16",
+          "patch": null,
           "teamA": "Fire Flux Esports",
           "teamB": "Joblife",
-          "block": null
+          "winner": "Joblife",
+          "score": "8-10",
+          "actual": {
+            "Fire Flux Esports": {},
+            "Joblife": {}
+          },
+          "games": 18
         },
         {
+          "week": null,
           "date": "2026-08-20",
+          "patch": null,
           "teamA": "Team Vitality",
           "teamB": "Enterprise Esports",
-          "block": null
+          "winner": "Team Vitality",
+          "score": "8-0",
+          "actual": {
+            "Team Vitality": {},
+            "Enterprise Esports": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-08-20",
+          "patch": null,
           "teamA": "Team Liquid",
           "teamB": "FUT Esports",
-          "block": null
+          "winner": "Team Liquid",
+          "score": "11-0",
+          "actual": {
+            "Team Liquid": {},
+            "FUT Esports": {}
+          },
+          "games": 11
         },
         {
+          "week": null,
           "date": "2026-08-21",
+          "patch": null,
           "teamA": "Karmine Corp",
           "teamB": "Enterprise Esports",
-          "block": null
+          "winner": "Karmine Corp",
+          "score": "8-0",
+          "actual": {
+            "Karmine Corp": {},
+            "Enterprise Esports": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-08-21",
+          "patch": null,
           "teamA": "BBL Esports",
           "teamB": "FUT Esports",
-          "block": null
+          "winner": "FUT Esports",
+          "score": "11-15",
+          "actual": {
+            "BBL Esports": {},
+            "FUT Esports": {}
+          },
+          "games": 26
         },
         {
+          "week": null,
           "date": "2026-08-22",
+          "patch": null,
           "teamA": "Team Liquid",
           "teamB": "Eintracht Frankfurt",
-          "block": null
+          "winner": "Team Liquid",
+          "score": "7-0",
+          "actual": {
+            "Team Liquid": {},
+            "Eintracht Frankfurt": {}
+          },
+          "games": 7
         },
         {
+          "week": null,
           "date": "2026-08-22",
+          "patch": null,
           "teamA": "Team Vitality",
           "teamB": "Fire Flux Esports",
-          "block": null
+          "winner": "Team Vitality",
+          "score": "10-0",
+          "actual": {
+            "Team Vitality": {},
+            "Fire Flux Esports": {}
+          },
+          "games": 10
         },
         {
+          "week": null,
           "date": "2026-08-28",
+          "patch": null,
           "teamA": "FUT Esports",
           "teamB": "Karmine Corp",
-          "block": null
+          "winner": "FUT Esports",
+          "score": "7-0",
+          "actual": {
+            "FUT Esports": {},
+            "Karmine Corp": {}
+          },
+          "games": 7
         }
-      ]
+      ],
+      "upcoming_matches": []
     },
     "VCT Pacific": {
       "teams": {},
-      "past_matches": [],
-      "upcoming_matches": [
+      "past_matches": [
         {
+          "week": null,
           "date": "2026-07-16",
+          "patch": "13.01",
           "teamA": "Gen.G",
           "teamB": "ZETA DIVISION",
-          "block": null
+          "winner": "Gen.G",
+          "score": "1-0",
+          "actual": {
+            "Gen.G": {},
+            "ZETA DIVISION": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-07-16",
+          "patch": "13.01",
           "teamA": "Team Secret",
           "teamB": "VARREL",
-          "block": null
+          "winner": "VARREL",
+          "score": "4-5",
+          "actual": {
+            "Team Secret": {},
+            "VARREL": {}
+          },
+          "games": 9
         },
         {
+          "week": null,
           "date": "2026-07-17",
+          "patch": "13.01",
           "teamA": "FULL SENSE",
           "teamB": "Nongshim RedForce",
-          "block": null
+          "winner": "FULL SENSE",
+          "score": "1-0",
+          "actual": {
+            "FULL SENSE": {},
+            "Nongshim RedForce": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-07-17",
+          "patch": "13.01",
           "teamA": "KIWOOM DRX",
           "teamB": "DetonatioN FocusMe",
-          "block": null
+          "winner": "KIWOOM DRX",
+          "score": "4-0",
+          "actual": {
+            "KIWOOM DRX": {},
+            "DetonatioN FocusMe": {}
+          },
+          "games": 4
         },
         {
+          "week": null,
           "date": "2026-07-18",
+          "patch": "13.01",
           "teamA": "Rex Regum Qeon",
           "teamB": "Global Esports",
-          "block": null
+          "winner": "Rex Regum Qeon",
+          "score": "1-0",
+          "actual": {
+            "Rex Regum Qeon": {},
+            "Global Esports": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-07-18",
+          "patch": "13.01",
           "teamA": "Paper Rex",
           "teamB": "T1",
-          "block": null
+          "winner": "T1",
+          "score": "3-35",
+          "actual": {
+            "Paper Rex": {},
+            "T1": {}
+          },
+          "games": 38
         },
         {
+          "week": null,
           "date": "2026-07-19",
+          "patch": "13.01",
           "teamA": "Nongshim RedForce",
           "teamB": "Gen.G",
-          "block": null
+          "winner": "Nongshim RedForce",
+          "score": "1-0",
+          "actual": {
+            "Nongshim RedForce": {},
+            "Gen.G": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-07-19",
+          "patch": "13.01",
           "teamA": "KIWOOM DRX",
           "teamB": "Team Secret",
-          "block": null
+          "winner": "Team Secret",
+          "score": "4-5",
+          "actual": {
+            "KIWOOM DRX": {},
+            "Team Secret": {}
+          },
+          "games": 9
         },
         {
+          "week": null,
           "date": "2026-07-23",
+          "patch": "13.01",
           "teamA": "Global Esports",
           "teamB": "FULL SENSE",
-          "block": null
+          "winner": "Global Esports",
+          "score": "1-0",
+          "actual": {
+            "Global Esports": {},
+            "FULL SENSE": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-07-23",
+          "patch": "13.01",
           "teamA": "T1",
           "teamB": "VARREL",
-          "block": null
+          "winner": "T1",
+          "score": "3-0",
+          "actual": {
+            "T1": {},
+            "VARREL": {}
+          },
+          "games": 3
         },
         {
+          "week": null,
           "date": "2026-07-24",
+          "patch": "13.01",
           "teamA": "Rex Regum Qeon",
           "teamB": "ZETA DIVISION",
-          "block": null
+          "winner": "Rex Regum Qeon",
+          "score": "1-0",
+          "actual": {
+            "Rex Regum Qeon": {},
+            "ZETA DIVISION": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-07-24",
+          "patch": "13.01",
           "teamA": "DetonatioN FocusMe",
           "teamB": "Paper Rex",
-          "block": null
+          "winner": "Paper Rex",
+          "score": "3-5",
+          "actual": {
+            "DetonatioN FocusMe": {},
+            "Paper Rex": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-07-25",
+          "patch": "13.01",
           "teamA": "Nongshim RedForce",
           "teamB": "Global Esports",
-          "block": null
+          "winner": "Nongshim RedForce",
+          "score": "1-0",
+          "actual": {
+            "Nongshim RedForce": {},
+            "Global Esports": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-07-25",
+          "patch": "13.01",
           "teamA": "Team Secret",
           "teamB": "T1",
-          "block": null
+          "winner": "T1",
+          "score": "3-45",
+          "actual": {
+            "Team Secret": {},
+            "T1": {}
+          },
+          "games": 48
         },
         {
+          "week": null,
           "date": "2026-07-26",
+          "patch": "13.01",
           "teamA": "Paper Rex",
           "teamB": "KIWOOM DRX",
-          "block": null
+          "winner": "Paper Rex",
+          "score": "1-0",
+          "actual": {
+            "Paper Rex": {},
+            "KIWOOM DRX": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-07-26",
+          "patch": "13.01",
           "teamA": "Gen.G",
           "teamB": "Rex Regum Qeon",
-          "block": null
+          "winner": "Rex Regum Qeon",
+          "score": "2-50",
+          "actual": {
+            "Gen.G": {},
+            "Rex Regum Qeon": {}
+          },
+          "games": 52
         },
         {
+          "week": null,
           "date": "2026-07-30",
+          "patch": "13.01",
           "teamA": "VARREL",
           "teamB": "DetonatioN FocusMe",
-          "block": null
+          "winner": "VARREL",
+          "score": "1-0",
+          "actual": {
+            "VARREL": {},
+            "DetonatioN FocusMe": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-07-30",
+          "patch": "13.01",
           "teamA": "FULL SENSE",
           "teamB": "ZETA DIVISION",
-          "block": null
+          "winner": "ZETA DIVISION",
+          "score": "4-15",
+          "actual": {
+            "FULL SENSE": {},
+            "ZETA DIVISION": {}
+          },
+          "games": 19
         },
         {
+          "week": null,
           "date": "2026-07-31",
+          "patch": "13.01",
           "teamA": "Team Secret",
           "teamB": "Paper Rex",
-          "block": null
+          "winner": "Team Secret",
+          "score": "1-0",
+          "actual": {
+            "Team Secret": {},
+            "Paper Rex": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-07-31",
+          "patch": "13.01",
           "teamA": "Global Esports",
           "teamB": "Gen.G",
-          "block": null
+          "winner": "Gen.G",
+          "score": "3-10",
+          "actual": {
+            "Global Esports": {},
+            "Gen.G": {}
+          },
+          "games": 13
         },
         {
+          "week": null,
           "date": "2026-08-01",
+          "patch": "13.01",
           "teamA": "T1",
           "teamB": "DetonatioN FocusMe",
-          "block": null
+          "winner": "T1",
+          "score": "1-0",
+          "actual": {
+            "T1": {},
+            "DetonatioN FocusMe": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-01",
+          "patch": "13.01",
           "teamA": "FULL SENSE",
           "teamB": "Rex Regum Qeon",
-          "block": null
+          "winner": "Rex Regum Qeon",
+          "score": "4-25",
+          "actual": {
+            "FULL SENSE": {},
+            "Rex Regum Qeon": {}
+          },
+          "games": 29
         },
         {
+          "week": null,
           "date": "2026-08-02",
+          "patch": "13.01",
           "teamA": "VARREL",
           "teamB": "KIWOOM DRX",
-          "block": null
+          "winner": "VARREL",
+          "score": "1-0",
+          "actual": {
+            "VARREL": {},
+            "KIWOOM DRX": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-02",
+          "patch": "13.01",
           "teamA": "ZETA DIVISION",
           "teamB": "Nongshim RedForce",
-          "block": null
+          "winner": "ZETA DIVISION",
+          "score": "4-0",
+          "actual": {
+            "ZETA DIVISION": {},
+            "Nongshim RedForce": {}
+          },
+          "games": 4
         },
         {
+          "week": null,
           "date": "2026-08-07",
+          "patch": "13.01",
           "teamA": "Team Secret",
           "teamB": "DetonatioN FocusMe",
-          "block": null
+          "winner": "Team Secret",
+          "score": "1-0",
+          "actual": {
+            "Team Secret": {},
+            "DetonatioN FocusMe": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-07",
+          "patch": "13.01",
           "teamA": "Gen.G",
           "teamB": "FULL SENSE",
-          "block": null
+          "winner": "FULL SENSE",
+          "score": "3-15",
+          "actual": {
+            "Gen.G": {},
+            "FULL SENSE": {}
+          },
+          "games": 18
         },
         {
+          "week": null,
           "date": "2026-08-08",
+          "patch": "13.01",
           "teamA": "KIWOOM DRX",
           "teamB": "T1",
-          "block": null
+          "winner": "KIWOOM DRX",
+          "score": "1-0",
+          "actual": {
+            "KIWOOM DRX": {},
+            "T1": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-08",
+          "patch": "13.01",
           "teamA": "Global Esports",
           "teamB": "ZETA DIVISION",
-          "block": null
+          "winner": "ZETA DIVISION",
+          "score": "3-10",
+          "actual": {
+            "Global Esports": {},
+            "ZETA DIVISION": {}
+          },
+          "games": 13
         },
         {
+          "week": null,
           "date": "2026-08-09",
+          "patch": "13.01",
           "teamA": "VARREL",
           "teamB": "Paper Rex",
-          "block": null
+          "winner": "VARREL",
+          "score": "1-0",
+          "actual": {
+            "VARREL": {},
+            "Paper Rex": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-09",
+          "patch": "13.01",
           "teamA": "Nongshim RedForce",
           "teamB": "Rex Regum Qeon",
-          "block": null
+          "winner": "Rex Regum Qeon",
+          "score": "3-25",
+          "actual": {
+            "Nongshim RedForce": {},
+            "Rex Regum Qeon": {}
+          },
+          "games": 28
         },
         {
+          "week": null,
           "date": "2026-08-13",
+          "patch": null,
           "teamA": "KIWOOM DRX",
           "teamB": "ONSIDE GAMING",
-          "block": null
+          "winner": "KIWOOM DRX",
+          "score": "1-0",
+          "actual": {
+            "KIWOOM DRX": {},
+            "ONSIDE GAMING": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-13",
+          "patch": null,
           "teamA": "Rex Regum Qeon",
           "teamB": "Sharper Esports",
-          "block": null
+          "winner": "Sharper Esports",
+          "score": "3-25",
+          "actual": {
+            "Rex Regum Qeon": {},
+            "Sharper Esports": {}
+          },
+          "games": 28
         },
         {
+          "week": null,
           "date": "2026-08-14",
+          "patch": null,
           "teamA": "FULL SENSE",
           "teamB": "QT DIG\u221e",
-          "block": null
+          "winner": "FULL SENSE",
+          "score": "1-0",
+          "actual": {
+            "FULL SENSE": {},
+            "QT DIG\u221e": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-14",
+          "patch": null,
           "teamA": "Team Secret",
           "teamB": "Xipto Esports",
-          "block": null
+          "winner": "Xipto Esports",
+          "score": "3-45",
+          "actual": {
+            "Team Secret": {},
+            "Xipto Esports": {}
+          },
+          "games": 48
         },
         {
+          "week": null,
           "date": "2026-08-15",
+          "patch": null,
           "teamA": "ZETA DIVISION",
           "teamB": "KIWOOM DRX",
-          "block": null
+          "winner": "ZETA DIVISION",
+          "score": "1-0",
+          "actual": {
+            "ZETA DIVISION": {},
+            "KIWOOM DRX": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-15",
+          "patch": null,
           "teamA": "DetonatioN FocusMe",
           "teamB": "Sharper Esports",
-          "block": null
+          "winner": "Sharper Esports",
+          "score": "4-20",
+          "actual": {
+            "DetonatioN FocusMe": {},
+            "Sharper Esports": {}
+          },
+          "games": 24
         },
         {
+          "week": null,
           "date": "2026-08-16",
+          "patch": null,
           "teamA": "T1",
           "teamB": "FULL SENSE",
-          "block": null
+          "winner": "T1",
+          "score": "1-0",
+          "actual": {
+            "T1": {},
+            "FULL SENSE": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-16",
+          "patch": null,
           "teamA": "Nongshim RedForce",
           "teamB": "Team Secret",
-          "block": null
+          "winner": "Team Secret",
+          "score": "2-50",
+          "actual": {
+            "Nongshim RedForce": {},
+            "Team Secret": {}
+          },
+          "games": 52
         },
         {
+          "week": null,
           "date": "2026-08-19",
+          "patch": null,
           "teamA": "Team Secret",
           "teamB": "ONSIDE GAMING",
-          "block": null
+          "winner": "Team Secret",
+          "score": "1-0",
+          "actual": {
+            "Team Secret": {},
+            "ONSIDE GAMING": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-19",
+          "patch": null,
           "teamA": "FULL SENSE",
           "teamB": "Rex Regum Qeon",
-          "block": null
+          "winner": "Rex Regum Qeon",
+          "score": "3-25",
+          "actual": {
+            "FULL SENSE": {},
+            "Rex Regum Qeon": {}
+          },
+          "games": 28
         },
         {
+          "week": null,
           "date": "2026-08-20",
+          "patch": null,
           "teamA": "DetonatioN FocusMe",
           "teamB": "QT DIG\u221e",
-          "block": null
+          "winner": "DetonatioN FocusMe",
+          "score": "1-0",
+          "actual": {
+            "DetonatioN FocusMe": {},
+            "QT DIG\u221e": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-20",
+          "patch": null,
           "teamA": "ZETA DIVISION",
           "teamB": "Xipto Esports",
-          "block": null
+          "winner": "ZETA DIVISION",
+          "score": "4-0",
+          "actual": {
+            "ZETA DIVISION": {},
+            "Xipto Esports": {}
+          },
+          "games": 4
         },
         {
+          "week": null,
           "date": "2026-08-21",
+          "patch": null,
           "teamA": "KIWOOM DRX",
           "teamB": "Sharper Esports",
-          "block": null
+          "winner": "KIWOOM DRX",
+          "score": "1-0",
+          "actual": {
+            "KIWOOM DRX": {},
+            "Sharper Esports": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-21",
+          "patch": null,
           "teamA": "T1",
           "teamB": "Nongshim RedForce",
-          "block": null
+          "winner": "Nongshim RedForce",
+          "score": "4-25",
+          "actual": {
+            "T1": {},
+            "Nongshim RedForce": {}
+          },
+          "games": 29
         },
         {
+          "week": null,
           "date": "2026-08-22",
+          "patch": null,
           "teamA": "ONSIDE GAMING",
           "teamB": "FULL SENSE",
-          "block": null
+          "winner": "ONSIDE GAMING",
+          "score": "1-0",
+          "actual": {
+            "ONSIDE GAMING": {},
+            "FULL SENSE": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-22",
+          "patch": null,
           "teamA": "DetonatioN FocusMe",
           "teamB": "ZETA DIVISION",
-          "block": null
+          "winner": "ZETA DIVISION",
+          "score": "3-10",
+          "actual": {
+            "DetonatioN FocusMe": {},
+            "ZETA DIVISION": {}
+          },
+          "games": 13
         },
         {
+          "week": null,
           "date": "2026-08-23",
+          "patch": null,
           "teamA": "Sharper Esports",
           "teamB": "ONSIDE GAMING",
-          "block": null
+          "winner": "Sharper Esports",
+          "score": "1-0",
+          "actual": {
+            "Sharper Esports": {},
+            "ONSIDE GAMING": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-23",
+          "patch": null,
           "teamA": "T1",
           "teamB": "DetonatioN FocusMe",
-          "block": null
+          "winner": "T1",
+          "score": "4-0",
+          "actual": {
+            "T1": {},
+            "DetonatioN FocusMe": {}
+          },
+          "games": 4
         }
-      ]
+      ],
+      "upcoming_matches": []
     },
     "VCT China": {
-      "teams": {},
-      "past_matches": [],
-      "upcoming_matches": [
+      "teams": {
+        "JD Gaming": {
+          "color": "#e0c341",
+          "players": [
+            {
+              "name": "zheJDG",
+              "role": null,
+              "cur": {
+                "g": 116,
+                "k": 0.8189655172413793,
+                "d": 0.8620689655172413,
+                "a": 0.25,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "YuicawJDG",
+              "role": null,
+              "cur": {
+                "g": 116,
+                "k": 0.6724137931034483,
+                "d": 0.8793103448275862,
+                "a": 0.3620689655172414,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "jkuroJDG",
+              "role": null,
+              "cur": {
+                "g": 116,
+                "k": 0.603448275862069,
+                "d": 0.8706896551724138,
+                "a": 0.28448275862068967,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "BerLINJDG",
+              "role": null,
+              "cur": {
+                "g": 116,
+                "k": 0.6724137931034483,
+                "d": 0.8448275862068966,
+                "a": 0.35344827586206895,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "crownfisherJDG",
+              "role": null,
+              "cur": {
+                "g": 116,
+                "k": 0.8706896551724138,
+                "d": 0.8620689655172413,
+                "a": 0.28448275862068967,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "ZmjjKKEDG",
+              "role": null,
+              "cur": {
+                "g": 174,
+                "k": 0.9655172413793104,
+                "d": 0.7586206896551724,
+                "a": 0.1839080459770115,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "nobodyEDG",
+              "role": null,
+              "cur": {
+                "g": 174,
+                "k": 0.9425287356321839,
+                "d": 0.5172413793103449,
+                "a": 0.367816091954023,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "Jieni7EDG",
+              "role": null,
+              "cur": {
+                "g": 174,
+                "k": 0.735632183908046,
+                "d": 0.5287356321839081,
+                "a": 0.5632183908045977,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "CHICHOOEDG",
+              "role": null,
+              "cur": {
+                "g": 174,
+                "k": 0.6091954022988506,
+                "d": 0.5517241379310345,
+                "a": 0.25287356321839083,
+                "kp": 0
+              },
+              "hist": null
+            }
+          ]
+        },
+        "FunPlus Phoenix": {
+          "color": "#8a9bb5",
+          "players": [
+            {
+              "name": "KovaQFPX",
+              "role": null,
+              "cur": {
+                "g": 8,
+                "k": 12.875,
+                "d": 12.375,
+                "a": 5.875,
+                "kp": 0
+              },
+              "hist": {
+                "g": 2,
+                "k": 18.0,
+                "d": 15.0,
+                "a": 5.5,
+                "kp": 0
+              }
+            },
+            {
+              "name": "coconutFPX",
+              "role": null,
+              "cur": {
+                "g": 8,
+                "k": 12.75,
+                "d": 11.625,
+                "a": 4.25,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "SetrodFPX",
+              "role": null,
+              "cur": {
+                "g": 8,
+                "k": 15.25,
+                "d": 11.875,
+                "a": 5.625,
+                "kp": 0
+              },
+              "hist": {
+                "g": 2,
+                "k": 14.5,
+                "d": 17.5,
+                "a": 7.0,
+                "kp": 0
+              }
+            },
+            {
+              "name": "XleleFPX",
+              "role": null,
+              "cur": {
+                "g": 8,
+                "k": 9.0,
+                "d": 13.25,
+                "a": 1.5,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "AAAAYFPX",
+              "role": null,
+              "cur": {
+                "g": 8,
+                "k": 14.0,
+                "d": 12.75,
+                "a": 4.25,
+                "kp": 0
+              },
+              "hist": {
+                "g": 2,
+                "k": 26.0,
+                "d": 17.0,
+                "a": 5.0,
+                "kp": 0
+              }
+            },
+            {
+              "name": "ErvTYL",
+              "role": null,
+              "cur": {
+                "g": 6,
+                "k": 13.333333333333334,
+                "d": 14.666666666666666,
+                "a": 7.0,
+                "kp": 0
+              },
+              "hist": {
+                "g": 2,
+                "k": 12.5,
+                "d": 20.0,
+                "a": 6.5,
+                "kp": 0
+              }
+            },
+            {
+              "name": "slowlyTYL",
+              "role": null,
+              "cur": {
+                "g": 6,
+                "k": 15.666666666666666,
+                "d": 15.0,
+                "a": 7.333333333333333,
+                "kp": 0
+              },
+              "hist": {
+                "g": 4,
+                "k": 10.75,
+                "d": 8.75,
+                "a": 2.5,
+                "kp": 0
+              }
+            },
+            {
+              "name": "SiuFatBBTYL",
+              "role": null,
+              "cur": {
+                "g": 6,
+                "k": 9.0,
+                "d": 12.666666666666666,
+                "a": 10.666666666666666,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "splashTYL",
+              "role": null,
+              "cur": {
+                "g": 6,
+                "k": 21.333333333333332,
+                "d": 15.0,
+                "a": 3.0,
+                "kp": 0
+              },
+              "hist": {
+                "g": 2,
+                "k": 22.5,
+                "d": 20.5,
+                "a": 6.5,
+                "kp": 0
+              }
+            },
+            {
+              "name": "ScalesTYL",
+              "role": null,
+              "cur": {
+                "g": 6,
+                "k": 12.666666666666666,
+                "d": 14.333333333333334,
+                "a": 1.6666666666666667,
+                "kp": 0
+              },
+              "hist": {
+                "g": 2,
+                "k": 12.5,
+                "d": 17.5,
+                "a": 5.0,
+                "kp": 0
+              }
+            }
+          ]
+        },
+        "Nova Esports": {
+          "color": "#4fa8e0",
+          "players": [
+            {
+              "name": "swagzorNOVA",
+              "role": null,
+              "cur": {
+                "g": 36,
+                "k": 3.611111111111111,
+                "d": 3.638888888888889,
+                "a": 0.9722222222222222,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "GuanGNOVA",
+              "role": null,
+              "cur": {
+                "g": 36,
+                "k": 3.111111111111111,
+                "d": 2.861111111111111,
+                "a": 0.5555555555555556,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "cbNOVA",
+              "role": null,
+              "cur": {
+                "g": 36,
+                "k": 3.638888888888889,
+                "d": 2.888888888888889,
+                "a": 1.0277777777777777,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "EzeirNOVA",
+              "role": null,
+              "cur": {
+                "g": 36,
+                "k": 2.3055555555555554,
+                "d": 3.138888888888889,
+                "a": 2.0555555555555554,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "qiutiaNNOVA",
+              "role": null,
+              "cur": {
+                "g": 36,
+                "k": 2.111111111111111,
+                "d": 3.0,
+                "a": 1.2777777777777777,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "KaiTE",
+              "role": null,
+              "cur": {
+                "g": 96,
+                "k": 1.8125,
+                "d": 1.7083333333333333,
+                "a": 0.25,
+                "kp": 0
+              },
+              "hist": {
+                "g": 4,
+                "k": 12.0,
+                "d": 15.5,
+                "a": 1.5,
+                "kp": 0
+              }
+            },
+            {
+              "name": "LuoK1ngTE",
+              "role": null,
+              "cur": {
+                "g": 96,
+                "k": 1.2291666666666667,
+                "d": 1.5625,
+                "a": 0.7708333333333334,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "FKEYTE",
+              "role": null,
+              "cur": {
+                "g": 96,
+                "k": 1.5416666666666667,
+                "d": 1.6458333333333333,
+                "a": 1.1041666666666667,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "deLbTE",
+              "role": null,
+              "cur": {
+                "g": 96,
+                "k": 1.6041666666666667,
+                "d": 1.5,
+                "a": 0.4166666666666667,
+                "kp": 0
+              },
+              "hist": {
+                "g": 2,
+                "k": 24.0,
+                "d": 32.0,
+                "a": 13.0,
+                "kp": 0
+              }
+            }
+          ]
+        },
+        "Trace Esports": {
+          "color": "#7ed957",
+          "players": [
+            {
+              "name": "FengFTE",
+              "role": null,
+              "cur": {
+                "g": 84,
+                "k": 1.6428571428571428,
+                "d": 1.9047619047619047,
+                "a": 0.6666666666666666,
+                "kp": 0
+              },
+              "hist": null
+            }
+          ]
+        },
+        "EDward Gaming": {
+          "color": "#c95050",
+          "players": [
+            {
+              "name": "SmoggyEDG",
+              "role": null,
+              "cur": {
+                "g": 123,
+                "k": 0.8130081300813008,
+                "d": 1.008130081300813,
+                "a": 0.6829268292682927,
+                "kp": 0
+              },
+              "hist": null
+            }
+          ]
+        },
+        "Wuxi Titan Esports Club(Titan Esports Club)": {
+          "color": "#3fbf7f",
+          "players": [
+            {
+              "name": "DynamiteTEC",
+              "role": null,
+              "cur": {
+                "g": 11,
+                "k": 14.545454545454545,
+                "d": 16.454545454545453,
+                "a": 5.181818181818182,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "CocoTEC",
+              "role": null,
+              "cur": {
+                "g": 11,
+                "k": 13.545454545454545,
+                "d": 14.727272727272727,
+                "a": 6.909090909090909,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "ra1nyTEC",
+              "role": null,
+              "cur": {
+                "g": 7,
+                "k": 7.0,
+                "d": 12.142857142857142,
+                "a": 1.8571428571428572,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "YingKBG",
+              "role": null,
+              "cur": {
+                "g": 3,
+                "k": 3.3333333333333335,
+                "d": 4.333333333333333,
+                "a": 1.0,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "sibeastw0wKBG",
+              "role": null,
+              "cur": {
+                "g": 3,
+                "k": 2.3333333333333335,
+                "d": 4.0,
+                "a": 1.6666666666666667,
+                "kp": 0
+              },
+              "hist": null
+            }
+          ]
+        },
+        "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)": {
+          "color": "#1e90c8",
+          "players": [
+            {
+              "name": "SpitfiresTEC",
+              "role": null,
+              "cur": {
+                "g": 4,
+                "k": 22.5,
+                "d": 25.0,
+                "a": 6.0,
+                "kp": 0
+              },
+              "hist": null
+            }
+          ]
+        },
+        "Xi Lai Gaming": {
+          "color": "#b06fd1",
+          "players": [
+            {
+              "name": "rushiaBLG",
+              "role": null,
+              "cur": {
+                "g": 62,
+                "k": 2.806451612903226,
+                "d": 2.935483870967742,
+                "a": 1.096774193548387,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "nephhBLG",
+              "role": null,
+              "cur": {
+                "g": 62,
+                "k": 3.3870967741935485,
+                "d": 2.5483870967741935,
+                "a": 1.8387096774193548,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "whzyBLG",
+              "role": null,
+              "cur": {
+                "g": 62,
+                "k": 2.967741935483871,
+                "d": 2.6774193548387095,
+                "a": 1.064516129032258,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "KnightBLG",
+              "role": null,
+              "cur": {
+                "g": 62,
+                "k": 3.2580645161290325,
+                "d": 2.3870967741935485,
+                "a": 1.4516129032258065,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "FTBLG",
+              "role": null,
+              "cur": {
+                "g": 62,
+                "k": 2.5483870967741935,
+                "d": 2.7419354838709675,
+                "a": 1.3870967741935485,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "LysoarXLG",
+              "role": null,
+              "cur": {
+                "g": 64,
+                "k": 3.0,
+                "d": 2.21875,
+                "a": 1.34375,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "WsLeoXLG",
+              "role": null,
+              "cur": {
+                "g": 70,
+                "k": 1.7142857142857142,
+                "d": 2.2,
+                "a": 1.1714285714285715,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "happyweiXLG",
+              "role": null,
+              "cur": {
+                "g": 70,
+                "k": 2.057142857142857,
+                "d": 2.142857142857143,
+                "a": 0.8285714285714286,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "NoManXLG",
+              "role": null,
+              "cur": {
+                "g": 70,
+                "k": 2.057142857142857,
+                "d": 2.2,
+                "a": 0.6285714285714286,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "RargaXLG",
+              "role": null,
+              "cur": {
+                "g": 64,
+                "k": 2.4375,
+                "d": 2.4375,
+                "a": 0.46875,
+                "kp": 0
+              },
+              "hist": null
+            }
+          ]
+        },
+        "KeepBest Gaming": {
+          "color": "#e08a3f",
+          "players": [
+            {
+              "name": "lucasTEC",
+              "role": null,
+              "cur": {
+                "g": 11,
+                "k": 13.454545454545455,
+                "d": 15.454545454545455,
+                "a": 5.090909090909091,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "HaodongTEC",
+              "role": null,
+              "cur": {
+                "g": 11,
+                "k": 12.363636363636363,
+                "d": 13.272727272727273,
+                "a": 4.454545454545454,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "AkemanKBG",
+              "role": null,
+              "cur": {
+                "g": 3,
+                "k": 4.666666666666667,
+                "d": 4.666666666666667,
+                "a": 0.6666666666666666,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "TonkKBG",
+              "role": null,
+              "cur": {
+                "g": 3,
+                "k": 3.3333333333333335,
+                "d": 4.333333333333333,
+                "a": 1.6666666666666667,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "Krst1NgKBG",
+              "role": null,
+              "cur": {
+                "g": 3,
+                "k": 1.0,
+                "d": 4.666666666666667,
+                "a": 1.3333333333333333,
+                "kp": 0
+              },
+              "hist": null
+            }
+          ]
+        },
+        "All Gamers": {
+          "color": "#5fd9c9",
+          "players": [
+            {
+              "name": "K1raAG",
+              "role": null,
+              "cur": {
+                "g": 16,
+                "k": 9.0,
+                "d": 7.5,
+                "a": 3.75,
+                "kp": 0
+              },
+              "hist": {
+                "g": 4,
+                "k": 17.0,
+                "d": 12.5,
+                "a": 6.0,
+                "kp": 0
+              }
+            },
+            {
+              "name": "BaiAG",
+              "role": null,
+              "cur": {
+                "g": 16,
+                "k": 8.125,
+                "d": 8.0,
+                "a": 1.375,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "f4ngeerAG",
+              "role": null,
+              "cur": {
+                "g": 10,
+                "k": 11.4,
+                "d": 12.0,
+                "a": 2.6,
+                "kp": 0
+              },
+              "hist": {
+                "g": 4,
+                "k": 19.5,
+                "d": 10.5,
+                "a": 6.5,
+                "kp": 0
+              }
+            },
+            {
+              "name": "iamgrqAG",
+              "role": null,
+              "cur": {
+                "g": 16,
+                "k": 8.5,
+                "d": 8.0,
+                "a": 4.0,
+                "kp": 0
+              },
+              "hist": {
+                "g": 4,
+                "k": 10.0,
+                "d": 11.0,
+                "a": 10.0,
+                "kp": 0
+              }
+            },
+            {
+              "name": "Shr1mpAG",
+              "role": null,
+              "cur": {
+                "g": 16,
+                "k": 7.25,
+                "d": 6.375,
+                "a": 3.25,
+                "kp": 0
+              },
+              "hist": {
+                "g": 4,
+                "k": 17.0,
+                "d": 10.5,
+                "a": 9.5,
+                "kp": 0
+              }
+            }
+          ]
+        },
+        "Wolves Esports": {
+          "color": "#d15f9a",
+          "players": [
+            {
+              "name": "vo0kashuDRG",
+              "role": null,
+              "cur": {
+                "g": 56,
+                "k": 1.4285714285714286,
+                "d": 1.7142857142857142,
+                "a": 0.5714285714285714,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "SpiritZ1DRG",
+              "role": null,
+              "cur": {
+                "g": 56,
+                "k": 1.7857142857142858,
+                "d": 1.9285714285714286,
+                "a": 0.5357142857142857,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "LifeDRG",
+              "role": null,
+              "cur": {
+                "g": 56,
+                "k": 1.7142857142857142,
+                "d": 1.8214285714285714,
+                "a": 0.42857142857142855,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "yosemiteWOL",
+              "role": null,
+              "cur": {
+                "g": 56,
+                "k": 1.75,
+                "d": 1.6071428571428572,
+                "a": 0.6428571428571429,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "alubaWOL",
+              "role": null,
+              "cur": {
+                "g": 56,
+                "k": 1.6785714285714286,
+                "d": 1.7142857142857142,
+                "a": 0.5,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "NiccDRG",
+              "role": null,
+              "cur": {
+                "g": 56,
+                "k": 1.75,
+                "d": 1.6071428571428572,
+                "a": 1.3928571428571428,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "VerseDRG",
+              "role": null,
+              "cur": {
+                "g": 56,
+                "k": 1.6071428571428572,
+                "d": 1.6071428571428572,
+                "a": 1.0,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "glacierWOL",
+              "role": null,
+              "cur": {
+                "g": 56,
+                "k": 2.3214285714285716,
+                "d": 1.75,
+                "a": 0.2857142857142857,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "SpringWOL",
+              "role": null,
+              "cur": {
+                "g": 56,
+                "k": 1.5357142857142858,
+                "d": 1.5714285714285714,
+                "a": 0.5714285714285714,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "DeryeonWOL",
+              "role": null,
+              "cur": {
+                "g": 56,
+                "k": 1.3928571428571428,
+                "d": 1.6428571428571428,
+                "a": 1.2142857142857142,
+                "kp": 0
+              },
+              "hist": null
+            }
+          ]
+        }
+      },
+      "past_matches": [
         {
+          "week": null,
           "date": "2026-07-09",
+          "patch": null,
           "teamA": "Wolves Esports",
           "teamB": "Wuxi Titan Esports Club(Titan Esports Club)",
-          "block": null
+          "winner": "Wolves Esports",
+          "score": "1-0",
+          "actual": {
+            "Wolves Esports": {},
+            "Wuxi Titan Esports Club(Titan Esports Club)": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-07-09",
+          "patch": null,
           "teamA": "Dragon Ranger Gaming",
           "teamB": "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)",
-          "block": null
+          "winner": "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)",
+          "score": "3-20",
+          "actual": {
+            "Dragon Ranger Gaming": {},
+            "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)": {}
+          },
+          "games": 23
         },
         {
+          "week": null,
           "date": "2026-07-10",
+          "patch": null,
           "teamA": "FunPlus Phoenix",
           "teamB": "Trace Esports",
-          "block": null
+          "winner": "FunPlus Phoenix",
+          "score": "1-0",
+          "actual": {
+            "FunPlus Phoenix": {},
+            "Trace Esports": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-07-10",
+          "patch": null,
           "teamA": "JD Gaming",
           "teamB": "TYLOO",
-          "block": null
+          "winner": "TYLOO",
+          "score": "3-10",
+          "actual": {
+            "JD Gaming": {},
+            "TYLOO": {}
+          },
+          "games": 13
         },
         {
+          "week": null,
           "date": "2026-07-11",
+          "patch": null,
           "teamA": "Dragon Ranger Gaming",
           "teamB": "Wuxi Titan Esports Club(Titan Esports Club)",
-          "block": null
+          "winner": "Dragon Ranger Gaming",
+          "score": "1-0",
+          "actual": {
+            "Dragon Ranger Gaming": {},
+            "Wuxi Titan Esports Club(Titan Esports Club)": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-07-11",
+          "patch": null,
           "teamA": "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)",
           "teamB": "Wolves Esports",
-          "block": null
+          "winner": "Wolves Esports",
+          "score": "4-35",
+          "actual": {
+            "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)": {},
+            "Wolves Esports": {}
+          },
+          "games": 39
         },
         {
+          "week": null,
           "date": "2026-07-12",
+          "patch": null,
           "teamA": "Nova Esports",
           "teamB": "FunPlus Phoenix",
-          "block": null
+          "winner": "Nova Esports",
+          "score": "1-0",
+          "actual": {
+            "Nova Esports": {},
+            "FunPlus Phoenix": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-07-12",
+          "patch": null,
           "teamA": "TYLOO",
           "teamB": "Trace Esports",
-          "block": null
+          "winner": "Trace Esports",
+          "score": "3-10",
+          "actual": {
+            "TYLOO": {},
+            "Trace Esports": {}
+          },
+          "games": 13
         },
         {
+          "week": null,
           "date": "2026-07-14",
+          "patch": null,
           "teamA": "Wolves Esports",
           "teamB": "All Gamers",
-          "block": null
+          "winner": "Wolves Esports",
+          "score": "2-0",
+          "actual": {
+            "Wolves Esports": {},
+            "All Gamers": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-07-14",
+          "patch": null,
           "teamA": "Xi Lai Gaming",
           "teamB": "Wuxi Titan Esports Club(Titan Esports Club)",
-          "block": null
+          "winner": "Wuxi Titan Esports Club(Titan Esports Club)",
+          "score": "4-15",
+          "actual": {
+            "Xi Lai Gaming": {},
+            "Wuxi Titan Esports Club(Titan Esports Club)": {}
+          },
+          "games": 19
         },
         {
+          "week": null,
           "date": "2026-07-15",
+          "patch": null,
           "teamA": "JD Gaming",
           "teamB": "FunPlus Phoenix",
-          "block": null
+          "winner": "JD Gaming",
+          "score": "2-0",
+          "actual": {
+            "JD Gaming": {
+              "zheJDG": {
+                "k": 17,
+                "d": 15,
+                "a": 9
+              },
+              "YuicawJDG": {
+                "k": 12,
+                "d": 14,
+                "a": 7
+              },
+              "jkuroJDG": {
+                "k": 11,
+                "d": 17,
+                "a": 7
+              },
+              "KovaQFPX": {
+                "k": 21,
+                "d": 13,
+                "a": 7
+              },
+              "coconutFPX": {
+                "k": 10,
+                "d": 13,
+                "a": 8
+              }
+            },
+            "FunPlus Phoenix": {
+              "BerLINJDG": {
+                "k": 13,
+                "d": 14,
+                "a": 10
+              },
+              "crownfisherJDG": {
+                "k": 12,
+                "d": 19,
+                "a": 4
+              },
+              "SetrodFPX": {
+                "k": 22,
+                "d": 13,
+                "a": 5
+              },
+              "XleleFPX": {
+                "k": 14,
+                "d": 14,
+                "a": 2
+              },
+              "AAAAYFPX": {
+                "k": 12,
+                "d": 12,
+                "a": 4
+              }
+            }
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-07-15",
+          "patch": null,
           "teamA": "EDward Gaming",
           "teamB": "TYLOO",
-          "block": null
+          "winner": "TYLOO",
+          "score": "4-20",
+          "actual": {
+            "EDward Gaming": {},
+            "TYLOO": {}
+          },
+          "games": 24
         },
         {
+          "week": null,
           "date": "2026-07-16",
+          "patch": null,
           "teamA": "All Gamers",
           "teamB": "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)",
-          "block": null
+          "winner": "All Gamers",
+          "score": "2-0",
+          "actual": {
+            "All Gamers": {},
+            "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-07-16",
+          "patch": null,
           "teamA": "Xi Lai Gaming",
           "teamB": "Dragon Ranger Gaming",
-          "block": null
+          "winner": "Dragon Ranger Gaming",
+          "score": "5-25",
+          "actual": {
+            "Xi Lai Gaming": {},
+            "Dragon Ranger Gaming": {}
+          },
+          "games": 30
         },
         {
+          "week": null,
           "date": "2026-07-17",
+          "patch": null,
           "teamA": "Nova Esports",
           "teamB": "JD Gaming",
-          "block": null
+          "winner": "Nova Esports",
+          "score": "12-0",
+          "actual": {
+            "Nova Esports": {
+              "swagzorNOVA": {
+                "k": 22,
+                "d": 15,
+                "a": 3
+              },
+              "GuanGNOVA": {
+                "k": 18,
+                "d": 15,
+                "a": 8
+              },
+              "cbNOVA": {
+                "k": 13,
+                "d": 12,
+                "a": 7
+              },
+              "crownfisherJDG": {
+                "k": 15,
+                "d": 17,
+                "a": 1
+              },
+              "YuicawJDG": {
+                "k": 12,
+                "d": 18,
+                "a": 5
+              }
+            },
+            "JD Gaming": {
+              "EzeirNOVA": {
+                "k": 19,
+                "d": 17,
+                "a": 10
+              },
+              "qiutiaNNOVA": {
+                "k": 12,
+                "d": 16,
+                "a": 8
+              },
+              "zheJDG": {
+                "k": 28,
+                "d": 17,
+                "a": 4
+              },
+              "BerLINJDG": {
+                "k": 9,
+                "d": 16,
+                "a": 9
+              },
+              "jkuroJDG": {
+                "k": 11,
+                "d": 16,
+                "a": 6
+              }
+            }
+          },
+          "games": 12
         },
         {
+          "week": null,
           "date": "2026-07-17",
+          "patch": null,
           "teamA": "TYLOO",
           "teamB": "FunPlus Phoenix",
-          "block": null
+          "winner": "TYLOO",
+          "score": "3-0",
+          "actual": {
+            "TYLOO": {
+              "ErvTYL": {
+                "k": 66,
+                "d": 70,
+                "a": 38
+              },
+              "slowlyTYL": {
+                "k": 33,
+                "d": 27,
+                "a": 10
+              },
+              "SiuFatBBTYL": {
+                "k": 27,
+                "d": 38,
+                "a": 32
+              },
+              "KovaQFPX": {
+                "k": 41,
+                "d": 43,
+                "a": 20
+              },
+              "AAAAYFPX": {
+                "k": 50,
+                "d": 45,
+                "a": 15
+              },
+              "splashTYL": {
+                "k": 85,
+                "d": 59,
+                "a": 13
+              },
+              "ScalesTYL": {
+                "k": 68,
+                "d": 72,
+                "a": 8
+              },
+              "SetrodFPX": {
+                "k": 80,
+                "d": 72,
+                "a": 36
+              },
+              "coconutFPX": {
+                "k": 78,
+                "d": 70,
+                "a": 24
+              },
+              "XleleFPX": {
+                "k": 50,
+                "d": 82,
+                "a": 9
+              }
+            },
+            "FunPlus Phoenix": {
+              "splashTYL": {
+                "k": 43,
+                "d": 31,
+                "a": 5
+              },
+              "ScalesTYL": {
+                "k": 8,
+                "d": 14,
+                "a": 2
+              },
+              "SetrodFPX": {
+                "k": 20,
+                "d": 10,
+                "a": 4
+              },
+              "coconutFPX": {
+                "k": 14,
+                "d": 10,
+                "a": 2
+              },
+              "XleleFPX": {
+                "k": 8,
+                "d": 10,
+                "a": 1
+              },
+              "slowlyTYL": {
+                "k": 61,
+                "d": 63,
+                "a": 34
+              },
+              "SiuFatBBTYL": {
+                "k": 27,
+                "d": 38,
+                "a": 32
+              },
+              "AAAAYFPX": {
+                "k": 50,
+                "d": 45,
+                "a": 15
+              },
+              "KovaQFPX": {
+                "k": 41,
+                "d": 43,
+                "a": 20
+              },
+              "ErvTYL": {
+                "k": 14,
+                "d": 18,
+                "a": 4
+              }
+            }
+          },
+          "games": 3
         },
         {
+          "week": null,
           "date": "2026-07-17",
+          "patch": null,
           "teamA": "Trace Esports",
           "teamB": "EDward Gaming",
-          "block": null
+          "winner": "EDward Gaming",
+          "score": "6-30",
+          "actual": {
+            "Trace Esports": {
+              "KaiTE": {
+                "k": 46,
+                "d": 50,
+                "a": 9
+              },
+              "LuoK1ngTE": {
+                "k": 23,
+                "d": 32,
+                "a": 17
+              },
+              "FengFTE": {
+                "k": 24,
+                "d": 31,
+                "a": 11
+              },
+              "ZmjjKKEDG": {
+                "k": 40,
+                "d": 32,
+                "a": 10
+              },
+              "SmoggyEDG": {
+                "k": 24,
+                "d": 31,
+                "a": 26
+              },
+              "FKEYTE": {
+                "k": 39,
+                "d": 50,
+                "a": 39
+              },
+              "deLbTE": {
+                "k": 27,
+                "d": 53,
+                "a": 13
+              },
+              "nobodyEDG": {
+                "k": 69,
+                "d": 34,
+                "a": 19
+              },
+              "Jieni7EDG": {
+                "k": 53,
+                "d": 35,
+                "a": 33
+              },
+              "CHICHOOEDG": {
+                "k": 37,
+                "d": 34,
+                "a": 19
+              }
+            },
+            "EDward Gaming": {
+              "deLbTE": {
+                "k": 11,
+                "d": 15,
+                "a": 5
+              },
+              "FKEYTE": {
+                "k": 9,
+                "d": 14,
+                "a": 7
+              },
+              "nobodyEDG": {
+                "k": 25,
+                "d": 6,
+                "a": 7
+              },
+              "Jieni7EDG": {
+                "k": 9,
+                "d": 9,
+                "a": 11
+              },
+              "CHICHOOEDG": {
+                "k": 7,
+                "d": 8,
+                "a": 3
+              },
+              "LuoK1ngTE": {
+                "k": 23,
+                "d": 32,
+                "a": 17
+              },
+              "FengFTE": {
+                "k": 24,
+                "d": 31,
+                "a": 11
+              },
+              "ZmjjKKEDG": {
+                "k": 40,
+                "d": 32,
+                "a": 10
+              },
+              "SmoggyEDG": {
+                "k": 24,
+                "d": 31,
+                "a": 26
+              },
+              "KaiTE": {
+                "k": 24,
+                "d": 20,
+                "a": 7
+              }
+            }
+          },
+          "games": 36
         },
         {
+          "week": null,
           "date": "2026-07-18",
+          "patch": null,
           "teamA": "Wuxi Titan Esports Club(Titan Esports Club)",
           "teamB": "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)",
-          "block": null
+          "winner": "Wuxi Titan Esports Club(Titan Esports Club)",
+          "score": "2-0",
+          "actual": {
+            "Wuxi Titan Esports Club(Titan Esports Club)": {
+              "DynamiteTEC": {
+                "k": 79,
+                "d": 89,
+                "a": 29
+              },
+              "SpitfiresTEC": {
+                "k": 31,
+                "d": 34,
+                "a": 10
+              },
+              "CocoTEC": {
+                "k": 57,
+                "d": 82,
+                "a": 42
+              },
+              "rushiaBLG": {
+                "k": 81,
+                "d": 74,
+                "a": 24
+              },
+              "nephhBLG": {
+                "k": 59,
+                "d": 38,
+                "a": 16
+              },
+              "lucasTEC": {
+                "k": 63,
+                "d": 63,
+                "a": 23
+              },
+              "HaodongTEC": {
+                "k": 60,
+                "d": 63,
+                "a": 21
+              },
+              "whzyBLG": {
+                "k": 58,
+                "d": 56,
+                "a": 18
+              },
+              "KnightBLG": {
+                "k": 34,
+                "d": 27,
+                "a": 20
+              },
+              "FTBLG": {
+                "k": 18,
+                "d": 31,
+                "a": 9
+              }
+            },
+            "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)": {
+              "lucasTEC": {
+                "k": 31,
+                "d": 35,
+                "a": 11
+              },
+              "HaodongTEC": {
+                "k": 16,
+                "d": 13,
+                "a": 3
+              },
+              "whzyBLG": {
+                "k": 32,
+                "d": 32,
+                "a": 14
+              },
+              "KnightBLG": {
+                "k": 74,
+                "d": 53,
+                "a": 30
+              },
+              "FTBLG": {
+                "k": 46,
+                "d": 61,
+                "a": 27
+              },
+              "SpitfiresTEC": {
+                "k": 59,
+                "d": 66,
+                "a": 14
+              },
+              "nephhBLG": {
+                "k": 59,
+                "d": 38,
+                "a": 16
+              },
+              "CocoTEC": {
+                "k": 17,
+                "d": 12,
+                "a": 12
+              },
+              "rushiaBLG": {
+                "k": 11,
+                "d": 16,
+                "a": 4
+              },
+              "DynamiteTEC": {
+                "k": 13,
+                "d": 15,
+                "a": 3
+              }
+            }
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-07-18",
+          "patch": null,
           "teamA": "All Gamers",
           "teamB": "Xi Lai Gaming",
-          "block": null
+          "winner": "All Gamers",
+          "score": "6-0",
+          "actual": {
+            "All Gamers": {
+              "K1raAG": {
+                "k": 37,
+                "d": 35,
+                "a": 14
+              },
+              "BaiAG": {
+                "k": 27,
+                "d": 40,
+                "a": 4
+              },
+              "f4ngeerAG": {
+                "k": 40,
+                "d": 68,
+                "a": 6
+              },
+              "LysoarXLG": {
+                "k": 102,
+                "d": 60,
+                "a": 46
+              },
+              "WsLeoXLG": {
+                "k": 13,
+                "d": 18,
+                "a": 4
+              },
+              "iamgrqAG": {
+                "k": 66,
+                "d": 57,
+                "a": 17
+              },
+              "Shr1mpAG": {
+                "k": 48,
+                "d": 48,
+                "a": 18
+              },
+              "happyweiXLG": {
+                "k": 40,
+                "d": 29,
+                "a": 9
+              },
+              "NoManXLG": {
+                "k": 21,
+                "d": 13,
+                "a": 5
+              }
+            },
+            "Xi Lai Gaming": {
+              "iamgrqAG": {
+                "k": 20,
+                "d": 17,
+                "a": 9
+              },
+              "Shr1mpAG": {
+                "k": 10,
+                "d": 16,
+                "a": 6
+              },
+              "happyweiXLG": {
+                "k": 40,
+                "d": 29,
+                "a": 9
+              },
+              "RargaXLG": {
+                "k": 64,
+                "d": 66,
+                "a": 12
+              },
+              "NoManXLG": {
+                "k": 43,
+                "d": 47,
+                "a": 15
+              },
+              "K1raAG": {
+                "k": 37,
+                "d": 35,
+                "a": 14
+              },
+              "BaiAG": {
+                "k": 27,
+                "d": 40,
+                "a": 4
+              },
+              "WsLeoXLG": {
+                "k": 33,
+                "d": 50,
+                "a": 30
+              }
+            }
+          },
+          "games": 6
         },
         {
+          "week": null,
           "date": "2026-07-19",
+          "patch": null,
           "teamA": "Trace Esports",
           "teamB": "Nova Esports",
-          "block": null
+          "winner": "Trace Esports",
+          "score": "12-0",
+          "actual": {
+            "Trace Esports": {
+              "KaiTE": {
+                "k": 88,
+                "d": 83,
+                "a": 6
+              },
+              "FKEYTE": {
+                "k": 50,
+                "d": 47,
+                "a": 30
+              },
+              "FengFTE": {
+                "k": 90,
+                "d": 98,
+                "a": 34
+              },
+              "EzeirNOVA": {
+                "k": 50,
+                "d": 57,
+                "a": 41
+              },
+              "GuanGNOVA": {
+                "k": 14,
+                "d": 10,
+                "a": 4
+              },
+              "deLbTE": {
+                "k": 81,
+                "d": 55,
+                "a": 17
+              },
+              "LuoK1ngTE": {
+                "k": 63,
+                "d": 72,
+                "a": 32
+              },
+              "qiutiaNNOVA": {
+                "k": 32,
+                "d": 46,
+                "a": 19
+              },
+              "cbNOVA": {
+                "k": 44,
+                "d": 31,
+                "a": 8
+              },
+              "swagzorNOVA": {
+                "k": 24,
+                "d": 25,
+                "a": 7
+              }
+            },
+            "Nova Esports": {
+              "deLbTE": {
+                "k": 35,
+                "d": 21,
+                "a": 5
+              },
+              "LuoK1ngTE": {
+                "k": 9,
+                "d": 14,
+                "a": 8
+              },
+              "swagzorNOVA": {
+                "k": 84,
+                "d": 91,
+                "a": 25
+              },
+              "cbNOVA": {
+                "k": 74,
+                "d": 61,
+                "a": 22
+              },
+              "qiutiaNNOVA": {
+                "k": 32,
+                "d": 46,
+                "a": 19
+              },
+              "FKEYTE": {
+                "k": 50,
+                "d": 47,
+                "a": 30
+              },
+              "GuanGNOVA": {
+                "k": 80,
+                "d": 78,
+                "a": 8
+              },
+              "KaiTE": {
+                "k": 16,
+                "d": 11,
+                "a": 2
+              },
+              "EzeirNOVA": {
+                "k": 14,
+                "d": 39,
+                "a": 23
+              }
+            }
+          },
+          "games": 12
         },
         {
+          "week": null,
           "date": "2026-07-19",
+          "patch": null,
           "teamA": "Dragon Ranger Gaming",
           "teamB": "Wolves Esports",
-          "block": null
+          "winner": "Wolves Esports",
+          "score": "3-25",
+          "actual": {
+            "Dragon Ranger Gaming": {
+              "vo0kashuDRG": {
+                "k": 34,
+                "d": 32,
+                "a": 12
+              },
+              "SpiritZ1DRG": {
+                "k": 15,
+                "d": 20,
+                "a": 5
+              },
+              "LifeDRG": {
+                "k": 59,
+                "d": 71,
+                "a": 14
+              },
+              "yosemiteWOL": {
+                "k": 20,
+                "d": 13,
+                "a": 8
+              },
+              "alubaWOL": {
+                "k": 78,
+                "d": 81,
+                "a": 21
+              },
+              "NiccDRG": {
+                "k": 57,
+                "d": 59,
+                "a": 48
+              },
+              "VerseDRG": {
+                "k": 45,
+                "d": 45,
+                "a": 28
+              },
+              "glacierWOL": {
+                "k": 83,
+                "d": 66,
+                "a": 11
+              },
+              "SpringWOL": {
+                "k": 68,
+                "d": 75,
+                "a": 25
+              },
+              "DeryeonWOL": {
+                "k": 27,
+                "d": 30,
+                "a": 19
+              }
+            },
+            "Wolves Esports": {
+              "NiccDRG": {
+                "k": 41,
+                "d": 31,
+                "a": 30
+              },
+              "VerseDRG": {
+                "k": 45,
+                "d": 45,
+                "a": 28
+              },
+              "glacierWOL": {
+                "k": 47,
+                "d": 32,
+                "a": 5
+              },
+              "SpringWOL": {
+                "k": 18,
+                "d": 13,
+                "a": 7
+              },
+              "DeryeonWOL": {
+                "k": 51,
+                "d": 62,
+                "a": 49
+              },
+              "SpiritZ1DRG": {
+                "k": 85,
+                "d": 88,
+                "a": 25
+              },
+              "vo0kashuDRG": {
+                "k": 46,
+                "d": 64,
+                "a": 20
+              },
+              "yosemiteWOL": {
+                "k": 78,
+                "d": 77,
+                "a": 28
+              },
+              "LifeDRG": {
+                "k": 37,
+                "d": 31,
+                "a": 10
+              },
+              "alubaWOL": {
+                "k": 16,
+                "d": 15,
+                "a": 7
+              }
+            }
+          },
+          "games": 28
         },
         {
+          "week": null,
           "date": "2026-07-19",
+          "patch": null,
           "teamA": "EDward Gaming",
           "teamB": "JD Gaming",
-          "block": null
+          "winner": "JD Gaming",
+          "score": "6-45",
+          "actual": {
+            "EDward Gaming": {
+              "ZmjjKKEDG": {
+                "k": 67,
+                "d": 52,
+                "a": 6
+              },
+              "CHICHOOEDG": {
+                "k": 19,
+                "d": 15,
+                "a": 4
+              },
+              "SmoggyEDG": {
+                "k": 52,
+                "d": 62,
+                "a": 32
+              },
+              "crownfisherJDG": {
+                "k": 57,
+                "d": 48,
+                "a": 20
+              },
+              "zheJDG": {
+                "k": 12,
+                "d": 19,
+                "a": 1
+              },
+              "nobodyEDG": {
+                "k": 35,
+                "d": 25,
+                "a": 19
+              },
+              "BerLINJDG": {
+                "k": 28,
+                "d": 34,
+                "a": 11
+              },
+              "jkuroJDG": {
+                "k": 38,
+                "d": 52,
+                "a": 19
+              },
+              "Jieni7EDG": {
+                "k": 13,
+                "d": 10,
+                "a": 16
+              },
+              "YuicawJDG": {
+                "k": 14,
+                "d": 17,
+                "a": 7
+              }
+            },
+            "JD Gaming": {
+              "Jieni7EDG": {
+                "k": 53,
+                "d": 38,
+                "a": 38
+              },
+              "nobodyEDG": {
+                "k": 35,
+                "d": 25,
+                "a": 19
+              },
+              "BerLINJDG": {
+                "k": 28,
+                "d": 34,
+                "a": 11
+              },
+              "YuicawJDG": {
+                "k": 40,
+                "d": 53,
+                "a": 23
+              },
+              "jkuroJDG": {
+                "k": 10,
+                "d": 16,
+                "a": 1
+              },
+              "CHICHOOEDG": {
+                "k": 43,
+                "d": 39,
+                "a": 18
+              },
+              "zheJDG": {
+                "k": 38,
+                "d": 49,
+                "a": 15
+              },
+              "ZmjjKKEDG": {
+                "k": 21,
+                "d": 16,
+                "a": 6
+              },
+              "crownfisherJDG": {
+                "k": 17,
+                "d": 16,
+                "a": 8
+              }
+            }
+          },
+          "games": 51
         },
         {
+          "week": null,
           "date": "2026-07-20",
+          "patch": null,
           "teamA": "Wuxi Titan Esports Club(Titan Esports Club)",
           "teamB": "All Gamers",
-          "block": null
+          "winner": "Wuxi Titan Esports Club(Titan Esports Club)",
+          "score": "2-0",
+          "actual": {
+            "Wuxi Titan Esports Club(Titan Esports Club)": {
+              "DynamiteTEC": {
+                "k": 25,
+                "d": 34,
+                "a": 9
+              },
+              "ra1nyTEC": {
+                "k": 21,
+                "d": 36,
+                "a": 4
+              },
+              "lucasTEC": {
+                "k": 30,
+                "d": 50,
+                "a": 12
+              },
+              "Shr1mpAG": {
+                "k": 29,
+                "d": 19,
+                "a": 14
+              },
+              "f4ngeerAG": {
+                "k": 37,
+                "d": 26,
+                "a": 10
+              },
+              "CocoTEC": {
+                "k": 31,
+                "d": 30,
+                "a": 7
+              },
+              "HaodongTEC": {
+                "k": 29,
+                "d": 48,
+                "a": 11
+              },
+              "K1raAG": {
+                "k": 49,
+                "d": 36,
+                "a": 25
+              },
+              "BaiAG": {
+                "k": 59,
+                "d": 34,
+                "a": 10
+              },
+              "iamgrqAG": {
+                "k": 37,
+                "d": 39,
+                "a": 28
+              }
+            },
+            "All Gamers": {
+              "HaodongTEC": {
+                "k": 15,
+                "d": 14,
+                "a": 9
+              },
+              "CocoTEC": {
+                "k": 31,
+                "d": 30,
+                "a": 7
+              },
+              "K1raAG": {
+                "k": 21,
+                "d": 14,
+                "a": 7
+              },
+              "BaiAG": {
+                "k": 17,
+                "d": 14,
+                "a": 4
+              },
+              "iamgrqAG": {
+                "k": 13,
+                "d": 15,
+                "a": 10
+              },
+              "DynamiteTEC": {
+                "k": 25,
+                "d": 34,
+                "a": 9
+              },
+              "ra1nyTEC": {
+                "k": 21,
+                "d": 36,
+                "a": 4
+              },
+              "f4ngeerAG": {
+                "k": 37,
+                "d": 26,
+                "a": 10
+              },
+              "Shr1mpAG": {
+                "k": 29,
+                "d": 19,
+                "a": 14
+              },
+              "lucasTEC": {
+                "k": 12,
+                "d": 16,
+                "a": 6
+              }
+            }
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-07-20",
+          "patch": null,
           "teamA": "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)",
           "teamB": "Xi Lai Gaming",
-          "block": null
+          "winner": "Xi Lai Gaming",
+          "score": "4-25",
+          "actual": {
+            "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)": {
+              "nephhBLG": {
+                "k": 63,
+                "d": 50,
+                "a": 52
+              },
+              "rushiaBLG": {
+                "k": 26,
+                "d": 27,
+                "a": 9
+              },
+              "whzyBLG": {
+                "k": 7,
+                "d": 6,
+                "a": 7
+              },
+              "NoManXLG": {
+                "k": 65,
+                "d": 76,
+                "a": 19
+              },
+              "RargaXLG": {
+                "k": 74,
+                "d": 71,
+                "a": 14
+              },
+              "FTBLG": {
+                "k": 56,
+                "d": 56,
+                "a": 34
+              },
+              "KnightBLG": {
+                "k": 47,
+                "d": 34,
+                "a": 20
+              },
+              "LysoarXLG": {
+                "k": 45,
+                "d": 41,
+                "a": 20
+              },
+              "happyweiXLG": {
+                "k": 26,
+                "d": 33,
+                "a": 15
+              },
+              "WsLeoXLG": {
+                "k": 17,
+                "d": 16,
+                "a": 10
+              }
+            },
+            "Xi Lai Gaming": {
+              "FTBLG": {
+                "k": 38,
+                "d": 22,
+                "a": 16
+              },
+              "KnightBLG": {
+                "k": 47,
+                "d": 34,
+                "a": 20
+              },
+              "WsLeoXLG": {
+                "k": 57,
+                "d": 70,
+                "a": 38
+              },
+              "LysoarXLG": {
+                "k": 45,
+                "d": 41,
+                "a": 20
+              },
+              "happyweiXLG": {
+                "k": 38,
+                "d": 59,
+                "a": 25
+              },
+              "whzyBLG": {
+                "k": 87,
+                "d": 72,
+                "a": 27
+              },
+              "rushiaBLG": {
+                "k": 56,
+                "d": 65,
+                "a": 31
+              },
+              "nephhBLG": {
+                "k": 29,
+                "d": 32,
+                "a": 30
+              },
+              "RargaXLG": {
+                "k": 18,
+                "d": 19,
+                "a": 4
+              },
+              "NoManXLG": {
+                "k": 15,
+                "d": 18,
+                "a": 5
+              }
+            }
+          },
+          "games": 29
         },
         {
+          "week": null,
           "date": "2026-07-21",
+          "patch": null,
           "teamA": "JD Gaming",
           "teamB": "Trace Esports",
-          "block": null
+          "winner": "JD Gaming",
+          "score": "2-0",
+          "actual": {
+            "JD Gaming": {},
+            "Trace Esports": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-07-21",
+          "patch": null,
           "teamA": "EDward Gaming",
           "teamB": "Nova Esports",
-          "block": null
+          "winner": "Nova Esports",
+          "score": "4-15",
+          "actual": {
+            "EDward Gaming": {},
+            "Nova Esports": {}
+          },
+          "games": 19
         },
         {
+          "week": null,
           "date": "2026-07-22",
+          "patch": null,
           "teamA": "Xi Lai Gaming",
           "teamB": "Wolves Esports",
-          "block": null
+          "winner": "Xi Lai Gaming",
+          "score": "2-0",
+          "actual": {
+            "Xi Lai Gaming": {},
+            "Wolves Esports": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-07-22",
+          "patch": null,
           "teamA": "All Gamers",
           "teamB": "Dragon Ranger Gaming",
-          "block": null
+          "winner": "Dragon Ranger Gaming",
+          "score": "5-20",
+          "actual": {
+            "All Gamers": {},
+            "Dragon Ranger Gaming": {}
+          },
+          "games": 25
         },
         {
+          "week": null,
           "date": "2026-07-23",
+          "patch": null,
           "teamA": "TYLOO",
           "teamB": "Nova Esports",
-          "block": null
+          "winner": "TYLOO",
+          "score": "2-0",
+          "actual": {
+            "TYLOO": {},
+            "Nova Esports": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-07-23",
+          "patch": null,
           "teamA": "FunPlus Phoenix",
           "teamB": "EDward Gaming",
-          "block": null
+          "winner": "EDward Gaming",
+          "score": "4-35",
+          "actual": {
+            "FunPlus Phoenix": {},
+            "EDward Gaming": {}
+          },
+          "games": 39
         },
         {
+          "week": null,
           "date": "2026-07-24",
+          "patch": null,
           "teamA": "Trace Esports",
           "teamB": "Wuxi Titan Esports Club(Titan Esports Club)",
-          "block": null
+          "winner": "Trace Esports",
+          "score": "2-0",
+          "actual": {
+            "Trace Esports": {},
+            "Wuxi Titan Esports Club(Titan Esports Club)": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-07-24",
+          "patch": null,
           "teamA": "EDward Gaming",
           "teamB": "All Gamers",
-          "block": null
+          "winner": "All Gamers",
+          "score": "4-35",
+          "actual": {
+            "EDward Gaming": {},
+            "All Gamers": {}
+          },
+          "games": 39
         },
         {
+          "week": null,
           "date": "2026-07-25",
+          "patch": null,
           "teamA": "JD Gaming",
           "teamB": "Dragon Ranger Gaming",
-          "block": null
+          "winner": "JD Gaming",
+          "score": "2-0",
+          "actual": {
+            "JD Gaming": {},
+            "Dragon Ranger Gaming": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-07-25",
+          "patch": null,
           "teamA": "TYLOO",
           "teamB": "Xi Lai Gaming",
-          "block": null
+          "winner": "Xi Lai Gaming",
+          "score": "5-35",
+          "actual": {
+            "TYLOO": {},
+            "Xi Lai Gaming": {}
+          },
+          "games": 40
         },
         {
+          "week": null,
           "date": "2026-07-26",
+          "patch": null,
           "teamA": "FunPlus Phoenix",
           "teamB": "Wolves Esports",
-          "block": null
+          "winner": "FunPlus Phoenix",
+          "score": "2-0",
+          "actual": {
+            "FunPlus Phoenix": {},
+            "Wolves Esports": {}
+          },
+          "games": 2
         },
         {
+          "week": null,
           "date": "2026-07-26",
+          "patch": null,
           "teamA": "Nova Esports",
           "teamB": "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)",
-          "block": null
+          "winner": "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)",
+          "score": "4-30",
+          "actual": {
+            "Nova Esports": {},
+            "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)": {}
+          },
+          "games": 34
         },
         {
+          "week": null,
           "date": "2026-08-05",
+          "patch": null,
           "teamA": "Trace Esports",
           "teamB": "A Team",
-          "block": null
+          "winner": "Trace Esports",
+          "score": "1-0",
+          "actual": {
+            "Trace Esports": {},
+            "A Team": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-05",
+          "patch": null,
           "teamA": "Wuxi Titan Esports Club(Titan Esports Club)",
           "teamB": "KeepBest Gaming",
-          "block": null
+          "winner": "Wuxi Titan Esports Club(Titan Esports Club)",
+          "score": "3-0",
+          "actual": {
+            "Wuxi Titan Esports Club(Titan Esports Club)": {
+              "DynamiteTEC": {
+                "k": 18,
+                "d": 9,
+                "a": 7
+              },
+              "CocoTEC": {
+                "k": 13,
+                "d": 8,
+                "a": 8
+              },
+              "ra1nyTEC": {
+                "k": 7,
+                "d": 13,
+                "a": 5
+              },
+              "YingKBG": {
+                "k": 10,
+                "d": 13,
+                "a": 3
+              },
+              "sibeastw0wKBG": {
+                "k": 7,
+                "d": 12,
+                "a": 5
+              }
+            },
+            "KeepBest Gaming": {
+              "HaodongTEC": {
+                "k": 16,
+                "d": 8,
+                "a": 5
+              },
+              "lucasTEC": {
+                "k": 12,
+                "d": 6,
+                "a": 4
+              },
+              "AkemanKBG": {
+                "k": 14,
+                "d": 14,
+                "a": 2
+              },
+              "TonkKBG": {
+                "k": 10,
+                "d": 13,
+                "a": 5
+              },
+              "Krst1NgKBG": {
+                "k": 3,
+                "d": 14,
+                "a": 4
+              }
+            }
+          },
+          "games": 3
         },
         {
+          "week": null,
           "date": "2026-08-06",
+          "patch": null,
           "teamA": "FunPlus Phoenix",
           "teamB": "JD Gaming",
-          "block": null
+          "winner": "FunPlus Phoenix",
+          "score": "1-0",
+          "actual": {
+            "FunPlus Phoenix": {},
+            "JD Gaming": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-06",
+          "patch": null,
           "teamA": "Wolves Esports",
           "teamB": "Dragon Ranger Gaming",
-          "block": null
+          "winner": "Wolves Esports",
+          "score": "4-0",
+          "actual": {
+            "Wolves Esports": {},
+            "Dragon Ranger Gaming": {}
+          },
+          "games": 4
         },
         {
+          "week": null,
           "date": "2026-08-07",
+          "patch": null,
           "teamA": "All Gamers",
           "teamB": "Trace Esports",
-          "block": null
+          "winner": "All Gamers",
+          "score": "1-0",
+          "actual": {
+            "All Gamers": {},
+            "Trace Esports": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-07",
+          "patch": null,
           "teamA": "EDward Gaming",
           "teamB": "Wuxi Titan Esports Club(Titan Esports Club)",
-          "block": null
+          "winner": "EDward Gaming",
+          "score": "4-0",
+          "actual": {
+            "EDward Gaming": {},
+            "Wuxi Titan Esports Club(Titan Esports Club)": {}
+          },
+          "games": 4
         },
         {
+          "week": null,
           "date": "2026-08-08",
+          "patch": null,
           "teamA": "A Team",
           "teamB": "Wolves Esports",
-          "block": null
+          "winner": "A Team",
+          "score": "1-0",
+          "actual": {
+            "A Team": {},
+            "Wolves Esports": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-08",
+          "patch": null,
           "teamA": "KeepBest Gaming",
           "teamB": "FunPlus Phoenix",
-          "block": null
+          "winner": "FunPlus Phoenix",
+          "score": "4-35",
+          "actual": {
+            "KeepBest Gaming": {},
+            "FunPlus Phoenix": {}
+          },
+          "games": 39
         },
         {
+          "week": null,
           "date": "2026-08-09",
+          "patch": null,
           "teamA": "EDward Gaming",
           "teamB": "Wolves Esports",
-          "block": null
+          "winner": "EDward Gaming",
+          "score": "1-0",
+          "actual": {
+            "EDward Gaming": {},
+            "Wolves Esports": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-09",
+          "patch": null,
           "teamA": "Trace Esports",
           "teamB": "FunPlus Phoenix",
-          "block": null
+          "winner": "FunPlus Phoenix",
+          "score": "4-25",
+          "actual": {
+            "Trace Esports": {},
+            "FunPlus Phoenix": {}
+          },
+          "games": 29
         },
         {
+          "week": null,
           "date": "2026-08-10",
+          "patch": null,
           "teamA": "All Gamers",
           "teamB": "JD Gaming",
-          "block": null
+          "winner": "All Gamers",
+          "score": "1-0",
+          "actual": {
+            "All Gamers": {},
+            "JD Gaming": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-10",
+          "patch": null,
           "teamA": "Wuxi Titan Esports Club(Titan Esports Club)",
           "teamB": "Dragon Ranger Gaming",
-          "block": null
+          "winner": "Dragon Ranger Gaming",
+          "score": "3-40",
+          "actual": {
+            "Wuxi Titan Esports Club(Titan Esports Club)": {},
+            "Dragon Ranger Gaming": {}
+          },
+          "games": 43
         },
         {
+          "week": null,
           "date": "2026-08-11",
+          "patch": null,
           "teamA": "JD Gaming",
           "teamB": "EDward Gaming",
-          "block": null
+          "winner": "JD Gaming",
+          "score": "1-0",
+          "actual": {
+            "JD Gaming": {},
+            "EDward Gaming": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-11",
+          "patch": null,
           "teamA": "Dragon Ranger Gaming",
           "teamB": "Trace Esports",
-          "block": null
+          "winner": "Trace Esports",
+          "score": "3-5",
+          "actual": {
+            "Dragon Ranger Gaming": {},
+            "Trace Esports": {}
+          },
+          "games": 8
         },
         {
+          "week": null,
           "date": "2026-08-12",
+          "patch": null,
           "teamA": "All Gamers",
           "teamB": "Wuxi Titan Esports Club(Titan Esports Club)",
-          "block": null
+          "winner": "All Gamers",
+          "score": "1-0",
+          "actual": {
+            "All Gamers": {},
+            "Wuxi Titan Esports Club(Titan Esports Club)": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-12",
+          "patch": null,
           "teamA": "JD Gaming",
           "teamB": "Trace Esports",
-          "block": null
+          "winner": "Trace Esports",
+          "score": "4-45",
+          "actual": {
+            "JD Gaming": {},
+            "Trace Esports": {}
+          },
+          "games": 49
         },
         {
+          "week": null,
           "date": "2026-08-14",
+          "patch": null,
           "teamA": "Nova Esports",
           "teamB": "JD Gaming",
-          "block": null
+          "winner": "Nova Esports",
+          "score": "1-0",
+          "actual": {
+            "Nova Esports": {},
+            "JD Gaming": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-14",
+          "patch": null,
           "teamA": "TYLOO",
           "teamB": "Wuxi Titan Esports Club(Titan Esports Club)",
-          "block": null
+          "winner": "Wuxi Titan Esports Club(Titan Esports Club)",
+          "score": "3-30",
+          "actual": {
+            "TYLOO": {},
+            "Wuxi Titan Esports Club(Titan Esports Club)": {}
+          },
+          "games": 33
         },
         {
+          "week": null,
           "date": "2026-08-15",
+          "patch": null,
           "teamA": "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)",
           "teamB": "Trace Esports",
-          "block": null
+          "winner": "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)",
+          "score": "1-0",
+          "actual": {
+            "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)": {},
+            "Trace Esports": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-15",
+          "patch": null,
           "teamA": "Xi Lai Gaming",
           "teamB": "All Gamers",
-          "block": null
+          "winner": "All Gamers",
+          "score": "4-30",
+          "actual": {
+            "Xi Lai Gaming": {},
+            "All Gamers": {}
+          },
+          "games": 34
         },
         {
+          "week": null,
           "date": "2026-08-16",
+          "patch": null,
           "teamA": "Wuxi Titan Esports Club(Titan Esports Club)",
           "teamB": "Nova Esports",
-          "block": null
+          "winner": "Wuxi Titan Esports Club(Titan Esports Club)",
+          "score": "1-0",
+          "actual": {
+            "Wuxi Titan Esports Club(Titan Esports Club)": {},
+            "Nova Esports": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-16",
+          "patch": null,
           "teamA": "All Gamers",
           "teamB": "Trace Esports",
-          "block": null
+          "winner": "Trace Esports",
+          "score": "3-35",
+          "actual": {
+            "All Gamers": {},
+            "Trace Esports": {}
+          },
+          "games": 38
         },
         {
+          "week": null,
           "date": "2026-08-19",
+          "patch": null,
           "teamA": "TYLOO",
           "teamB": "JD Gaming",
-          "block": null
+          "winner": "TYLOO",
+          "score": "1-0",
+          "actual": {
+            "TYLOO": {},
+            "JD Gaming": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-19",
+          "patch": null,
           "teamA": "Xi Lai Gaming",
           "teamB": "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)",
-          "block": null
+          "winner": "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)",
+          "score": "4-45",
+          "actual": {
+            "Xi Lai Gaming": {},
+            "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)": {}
+          },
+          "games": 49
         },
         {
+          "week": null,
           "date": "2026-08-20",
+          "patch": null,
           "teamA": "TYLOO",
           "teamB": "All Gamers",
-          "block": null
+          "winner": "TYLOO",
+          "score": "1-0",
+          "actual": {
+            "TYLOO": {},
+            "All Gamers": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-20",
+          "patch": null,
           "teamA": "Xi Lai Gaming",
           "teamB": "Nova Esports",
-          "block": null
+          "winner": "Nova Esports",
+          "score": "3-35",
+          "actual": {
+            "Xi Lai Gaming": {},
+            "Nova Esports": {}
+          },
+          "games": 38
         },
         {
+          "week": null,
           "date": "2026-08-21",
+          "patch": null,
           "teamA": "JD Gaming",
           "teamB": "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)",
-          "block": null
+          "winner": "JD Gaming",
+          "score": "1-0",
+          "actual": {
+            "JD Gaming": {},
+            "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-21",
+          "patch": null,
           "teamA": "Nova Esports",
           "teamB": "TYLOO",
-          "block": null
+          "winner": "Nova Esports",
+          "score": "3-0",
+          "actual": {
+            "Nova Esports": {},
+            "TYLOO": {}
+          },
+          "games": 3
         },
         {
+          "week": null,
           "date": "2026-08-22",
+          "patch": null,
           "teamA": "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)",
           "teamB": "TYLOO",
-          "block": null
+          "winner": "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)",
+          "score": "1-0",
+          "actual": {
+            "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)": {},
+            "TYLOO": {}
+          },
+          "games": 1
         },
         {
+          "week": null,
           "date": "2026-08-23",
+          "patch": null,
           "teamA": "JD Gaming",
           "teamB": "TYLOO",
-          "block": null
+          "winner": "JD Gaming",
+          "score": "1-0",
+          "actual": {
+            "JD Gaming": {},
+            "TYLOO": {}
+          },
+          "games": 1
         }
-      ]
+      ],
+      "upcoming_matches": []
     }
   }
 }
