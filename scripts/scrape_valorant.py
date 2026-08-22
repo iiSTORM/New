@@ -46,6 +46,11 @@ HEADERS = {
 # structure changes again in the future.
 _ZERO_ROW_MATCH_COUNT = 0
 
+# Set True after the first [MAP-ID DEBUG] print so we don't repeat it for
+# every one of hundreds of matches — one real example is enough to confirm
+# (or disprove) the data-game-id hypothesis.
+_MAP_ID_DEBUG_DONE = False
+
 # Current (Stage 2) and prior (Stage 1) event IDs per region, 2026 season.
 # Update these when a region moves to its next stage/event.
 REGIONS = {
@@ -171,6 +176,20 @@ def parse_match(match_id, match_path):
     #      string (e.g. "NeonLEV") since they're both inside the same <a>
     #      with no separator — names need pulling from .ovw-player-name
     #      specifically, not the whole link's text.
+    #
+    # A THIRD issue found afterward: VLR match pages include a combined
+    # "All Maps" totals view in addition to each individual map's
+    # breakdown, all present in the same raw HTML (client-side JS just
+    # toggles which one is visually shown — a non-JS scraper sees all of
+    # them). That combined section's rows were appearing FIRST in document
+    # order, so "first 2 occurrences = maps 1 and 2" was actually capturing
+    # [combined total, real map 1] and dropping real map 2 entirely — which
+    # is exactly why totals looked like "the set total" instead of a
+    # maps-1+2 sum. VLR's convention (matching common open-source VLR
+    # scrapers) wraps each map's section in an element carrying a
+    # data-game-id attribute, with the combined view using "all" — real
+    # individual maps use a real numeric ID. Skip rows under an "all"
+    # container; only count rows under a real per-map container.
     all_rounds_kda_re = re.compile(
         r"(\d+)\s+\d+\s+\d+\s*/\s*(\d+)\s+\d+\s+\d+\s*/\s*(\d+)\s+\d+\s+\d+"
     )
@@ -181,10 +200,25 @@ def parse_match(match_id, match_path):
               f"({len(html)} bytes)", file=sys.stderr)
         return result
 
+    def find_game_id_container(node):
+        """Walks up from `node` to the nearest ancestor carrying a
+        data-game-id attribute (the per-map/all-maps section wrapper)."""
+        n = node
+        for _ in range(20):
+            n = n.parent
+            if n is None:
+                return None
+            if hasattr(n, "get") and n.get("data-game-id") is not None:
+                return n
+        return None
+
+    global _MAP_ID_DEBUG_DONE
     totals = {team_a: {}, team_b: {}}
     map_occurrence_count = {team_a: {}, team_b: {}}  # per-player count of maps counted so far, capped at 2
     tag_to_team = {}  # first distinct team-tag seen -> team_a, second -> team_b
     unresolved = 0
+    skipped_all_maps = 0
+    skipped_no_game_id = 0
     for link in player_links:
         name_div = link.find(class_="ovw-player-name")
         tag_div = link.find(class_="ovw-player-tag")
@@ -201,6 +235,29 @@ def parse_match(match_id, match_path):
         if row is None:
             unresolved += 1
             continue
+
+        game_id_container = find_game_id_container(row)
+        if game_id_container is None:
+            # Couldn't find the wrapper at all — don't silently drop the row
+            # over an unverified assumption. Fall back to counting it
+            # normally (the previously-working behavior) rather than
+            # regressing to 0 extracted players if this hypothesis is wrong.
+            skipped_no_game_id += 1
+            if not _MAP_ID_DEBUG_DONE:
+                print(f"  [MAP-ID DEBUG] match {match_id}, player '{name}': no data-game-id "
+                      f"ancestor found within 20 levels — dumping row's outer HTML:", file=sys.stderr)
+                print(f"    {str(row)[:400]}", file=sys.stderr)
+                _MAP_ID_DEBUG_DONE = True
+        else:
+            game_id_value = game_id_container.get("data-game-id", "")
+            if not _MAP_ID_DEBUG_DONE:
+                print(f"  [MAP-ID DEBUG] match {match_id}, player '{name}': "
+                      f"data-game-id={game_id_value!r}", file=sys.stderr)
+                _MAP_ID_DEBUG_DONE = True
+            if str(game_id_value).lower() == "all":
+                skipped_all_maps += 1
+                continue  # the combined "All Maps" totals view, not a real individual map
+
         m = all_rounds_kda_re.search(row.get_text(" ", strip=True))
         if not m:
             unresolved += 1
@@ -226,7 +283,8 @@ def parse_match(match_id, match_path):
             # whether the series went to a 3rd map — matches series_g1_g2_kills
             # on the LCS side exactly. Document order on this page follows map
             # order (map 1's roster, then map 2's, then map 3's if it happened),
-            # so the 3rd occurrence of a given player is always their map-3 stats.
+            # so the 3rd occurrence of a given player (among real, non-"all"
+            # map sections) is always their map-3 stats.
             continue
         slot["k"] += k
         slot["d"] += d
@@ -239,10 +297,12 @@ def parse_match(match_id, match_path):
         _ZERO_ROW_MATCH_COUNT += 1
         if _ZERO_ROW_MATCH_COUNT <= 3:  # cap verbose output — deep debug above already covers the detail
             print(f"  ! match {match_id}: {len(player_links)} player links found but extracted 0 rows "
-                  f"({unresolved} unresolved)", file=sys.stderr)
-    elif unresolved > 0:
-        print(f"  match {match_id}: {total_players} rows extracted OK, {unresolved} player links unresolved "
-              f"(likely duplicate/nav links, not real stat rows)", file=sys.stderr)
+                  f"({unresolved} unresolved, {skipped_all_maps} skipped as 'all maps', "
+                  f"{skipped_no_game_id} with no game-id wrapper found)", file=sys.stderr)
+    elif unresolved > 0 or skipped_no_game_id > 0:
+        print(f"  match {match_id}: {total_players} rows extracted OK, {unresolved} unresolved, "
+              f"{skipped_all_maps} skipped as 'all maps', {skipped_no_game_id} counted via fallback "
+              f"(no game-id wrapper found)", file=sys.stderr)
 
     result["played"] = True
     result["actual"] = totals
