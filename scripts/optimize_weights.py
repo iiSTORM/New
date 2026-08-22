@@ -453,6 +453,22 @@ def diagnose_opponent_signal(region_data, stat_type, weights, threshold=8):
     if STAT_TYPES[stat_type]["laneSpecific"]:
         print(f"  lane-specific comparison used for {lane_count}/{n} rows ({100*lane_count/n:.0f}%) "
               f"— the rest fell back to team-wide (no current opponent on record for that role, or thin data)")
+        # Quick check on a likely cause of low coverage: any player past the
+        # 5th discovered on a roster gets labeled role="SUB" by the scraper
+        # (a real limitation — role is inferred from roster-page position,
+        # not an explicit label). A team with several roster changes over
+        # the season can end up with real starters mislabeled "SUB", which
+        # breaks the "find the opponent in this exact role" lookup.
+        total_players, sub_players = 0, 0
+        for rd in region_data.values():
+            for team_data in rd.get("teams", {}).values():
+                for p in team_data["players"]:
+                    total_players += 1
+                    if p.get("role") == "SUB":
+                        sub_players += 1
+        if total_players:
+            print(f"  {sub_players}/{total_players} players ({100*sub_players/total_players:.0f}%) are role='SUB' "
+                  f"(6th+ roster entry discovered) — a likely contributor to low lane-specific coverage")
 
     def report(subset, label):
         if len(subset) < 10:
@@ -465,9 +481,17 @@ def diagnose_opponent_signal(region_data, stat_type, weights, threshold=8):
         print(f"  {label}: n={len(subset)}, corr(opponent deviation, prediction residual) = {corr_str}")
 
     print(f"  --- {stat_type} ---")
-    report(rows, "ALL matches")
-    report([r for r in rows if r["opp_games"] < threshold], f"opponent estimate < {threshold} prior games (noisy)")
-    report([r for r in rows if r["opp_games"] >= threshold], f"opponent estimate >= {threshold} prior games (stable)")
+    report(rows, "ALL matches (mixed lane-specific + team-wide fallback)")
+    if STAT_TYPES[stat_type]["laneSpecific"]:
+        lane_rows = [r for r in rows if r["used_lane"]]
+        fallback_rows = [r for r in rows if not r["used_lane"]]
+        report(lane_rows, "LANE-SPECIFIC rows only")
+        report(fallback_rows, "team-wide FALLBACK rows only")
+        report([r for r in lane_rows if r["opp_games"] < threshold], f"  lane-specific, < {threshold} prior games (noisy)")
+        report([r for r in lane_rows if r["opp_games"] >= threshold], f"  lane-specific, >= {threshold} prior games (stable)")
+    else:
+        report([r for r in rows if r["opp_games"] < threshold], f"opponent estimate < {threshold} prior games (noisy)")
+        report([r for r in rows if r["opp_games"] >= threshold], f"opponent estimate >= {threshold} prior games (stable)")
     print(f"  (positive correlation = signal is real and pointing the expected direction; "
           f"near zero = no usable signal at that sample size; negative = backwards)")
 
