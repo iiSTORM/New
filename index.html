@@ -5,15 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="theme-color" content="#0a0e14" />
+<meta name="theme-color" content="#0A0B0D" />
 <title>Esports Kill Projector</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&display=swap" />
 <style>
-  html, body { margin: 0; padding: 0; background: #0a0e14; color: #e8ecf1; font-family: -apple-system, sans-serif; }
+  html, body { margin: 0; padding: 0; background: #0A0B0D; color: #EDEEF0; font-family: -apple-system, sans-serif; }
   #root { min-height: 100vh; }
-  #boot-status { padding: 24px 16px; font-size: 13px; color: #8b98a9; }
+  #boot-status { padding: 24px 16px; font-size: 13px; color: #9AA1AC; }
   #error-box { margin: 16px; padding: 14px; background: #2a1418; border: 1px solid #5c2a2a; border-radius: 8px;
                color: #ff9a9a; font-family: 'IBM Plex Mono', monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; }
+  input[type="text"]::placeholder { color: #565D68; }
 </style>
 </head>
 <body>
@@ -53,8 +55,95 @@
 <script type="text/babel" data-presets="react">
 try {
 
-const { useState, useEffect } = React;
+const { useState, useEffect, useContext, createContext } = React;
 
+
+/* ============================================================
+   THEME — a small, deliberate token system rather than scattered
+   hex codes. The accent shifts automatically with the selected
+   game (a muted hextech gold for League, Valorant's red for
+   Valorant) since the chrome itself should signal which broadcast
+   you're watching. A user override replaces that automatic accent
+   when set. Corner style ("angular" cut corners vs classic
+   "rounded") is a separate, persisted preference — angular is the
+   new default, evoking scoreboard/lower-third graphics rather than
+   a generic rounded SaaS card.
+   ============================================================ */
+
+const BASE_TOKENS = {
+  void: "#0A0B0D",
+  graphite: "#15171B",
+  graphiteLight: "#1B1E23",
+  steel: "#2A2E35",
+  steelSoft: "#20232A",
+  text: "#EDEEF0",
+  textDim: "#9AA1AC",
+  textFaint: "#565D68",
+  good: "#5FD97A",
+  bad: "#E05F5F",
+};
+
+const GAME_ACCENTS = {
+  lol: { accent: "#C9A86A", accentSoft: "#C9A86A18", accentBorder: "#C9A86A55", name: "Hextech Gold" },
+  valorant: { accent: "#FF4655", accentSoft: "#FF465518", accentBorder: "#FF465555", name: "Valorant Red" },
+};
+
+const ACCENT_SWATCHES = [
+  { name: "Hextech Gold", hex: "#C9A86A" },
+  { name: "Valorant Red", hex: "#FF4655" },
+  { name: "Signal Cyan", hex: "#4FD8E8" },
+  { name: "Reticle Green", hex: "#7FE07A" },
+  { name: "Violet", hex: "#B07FE0" },
+  { name: "Ember", hex: "#E08A4F" },
+];
+
+const CORNER_CUT = 12; // px, used by both the clip-path and the SVG corner accents
+
+function cardShape(cornerStyle) {
+  if (cornerStyle === "rounded") return { borderRadius: 10 };
+  const c = CORNER_CUT;
+  return {
+    borderRadius: 0,
+    clipPath: `polygon(0 0, calc(100% - ${c}px) 0, 100% ${c}px, 100% 100%, ${c}px 100%, 0 calc(100% - ${c}px))`,
+  };
+}
+
+const ThemeContext = createContext(null);
+function useTheme() {
+  return useContext(ThemeContext);
+}
+
+function loadStored(key, fallback) {
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw !== null ? JSON.parse(raw) : fallback;
+  } catch (e) {
+    return fallback;
+  }
+}
+function saveStored(key, value) {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch (e) {
+    /* private browsing / storage disabled — silently no-op, not worth surfacing */
+  }
+}
+
+/* Small reticle mark — the app's one recurring signature graphic. Used in
+   the wordmark and as the live-data status dot, nowhere else. */
+function Reticle({ size = 16, color, active = false }) {
+  const s = size;
+  return (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+      <circle cx="12" cy="12" r="7" stroke={color} strokeWidth="1.6" opacity={active ? 1 : 0.55} />
+      <line x1="12" y1="1" x2="12" y2="6" stroke={color} strokeWidth="1.6" />
+      <line x1="12" y1="18" x2="12" y2="23" stroke={color} strokeWidth="1.6" />
+      <line x1="1" y1="12" x2="6" y2="12" stroke={color} strokeWidth="1.6" />
+      <line x1="18" y1="12" x2="23" y2="12" stroke={color} strokeWidth="1.6" />
+      <circle cx="12" cy="12" r="1.6" fill={color} />
+    </svg>
+  );
+}
 
 /* ============================================================
    LIVE DATA SOURCES — one per game. Each points at a raw JSON file
@@ -505,43 +594,45 @@ const DEFAULT_WEIGHTS_BY_STAT = {
    ============================================================ */
 
 function Slider({ label, value, onChange, min, max, step, format }) {
+  const theme = useTheme();
   return (
     <div style={{ marginBottom: 14 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#9fb0c3", marginBottom: 4, fontFamily: "'IBM Plex Mono', monospace" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: theme.textDim, marginBottom: 4, fontFamily: "'IBM Plex Mono', monospace" }}>
         <span>{label}</span>
-        <span style={{ color: "#e8c15c" }}>{format ? format(value) : value}</span>
+        <span style={{ color: theme.accent }}>{format ? format(value) : value}</span>
       </div>
-      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(parseFloat(e.target.value))} style={{ width: "100%", accentColor: "#e8c15c" }} />
+      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(parseFloat(e.target.value))} style={{ width: "100%", accentColor: theme.accent }} />
     </div>
   );
 }
 
 function PlayerRow({ teams, pastMatches, p, team, opponentTeam, games, weights, teamColor, statType }) {
+  const theme = useTheme();
   const cfg = STAT_TYPES[statType];
   const r = project(teams, pastMatches, p, team, opponentTeam, games, weights, statType);
   const [open, setOpen] = useState(false);
   return (
-    <div onClick={() => setOpen(!open)} style={{ cursor: "pointer", borderBottom: "1px solid #1f2733", padding: "10px 12px", background: open ? "#141b26" : "transparent" }}>
+    <div onClick={() => setOpen(!open)} style={{ cursor: "pointer", borderBottom: `1px solid ${theme.steel}`, padding: "10px 12px", background: open ? theme.graphiteLight : "transparent" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ width: 6, height: 24, background: teamColor, borderRadius: 2 }} />
+          <span style={{ width: 6, height: 24, background: teamColor }} />
           <div>
-            <div style={{ fontWeight: 600, color: "#e8ecf1", fontSize: 14 }}>{p.name}</div>
-            <div style={{ fontSize: 10, letterSpacing: 1, color: "#5c6b7f" }}>{p.role}</div>
+            <div style={{ fontWeight: 600, color: theme.text, fontSize: 14, fontFamily: "'Chakra Petch', sans-serif" }}>{p.name}</div>
+            <div style={{ fontSize: 10, letterSpacing: 1, color: theme.textFaint }}>{p.role}</div>
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 20, color: "#e8c15c", fontWeight: 700 }}>{r.total.toFixed(1)}</div>
-          <div style={{ fontSize: 10, color: "#5c6b7f" }}>proj. {cfg.label.toLowerCase()} / {games}g</div>
+          <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 20, color: theme.accent, fontWeight: 700 }}>{r.total.toFixed(1)}</div>
+          <div style={{ fontSize: 10, color: theme.textFaint }}>proj. {cfg.label.toLowerCase()} / {games}g</div>
         </div>
       </div>
       {open && (
-        <div style={{ marginTop: 10, fontSize: 11, color: "#8b98a9", fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.8 }}>
+        <div style={{ marginTop: 10, fontSize: 11, color: theme.textDim, fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.8 }}>
           <div>recency-weighted base rate &nbsp;→&nbsp; {r.base.toFixed(2)} {cfg.label.toLowerCase()}/game</div>
           <div>opponent multiplier &nbsp;→&nbsp; ×{r.oppMult.toFixed(2)}</div>
           {cfg.useKP && <div>kill-participation multiplier &nbsp;→&nbsp; ×{r.kpMult.toFixed(2)}</div>}
-          <div style={{ color: "#e8c15c" }}>= {r.perGame.toFixed(2)} {cfg.label.toLowerCase()}/game × {games} games = {r.total.toFixed(1)}</div>
-          <div style={{ marginTop: 4, color: "#4a5568" }}>
+          <div style={{ color: theme.accent }}>= {r.perGame.toFixed(2)} {cfg.label.toLowerCase()}/game × {games} games = {r.total.toFixed(1)}</div>
+          <div style={{ marginTop: 4, color: theme.textFaint }}>
             flat season avg: {p.cur[cfg.key].toFixed(1)} {cfg.key}/g ({p.cur.g}g) &nbsp;|&nbsp; historical: {p.hist ? `${p.hist[cfg.key].toFixed(1)} ${cfg.key}/g (${p.hist.g}g)` : "no data on file"}
           </div>
         </div>
@@ -551,14 +642,15 @@ function PlayerRow({ teams, pastMatches, p, team, opponentTeam, games, weights, 
 }
 
 function MatchupPanel({ teams, pastMatches, teamA, teamB, games, weights, statType }) {
+  const theme = useTheme();
   const totalsA = teams[teamA].players.reduce((s, p) => s + project(teams, pastMatches, p, teamA, teamB, games, weights, statType).total, 0);
   const totalsB = teams[teamB].players.reduce((s, p) => s + project(teams, pastMatches, p, teamB, teamA, games, weights, statType).total, 0);
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
       {[[teamA, teamB, totalsA], [teamB, teamA, totalsB]].map(([team, opp, total], i) => (
-        <div key={i} style={{ background: "#0f1420", border: `1px solid ${teams[team].color}33`, borderRadius: 10, overflow: "hidden" }}>
+        <div key={i} style={{ background: theme.graphite, border: `1px solid ${teams[team].color}33`, ...cardShape(theme.cornerStyle), overflow: "hidden" }}>
           <div style={{ padding: "10px 12px", background: `${teams[team].color}18`, borderBottom: `1px solid ${teams[team].color}33`, display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <span style={{ fontWeight: 700, fontSize: 14 }}>{team}</span>
+            <span style={{ fontWeight: 700, fontSize: 14, fontFamily: "'Chakra Petch', sans-serif" }}>{team}</span>
             <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, color: teams[team].color }}>Σ {total.toFixed(1)}</span>
           </div>
           {teams[team].players.map((p) => (
@@ -571,6 +663,7 @@ function MatchupPanel({ teams, pastMatches, teamA, teamB, games, weights, statTy
 }
 
 function StatTypeSelector({ statType, setStatType }) {
+  const theme = useTheme();
   return (
     <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
       {Object.entries(STAT_TYPES).map(([key, cfg]) => (
@@ -578,8 +671,8 @@ function StatTypeSelector({ statType, setStatType }) {
           key={key}
           onClick={() => setStatType(key)}
           style={{
-            flex: 1, padding: "8px 0", borderRadius: 8, border: "1px solid " + (statType === key ? "#5fd97a" : "#1f2733"),
-            background: statType === key ? "#5fd97a18" : "#0f1420", color: statType === key ? "#5fd97a" : "#8b98a9",
+            flex: 1, padding: "8px 0", ...cardShape(theme.cornerStyle), border: "1px solid " + (statType === key ? theme.accent : theme.steel),
+            background: statType === key ? theme.accentSoft : theme.graphite, color: statType === key ? theme.accent : theme.textDim,
             fontSize: 12, fontWeight: 700, cursor: "pointer",
           }}
         >
@@ -590,32 +683,55 @@ function StatTypeSelector({ statType, setStatType }) {
   );
 }
 
-function WeightControls({ games, setGames, historyWeight, setHistoryWeight, oppStrength, setOppStrength, kpStrength, setKpStrength, recencyHalfLife, setRecencyHalfLife, patchDiscount, setPatchDiscount }) {
+function WeightControls({ games, setGames, weights, onChangeWeight, expanded, onToggleExpanded, statLabel }) {
+  const theme = useTheme();
+  const summary = `History ${Math.round(weights.history * 100)}% · Opponent ${weights.opponent.toFixed(1)}× · `
+    + `KP ${Math.round(weights.kp * 100)}% · Recency ${weights.recencyHalfLife >= 20 ? "flat" : weights.recencyHalfLife + "m"} · `
+    + `Patch -${Math.round(weights.patchDiscount * 100)}%`;
   return (
-    <div style={{ background: "#0f1420", border: "1px solid #1f2733", borderRadius: 10, padding: 16, marginBottom: 20 }}>
-      <div style={{ fontSize: 11, letterSpacing: 2, color: "#5c6b7f", marginBottom: 12, fontFamily: "'IBM Plex Mono', monospace" }}>MODEL WEIGHTS</div>
-      <Slider label="Games in series" value={games} onChange={setGames} min={1} max={3} step={1} format={(v) => `${v} game${v > 1 ? "s" : ""}`} />
-      <Slider label="Historical (prior split) weight" value={historyWeight} onChange={setHistoryWeight} min={0} max={1} step={0.05} format={(v) => `${Math.round(v * 100)}% history / ${Math.round((1 - v) * 100)}% this split`} />
-      <Slider label="Opponent-strength adjustment" value={oppStrength} onChange={setOppStrength} min={0} max={2} step={0.1} format={(v) => `${v.toFixed(1)}×`} />
-      <Slider label="Kill-participation influence" value={kpStrength} onChange={setKpStrength} min={0} max={1} step={0.05} format={(v) => `${Math.round(v * 100)}%`} />
-      <Slider
-        label="Recency half-life (this split)"
-        value={recencyHalfLife}
-        onChange={setRecencyHalfLife}
-        min={2}
-        max={20}
-        step={1}
-        format={(v) => (v >= 20 ? "flat average (no decay)" : `${v} match${v > 1 ? "es" : ""} — recent form weighted higher`)}
-      />
-      <Slider
-        label="Off-patch discount"
-        value={patchDiscount}
-        onChange={setPatchDiscount}
-        min={0}
-        max={1}
-        step={0.05}
-        format={(v) => (v === 0 ? "ignore patch" : `-${Math.round(v * 100)}% weight for matches on an older patch`)}
-      />
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: 16, marginBottom: 20 }}>
+      <div
+        onClick={onToggleExpanded}
+        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginBottom: expanded ? 12 : 0 }}
+      >
+        <div style={{ fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
+          MODEL WEIGHTS <span style={{ color: theme.textDim, letterSpacing: 0 }}>· {statLabel}</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 14, color: theme.textDim, transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}>▾</span>
+        </div>
+      </div>
+      {!expanded && (
+        <div style={{ fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {summary}
+        </div>
+      )}
+      {expanded && (
+        <>
+          <Slider label="Games in series" value={games} onChange={setGames} min={1} max={3} step={1} format={(v) => `${v} game${v > 1 ? "s" : ""}`} />
+          <Slider label="Historical (prior split) weight" value={weights.history} onChange={(v) => onChangeWeight("history", v)} min={0} max={1} step={0.05} format={(v) => `${Math.round(v * 100)}% history / ${Math.round((1 - v) * 100)}% this split`} />
+          <Slider label="Opponent-strength adjustment" value={weights.opponent} onChange={(v) => onChangeWeight("opponent", v)} min={0} max={2} step={0.1} format={(v) => `${v.toFixed(1)}×`} />
+          <Slider label="Kill-participation influence" value={weights.kp} onChange={(v) => onChangeWeight("kp", v)} min={0} max={1} step={0.05} format={(v) => `${Math.round(v * 100)}%`} />
+          <Slider
+            label="Recency half-life (this split)"
+            value={weights.recencyHalfLife}
+            onChange={(v) => onChangeWeight("recencyHalfLife", v)}
+            min={2}
+            max={20}
+            step={1}
+            format={(v) => (v >= 20 ? "flat average (no decay)" : `${v} match${v > 1 ? "es" : ""} — recent form weighted higher`)}
+          />
+          <Slider
+            label="Off-patch discount"
+            value={weights.patchDiscount}
+            onChange={(v) => onChangeWeight("patchDiscount", v)}
+            min={0}
+            max={1}
+            step={0.05}
+            format={(v) => (v === 0 ? "ignore patch" : `-${Math.round(v * 100)}% weight for matches on an older patch`)}
+          />
+        </>
+      )}
     </div>
   );
 }
@@ -623,6 +739,7 @@ function WeightControls({ games, setGames, historyWeight, setHistoryWeight, oppS
 /* ---------- Future tab (card list, like Past, predicted only) ---------- */
 
 function FutureMatchCard({ teams, pastMatches, match, weights, statType }) {
+  const theme = useTheme();
   const [open, setOpen] = useState(false);
   const teamKeys = [match.teamA, match.teamB];
 
@@ -635,34 +752,34 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType }) {
   const totalProj = rows.reduce((s, r) => s + r.proj, 0);
 
   return (
-    <div style={{ background: "#0f1420", border: "1px solid #1f2733", borderRadius: 10, marginBottom: 10, overflow: "hidden" }}>
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), marginBottom: 10, overflow: "hidden" }}>
       <div onClick={() => setOpen(!open)} style={{ cursor: "pointer", padding: "12px 14px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
-            <span style={{ color: teams[match.teamA].color, fontWeight: 700 }}>{match.teamA}</span>
-            <span style={{ color: "#4a5568", fontSize: 11 }}>vs</span>
-            <span style={{ color: teams[match.teamB].color, fontWeight: 700 }}>{match.teamB}</span>
+            <span style={{ color: teams[match.teamA].color, fontWeight: 700, fontFamily: "'Chakra Petch', sans-serif" }}>{match.teamA}</span>
+            <span style={{ color: theme.textFaint, fontSize: 11 }}>vs</span>
+            <span style={{ color: teams[match.teamB].color, fontWeight: 700, fontFamily: "'Chakra Petch', sans-serif" }}>{match.teamB}</span>
           </div>
-          <span style={{ fontSize: 11, color: "#5c6b7f", fontFamily: "'IBM Plex Mono', monospace" }}>{match.date}{match.time ? `, ${match.time}` : ""}</span>
+          <span style={{ fontSize: 11, color: theme.textDim, fontFamily: "'IBM Plex Mono', monospace" }}>{match.date}{match.time ? `, ${match.time}` : ""}</span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
-          <span style={{ fontSize: 11, color: "#8b98a9" }}>tap to expand player projections</span>
-          <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#5c6b7f" }}>Σ {totalProj.toFixed(0)} proj {STAT_TYPES[statType].label.toLowerCase()}</span>
+          <span style={{ fontSize: 11, color: theme.textDim }}>tap to expand player projections</span>
+          <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: theme.textDim }}>Σ {totalProj.toFixed(0)} proj {STAT_TYPES[statType].label.toLowerCase()}</span>
         </div>
       </div>
       {open && (
-        <div style={{ borderTop: "1px solid #1f2733" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 60px", padding: "6px 14px", fontSize: 10, letterSpacing: 1, color: "#4a5568", fontFamily: "'IBM Plex Mono', monospace" }}>
+        <div style={{ borderTop: `1px solid ${theme.steel}` }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 60px", padding: "6px 14px", fontSize: 10, letterSpacing: 1, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
             <span>PLAYER</span><span style={{ textAlign: "right" }}>PROJ</span>
           </div>
           {rows.map((r) => (
-            <div key={r.team + r.name} style={{ display: "grid", gridTemplateColumns: "1fr 60px", padding: "7px 14px", fontSize: 12, borderTop: "1px solid #161d28", alignItems: "center" }}>
+            <div key={r.team + r.name} style={{ display: "grid", gridTemplateColumns: "1fr 60px", padding: "7px 14px", fontSize: 12, borderTop: `1px solid ${theme.steelSoft}`, alignItems: "center" }}>
               <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ width: 5, height: 16, background: teams[r.team].color, borderRadius: 2 }} />
+                <span style={{ width: 5, height: 16, background: teams[r.team].color }} />
                 {r.name}
-                <span style={{ color: "#4a5568", fontSize: 10 }}>{r.role}</span>
+                <span style={{ color: theme.textFaint, fontSize: 10 }}>{r.role}</span>
               </span>
-              <span style={{ textAlign: "right", color: "#e8c15c", fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700 }}>{r.proj.toFixed(1)}</span>
+              <span style={{ textAlign: "right", color: theme.accent, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700 }}>{r.proj.toFixed(1)}</span>
             </div>
           ))}
         </div>
@@ -688,14 +805,16 @@ function groupByLabel(items, labelFn) {
 }
 
 function WeekHeader({ label }) {
+  const theme = useTheme();
   return (
-    <div style={{ fontSize: 11, letterSpacing: 2, color: "#5c6b7f", fontFamily: "'IBM Plex Mono', monospace", margin: "16px 0 8px", textTransform: "uppercase" }}>
+    <div style={{ fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", margin: "16px 0 8px", textTransform: "uppercase" }}>
       {label}
     </div>
   );
 }
 
 function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType }) {
+  const theme = useTheme();
   const [customMode, setCustomMode] = useState(false);
   const teamNames = Object.keys(teams);
   const [customA, setCustomA] = useState(teamNames[0]);
@@ -712,12 +831,12 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType }) {
 
   return (
     <div>
-      <div style={{ fontSize: 11, color: "#4a5568", marginBottom: 12, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 11, color: theme.textFaint, marginBottom: 12, lineHeight: 1.5 }}>
         Projected {STAT_TYPES[statType].label.toLowerCase()} (games 1+2 combined) for each
         upcoming matchup, using current model weights.
       </div>
       {upcomingMatches.length === 0 && (
-        <div style={{ background: "#0f1420", border: "1px solid #1f2733", borderRadius: 10, padding: "16px", textAlign: "center", fontSize: 12, color: "#8b98a9", marginBottom: 10 }}>
+        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: "16px", textAlign: "center", fontSize: 12, color: theme.textDim, marginBottom: 10 }}>
           No upcoming matches loaded. Use the custom matchup tool below.
         </div>
       )}
@@ -730,7 +849,7 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType }) {
 
       <button
         onClick={() => setCustomMode(!customMode)}
-        style={{ width: "100%", marginTop: 8, padding: "10px", background: "#141b26", border: "1px solid #2a3441", borderRadius: 8, color: "#e8c15c", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+        style={{ width: "100%", marginTop: 8, padding: "10px", background: theme.graphiteLight, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), color: theme.accent, fontSize: 13, fontWeight: 600, cursor: "pointer" }}
       >
         {customMode ? "Hide custom matchup" : "Explore a custom matchup →"}
       </button>
@@ -739,7 +858,7 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType }) {
         <div style={{ marginTop: 16 }}>
           <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
             {[[customA, setCustomA], [customB, setCustomB]].map(([val, setter], i) => (
-              <select key={i} value={val} onChange={(e) => setter(e.target.value)} style={{ flex: 1, background: "#141b26", color: "#e8ecf1", border: `1px solid ${teams[val].color}55`, borderRadius: 8, padding: "10px 8px", fontSize: 14, fontWeight: 600 }}>
+              <select key={i} value={val} onChange={(e) => setter(e.target.value)} style={{ flex: 1, background: theme.graphiteLight, color: theme.text, border: `1px solid ${teams[val].color}55`, ...cardShape(theme.cornerStyle), padding: "10px 8px", fontSize: 14, fontWeight: 600 }}>
                 {teamNames.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             ))}
@@ -754,6 +873,7 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType }) {
 /* ---------- Past Results tab ---------- */
 
 function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
+  const theme = useTheme();
   const [open, setOpen] = useState(false);
   const cfg = STAT_TYPES[statType];
   const teamKeys = [match.teamA, match.teamB];
@@ -773,7 +893,7 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
     // Legacy fallback data only ever tracked kills — nothing to show for
     // deaths/assists on those matches.
     return (
-      <div style={{ background: "#0f1420", border: "1px solid #1f2733", borderRadius: 10, marginBottom: 10, padding: "12px 14px", fontSize: 12, color: "#4a5568" }}>
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), marginBottom: 10, padding: "12px 14px", fontSize: 12, color: theme.textFaint }}>
         {match.teamA} vs {match.teamB} — {cfg.label.toLowerCase()} data not available for this match.
       </div>
     );
@@ -788,39 +908,39 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
   const coldStartCount = rows.filter((r) => r.priorGames === 0).length;
 
   return (
-    <div style={{ background: "#0f1420", border: "1px solid #1f2733", borderRadius: 10, marginBottom: 10, overflow: "hidden" }}>
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), marginBottom: 10, overflow: "hidden" }}>
       <div onClick={() => setOpen(!open)} style={{ cursor: "pointer", padding: "12px 14px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
-            <span style={{ color: teams[match.teamA].color, fontWeight: 700 }}>{match.teamA}</span>
-            <span style={{ color: "#4a5568", fontSize: 11 }}>vs</span>
-            <span style={{ color: teams[match.teamB].color, fontWeight: 700 }}>{match.teamB}</span>
+            <span style={{ color: teams[match.teamA].color, fontWeight: 700, fontFamily: "'Chakra Petch', sans-serif" }}>{match.teamA}</span>
+            <span style={{ color: theme.textFaint, fontSize: 11 }}>vs</span>
+            <span style={{ color: teams[match.teamB].color, fontWeight: 700, fontFamily: "'Chakra Petch', sans-serif" }}>{match.teamB}</span>
           </div>
-          <span style={{ fontSize: 11, color: "#5c6b7f", fontFamily: "'IBM Plex Mono', monospace" }}>{match.date}</span>
+          <span style={{ fontSize: 11, color: theme.textDim, fontFamily: "'IBM Plex Mono', monospace" }}>{match.date}</span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
-          <span style={{ fontSize: 11, color: "#8b98a9" }}>
-            <strong style={{ color: teams[match.winner].color }}>{match.winner}</strong> won {match.score} · model missed by avg <strong style={{ color: "#e8c15c" }}>{avgAbsDiff.toFixed(1)}</strong> {cfg.label.toLowerCase()}/player
+          <span style={{ fontSize: 11, color: theme.textDim }}>
+            <strong style={{ color: teams[match.winner].color }}>{match.winner}</strong> won {match.score} · model missed by avg <strong style={{ color: theme.accent }}>{avgAbsDiff.toFixed(1)}</strong> {cfg.label.toLowerCase()}/player
             {coldStartCount > 0 ? ` · ${coldStartCount} on prior-split data only` : ""}
           </span>
-          <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#5c6b7f" }}>{totalProj.toFixed(0)} proj / {totalActual} actual</span>
+          <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: theme.textDim }}>{totalProj.toFixed(0)} proj / {totalActual} actual</span>
         </div>
       </div>
       {open && (
-        <div style={{ borderTop: "1px solid #1f2733" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 44px 44px 44px", padding: "6px 14px", fontSize: 10, letterSpacing: 1, color: "#4a5568", fontFamily: "'IBM Plex Mono', monospace" }}>
+        <div style={{ borderTop: `1px solid ${theme.steel}` }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 44px 44px 44px", padding: "6px 14px", fontSize: 10, letterSpacing: 1, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
             <span>PLAYER</span><span style={{ textAlign: "right" }}>PROJ</span><span style={{ textAlign: "right" }}>ACT</span><span style={{ textAlign: "right" }}>DIFF</span>
           </div>
           {rows.map((r) => (
-            <div key={r.team + r.name} style={{ display: "grid", gridTemplateColumns: "1fr 44px 44px 44px", padding: "7px 14px", fontSize: 12, borderTop: "1px solid #161d28", alignItems: "center" }}>
+            <div key={r.team + r.name} style={{ display: "grid", gridTemplateColumns: "1fr 44px 44px 44px", padding: "7px 14px", fontSize: 12, borderTop: `1px solid ${theme.steelSoft}`, alignItems: "center" }}>
               <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ width: 5, height: 16, background: teams[r.team].color, borderRadius: 2 }} />
+                <span style={{ width: 5, height: 16, background: teams[r.team].color }} />
                 {r.name}
-                {r.priorGames === 0 && <span style={{ fontSize: 9, color: "#4a5568" }}>(no prior form)</span>}
+                {r.priorGames === 0 && <span style={{ fontSize: 9, color: theme.textFaint }}>(no prior form)</span>}
               </span>
-              <span style={{ textAlign: "right", color: "#8b98a9", fontFamily: "'IBM Plex Mono', monospace" }}>{r.proj.toFixed(1)}</span>
-              <span style={{ textAlign: "right", color: "#e8ecf1", fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}>{r.actual}</span>
-              <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: r.diff > 0 ? "#5fd97a" : r.diff < 0 ? "#e05f5f" : "#5c6b7f" }}>
+              <span style={{ textAlign: "right", color: theme.textDim, fontFamily: "'IBM Plex Mono', monospace" }}>{r.proj.toFixed(1)}</span>
+              <span style={{ textAlign: "right", color: theme.text, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}>{r.actual}</span>
+              <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: r.diff > 0 ? theme.good : r.diff < 0 ? theme.bad : theme.textFaint }}>
                 {r.diff > 0 ? "+" : ""}{r.diff.toFixed(1)}
               </span>
             </div>
@@ -832,6 +952,7 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
 }
 
 function PastResultsTab({ teams, pastMatches, weights, statType }) {
+  const theme = useTheme();
   // Sort by actual date (newest first) rather than trusting array order —
   // the live scraper and the offline fallback snapshot store matches in
   // opposite orders, so relying on array position was fragile.
@@ -843,7 +964,7 @@ function PastResultsTab({ teams, pastMatches, weights, statType }) {
   const grouped = groupByLabel(sorted, (m) => m.week || null);
   return (
     <div>
-      <div style={{ fontSize: 11, color: "#4a5568", marginBottom: 12, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 11, color: theme.textFaint, marginBottom: 12, lineHeight: 1.5 }}>
         Point-in-time projections: each match uses only the {STAT_TYPES[statType].label.toLowerCase()} data
         that existed before it was played (plus the current slider weights), so this
         is a real backtest of the model, not hindsight. Rows marked "no prior form" had
@@ -862,27 +983,28 @@ function PastResultsTab({ teams, pastMatches, weights, statType }) {
 /* ---------- Data status banner ---------- */
 
 function DataStatus({ status, lastUpdated, errorDetail, onRetry }) {
-  const color = status === "live" ? "#5fd97a" : status === "loading" ? "#8b98a9" : "#e0c341";
+  const theme = useTheme();
+  const color = status === "live" ? theme.good : status === "loading" ? theme.textDim : theme.accent;
   const label =
     status === "live" ? `Live data · updated ${lastUpdated}` :
     status === "loading" ? "Loading live data…" :
     status === "no-url" ? "Using bundled snapshot (no live source configured)" :
     "Live fetch failed — using bundled snapshot";
   return (
-    <div style={{ marginBottom: 16, padding: "8px 12px", background: "#0f1420", border: "1px solid #1f2733", borderRadius: 8 }}>
+    <div style={{ marginBottom: 16, padding: "8px 12px", background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle) }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#8b98a9" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: theme.textDim }}>
           <span style={{ width: 6, height: 6, borderRadius: "50%", background: color }} />
           {label}
         </div>
         {status !== "loading" && (
-          <button onClick={onRetry} style={{ background: "none", border: "none", color: "#5c6b7f", fontSize: 11, cursor: "pointer", textDecoration: "underline" }}>
+          <button onClick={onRetry} style={{ background: "none", border: "none", color: theme.textFaint, fontSize: 11, cursor: "pointer", textDecoration: "underline" }}>
             refresh
           </button>
         )}
       </div>
       {status === "error" && errorDetail && (
-        <div style={{ marginTop: 6, fontSize: 10, color: "#e05f5f", fontFamily: "'IBM Plex Mono', monospace", wordBreak: "break-word" }}>
+        <div style={{ marginTop: 6, fontSize: 10, color: theme.bad, fontFamily: "'IBM Plex Mono', monospace", wordBreak: "break-word" }}>
           {errorDetail}
         </div>
       )}
@@ -912,32 +1034,117 @@ function formatUpcoming(rawList) {
   });
 }
 
+/* ---------- Settings panel ---------- */
+
+function SettingsPanel({ theme, accentOverride, setAccentOverride, cornerStyle, setCornerStyle, open, setOpen }) {
+  const [customHex, setCustomHex] = useState(accentOverride || "");
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          display: "flex", alignItems: "center", gap: 6, background: "none", border: "none",
+          color: theme.textDim, fontSize: 11, cursor: "pointer", padding: 0, fontFamily: "'IBM Plex Mono', monospace",
+        }}
+      >
+        <span style={{ fontSize: 13 }}>⚙</span> customize {open ? "▴" : "▾"}
+      </button>
+      {open && (
+        <div style={{ marginTop: 10, background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: 14 }}>
+          <div style={{ fontSize: 11, letterSpacing: 1, color: theme.textFaint, marginBottom: 8, fontFamily: "'IBM Plex Mono', monospace" }}>ACCENT COLOR</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+            <button
+              onClick={() => { setAccentOverride(null); setCustomHex(""); }}
+              title="Automatic (follows selected game)"
+              style={{
+                width: 28, height: 28, borderRadius: "50%", cursor: "pointer",
+                border: !accentOverride ? `2px solid ${theme.text}` : `1px solid ${theme.steel}`,
+                background: "conic-gradient(#C9A86A, #FF4655, #4FD8E8, #7FE07A, #B07FE0, #E08A4F, #C9A86A)",
+              }}
+            />
+            {ACCENT_SWATCHES.map((s) => (
+              <button
+                key={s.hex}
+                onClick={() => { setAccentOverride(s.hex); setCustomHex(s.hex); }}
+                title={s.name}
+                style={{
+                  width: 28, height: 28, borderRadius: "50%", cursor: "pointer", background: s.hex,
+                  border: accentOverride === s.hex ? `2px solid ${theme.text}` : "1px solid rgba(255,255,255,0.15)",
+                }}
+              />
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 14 }}>
+            <input
+              type="text"
+              value={customHex}
+              onChange={(e) => setCustomHex(e.target.value)}
+              placeholder="#RRGGBB"
+              style={{ flex: 1, background: theme.graphiteLight, border: `1px solid ${theme.steel}`, color: theme.text, padding: "6px 8px", fontSize: 12, fontFamily: "'IBM Plex Mono', monospace" }}
+            />
+            <button
+              onClick={() => { if (/^#[0-9a-fA-F]{6}$/.test(customHex)) setAccentOverride(customHex); }}
+              style={{ background: theme.steel, border: "none", color: theme.text, padding: "6px 10px", fontSize: 12, cursor: "pointer" }}
+            >
+              use
+            </button>
+          </div>
+          <div style={{ fontSize: 11, letterSpacing: 1, color: theme.textFaint, marginBottom: 8, fontFamily: "'IBM Plex Mono', monospace" }}>CARD CORNERS</div>
+          <div style={{ display: "flex", gap: 8 }}>
+            {[["angular", "Angular"], ["rounded", "Rounded"]].map(([id, label]) => (
+              <button
+                key={id}
+                onClick={() => setCornerStyle(id)}
+                style={{
+                  flex: 1, padding: "8px 0", border: "1px solid " + (cornerStyle === id ? theme.accent : theme.steel),
+                  background: cornerStyle === id ? theme.accentSoft : theme.graphiteLight,
+                  color: cornerStyle === id ? theme.accent : theme.textDim,
+                  fontSize: 12, fontWeight: 600, cursor: "pointer",
+                  ...(id === "angular" ? { clipPath: `polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))` } : { borderRadius: 6 }),
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function KillProjector() {
   const [game, setGame] = useState("lol");
   const [region, setRegion] = useState("LCS");
   const [tab, setTab] = useState("future");
   const [statType, setStatType] = useState("kills");
   const [games, setGames] = useState(2);
-  const [historyWeight, setHistoryWeight] = useState(DEFAULT_WEIGHTS_BY_STAT.kills.history);
-  const [oppStrength, setOppStrength] = useState(DEFAULT_WEIGHTS_BY_STAT.kills.opponent);
-  const [kpStrength, setKpStrength] = useState(DEFAULT_WEIGHTS_BY_STAT.kills.kp);
-  const [recencyHalfLife, setRecencyHalfLife] = useState(DEFAULT_WEIGHTS_BY_STAT.kills.recencyHalfLife);
-  const [patchDiscount, setPatchDiscount] = useState(DEFAULT_WEIGHTS_BY_STAT.kills.patchDiscount);
-  const weights = { history: historyWeight, opponent: oppStrength, kp: kpStrength, recencyHalfLife, patchDiscount };
 
-  // Each stat type has its own backtest-tuned starting weights (see
-  // DEFAULT_WEIGHTS_BY_STAT above) — switching Kills/Deaths/Assists resets
-  // the sliders to that stat's tuned defaults rather than carrying over
-  // values that were only ever validated for a different stat. You can
-  // still adjust any slider manually afterward as before.
-  const selectStatType = (id) => {
-    setStatType(id);
-    const d = DEFAULT_WEIGHTS_BY_STAT[id];
-    setHistoryWeight(d.history);
-    setOppStrength(d.opponent);
-    setKpStrength(d.kp);
-    setRecencyHalfLife(d.recencyHalfLife);
-    setPatchDiscount(d.patchDiscount);
+  // Per-stat weights persist across visits and across switching between
+  // Kills/Deaths/Assists — your custom Deaths tuning doesn't get lost just
+  // because you went and looked at Kills for a while.
+  const [weightsByStat, setWeightsByStat] = useState(() => loadStored("kp.weightsByStat", DEFAULT_WEIGHTS_BY_STAT));
+  useEffect(() => saveStored("kp.weightsByStat", weightsByStat), [weightsByStat]);
+  const weights = weightsByStat[statType];
+  const setWeight = (key, value) => setWeightsByStat((prev) => ({ ...prev, [statType]: { ...prev[statType], [key]: value } }));
+
+  const [slidersExpanded, setSlidersExpanded] = useState(() => loadStored("kp.slidersExpanded", true));
+  useEffect(() => saveStored("kp.slidersExpanded", slidersExpanded), [slidersExpanded]);
+
+  const [accentOverride, setAccentOverride] = useState(() => loadStored("kp.accentOverride", null));
+  useEffect(() => saveStored("kp.accentOverride", accentOverride), [accentOverride]);
+  const [cornerStyle, setCornerStyle] = useState(() => loadStored("kp.cornerStyle", "angular"));
+  useEffect(() => saveStored("kp.cornerStyle", cornerStyle), [cornerStyle]);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const gameAccent = GAME_ACCENTS[game];
+  const accent = accentOverride || gameAccent.accent;
+  const theme = {
+    ...BASE_TOKENS,
+    accent,
+    accentSoft: accentOverride ? `${accentOverride}18` : gameAccent.accentSoft,
+    accentBorder: accentOverride ? `${accentOverride}55` : gameAccent.accentBorder,
+    cornerStyle,
   };
 
   // Data, load status, and error detail are all keyed by game — switching
@@ -1017,102 +1224,117 @@ function KillProjector() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0a0e14", color: "#e8ecf1", fontFamily: "'Inter', -apple-system, sans-serif", padding: "24px 16px 60px" }}>
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" />
-      <div style={{ maxWidth: 640, margin: "0 auto" }}>
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 11, letterSpacing: 3, color: "#e8c15c", fontFamily: "'IBM Plex Mono', monospace" }}>ESPORTS — KILL PROJECTOR</div>
-          <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4 }}>Weighted kill projections</div>
-          <div style={{ fontSize: 13, color: "#8b98a9", marginTop: 2 }}>Blends this split's rates with prior-split history, opponent strength, and kill-participation.</div>
-        </div>
-
-        <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-          {GAME_LIST.map((id) => (
-            <button
-              key={id}
-              onClick={() => selectGame(id)}
-              style={{
-                flex: 1, padding: "11px 0", borderRadius: 8, border: "1px solid " + (game === id ? "#e05f9a" : "#1f2733"),
-                background: game === id ? "#e05f9a18" : "#0f1420", color: game === id ? "#e05f9a" : "#8b98a9",
-                fontSize: 14, fontWeight: 800, cursor: "pointer",
-              }}
-            >
-              {GAMES[id].label}
-            </button>
-          ))}
-        </div>
-
-        <DataStatus
-          status={statusByGame[game]}
-          lastUpdated={lastUpdatedByGame[game]}
-          errorDetail={errorByGame[game]}
-          onRetry={() => fetchGameData(game)}
-        />
-
-        <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-          {gameCfg.regionList.map((key) => (
-            <button
-              key={key}
-              onClick={() => setRegion(key)}
-              style={{
-                flex: 1, padding: "9px 0", borderRadius: 8, border: "1px solid " + (region === key ? "#4fa8e0" : "#1f2733"),
-                background: region === key ? "#4fa8e018" : "#0f1420", color: region === key ? "#4fa8e0" : "#8b98a9",
-                fontSize: 13, fontWeight: 700, cursor: "pointer",
-              }}
-            >
-              {gameCfg.regionLabels[key]}
-            </button>
-          ))}
-        </div>
-
-        <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-          {[["future", "Future"], ["past", "Past Results"]].map(([id, label]) => (
-            <button
-              key={id}
-              onClick={() => setTab(id)}
-              style={{
-                flex: 1, padding: "10px 0", borderRadius: 8, border: "1px solid " + (tab === id ? "#e8c15c" : "#1f2733"),
-                background: tab === id ? "#e8c15c18" : "#0f1420", color: tab === id ? "#e8c15c" : "#8b98a9",
-                fontSize: 13, fontWeight: 700, cursor: "pointer",
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        <StatTypeSelector statType={statType} setStatType={selectStatType} />
-
-        <WeightControls
-          games={games} setGames={setGames}
-          historyWeight={historyWeight} setHistoryWeight={setHistoryWeight}
-          oppStrength={oppStrength} setOppStrength={setOppStrength}
-          kpStrength={kpStrength} setKpStrength={setKpStrength}
-          recencyHalfLife={recencyHalfLife} setRecencyHalfLife={setRecencyHalfLife}
-          patchDiscount={patchDiscount} setPatchDiscount={setPatchDiscount}
-        />
-
-        {!hasData ? (
-          <div style={{ background: "#0f1420", border: "1px solid #1f2733", borderRadius: 10, padding: "20px 16px", textAlign: "center" }}>
-            <div style={{ fontSize: 13, color: "#8b98a9" }}>No {gameCfg.regionLabels[region]} data available yet.</div>
-            <div style={{ fontSize: 12, color: "#4a5568", marginTop: 4 }}>
-              {statusByGame[game] === "live" || statusByGame[game] === "loading"
-                ? "This region may not have loaded from the live source — try refresh above."
-                : "The live source hasn't loaded, and there's no offline snapshot for this region yet."}
+    <ThemeContext.Provider value={theme}>
+      <div style={{ minHeight: "100vh", background: theme.void, color: theme.text, fontFamily: "'Inter', -apple-system, sans-serif", padding: "24px 16px 60px" }}>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&display=swap" />
+        <div style={{ maxWidth: 640, margin: "0 auto" }}>
+          <div style={{ marginBottom: 20, display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, letterSpacing: 3, color: theme.accent, fontFamily: "'IBM Plex Mono', monospace" }}>
+                <Reticle size={13} color={theme.accent} active />
+                ESPORTS — KILL PROJECTOR
+              </div>
+              <div style={{ fontSize: 24, fontWeight: 700, marginTop: 4, fontFamily: "'Chakra Petch', sans-serif" }}>Weighted kill projections</div>
+              <div style={{ fontSize: 13, color: theme.textDim, marginTop: 2 }}>Blends this split's rates with prior-split history, opponent strength, and kill-participation.</div>
             </div>
           </div>
-        ) : tab === "future" ? (
-          <FutureTab teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} />
-        ) : (
-          <PastResultsTab teams={current.teams} pastMatches={current.past_matches || []} weights={weights} statType={statType} />
-        )}
 
-        <div style={{ marginTop: 20, fontSize: 11, color: "#4a5568", lineHeight: 1.6 }}>
-          Tap any match card to expand player-level detail.
-          Data: {game === "lol" ? "regular-season box scores (gol.gg) and schedule (LoL Esports API)" : "match stats (VLR.gg)"}.
+          <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+            {GAME_LIST.map((id) => (
+              <button
+                key={id}
+                onClick={() => selectGame(id)}
+                style={{
+                  flex: 1, padding: "11px 0", ...cardShape(theme.cornerStyle),
+                  border: "1px solid " + (game === id ? GAME_ACCENTS[id].accent : theme.steel),
+                  background: game === id ? GAME_ACCENTS[id].accentSoft : theme.graphite,
+                  color: game === id ? GAME_ACCENTS[id].accent : theme.textDim,
+                  fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Chakra Petch', sans-serif",
+                }}
+              >
+                {GAMES[id].label}
+              </button>
+            ))}
+          </div>
+
+          <DataStatus
+            status={statusByGame[game]}
+            lastUpdated={lastUpdatedByGame[game]}
+            errorDetail={errorByGame[game]}
+            onRetry={() => fetchGameData(game)}
+          />
+
+          <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+            {gameCfg.regionList.map((key) => (
+              <button
+                key={key}
+                onClick={() => setRegion(key)}
+                style={{
+                  flex: 1, padding: "9px 0", ...cardShape(theme.cornerStyle), border: "1px solid " + (region === key ? theme.accent : theme.steel),
+                  background: region === key ? theme.accentSoft : theme.graphite, color: region === key ? theme.accent : theme.textDim,
+                  fontSize: 13, fontWeight: 700, cursor: "pointer",
+                }}
+              >
+                {gameCfg.regionLabels[key]}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+            {[["future", "Future"], ["past", "Past Results"]].map(([id, label]) => (
+              <button
+                key={id}
+                onClick={() => setTab(id)}
+                style={{
+                  flex: 1, padding: "10px 0", ...cardShape(theme.cornerStyle), border: "1px solid " + (tab === id ? theme.accent : theme.steel),
+                  background: tab === id ? theme.accentSoft : theme.graphite, color: tab === id ? theme.accent : theme.textDim,
+                  fontSize: 13, fontWeight: 700, cursor: "pointer",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <StatTypeSelector statType={statType} setStatType={setStatType} />
+
+          <WeightControls
+            games={games} setGames={setGames}
+            weights={weights} onChangeWeight={setWeight}
+            expanded={slidersExpanded} onToggleExpanded={() => setSlidersExpanded(!slidersExpanded)}
+            statLabel={STAT_TYPES[statType].label}
+          />
+
+          <SettingsPanel
+            theme={theme}
+            accentOverride={accentOverride} setAccentOverride={setAccentOverride}
+            cornerStyle={cornerStyle} setCornerStyle={setCornerStyle}
+            open={settingsOpen} setOpen={setSettingsOpen}
+          />
+
+          {!hasData ? (
+            <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: "20px 16px", textAlign: "center" }}>
+              <div style={{ fontSize: 13, color: theme.textDim }}>No {gameCfg.regionLabels[region]} data available yet.</div>
+              <div style={{ fontSize: 12, color: theme.textFaint, marginTop: 4 }}>
+                {statusByGame[game] === "live" || statusByGame[game] === "loading"
+                  ? "This region may not have loaded from the live source — try refresh above."
+                  : "The live source hasn't loaded, and there's no offline snapshot for this region yet."}
+              </div>
+            </div>
+          ) : tab === "future" ? (
+            <FutureTab teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} />
+          ) : (
+            <PastResultsTab teams={current.teams} pastMatches={current.past_matches || []} weights={weights} statType={statType} />
+          )}
+
+          <div style={{ marginTop: 20, fontSize: 11, color: theme.textFaint, lineHeight: 1.6 }}>
+            Tap any match card to expand player-level detail.
+            Data: {game === "lol" ? "regular-season box scores (gol.gg) and schedule (LoL Esports API)" : "match stats (VLR.gg)"}.
+          </div>
         </div>
       </div>
-    </div>
+    </ThemeContext.Provider>
   );
 }
 
