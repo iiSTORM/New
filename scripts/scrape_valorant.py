@@ -179,6 +179,7 @@ def parse_match(match_id, match_path):
         return result
 
     totals = {team_a: {}, team_b: {}}
+    map_occurrence_count = {team_a: {}, team_b: {}}  # per-player count of maps counted so far, capped at 2
     unresolved = 0
     for link in player_links:
         name = link.get_text(strip=True)
@@ -236,9 +237,19 @@ def parse_match(match_id, match_path):
                 break
 
         slot = totals[side_team].setdefault(name, {"k": 0, "d": 0, "a": 0})
+        maps_counted = map_occurrence_count[side_team].setdefault(name, 0)
+        if maps_counted >= 2:
+            # This is the app's convention across both games: only maps/games
+            # 1 and 2 of a series count toward "actual" totals, regardless of
+            # whether the series went to a 3rd map — matches series_g1_g2_kills
+            # on the LCS side exactly. Document order on this page follows map
+            # order (map 1's roster, then map 2's, then map 3's if it happened),
+            # so the 3rd occurrence of a given player is always their map-3 stats.
+            continue
         slot["k"] += k
         slot["d"] += d
         slot["a"] += a
+        map_occurrence_count[side_team][name] = maps_counted + 1
 
     total_players = sum(len(v) for v in totals.values())
     global _ZERO_ROW_MATCH_COUNT
@@ -253,7 +264,10 @@ def parse_match(match_id, match_path):
 
     result["played"] = True
     result["actual"] = totals
-    result["maps_played"] = (score_a or 0) + (score_b or 0)
+    # Fixed at 2 to match the "maps/games 1+2 only" convention used across
+    # both games — every Bo3/Bo5 series has at least 2 maps by definition,
+    # so this is safe even though the series itself may have gone longer.
+    result["maps_played"] = 2
     return result
 
 
