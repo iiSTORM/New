@@ -30,6 +30,7 @@ import json
 import re
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 import requests
 from bs4 import BeautifulSoup
@@ -40,10 +41,9 @@ HEADERS = {
                   "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 }
 
-# Set True after the first deep ancestor-chain dump so we don't repeat it
-# for every one of hundreds of matches — one real example is enough to see
-# the actual DOM structure.
-_DEEP_DEBUG_DONE = False
+# Counts matches that still extract 0 players despite the fix, as a safety
+# net — should stay at 0 now, but worth flagging loudly if the site's HTML
+# structure changes again in the future.
 _ZERO_ROW_MATCH_COUNT = 0
 
 # Current (Stage 2) and prior (Stage 1) event IDs per region, 2026 season.
@@ -159,19 +159,20 @@ def parse_match(match_id, match_path):
     if not played or score_a is None or (score_a == 0 and score_b == 0):
         return result
 
-    # VLR.gg's stat grids turned out NOT to use real <table> elements, and a
-    # first attempt (walking up from the player link looking for a KDA
-    # pattern in nearby text) failed for 100% of players — live diagnostics
-    # showed the player's own cell (div.ovw-cell.mod-player) contains only
-    # name/team/agent, no stats, meaning KDA data isn't a simple ancestor of
-    # the name the way it would be in a normal table row. Rather than guess
-    # a third structure blindly, DEEP_DEBUG below dumps the actual ancestor
-    # chain (tag/class/text) for the first unresolved player in the whole
-    # run, once, so the real layout is visible in the next log instead of
-    # inferring it.
-    global _DEEP_DEBUG_DONE
+    # Confirmed via a real deep-debug dump against live match 706349: each
+    # player's row is div.ovw-row (a direct, reliable target — no ancestor-
+    # walking needed). Two things were wrong before:
+    #   1. The K/D/A cell isn't "N/N/N" — it's "N N N / N N N / N N N"
+    #      (All/Attack/Defend values per stat, slash only between K, D, A
+    #      groups), so a bare \d+/\d+/\d+ pattern never matched at all.
+    #   2. link.get_text() concatenated the name + team-tag divs into one
+    #      string (e.g. "NeonLEV") since they're both inside the same <a>
+    #      with no separator — names need pulling from .ovw-player-name
+    #      specifically, not the whole link's text.
+    all_rounds_kda_re = re.compile(
+        r"(\d+)\s+\d+\s+\d+\s*/\s*(\d+)\s+\d+\s+\d+\s*/\s*(\d+)\s+\d+\s+\d+"
+    )
     player_links = soup.find_all("a", href=re.compile(r"^/player/\d+/"))
-    kda_re = re.compile(r"(\d+)\s*/\s*(\d+)\s*/\s*(\d+)")
 
     if not player_links:
         print(f"  ! match {match_id}: played but 0 player links found on the whole page "
@@ -180,61 +181,40 @@ def parse_match(match_id, match_path):
 
     totals = {team_a: {}, team_b: {}}
     map_occurrence_count = {team_a: {}, team_b: {}}  # per-player count of maps counted so far, capped at 2
+    tag_to_team = {}  # first distinct team-tag seen -> team_a, second -> team_b
     unresolved = 0
     for link in player_links:
-        name = link.get_text(strip=True)
-        if not name:
+        name_div = link.find(class_="ovw-player-name")
+        tag_div = link.find(class_="ovw-player-tag")
+        if not name_div or not tag_div:
+            unresolved += 1
             continue
-        row = None
-        node = link
-        ancestor_chain = []  # (tag, class, text_len, text_snippet) for deep debug only
-        for depth in range(15):
-            node = node.parent
-            if node is None:
-                break
-            text = node.get_text(" ", strip=True)
-            if not _DEEP_DEBUG_DONE:
-                ancestor_chain.append((
-                    depth, getattr(node, "name", "?"),
-                    node.get("class") if hasattr(node, "get") else None,
-                    len(text), text[:150],
-                ))
-            matches = kda_re.findall(text)
-            if len(matches) == 1:
-                row = node
-                break
-            if len(matches) > 1:
-                break  # gone too far up (now spans multiple players) — stop
+        name = name_div.get_text(strip=True)
+        tag = tag_div.get_text(strip=True)
+        if not name:
+            unresolved += 1
+            continue
 
+        row = link.find_parent("div", class_="ovw-row")
         if row is None:
             unresolved += 1
-            if not _DEEP_DEBUG_DONE:
-                print(f"  [DEEP DEBUG] match {match_id}, player '{name}': ancestor chain "
-                      f"(depth, tag, class, text_len, text_snippet):", file=sys.stderr)
-                for entry in ancestor_chain:
-                    print(f"    {entry}", file=sys.stderr)
-                _DEEP_DEBUG_DONE = True
             continue
-        k, d, a = (int(x) for x in kda_re.search(row.get_text(" ", strip=True)).groups())
+        m = all_rounds_kda_re.search(row.get_text(" ", strip=True))
+        if not m:
+            unresolved += 1
+            continue
+        k, d, a = (int(x) for x in m.groups())
 
-        # Which team does this player belong to? Use whichever team name
-        # appears closer above this player link in document order — walk up
-        # further to a wider ancestor and check which team name comes last
-        # before this link's position, falling back to simple order-of-
-        # appearance (VLR lists team A's roster before team B's per map).
-        side_team = team_a if len(totals[team_a]) <= len(totals[team_b]) else team_b
-        # Better signal when available: check nearby team link.
-        wide = link
-        for _ in range(10):
-            wide = wide.parent
-            if wide is None:
-                break
-            team_link = wide.find("a", href=re.compile(r"^/team/\d+/"))
-            if team_link:
-                candidate = team_link.get_text(strip=True)
-                if candidate in (team_a, team_b):
-                    side_team = candidate
-                break
+        if tag not in tag_to_team:
+            if len(tag_to_team) == 0:
+                tag_to_team[tag] = team_a
+            elif len(tag_to_team) == 1:
+                tag_to_team[tag] = team_b
+            else:
+                # A 3rd distinct tag showing up (roster substitution mid-series?)
+                # — fall back to whichever side has fewer entries so far.
+                tag_to_team[tag] = team_a if len(totals[team_a]) <= len(totals[team_b]) else team_b
+        side_team = tag_to_team[tag]
 
         slot = totals[side_team].setdefault(name, {"k": 0, "d": 0, "a": 0})
         maps_counted = map_occurrence_count[side_team].setdefault(name, 0)
@@ -279,16 +259,23 @@ def build_region_payload(region_key, current_event, historical_event):
         print(f"Fetching {label} match list (event {event_id})...")
         matches = parse_match_ids(event_id)
         played, upcoming = [], []
-        for entry in matches:
-            try:
-                m = parse_match(entry["match_id"], entry["path"])
-            except Exception as e:
-                print(f"  ! match {entry['match_id']} failed: {e}", file=sys.stderr)
-                continue
-            if m is None:
-                continue
-            (played if m["played"] else upcoming).append(m)
-            time.sleep(0.5)
+        # Same fix as the LCS scraper: with 40-60+ matches per event and
+        # each one a full page fetch, sequential + a fixed sleep between
+        # each was the dominant cost. A bounded thread pool cuts wall time
+        # roughly in proportion to worker count while staying modest enough
+        # not to look like an attack on the site.
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            futures = {pool.submit(parse_match, entry["match_id"], entry["path"]): entry for entry in matches}
+            for future in as_completed(futures):
+                entry = futures[future]
+                try:
+                    m = future.result()
+                except Exception as e:
+                    print(f"  ! match {entry['match_id']} failed: {e}", file=sys.stderr)
+                    continue
+                if m is None:
+                    continue
+                (played if m["played"] else upcoming).append(m)
         print(f"  {label}: {len(played)} played, {len(upcoming)} upcoming/unplayed")
         return played, upcoming
 
