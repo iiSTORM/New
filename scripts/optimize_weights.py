@@ -32,9 +32,9 @@ from pathlib import Path
 # STAT TYPES — mirrors STAT_TYPES in kill-projector.jsx exactly.
 # ============================================================
 STAT_TYPES = {
-    "kills": {"key": "k", "oppBasis": "d", "useKP": True},
-    "deaths": {"key": "d", "oppBasis": "k", "useKP": False},
-    "assists": {"key": "a", "oppBasis": "d", "useKP": True},
+    "kills": {"key": "k", "oppBasis": "d", "useKP": True, "laneSpecific": True},
+    "deaths": {"key": "d", "oppBasis": "k", "useKP": False, "laneSpecific": True},
+    "assists": {"key": "a", "oppBasis": "d", "useKP": True, "laneSpecific": False},
 }
 
 DEFAULT_WEIGHTS = {
@@ -148,6 +148,67 @@ def point_in_time_league_avg_stat(past_matches, teams, stat_key, cutoff_date):
     return sum(rates) / len(rates) if rates else None
 
 
+# ============================================================
+# Lane-specific opponent adjustment — mirrors the same feature in
+# kill-projector.jsx. A player's kills/deaths are compared against the
+# specific opponent in their own role, not a team-wide average. Assists
+# stay team-wide (STAT_TYPES["assists"]["laneSpecific"] = False) since the
+# diagnostic found assists had the strongest team-wide signal of the three.
+# ============================================================
+
+def point_in_time_player_names_stat(past_matches, team, player_names, stat_key, cutoff_date):
+    total, games = 0.0, 0
+    for m in past_matches:
+        if not m.get("date") or m["date"] >= cutoff_date:
+            continue
+        if not m.get("actual") or team not in m["actual"]:
+            continue
+        for name in player_names:
+            val = get_actual_stat(m, team, name, stat_key)
+            if isinstance(val, (int, float)):
+                total += val
+                games += 2
+    return total / games if games > 0 else None
+
+
+def point_in_time_league_avg_for_role(past_matches, teams, role, stat_key, cutoff_date):
+    rates = []
+    for team_name, team_data in teams.items():
+        role_names = [p["name"] for p in team_data["players"] if p.get("role") == role]
+        if not role_names:
+            continue
+        r = point_in_time_player_names_stat(past_matches, team_name, role_names, stat_key, cutoff_date)
+        if r is not None:
+            rates.append(r)
+    return sum(rates) / len(rates) if rates else None
+
+
+def lane_opponent_multiplier(past_matches, teams, player, opponent_team, opp_strength, opp_basis_key, cutoff_date):
+    role = player.get("role")
+    if not role or opponent_team not in teams:
+        return None
+    opponent_role_names = [p["name"] for p in teams[opponent_team]["players"] if p.get("role") == role]
+    if not opponent_role_names:
+        return None
+    opp_stat = point_in_time_player_names_stat(past_matches, opponent_team, opponent_role_names, opp_basis_key, cutoff_date)
+    league_avg = point_in_time_league_avg_for_role(past_matches, teams, role, opp_basis_key, cutoff_date)
+    if opp_stat is None or not league_avg:
+        return None
+    return 1 + opp_strength * (opp_stat / league_avg - 1)
+
+
+def resolve_opponent_multiplier(teams, past_matches, player, opponent_team, opp_strength, cfg, cutoff_date):
+    if cfg["laneSpecific"]:
+        lane_mult = lane_opponent_multiplier(past_matches, teams, player, opponent_team, opp_strength, cfg["oppBasis"], cutoff_date)
+        if lane_mult is not None:
+            return lane_mult
+    opp_stat_pt = point_in_time_team_stat(past_matches, opponent_team, cfg["oppBasis"], cutoff_date)
+    league_avg_pt = point_in_time_league_avg_stat(past_matches, teams, cfg["oppBasis"], cutoff_date)
+    opp_stat = opp_stat_pt if opp_stat_pt is not None else team_stat_per_game(teams, opponent_team, cfg["oppBasis"])
+    league_avg = league_avg_pt if league_avg_pt is not None else league_avg_stat(teams, cfg["oppBasis"])
+    return 1 + opp_strength * (opp_stat / league_avg - 1)
+
+
 def kp_multiplier(player, history_weight, kp_strength):
     cur_kp = player["cur"]["kp"]
     if not cur_kp:
@@ -174,11 +235,7 @@ def project_point_in_time(past_matches, teams, player, team, opponent_team, game
     else:
         base = hist_rate if hist_rate is not None else player["cur"][cfg["key"]]
 
-    opp_stat_pt = point_in_time_team_stat(past_matches, opponent_team, cfg["oppBasis"], cutoff_date)
-    league_avg_pt = point_in_time_league_avg_stat(past_matches, teams, cfg["oppBasis"], cutoff_date)
-    opp_stat = opp_stat_pt if opp_stat_pt is not None else team_stat_per_game(teams, opponent_team, cfg["oppBasis"])
-    league_avg = league_avg_pt if league_avg_pt is not None else league_avg_stat(teams, cfg["oppBasis"])
-    opp_mult = 1 + weights["opponent"] * (opp_stat / league_avg - 1)
+    opp_mult = resolve_opponent_multiplier(teams, past_matches, player, opponent_team, weights["opponent"], cfg, cutoff_date)
 
     kp_mult = kp_multiplier(player, weights["history"], weights["kp"]) if cfg["useKP"] else 1.0
 
