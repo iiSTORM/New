@@ -40,6 +40,12 @@ HEADERS = {
                   "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 }
 
+# Set True after the first deep ancestor-chain dump so we don't repeat it
+# for every one of hundreds of matches — one real example is enough to see
+# the actual DOM structure.
+_DEEP_DEBUG_DONE = False
+_ZERO_ROW_MATCH_COUNT = 0
+
 # Current (Stage 2) and prior (Stage 1) event IDs per region, 2026 season.
 # Update these when a region moves to its next stage/event.
 REGIONS = {
@@ -153,12 +159,17 @@ def parse_match(match_id, match_path):
     if not played or score_a is None or (score_a == 0 and score_b == 0):
         return result
 
-    # VLR.gg's stat grids turned out NOT to use real <table> elements at all
-    # (confirmed via live diagnostics: 0 <table> tags found on played-match
-    # pages) — almost certainly a div-based layout. Work from player links
-    # directly instead: find each one, then walk up its DOM ancestors until
-    # we reach a container whose text has exactly one "N/N/N" K/D/A pattern
-    # (a container spanning multiple players would have more than one).
+    # VLR.gg's stat grids turned out NOT to use real <table> elements, and a
+    # first attempt (walking up from the player link looking for a KDA
+    # pattern in nearby text) failed for 100% of players — live diagnostics
+    # showed the player's own cell (div.ovw-cell.mod-player) contains only
+    # name/team/agent, no stats, meaning KDA data isn't a simple ancestor of
+    # the name the way it would be in a normal table row. Rather than guess
+    # a third structure blindly, DEEP_DEBUG below dumps the actual ancestor
+    # chain (tag/class/text) for the first unresolved player in the whole
+    # run, once, so the real layout is visible in the next log instead of
+    # inferring it.
+    global _DEEP_DEBUG_DONE
     player_links = soup.find_all("a", href=re.compile(r"^/player/\d+/"))
     kda_re = re.compile(r"(\d+)\s*/\s*(\d+)\s*/\s*(\d+)")
 
@@ -175,18 +186,33 @@ def parse_match(match_id, match_path):
             continue
         row = None
         node = link
-        for _ in range(8):  # walk up at most 8 ancestor levels looking for a tightly-scoped row
+        ancestor_chain = []  # (tag, class, text_len, text_snippet) for deep debug only
+        for depth in range(15):
             node = node.parent
             if node is None:
                 break
-            matches = kda_re.findall(node.get_text(" ", strip=True))
+            text = node.get_text(" ", strip=True)
+            if not _DEEP_DEBUG_DONE:
+                ancestor_chain.append((
+                    depth, getattr(node, "name", "?"),
+                    node.get("class") if hasattr(node, "get") else None,
+                    len(text), text[:150],
+                ))
+            matches = kda_re.findall(text)
             if len(matches) == 1:
                 row = node
                 break
             if len(matches) > 1:
-                break  # gone too far up (now spans multiple players) — stop, don't use a wider ancestor
+                break  # gone too far up (now spans multiple players) — stop
+
         if row is None:
             unresolved += 1
+            if not _DEEP_DEBUG_DONE:
+                print(f"  [DEEP DEBUG] match {match_id}, player '{name}': ancestor chain "
+                      f"(depth, tag, class, text_len, text_snippet):", file=sys.stderr)
+                for entry in ancestor_chain:
+                    print(f"    {entry}", file=sys.stderr)
+                _DEEP_DEBUG_DONE = True
             continue
         k, d, a = (int(x) for x in kda_re.search(row.get_text(" ", strip=True)).groups())
 
@@ -215,13 +241,12 @@ def parse_match(match_id, match_path):
         slot["a"] += a
 
     total_players = sum(len(v) for v in totals.values())
+    global _ZERO_ROW_MATCH_COUNT
     if total_players == 0:
-        print(f"  ! match {match_id}: {len(player_links)} player links found but extracted 0 rows "
-              f"({unresolved} unresolved) — ancestor-walk heuristic needs adjusting", file=sys.stderr)
-        sample_link = player_links[0]
-        print(f"    sample player link: {sample_link}", file=sys.stderr)
-        print(f"    its grandparent HTML: {str(sample_link.parent.parent)[:500] if sample_link.parent else 'n/a'}",
-              file=sys.stderr)
+        _ZERO_ROW_MATCH_COUNT += 1
+        if _ZERO_ROW_MATCH_COUNT <= 3:  # cap verbose output — deep debug above already covers the detail
+            print(f"  ! match {match_id}: {len(player_links)} player links found but extracted 0 rows "
+                  f"({unresolved} unresolved)", file=sys.stderr)
     elif unresolved > 0:
         print(f"  match {match_id}: {total_players} rows extracted OK, {unresolved} player links unresolved "
               f"(likely duplicate/nav links, not real stat rows)", file=sys.stderr)
@@ -330,6 +355,9 @@ def main():
     with open("valorant_data.json", "w") as f:
         json.dump(payload, f, indent=2)
     print(f"\nWrote valorant_data.json with regions: {list(payload['regions'].keys())}")
+    if _ZERO_ROW_MATCH_COUNT > 0:
+        print(f"NOTE: {_ZERO_ROW_MATCH_COUNT} matches extracted 0 player rows total this run "
+              f"(see [DEEP DEBUG] block above for the actual DOM structure)", file=sys.stderr)
 
 
 if __name__ == "__main__":
