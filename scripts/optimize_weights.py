@@ -291,12 +291,135 @@ def per_region_breakdown(region_data, stat_type, weights):
         print(f"      {region:20s} MAE={mae(items):.4f}  n={len(items)}")
 
 
+# ============================================================
+# Opponent-signal diagnosis — the search kept zeroing out `opponent`
+# across every stat type, which is a strong enough pattern to actually
+# investigate rather than just accept. Two live hypotheses:
+#   1. The opponent's point-in-time estimate is noisy early in a split
+#      (few prior games backing it), adding variance without real signal.
+#   2. The opponent side uses a flat average while the player's own side
+#      is recency-weighted — that asymmetry alone could be hurting it.
+# This measures whether the opponent-strength signal actually correlates
+# with real outcomes at all, and whether that correlation improves once
+# the opponent's estimate has more games behind it (confirming #1) or
+# stays flat regardless of sample size (pointing elsewhere, e.g. #2 or
+# a genuinely weak effect in this data).
+# ============================================================
+
+def correlation(xs, ys):
+    n = len(xs)
+    if n < 3:
+        return None
+    mx, my = sum(xs) / n, sum(ys) / n
+    cov = sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+    varx = sum((x - mx) ** 2 for x in xs)
+    vary = sum((y - my) ** 2 for y in ys)
+    if varx == 0 or vary == 0:
+        return None
+    return cov / (varx * vary) ** 0.5
+
+
+def collect_opponent_diagnosis_rows(region_data, stat_type, weights):
+    cfg = STAT_TYPES[stat_type]
+    rows = []
+    for region_key, rd in region_data.items():
+        teams = rd.get("teams", {})
+        past_matches = rd.get("past_matches", [])
+        if not teams or not past_matches:
+            continue
+        for match in past_matches:
+            for side in ("teamA", "teamB"):
+                team = match[side]
+                opp = match["teamB"] if side == "teamA" else match["teamA"]
+                if team not in teams:
+                    continue
+
+                # Opponent's point-in-time stat, computed the same way the
+                # model does, but also tracking how many prior games back it.
+                opp_total, opp_games = 0.0, 0
+                for m in past_matches:
+                    if not m.get("date") or m["date"] >= match["date"]:
+                        continue
+                    o = m["teamB"] if m["teamA"] == opp else (m["teamA"] if m["teamB"] == opp else None)
+                    if not o or not m.get("actual"):
+                        continue
+                    source_team = o if cfg["oppBasis"] == "d" else opp
+                    source_data = m["actual"].get(source_team)
+                    if not source_data:
+                        continue
+                    for pname in source_data:
+                        val = get_actual_stat(m, source_team, pname, "k")
+                        if isinstance(val, (int, float)):
+                            opp_total += val
+                    opp_games += 2
+                if opp_games == 0:
+                    continue
+                opp_stat = opp_total / opp_games
+                league_avg_pt = point_in_time_league_avg_stat(past_matches, teams, cfg["oppBasis"], match["date"])
+                league_avg = league_avg_pt if league_avg_pt is not None else league_avg_stat(teams, cfg["oppBasis"])
+                if not league_avg:
+                    continue
+                opp_ratio = opp_stat / league_avg
+
+                for player in teams[team]["players"]:
+                    actual = get_actual_stat(match, team, player["name"], cfg["key"])
+                    if actual is None or actual == "unavailable":
+                        continue
+                    own_rate, _ = recency_weighted_rate(
+                        past_matches, team, player["name"], cfg["key"], match["date"],
+                        weights["recencyHalfLife"], None, 0
+                    )
+                    if own_rate is None:
+                        own_rate = player["hist"][cfg["key"]] if player.get("hist") else None
+                    if own_rate is None:
+                        continue
+                    rows.append({
+                        "opp_games": opp_games, "opp_ratio": opp_ratio,
+                        "own_base": own_rate * 2, "actual": actual,
+                    })
+    return rows
+
+
+def diagnose_opponent_signal(region_data, stat_type, weights, threshold=8):
+    rows = collect_opponent_diagnosis_rows(region_data, stat_type, weights)
+    if not rows:
+        print("  no data to diagnose")
+        return
+    n = len(rows)
+    avg_opp_games = sum(r["opp_games"] for r in rows) / n
+    print(f"  n={n} predictions, avg opponent-estimate sample size = {avg_opp_games:.1f} prior games")
+
+    def report(subset, label):
+        if len(subset) < 10:
+            print(f"  {label}: too few samples ({len(subset)}) to report")
+            return
+        residual = [r["actual"] - r["own_base"] for r in subset]
+        opp_dev = [r["opp_ratio"] - 1 for r in subset]
+        corr = correlation(opp_dev, residual)
+        corr_str = f"{corr:+.3f}" if corr is not None else "undefined"
+        print(f"  {label}: n={len(subset)}, corr(opponent deviation, prediction residual) = {corr_str}")
+
+    print(f"  --- {stat_type} ---")
+    report(rows, "ALL matches")
+    report([r for r in rows if r["opp_games"] < threshold], f"opponent estimate < {threshold} prior games (noisy)")
+    report([r for r in rows if r["opp_games"] >= threshold], f"opponent estimate >= {threshold} prior games (stable)")
+    print(f"  (positive correlation = signal is real and pointing the expected direction; "
+          f"near zero = no usable signal at that sample size; negative = backwards)")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--stat", choices=["kills", "deaths", "assists", "all"], default="all")
     ap.add_argument("--game", choices=["lol", "valorant", "all"], default="all")
     ap.add_argument("--data", default="data.json")
     ap.add_argument("--valorant-data", default="valorant_data.json")
+    ap.add_argument("--diagnose-opponent", action="store_true",
+                     help="Investigate whether the opponent-strength signal correlates with real "
+                          "outcomes, and whether it improves once the opponent has more prior games "
+                          "on record. Run this instead of the normal weight search.")
+    ap.add_argument("--min-opp-games", type=int, default=8,
+                     help="Threshold (in prior games) for splitting 'noisy' vs 'stable' opponent "
+                          "estimates in --diagnose-opponent. Default 8 (~4 matches).")
     args = ap.parse_args()
 
     region_data = {}
@@ -313,6 +436,13 @@ def main():
     print(f"Loaded regions: {list(region_data.keys())}\n")
 
     stat_types = ["kills", "deaths", "assists"] if args.stat == "all" else [args.stat]
+
+    if args.diagnose_opponent:
+        for stat_type in stat_types:
+            diagnose_opponent_signal(region_data, stat_type, DEFAULT_WEIGHTS, args.min_opp_games)
+            print()
+        return
+
     summary = []
     for stat_type in stat_types:
         print(f"=== {stat_type.upper()} ===")
