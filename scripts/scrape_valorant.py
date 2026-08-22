@@ -68,33 +68,40 @@ def get(url, retries=3):
 
 
 def parse_match_ids(event_id):
-    """Enumerates match IDs linked from an event's match-list page. This is
-    the only job of this function — score/date/patch/stats all come from
-    the individual match page, which is more reliable than trying to parse
-    the compressed list-row text."""
+    """Enumerates match paths linked from an event's match-list page. Returns
+    the REAL href (with its actual slug), not just the numeric ID — an
+    earlier version reconstructed URLs as "/{id}/x/" assuming VLR.gg ignores
+    slug text and resolves by ID alone. Live diagnostics showed that
+    assumption was wrong: every match came back "unplayed" regardless of
+    its actual status, meaning the placeholder slug wasn't resolving to real
+    match content. Using the exact scraped path avoids the guess entirely."""
     url = f"{BASE}/event/matches/{event_id}/x/?series_id=all"
     html = get(url)
     soup = BeautifulSoup(html, "html.parser")
     seen = set()
-    match_ids = []
+    match_paths = []
     for a in soup.find_all("a", href=re.compile(r"^/\d+/")):
-        m = re.match(r"^/(\d+)/", a["href"])
+        href = a["href"]
+        m = re.match(r"^/(\d+)/", href)
         if not m:
             continue
         mid = int(m.group(1))
         if mid in seen:
             continue
         seen.add(mid)
-        match_ids.append(mid)
-    print(f"  event {event_id}: found {len(match_ids)} match links", file=sys.stderr)
-    return match_ids
+        match_paths.append({"match_id": mid, "path": href})
+    print(f"  event {event_id}: found {len(match_paths)} match links", file=sys.stderr)
+    if match_paths:
+        print(f"    sample path: {match_paths[0]['path']}", file=sys.stderr)
+    return match_paths
 
 
-def parse_match(match_id):
-    """Fetches one match page. Always returns a dict describing the match;
-    'played' is False for matches that haven't happened yet (no final score
+def parse_match(match_id, match_path):
+    """Fetches one match page using its real scraped path. Always returns a
+    dict describing the match; 'played' is False for matches that haven't
+    happened yet (no final score available), in which case 'actual'/'patch'
     available), in which case 'actual'/'patch' are None."""
-    url = f"{BASE}/{match_id}/x/"
+    url = f"{BASE}{match_path}"
     html = get(url)
     soup = BeautifulSoup(html, "html.parser")
 
@@ -116,6 +123,13 @@ def parse_match(match_id):
     played = bool(score_m) and not (score_m and score_m.group(1) == "0" and score_m.group(2) == "0" and "Bo" not in header_text)
     score_a = int(score_m.group(1)) if score_m else None
     score_b = int(score_m.group(2)) if score_m else None
+    if not played:
+        # Diagnostic for the "every match came back unplayed" failure mode —
+        # shows exactly what the page looked like near the top so a wrong
+        # 'played' determination is distinguishable from a genuinely
+        # unplayed match at a glance in the log.
+        print(f"  match {match_id}: played=False (score_m={'matched ' + score_m.group(0) if score_m else 'no match'}) "
+              f"— header sample: {header_text[:200]!r}", file=sys.stderr)
 
     date_iso = None
     ts_m = re.search(r'data-utc-ts="([^"]+)"', html)
@@ -139,45 +153,78 @@ def parse_match(match_id):
     if not played or score_a is None or (score_a == 0 and score_b == 0):
         return result
 
-    totals = {team_a: {}, team_b: {}}
-    tables = soup.find_all("table")
-    stat_tables = [t for t in tables if t.find("a", href=re.compile(r"^/player/\d+/"))]
-    if not stat_tables:
-        print(f"  ! match {match_id}: played but 0 stat tables found (0 of {len(tables)} tables had a player link)",
-              file=sys.stderr)
+    # VLR.gg's stat grids turned out NOT to use real <table> elements at all
+    # (confirmed via live diagnostics: 0 <table> tags found on played-match
+    # pages) — almost certainly a div-based layout. Work from player links
+    # directly instead: find each one, then walk up its DOM ancestors until
+    # we reach a container whose text has exactly one "N/N/N" K/D/A pattern
+    # (a container spanning multiple players would have more than one).
+    player_links = soup.find_all("a", href=re.compile(r"^/player/\d+/"))
+    kda_re = re.compile(r"(\d+)\s*/\s*(\d+)\s*/\s*(\d+)")
+
+    if not player_links:
+        print(f"  ! match {match_id}: played but 0 player links found on the whole page "
+              f"({len(html)} bytes)", file=sys.stderr)
         return result
 
-    for i, table in enumerate(stat_tables):
-        side_team = team_a if i % 2 == 0 else team_b
-        for row in table.find_all("tr"):
-            name_link = row.find("a", href=re.compile(r"^/player/\d+/"))
-            if not name_link:
-                continue
-            name = name_link.get_text(strip=True)
-            kda = None
-            both_span = row.find(class_=re.compile("mod-both"))
-            if both_span:
-                m = re.search(r"(\d+)\s*/\s*(\d+)\s*/\s*(\d+)", both_span.get_text(" ", strip=True))
-                if m:
-                    kda = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
-            if kda is None:
-                m = re.search(r"(\d+)\s*/\s*(\d+)\s*/\s*(\d+)", row.get_text(" ", strip=True))
-                if m:
-                    kda = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
-            if kda is None:
-                continue
-            k, d, a = kda
-            slot = totals[side_team].setdefault(name, {"k": 0, "d": 0, "a": 0})
-            slot["k"] += k
-            slot["d"] += d
-            slot["a"] += a
+    totals = {team_a: {}, team_b: {}}
+    unresolved = 0
+    for link in player_links:
+        name = link.get_text(strip=True)
+        if not name:
+            continue
+        row = None
+        node = link
+        for _ in range(8):  # walk up at most 8 ancestor levels looking for a tightly-scoped row
+            node = node.parent
+            if node is None:
+                break
+            matches = kda_re.findall(node.get_text(" ", strip=True))
+            if len(matches) == 1:
+                row = node
+                break
+            if len(matches) > 1:
+                break  # gone too far up (now spans multiple players) — stop, don't use a wider ancestor
+        if row is None:
+            unresolved += 1
+            continue
+        k, d, a = (int(x) for x in kda_re.search(row.get_text(" ", strip=True)).groups())
+
+        # Which team does this player belong to? Use whichever team name
+        # appears closer above this player link in document order — walk up
+        # further to a wider ancestor and check which team name comes last
+        # before this link's position, falling back to simple order-of-
+        # appearance (VLR lists team A's roster before team B's per map).
+        side_team = team_a if len(totals[team_a]) <= len(totals[team_b]) else team_b
+        # Better signal when available: check nearby team link.
+        wide = link
+        for _ in range(10):
+            wide = wide.parent
+            if wide is None:
+                break
+            team_link = wide.find("a", href=re.compile(r"^/team/\d+/"))
+            if team_link:
+                candidate = team_link.get_text(strip=True)
+                if candidate in (team_a, team_b):
+                    side_team = candidate
+                break
+
+        slot = totals[side_team].setdefault(name, {"k": 0, "d": 0, "a": 0})
+        slot["k"] += k
+        slot["d"] += d
+        slot["a"] += a
 
     total_players = sum(len(v) for v in totals.values())
     if total_players == 0:
-        print(f"  ! match {match_id}: {len(stat_tables)} stat tables found but extracted 0 players — "
-              f"K/D/A cell selector likely needs adjusting", file=sys.stderr)
-        first_table_sample = str(stat_tables[0])[:600] if stat_tables else "n/a"
-        print(f"    first stat table sample: {first_table_sample}", file=sys.stderr)
+        print(f"  ! match {match_id}: {len(player_links)} player links found but extracted 0 rows "
+              f"({unresolved} unresolved) — ancestor-walk heuristic needs adjusting", file=sys.stderr)
+        sample_link = player_links[0]
+        print(f"    sample player link: {sample_link}", file=sys.stderr)
+        print(f"    its grandparent HTML: {str(sample_link.parent.parent)[:500] if sample_link.parent else 'n/a'}",
+              file=sys.stderr)
+    elif unresolved > 0:
+        print(f"  match {match_id}: {total_players} rows extracted OK, {unresolved} player links unresolved "
+              f"(likely duplicate/nav links, not real stat rows)", file=sys.stderr)
 
     result["played"] = True
     result["actual"] = totals
@@ -185,18 +232,19 @@ def parse_match(match_id):
     return result
 
 
+
 def build_region_payload(region_key, current_event, historical_event):
     print(f"\n=== {region_key} (event {current_event}, prior event {historical_event}) ===")
 
     def collect(event_id, label):
         print(f"Fetching {label} match list (event {event_id})...")
-        ids = parse_match_ids(event_id)
+        matches = parse_match_ids(event_id)
         played, upcoming = [], []
-        for mid in ids:
+        for entry in matches:
             try:
-                m = parse_match(mid)
+                m = parse_match(entry["match_id"], entry["path"])
             except Exception as e:
-                print(f"  ! match {mid} failed: {e}", file=sys.stderr)
+                print(f"  ! match {entry['match_id']} failed: {e}", file=sys.stderr)
                 continue
             if m is None:
                 continue
