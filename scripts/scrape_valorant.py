@@ -106,7 +106,7 @@ def parse_match(match_id, match_path):
     """Fetches one match page using its real scraped path. Always returns a
     dict describing the match; 'played' is False for matches that haven't
     happened yet (no final score available), in which case 'actual'/'patch'
-    available), in which case 'actual'/'patch' are None."""
+    are None."""
     url = f"{BASE}{match_path}"
     html = get(url)
     soup = BeautifulSoup(html, "html.parser")
@@ -119,23 +119,25 @@ def parse_match(match_id, match_path):
             team_names.append(name)
         if len(team_names) == 2:
             break
-    if len(team_names) < 2:
-        print(f"  ! match {match_id}: found {len(team_names)} distinct team links, expected 2", file=sys.stderr)
-        return None
-    team_a, team_b = team_names[0], team_names[1]
+    # Fewer than 2 team links usually means a bracket slot whose opponent
+    # isn't decided yet (upcoming, not an extraction failure) — keep the
+    # match as an upcoming entry with "TBD" filling the unknown side,
+    # rather than dropping it. The app's own merge step already filters
+    # out true TBD-vs-TBD pairs before showing anything.
+    team_a = team_names[0] if len(team_names) >= 1 else "TBD"
+    team_b = team_names[1] if len(team_names) >= 2 else "TBD"
 
     header_text = soup.get_text(" ", strip=True)[:3000]
-    score_m = re.search(r"\b(\d+)\s*:\s*(\d+)\b", header_text)
-    played = bool(score_m) and not (score_m and score_m.group(1) == "0" and score_m.group(2) == "0" and "Bo" not in header_text)
+    # Anchored on the literal word "final", which precedes the real score
+    # on every played match page (confirmed directly: "LEVIATÁN final 2 : 1
+    # vs. Bo3 FURIA"). A bare "\d+ : \d+" search anywhere in the page also
+    # matches scheduled kickoff times like "5:00 PM", which was silently
+    # marking every upcoming match as played with a bogus score — this is
+    # why upcoming counts were coming back as 0 for every region.
+    score_m = re.search(r"\bfinal\s+(\d+)\s*:\s*(\d+)\b", header_text, re.IGNORECASE)
+    played = bool(score_m)
     score_a = int(score_m.group(1)) if score_m else None
     score_b = int(score_m.group(2)) if score_m else None
-    if not played:
-        # Diagnostic for the "every match came back unplayed" failure mode —
-        # shows exactly what the page looked like near the top so a wrong
-        # 'played' determination is distinguishable from a genuinely
-        # unplayed match at a glance in the log.
-        print(f"  match {match_id}: played=False (score_m={'matched ' + score_m.group(0) if score_m else 'no match'}) "
-              f"— header sample: {header_text[:200]!r}", file=sys.stderr)
 
     date_iso = None
     ts_m = re.search(r'data-utc-ts="([^"]+)"', html)
