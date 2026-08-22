@@ -481,7 +481,24 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
   return { base, oppMult, kpMult, perGame, total: perGame * games, priorGames: pt.games };
 }
 
-const DEFAULT_WEIGHTS = { history: 0.3, opponent: 1.0, kp: 0.3, recencyHalfLife: 6, patchDiscount: 0.4 };
+// Per-stat-type defaults, tuned via a real backtest against historical
+// results (scripts/optimize_weights.py) rather than picked by feel. A
+// separate diagnostic (--diagnose-opponent) confirmed opponent=0 isn't an
+// artifact of thin data — the team-wide opponent signal is real but weak
+// and doesn't strengthen with more games logged, so it's correctly being
+// zeroed out here rather than mistuned. Recovering that signal properly
+// would need a lane-specific opponent comparison (a real player vs. their
+// direct positional opponent) rather than a team-wide average — noted as
+// a follow-up, not something these weights can fix on their own.
+// Assists' patchDiscount is an interpolated placeholder (the exact
+// searched value got lost in a copy-paste) — replace with the real number
+// from a fresh `--stat assists` run when you have it; low-stakes since
+// patchDiscount only matters when cross-patch data exists at all.
+const DEFAULT_WEIGHTS_BY_STAT = {
+  kills: { history: 0.6, opponent: 0.0, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.0 },
+  deaths: { history: 0.8, opponent: 0.0, kp: 0.3, recencyHalfLife: 2, patchDiscount: 1.0 },
+  assists: { history: 0.6, opponent: 0.0, kp: 0.2, recencyHalfLife: 4, patchDiscount: 0.5 /* placeholder — see note above */ },
+};
 
 /* ============================================================
    SHARED UI PIECES
@@ -901,12 +918,27 @@ function KillProjector() {
   const [tab, setTab] = useState("future");
   const [statType, setStatType] = useState("kills");
   const [games, setGames] = useState(2);
-  const [historyWeight, setHistoryWeight] = useState(DEFAULT_WEIGHTS.history);
-  const [oppStrength, setOppStrength] = useState(DEFAULT_WEIGHTS.opponent);
-  const [kpStrength, setKpStrength] = useState(DEFAULT_WEIGHTS.kp);
-  const [recencyHalfLife, setRecencyHalfLife] = useState(DEFAULT_WEIGHTS.recencyHalfLife);
-  const [patchDiscount, setPatchDiscount] = useState(DEFAULT_WEIGHTS.patchDiscount);
+  const [historyWeight, setHistoryWeight] = useState(DEFAULT_WEIGHTS_BY_STAT.kills.history);
+  const [oppStrength, setOppStrength] = useState(DEFAULT_WEIGHTS_BY_STAT.kills.opponent);
+  const [kpStrength, setKpStrength] = useState(DEFAULT_WEIGHTS_BY_STAT.kills.kp);
+  const [recencyHalfLife, setRecencyHalfLife] = useState(DEFAULT_WEIGHTS_BY_STAT.kills.recencyHalfLife);
+  const [patchDiscount, setPatchDiscount] = useState(DEFAULT_WEIGHTS_BY_STAT.kills.patchDiscount);
   const weights = { history: historyWeight, opponent: oppStrength, kp: kpStrength, recencyHalfLife, patchDiscount };
+
+  // Each stat type has its own backtest-tuned starting weights (see
+  // DEFAULT_WEIGHTS_BY_STAT above) — switching Kills/Deaths/Assists resets
+  // the sliders to that stat's tuned defaults rather than carrying over
+  // values that were only ever validated for a different stat. You can
+  // still adjust any slider manually afterward as before.
+  const selectStatType = (id) => {
+    setStatType(id);
+    const d = DEFAULT_WEIGHTS_BY_STAT[id];
+    setHistoryWeight(d.history);
+    setOppStrength(d.opponent);
+    setKpStrength(d.kp);
+    setRecencyHalfLife(d.recencyHalfLife);
+    setPatchDiscount(d.patchDiscount);
+  };
 
   // Data, load status, and error detail are all keyed by game — switching
   // games doesn't lose or re-fetch the other game's already-loaded data.
@@ -1049,7 +1081,7 @@ function KillProjector() {
           ))}
         </div>
 
-        <StatTypeSelector statType={statType} setStatType={setStatType} />
+        <StatTypeSelector statType={statType} setStatType={selectStatType} />
 
         <WeightControls
           games={games} setGames={setGames}
