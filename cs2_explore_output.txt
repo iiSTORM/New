@@ -1,0 +1,263 @@
+============================================================
+finished() — recently finished matches
+============================================================
+{
+  "total": {
+    "count": 73425,
+    "pages": 735,
+    "offset": 0,
+    "limit": 100
+  },
+  "results": [
+    {
+      "id": 126441,
+      "slug": "legacy-br-vs-spirit-22-08-2026",
+      "status": "finished",
+      "parsed_status": "done",
+      "winner_team_id": 654,
+      "discipline_id": 1,
+      "start_date": "2026-08-22T18:00:00.000+00:00",
+      "end_date": "2026-08-22T19:55:40.000+00:00",
+      "team1_id": 8118,
+      "team2_id": 654,
+      "team1_score": 0,
+      "team2_score": 2,
+      "bo_type": 3,
+      "live_coverage": true,
+      "live_coverage_source": 4,
+      "stars": 4,
+      "bet_updates": {
+        "path": "https://refpa04636.pro/L?tag=d_4812392m_129584c_bo3_odds_ww&site=4812392&ad=129584&utm_source=bo3_odds_ww&utm_medium=fix&r=/en/live/Esports/2722954-CS-2-Esports-World-Cup/746418046-Legacy-Team-Spirit",
+        "team_1": {
+          "name": "Legacy",
+          "coeff": 15.0,
+          "active": true,
+          "team_id": 8118,
+          "max_coeff": 15.0,
+          "aggrement_score": 0.4
+        },
+        "team_2": {
+          "name": "Spirit",
+          "coeff": 1.01,
+          "active": false,
+          "team_id": 654,
+          "max_coeff": 1.575,
+          "aggrement_score": 0.6
+        },
+        "markets_count": 0,
+        "bet_provider_id": 39,
+        "additional_markets": [
+          {
+            "coeff": 4.21,
+            "active": true,
+            "team_id": null,
+            "bet_type": "total_maps_over_2_5",
+            "max_coeff": 5.25,
+            "aggrement_score": 0.49
+          },
+          {
+            "coeff": 1.225,
+            "active": true,
+            "team_id": null,
+            "bet_type": "total_maps_under_2_5",
+            "max_coeff": 2.544,
+            "aggrement_score": 0.51
+          },
+          {
+            "coeff": 26.0,
+            "active": true,
+            "team_id": 8118,
+            "bet_type": "team_1_handicap_under_1_5",
+            "max_coeff": 26.0,
+            "aggrement_score": 0.08
+          },
+          {
+            "coeff": 4.21,
+            "active": true,
+            "team_id": 8118,
+            "bet_type": "team_1_handicap_over_1_5",
+            "max_coeff": 5.25,
+            "aggrement_score": 0.56
+          },
+          {
+            "coeff": 1.225,
+            "active": true,
+            "team_id": 654,
+            "bet_type": "team_2_handicap_under_1_5",
+            "max_coeff": 3.25,
+            "aggrement_score": 0.44
+          },
+          {
+            "coeff": 1.001,
+            "active": true,
+            "team_id": 654,
+            "bet_type": "team_2_handicap_over_1_5",
+            "max_coeff": 1.2,
+            "aggrement_score": 0.92
+          },
+          {
+            "coeff": 1.016,
+            "active": true,
+            "team_id": 654,
+            "bet_type": "score_0_2",
+            "max_coeff": 3.25,
+            "aggrement_score": 0.44
+          },
+          {
+            "coeff": 23.0,
+            "active": true,
+            "team_id": 654,
+    
+
+============================================================
+get_todays_matches()
+============================================================
+{
+  "total": {
+    "count": 23,
+    "pages": 1,
+    "offset": 0,
+    "limit": 100
+  },
+  "results": [
+    {
+      "id": 126443,
+      "slug": "fut-cs2-vs-spirit-23-08-2026",
+      "status": "upcoming",
+      "parsed_status": "waiting",
+      "discipline_id": 1,
+      "start_date": "2026-08-23T11:30:00.000+00:00",
+      "team1_id": 20832,
+      "team2_id": 654,
+      "team1_score": 0,
+      "team2_score": 0,
+      "bo_type": 5,
+      "live_coverage": true,
+      "live_coverage_source": 4,
+      "stars": 5,
+      "bet_updates": {
+        "path": "https://refpa04636.pro/L?tag=d_4812392m_129584c_bo3_odds_ww&site=4812392&ad=129584&utm_source=bo3_odds_ww&utm_medium=fix&r=/en/line/Esports/2722954-CS-2-Esports-World-Cup/362626332-FUT-Esports-Team-Spirit",
+        "team_1": {
+          "name": "FUT",
+          "coeff": 4.06,
+          "active": true,
+          "team_id": 20832,
+          "max_coeff": 4.24,
+          "aggrement_score": 0.27
+        },
+        "team_2": {
+          "name": "Spirit",
+          "coeff": 1.24,
+          "active": true,
+          "team_id": 654,
+          "max_coeff": 1.26,
+          "aggrement_score": 0.73
+        },
+        "markets_count": 40,
+        "bet_provider_id": 39,
+        "additional_markets": [
+          {
+            "coeff": 6.56,
+            "active": true,
+            "team_id": 20832,
+            "bet_type": "team_1_handicap_under_1_5",
+            "max_coeff": 6.7,
+            "aggrement_score": 0.19
+          },
+          {
+            "coeff": 2.26,
+            "active": true,
+            "team_id": 20832,
+            "bet_type": "team_1_handicap_over_1_5",
+            "max_coeff": 2.36,
+            "aggrement_score": 0.75
+          },
+          {
+            "coeff": 1.65,
+            "active": true,
+            "team_id": 654,
+            "bet_type": "team_2_handicap_under_1_5",
+            "max_coeff": 1.65,
+            "aggrement_score": 0.49
+          },
+          {
+            "coeff": 1.12,
+            "active": true,
+
+
+! No match slug found — skipping get_match_details() test
+
+============================================================
+search_teams('Vitality') — to find a real team_id/slug
+============================================================
+{
+  "total": {
+    "count": 8374,
+    "pages": 2094,
+    "offset": 0,
+    "limit": 4
+  },
+  "results": [
+    {
+      "id": 667,
+      "slug": "vitality",
+      "name": "Vitality",
+      "rank": 5,
+      "image_url": "https://files.bo3.gg/uploads/team/667/image/webp-292c1f6c6dcfca35c7a52da7e02cef0a.webp",
+      "tshirt_image_url": "https://files.bo3.gg/uploads/team/667/tshirt_image/webp-eda1ecbf8f03d4c0a1dffcdb145fe3be.webp",
+      "icon_url": null,
+      "country_id": 29,
+      "discipline_id": 1
+    },
+    {
+      "id": 23335,
+      "slug": "vitality-academy",
+      "name": "Vitality Academy",
+      "rank": null,
+      "image_url": "https://files.bo3.gg/uploads/team/23335/image/webp-0931a940543401a8529b4bd945ab2877.webp",
+      "tshirt_image_url": null,
+      "icon_url": null,
+      "country_id": 29,
+      "discipline_id": 1
+    }
+  ],
+  "links": {
+    "self": "/api/v1/filters/teams?filter%5Bteams.discipline_id%5D%5Beq%5D=1&page%5Blimit%5D=4",
+    "next": "/api/v1/filters/teams?filter%5Bteams.discipline_id%5D%5Beq%5D=1&page%5Blimit%5D=4&page%5Boffset%5D=4",
+    "last": "/api/v1/filters/teams?filter%5Bteams.discipline_id%5D%5Beq%5D=1&page%5Blimit%5D=4&page%5Boffset%5D=8372"
+  }
+}
+
+============================================================
+search_players('ZywOo') — to find a real player slug
+============================================================
+{
+  "total": {
+    "count": 1,
+    "pages": 1,
+    "offset": 0,
+    "limit": 4
+  },
+  "results": [
+    {
+      "priority": 1,
+      "id": 18452,
+      "slug": "zywoo",
+      "nickname": "ZywOo",
+      "first_name": "Mathieu",
+      "last_name": "Herbaut",
+      "status": 1,
+      "image_url": "https://files.bo3.gg/uploads/player/18452/image/webp-d6b68be0a5a6fc73186bf1e6894f9b14.webp",
+      "rank": 2,
+      "team_id": 667,
+      "country_id": 29,
+      "discipline_id": 1,
+      "country": {
+        "id": 29,
+        "code": "FR",
+        "name": "France",
+        "region_id": 3
+      }
+    }
+  ]
+}
