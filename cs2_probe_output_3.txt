@@ -1,0 +1,454 @@
+### Testing player-level 'with' relations on /games/{id} ###
+
+============================================================
+with=game_rounds.game_round_players
+  URL: https://api.bo3.gg/api/v1/games/180726?with=game_rounds.game_round_players
+============================================================
+  status: 200
+  >>> FOUND 58 player-related field(s):
+      game_rounds[0].steam_profile_mvp_id = None
+      game_rounds[0].game_round_team_clans[0].players_count = 5
+      game_rounds[0].game_round_team_clans[0].kills = 5
+      game_rounds[0].game_round_team_clans[0].death = 1
+      game_rounds[0].game_round_team_clans[0].assists = 0
+      game_rounds[0].game_round_team_clans[0].first_kills = 1
+      game_rounds[0].game_round_team_clans[0].first_death = 0
+      game_rounds[0].game_round_team_clans[0].trade_kills = 0
+      game_rounds[0].game_round_team_clans[0].trade_death = 0
+      game_rounds[0].game_round_team_clans[0].flash_assists = 0
+      game_rounds[0].game_round_team_clans[0].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[0].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[0].cumulative_kills = 5
+      game_rounds[0].game_round_team_clans[0].cumulative_deaths = 1
+      game_rounds[0].game_round_team_clans[0].cumulative_assists = 0
+      game_rounds[0].game_round_team_clans[1].players_count = 5
+      game_rounds[0].game_round_team_clans[1].kills = 1
+      game_rounds[0].game_round_team_clans[1].death = 5
+      game_rounds[0].game_round_team_clans[1].assists = 0
+      game_rounds[0].game_round_team_clans[1].first_kills = 0
+      game_rounds[0].game_round_team_clans[1].first_death = 1
+      game_rounds[0].game_round_team_clans[1].trade_kills = 0
+      game_rounds[0].game_round_team_clans[1].trade_death = 0
+      game_rounds[0].game_round_team_clans[1].flash_assists = 0
+      game_rounds[0].game_round_team_clans[1].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[1].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[1].cumulative_kills = 1
+      game_rounds[0].game_round_team_clans[1].cumulative_deaths = 5
+      game_rounds[0].game_round_team_clans[1].cumulative_assists = 0
+      game_rounds[1].steam_profile_mvp_id = None
+============================================================
+with=game_rounds.game_round_steam_profiles
+  URL: https://api.bo3.gg/api/v1/games/180726?with=game_rounds.game_round_steam_profiles
+============================================================
+  status: 200
+  >>> FOUND 58 player-related field(s):
+      game_rounds[0].steam_profile_mvp_id = None
+      game_rounds[0].game_round_team_clans[0].players_count = 5
+      game_rounds[0].game_round_team_clans[0].kills = 5
+      game_rounds[0].game_round_team_clans[0].death = 1
+      game_rounds[0].game_round_team_clans[0].assists = 0
+      game_rounds[0].game_round_team_clans[0].first_kills = 1
+      game_rounds[0].game_round_team_clans[0].first_death = 0
+      game_rounds[0].game_round_team_clans[0].trade_kills = 0
+      game_rounds[0].game_round_team_clans[0].trade_death = 0
+      game_rounds[0].game_round_team_clans[0].flash_assists = 0
+      game_rounds[0].game_round_team_clans[0].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[0].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[0].cumulative_kills = 5
+      game_rounds[0].game_round_team_clans[0].cumulative_deaths = 1
+      game_rounds[0].game_round_team_clans[0].cumulative_assists = 0
+      game_rounds[0].game_round_team_clans[1].players_count = 5
+      game_rounds[0].game_round_team_clans[1].kills = 1
+      game_rounds[0].game_round_team_clans[1].death = 5
+      game_rounds[0].game_round_team_clans[1].assists = 0
+      game_rounds[0].game_round_team_clans[1].first_kills = 0
+      game_rounds[0].game_round_team_clans[1].first_death = 1
+      game_rounds[0].game_round_team_clans[1].trade_kills = 0
+      game_rounds[0].game_round_team_clans[1].trade_death = 0
+      game_rounds[0].game_round_team_clans[1].flash_assists = 0
+      game_rounds[0].game_round_team_clans[1].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[1].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[1].cumulative_kills = 1
+      game_rounds[0].game_round_team_clans[1].cumulative_deaths = 5
+      game_rounds[0].game_round_team_clans[1].cumulative_assists = 0
+      game_rounds[1].steam_profile_mvp_id = None
+============================================================
+with=game_rounds.players
+  URL: https://api.bo3.gg/api/v1/games/180726?with=game_rounds.players
+============================================================
+  status: 200
+  >>> FOUND 58 player-related field(s):
+      game_rounds[0].steam_profile_mvp_id = None
+      game_rounds[0].game_round_team_clans[0].players_count = 5
+      game_rounds[0].game_round_team_clans[0].kills = 5
+      game_rounds[0].game_round_team_clans[0].death = 1
+      game_rounds[0].game_round_team_clans[0].assists = 0
+      game_rounds[0].game_round_team_clans[0].first_kills = 1
+      game_rounds[0].game_round_team_clans[0].first_death = 0
+      game_rounds[0].game_round_team_clans[0].trade_kills = 0
+      game_rounds[0].game_round_team_clans[0].trade_death = 0
+      game_rounds[0].game_round_team_clans[0].flash_assists = 0
+      game_rounds[0].game_round_team_clans[0].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[0].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[0].cumulative_kills = 5
+      game_rounds[0].game_round_team_clans[0].cumulative_deaths = 1
+      game_rounds[0].game_round_team_clans[0].cumulative_assists = 0
+      game_rounds[0].game_round_team_clans[1].players_count = 5
+      game_rounds[0].game_round_team_clans[1].kills = 1
+      game_rounds[0].game_round_team_clans[1].death = 5
+      game_rounds[0].game_round_team_clans[1].assists = 0
+      game_rounds[0].game_round_team_clans[1].first_kills = 0
+      game_rounds[0].game_round_team_clans[1].first_death = 1
+      game_rounds[0].game_round_team_clans[1].trade_kills = 0
+      game_rounds[0].game_round_team_clans[1].trade_death = 0
+      game_rounds[0].game_round_team_clans[1].flash_assists = 0
+      game_rounds[0].game_round_team_clans[1].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[1].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[1].cumulative_kills = 1
+      game_rounds[0].game_round_team_clans[1].cumulative_deaths = 5
+      game_rounds[0].game_round_team_clans[1].cumulative_assists = 0
+      game_rounds[1].steam_profile_mvp_id = None
+============================================================
+with=game_rounds.steam_profiles
+  URL: https://api.bo3.gg/api/v1/games/180726?with=game_rounds.steam_profiles
+============================================================
+  status: 200
+  >>> FOUND 58 player-related field(s):
+      game_rounds[0].steam_profile_mvp_id = None
+      game_rounds[0].game_round_team_clans[0].players_count = 5
+      game_rounds[0].game_round_team_clans[0].kills = 5
+      game_rounds[0].game_round_team_clans[0].death = 1
+      game_rounds[0].game_round_team_clans[0].assists = 0
+      game_rounds[0].game_round_team_clans[0].first_kills = 1
+      game_rounds[0].game_round_team_clans[0].first_death = 0
+      game_rounds[0].game_round_team_clans[0].trade_kills = 0
+      game_rounds[0].game_round_team_clans[0].trade_death = 0
+      game_rounds[0].game_round_team_clans[0].flash_assists = 0
+      game_rounds[0].game_round_team_clans[0].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[0].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[0].cumulative_kills = 5
+      game_rounds[0].game_round_team_clans[0].cumulative_deaths = 1
+      game_rounds[0].game_round_team_clans[0].cumulative_assists = 0
+      game_rounds[0].game_round_team_clans[1].players_count = 5
+      game_rounds[0].game_round_team_clans[1].kills = 1
+      game_rounds[0].game_round_team_clans[1].death = 5
+      game_rounds[0].game_round_team_clans[1].assists = 0
+      game_rounds[0].game_round_team_clans[1].first_kills = 0
+      game_rounds[0].game_round_team_clans[1].first_death = 1
+      game_rounds[0].game_round_team_clans[1].trade_kills = 0
+      game_rounds[0].game_round_team_clans[1].trade_death = 0
+      game_rounds[0].game_round_team_clans[1].flash_assists = 0
+      game_rounds[0].game_round_team_clans[1].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[1].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[1].cumulative_kills = 1
+      game_rounds[0].game_round_team_clans[1].cumulative_deaths = 5
+      game_rounds[0].game_round_team_clans[1].cumulative_assists = 0
+      game_rounds[1].steam_profile_mvp_id = None
+============================================================
+with=game_round_players
+  URL: https://api.bo3.gg/api/v1/games/180726?with=game_round_players
+============================================================
+  status: 200
+  >>> FOUND 58 player-related field(s):
+      game_rounds[0].steam_profile_mvp_id = None
+      game_rounds[0].game_round_team_clans[0].players_count = 5
+      game_rounds[0].game_round_team_clans[0].kills = 5
+      game_rounds[0].game_round_team_clans[0].death = 1
+      game_rounds[0].game_round_team_clans[0].assists = 0
+      game_rounds[0].game_round_team_clans[0].first_kills = 1
+      game_rounds[0].game_round_team_clans[0].first_death = 0
+      game_rounds[0].game_round_team_clans[0].trade_kills = 0
+      game_rounds[0].game_round_team_clans[0].trade_death = 0
+      game_rounds[0].game_round_team_clans[0].flash_assists = 0
+      game_rounds[0].game_round_team_clans[0].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[0].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[0].cumulative_kills = 5
+      game_rounds[0].game_round_team_clans[0].cumulative_deaths = 1
+      game_rounds[0].game_round_team_clans[0].cumulative_assists = 0
+      game_rounds[0].game_round_team_clans[1].players_count = 5
+      game_rounds[0].game_round_team_clans[1].kills = 1
+      game_rounds[0].game_round_team_clans[1].death = 5
+      game_rounds[0].game_round_team_clans[1].assists = 0
+      game_rounds[0].game_round_team_clans[1].first_kills = 0
+      game_rounds[0].game_round_team_clans[1].first_death = 1
+      game_rounds[0].game_round_team_clans[1].trade_kills = 0
+      game_rounds[0].game_round_team_clans[1].trade_death = 0
+      game_rounds[0].game_round_team_clans[1].flash_assists = 0
+      game_rounds[0].game_round_team_clans[1].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[1].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[1].cumulative_kills = 1
+      game_rounds[0].game_round_team_clans[1].cumulative_deaths = 5
+      game_rounds[0].game_round_team_clans[1].cumulative_assists = 0
+      game_rounds[1].steam_profile_mvp_id = None
+============================================================
+with=game_round_steam_profiles
+  URL: https://api.bo3.gg/api/v1/games/180726?with=game_round_steam_profiles
+============================================================
+  status: 200
+  >>> FOUND 58 player-related field(s):
+      game_rounds[0].steam_profile_mvp_id = None
+      game_rounds[0].game_round_team_clans[0].players_count = 5
+      game_rounds[0].game_round_team_clans[0].kills = 5
+      game_rounds[0].game_round_team_clans[0].death = 1
+      game_rounds[0].game_round_team_clans[0].assists = 0
+      game_rounds[0].game_round_team_clans[0].first_kills = 1
+      game_rounds[0].game_round_team_clans[0].first_death = 0
+      game_rounds[0].game_round_team_clans[0].trade_kills = 0
+      game_rounds[0].game_round_team_clans[0].trade_death = 0
+      game_rounds[0].game_round_team_clans[0].flash_assists = 0
+      game_rounds[0].game_round_team_clans[0].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[0].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[0].cumulative_kills = 5
+      game_rounds[0].game_round_team_clans[0].cumulative_deaths = 1
+      game_rounds[0].game_round_team_clans[0].cumulative_assists = 0
+      game_rounds[0].game_round_team_clans[1].players_count = 5
+      game_rounds[0].game_round_team_clans[1].kills = 1
+      game_rounds[0].game_round_team_clans[1].death = 5
+      game_rounds[0].game_round_team_clans[1].assists = 0
+      game_rounds[0].game_round_team_clans[1].first_kills = 0
+      game_rounds[0].game_round_team_clans[1].first_death = 1
+      game_rounds[0].game_round_team_clans[1].trade_kills = 0
+      game_rounds[0].game_round_team_clans[1].trade_death = 0
+      game_rounds[0].game_round_team_clans[1].flash_assists = 0
+      game_rounds[0].game_round_team_clans[1].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[1].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[1].cumulative_kills = 1
+      game_rounds[0].game_round_team_clans[1].cumulative_deaths = 5
+      game_rounds[0].game_round_team_clans[1].cumulative_assists = 0
+      game_rounds[1].steam_profile_mvp_id = None
+============================================================
+with=steam_profiles
+  URL: https://api.bo3.gg/api/v1/games/180726?with=steam_profiles
+============================================================
+  status: 200
+  >>> FOUND 58 player-related field(s):
+      game_rounds[0].steam_profile_mvp_id = None
+      game_rounds[0].game_round_team_clans[0].players_count = 5
+      game_rounds[0].game_round_team_clans[0].kills = 5
+      game_rounds[0].game_round_team_clans[0].death = 1
+      game_rounds[0].game_round_team_clans[0].assists = 0
+      game_rounds[0].game_round_team_clans[0].first_kills = 1
+      game_rounds[0].game_round_team_clans[0].first_death = 0
+      game_rounds[0].game_round_team_clans[0].trade_kills = 0
+      game_rounds[0].game_round_team_clans[0].trade_death = 0
+      game_rounds[0].game_round_team_clans[0].flash_assists = 0
+      game_rounds[0].game_round_team_clans[0].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[0].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[0].cumulative_kills = 5
+      game_rounds[0].game_round_team_clans[0].cumulative_deaths = 1
+      game_rounds[0].game_round_team_clans[0].cumulative_assists = 0
+      game_rounds[0].game_round_team_clans[1].players_count = 5
+      game_rounds[0].game_round_team_clans[1].kills = 1
+      game_rounds[0].game_round_team_clans[1].death = 5
+      game_rounds[0].game_round_team_clans[1].assists = 0
+      game_rounds[0].game_round_team_clans[1].first_kills = 0
+      game_rounds[0].game_round_team_clans[1].first_death = 1
+      game_rounds[0].game_round_team_clans[1].trade_kills = 0
+      game_rounds[0].game_round_team_clans[1].trade_death = 0
+      game_rounds[0].game_round_team_clans[1].flash_assists = 0
+      game_rounds[0].game_round_team_clans[1].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[1].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[1].cumulative_kills = 1
+      game_rounds[0].game_round_team_clans[1].cumulative_deaths = 5
+      game_rounds[0].game_round_team_clans[1].cumulative_assists = 0
+      game_rounds[1].steam_profile_mvp_id = None
+============================================================
+with=player_rounds
+  URL: https://api.bo3.gg/api/v1/games/180726?with=player_rounds
+============================================================
+  status: 200
+  >>> FOUND 58 player-related field(s):
+      game_rounds[0].steam_profile_mvp_id = None
+      game_rounds[0].game_round_team_clans[0].players_count = 5
+      game_rounds[0].game_round_team_clans[0].kills = 5
+      game_rounds[0].game_round_team_clans[0].death = 1
+      game_rounds[0].game_round_team_clans[0].assists = 0
+      game_rounds[0].game_round_team_clans[0].first_kills = 1
+      game_rounds[0].game_round_team_clans[0].first_death = 0
+      game_rounds[0].game_round_team_clans[0].trade_kills = 0
+      game_rounds[0].game_round_team_clans[0].trade_death = 0
+      game_rounds[0].game_round_team_clans[0].flash_assists = 0
+      game_rounds[0].game_round_team_clans[0].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[0].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[0].cumulative_kills = 5
+      game_rounds[0].game_round_team_clans[0].cumulative_deaths = 1
+      game_rounds[0].game_round_team_clans[0].cumulative_assists = 0
+      game_rounds[0].game_round_team_clans[1].players_count = 5
+      game_rounds[0].game_round_team_clans[1].kills = 1
+      game_rounds[0].game_round_team_clans[1].death = 5
+      game_rounds[0].game_round_team_clans[1].assists = 0
+      game_rounds[0].game_round_team_clans[1].first_kills = 0
+      game_rounds[0].game_round_team_clans[1].first_death = 1
+      game_rounds[0].game_round_team_clans[1].trade_kills = 0
+      game_rounds[0].game_round_team_clans[1].trade_death = 0
+      game_rounds[0].game_round_team_clans[1].flash_assists = 0
+      game_rounds[0].game_round_team_clans[1].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[1].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[1].cumulative_kills = 1
+      game_rounds[0].game_round_team_clans[1].cumulative_deaths = 5
+      game_rounds[0].game_round_team_clans[1].cumulative_assists = 0
+      game_rounds[1].steam_profile_mvp_id = None
+============================================================
+with=game_players
+  URL: https://api.bo3.gg/api/v1/games/180726?with=game_players
+============================================================
+  status: 200
+  >>> FOUND 58 player-related field(s):
+      game_rounds[0].steam_profile_mvp_id = None
+      game_rounds[0].game_round_team_clans[0].players_count = 5
+      game_rounds[0].game_round_team_clans[0].kills = 5
+      game_rounds[0].game_round_team_clans[0].death = 1
+      game_rounds[0].game_round_team_clans[0].assists = 0
+      game_rounds[0].game_round_team_clans[0].first_kills = 1
+      game_rounds[0].game_round_team_clans[0].first_death = 0
+      game_rounds[0].game_round_team_clans[0].trade_kills = 0
+      game_rounds[0].game_round_team_clans[0].trade_death = 0
+      game_rounds[0].game_round_team_clans[0].flash_assists = 0
+      game_rounds[0].game_round_team_clans[0].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[0].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[0].cumulative_kills = 5
+      game_rounds[0].game_round_team_clans[0].cumulative_deaths = 1
+      game_rounds[0].game_round_team_clans[0].cumulative_assists = 0
+      game_rounds[0].game_round_team_clans[1].players_count = 5
+      game_rounds[0].game_round_team_clans[1].kills = 1
+      game_rounds[0].game_round_team_clans[1].death = 5
+      game_rounds[0].game_round_team_clans[1].assists = 0
+      game_rounds[0].game_round_team_clans[1].first_kills = 0
+      game_rounds[0].game_round_team_clans[1].first_death = 1
+      game_rounds[0].game_round_team_clans[1].trade_kills = 0
+      game_rounds[0].game_round_team_clans[1].trade_death = 0
+      game_rounds[0].game_round_team_clans[1].flash_assists = 0
+      game_rounds[0].game_round_team_clans[1].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[1].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[1].cumulative_kills = 1
+      game_rounds[0].game_round_team_clans[1].cumulative_deaths = 5
+      game_rounds[0].game_round_team_clans[1].cumulative_assists = 0
+      game_rounds[1].steam_profile_mvp_id = None
+============================================================
+with=players
+  URL: https://api.bo3.gg/api/v1/games/180726?with=players
+============================================================
+  status: 200
+  >>> FOUND 58 player-related field(s):
+      game_rounds[0].steam_profile_mvp_id = None
+      game_rounds[0].game_round_team_clans[0].players_count = 5
+      game_rounds[0].game_round_team_clans[0].kills = 5
+      game_rounds[0].game_round_team_clans[0].death = 1
+      game_rounds[0].game_round_team_clans[0].assists = 0
+      game_rounds[0].game_round_team_clans[0].first_kills = 1
+      game_rounds[0].game_round_team_clans[0].first_death = 0
+      game_rounds[0].game_round_team_clans[0].trade_kills = 0
+      game_rounds[0].game_round_team_clans[0].trade_death = 0
+      game_rounds[0].game_round_team_clans[0].flash_assists = 0
+      game_rounds[0].game_round_team_clans[0].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[0].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[0].cumulative_kills = 5
+      game_rounds[0].game_round_team_clans[0].cumulative_deaths = 1
+      game_rounds[0].game_round_team_clans[0].cumulative_assists = 0
+      game_rounds[0].game_round_team_clans[1].players_count = 5
+      game_rounds[0].game_round_team_clans[1].kills = 1
+      game_rounds[0].game_round_team_clans[1].death = 5
+      game_rounds[0].game_round_team_clans[1].assists = 0
+      game_rounds[0].game_round_team_clans[1].first_kills = 0
+      game_rounds[0].game_round_team_clans[1].first_death = 1
+      game_rounds[0].game_round_team_clans[1].trade_kills = 0
+      game_rounds[0].game_round_team_clans[1].trade_death = 0
+      game_rounds[0].game_round_team_clans[1].flash_assists = 0
+      game_rounds[0].game_round_team_clans[1].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[1].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[1].cumulative_kills = 1
+      game_rounds[0].game_round_team_clans[1].cumulative_deaths = 5
+      game_rounds[0].game_round_team_clans[1].cumulative_assists = 0
+      game_rounds[1].steam_profile_mvp_id = None
+============================================================
+with=match_players
+  URL: https://api.bo3.gg/api/v1/games/180726?with=match_players
+============================================================
+  status: 200
+  >>> FOUND 58 player-related field(s):
+      game_rounds[0].steam_profile_mvp_id = None
+      game_rounds[0].game_round_team_clans[0].players_count = 5
+      game_rounds[0].game_round_team_clans[0].kills = 5
+      game_rounds[0].game_round_team_clans[0].death = 1
+      game_rounds[0].game_round_team_clans[0].assists = 0
+      game_rounds[0].game_round_team_clans[0].first_kills = 1
+      game_rounds[0].game_round_team_clans[0].first_death = 0
+      game_rounds[0].game_round_team_clans[0].trade_kills = 0
+      game_rounds[0].game_round_team_clans[0].trade_death = 0
+      game_rounds[0].game_round_team_clans[0].flash_assists = 0
+      game_rounds[0].game_round_team_clans[0].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[0].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[0].cumulative_kills = 5
+      game_rounds[0].game_round_team_clans[0].cumulative_deaths = 1
+      game_rounds[0].game_round_team_clans[0].cumulative_assists = 0
+      game_rounds[0].game_round_team_clans[1].players_count = 5
+      game_rounds[0].game_round_team_clans[1].kills = 1
+      game_rounds[0].game_round_team_clans[1].death = 5
+      game_rounds[0].game_round_team_clans[1].assists = 0
+      game_rounds[0].game_round_team_clans[1].first_kills = 0
+      game_rounds[0].game_round_team_clans[1].first_death = 1
+      game_rounds[0].game_round_team_clans[1].trade_kills = 0
+      game_rounds[0].game_round_team_clans[1].trade_death = 0
+      game_rounds[0].game_round_team_clans[1].flash_assists = 0
+      game_rounds[0].game_round_team_clans[1].bomb_plant_deaths = 0
+      game_rounds[0].game_round_team_clans[1].bomb_defuse_deaths = 0
+      game_rounds[0].game_round_team_clans[1].cumulative_kills = 1
+      game_rounds[0].game_round_team_clans[1].cumulative_deaths = 5
+      game_rounds[0].game_round_team_clans[1].cumulative_assists = 0
+      game_rounds[1].steam_profile_mvp_id = None
+
+### Testing standalone player/steam_profile endpoints ###
+
+============================================================
+GET /games/180726/steam_profiles
+  URL: https://api.bo3.gg/api/v1/games/180726/steam_profiles
+============================================================
+  status: 200
+  >>> FOUND 10 player-related field(s):
+      [0].steam_id_64 = 76561198043769572
+      [0].nickname = arT
+      [0].player_id = 19665
+      [0].player = <dict, len=43>
+      [0].player.nickname = arT
+      [1].steam_id_64 = 76561198081484775
+      [1].nickname = SH1R0
+      [1].player_id = 23237
+      [1].player = <dict, len=43>
+      [1].player.nickname = sh1ro
+============================================================
+GET /games/180726/game_round_players
+  URL: https://api.bo3.gg/api/v1/games/180726/game_round_players
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+GET /steam_profiles?filter[game_id]=180726
+  URL: https://api.bo3.gg/api/v1/steam_profiles?filter[game_id]=180726
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+GET /matches/legacy-br-vs-spirit-22-08-2026/players
+  URL: https://api.bo3.gg/api/v1/matches/legacy-br-vs-spirit-22-08-2026/players
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+GET /matches/legacy-br-vs-spirit-22-08-2026/steam_profiles
+  URL: https://api.bo3.gg/api/v1/matches/legacy-br-vs-spirit-22-08-2026/steam_profiles
+============================================================
+  status: 200
+  >>> FOUND 10 player-related field(s):
+      [0].steam_id_64 = 76561198043769572
+      [0].nickname = arT
+      [0].player_id = 19665
+      [0].player = <dict, len=43>
+      [0].player.nickname = arT
+      [1].steam_id_64 = 76561198081484775
+      [1].nickname = SH1R0
+      [1].player_id = 23237
+      [1].player = <dict, len=43>
+      [1].player.nickname = sh1ro
