@@ -1,0 +1,443 @@
+### Testing expanded 'with' values on the matches endpoint ###
+
+============================================================
+with=games.players
+  URL: https://api.bo3.gg/api/v1/matches/legacy-br-vs-spirit-22-08-2026?with=games.players
+============================================================
+  status: 422
+  body: {"status":"unavailable_association_parameter","message":"Unavailable Association Parameter: value for parameter \"with\" or \"join\" is not supported."}
+
+============================================================
+with=games.player_stats
+  URL: https://api.bo3.gg/api/v1/matches/legacy-br-vs-spirit-22-08-2026?with=games.player_stats
+============================================================
+  status: 422
+  body: {"status":"unavailable_association_parameter","message":"Unavailable Association Parameter: value for parameter \"with\" or \"join\" is not supported."}
+
+============================================================
+with=games.scoreboard
+  URL: https://api.bo3.gg/api/v1/matches/legacy-br-vs-spirit-22-08-2026?with=games.scoreboard
+============================================================
+  status: 422
+  body: {"status":"unavailable_association_parameter","message":"Unavailable Association Parameter: value for parameter \"with\" or \"join\" is not supported."}
+
+============================================================
+with=games.teams.players
+  URL: https://api.bo3.gg/api/v1/matches/legacy-br-vs-spirit-22-08-2026?with=games.teams.players
+============================================================
+  status: 422
+  body: {"status":"unavailable_association_parameter","message":"Unavailable Association Parameter: value for parameter \"with\" or \"join\" is not supported."}
+
+============================================================
+with=games.match_players
+  URL: https://api.bo3.gg/api/v1/matches/legacy-br-vs-spirit-22-08-2026?with=games.match_players
+============================================================
+  status: 422
+  body: {"status":"unavailable_association_parameter","message":"Unavailable Association Parameter: value for parameter \"with\" or \"join\" is not supported."}
+
+============================================================
+with=games.players.stats
+  URL: https://api.bo3.gg/api/v1/matches/legacy-br-vs-spirit-22-08-2026?with=games.players.stats
+============================================================
+  status: 422
+  body: {"status":"unavailable_association_parameter","message":"Unavailable Association Parameter: value for parameter \"with\" or \"join\" is not supported."}
+
+============================================================
+with=player_stats
+  URL: https://api.bo3.gg/api/v1/matches/legacy-br-vs-spirit-22-08-2026?with=player_stats
+============================================================
+  status: 422
+  body: {"status":"unavailable_association_parameter","message":"Unavailable Association Parameter: value for parameter \"with\" or \"join\" is not supported."}
+
+============================================================
+with=games,players
+  URL: https://api.bo3.gg/api/v1/matches/legacy-br-vs-spirit-22-08-2026?with=games,players
+============================================================
+  status: 200
+{
+  "id": 126441,
+  "slug": "legacy-br-vs-spirit-22-08-2026",
+  "round_id": 38970,
+  "team1_id": 8118,
+  "team2_id": 654,
+  "winner_team_id": 654,
+  "loser_team_id": 8118,
+  "tournament_id": 4214,
+  "team1_score": 0,
+  "team2_score": 2,
+  "status": "finished",
+  "bo_type": 3,
+  "start_date": "2026-08-22T18:00:00.000+00:00",
+  "end_date": "2026-08-22T19:55:40.000+00:00",
+  "stage_id": 10516,
+  "maps_score": [
+    true,
+    true,
+    false
+  ],
+  "parsed_status": "done",
+  "tier": "s",
+  "tier_rank": 1,
+  "position": 9,
+  "team1_last_game_score": null,
+  "team2_last_game_score": null,
+  "live_updates": null,
+  "points": null,
+  "rating": 0.9061224489795918,
+  "stars": 4,
+  "live_coverage": true,
+  "live_coverage_advantage": false,
+  "live_coverage_source": 4,
+  "discipline_id": 1,
+  "prev_match1_winner": false,
+  "prev_match2_winner": false,
+  "prev_match1_id": null,
+  "prev_match2_id": null,
+  "game_version": 2,
+  "team1_new_participant": false,
+  "team2_new_participant": false,
+  "comments_count": 0,
+  "bet_updates": {
+    "path": "https://refpa04636.pro/L?tag=d_4812392m_129584c_bo3_odds_ww&site=4812392&ad=129584&utm_source=bo3_odds_ww&utm_medium=fix&r=/en/live/Esports/2722954-CS-2-Esports-World-Cup/746418046-Legacy-Team-Spirit",
+    "team_1": {
+      "name": "Legacy",
+      "coeff": 15.0,
+      "active": true,
+      "team_id": 8118,
+      "max_coeff": 15.0,
+      "aggrement_score": 0.4
+    },
+    "team_2": {
+      "name": "Spirit",
+      "coeff": 1.01,
+      "active": false,
+      "team_id": 654,
+      "max_coeff": 1.575,
+      "aggrement_score": 0.6
+    },
+    "markets_count": 0,
+    "bet_provider_id": 39,
+    "additional_markets": [
+      {
+        "coeff": 4.21,
+        "active": true,
+        "team_id": null,
+        "bet_type": "total_maps_over_2_5",
+        "max_coeff": 5.25,
+        "aggrement_score": 0.49
+      },
+      {
+        "coeff": 1.225,
+        "active": true,
+        "team_id": null,
+        "bet_type": "total_maps_under_2_5",
+        "max_coeff": 2.544,
+        "aggrement_score": 0.51
+      },
+      {
+        "coeff": 26.0,
+        "active": true,
+        "team_id": 8118,
+        "bet_type": "team_1_handicap_under_1_5",
+        "max_coeff": 26.0,
+        "aggrement_score": 0.08
+      },
+      {
+        "coeff": 4.21,
+        "active": true,
+        "team_id": 8118,
+        "bet_type": "team_1_handicap_over_1_5",
+        "max_coeff": 5.25,
+        "aggrement_score": 0.56
+      },
+      {
+        "coeff": 1.225,
+        "active": true,
+        "team_id": 654,
+        "bet_type": "team_2_handicap_under_1_5",
+        "max_coeff": 3.25,
+        "aggrement_score": 0.44
+      },
+      {
+        "coeff": 1.001,
+        "active": true,
+        "team_id": 654,
+        "bet_type": "team_2_handicap_over_1_5",
+        "max_coeff": 1.2,
+        "aggrement_score": 0.92
+      },
+      {
+        "coeff": 1.016,
+        "active": true,
+        "team_id": 654,
+        "bet_type": "score_0_2",
+        "max_coeff": 3.25,
+        "aggrement_score":
+...[truncated, 127338 total chars]
+
+### Testing standalone game-detail endpoints ###
+
+============================================================
+GET /games/180726
+  URL: https://api.bo3.gg/api/v1/games/180726
+============================================================
+  status: 200
+{
+  "id": 180726,
+  "match_id": 126441,
+  "begin_at": "2026-08-22T19:09:02.000+00:00",
+  "state": "done",
+  "map_name": "de_ancient",
+  "duration": 2810187612160,
+  "demo_header": {
+    "_id": "6a8a188cf09a04174b2e7813",
+    "map_name": "de_ancient",
+    "filestamp": "PBDEMS2",
+    "tick_rate": -1.0,
+    "frame_rate": 128.0,
+    "server_name": "unknown",
+    "real_game_id": 180726
+  },
+  "ov_index": 0,
+  "winner_clan_score": 13,
+  "loser_clan_score": 9,
+  "winner_clan_name": "Team Spirit",
+  "loser_clan_name": "Legacy",
+  "ps_id": null,
+  "number": 2,
+  "demo_url": "demos/manually_uploaded/1787434028_legacy-vs-spirit-m2-ancient.dem",
+  "demo_data": null,
+  "code": null,
+  "status": "finished",
+  "rounds_count": 22,
+  "created_at": "2026-08-07T11:01:39.588+00:00",
+  "updated_at": "2026-08-22T21:47:07.648+00:00",
+  "partially_state": null,
+  "game_version": 2,
+  "winner_team_clan": {
+    "clan_name": "Team Spirit",
+    "team_id": 654,
+    "created_at": null,
+    "updated_at": null,
+    "id": 107,
+    "team": {
+      "id": 654,
+      "slug": "spirit",
+      "name": "Spirit",
+      "image_url": "https://files.bo3.gg/uploads/team/654/image/webp-41b22d18a871d982f8ff87652bbb0fe6.webp",
+      "facebook": "",
+      "twitter": "",
+      "rank": 1,
+      "created_at": "2020-10-19T08:52:46.412+00:00",
+      "updated_at": "2026-08-23T05:07:12.891+00:00",
+      "country_id": 56,
+      "ps_id": 124523,
+      "image_data": "{\"id\":\"team/654/image/eed18053cd132a284641e11b50682528.png\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"spirit.png\",\"size\":14885,\"mime_type\":\"image/png\",\"width\":500,\"height\":500},\"derivatives\":{\"20x20\":{\"id\":\"team/654/image/20x20-46d0496b62220a20372ec872d9034b98.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20230810-35-ju0btg.webp\",\"size\":364,\"mime_type\":null,\"width\":20,\"height\":20}},\"50x50\":{\"id\":\"team/654/image/50x50-20bd83422d6101d775eb0916f2759d04.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20230810-35-1xr2742.webp\",\"size\":1016,\"mime_type\":null,\"width\":50,\"height\":50}},\"150x150\":{\"id\":\"team/654/image/150x150-0c4ff63963c83adcdc70e607215de0d9.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20230810-35-qlcjh3.webp\",\"size\":3270,\"mime_type\":null,\"width\":150,\"height\":150}},\"400x400\":{\"id\":\"team/654/image/400x400-539a13bfb0d488ecb3f04fc46803c9fe.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20230810-35-5vl9ce.webp\",\"size\":9958,\"mime_type\":null,\"width\":400,\"height\":400}},\"webp\":{\"id\":\"team/654/image/webp-41b22d18a871d982f8ff87652bbb0fe6.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20230810-35-19ee2of.webp\",\"size\":7048,\"mime_type\":null,\"width\":500,\"height\":500}}}}",
+      "image_versions": {
+        "webp": "https://files.bo3.gg/uploads/team/654/image/webp-41b22d18a871d982f8ff87652bbb0fe6.webp
+...[truncated, 112575 total chars]
+============================================================
+GET /games/180726?with=players
+  URL: https://api.bo3.gg/api/v1/games/180726?with=players
+============================================================
+  status: 200
+{
+  "id": 180726,
+  "match_id": 126441,
+  "begin_at": "2026-08-22T19:09:02.000+00:00",
+  "state": "done",
+  "map_name": "de_ancient",
+  "duration": 2810187612160,
+  "demo_header": {
+    "_id": "6a8a188cf09a04174b2e7813",
+    "map_name": "de_ancient",
+    "filestamp": "PBDEMS2",
+    "tick_rate": -1.0,
+    "frame_rate": 128.0,
+    "server_name": "unknown",
+    "real_game_id": 180726
+  },
+  "ov_index": 0,
+  "winner_clan_score": 13,
+  "loser_clan_score": 9,
+  "winner_clan_name": "Team Spirit",
+  "loser_clan_name": "Legacy",
+  "ps_id": null,
+  "number": 2,
+  "demo_url": "demos/manually_uploaded/1787434028_legacy-vs-spirit-m2-ancient.dem",
+  "demo_data": null,
+  "code": null,
+  "status": "finished",
+  "rounds_count": 22,
+  "created_at": "2026-08-07T11:01:39.588+00:00",
+  "updated_at": "2026-08-22T21:47:07.648+00:00",
+  "partially_state": null,
+  "game_version": 2,
+  "winner_team_clan": {
+    "clan_name": "Team Spirit",
+    "team_id": 654,
+    "created_at": null,
+    "updated_at": null,
+    "id": 107,
+    "team": {
+      "id": 654,
+      "slug": "spirit",
+      "name": "Spirit",
+      "image_url": "https://files.bo3.gg/uploads/team/654/image/webp-41b22d18a871d982f8ff87652bbb0fe6.webp",
+      "facebook": "",
+      "twitter": "",
+      "rank": 1,
+      "created_at": "2020-10-19T08:52:46.412+00:00",
+      "updated_at": "2026-08-23T05:07:12.891+00:00",
+      "country_id": 56,
+      "ps_id": 124523,
+      "image_data": "{\"id\":\"team/654/image/eed18053cd132a284641e11b50682528.png\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"spirit.png\",\"size\":14885,\"mime_type\":\"image/png\",\"width\":500,\"height\":500},\"derivatives\":{\"20x20\":{\"id\":\"team/654/image/20x20-46d0496b62220a20372ec872d9034b98.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20230810-35-ju0btg.webp\",\"size\":364,\"mime_type\":null,\"width\":20,\"height\":20}},\"50x50\":{\"id\":\"team/654/image/50x50-20bd83422d6101d775eb0916f2759d04.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20230810-35-1xr2742.webp\",\"size\":1016,\"mime_type\":null,\"width\":50,\"height\":50}},\"150x150\":{\"id\":\"team/654/image/150x150-0c4ff63963c83adcdc70e607215de0d9.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20230810-35-qlcjh3.webp\",\"size\":3270,\"mime_type\":null,\"width\":150,\"height\":150}},\"400x400\":{\"id\":\"team/654/image/400x400-539a13bfb0d488ecb3f04fc46803c9fe.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20230810-35-5vl9ce.webp\",\"size\":9958,\"mime_type\":null,\"width\":400,\"height\":400}},\"webp\":{\"id\":\"team/654/image/webp-41b22d18a871d982f8ff87652bbb0fe6.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20230810-35-19ee2of.webp\",\"size\":7048,\"mime_type\":null,\"width\":500,\"height\":500}}}}",
+      "image_versions": {
+        "webp": "https://files.bo3.gg/uploads/team/654/image/webp-41b22d18a871d982f8ff87652bbb0fe6.webp
+...[truncated, 112575 total chars]
+============================================================
+GET /games/180726?with=player_stats
+  URL: https://api.bo3.gg/api/v1/games/180726?with=player_stats
+============================================================
+  status: 200
+{
+  "id": 180726,
+  "match_id": 126441,
+  "begin_at": "2026-08-22T19:09:02.000+00:00",
+  "state": "done",
+  "map_name": "de_ancient",
+  "duration": 2810187612160,
+  "demo_header": {
+    "_id": "6a8a188cf09a04174b2e7813",
+    "map_name": "de_ancient",
+    "filestamp": "PBDEMS2",
+    "tick_rate": -1.0,
+    "frame_rate": 128.0,
+    "server_name": "unknown",
+    "real_game_id": 180726
+  },
+  "ov_index": 0,
+  "winner_clan_score": 13,
+  "loser_clan_score": 9,
+  "winner_clan_name": "Team Spirit",
+  "loser_clan_name": "Legacy",
+  "ps_id": null,
+  "number": 2,
+  "demo_url": "demos/manually_uploaded/1787434028_legacy-vs-spirit-m2-ancient.dem",
+  "demo_data": null,
+  "code": null,
+  "status": "finished",
+  "rounds_count": 22,
+  "created_at": "2026-08-07T11:01:39.588+00:00",
+  "updated_at": "2026-08-22T21:47:07.648+00:00",
+  "partially_state": null,
+  "game_version": 2,
+  "winner_team_clan": {
+    "clan_name": "Team Spirit",
+    "team_id": 654,
+    "created_at": null,
+    "updated_at": null,
+    "id": 107,
+    "team": {
+      "id": 654,
+      "slug": "spirit",
+      "name": "Spirit",
+      "image_url": "https://files.bo3.gg/uploads/team/654/image/webp-41b22d18a871d982f8ff87652bbb0fe6.webp",
+      "facebook": "",
+      "twitter": "",
+      "rank": 1,
+      "created_at": "2020-10-19T08:52:46.412+00:00",
+      "updated_at": "2026-08-23T05:07:12.891+00:00",
+      "country_id": 56,
+      "ps_id": 124523,
+      "image_data": "{\"id\":\"team/654/image/eed18053cd132a284641e11b50682528.png\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"spirit.png\",\"size\":14885,\"mime_type\":\"image/png\",\"width\":500,\"height\":500},\"derivatives\":{\"20x20\":{\"id\":\"team/654/image/20x20-46d0496b62220a20372ec872d9034b98.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20230810-35-ju0btg.webp\",\"size\":364,\"mime_type\":null,\"width\":20,\"height\":20}},\"50x50\":{\"id\":\"team/654/image/50x50-20bd83422d6101d775eb0916f2759d04.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20230810-35-1xr2742.webp\",\"size\":1016,\"mime_type\":null,\"width\":50,\"height\":50}},\"150x150\":{\"id\":\"team/654/image/150x150-0c4ff63963c83adcdc70e607215de0d9.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20230810-35-qlcjh3.webp\",\"size\":3270,\"mime_type\":null,\"width\":150,\"height\":150}},\"400x400\":{\"id\":\"team/654/image/400x400-539a13bfb0d488ecb3f04fc46803c9fe.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20230810-35-5vl9ce.webp\",\"size\":9958,\"mime_type\":null,\"width\":400,\"height\":400}},\"webp\":{\"id\":\"team/654/image/webp-41b22d18a871d982f8ff87652bbb0fe6.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20230810-35-19ee2of.webp\",\"size\":7048,\"mime_type\":null,\"width\":500,\"height\":500}}}}",
+      "image_versions": {
+        "webp": "https://files.bo3.gg/uploads/team/654/image/webp-41b22d18a871d982f8ff87652bbb0fe6.webp
+...[truncated, 112575 total chars]
+============================================================
+GET /games/180726?with=scoreboard
+  URL: https://api.bo3.gg/api/v1/games/180726?with=scoreboard
+============================================================
+  status: 200
+{
+  "id": 180726,
+  "match_id": 126441,
+  "begin_at": "2026-08-22T19:09:02.000+00:00",
+  "state": "done",
+  "map_name": "de_ancient",
+  "duration": 2810187612160,
+  "demo_header": {
+    "_id": "6a8a188cf09a04174b2e7813",
+    "map_name": "de_ancient",
+    "filestamp": "PBDEMS2",
+    "tick_rate": -1.0,
+    "frame_rate": 128.0,
+    "server_name": "unknown",
+    "real_game_id": 180726
+  },
+  "ov_index": 0,
+  "winner_clan_score": 13,
+  "loser_clan_score": 9,
+  "winner_clan_name": "Team Spirit",
+  "loser_clan_name": "Legacy",
+  "ps_id": null,
+  "number": 2,
+  "demo_url": "demos/manually_uploaded/1787434028_legacy-vs-spirit-m2-ancient.dem",
+  "demo_data": null,
+  "code": null,
+  "status": "finished",
+  "rounds_count": 22,
+  "created_at": "2026-08-07T11:01:39.588+00:00",
+  "updated_at": "2026-08-22T21:47:07.648+00:00",
+  "partially_state": null,
+  "game_version": 2,
+  "winner_team_clan": {
+    "clan_name": "Team Spirit",
+    "team_id": 654,
+    "created_at": null,
+    "updated_at": null,
+    "id": 107,
+    "team": {
+      "id": 654,
+      "slug": "spirit",
+      "name": "Spirit",
+      "image_url": "https://files.bo3.gg/uploads/team/654/image/webp-41b22d18a871d982f8ff87652bbb0fe6.webp",
+      "facebook": "",
+      "twitter": "",
+      "rank": 1,
+      "created_at": "2020-10-19T08:52:46.412+00:00",
+      "updated_at": "2026-08-23T05:07:12.891+00:00",
+      "country_id": 56,
+      "ps_id": 124523,
+      "image_data": "{\"id\":\"team/654/image/eed18053cd132a284641e11b50682528.png\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"spirit.png\",\"size\":14885,\"mime_type\":\"image/png\",\"width\":500,\"height\":500},\"derivatives\":{\"20x20\":{\"id\":\"team/654/image/20x20-46d0496b62220a20372ec872d9034b98.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20230810-35-ju0btg.webp\",\"size\":364,\"mime_type\":null,\"width\":20,\"height\":20}},\"50x50\":{\"id\":\"team/654/image/50x50-20bd83422d6101d775eb0916f2759d04.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20230810-35-1xr2742.webp\",\"size\":1016,\"mime_type\":null,\"width\":50,\"height\":50}},\"150x150\":{\"id\":\"team/654/image/150x150-0c4ff63963c83adcdc70e607215de0d9.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20230810-35-qlcjh3.webp\",\"size\":3270,\"mime_type\":null,\"width\":150,\"height\":150}},\"400x400\":{\"id\":\"team/654/image/400x400-539a13bfb0d488ecb3f04fc46803c9fe.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20230810-35-5vl9ce.webp\",\"size\":9958,\"mime_type\":null,\"width\":400,\"height\":400}},\"webp\":{\"id\":\"team/654/image/webp-41b22d18a871d982f8ff87652bbb0fe6.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20230810-35-19ee2of.webp\",\"size\":7048,\"mime_type\":null,\"width\":500,\"height\":500}}}}",
+      "image_versions": {
+        "webp": "https://files.bo3.gg/uploads/team/654/image/webp-41b22d18a871d982f8ff87652bbb0fe6.webp
+...[truncated, 112575 total chars]
+============================================================
+GET /games/180726/players
+  URL: https://api.bo3.gg/api/v1/games/180726/players
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+GET /games/180726/scoreboard
+  URL: https://api.bo3.gg/api/v1/games/180726/scoreboard
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+GET /games/180726/stats
+  URL: https://api.bo3.gg/api/v1/games/180726/stats
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+GET /matches/games/180726
+  URL: https://api.bo3.gg/api/v1/matches/games/180726
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
