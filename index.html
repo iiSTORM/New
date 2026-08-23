@@ -728,6 +728,141 @@ function PlayerRow({ teams, pastMatches, p, team, opponentTeam, games, weights, 
 }
 
 /* ============================================================
+   STANDINGS & POWER RANKINGS — both computed entirely from data
+   already loaded, same "derive it for free" pattern as head-to-head.
+
+   Regional standings: straightforward series win/loss record within
+   one region's pastMatches, plus game (map) differential as a
+   tiebreaker signal.
+
+   Power ranking: a simple in-region win% can't meaningfully compare
+   teams that have never played each other — an LCK team and an LEC
+   team have no shared opponents in the regular season. Elo solves
+   this properly: it's fed by whatever matches exist, and the same
+   rating pool naturally absorbs cross-region results the moment
+   international events (MSI, Worlds) start happening, at which point
+   it becomes a real cross-region comparison rather than a proxy for
+   in-region record. Until then it will track closely with in-region
+   standings — that's expected and correct, not a bug; the payoff is
+   specifically for when cross-region matches start flowing in.
+   ============================================================ */
+
+function computeStandings(teams, pastMatches) {
+  const standings = {};
+  for (const teamName in teams) {
+    standings[teamName] = { wins: 0, losses: 0, gameWins: 0, gameLosses: 0 };
+  }
+  for (const m of pastMatches) {
+    if (!m.teamA || !m.teamB || !m.winner) continue;
+    const loser = m.winner === m.teamA ? m.teamB : m.teamA;
+    if (standings[m.winner]) standings[m.winner].wins += 1;
+    if (standings[loser]) standings[loser].losses += 1;
+    const parts = (m.score || "").split("-").map((x) => parseInt(x, 10));
+    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+      const winnerGames = Math.max(parts[0], parts[1]);
+      const loserGames = Math.min(parts[0], parts[1]);
+      if (standings[m.winner]) { standings[m.winner].gameWins += winnerGames; standings[m.winner].gameLosses += loserGames; }
+      if (standings[loser]) { standings[loser].gameWins += loserGames; standings[loser].gameLosses += winnerGames; }
+    }
+  }
+  return Object.entries(standings)
+    .map(([team, s]) => ({
+      team, ...s,
+      winPct: s.wins + s.losses > 0 ? s.wins / (s.wins + s.losses) : 0,
+      gameDiff: s.gameWins - s.gameLosses,
+    }))
+    .sort((a, b) => b.winPct - a.winPct || b.gameDiff - a.gameDiff || a.team.localeCompare(b.team));
+}
+
+function computeEloRatings(regionsData, regionList, kFactor = 32) {
+  const ratings = {};
+  const teamRegion = {};
+  const allMatches = [];
+  for (const regionKey of regionList) {
+    const rd = regionsData[regionKey];
+    if (!rd || !rd.teams) continue;
+    for (const teamName in rd.teams) {
+      ratings[teamName] = 1500;
+      teamRegion[teamName] = regionKey;
+    }
+    for (const m of rd.past_matches || []) {
+      if (m.teamA && m.teamB && m.winner) allMatches.push(m);
+    }
+  }
+  const sorted = allMatches.sort((a, b) => ((a.date || "") < (b.date || "") ? -1 : (a.date || "") > (b.date || "") ? 1 : 0));
+  for (const m of sorted) {
+    const { teamA, teamB, winner } = m;
+    if (!(teamA in ratings) || !(teamB in ratings)) continue;
+    const ra = ratings[teamA], rb = ratings[teamB];
+    const expectedA = 1 / (1 + Math.pow(10, (rb - ra) / 400));
+    const scoreA = winner === teamA ? 1 : 0;
+    ratings[teamA] = ra + kFactor * (scoreA - expectedA);
+    ratings[teamB] = rb + kFactor * ((1 - scoreA) - (1 - expectedA));
+  }
+  return Object.entries(ratings)
+    .map(([team, rating]) => ({ team, rating, region: teamRegion[team] }))
+    .sort((a, b) => b.rating - a.rating);
+}
+
+function StandingsTab({ teams, pastMatches, regionsData, regionList, regionLabels }) {
+  const theme = useTheme();
+  const standings = computeStandings(teams, pastMatches);
+  const power = computeEloRatings(regionsData, regionList);
+
+  if (standings.every((s) => s.wins === 0 && s.losses === 0)) {
+    return (
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: "20px 16px", textAlign: "center" }}>
+        <div style={{ fontSize: 13, color: theme.textDim }}>No completed matches yet this split.</div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), overflow: "hidden", marginBottom: 20 }}>
+        <div style={{ padding: "10px 14px", borderBottom: `1px solid ${theme.steel}`, fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
+          STANDINGS
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 40px 40px 56px", padding: "6px 14px", fontSize: 10, letterSpacing: 1, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
+          <span>TEAM</span><span style={{ textAlign: "right" }}>W</span><span style={{ textAlign: "right" }}>L</span><span style={{ textAlign: "right" }}>GAMES</span>
+        </div>
+        {standings.map((s, i) => (
+          <div key={s.team} style={{ display: "grid", gridTemplateColumns: "1fr 40px 40px 56px", padding: "9px 14px", fontSize: 13, borderTop: `1px solid ${theme.steelSoft}`, alignItems: "center" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", width: 14 }}>{i + 1}</span>
+              <span style={{ width: 5, height: 16, background: teams[s.team] ? teams[s.team].color : theme.textFaint }} />
+              <span style={{ fontFamily: "'Chakra Petch', sans-serif", fontWeight: 600 }}>{s.team}</span>
+            </span>
+            <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.good }}>{s.wins}</span>
+            <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.bad }}>{s.losses}</span>
+            <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.textDim, fontSize: 11 }}>{s.gameWins}-{s.gameLosses}</span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), overflow: "hidden" }}>
+        <div style={{ padding: "10px 14px", borderBottom: `1px solid ${theme.steel}`, fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
+          POWER RANKING · ALL REGIONS
+        </div>
+        <div style={{ padding: "8px 14px", fontSize: 11, color: theme.textFaint, lineHeight: 1.5, borderBottom: `1px solid ${theme.steelSoft}` }}>
+          Elo-style rating pooled across every region — meaningful for cross-region comparison once international matches (MSI, Worlds, Champions) start feeding in. Until then it tracks closely with in-region record, which is expected.
+        </div>
+        {power.map((p, i) => (
+          <div key={p.team} style={{ display: "grid", gridTemplateColumns: "1fr 70px 60px", padding: "9px 14px", fontSize: 13, borderTop: `1px solid ${theme.steelSoft}`, alignItems: "center" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", width: 14 }}>{i + 1}</span>
+              <span style={{ fontFamily: "'Chakra Petch', sans-serif", fontWeight: 600 }}>{p.team}</span>
+            </span>
+            <span style={{ textAlign: "right", fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>{regionLabels[p.region] || p.region}</span>
+            <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.accent, fontWeight: 700 }}>{Math.round(p.rating)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
    HEAD-TO-HEAD — computed entirely from pastMatches already in
    memory, no extra data needed. Scoped to whatever pastMatches was
    passed in (a single region/split), which is correct since two
@@ -1437,7 +1572,7 @@ function KillProjector() {
           </div>
 
           <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-            {[["future", "Future"], ["past", "Past Results"]].map(([id, label]) => (
+            {[["future", "Future"], ["past", "Past Results"], ["standings", "Standings"]].map(([id, label]) => (
               <button
                 key={id}
                 onClick={() => setTab(id)}
@@ -1479,8 +1614,13 @@ function KillProjector() {
             </div>
           ) : tab === "future" ? (
             <FutureTab teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} />
-          ) : (
+          ) : tab === "past" ? (
             <PastResultsTab teams={current.teams} pastMatches={current.past_matches || []} weights={weights} statType={statType} />
+          ) : (
+            <StandingsTab
+              teams={current.teams} pastMatches={current.past_matches || []}
+              regionsData={regionsData} regionList={gameCfg.regionList} regionLabels={gameCfg.regionLabels}
+            />
           )}
 
           <div style={{ marginTop: 20, fontSize: 11, color: theme.textFaint, lineHeight: 1.6 }}>
