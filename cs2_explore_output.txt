@@ -1,263 +1,1045 @@
+! get_match_details(126441) — numeric id failed: Exception: API request to https://api.bo3.gg/api/v1/matches/126441 failed: 404, message='Not Found', url='https://api.bo3.gg/api/v1/matches/126441?scope=show-match&with=games,streams,teams,tournament_deep,stage,ai_predictions'
+
 ============================================================
-finished() — recently finished matches
+get_match_details('legacy-br-vs-spirit-22-08-2026') — slug — SUCCESS, THE IMPORTANT ONE
 ============================================================
+  [debug] type(obj) = <class 'dict'>
 {
-  "total": {
-    "count": 73425,
-    "pages": 735,
-    "offset": 0,
-    "limit": 100
+  "id": 126441,
+  "slug": "legacy-br-vs-spirit-22-08-2026",
+  "status": "finished",
+  "parsed_status": "done",
+  "winner_team_id": 654,
+  "loser_team_id": 8118,
+  "tournament_id": 4214,
+  "team1_score": 0,
+  "team2_score": 2,
+  "bo_type": 3,
+  "start_date": "2026-08-22T18:00:00.000+00:00",
+  "end_date": "2026-08-22T19:55:40.000+00:00",
+  "stage_id": 10516,
+  "maps_score": [
+    true,
+    true,
+    false
+  ],
+  "tier": "s",
+  "tier_rank": 1,
+  "position": 9,
+  "live_coverage_advantage": false,
+  "discipline_id": 1,
+  "prev_match1_winner": false,
+  "prev_match2_winner": false,
+  "game_version": 2,
+  "team1_new_participant": false,
+  "team2_new_participant": false,
+  "team1": {
+    "id": 8118,
+    "slug": "legacy-br",
+    "name": "Legacy",
+    "rank": 7,
+    "image_url": "https://files.bo3.gg/uploads/team/8118/image/webp-e4a3b023443f1f3ba4ef588164e73111.webp",
+    "tshirt_image_url": "https://files.bo3.gg/uploads/team/8118/tshirt_image/webp-0fc7584f2caf346d7aa2f990221374cb.webp",
+    "icon_url": null,
+    "country_id": 14,
+    "discipline_id": 1,
+    "team_clans": [
+      {
+        "clan_name": "LEGACY",
+        "team_id": 8118,
+        "created_at": "2023-09-24T08:15:54.437+00:00",
+        "updated_at": "2023-09-24T08:15:54.437+00:00",
+        "id": 6721
+      },
+      {
+        "clan_name": "LEGACY ESPORTS",
+        "team_id": 8118,
+        "created_at": "2023-11-17T11:46:45.011+00:00",
+        "updated_at": "2023-11-17T11:46:45.011+00:00",
+        "id": 7045
+      },
+      {
+        "clan_name": "LGCY",
+        "team_id": 8118,
+        "created_at": "2026-05-20T07:46:31.813+00:00",
+        "updated_at": "2026-05-20T07:46:31.813+00:00",
+        "id": 11630
+      },
+      {
+        "clan_name": "Legacy",
+        "team_id": 8118,
+        "created_at": "2023-09-23T02:04:50.419+00:00",
+        "updated_at": "2023-09-23T02:04:50.419+00:00",
+        "id": 6709
+      },
+      {
+        "clan_name": "Legacy ",
+        "team_id": 8118,
+        "created_at": "2024-04-05T14:46:09.360+00:00",
+        "updated_at": "2024-04-05T14:46:09.360+00:00",
+        "id": 7948
+      },
+      {
+        "clan_name": "Legacy -",
+        "team_id": 8118,
+        "created_at": "2024-01-10T07:28:20.791+00:00",
+        "updated_at": "2024-01-10T07:28:20.791+00:00",
+        "id": 7361
+      },
+      {
+        "clan_name": "Team Legacy",
+        "team_id": 8118,
+        "created_at": "2024-10-23T13:34:22.257+00:00",
+        "updated_at": "2024-10-23T13:34:22.257+00:00",
+        "id": 8862
+      }
+    ],
+    "country": {
+      "id": 14,
+      "code": "BR",
+      "name": "Brazil",
+      "region_id": 2
+    }
   },
-  "results": [
+  "team2": {
+    "id": 654,
+    "slug": "spirit",
+    "name": "Spirit",
+    "rank": 1,
+    "image_url": "https://files.bo3.gg/uploads/team/654/image/webp-41b22d18a871d982f8ff87652bbb0fe6.webp",
+    "tshirt_image_url": "https://files.bo3.gg/uploads/team/654/tshirt_image/webp-d3630c11b1c94c371faf22998a17cb33.webp",
+    "icon_url": null,
+    "country_id": 56,
+    "discipline_id": 1,
+    "team_clans": [
+      {
+        "clan_name": "Spirit",
+        "team_id": 654,
+        "created_at": null,
+        "updated_at": null,
+        "id": 52
+      },
+      {
+        "clan_name": "Spirit Parimatch",
+        "team_id": 654,
+        "created_at": null,
+        "updated_at": null,
+        "id": 28
+      },
+      {
+        "clan_name": "Team Spirit",
+        "team_id": 654,
+        "created_at": null,
+        "updated_at": null,
+        "id": 107
+      },
+      {
+        "clan_name": "Team Spirit CS2",
+        "team_id": 654,
+        "created_at": "2024-01-18T16:23:30.033+00:00",
+        "updated_at": "2024-01-18T16:23:30.033+00:00",
+        "id": 7590
+      },
+      {
+        "clan_name": "Team Spirit x Parimatch",
+        "team_id": 654,
+        "created_at": null,
+        "updated_at": null,
+        "id": 198
+      },
+      {
+        "clan_name": "[NOT READY] Spirit Parimatch",
+        "team_id": 654,
+        "created_at": null,
+        "updated_at": null,
+        "id": 22
+      },
+      {
+        "clan_name": "[READY] Spirit Parimatch",
+        "team_id": 654,
+        "created_at": null,
+        "updated_at": null,
+        "id": 25
+      }
+    ],
+    "country": {
+      "id": 56,
+      "code": "RU",
+      "name": "Russian Federation",
+      "region_id": 4
+    }
+  },
+  "team1_id": 8118,
+  "team2_id": 654,
+  "vods": [],
+  "tournament": {
+    "id": 4214,
+    "slug": "esports-world-cup-2026",
+    "name": "Esports World Cup 2026",
+    "description": "",
+    "start_date": "2026-08-12T06:00:00.000+00:00",
+    "end_date": "2026-08-23T20:00:00.000+00:00",
+    "prize": 2000000,
+    "event_type": "lan",
+    "tier": "s",
+    "tier_rank": 1,
+    "status": "current",
+    "image_url": "https://files.bo3.gg/uploads/tournament/4214/image/webp-f9acc74d68dee0b73edad3584e5b4fc4.webp",
+    "parsing_allowed": true
+  },
+  "streams": [
     {
-      "id": 126441,
-      "slug": "legacy-br-vs-spirit-22-08-2026",
-      "status": "finished",
-      "parsed_status": "done",
-      "winner_team_id": 654,
+      "id": 2104,
+      "embed_url": "https://player.twitch.tv/?channel=eslcs",
+      "raw_url": "https://www.twitch.tv/eslcs",
+      "viewers_number": 1178,
+      "official": true,
+      "language": "en",
+      "name": "ESLCS",
+      "preview_image_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_eslcs-600x336.jpg",
+      "channel_image_url": "https://static-cdn.jtvnw.net/jtv_user_pictures/1975b18f-fa7d-443f-b191-fba08f92f3a2-profile_image-300x300.jpeg",
       "discipline_id": 1,
-      "start_date": "2026-08-22T18:00:00.000+00:00",
-      "end_date": "2026-08-22T19:55:40.000+00:00",
-      "team1_id": 8118,
-      "team2_id": 654,
-      "team1_score": 0,
-      "team2_score": 2,
-      "bo_type": 3,
-      "live_coverage": true,
-      "live_coverage_source": 4,
-      "stars": 4,
-      "bet_updates": {
-        "path": "https://refpa04636.pro/L?tag=d_4812392m_129584c_bo3_odds_ww&site=4812392&ad=129584&utm_source=bo3_odds_ww&utm_medium=fix&r=/en/live/Esports/2722954-CS-2-Esports-World-Cup/746418046-Legacy-Team-Spirit",
-        "team_1": {
-          "name": "Legacy",
-          "coeff": 15.0,
-          "active": true,
-          "team_id": 8118,
-          "max_coeff": 15.0,
-          "aggrement_score": 0.4
-        },
-        "team_2": {
-          "name": "Spirit",
-          "coeff": 1.01,
-          "active": false,
-          "team_id": 654,
-          "max_coeff": 1.575,
-          "aggrement_score": 0.6
-        },
-        "markets_count": 0,
-        "bet_provider_id": 39,
-        "additional_markets": [
-          {
-            "coeff": 4.21,
-            "active": true,
-            "team_id": null,
-            "bet_type": "total_maps_over_2_5",
-            "max_coeff": 5.25,
-            "aggrement_score": 0.49
-          },
-          {
-            "coeff": 1.225,
-            "active": true,
-            "team_id": null,
-            "bet_type": "total_maps_under_2_5",
-            "max_coeff": 2.544,
-            "aggrement_score": 0.51
-          },
-          {
-            "coeff": 26.0,
-            "active": true,
-            "team_id": 8118,
-            "bet_type": "team_1_handicap_under_1_5",
-            "max_coeff": 26.0,
-            "aggrement_score": 0.08
-          },
-          {
-            "coeff": 4.21,
-            "active": true,
-            "team_id": 8118,
-            "bet_type": "team_1_handicap_over_1_5",
-            "max_coeff": 5.25,
-            "aggrement_score": 0.56
-          },
-          {
-            "coeff": 1.225,
-            "active": true,
-            "team_id": 654,
-            "bet_type": "team_2_handicap_under_1_5",
-            "max_coeff": 3.25,
-            "aggrement_score": 0.44
-          },
-          {
-            "coeff": 1.001,
-            "active": true,
-            "team_id": 654,
-            "bet_type": "team_2_handicap_over_1_5",
-            "max_coeff": 1.2,
-            "aggrement_score": 0.92
-          },
-          {
-            "coeff": 1.016,
-            "active": true,
-            "team_id": 654,
-            "bet_type": "score_0_2",
-            "max_coeff": 3.25,
-            "aggrement_score": 0.44
-          },
-          {
-            "coeff": 23.0,
-            "active": true,
-            "team_id": 654,
-    
-
-============================================================
-get_todays_matches()
-============================================================
-{
-  "total": {
-    "count": 23,
-    "pages": 1,
-    "offset": 0,
-    "limit": 100
-  },
-  "results": [
-    {
-      "id": 126443,
-      "slug": "fut-cs2-vs-spirit-23-08-2026",
-      "status": "upcoming",
-      "parsed_status": "waiting",
-      "discipline_id": 1,
-      "start_date": "2026-08-23T11:30:00.000+00:00",
-      "team1_id": 20832,
-      "team2_id": 654,
-      "team1_score": 0,
-      "team2_score": 0,
-      "bo_type": 5,
-      "live_coverage": true,
-      "live_coverage_source": 4,
-      "stars": 5,
-      "bet_updates": {
-        "path": "https://refpa04636.pro/L?tag=d_4812392m_129584c_bo3_odds_ww&site=4812392&ad=129584&utm_source=bo3_odds_ww&utm_medium=fix&r=/en/line/Esports/2722954-CS-2-Esports-World-Cup/362626332-FUT-Esports-Team-Spirit",
-        "team_1": {
-          "name": "FUT",
-          "coeff": 4.06,
-          "active": true,
-          "team_id": 20832,
-          "max_coeff": 4.24,
-          "aggrement_score": 0.27
-        },
-        "team_2": {
-          "name": "Spirit",
-          "coeff": 1.24,
-          "active": true,
-          "team_id": 654,
-          "max_coeff": 1.26,
-          "aggrement_score": 0.73
-        },
-        "markets_count": 40,
-        "bet_provider_id": 39,
-        "additional_markets": [
-          {
-            "coeff": 6.56,
-            "active": true,
-            "team_id": 20832,
-            "bet_type": "team_1_handicap_under_1_5",
-            "max_coeff": 6.7,
-            "aggrement_score": 0.19
-          },
-          {
-            "coeff": 2.26,
-            "active": true,
-            "team_id": 20832,
-            "bet_type": "team_1_handicap_over_1_5",
-            "max_coeff": 2.36,
-            "aggrement_score": 0.75
-          },
-          {
-            "coeff": 1.65,
-            "active": true,
-            "team_id": 654,
-            "bet_type": "team_2_handicap_under_1_5",
-            "max_coeff": 1.65,
-            "aggrement_score": 0.49
-          },
-          {
-            "coeff": 1.12,
-            "active": true,
-
-
-! No match slug found — skipping get_match_details() test
-
-============================================================
-search_teams('Vitality') — to find a real team_id/slug
-============================================================
-{
-  "total": {
-    "count": 8374,
-    "pages": 2094,
-    "offset": 0,
-    "limit": 4
-  },
-  "results": [
-    {
-      "id": 667,
-      "slug": "vitality",
-      "name": "Vitality",
-      "rank": 5,
-      "image_url": "https://files.bo3.gg/uploads/team/667/image/webp-292c1f6c6dcfca35c7a52da7e02cef0a.webp",
-      "tshirt_image_url": "https://files.bo3.gg/uploads/team/667/tshirt_image/webp-eda1ecbf8f03d4c0a1dffcdb145fe3be.webp",
-      "icon_url": null,
-      "country_id": 29,
-      "discipline_id": 1
+      "match_id": 126441,
+      "platform": 1
     },
     {
-      "id": 23335,
-      "slug": "vitality-academy",
-      "name": "Vitality Academy",
-      "rank": null,
-      "image_url": "https://files.bo3.gg/uploads/team/23335/image/webp-0931a940543401a8529b4bd945ab2877.webp",
-      "tshirt_image_url": null,
-      "icon_url": null,
-      "country_id": 29,
-      "discipline_id": 1
-    }
-  ],
-  "links": {
-    "self": "/api/v1/filters/teams?filter%5Bteams.discipline_id%5D%5Beq%5D=1&page%5Blimit%5D=4",
-    "next": "/api/v1/filters/teams?filter%5Bteams.discipline_id%5D%5Beq%5D=1&page%5Blimit%5D=4&page%5Boffset%5D=4",
-    "last": "/api/v1/filters/teams?filter%5Bteams.discipline_id%5D%5Beq%5D=1&page%5Blimit%5D=4&page%5Boffset%5D=8372"
-  }
-}
+      "id": 4272,
+      "embed_url": "https://player.twitch.tv/?channel=ewc_stcarena_en",
+      "raw_url": "https://www.twitch.tv/ewc_stcarena_en",
+      "viewers_number": 0,
+      "official": false,
+      "language": "en",
+      "name": "EWC_STCArena_EN",
+      "preview_image_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_ewc_stcarena_en-600x336.jpg",
+      "channel_image_url": "https://static-cdn.jtvnw.net/jtv_user_pictures/f9d0dde6-150f-460f-bb70-1d3ca56d625e-profile_image-300x300.png",
+      "discipline_id": 2,
+      "match_id": 126441,
+      "platfo
+...[truncated, 27952 total chars]
 
 ============================================================
-search_players('ZywOo') — to find a real player slug
+get_team_upcoming_matches(667) — numeric id — SUCCESS
 ============================================================
+  [debug] type(obj) = <class 'dict'>
 {
   "total": {
     "count": 1,
     "pages": 1,
     "offset": 0,
-    "limit": 4
+    "limit": 100
   },
   "results": [
     {
-      "priority": 1,
-      "id": 18452,
-      "slug": "zywoo",
-      "nickname": "ZywOo",
-      "first_name": "Mathieu",
-      "last_name": "Herbaut",
-      "status": 1,
-      "image_url": "https://files.bo3.gg/uploads/player/18452/image/webp-d6b68be0a5a6fc73186bf1e6894f9b14.webp",
-      "rank": 2,
-      "team_id": 667,
-      "country_id": 29,
+      "id": 127389,
+      "slug": "vitality-vs-inner-circle-esports-27-08-2026",
+      "status": "upcoming",
+      "parsed_status": "waiting",
       "discipline_id": 1,
-      "country": {
-        "id": 29,
-        "code": "FR",
-        "name": "France",
-        "region_id": 3
+      "start_date": "2026-08-27T09:00:00.000+00:00",
+      "team1_id": 667,
+      "team2_id": 19186,
+      "team1_score": 0,
+      "team2_score": 0,
+      "bo_type": 3,
+      "team1": {
+        "id": 667,
+        "slug": "vitality",
+        "name": "Vitality",
+        "image_url": "https://files.bo3.gg/uploads/team/667/image/webp-292c1f6c6dcfca35c7a52da7e02cef0a.webp"
+      },
+      "team2": {
+        "id": 19186,
+        "slug": "inner-circle-esports",
+        "name": "Inner Circle",
+        "image_url": "https://files.bo3.gg/uploads/team/19186/image/webp-6aedbd6f8fdc86d26052f90540031e1e.webp"
+      },
+      "tournament": {
+        "id": 4215,
+        "slug": "blast-open-fall-2026",
+        "name": "BLAST Open Fall 2026",
+        "status": "upcoming",
+        "prize": 1100000,
+        "tier_rank": 1,
+        "image_url": "https://files.bo3.gg/uploads/tournament/4215/image/webp-508effa58aeb9e0a3b90b982e6845399.webp"
+      },
+      "streams": [
+        {
+          "name": "BLASTPremier",
+          "preview_image_url": ""
+        }
+      ],
+      "games": [
+        {
+          "id": 182089,
+          "number": 3
+        },
+        {
+          "id": 182090,
+          "number": 2
+        },
+        {
+          "id": 182091,
+          "number": 1
+        }
+      ],
+      "ai_predictions": {
+        "prediction_team1_score": 2,
+        "prediction_team2_score": 0,
+        "prediction_winner_team_id": 667,
+        "prediction_scores_data": {
+          "neighbor_proximity_factor": 0.649535
+        }
       }
+    }
+  ],
+  "links": {
+    "self": "/api/v1/matches?filter%5Bmatches.discipline_id%5D%5Beq%5D=1&filter%5Bmatches.status%5D%5Bin%5D=upcoming%2Ccurrent&filter%5Bmatches.team_ids%5D%5Boverlap%5D=667&page%5Blimit%5D=100&sort=-start_date"
+  }
+}
+
+! get_team_upcoming_matches('vitality') — slug failed: Exception: API request to https://api.bo3.gg/api/v1/matches failed: 400, message='Bad Request', url='https://api.bo3.gg/api/v1/matches?scope=widget-matches&page%5Boffset%5D=0&page%5Blimit%5D=100&sort=-start_date&filter%5Bmatches.status%5D%5Bin%5D=upcoming,current&filter%5Bmatches.team_ids%5D%5Boverlap%5D=vitality&filter%5Bmatches.discipline_id%5D%5Beq%5D=1&with=teams,tournament,ai_predictions,games,streams'
+
+! get_team_matches(667) — numeric id, past match history failed: AttributeError: module 'datetime' has no attribute 'now'
+
+! get_team_stats() failed: AttributeError: module 'datetime' has no attribute 'now'
+
+============================================================
+get_team_data('vitality') — SUCCESS (roster expected here)
+============================================================
+  [debug] type(obj) = <class 'dict'>
+{
+  "id": 667,
+  "slug": "vitality",
+  "name": "Vitality",
+  "rank": 5,
+  "country_id": 29,
+  "image_url": "https://files.bo3.gg/uploads/team/667/image/webp-292c1f6c6dcfca35c7a52da7e02cef0a.webp",
+  "facebook": null,
+  "twitter": null,
+  "created_at": "2020-10-19T08:52:48.143+00:00",
+  "updated_at": "2026-08-23T04:07:14.026+00:00",
+  "avg_views": null,
+  "est_date": "2018-08-05",
+  "tshirt_image_url": "https://files.bo3.gg/uploads/team/667/tshirt_image/webp-eda1ecbf8f03d4c0a1dffcdb145fe3be.webp",
+  "icon_url": null,
+  "email": null,
+  "twitch_url": null,
+  "youtube_url": null,
+  "instagram_url": null,
+  "website_url": null,
+  "discipline_id": 1,
+  "six_month_earned": 457500,
+  "acronym": "VIT",
+  "gallery_presence": true,
+  "rank_diff": -2,
+  "staff_member_participants": [],
+  "from_transfers": [
+    {
+      "id": 6504,
+      "created_at": "2022-03-02T16:47:12.431+00:00",
+      "updated_at": "2022-03-02T16:47:12.431+00:00",
+      "team_to_id": 774,
+      "player_id": 30680,
+      "team_from_id": 667,
+      "source_type": 2,
+      "source_url": "https://twitter.com/TeamLDLC/status/1115290455552479233",
+      "action_date": "2019-04-08",
+      "action_type": 1,
+      "compensation": null,
+      "team_to_name": "Team LDLC",
+      "team_from_name": "Team Vitality",
+      "player_name": "Happy",
+      "discipline_id": 1,
+      "player_country": null,
+      "is_coach": false
+    },
+    {
+      "id": 6672,
+      "created_at": "2022-03-02T16:47:16.180+00:00",
+      "updated_at": "2022-03-02T16:47:16.180+00:00",
+      "team_to_id": null,
+      "player_id": 25128,
+      "team_from_id": 667,
+      "source_type": 2,
+      "source_url": "https://twitter.com/TeamVitality/status/1491819260363960320",
+      "action_date": "2022-02-10",
+      "action_type": 3,
+      "compensation": null,
+      "team_to_name": null,
+      "team_from_name": "Team Vitality",
+      "player_name": "Kyojin",
+      "discipline_id": 1,
+      "player_country": null,
+      "is_coach": false
+    },
+    {
+      "id": 7327,
+      "created_at": "2022-03-02T16:47:30.644+00:00",
+      "updated_at": "2022-03-02T16:47:30.644+00:00",
+      "team_to_id": 667,
+      "player_id": 25128,
+      "team_from_id": 667,
+      "source_type": 2,
+      "source_url": "https://twitter.com/KyojinCSGO/status/1478784670187896838",
+      "action_date": "2022-01-05",
+      "action_type": 3,
+      "compensation": null,
+      "team_to_name": "Team Vitality",
+      "team_from_name": "Team Vitality",
+      "player_name": "Kyojin",
+      "discipline_id": 1,
+      "player_country": null,
+      "is_coach": false
+    },
+    {
+      "id": 8538,
+      "created_at": "2022-03-02T16:47:57.068+00:00",
+      "updated_at": "2022-03-02T16:47:57.068+00:00",
+      "team_to_id": null,
+      "player_id": 23871,
+      "team_from_id": 667,
+      "source_type": 2,
+      "source_url": "https://twitter.com/TeamVitality/status/1441809728930136077",
+      "action_date": "2021-09-25",
+      "action_type": 3,
+      "compensation": null,
+      "team_to_name": null,
+      "team_from_name": "Team Vitality",
+      "player_name": "Nivera",
+      "discipline_id": 1,
+      "player_country": null,
+      "is_coach": false
+    },
+    {
+      "id": 8932,
+      "created_at": "2022-03-02T16:48:05.900+00:00",
+      "updated_at": "2022-03-02T16:48:05.900+00:00",
+      "team_to_id": null,
+      "player_id": 17548,
+      "team_from_id": 667,
+      "source_type": 2,
+      "source_url": "https://twitter.com/TeamVitality/status/1430892796043350025",
+      "action_date": "2021-08-26",
+      "action_type": 3,
+      "compensation": null,
+      "team_to_name": null,
+      "team_from_name": "Team Vitality",
+      "player_name": "RpK",
+      "discipline_id": 1,
+      "player_country": null,
+      "is_coach": false
+    },
+    {
+      "id": 15236,
+      "created_at": "2022-03-02T16:50:33.334+00:00",
+      "updated_at": "2022-03-02T16:50:33.334+00:00",
+      "team_to_id": 667,
+      "player_id": 23871,
+      "team_from_id": 667,
+      "source_type": 2,
+      "source_url": "https://twitter.com/teamvitality/status/1370358956229595145",
+      "action_date": "2021-03-12",
+      "action_type": 3,
+      "compensation": null,
+      "team_to_name": "Team Vitality",
+      "team_from_name": "Team Vitality",
+      "player_name": "Nivera",
+      "discipline_id": 1,
+      "player_country": null,
+      "is_coach": false
+    },
+    {
+      "id": 15534,
+      "created_at": "2022-03-02T16:50:40.455+00:00",
+      "updated_at": "2022-03-02T16:50:40.455+00:00",
+      "team_to_id": 667,
+      "player_id": 17515,
+      "team_from_id": 667,
+      "source_type": 2,
+      "source_url": "https://twitter.com/TeamVitality/status/1362416606173782018",
+      "action_date": "2021-02-18",
+      "action_type": 1,
+      "compensation": null,
+      "team_to_name": "Team Vitality",
+      "team_from_name": "Team Vitality",
+      "player_name": "apEX",
+      "discipline_id": 1,
+      "player_country": null,
+      "is_coach": false
+    },
+    {
+      "id": 15688,
+      "created_at": "2022-03-02T16:50:45.695+00:00",
+      "updated_at": "2022-03-02T16:50:45.695+00:00",
+      "team_to_id": 667,
+      "player_id": 17515,
+      "team_from_id": 667,
+      "source_type": 2,
+      "source_url": "https://twitter.com/TeamVitality/status/1359143077412298760",
+      "action_date": "2021-02-09",
+      "action_type": 3,
+      "compensation": null,
+      "team_to_name": "Team Vitality",
+      "team_from_name": "Team Vitality",
+      "player_name": "apEX",
+      "discipline_id": 1,
+      "player_country": null,
+      "is_coach": false
+    },
+    {
+      "id": 17695,
+      "created_at": "2022-03-02T16:51:32.337+00:00",
+      "updated_at": "2022-03-02T16:51:32.337+00:00",
+      "team_to_id": 667,
+      "player_id": 17548,
+      "team_from_id": 667,
+      "source_type": 2,
+      "source_url": "https://twitter.com/TeamVitality/status/1381585396535074824",
+      "action_date": "2021-04-15",
+      "action_type": 3,
+      "compensation": null,
+      "team_to_name": "Team Vitali
+...[truncated, 124244 total chars]
+
+============================================================
+get_player_stats('zywoo') — SUCCESS
+============================================================
+  [debug] type(obj) = <class 'dict'>
+{
+  "general_stats": {
+    "games_count": 76,
+    "games_won_count": 55,
+    "games_lost_count": 21,
+    "matches_count": 31,
+    "matches_won_count": 23,
+    "matches_lost_count": 8,
+    "events_count": 7,
+    "events_won_count": 3,
+    "kills_sum": 1409,
+    "deaths_sum": 926,
+    "assists_sum": 371,
+    "damage_sum": 143996,
+    "rounds_count": 1640,
+    "rounds_won_count": 930,
+    "player_id": 18452,
+    "player_nickname": "ZywOo"
+  },
+  "map_stats": [
+    {
+      "map_name": "de_ancient",
+      "maps_count": 1,
+      "avg_player_rating_value": 1263.4813873910712,
+      "avg_player_rating": 7.8967586711941955,
+      "avg_kills": 1.173913043478261,
+      "avg_damage": 97.3913043478261
+    },
+    {
+      "map_name": "de_anubis",
+      "maps_count": 8,
+      "avg_player_rating_value": 962.8339640746904,
+      "avg_player_rating": 6.017712275466815,
+      "avg_kills": 0.6557377049180327,
+      "avg_damage": 67.60655737704919
+    },
+    {
+      "map_name": "de_cache",
+      "maps_count": 1,
+      "avg_player_rating_value": 0.0,
+      "avg_player_rating": 0.0,
+      "avg_kills": 1.3157894736842104,
+      "avg_damage": 138.26315789473685
+    },
+    {
+      "map_name": "de_dust2",
+      "maps_count": 18,
+      "avg_player_rating_value": 1159.768826784023,
+      "avg_player_rating": 7.248555167400145,
+      "avg_kills": 0.8401084010840109,
+      "avg_damage": 89.40379403794039
+    },
+    {
+      "map_name": "de_inferno",
+      "maps_count": 10,
+      "avg_player_rating_value": 1170.676019484715,
+      "avg_player_rating": 7.316725121779469,
+      "avg_kills": 0.8767772511848341,
+      "avg_damage": 90.53554502369668
+    },
+    {
+      "map_name": "de_mirage",
+      "maps_count": 15,
+      "avg_player_rating_value": 1127.8921797027836,
+      "avg_player_rating": 7.049326123142397,
+      "avg_kills": 0.8694267515923567,
+      "avg_damage": 87.71974522292993
+    },
+    {
+      "map_name": "de_nuke",
+      "maps_count": 14,
+      "avg_player_rating_value": 1138.9338981194082,
+      "avg_player_rating": 7.118336863246302,
+      "avg_kills": 0.8730650154798761,
+      "avg_damage": 89.03095975232198
+    },
+    {
+      "map_name": "de_overpass",
+      "maps_count": 9,
+      "avg_player_rating_value": 1216.1396894934792,
+      "avg_player_rating": 7.600873059334245,
+      "avg_kills": 0.9444444444444444,
+      "avg_damage": 92.74242424242425
+    }
+  ],
+  "accuracy_stats": [
+    {
+      "hit_group": "",
+      "hits_sum": 12,
+      "damage_sum": 433,
+      "kills_sum": 1
+    },
+    {
+      "hit_group": "Chest",
+      "hits_sum": 1418,
+      "damage_sum": 51575,
+      "kills_sum": 461
+    },
+    {
+      "hit_group": "Generic",
+      "hits_sum": 626,
+      "damage_sum": 7451,
+      "kills_sum": 25
+    },
+    {
+      "hit_group": "Head",
+      "hits_sum": 738,
+      "damage_sum": 53135,
+      "kills_sum": 611
+    },
+    {
+      "hit_group": "LeftArm",
+      "hits_sum": 66,
+      "damage_sum": 2496,
+      "kills_sum": 25
+    },
+    {
+      "hit_group": "LeftLeg",
+      "hits_sum": 62,
+      "damage_sum": 1991,
+      "kills_sum": 11
+    },
+    {
+      "hit_group": "RightArm",
+      "hits_sum": 245,
+      "damage_sum": 9413,
+      "kills_sum": 89
+    },
+    {
+      "hit_group": "RightLeg",
+      "hits_sum": 65,
+      "damage_sum": 1908,
+      "kills_sum": 11
+    },
+    {
+      "hit_group": "Stomach",
+      "hits_sum": 432,
+      "damage_sum": 16692,
+      "kills_sum": 182
     }
   ]
 }
+
+============================================================
+get_player_details('zywoo') — SUCCESS (role/team expected here)
+============================================================
+  [debug] type(obj) = <class 'dict'>
+{
+  "id": 18452,
+  "slug": "zywoo",
+  "nickname": "ZywOo",
+  "first_name": "Mathieu",
+  "last_name": "Herbaut",
+  "status": 1,
+  "birthday": "2000-11-09",
+  "role": null,
+  "twitter": null,
+  "twitch": null,
+  "facebook": null,
+  "image_url": "https://files.bo3.gg/uploads/player/18452/image/webp-d6b68be0a5a6fc73186bf1e6894f9b14.webp",
+  "country_id": 29,
+  "team_id": 667,
+  "discipline_id": 1,
+  "six_month_avg_rating": 7.091811848050744,
+  "created_at": "2020-10-19T08:52:48.220+00:00",
+  "updated_at": "2026-08-23T04:07:31.326+00:00",
+  "is_coach": false,
+  "coach_status": null,
+  "total_prize": 1571125.0,
+  "joined_team_at": "2018-10-08T00:00:00.000+00:00",
+  "gallery_presence": true,
+  "settings_presence": true,
+  "gears_presence": true,
+  "comments_count": 3,
+  "team": {
+    "id": 667,
+    "slug": "vitality",
+    "name": "Vitality",
+    "rank": 5,
+    "country_id": 29,
+    "image_url": "https://files.bo3.gg/uploads/team/667/image/webp-292c1f6c6dcfca35c7a52da7e02cef0a.webp",
+    "facebook": null,
+    "twitter": null,
+    "created_at": "2020-10-19T08:52:48.143+00:00",
+    "updated_at": "2026-08-23T04:07:14.026+00:00",
+    "avg_views": null,
+    "est_date": "2018-08-05",
+    "tshirt_image_url": "https://files.bo3.gg/uploads/team/667/tshirt_image/webp-eda1ecbf8f03d4c0a1dffcdb145fe3be.webp",
+    "icon_url": null,
+    "email": null,
+    "twitch_url": null,
+    "youtube_url": null,
+    "instagram_url": null,
+    "website_url": null,
+    "discipline_id": 1,
+    "six_month_earned": 457500,
+    "acronym": "VIT",
+    "gallery_presence": true,
+    "players": [
+      {
+        "id": 31378,
+        "slug": "xtqzzz-cs-go",
+        "nickname": "XTQZZZ",
+        "first_name": "R\u00e9my",
+        "last_name": "Quoniam",
+        "status": 1,
+        "image_url": "https://files.bo3.gg/uploads/player/31378/image/webp-0a5971f9089b66ebf680a213e1cf573c.webp",
+        "country_id": 29,
+        "team_id": 667,
+        "discipline_id": 1,
+        "settings_presence": false,
+        "gears_presence": false,
+        "is_coach": true,
+        "coach_status": 2,
+        "total_prize": 412694.0,
+        "gallery_presence": true,
+        "comments_count": 0
+      }
+    ]
+  },
+  "country": {
+    "id": 29,
+    "code": "FR",
+    "name": "France",
+    "region_id": 3,
+    "region": {
+      "id": 3,
+      "slug": "europe",
+      "name": "Europe",
+      "flag": "",
+      "position": null
+    }
+  },
+  "alternative_names": [
+    {
+      "id": 4501,
+      "name": "The Chosen One",
+      "team_id": null,
+      "player_id": 18452
+    },
+    {
+      "id": 4502,
+      "name": "Herbus Doubledoor",
+      "team_id": null,
+      "player_id": 18452
+    }
+  ],
+  "tags": [
+    {
+      "id": 183,
+      "name": "ZywOo",
+      "slug": "zywoo",
+      "player_id": 18452
+    }
+  ],
+  "achievements": [
+    {
+      "id": 26,
+      "date": "2021-12-12",
+      "title": "winner",
+      "image_url": null,
+      "tournament_id": 408,
+      "image_versions": null,
+      "image_data": null,
+      "player_id": 18452,
+      "tournament": {
+        "id": 408,
+        "slug": "iem-xvi-winter-2021",
+        "name": "IEM XVI Winter 2021",
+        "tier": "s",
+        "tier_rank": 1,
+        "prize": 250000
+      }
+    },
+    {
+      "id": 49,
+      "date": "2020-12-13",
+      "title": "winner",
+      "image_url": null,
+      "tournament_id": 9,
+      "image_versions": null,
+      "image_data": null,
+      "player_id": 18452,
+      "tournament": {
+        "id": 9,
+        "slug": "blast-premier-finals-fall-2020",
+        "name": "BLAST Premier Finals Fall 2020",
+        "tier": "s",
+        "tier_rank": 1,
+        "prize": 425000
+      }
+    },
+    {
+      "id": 86,
+      "date": "2020-11-04",
+      "title": "winner",
+      "image_url": null,
+      "tournament_id": 18,
+      "image_versions": null,
+      "image_data": null,
+      "player_id": 18452,
+      "tournament": {
+        "id": 18,
+        "slug": "blast-premier-regular-season-fall-2020",
+        "name": "BLAST Premier Regular Season Fall 2020",
+        "tier": "a",
+        "tier_rank": 2,
+        "prize": 150000
+      }
+    },
+    {
+      "id": 94,
+      "date": "2020-11-22",
+      "title": "winner",
+      "image_url": null,
+      "tournament_id": 28,
+      "image_versions": null,
+      "image_data": null,
+      "player_id": 18452,
+      "tournament": {
+        "id": 28,
+        "slug": "iem-beijing-online-europe-2020",
+        "name": "IEM Beijing Online: Europe 2020",
+        "tier": "a",
+        "tier_rank": 2,
+        "prize": 150000
+      }
+    },
+    {
+      "id": 120,
+      "date": "2021-09-26",
+      "title": "winner",
+      "image_url": "https://files.cover.gg/uploads/achievement/120/image/1de446f31b0cac8a6225fa05ca255301.png",
+      "tournament_id": 247,
+      "image_versions": {
+        "45x45": "https://files.bo3.gg/uploads/achievement/120/image/45x45-457e66a2f3169bd56406b80cc61e85f1.png",
+        "80x80": "https://files.bo3.gg/uploads/achievement/120/image/80x80-b0e0b2437f96f31396b7b294158c3e40.png",
+        "160x160": "https://files.bo3.gg/uploads/achievement/120/image/160x160-267cac95cb544a20c90b88f8abbbba79.png",
+        "320x320": "https://files.bo3.gg/uploads/achievement/120/image/320x320-171c6d03bfab556e2140224462320703.png",
+        "original": "https://files.bo3.gg/uploads/achievement/120/image/1de446f31b0cac8a6225fa05ca255301.png"
+      },
+      "image_data": "{\"id\":\"achievement/120/image/1de446f31b0cac8a6225fa05ca255301.png\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"Blast Premier Fall Final 2021.png\",\"size\":87852,\"mime_type\":\"image/png\",\"width\":320,\"height\":320},\"derivatives\":{\"45x45\":{\"id\":\"achievement/120/image/45x45-457e66a2f3169bd56406b80cc61e85f1.png\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20220506-1-1lgdcb9.png\",\"size\":3522,\"mime_type\":null,\"width\":45,\"height\":45}},\"80x80\":{\"id\":\"achievement/120/image/80x80-b0e0b2437f96f31396b7b294158c3e40.png\",\"storage\":\"store_pub\",\"metadata\":{\"filen
+...[truncated, 100003 total chars]
+
+============================================================
+get_player_matches(18452) — SUCCESS
+============================================================
+  [debug] type(obj) = <class 'dict'>
+{
+  "total": {
+    "count": 451,
+    "pages": 5,
+    "offset": 0,
+    "limit": 100
+  },
+  "results": [
+    {
+      "id": 127389,
+      "slug": "vitality-vs-inner-circle-esports-27-08-2026",
+      "status": "upcoming",
+      "parsed_status": "waiting",
+      "discipline_id": 1,
+      "start_date": "2026-08-27T09:00:00.000+00:00",
+      "team1_id": 667,
+      "team2_id": 19186,
+      "team1_score": 0,
+      "team2_score": 0,
+      "bo_type": 3,
+      "team1": {
+        "id": 667,
+        "slug": "vitality",
+        "name": "Vitality",
+        "image_url": "https://files.bo3.gg/uploads/team/667/image/webp-292c1f6c6dcfca35c7a52da7e02cef0a.webp"
+      },
+      "team2": {
+        "id": 19186,
+        "slug": "inner-circle-esports",
+        "name": "Inner Circle",
+        "image_url": "https://files.bo3.gg/uploads/team/19186/image/webp-6aedbd6f8fdc86d26052f90540031e1e.webp"
+      },
+      "tournament": {
+        "id": 4215,
+        "slug": "blast-open-fall-2026",
+        "name": "BLAST Open Fall 2026",
+        "status": "upcoming",
+        "prize": 1100000,
+        "tier_rank": 1,
+        "image_url": "https://files.bo3.gg/uploads/tournament/4215/image/webp-508effa58aeb9e0a3b90b982e6845399.webp"
+      },
+      "streams": [
+        {
+          "name": "BLASTPremier",
+          "preview_image_url": ""
+        }
+      ],
+      "games": [
+        {
+          "id": 182089,
+          "number": 3
+        },
+        {
+          "id": 182090,
+          "number": 2
+        },
+        {
+          "id": 182091,
+          "number": 1
+        }
+      ],
+      "ai_predictions": {
+        "prediction_team1_score": 2,
+        "prediction_team2_score": 0,
+        "prediction_winner_team_id": 667,
+        "prediction_scores_data": {
+          "neighbor_proximity_factor": 0.649535
+        }
+      }
+    },
+    {
+      "id": 126439,
+      "slug": "vitality-vs-spirit-21-08-2026",
+      "status": "finished",
+      "parsed_status": "done",
+      "winner_team_id": 654,
+      "discipline_id": 1,
+      "start_date": "2026-08-21T16:30:00.000+00:00",
+      "end_date": "2026-08-21T19:54:55.000+00:00",
+      "team1_id": 667,
+      "team2_id": 654,
+      "team1_score": 1,
+      "team2_score": 2,
+      "bo_type": 3,
+      "team1": {
+        "id": 667,
+        "slug": "vitality",
+        "name": "Vitality",
+        "image_url": "https://files.bo3.gg/uploads/team/667/image/webp-292c1f6c6dcfca35c7a52da7e02cef0a.webp"
+      },
+      "team2": {
+        "id": 654,
+        "slug": "spirit",
+        "name": "Spirit",
+        "image_url": "https://files.bo3.gg/uploads/team/654/image/webp-41b22d18a871d982f8ff87652bbb0fe6.webp"
+      },
+      "tournament": {
+        "id": 4214,
+        "slug": "esports-world-cup-2026",
+        "name": "Esports World Cup 2026",
+        "status": "current",
+        "prize": 2000000,
+        "tier_rank": 1,
+        "image_url": "https://files.bo3.gg/uploads/tournament/4214/image/webp-f9acc74d68dee0b73edad3584e5b4fc4.webp"
+      },
+      "streams": [
+        {
+          "name": "EWC_Plus_EN",
+          "preview_image_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_ewc_plus_en-600x336.jpg"
+        },
+        {
+          "name": "cs2_maincast",
+          "preview_image_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_cs2_maincast-600x336.jpg"
+        },
+        {
+          "name": "gaules"
+        },
+        {
+          "name": "forg1",
+          "preview_image_url": "https://files.kick.com/images/channel/11505116/banner_image/default-banner-2.jpg"
+        },
+        {
+          "name": "rootthegamer",
+          "preview_image_url": "https://files.kick.com/images/channel/2341878/banner_image/default-banner-2.jpg"
+        },
+        {
+          "name": "RTPArenaCS",
+          "preview_image_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_rtparenacs-600x336.jpg"
+        },
+        {
+          "name": "fl0m",
+          "preview_image_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_fl0m-600x336.jpg"
+        },
+        {
+          "name": "madhousetv_",
+          "preview_image_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_madhousetv_-600x336.jpg"
+        },
+        {
+          "name": "pelaajatcom",
+          "preview_image_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_pelaajatcom-600x336.jpg"
+        },
+        {
+          "name": "KRL_STREAM",
+          "preview_image_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_krl_stream-600x336.jpg"
+        },
+        {
+          "name": "Michel",
+          "preview_image_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_michel-600x336.jpg"
+        },
+        {
+          "name": "zonixxcs",
+          "preview_image_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_zonixxcs-600x336.jpg"
+        },
+        {
+          "name": "Michel",
+          "preview_image_url": ""
+        },
+        {
+          "name": "HeatoNcs",
+          "preview_image_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_heatoncs-600x336.jpg"
+        },
+        {
+          "name": "x9nium",
+          "preview_image_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_x9nium-600x336.jpg"
+        },
+        {
+          "name": "rootthegamer",
+          "preview_image_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_rootthegamer-600x336.jpg"
+        },
+        {
+          "name": "esportstudion",
+          "preview_image_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_esportstudion-600x336.jpg"
+        },
+        {
+          "name": "bopomo_",
+          "preview_image_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_bopomo_-600x336.jpg"
+        },
+        {
+          "name": "jaxi",
+          "preview_image_url": "https://files.kick.com/images/channel/5579459/banner_image/default-banner-2.jpg"
+        },
+        {
+          "name": "Luffastream",
+          "preview_image_url": ""
+        },
+        {
+          "name": "luffastream",
+          "preview_image_url": "h
+...[truncated, 710704 total chars]
+
