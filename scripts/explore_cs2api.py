@@ -1,152 +1,131 @@
 #!/usr/bin/env python3
 """
-One-time exploration script — NOT the real scraper. Calls a handful of
-cs2api methods and dumps the raw JSON so we can see real field names
-before building scrape_cs2.py around them, instead of guessing (the way
-the HTML-scraping approach had to for gol.gg/VLR.gg).
+One-time exploration script — NOT the real scraper. Calls the remaining
+cs2api methods we haven't seen output from yet, using KNOWN-GOOD real
+identifiers pulled directly from a previous run's output (a match id,
+team slug, and player slug that are confirmed to exist) rather than the
+auto-extraction logic from the first version of this script, which
+silently failed to pull identifiers out of finished()/search_teams()/
+search_players() results for a reason that wasn't obvious from code
+review alone — sidestepping it entirely is faster than a third guess.
 
-Run this once in the Codespace:
-    pip install cs2api
-    python scripts/explore_cs2api.py
+Run in the Codespace, redirecting to a file:
+    python scripts/explore_cs2api_2.py > cs2_explore_output_2.txt
 
-Then send the output back — that tells us exactly what shape
-finished()/get_match_details()/get_team_upcoming_matches()/get_player_stats()
-actually return, so the real scraper can be built correctly on the first
-pass instead of iterating blind.
+Then share that file — this should finally get us get_match_details()
+(the critical one, expected to have per-player K/D/A), plus
+get_team_upcoming_matches(), get_team_stats(), and get_player_stats().
 """
 import asyncio
 import json
 
 from cs2api import CS2
 
+# Confirmed real, valid identifiers from the previous exploration run's
+# actual output — using these directly instead of re-deriving them.
+KNOWN_MATCH_ID = 126441
+KNOWN_MATCH_SLUG = "legacy-br-vs-spirit-22-08-2026"
+KNOWN_TEAM_ID = 667
+KNOWN_TEAM_SLUG = "vitality"
+KNOWN_PLAYER_SLUG = "zywoo"
+
+NOISE_KEYS = {
+    "bet_updates", "additional_markets", "markets_count", "bet_provider_id",
+    "live_coverage", "live_coverage_source", "stars",
+}
+
+
+def strip_noise(obj):
+    if isinstance(obj, dict):
+        cleaned = {}
+        for k, v in obj.items():
+            if k in NOISE_KEYS:
+                continue
+            if k in ("coeff", "max_coeff", "aggrement_score", "active"):
+                continue
+            cleaned[k] = strip_noise(v)
+        return cleaned
+    if isinstance(obj, list):
+        return [strip_noise(v) for v in obj]
+    return obj
+
+
+def show(label, obj, limit=6000):
+    print("=" * 60)
+    print(label)
+    print("=" * 60)
+    print(f"  [debug] type(obj) = {type(obj)}")
+    cleaned = strip_noise(obj)
+    text = json.dumps(cleaned, indent=2, default=str)
+    print(text[:limit])
+    if len(text) > limit:
+        print(f"...[truncated, {len(text)} total chars]")
+    print()
+
 
 async def main():
     async with CS2() as cs2:
-        print("=" * 60)
-        print("finished() — recently finished matches")
-        print("=" * 60)
-        try:
-            finished = await cs2.finished()
-            print(json.dumps(finished, indent=2)[:3000])
-        except Exception as e:
-            print(f"! finished() failed: {e}")
-
-        print("\n" + "=" * 60)
-        print("get_todays_matches()")
-        print("=" * 60)
-        try:
-            today = await cs2.get_todays_matches()
-            print(json.dumps(today, indent=2)[:2000])
-        except Exception as e:
-            print(f"! get_todays_matches() failed: {e}")
-
-        # Try to get a real match slug/id from the finished() results above,
-        # so get_match_details() below is a real, valid call rather than a
-        # guess at an ID.
-        match_slug = None
-        try:
-            finished = await cs2.finished()
-            if isinstance(finished, list) and finished:
-                first = finished[0]
-                print("\n" + "=" * 60)
-                print("First finished match's raw keys (to find the right slug/id field):")
-                print("=" * 60)
-                print(json.dumps(first, indent=2)[:2000])
-                # Try a few common key names for the match identifier
-                for key in ("slug", "id", "match_id", "matchId"):
-                    if isinstance(first, dict) and key in first:
-                        match_slug = first[key]
-                        print(f"\nUsing '{key}' = {match_slug!r} for get_match_details() below")
-                        break
-        except Exception as e:
-            print(f"! couldn't extract a match slug: {e}")
-
-        if match_slug is not None:
-            print("\n" + "=" * 60)
-            print(f"get_match_details({match_slug!r}) — full detail for one real finished match")
-            print("=" * 60)
+        # Try both the numeric id AND the slug for match details — one of
+        # them should work, and seeing which (or if both fail) is itself
+        # useful diagnostic information.
+        for label, identifier in [
+            (f"get_match_details({KNOWN_MATCH_ID}) — numeric id", KNOWN_MATCH_ID),
+            (f"get_match_details({KNOWN_MATCH_SLUG!r}) — slug", KNOWN_MATCH_SLUG),
+        ]:
             try:
-                details = await cs2.get_match_details(match_slug)
-                print(json.dumps(details, indent=2)[:5000])
+                details = await cs2.get_match_details(identifier)
+                show(label + " — SUCCESS, THE IMPORTANT ONE", details)
             except Exception as e:
-                print(f"! get_match_details() failed: {e}")
-        else:
-            print("\n! No match slug found — skipping get_match_details() test")
+                print(f"! {label} failed: {type(e).__name__}: {e}\n")
 
-        print("\n" + "=" * 60)
-        print("search_teams('Vitality') — to find a real team_id/slug")
-        print("=" * 60)
-        team_id, team_slug = None, None
+        for label, identifier in [
+            (f"get_team_upcoming_matches({KNOWN_TEAM_ID}) — numeric id", KNOWN_TEAM_ID),
+            (f"get_team_upcoming_matches({KNOWN_TEAM_SLUG!r}) — slug", KNOWN_TEAM_SLUG),
+        ]:
+            try:
+                upcoming = await cs2.get_team_upcoming_matches(identifier)
+                show(label + " — SUCCESS", upcoming)
+            except Exception as e:
+                print(f"! {label} failed: {type(e).__name__}: {e}\n")
+
+        for label, identifier in [
+            (f"get_team_matches({KNOWN_TEAM_ID}) — numeric id, past match history", KNOWN_TEAM_ID),
+        ]:
+            try:
+                past = await cs2.get_team_matches(identifier)
+                show(label + " — SUCCESS", past)
+            except Exception as e:
+                print(f"! {label} failed: {type(e).__name__}: {e}\n")
+
         try:
-            teams = await cs2.search_teams("Vitality")
-            print(json.dumps(teams, indent=2)[:2000])
-            if isinstance(teams, list) and teams:
-                first_team = teams[0]
-                for key in ("id", "team_id", "teamId"):
-                    if isinstance(first_team, dict) and key in first_team:
-                        team_id = first_team[key]
-                        break
-                for key in ("slug", "team_slug"):
-                    if isinstance(first_team, dict) and key in first_team:
-                        team_slug = first_team[key]
-                        break
+            stats = await cs2.get_team_stats(KNOWN_TEAM_SLUG)
+            show(f"get_team_stats({KNOWN_TEAM_SLUG!r}) — SUCCESS", stats)
         except Exception as e:
-            print(f"! search_teams() failed: {e}")
+            print(f"! get_team_stats() failed: {type(e).__name__}: {e}\n")
 
-        if team_id is not None:
-            print("\n" + "=" * 60)
-            print(f"get_team_upcoming_matches({team_id!r})")
-            print("=" * 60)
-            try:
-                upcoming = await cs2.get_team_upcoming_matches(team_id)
-                print(json.dumps(upcoming, indent=2)[:2500])
-            except Exception as e:
-                print(f"! get_team_upcoming_matches() failed: {e}")
-
-            print("\n" + "=" * 60)
-            print(f"get_team_matches({team_id!r}) — past match history")
-            print("=" * 60)
-            try:
-                past = await cs2.get_team_matches(team_id)
-                print(json.dumps(past, indent=2)[:2500])
-            except Exception as e:
-                print(f"! get_team_matches() failed: {e}")
-
-        if team_slug is not None:
-            print("\n" + "=" * 60)
-            print(f"get_team_stats({team_slug!r})")
-            print("=" * 60)
-            try:
-                stats = await cs2.get_team_stats(team_slug)
-                print(json.dumps(stats, indent=2)[:2500])
-            except Exception as e:
-                print(f"! get_team_stats() failed: {e}")
-
-        print("\n" + "=" * 60)
-        print("search_players('ZywOo') — to find a real player slug")
-        print("=" * 60)
-        player_slug = None
         try:
-            players = await cs2.search_players("ZywOo")
-            print(json.dumps(players, indent=2)[:1500])
-            if isinstance(players, list) and players:
-                first_player = players[0]
-                for key in ("slug", "player_slug"):
-                    if isinstance(first_player, dict) and key in first_player:
-                        player_slug = first_player[key]
-                        break
+            data = await cs2.get_team_data(KNOWN_TEAM_SLUG)
+            show(f"get_team_data({KNOWN_TEAM_SLUG!r}) — SUCCESS (roster expected here)", data)
         except Exception as e:
-            print(f"! search_players() failed: {e}")
+            print(f"! get_team_data() failed: {type(e).__name__}: {e}\n")
 
-        if player_slug is not None:
-            print("\n" + "=" * 60)
-            print(f"get_player_stats({player_slug!r})")
-            print("=" * 60)
-            try:
-                pstats = await cs2.get_player_stats(player_slug)
-                print(json.dumps(pstats, indent=2)[:2500])
-            except Exception as e:
-                print(f"! get_player_stats() failed: {e}")
+        try:
+            pstats = await cs2.get_player_stats(KNOWN_PLAYER_SLUG)
+            show(f"get_player_stats({KNOWN_PLAYER_SLUG!r}) — SUCCESS", pstats)
+        except Exception as e:
+            print(f"! get_player_stats() failed: {type(e).__name__}: {e}\n")
+
+        try:
+            pdetails = await cs2.get_player_details(KNOWN_PLAYER_SLUG)
+            show(f"get_player_details({KNOWN_PLAYER_SLUG!r}) — SUCCESS (role/team expected here)", pdetails)
+        except Exception as e:
+            print(f"! get_player_details() failed: {type(e).__name__}: {e}\n")
+
+        try:
+            pmatches = await cs2.get_player_matches(18452)  # ZywOo's id from the earlier search_players() output
+            show("get_player_matches(18452) — SUCCESS", pmatches)
+        except Exception as e:
+            print(f"! get_player_matches() failed: {type(e).__name__}: {e}\n")
 
 
 if __name__ == "__main__":
