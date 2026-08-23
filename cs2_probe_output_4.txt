@@ -1,0 +1,196 @@
+============================================================
+GET /games/{id}/steam_profiles — baseline, full uncut
+  URL: https://api.bo3.gg/api/v1/games/180726/steam_profiles
+============================================================
+  status: 200
+  10 profiles returned total
+
+  Top-level keys on profile[0]:
+    ['created_at', 'id', 'nickname', 'player', 'player_id', 'steam_id_64', 'updated_at']
+
+  ALL keys inside profile[0]['player'] (the 43-key nested object):
+    ['bio', 'birthday', 'coach_status', 'comments_count', 'country', 'country_id', 'created_at', 'current_value', 'discipline_id', 'email', 'facebook', 'first_name', 'gallery_presence', 'gears_presence', 'hand_priority', 'id', 'image_data', 'image_url', 'image_versions', 'instagram', 'is_approved', 'is_coach', 'is_deleted', 'joined_team_at', 'last_name', 'nickname', 'previous_earnings', 'ps_id', 'rank', 'role', 'settings_presence', 'six_month_avg_rating', 'slug', 'status', 'team_id', 'total_prize', 'total_winnings', 'twitch', 'twitter', 'updated_at', 'value', 'verified', 'vkontakte']
+
+  Full profile[0], completely uncut:
+{
+  "id": 121,
+  "steam_id_64": 76561198043769572,
+  "nickname": "arT",
+  "player_id": 19665,
+  "created_at": null,
+  "updated_at": null,
+  "player": {
+    "id": 19665,
+    "slug": "art",
+    "nickname": "arT",
+    "first_name": "Andrei",
+    "last_name": "Piovezan",
+    "birthday": "1997-03-27",
+    "role": null,
+    "twitter": null,
+    "twitch": null,
+    "facebook": null,
+    "image_url": "https://files.bo3.gg/uploads/player/19665/image/webp-2d3d3974bf87d4d0126f16d90cb6ca41.webp",
+    "created_at": "2020-10-19T08:52:45.632+00:00",
+    "updated_at": "2026-08-23T13:07:14.821+00:00",
+    "country_id": 14,
+    "team_id": 8118,
+    "vkontakte": "",
+    "instagram": "",
+    "status": 1,
+    "total_winnings": 0,
+    "current_value": 0,
+    "is_approved": false,
+    "bio": "",
+    "value": 0,
+    "image_data": "{\"id\":\"player/19665/image/ef369f8047d597d62d2080c3982b9b9f\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"File name\",\"size\":121735,\"mime_type\":\"image/png\",\"width\":354,\"height\":455},\"derivatives\":{\"webp\":{\"id\":\"player/19665/image/webp-2d3d3974bf87d4d0126f16d90cb6ca41.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20260421-1-yebein.webp\",\"size\":12486,\"mime_type\":null,\"width\":354,\"height\":455}},\"20x20\":{\"id\":\"player/19665/image/20x20-9511f41bb2702e66f27a6ca825dc0fc5.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20260421-1-n7dvia.webp\",\"size\":420,\"mime_type\":null,\"width\":16,\"height\":20}},\"50x50\":{\"id\":\"player/19665/image/50x50-e9f7ede507391e52d4a7d492f1cdf6dd.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20260421-1-5lm5ff.webp\",\"size\":958,\"mime_type\":null,\"width\":39,\"height\":50}},\"150x150\":{\"id\":\"player/19665/image/150x150-29c1cb2b9b8ba612736b846f797e18f1.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20260421-1-13gifc.webp\",\"size\":3164,\"mime_type\":null,\"width\":117,\"height\":150}},\"400x400\":{\"id\":\"player/19665/image/400x400-2082731af10b6345315946ed9cb06ecb.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20260421-1-qk02we.webp\",\"size\":10258,\"mime_type\":null,\"width\":311,\"height\":400}}}}",
+    "rank": 90,
+    "image_versions": {
+      "webp": "https://files.bo3.gg/uploads/player/19665/image/webp-2d3d3974bf87d4d0126f16d90cb6ca41.webp",
+      "20x20": "https://files.bo3.gg/uploads/player/19665/image/20x20-9511f41bb2702e66f27a6ca825dc0fc5.webp",
+      "50x50": "https://files.bo3.gg/uploads/player/19665/image/50x50-e9f7ede507391e52d4a7d492f1cdf6dd.webp",
+      "150x150": "https://files.bo3.gg/uploads/player/19665/image/150x150-29c1cb2b9b8ba612736b846f797e18f1.webp",
+      "400x400": "https://files.bo3.gg/uploads/player/19665/image/400x400-2082731af10b6345315946ed9cb06ecb.webp",
+      "original": "https://files.bo3.gg/uploads/player/19665/image/ef369f8047d597d62d2080c3982b9b9f"
+    },
+    "verified": false,
+    "hand_priority": null,
+    "ps_id": 19665,
+    "email": null,
+    "discipline_id": 1,
+    "six_month_avg_rating": 5.621902032590836,
+    "is_coach": false,
+    "coach_status": null,
+    "joined_team_at": "2026-02-03T00:00:00.000+00:00",
+    "total_prize": 422155.0,
+    "gallery_presence": true,
+    "is_deleted": false,
+    "settings_presence": true,
+    "gears_presence": true,
+    "comments_count": 0,
+    "previous_earnings": 114395,
+    "country": {
+      "id": 14,
+      "code": "BR",
+      "name": "Brazil",
+      "region_id": 2,
+      "region": {
+        "id": 2,
+        "slug": "south-america",
+        "name": "South America",
+        "flag": "",
+        "position": null
+      }
+    }
+  }
+}
+
+  Full profile[1], completely uncut (for comparison):
+{
+  "id": 293,
+  "steam_id_64": 76561198081484775,
+  "nickname": "SH1R0",
+  "player_id": 23237,
+  "created_at": null,
+  "updated_at": null,
+  "player": {
+    "id": 23237,
+    "slug": "sh1ro",
+    "nickname": "sh1ro",
+    "first_name": "Dmitriy",
+    "last_name": "Sokolov",
+    "birthday": "2001-07-15",
+    "role": null,
+    "twitter": null,
+    "twitch": null,
+    "facebook": null,
+    "image_url": "https://files.bo3.gg/uploads/player/23237/image/webp-8a5e6a1dba2c7a844693698adee48d47.webp",
+    "created_at": "2020-10-19T08:52:36.316+00:00",
+    "updated_at": "2026-08-23T13:07:14.597+00:00",
+    "country_id": 56,
+    "team_id": 654,
+    "vkontakte": "",
+    "instagram": "",
+    "status": 1,
+    "total_winnings": 0,
+    "current_value": 0,
+    "is_approved": false,
+    "bio": "",
+    "value": 0,
+    "image_data": "{\"id\":\"player/23237/image/e9efaed96dcde3e8fdc35a8c925db7c3\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"File name\",\"size\":190898,\"mime_type\":\"image/png\",\"width\":354,\"height\":455},\"derivatives\":{\"webp\":{\"id\":\"player/23237/image/webp-8a5e6a1dba2c7a844693698adee48d47.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20260810-1-mhovlo.webp\",\"size\":15322,\"mime_type\":null,\"width\":354,\"height\":455}},\"20x20\":{\"id\":\"player/23237/image/20x20-0ed2152505d9adc612d29c6712c0ca54.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20260810-1-89fti3.webp\",\"size\":384,\"mime_type\":null,\"width\":16,\"height\":20}},\"50x50\":{\"id\":\"player/23237/image/50x50-3ef36dae251c88c25f3a8242f94b6719.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20260810-1-mq3yjj.webp\",\"size\":1056,\"mime_type\":null,\"width\":39,\"height\":50}},\"150x150\":{\"id\":\"player/23237/image/150x150-105c57eb2a493fd7bc656cbb8b79187c.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20260810-1-1vognl.webp\",\"size\":3602,\"mime_type\":null,\"width\":117,\"height\":150}},\"400x400\":{\"id\":\"player/23237/image/400x400-f3e19f59bbc515c987277dc1a211cdf4.webp\",\"storage\":\"store_pub\",\"metadata\":{\"filename\":\"image_processing20260810-1-wjczs8.webp\",\"size\":12148,\"mime_type\":null,\"width\":311,\"height\":400}}}}",
+    "rank": 11,
+    "image_versions": {
+      "webp": "https://files.bo3.gg/uploads/player/23237/image/webp-8a5e6a1dba2c7a844693698adee48d47.webp",
+      "20x20": "https://files.bo3.gg/uploads/player/23237/image/20x20-0ed2152505d9adc612d29c6712c0ca54.webp",
+      "50x50": "https://files.bo3.gg/uploads/player/23237/image/50x50-3ef36dae251c88c25f3a8242f94b6719.webp",
+      "150x150": "https://files.bo3.gg/uploads/player/23237/image/150x150-105c57eb2a493fd7bc656cbb8b79187c.webp",
+      "400x400": "https://files.bo3.gg/uploads/player/23237/image/400x400-f3e19f59bbc515c987277dc1a211cdf4.webp",
+      "original": "https://files.bo3.gg/uploads/player/23237/image/e9efaed96dcde3e8fdc35a8c925db7c3"
+    },
+    "verified": false,
+    "hand_priority": null,
+    "ps_id": 23237,
+    "email": null,
+    "discipline_id": 1,
+    "six_month_avg_rating": 6.393461361858306,
+    "is_coach": false,
+    "coach_status": null,
+    "joined_team_at": "2023-12-17T00:00:00.000+00:00",
+    "total_prize": 1147829.0,
+    "gallery_presence": true,
+    "is_deleted": false,
+    "settings_presence": true,
+    "gears_presence": true,
+    "comments_count": 0,
+    "previous_earnings": 16587,
+    "country": {
+      "id": 56,
+      "code": "RU",
+      "name": "Russian Federation",
+      "region_id": 4,
+      "region": {
+        "id": 4,
+        "slug": "cis",
+        "name": "CIS",
+        "flag": "",
+        "position": null
+      }
+    }
+  }
+}
+
+============================================================
+GET /games/{id}/steam_profiles?with=game_round_players
+  URL: https://api.bo3.gg/api/v1/games/180726/steam_profiles?with=game_round_players
+============================================================
+  status: 200
+  keys with this 'with' value: ['created_at', 'id', 'nickname', 'player', 'player_id', 'steam_id_64', 'updated_at']
+
+============================================================
+GET /games/{id}/steam_profiles?with=stats
+  URL: https://api.bo3.gg/api/v1/games/180726/steam_profiles?with=stats
+============================================================
+  status: 200
+  keys with this 'with' value: ['created_at', 'id', 'nickname', 'player', 'player_id', 'steam_id_64', 'updated_at']
+
+============================================================
+GET /games/{id}/steam_profiles?with=game_stats
+  URL: https://api.bo3.gg/api/v1/games/180726/steam_profiles?with=game_stats
+============================================================
+  status: 200
+  keys with this 'with' value: ['created_at', 'id', 'nickname', 'player', 'player_id', 'steam_id_64', 'updated_at']
+
+============================================================
+GET /games/{id}/steam_profiles?with=round_stats
+  URL: https://api.bo3.gg/api/v1/games/180726/steam_profiles?with=round_stats
+============================================================
+  status: 200
+  keys with this 'with' value: ['created_at', 'id', 'nickname', 'player', 'player_id', 'steam_id_64', 'updated_at']
+
+============================================================
+GET /games/{id}/steam_profiles?with=performance
+  URL: https://api.bo3.gg/api/v1/games/180726/steam_profiles?with=performance
+============================================================
+  status: 200
+  keys with this 'with' value: ['created_at', 'id', 'nickname', 'player', 'player_id', 'steam_id_64', 'updated_at']
+
