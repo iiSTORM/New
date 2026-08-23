@@ -200,9 +200,17 @@ def lane_opponent_multiplier(past_matches, teams, player, opponent_team, opp_str
 
 def resolve_opponent_multiplier(teams, past_matches, player, opponent_team, opp_strength, cfg, cutoff_date):
     if cfg["laneSpecific"]:
+        # For lane-specific stats (kills, deaths), a real diagnostic
+        # (--diagnose-opponent, split by used_lane) found the team-wide
+        # fallback signal weak-to-negative on its own -- using it as a
+        # fallback was silently cancelling out the real lane-specific
+        # signal, since a single opponent weight applies uniformly across
+        # both populations. Neutral (no adjustment) beats a fallback we've
+        # specifically measured to be unreliable.
         lane_mult = lane_opponent_multiplier(past_matches, teams, player, opponent_team, opp_strength, cfg["oppBasis"], cutoff_date)
-        if lane_mult is not None:
-            return lane_mult
+        return lane_mult if lane_mult is not None else 1.0
+    # Team-wide path — used only for assists, where the diagnostic found
+    # team-wide to be the stronger signal in the first place.
     opp_stat_pt = point_in_time_team_stat(past_matches, opponent_team, cfg["oppBasis"], cutoff_date)
     league_avg_pt = point_in_time_league_avg_stat(past_matches, teams, cfg["oppBasis"], cutoff_date)
     opp_stat = opp_stat_pt if opp_stat_pt is not None else team_stat_per_game(teams, opponent_team, cfg["oppBasis"])

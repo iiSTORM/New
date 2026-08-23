@@ -361,9 +361,9 @@ const GAME_LIST = Object.keys(GAMES);
    ============================================================ */
 
 const STAT_TYPES = {
-  kills: { key: "k", label: "Kills", oppBasis: "d", useKP: true },
-  deaths: { key: "d", label: "Deaths", oppBasis: "k", useKP: false },
-  assists: { key: "a", label: "Assists", oppBasis: "d", useKP: true },
+  kills: { key: "k", label: "Kills", oppBasis: "d", useKP: true, laneSpecific: true },
+  deaths: { key: "d", label: "Deaths", oppBasis: "k", useKP: false, laneSpecific: true },
+  assists: { key: "a", label: "Assists", oppBasis: "d", useKP: true, laneSpecific: false },
 };
 
 /* ============================================================
@@ -485,7 +485,7 @@ function project(teams, pastMatches, player, team, opponentTeam, games, weights,
   const weighted = recencyWeightedRate(pastMatches, team, player.name, cfg.key, null, weights.recencyHalfLife, refPatch, weights.patchDiscount);
   const curRate = weighted.rate !== null ? weighted.rate : player.cur[cfg.key]; // safety net if pastMatches is thin
   const base = player.hist ? weights.history * player.hist[cfg.key] + (1 - weights.history) * curRate : curRate;
-  const oppMult = opponentMultiplier(teams, opponentTeam, weights.opponent, cfg.oppBasis);
+  const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, null);
   const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp) : 1;
   const perGame = base * oppMult * kpMult;
   return { base, oppMult, kpMult, perGame, total: perGame * games };
@@ -516,7 +516,7 @@ function pointInTimeTeamStat(pastMatches, team, statKey, cutoffDate) {
   // statKey="k" sums the team's own actual k values.
   let total = 0, games = 0;
   for (const m of pastMatches) {
-    if (!m.date || m.date >= cutoffDate) continue;
+    if (cutoffDate !== null && (!m.date || m.date >= cutoffDate)) continue;
     const opp = m.teamA === team ? m.teamB : m.teamB === team ? m.teamA : null;
     if (!opp || !m.actual) continue;
     const sourceTeam = statKey === "d" ? opp : team;
@@ -539,6 +539,87 @@ function pointInTimeLeagueAvgStat(pastMatches, teams, statKey, cutoffDate) {
   return rates.reduce((s, r) => s + r, 0) / rates.length;
 }
 
+/* ============================================================
+   LANE-SPECIFIC OPPONENT ADJUSTMENT — a player's kills/deaths are
+   compared against the specific opponent in their own role (e.g.
+   your jungler vs. their jungler), not a team-wide average that
+   mixes in the enemy support's low death rate with the enemy
+   jungler's. A real diagnostic (scripts/optimize_weights.py
+   --diagnose-opponent) found the team-wide signal was real but weak
+   and didn't strengthen with more data — pointing at the comparison
+   itself being too blunt, not at opponent strength being irrelevant.
+
+   Falls back to the team-wide functions above whenever a lane-
+   specific read isn't possible: no role data at all (Valorant),
+   no opposing player currently on record for that role, or not
+   enough matches yet to compute a stable rate. STAT_TYPES.laneSpecific
+   controls which stats even attempt this — assists stay team-wide,
+   since they come from the whole team's kills, not a single lane
+   matchup (confirmed by that same diagnostic: assists had the
+   *strongest* team-wide signal of the three stats).
+   ============================================================ */
+
+function pointInTimePlayerNamesStat(pastMatches, team, playerNames, statKey, cutoffDate) {
+  let total = 0, games = 0;
+  for (const m of pastMatches) {
+    if (cutoffDate !== null && (!m.date || m.date >= cutoffDate)) continue;
+    if (!m.actual || !m.actual[team]) continue;
+    for (const name of playerNames) {
+      const val = getActualStat(m, team, name, statKey);
+      if (typeof val === "number") {
+        total += val;
+        games += 2;
+      }
+    }
+  }
+  return games > 0 ? total / games : null;
+}
+
+function pointInTimeLeagueAvgForRole(pastMatches, teams, role, statKey, cutoffDate) {
+  const rates = [];
+  for (const teamName in teams) {
+    const roleNames = teams[teamName].players.filter((p) => p.role === role).map((p) => p.name);
+    if (roleNames.length === 0) continue;
+    const r = pointInTimePlayerNamesStat(pastMatches, teamName, roleNames, statKey, cutoffDate);
+    if (r !== null) rates.push(r);
+  }
+  return rates.length > 0 ? rates.reduce((a, b) => a + b, 0) / rates.length : null;
+}
+
+function laneOpponentMultiplier(pastMatches, teams, player, opponentTeam, oppStrength, oppBasisKey, cutoffDate) {
+  if (!player.role || !teams[opponentTeam]) return null; // no role data (Valorant) — signal caller to fall back
+  const opponentRoleNames = teams[opponentTeam].players.filter((p) => p.role === player.role).map((p) => p.name);
+  if (opponentRoleNames.length === 0) return null; // no current opponent on record for this role
+  const oppStat = pointInTimePlayerNamesStat(pastMatches, opponentTeam, opponentRoleNames, oppBasisKey, cutoffDate);
+  const leagueAvg = pointInTimeLeagueAvgForRole(pastMatches, teams, player.role, oppBasisKey, cutoffDate);
+  if (oppStat === null || !leagueAvg) return null; // not enough data yet — fall back to team-wide
+  return 1 + oppStrength * (oppStat / leagueAvg - 1);
+}
+
+function resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, oppStrength, cfg, cutoffDate) {
+  if (cfg.laneSpecific) {
+    // For stats using lane-specific comparison (kills, deaths), a real
+    // diagnostic (scripts/optimize_weights.py --diagnose-opponent) found
+    // the team-wide fallback signal is weak-to-negative on its own — using
+    // it as a fallback was silently cancelling out the real lane-specific
+    // signal, since a single opponent weight applies uniformly across both
+    // populations. Better to apply no adjustment (neutral) than a fallback
+    // we've specifically measured to be unreliable.
+    const laneMult = laneOpponentMultiplier(pastMatches, teams, player, opponentTeam, oppStrength, cfg.oppBasis, cutoffDate);
+    return laneMult !== null ? laneMult : 1;
+  }
+  // Team-wide path — used only for assists, where the diagnostic found
+  // team-wide to be the stronger signal in the first place.
+  if (cutoffDate === null) {
+    return opponentMultiplier(teams, opponentTeam, oppStrength, cfg.oppBasis);
+  }
+  const oppStatPT = pointInTimeTeamStat(pastMatches, opponentTeam, cfg.oppBasis, cutoffDate);
+  const leagueAvgPT = pointInTimeLeagueAvgStat(pastMatches, teams, cfg.oppBasis, cutoffDate);
+  const oppStat = oppStatPT !== null ? oppStatPT : teamStatPerGame(teams, opponentTeam, cfg.oppBasis);
+  const leagueAvg = leagueAvgPT !== null ? leagueAvgPT : leagueAvgStat(teams, cfg.oppBasis);
+  return 1 + oppStrength * (oppStat / leagueAvg - 1);
+}
+
 function projectPointInTime(pastMatches, teams, player, team, opponentTeam, games, weights, cutoffDate, statType, matchPatch) {
   const cfg = STAT_TYPES[statType];
   const refPatch = parsePatch(matchPatch); // the patch THIS match was played on, not a later one
@@ -557,11 +638,7 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
     base = histRate !== null ? histRate : player.cur[cfg.key];
   }
 
-  const oppStatPT = pointInTimeTeamStat(pastMatches, opponentTeam, cfg.oppBasis, cutoffDate);
-  const leagueAvgPT = pointInTimeLeagueAvgStat(pastMatches, teams, cfg.oppBasis, cutoffDate);
-  const oppStat = oppStatPT !== null ? oppStatPT : teamStatPerGame(teams, opponentTeam, cfg.oppBasis);
-  const leagueAvg = leagueAvgPT !== null ? leagueAvgPT : leagueAvgStat(teams, cfg.oppBasis);
-  const oppMult = 1 + weights.opponent * (oppStat / leagueAvg - 1);
+  const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, cutoffDate);
 
   // KP multiplier is the one piece still using full-season data — see note above.
   const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp) : 1;
