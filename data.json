@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-23T09:18:25.113888+00:00",
+  "generated_at": "2026-08-23T21:12:50.129204+00:00",
   "regions": {
     "LCS": {
       "teams": {
@@ -731,65 +731,130 @@
       "past_matches": [
         {
           "week": "Week 4",
-          "date": "2026-08-16",
+          "date": "2026-08-15",
+          "patch": "16.16",
+          "teamA": "Team Liquid",
+          "teamB": "Disguised",
+          "winner": "Team Liquid",
+          "score": "2-0",
+          "actual": {
+            "Team Liquid": {
+              "Morgan": {
+                "k": 9,
+                "d": 3,
+                "a": 22
+              },
+              "Josedeodo": {
+                "k": 20,
+                "d": 2,
+                "a": 20
+              },
+              "Quid": {
+                "k": 12,
+                "d": 4,
+                "a": 20
+              },
+              "Yeon": {
+                "k": 12,
+                "d": 6,
+                "a": 20
+              },
+              "CoreJJ": {
+                "k": 0,
+                "d": 1,
+                "a": 39
+              }
+            },
+            "Disguised": {
+              "Srtty": {
+                "k": 3,
+                "d": 8,
+                "a": 5
+              },
+              "KryRa": {
+                "k": 3,
+                "d": 9,
+                "a": 9
+              },
+              "Callme": {
+                "k": 5,
+                "d": 11,
+                "a": 6
+              },
+              "sajed": {
+                "k": 5,
+                "d": 15,
+                "a": 5
+              },
+              "Lyonz": {
+                "k": 0,
+                "d": 10,
+                "a": 9
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 5",
+          "date": "2026-08-22",
           "patch": "16.16",
           "teamA": "Sentinels",
-          "teamB": "LYON",
+          "teamB": "FlyQuest",
           "winner": "Sentinels",
-          "score": "2-1",
+          "score": "2-0",
           "actual": {
             "Sentinels": {
               "Impact": {
                 "k": 5,
-                "d": 5,
-                "a": 10
+                "d": 3,
+                "a": 14
               },
               "HamBak": {
-                "k": 10,
-                "d": 9,
-                "a": 10
+                "k": 5,
+                "d": 3,
+                "a": 26
               },
               "DarkWings": {
-                "k": 5,
+                "k": 11,
+                "d": 4,
+                "a": 13
+              },
+              "Rahel": {
+                "k": 11,
+                "d": 2,
+                "a": 16
+              },
+              "Huhi": {
+                "k": 3,
+                "d": 3,
+                "a": 25
+              }
+            },
+            "FlyQuest": {
+              "Gakgos": {
+                "k": 0,
+                "d": 6,
+                "a": 4
+              },
+              "Gryffinn": {
+                "k": 8,
+                "d": 11,
+                "a": 5
+              },
+              "Quad": {
+                "k": 4,
                 "d": 8,
                 "a": 7
               },
-              "Rahel": {
-                "k": 7,
-                "d": 2,
-                "a": 10
+              "Massu": {
+                "k": 3,
+                "d": 5,
+                "a": 6
               },
-              "Huhi": {
+              "Cryogen": {
                 "k": 0,
-                "d": 10,
-                "a": 18
-              }
-            },
-            "LYON": {
-              "Dhokla": {
-                "k": 6,
-                "d": 6,
-                "a": 10
-              },
-              "Armao": {
-                "k": 7,
-                "d": 7,
-                "a": 18
-              },
-              "Saint": {
-                "k": 10,
-                "d": 6,
-                "a": 14
-              },
-              "Berserker": {
-                "k": 11,
-                "d": 2,
-                "a": 11
-              },
-              "Isles": {
-                "k": 0,
-                "d": 6,
-                "a": 25
+                "d": 5,
+                "a": 12
               }
             }
           }
@@ -863,63 +928,63 @@
           "week": "Week 4",
           "date": "2026-08-16",
           "patch": "16.16",
-          "teamA": "Cloud9",
-          "teamB": "FlyQuest",
-          "winner": "Cloud9",
-          "score": "2-0",
+          "teamA": "Sentinels",
+          "teamB": "LYON",
+          "winner": "Sentinels",
+          "score": "2-1",
           "actual": {
-            "Cloud9": {
-              "Thanatos": {
-                "k": 10,
-                "d": 2,
-                "a": 11
-              },
-              "Blaber": {
-                "k": 3,
-                "d": 6,
-                "a": 25
-              },
-              "Loki": {
-                "k": 12,
-                "d": 4,
-                "a": 18
-              },
-              "Tactical": {
-                "k": 11,
-                "d": 2,
-                "a": 18
-              },
-              "Vulcan": {
-                "k": 3,
-                "d": 2,
-                "a": 30
-              }
-            },
-            "FlyQuest": {
-              "Gakgos": {
-                "k": 2,
+            "Sentinels": {
+              "Impact": {
+                "k": 5,
                 "d": 5,
-                "a": 3
+                "a": 10
               },
-              "Gryffinn": {
+              "HamBak": {
+                "k": 10,
+                "d": 9,
+                "a": 10
+              },
+              "DarkWings": {
                 "k": 5,
-                "d": 10,
-                "a": 8
-              },
-              "Quad": {
-                "k": 5,
-                "d": 6,
-                "a": 7
-              },
-              "Massu": {
-                "k": 3,
                 "d": 8,
                 "a": 7
               },
-              "Cryogen": {
-                "k": 1,
-                "d": 10,
+              "Rahel": {
+                "k": 7,
+                "d": 2,
                 "a": 10
+              },
+              "Huhi": {
+                "k": 0,
+                "d": 10,
+                "a": 18
+              }
+            },
+            "LYON": {
+              "Dhokla": {
+                "k": 6,
+                "d": 6,
+                "a": 10
+              },
+              "Armao": {
+                "k": 7,
+                "d": 7,
+                "a": 18
+              },
+              "Saint": {
+                "k": 10,
+                "d": 6,
+                "a": 14
+              },
+              "Berserker": {
+                "k": 11,
+                "d": 2,
+                "a": 11
+              },
+              "Isles": {
+                "k": 0,
+                "d": 6,
+                "a": 25
               }
             }
           }
@@ -990,131 +1055,66 @@
           }
         },
         {
-          "week": "Week 5",
-          "date": "2026-08-22",
+          "week": "Week 4",
+          "date": "2026-08-16",
           "patch": "16.16",
-          "teamA": "Sentinels",
+          "teamA": "Cloud9",
           "teamB": "FlyQuest",
-          "winner": "Sentinels",
+          "winner": "Cloud9",
           "score": "2-0",
           "actual": {
-            "Sentinels": {
-              "Impact": {
-                "k": 5,
-                "d": 3,
-                "a": 14
+            "Cloud9": {
+              "Thanatos": {
+                "k": 10,
+                "d": 2,
+                "a": 11
               },
-              "HamBak": {
-                "k": 5,
-                "d": 3,
-                "a": 26
+              "Blaber": {
+                "k": 3,
+                "d": 6,
+                "a": 25
               },
-              "DarkWings": {
-                "k": 11,
+              "Loki": {
+                "k": 12,
                 "d": 4,
-                "a": 13
+                "a": 18
               },
-              "Rahel": {
+              "Tactical": {
                 "k": 11,
                 "d": 2,
-                "a": 16
+                "a": 18
               },
-              "Huhi": {
+              "Vulcan": {
                 "k": 3,
-                "d": 3,
-                "a": 25
+                "d": 2,
+                "a": 30
               }
             },
             "FlyQuest": {
               "Gakgos": {
-                "k": 0,
-                "d": 6,
-                "a": 4
+                "k": 2,
+                "d": 5,
+                "a": 3
               },
               "Gryffinn": {
-                "k": 8,
-                "d": 11,
-                "a": 5
+                "k": 5,
+                "d": 10,
+                "a": 8
               },
               "Quad": {
-                "k": 4,
-                "d": 8,
+                "k": 5,
+                "d": 6,
                 "a": 7
               },
               "Massu": {
                 "k": 3,
-                "d": 5,
-                "a": 6
+                "d": 8,
+                "a": 7
               },
               "Cryogen": {
-                "k": 0,
-                "d": 5,
-                "a": 12
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 4",
-          "date": "2026-08-15",
-          "patch": "16.16",
-          "teamA": "Team Liquid",
-          "teamB": "Disguised",
-          "winner": "Team Liquid",
-          "score": "2-0",
-          "actual": {
-            "Team Liquid": {
-              "Morgan": {
-                "k": 9,
-                "d": 3,
-                "a": 22
-              },
-              "Josedeodo": {
-                "k": 20,
-                "d": 2,
-                "a": 20
-              },
-              "Quid": {
-                "k": 12,
-                "d": 4,
-                "a": 20
-              },
-              "Yeon": {
-                "k": 12,
-                "d": 6,
-                "a": 20
-              },
-              "CoreJJ": {
-                "k": 0,
-                "d": 1,
-                "a": 39
-              }
-            },
-            "Disguised": {
-              "Srtty": {
-                "k": 3,
-                "d": 8,
-                "a": 5
-              },
-              "KryRa": {
-                "k": 3,
-                "d": 9,
-                "a": 9
-              },
-              "Callme": {
-                "k": 5,
-                "d": 11,
-                "a": 6
-              },
-              "sajed": {
-                "k": 5,
-                "d": 15,
-                "a": 5
-              },
-              "Lyonz": {
-                "k": 0,
+                "k": 1,
                 "d": 10,
-                "a": 9
+                "a": 10
               }
             }
           }
@@ -1253,136 +1253,6 @@
           "week": "Week 3",
           "date": "2026-08-08",
           "patch": "16.15",
-          "teamA": "Shopify Rebellion",
-          "teamB": "Sentinels",
-          "winner": "Shopify Rebellion",
-          "score": "2-1",
-          "actual": {
-            "Shopify Rebellion": {
-              "Fudge": {
-                "k": 13,
-                "d": 6,
-                "a": 7
-              },
-              "Contractz": {
-                "k": 6,
-                "d": 7,
-                "a": 17
-              },
-              "Zinie": {
-                "k": 2,
-                "d": 6,
-                "a": 15
-              },
-              "Bvoy": {
-                "k": 6,
-                "d": 8,
-                "a": 10
-              },
-              "Zeyzal": {
-                "k": 2,
-                "d": 7,
-                "a": 16
-              }
-            },
-            "Sentinels": {
-              "Impact": {
-                "k": 5,
-                "d": 8,
-                "a": 10
-              },
-              "HamBak": {
-                "k": 9,
-                "d": 5,
-                "a": 14
-              },
-              "DarkWings": {
-                "k": 3,
-                "d": 6,
-                "a": 23
-              },
-              "Rahel": {
-                "k": 13,
-                "d": 5,
-                "a": 9
-              },
-              "Huhi": {
-                "k": 4,
-                "d": 5,
-                "a": 22
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 2",
-          "date": "2026-08-02",
-          "patch": "16.15",
-          "teamA": "Team Liquid",
-          "teamB": "Sentinels",
-          "winner": "Team Liquid",
-          "score": "2-0",
-          "actual": {
-            "Team Liquid": {
-              "Morgan": {
-                "k": 4,
-                "d": 4,
-                "a": 17
-              },
-              "Josedeodo": {
-                "k": 3,
-                "d": 1,
-                "a": 23
-              },
-              "Quid": {
-                "k": 6,
-                "d": 2,
-                "a": 21
-              },
-              "Yeon": {
-                "k": 17,
-                "d": 4,
-                "a": 7
-              },
-              "CoreJJ": {
-                "k": 2,
-                "d": 3,
-                "a": 23
-              }
-            },
-            "Sentinels": {
-              "Impact": {
-                "k": 2,
-                "d": 7,
-                "a": 5
-              },
-              "HamBak": {
-                "k": 6,
-                "d": 7,
-                "a": 6
-              },
-              "DarkWings": {
-                "k": 2,
-                "d": 8,
-                "a": 7
-              },
-              "Rahel": {
-                "k": 4,
-                "d": 6,
-                "a": 7
-              },
-              "Huhi": {
-                "k": 0,
-                "d": 4,
-                "a": 12
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 3",
-          "date": "2026-08-08",
-          "patch": "16.15",
           "teamA": "Disguised",
           "teamB": "Cloud9",
           "winner": "Cloud9",
@@ -1440,6 +1310,71 @@
                 "k": 1,
                 "d": 3,
                 "a": 23
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 3",
+          "date": "2026-08-08",
+          "patch": "16.15",
+          "teamA": "Shopify Rebellion",
+          "teamB": "Sentinels",
+          "winner": "Shopify Rebellion",
+          "score": "2-1",
+          "actual": {
+            "Shopify Rebellion": {
+              "Fudge": {
+                "k": 13,
+                "d": 6,
+                "a": 7
+              },
+              "Contractz": {
+                "k": 6,
+                "d": 7,
+                "a": 17
+              },
+              "Zinie": {
+                "k": 2,
+                "d": 6,
+                "a": 15
+              },
+              "Bvoy": {
+                "k": 6,
+                "d": 8,
+                "a": 10
+              },
+              "Zeyzal": {
+                "k": 2,
+                "d": 7,
+                "a": 16
+              }
+            },
+            "Sentinels": {
+              "Impact": {
+                "k": 5,
+                "d": 8,
+                "a": 10
+              },
+              "HamBak": {
+                "k": 9,
+                "d": 5,
+                "a": 14
+              },
+              "DarkWings": {
+                "k": 3,
+                "d": 6,
+                "a": 23
+              },
+              "Rahel": {
+                "k": 13,
+                "d": 5,
+                "a": 9
+              },
+              "Huhi": {
+                "k": 4,
+                "d": 5,
+                "a": 22
               }
             }
           }
@@ -1511,6 +1446,71 @@
         },
         {
           "week": "Week 2",
+          "date": "2026-08-02",
+          "patch": "16.15",
+          "teamA": "Team Liquid",
+          "teamB": "Sentinels",
+          "winner": "Team Liquid",
+          "score": "2-0",
+          "actual": {
+            "Team Liquid": {
+              "Morgan": {
+                "k": 4,
+                "d": 4,
+                "a": 17
+              },
+              "Josedeodo": {
+                "k": 3,
+                "d": 1,
+                "a": 23
+              },
+              "Quid": {
+                "k": 6,
+                "d": 2,
+                "a": 21
+              },
+              "Yeon": {
+                "k": 17,
+                "d": 4,
+                "a": 7
+              },
+              "CoreJJ": {
+                "k": 2,
+                "d": 3,
+                "a": 23
+              }
+            },
+            "Sentinels": {
+              "Impact": {
+                "k": 2,
+                "d": 7,
+                "a": 5
+              },
+              "HamBak": {
+                "k": 6,
+                "d": 7,
+                "a": 6
+              },
+              "DarkWings": {
+                "k": 2,
+                "d": 8,
+                "a": 7
+              },
+              "Rahel": {
+                "k": 4,
+                "d": 6,
+                "a": 7
+              },
+              "Huhi": {
+                "k": 0,
+                "d": 4,
+                "a": 12
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 2",
           "date": "2026-08-01",
           "patch": "16.15",
           "teamA": "Disguised",
@@ -1570,6 +1570,136 @@
                 "k": 5,
                 "d": 7,
                 "a": 32
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 1",
+          "date": "2026-07-26",
+          "patch": "16.14",
+          "teamA": "Team Liquid",
+          "teamB": "Cloud9",
+          "winner": "Team Liquid",
+          "score": "2-0",
+          "actual": {
+            "Team Liquid": {
+              "Morgan": {
+                "k": 2,
+                "d": 4,
+                "a": 16
+              },
+              "Josedeodo": {
+                "k": 6,
+                "d": 6,
+                "a": 18
+              },
+              "Quid": {
+                "k": 14,
+                "d": 3,
+                "a": 14
+              },
+              "Yeon": {
+                "k": 13,
+                "d": 1,
+                "a": 13
+              },
+              "CoreJJ": {
+                "k": 3,
+                "d": 6,
+                "a": 29
+              }
+            },
+            "Cloud9": {
+              "Thanatos": {
+                "k": 8,
+                "d": 5,
+                "a": 3
+              },
+              "Blaber": {
+                "k": 2,
+                "d": 9,
+                "a": 15
+              },
+              "Loki": {
+                "k": 4,
+                "d": 7,
+                "a": 11
+              },
+              "Tactical": {
+                "k": 5,
+                "d": 9,
+                "a": 7
+              },
+              "Vulcan": {
+                "k": 1,
+                "d": 8,
+                "a": 13
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 1",
+          "date": "2026-07-25",
+          "patch": "16.14",
+          "teamA": "Sentinels",
+          "teamB": "Dignitas",
+          "winner": "Sentinels",
+          "score": "2-1",
+          "actual": {
+            "Sentinels": {
+              "Impact": {
+                "k": 4,
+                "d": 4,
+                "a": 11
+              },
+              "HamBak": {
+                "k": 19,
+                "d": 3,
+                "a": 12
+              },
+              "DarkWings": {
+                "k": 9,
+                "d": 8,
+                "a": 13
+              },
+              "Rahel": {
+                "k": 3,
+                "d": 2,
+                "a": 16
+              },
+              "Huhi": {
+                "k": 2,
+                "d": 7,
+                "a": 23
+              }
+            },
+            "Dignitas": {
+              "Denathor": {
+                "k": 4,
+                "d": 8,
+                "a": 10
+              },
+              "eXyu": {
+                "k": 3,
+                "d": 10,
+                "a": 18
+              },
+              "Palafox": {
+                "k": 9,
+                "d": 6,
+                "a": 13
+              },
+              "FBI": {
+                "k": 8,
+                "d": 7,
+                "a": 8
+              },
+              "IgNar": {
+                "k": 0,
+                "d": 6,
+                "a": 20
               }
             }
           }
@@ -1706,136 +1836,6 @@
         },
         {
           "week": "Week 1",
-          "date": "2026-07-26",
-          "patch": "16.14",
-          "teamA": "Team Liquid",
-          "teamB": "Cloud9",
-          "winner": "Team Liquid",
-          "score": "2-0",
-          "actual": {
-            "Team Liquid": {
-              "Morgan": {
-                "k": 2,
-                "d": 4,
-                "a": 16
-              },
-              "Josedeodo": {
-                "k": 6,
-                "d": 6,
-                "a": 18
-              },
-              "Quid": {
-                "k": 14,
-                "d": 3,
-                "a": 14
-              },
-              "Yeon": {
-                "k": 13,
-                "d": 1,
-                "a": 13
-              },
-              "CoreJJ": {
-                "k": 3,
-                "d": 6,
-                "a": 29
-              }
-            },
-            "Cloud9": {
-              "Thanatos": {
-                "k": 8,
-                "d": 5,
-                "a": 3
-              },
-              "Blaber": {
-                "k": 2,
-                "d": 9,
-                "a": 15
-              },
-              "Loki": {
-                "k": 4,
-                "d": 7,
-                "a": 11
-              },
-              "Tactical": {
-                "k": 5,
-                "d": 9,
-                "a": 7
-              },
-              "Vulcan": {
-                "k": 1,
-                "d": 8,
-                "a": 13
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 1",
-          "date": "2026-07-25",
-          "patch": "16.14",
-          "teamA": "Sentinels",
-          "teamB": "Dignitas",
-          "winner": "Sentinels",
-          "score": "2-1",
-          "actual": {
-            "Sentinels": {
-              "Impact": {
-                "k": 4,
-                "d": 4,
-                "a": 11
-              },
-              "HamBak": {
-                "k": 19,
-                "d": 3,
-                "a": 12
-              },
-              "DarkWings": {
-                "k": 9,
-                "d": 8,
-                "a": 13
-              },
-              "Rahel": {
-                "k": 3,
-                "d": 2,
-                "a": 16
-              },
-              "Huhi": {
-                "k": 2,
-                "d": 7,
-                "a": 23
-              }
-            },
-            "Dignitas": {
-              "Denathor": {
-                "k": 4,
-                "d": 8,
-                "a": 10
-              },
-              "eXyu": {
-                "k": 3,
-                "d": 10,
-                "a": 18
-              },
-              "Palafox": {
-                "k": 9,
-                "d": 6,
-                "a": 13
-              },
-              "FBI": {
-                "k": 8,
-                "d": 7,
-                "a": 8
-              },
-              "IgNar": {
-                "k": 0,
-                "d": 6,
-                "a": 20
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 1",
           "date": "2026-07-25",
           "patch": "16.14",
           "teamA": "FlyQuest",
@@ -1902,12 +1902,6 @@
       ],
       "upcoming_matches": [
         {
-          "date": "2026-08-23T20:00:00Z",
-          "teamA": "Disguised",
-          "teamB": "Sentinels",
-          "block": "Week 5"
-        },
-        {
           "date": "2026-08-23T23:00:00Z",
           "teamA": "Dignitas",
           "teamB": "FlyQuest",
@@ -1972,11 +1966,11 @@
               "name": "Alvaro",
               "role": "SUP",
               "cur": {
-                "g": 19,
-                "k": 0.5,
-                "d": 3.8,
+                "g": 20,
+                "k": 0.6,
+                "d": 3.9,
                 "a": 9.5,
-                "kp": 66.2
+                "kp": 66.7
               },
               "hist": {
                 "g": 23,
@@ -1990,11 +1984,11 @@
               "name": "Elyoya",
               "role": "JNG",
               "cur": {
-                "g": 19,
-                "k": 3.5,
-                "d": 2.7,
-                "a": 7.7,
-                "kp": 71.0
+                "g": 20,
+                "k": 3.4,
+                "d": 2.8,
+                "a": 7.8,
+                "kp": 71.7
               },
               "hist": {
                 "g": 23,
@@ -2008,11 +2002,11 @@
               "name": "Myrwn",
               "role": "TOP",
               "cur": {
-                "g": 19,
+                "g": 20,
                 "k": 2.6,
-                "d": 3.1,
-                "a": 5.9,
-                "kp": 53.8
+                "d": 3.2,
+                "a": 6.0,
+                "kp": 54.6
               },
               "hist": {
                 "g": 23,
@@ -2026,11 +2020,11 @@
               "name": "Supa",
               "role": "BOT",
               "cur": {
-                "g": 19,
-                "k": 4.4,
-                "d": 3.3,
+                "g": 20,
+                "k": 4.5,
+                "d": 3.5,
                 "a": 4.5,
-                "kp": 55.9
+                "kp": 56.6
               },
               "hist": {
                 "g": 23,
@@ -2044,11 +2038,11 @@
               "name": "jojopyun",
               "role": "MID",
               "cur": {
-                "g": 19,
-                "k": 4.4,
+                "g": 20,
+                "k": 4.2,
                 "d": 3.0,
-                "a": 5.9,
-                "kp": 69.6
+                "a": 5.8,
+                "kp": 68.0
               },
               "hist": {
                 "g": 23,
@@ -2162,11 +2156,11 @@
               "name": "Busio",
               "role": "SUP",
               "cur": {
-                "g": 15,
+                "g": 18,
                 "k": 1.1,
-                "d": 2.6,
-                "a": 10.6,
-                "kp": 64.1
+                "d": 2.5,
+                "a": 11.2,
+                "kp": 66.1
               },
               "hist": {
                 "g": 23,
@@ -2180,11 +2174,11 @@
               "name": "Caliste",
               "role": "BOT",
               "cur": {
-                "g": 15,
-                "k": 5.7,
+                "g": 18,
+                "k": 5.8,
                 "d": 1.4,
-                "a": 5.6,
-                "kp": 62.3
+                "a": 5.9,
+                "kp": 63.4
               },
               "hist": {
                 "g": 23,
@@ -2198,11 +2192,11 @@
               "name": "Canna",
               "role": "TOP",
               "cur": {
-                "g": 15,
-                "k": 3.7,
-                "d": 2.3,
+                "g": 18,
+                "k": 3.8,
+                "d": 2.5,
                 "a": 6.1,
-                "kp": 52.9
+                "kp": 52.1
               },
               "hist": {
                 "g": 23,
@@ -2216,11 +2210,11 @@
               "name": "Kyeahoo",
               "role": "MID",
               "cur": {
-                "g": 15,
-                "k": 3.2,
-                "d": 1.7,
-                "a": 8.1,
-                "kp": 62.3
+                "g": 18,
+                "k": 3.0,
+                "d": 2.2,
+                "a": 8.3,
+                "kp": 61.6
               },
               "hist": {
                 "g": 23,
@@ -2234,11 +2228,11 @@
               "name": "Yike",
               "role": "JNG",
               "cur": {
-                "g": 15,
-                "k": 4.5,
+                "g": 18,
+                "k": 4.8,
                 "d": 2.5,
-                "a": 8.1,
-                "kp": 69.1
+                "a": 8.3,
+                "kp": 70.6
               },
               "hist": {
                 "g": 23,
@@ -2346,11 +2340,11 @@
               "name": "Daglas",
               "role": "JNG",
               "cur": {
-                "g": 13,
-                "k": 1.9,
-                "d": 2.8,
-                "a": 4.7,
-                "kp": 73.1
+                "g": 15,
+                "k": 1.7,
+                "d": 3.0,
+                "a": 4.9,
+                "kp": 73.3
               },
               "hist": {
                 "g": 6,
@@ -2364,11 +2358,11 @@
               "name": "Hype",
               "role": "BOT",
               "cur": {
-                "g": 13,
+                "g": 15,
                 "k": 1.7,
-                "d": 2.2,
-                "a": 4.2,
-                "kp": 65.6
+                "d": 2.4,
+                "a": 4.3,
+                "kp": 67.7
               },
               "hist": null
             },
@@ -2376,11 +2370,11 @@
               "name": "Serin",
               "role": "MID",
               "cur": {
-                "g": 13,
-                "k": 2.2,
-                "d": 2.2,
+                "g": 15,
+                "k": 2.3,
+                "d": 2.3,
                 "a": 3.5,
-                "kp": 59.5
+                "kp": 61.5
               },
               "hist": {
                 "g": 20,
@@ -2394,11 +2388,11 @@
               "name": "Tracyn",
               "role": "TOP",
               "cur": {
-                "g": 13,
-                "k": 2.5,
-                "d": 2.6,
-                "a": 2.5,
-                "kp": 49.0
+                "g": 15,
+                "k": 2.6,
+                "d": 2.7,
+                "a": 2.4,
+                "kp": 50.8
               },
               "hist": {
                 "g": 20,
@@ -2412,11 +2406,11 @@
               "name": "Way",
               "role": "SUP",
               "cur": {
-                "g": 13,
-                "k": 0.8,
-                "d": 2.9,
-                "a": 6.5,
-                "kp": 76.5
+                "g": 15,
+                "k": 0.7,
+                "d": 3.1,
+                "a": 6.6,
+                "kp": 78.0
               },
               "hist": {
                 "g": 20,
@@ -2435,11 +2429,11 @@
               "name": "Flakked",
               "role": "BOT",
               "cur": {
-                "g": 13,
-                "k": 3.2,
-                "d": 2.4,
-                "a": 5.5,
-                "kp": 67.0
+                "g": 15,
+                "k": 3.9,
+                "d": 2.1,
+                "a": 5.9,
+                "kp": 70.4
               },
               "hist": null
             },
@@ -2447,11 +2441,11 @@
               "name": "Isma",
               "role": "JNG",
               "cur": {
-                "g": 13,
+                "g": 15,
                 "k": 2.7,
-                "d": 2.4,
-                "a": 6.9,
-                "kp": 68.1
+                "d": 2.3,
+                "a": 7.7,
+                "kp": 70.4
               },
               "hist": {
                 "g": 22,
@@ -2465,11 +2459,11 @@
               "name": "Jackies",
               "role": "MID",
               "cur": {
-                "g": 13,
-                "k": 4.6,
-                "d": 2.6,
-                "a": 4.3,
-                "kp": 60.1
+                "g": 15,
+                "k": 4.5,
+                "d": 2.3,
+                "a": 5.4,
+                "kp": 63.1
               },
               "hist": {
                 "g": 22,
@@ -2483,11 +2477,11 @@
               "name": "Jun",
               "role": "SUP",
               "cur": {
-                "g": 13,
-                "k": 0.4,
-                "d": 2.5,
-                "a": 9.3,
-                "kp": 73.7
+                "g": 15,
+                "k": 0.3,
+                "d": 2.7,
+                "a": 9.9,
+                "kp": 73.4
               },
               "hist": {
                 "g": 22,
@@ -2501,11 +2495,11 @@
               "name": "Oscarinin",
               "role": "TOP",
               "cur": {
-                "g": 13,
-                "k": 2.3,
-                "d": 2.7,
-                "a": 6.1,
-                "kp": 61.4
+                "g": 15,
+                "k": 2.5,
+                "d": 2.6,
+                "a": 6.7,
+                "kp": 63.2
               },
               "hist": null
             }
@@ -2518,11 +2512,11 @@
               "name": "Jopa",
               "role": "BOT",
               "cur": {
-                "g": 17,
-                "k": 4.2,
+                "g": 18,
+                "k": 4.3,
                 "d": 2.9,
-                "a": 5.8,
-                "kp": 68.5
+                "a": 6.1,
+                "kp": 68.6
               },
               "hist": {
                 "g": 21,
@@ -2536,11 +2530,11 @@
               "name": "Mikyx",
               "role": "SUP",
               "cur": {
-                "g": 17,
+                "g": 18,
                 "k": 1.1,
-                "d": 4.5,
-                "a": 10.2,
-                "kp": 80.1
+                "d": 4.6,
+                "a": 10.7,
+                "kp": 80.3
               },
               "hist": {
                 "g": 21,
@@ -2554,11 +2548,11 @@
               "name": "Skeanz",
               "role": "JNG",
               "cur": {
-                "g": 17,
-                "k": 3.6,
+                "g": 18,
+                "k": 3.7,
                 "d": 3.6,
-                "a": 7.0,
-                "kp": 72.0
+                "a": 7.5,
+                "kp": 72.9
               },
               "hist": {
                 "g": 21,
@@ -2572,11 +2566,11 @@
               "name": "SlowQ",
               "role": "MID",
               "cur": {
-                "g": 17,
-                "k": 3.1,
-                "d": 3.6,
-                "a": 6.2,
-                "kp": 65.0
+                "g": 18,
+                "k": 3.3,
+                "d": 3.5,
+                "a": 6.5,
+                "kp": 65.4
               },
               "hist": null
             },
@@ -2584,11 +2578,11 @@
               "name": "Wunder",
               "role": "TOP",
               "cur": {
-                "g": 17,
-                "k": 2.5,
-                "d": 4.1,
-                "a": 4.8,
-                "kp": 48.7
+                "g": 18,
+                "k": 2.8,
+                "d": 4.0,
+                "a": 5.2,
+                "kp": 50.4
               },
               "hist": {
                 "g": 21,
@@ -2791,11 +2785,11 @@
               "name": "Paduck",
               "role": "BOT",
               "cur": {
-                "g": 14,
+                "g": 17,
                 "k": 2.1,
                 "d": 3.9,
-                "a": 4.4,
-                "kp": 56.8
+                "a": 4.5,
+                "kp": 55.4
               },
               "hist": {
                 "g": 22,
@@ -2809,11 +2803,11 @@
               "name": "Rooster",
               "role": "TOP",
               "cur": {
-                "g": 14,
-                "k": 2.4,
-                "d": 2.6,
+                "g": 17,
+                "k": 2.5,
+                "d": 2.7,
                 "a": 4.7,
-                "kp": 58.2
+                "kp": 57.1
               },
               "hist": {
                 "g": 22,
@@ -2827,11 +2821,11 @@
               "name": "Sheo",
               "role": "JNG",
               "cur": {
-                "g": 14,
-                "k": 2.7,
-                "d": 4.6,
-                "a": 5.1,
-                "kp": 64.8
+                "g": 17,
+                "k": 3.1,
+                "d": 4.4,
+                "a": 5.4,
+                "kp": 68.8
               },
               "hist": {
                 "g": 19,
@@ -2845,11 +2839,11 @@
               "name": "Stend",
               "role": "SUP",
               "cur": {
-                "g": 14,
-                "k": 0.7,
-                "d": 4.0,
+                "g": 17,
+                "k": 0.8,
+                "d": 4.3,
                 "a": 9.1,
-                "kp": 74.3
+                "kp": 74.5
               },
               "hist": null
             },
@@ -2857,11 +2851,11 @@
               "name": "nuc",
               "role": "MID",
               "cur": {
-                "g": 14,
-                "k": 4.0,
-                "d": 3.6,
-                "a": 4.2,
-                "kp": 63.6
+                "g": 17,
+                "k": 3.9,
+                "d": 3.7,
+                "a": 4.5,
+                "kp": 63.4
               },
               "hist": {
                 "g": 22,
@@ -2875,6 +2869,396 @@
         }
       },
       "past_matches": [
+        {
+          "week": "Week 5",
+          "date": "2026-08-22",
+          "patch": "16.16",
+          "teamA": "Fnatic",
+          "teamB": "Shifters",
+          "winner": "Fnatic",
+          "score": "2-0",
+          "actual": {
+            "Fnatic": {
+              "Soboro": {
+                "k": 7,
+                "d": 5,
+                "a": 12
+              },
+              "Razork": {
+                "k": 7,
+                "d": 2,
+                "a": 21
+              },
+              "Vladi": {
+                "k": 9,
+                "d": 5,
+                "a": 17
+              },
+              "Upset": {
+                "k": 11,
+                "d": 1,
+                "a": 15
+              },
+              "Lospa": {
+                "k": 0,
+                "d": 3,
+                "a": 28
+              }
+            },
+            "Shifters": {
+              "Rooster": {
+                "k": 2,
+                "d": 2,
+                "a": 8
+              },
+              "Sheo": {
+                "k": 2,
+                "d": 9,
+                "a": 8
+              },
+              "nuc": {
+                "k": 10,
+                "d": 8,
+                "a": 1
+              },
+              "Paduck": {
+                "k": 1,
+                "d": 8,
+                "a": 8
+              },
+              "Stend": {
+                "k": 1,
+                "d": 7,
+                "a": 11
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 5",
+          "date": "2026-08-23",
+          "patch": "16.16",
+          "teamA": "Shifters",
+          "teamB": "Karmine Corp",
+          "winner": "Karmine Corp",
+          "score": "1-2",
+          "actual": {
+            "Shifters": {
+              "Rooster": {
+                "k": 6,
+                "d": 7,
+                "a": 13
+              },
+              "Sheo": {
+                "k": 10,
+                "d": 9,
+                "a": 17
+              },
+              "nuc": {
+                "k": 9,
+                "d": 9,
+                "a": 13
+              },
+              "Paduck": {
+                "k": 6,
+                "d": 7,
+                "a": 12
+              },
+              "Stend": {
+                "k": 3,
+                "d": 11,
+                "a": 22
+              }
+            },
+            "Karmine Corp": {
+              "Canna": {
+                "k": 8,
+                "d": 9,
+                "a": 15
+              },
+              "Yike": {
+                "k": 13,
+                "d": 6,
+                "a": 22
+              },
+              "Kyeahoo": {
+                "k": 5,
+                "d": 10,
+                "a": 16
+              },
+              "Caliste": {
+                "k": 15,
+                "d": 4,
+                "a": 17
+              },
+              "Busio": {
+                "k": 2,
+                "d": 5,
+                "a": 30
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 5",
+          "date": "2026-08-23",
+          "patch": "16.16",
+          "teamA": "GIANTX",
+          "teamB": "Team Heretics",
+          "winner": "GIANTX",
+          "score": "2-0",
+          "actual": {
+            "GIANTX": {
+              "Oscarinin": {
+                "k": 7,
+                "d": 4,
+                "a": 21
+              },
+              "Isma": {
+                "k": 6,
+                "d": 4,
+                "a": 26
+              },
+              "Jackies": {
+                "k": 7,
+                "d": 0,
+                "a": 25
+              },
+              "Flakked": {
+                "k": 18,
+                "d": 1,
+                "a": 17
+              },
+              "Jun": {
+                "k": 0,
+                "d": 8,
+                "a": 27
+              }
+            },
+            "Team Heretics": {
+              "Tracyn": {
+                "k": 6,
+                "d": 6,
+                "a": 4
+              },
+              "Daglas": {
+                "k": 0,
+                "d": 9,
+                "a": 12
+              },
+              "Serin": {
+                "k": 6,
+                "d": 7,
+                "a": 6
+              },
+              "Hype": {
+                "k": 4,
+                "d": 7,
+                "a": 9
+              },
+              "Way": {
+                "k": 0,
+                "d": 9,
+                "a": 14
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 5",
+          "date": "2026-08-21",
+          "patch": "16.16",
+          "teamA": "Natus Vincere",
+          "teamB": "Team Vitality",
+          "winner": "Team Vitality",
+          "score": "1-2",
+          "actual": {
+            "Natus Vincere": {
+              "Maynter": {
+                "k": 6,
+                "d": 5,
+                "a": 5
+              },
+              "Rhilech": {
+                "k": 5,
+                "d": 4,
+                "a": 6
+              },
+              "Poby": {
+                "k": 4,
+                "d": 4,
+                "a": 7
+              },
+              "SamD": {
+                "k": 4,
+                "d": 7,
+                "a": 6
+              },
+              "Parus": {
+                "k": 0,
+                "d": 4,
+                "a": 12
+              }
+            },
+            "Team Vitality": {
+              "Naak Nako": {
+                "k": 9,
+                "d": 5,
+                "a": 5
+              },
+              "Lyncas": {
+                "k": 4,
+                "d": 3,
+                "a": 15
+              },
+              "FIESTA": {
+                "k": 0,
+                "d": 7,
+                "a": 11
+              },
+              "Carzzy": {
+                "k": 10,
+                "d": 3,
+                "a": 7
+              },
+              "Fleshy": {
+                "k": 1,
+                "d": 1,
+                "a": 15
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 5",
+          "date": "2026-08-22",
+          "patch": "16.16",
+          "teamA": "Movistar KOI",
+          "teamB": "SK Gaming",
+          "winner": "SK Gaming",
+          "score": "0-2",
+          "actual": {
+            "Movistar KOI": {
+              "Myrwn": {
+                "k": 8,
+                "d": 10,
+                "a": 11
+              },
+              "Elyoya": {
+                "k": 4,
+                "d": 7,
+                "a": 17
+              },
+              "jojopyun": {
+                "k": 6,
+                "d": 5,
+                "a": 12
+              },
+              "Supa": {
+                "k": 9,
+                "d": 11,
+                "a": 4
+              },
+              "Alvaro": {
+                "k": 2,
+                "d": 6,
+                "a": 16
+              }
+            },
+            "SK Gaming": {
+              "Wunder": {
+                "k": 13,
+                "d": 2,
+                "a": 19
+              },
+              "Skeanz": {
+                "k": 7,
+                "d": 5,
+                "a": 25
+              },
+              "SlowQ": {
+                "k": 11,
+                "d": 5,
+                "a": 21
+              },
+              "Jopa": {
+                "k": 7,
+                "d": 7,
+                "a": 20
+              },
+              "Mikyx": {
+                "k": 1,
+                "d": 10,
+                "a": 34
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 5",
+          "date": "2026-08-21",
+          "patch": "16.16",
+          "teamA": "SK Gaming",
+          "teamB": "Team Heretics",
+          "winner": "Team Heretics",
+          "score": "0-2",
+          "actual": {
+            "SK Gaming": {
+              "Wunder": {
+                "k": 4,
+                "d": 7,
+                "a": 2
+              },
+              "Skeanz": {
+                "k": 3,
+                "d": 10,
+                "a": 7
+              },
+              "SlowQ": {
+                "k": 3,
+                "d": 9,
+                "a": 8
+              },
+              "Jopa": {
+                "k": 5,
+                "d": 6,
+                "a": 7
+              },
+              "Mikyx": {
+                "k": 1,
+                "d": 8,
+                "a": 13
+              }
+            },
+            "Team Heretics": {
+              "Tracyn": {
+                "k": 16,
+                "d": 1,
+                "a": 14
+              },
+              "Daglas": {
+                "k": 9,
+                "d": 3,
+                "a": 22
+              },
+              "Serin": {
+                "k": 7,
+                "d": 2,
+                "a": 21
+              },
+              "Hype": {
+                "k": 7,
+                "d": 4,
+                "a": 19
+              },
+              "Way": {
+                "k": 1,
+                "d": 6,
+                "a": 33
+              }
+            }
+          }
+        },
         {
           "week": "Week 4",
           "date": "2026-08-17",
@@ -3006,266 +3390,6 @@
           }
         },
         {
-          "week": "Week 5",
-          "date": "2026-08-21",
-          "patch": "16.16",
-          "teamA": "SK Gaming",
-          "teamB": "Team Heretics",
-          "winner": "Team Heretics",
-          "score": "0-2",
-          "actual": {
-            "SK Gaming": {
-              "Wunder": {
-                "k": 4,
-                "d": 7,
-                "a": 2
-              },
-              "Skeanz": {
-                "k": 3,
-                "d": 10,
-                "a": 7
-              },
-              "SlowQ": {
-                "k": 3,
-                "d": 9,
-                "a": 8
-              },
-              "Jopa": {
-                "k": 5,
-                "d": 6,
-                "a": 7
-              },
-              "Mikyx": {
-                "k": 1,
-                "d": 8,
-                "a": 13
-              }
-            },
-            "Team Heretics": {
-              "Tracyn": {
-                "k": 16,
-                "d": 1,
-                "a": 14
-              },
-              "Daglas": {
-                "k": 9,
-                "d": 3,
-                "a": 22
-              },
-              "Serin": {
-                "k": 7,
-                "d": 2,
-                "a": 21
-              },
-              "Hype": {
-                "k": 7,
-                "d": 4,
-                "a": 19
-              },
-              "Way": {
-                "k": 1,
-                "d": 6,
-                "a": 33
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 5",
-          "date": "2026-08-22",
-          "patch": "16.16",
-          "teamA": "Fnatic",
-          "teamB": "Shifters",
-          "winner": "Fnatic",
-          "score": "2-0",
-          "actual": {
-            "Fnatic": {
-              "Soboro": {
-                "k": 7,
-                "d": 5,
-                "a": 12
-              },
-              "Razork": {
-                "k": 7,
-                "d": 2,
-                "a": 21
-              },
-              "Vladi": {
-                "k": 9,
-                "d": 5,
-                "a": 17
-              },
-              "Upset": {
-                "k": 11,
-                "d": 1,
-                "a": 15
-              },
-              "Lospa": {
-                "k": 0,
-                "d": 3,
-                "a": 28
-              }
-            },
-            "Shifters": {
-              "Rooster": {
-                "k": 2,
-                "d": 2,
-                "a": 8
-              },
-              "Sheo": {
-                "k": 2,
-                "d": 9,
-                "a": 8
-              },
-              "nuc": {
-                "k": 10,
-                "d": 8,
-                "a": 1
-              },
-              "Paduck": {
-                "k": 1,
-                "d": 8,
-                "a": 8
-              },
-              "Stend": {
-                "k": 1,
-                "d": 7,
-                "a": 11
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 5",
-          "date": "2026-08-22",
-          "patch": "16.16",
-          "teamA": "SK Gaming",
-          "teamB": "Movistar KOI",
-          "winner": "SK Gaming",
-          "score": "1-0",
-          "actual": {
-            "SK Gaming": {
-              "Wunder": {
-                "k": 6,
-                "d": 0,
-                "a": 7
-              },
-              "Skeanz": {
-                "k": 2,
-                "d": 3,
-                "a": 9
-              },
-              "SlowQ": {
-                "k": 5,
-                "d": 4,
-                "a": 10
-              },
-              "Jopa": {
-                "k": 2,
-                "d": 5,
-                "a": 8
-              },
-              "Mikyx": {
-                "k": 0,
-                "d": 4,
-                "a": 15
-              }
-            },
-            "Movistar KOI": {
-              "Myrwn": {
-                "k": 6,
-                "d": 4,
-                "a": 4
-              },
-              "Elyoya": {
-                "k": 2,
-                "d": 3,
-                "a": 8
-              },
-              "jojopyun": {
-                "k": 5,
-                "d": 2,
-                "a": 8
-              },
-              "Supa": {
-                "k": 3,
-                "d": 4,
-                "a": 1
-              },
-              "Alvaro": {
-                "k": 0,
-                "d": 2,
-                "a": 8
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 5",
-          "date": "2026-08-21",
-          "patch": "16.16",
-          "teamA": "Natus Vincere",
-          "teamB": "Team Vitality",
-          "winner": "Team Vitality",
-          "score": "1-2",
-          "actual": {
-            "Natus Vincere": {
-              "Maynter": {
-                "k": 6,
-                "d": 5,
-                "a": 5
-              },
-              "Rhilech": {
-                "k": 5,
-                "d": 4,
-                "a": 6
-              },
-              "Poby": {
-                "k": 4,
-                "d": 4,
-                "a": 7
-              },
-              "SamD": {
-                "k": 4,
-                "d": 7,
-                "a": 6
-              },
-              "Parus": {
-                "k": 0,
-                "d": 4,
-                "a": 12
-              }
-            },
-            "Team Vitality": {
-              "Naak Nako": {
-                "k": 9,
-                "d": 5,
-                "a": 5
-              },
-              "Lyncas": {
-                "k": 4,
-                "d": 3,
-                "a": 15
-              },
-              "FIESTA": {
-                "k": 0,
-                "d": 7,
-                "a": 11
-              },
-              "Carzzy": {
-                "k": 10,
-                "d": 3,
-                "a": 7
-              },
-              "Fleshy": {
-                "k": 1,
-                "d": 1,
-                "a": 15
-              }
-            }
-          }
-        },
-        {
           "week": "Week 4",
           "date": "2026-08-16",
           "patch": "16.16",
@@ -3332,65 +3456,65 @@
         },
         {
           "week": "Week 4",
-          "date": "2026-08-16",
+          "date": "2026-08-15",
           "patch": "16.16",
-          "teamA": "Natus Vincere",
-          "teamB": "Movistar KOI",
-          "winner": "Movistar KOI",
-          "score": "0-2",
+          "teamA": "Fnatic",
+          "teamB": "SK Gaming",
+          "winner": "Fnatic",
+          "score": "2-0",
           "actual": {
-            "Natus Vincere": {
-              "Maynter": {
-                "k": 0,
-                "d": 6,
-                "a": 8
-              },
-              "Rhilech": {
-                "k": 1,
-                "d": 7,
-                "a": 9
-              },
-              "Poby": {
-                "k": 7,
-                "d": 7,
-                "a": 2
-              },
-              "SamD": {
-                "k": 6,
-                "d": 6,
-                "a": 2
-              },
-              "Parus": {
-                "k": 1,
-                "d": 7,
-                "a": 9
-              }
-            },
-            "Movistar KOI": {
-              "Myrwn": {
-                "k": 3,
-                "d": 2,
+            "Fnatic": {
+              "Soboro": {
+                "k": 14,
+                "d": 5,
                 "a": 15
               },
-              "Elyoya": {
-                "k": 5,
-                "d": 5,
-                "a": 20
+              "Razork": {
+                "k": 6,
+                "d": 9,
+                "a": 21
               },
-              "jojopyun": {
-                "k": 7,
-                "d": 3,
-                "a": 16
+              "Vladi": {
+                "k": 6,
+                "d": 1,
+                "a": 17
               },
-              "Supa": {
-                "k": 18,
-                "d": 3,
-                "a": 7
+              "Upset": {
+                "k": 12,
+                "d": 4,
+                "a": 10
               },
-              "Alvaro": {
+              "Lospa": {
                 "k": 0,
-                "d": 3,
-                "a": 20
+                "d": 5,
+                "a": 27
+              }
+            },
+            "SK Gaming": {
+              "Wunder": {
+                "k": 4,
+                "d": 10,
+                "a": 6
+              },
+              "Skeanz": {
+                "k": 8,
+                "d": 5,
+                "a": 8
+              },
+              "SlowQ": {
+                "k": 3,
+                "d": 7,
+                "a": 11
+              },
+              "Jopa": {
+                "k": 5,
+                "d": 6,
+                "a": 10
+              },
+              "Mikyx": {
+                "k": 3,
+                "d": 10,
+                "a": 19
               }
             }
           }
@@ -3462,6 +3586,71 @@
         },
         {
           "week": "Week 4",
+          "date": "2026-08-16",
+          "patch": "16.16",
+          "teamA": "Natus Vincere",
+          "teamB": "Movistar KOI",
+          "winner": "Movistar KOI",
+          "score": "0-2",
+          "actual": {
+            "Natus Vincere": {
+              "Maynter": {
+                "k": 0,
+                "d": 6,
+                "a": 8
+              },
+              "Rhilech": {
+                "k": 1,
+                "d": 7,
+                "a": 9
+              },
+              "Poby": {
+                "k": 7,
+                "d": 7,
+                "a": 2
+              },
+              "SamD": {
+                "k": 6,
+                "d": 6,
+                "a": 2
+              },
+              "Parus": {
+                "k": 1,
+                "d": 7,
+                "a": 9
+              }
+            },
+            "Movistar KOI": {
+              "Myrwn": {
+                "k": 3,
+                "d": 2,
+                "a": 15
+              },
+              "Elyoya": {
+                "k": 5,
+                "d": 5,
+                "a": 20
+              },
+              "jojopyun": {
+                "k": 7,
+                "d": 3,
+                "a": 16
+              },
+              "Supa": {
+                "k": 18,
+                "d": 3,
+                "a": 7
+              },
+              "Alvaro": {
+                "k": 0,
+                "d": 3,
+                "a": 20
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 4",
           "date": "2026-08-14",
           "patch": "16.16",
           "teamA": "GIANTX",
@@ -3521,71 +3710,6 @@
                 "k": 2,
                 "d": 3,
                 "a": 15
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 4",
-          "date": "2026-08-15",
-          "patch": "16.16",
-          "teamA": "Fnatic",
-          "teamB": "SK Gaming",
-          "winner": "Fnatic",
-          "score": "2-0",
-          "actual": {
-            "Fnatic": {
-              "Soboro": {
-                "k": 14,
-                "d": 5,
-                "a": 15
-              },
-              "Razork": {
-                "k": 6,
-                "d": 9,
-                "a": 21
-              },
-              "Vladi": {
-                "k": 6,
-                "d": 1,
-                "a": 17
-              },
-              "Upset": {
-                "k": 12,
-                "d": 4,
-                "a": 10
-              },
-              "Lospa": {
-                "k": 0,
-                "d": 5,
-                "a": 27
-              }
-            },
-            "SK Gaming": {
-              "Wunder": {
-                "k": 4,
-                "d": 10,
-                "a": 6
-              },
-              "Skeanz": {
-                "k": 8,
-                "d": 5,
-                "a": 8
-              },
-              "SlowQ": {
-                "k": 3,
-                "d": 7,
-                "a": 11
-              },
-              "Jopa": {
-                "k": 5,
-                "d": 6,
-                "a": 10
-              },
-              "Mikyx": {
-                "k": 3,
-                "d": 10,
-                "a": 19
               }
             }
           }
@@ -3789,71 +3913,6 @@
           "week": "Week 3",
           "date": "2026-08-09",
           "patch": "16.15",
-          "teamA": "Karmine Corp",
-          "teamB": "Fnatic",
-          "winner": "Karmine Corp",
-          "score": "2-0",
-          "actual": {
-            "Karmine Corp": {
-              "Canna": {
-                "k": 7,
-                "d": 5,
-                "a": 14
-              },
-              "Yike": {
-                "k": 10,
-                "d": 3,
-                "a": 21
-              },
-              "Kyeahoo": {
-                "k": 2,
-                "d": 4,
-                "a": 18
-              },
-              "Caliste": {
-                "k": 15,
-                "d": 2,
-                "a": 10
-              },
-              "Busio": {
-                "k": 1,
-                "d": 2,
-                "a": 31
-              }
-            },
-            "Fnatic": {
-              "Soboro": {
-                "k": 3,
-                "d": 7,
-                "a": 7
-              },
-              "Razork": {
-                "k": 7,
-                "d": 11,
-                "a": 4
-              },
-              "Vladi": {
-                "k": 3,
-                "d": 6,
-                "a": 6
-              },
-              "Upset": {
-                "k": 2,
-                "d": 4,
-                "a": 4
-              },
-              "Lospa": {
-                "k": 1,
-                "d": 7,
-                "a": 9
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 3",
-          "date": "2026-08-09",
-          "patch": "16.15",
           "teamA": "G2 Esports",
           "teamB": "Team Heretics",
           "winner": "G2 Esports",
@@ -3910,6 +3969,71 @@
               "Way": {
                 "k": 2,
                 "d": 9,
+                "a": 9
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 3",
+          "date": "2026-08-09",
+          "patch": "16.15",
+          "teamA": "Karmine Corp",
+          "teamB": "Fnatic",
+          "winner": "Karmine Corp",
+          "score": "2-0",
+          "actual": {
+            "Karmine Corp": {
+              "Canna": {
+                "k": 7,
+                "d": 5,
+                "a": 14
+              },
+              "Yike": {
+                "k": 10,
+                "d": 3,
+                "a": 21
+              },
+              "Kyeahoo": {
+                "k": 2,
+                "d": 4,
+                "a": 18
+              },
+              "Caliste": {
+                "k": 15,
+                "d": 2,
+                "a": 10
+              },
+              "Busio": {
+                "k": 1,
+                "d": 2,
+                "a": 31
+              }
+            },
+            "Fnatic": {
+              "Soboro": {
+                "k": 3,
+                "d": 7,
+                "a": 7
+              },
+              "Razork": {
+                "k": 7,
+                "d": 11,
+                "a": 4
+              },
+              "Vladi": {
+                "k": 3,
+                "d": 6,
+                "a": 6
+              },
+              "Upset": {
+                "k": 2,
+                "d": 4,
+                "a": 4
+              },
+              "Lospa": {
+                "k": 1,
+                "d": 7,
                 "a": 9
               }
             }
@@ -4699,71 +4823,6 @@
           "week": "Week 1",
           "date": "2026-07-26",
           "patch": "16.14",
-          "teamA": "G2 Esports",
-          "teamB": "Karmine Corp",
-          "winner": "Karmine Corp",
-          "score": "1-2",
-          "actual": {
-            "G2 Esports": {
-              "BrokenBlade": {
-                "k": 7,
-                "d": 5,
-                "a": 9
-              },
-              "SkewMond": {
-                "k": 6,
-                "d": 4,
-                "a": 11
-              },
-              "Caps": {
-                "k": 6,
-                "d": 9,
-                "a": 8
-              },
-              "Hans Sama": {
-                "k": 5,
-                "d": 3,
-                "a": 5
-              },
-              "Labrov": {
-                "k": 1,
-                "d": 7,
-                "a": 16
-              }
-            },
-            "Karmine Corp": {
-              "Canna": {
-                "k": 6,
-                "d": 5,
-                "a": 10
-              },
-              "Yike": {
-                "k": 5,
-                "d": 8,
-                "a": 10
-              },
-              "Kyeahoo": {
-                "k": 6,
-                "d": 4,
-                "a": 16
-              },
-              "Caliste": {
-                "k": 10,
-                "d": 2,
-                "a": 6
-              },
-              "Busio": {
-                "k": 1,
-                "d": 6,
-                "a": 12
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 1",
-          "date": "2026-07-26",
-          "patch": "16.14",
           "teamA": "Team Vitality",
           "teamB": "Movistar KOI",
           "winner": "Team Vitality",
@@ -4821,6 +4880,71 @@
                 "k": 2,
                 "d": 7,
                 "a": 19
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 1",
+          "date": "2026-07-26",
+          "patch": "16.14",
+          "teamA": "G2 Esports",
+          "teamB": "Karmine Corp",
+          "winner": "Karmine Corp",
+          "score": "1-2",
+          "actual": {
+            "G2 Esports": {
+              "BrokenBlade": {
+                "k": 7,
+                "d": 5,
+                "a": 9
+              },
+              "SkewMond": {
+                "k": 6,
+                "d": 4,
+                "a": 11
+              },
+              "Caps": {
+                "k": 6,
+                "d": 9,
+                "a": 8
+              },
+              "Hans Sama": {
+                "k": 5,
+                "d": 3,
+                "a": 5
+              },
+              "Labrov": {
+                "k": 1,
+                "d": 7,
+                "a": 16
+              }
+            },
+            "Karmine Corp": {
+              "Canna": {
+                "k": 6,
+                "d": 5,
+                "a": 10
+              },
+              "Yike": {
+                "k": 5,
+                "d": 8,
+                "a": 10
+              },
+              "Kyeahoo": {
+                "k": 6,
+                "d": 4,
+                "a": 16
+              },
+              "Caliste": {
+                "k": 10,
+                "d": 2,
+                "a": 6
+              },
+              "Busio": {
+                "k": 1,
+                "d": 6,
+                "a": 12
               }
             }
           }
@@ -5087,18 +5211,6 @@
         }
       ],
       "upcoming_matches": [
-        {
-          "date": "2026-08-23T15:00:00Z",
-          "teamA": "Team Heretics",
-          "teamB": "GIANTX",
-          "block": "Week 5"
-        },
-        {
-          "date": "2026-08-23T17:15:00Z",
-          "teamA": "Shifters",
-          "teamB": "Karmine Corp",
-          "block": "Week 5"
-        },
         {
           "date": "2026-08-24T15:00:00Z",
           "teamA": "Natus Vincere",
@@ -5627,11 +5739,11 @@
               "name": "Clear",
               "role": "TOP",
               "cur": {
-                "g": 17,
-                "k": 2.5,
-                "d": 2.5,
-                "a": 5.3,
-                "kp": 48.5
+                "g": 20,
+                "k": 2.7,
+                "d": 2.6,
+                "a": 5.0,
+                "kp": 48.8
               },
               "hist": {
                 "g": 39,
@@ -5645,11 +5757,11 @@
               "name": "Kellin",
               "role": "SUP",
               "cur": {
-                "g": 17,
+                "g": 20,
                 "k": 1.1,
-                "d": 2.6,
-                "a": 12.2,
-                "kp": 81.4
+                "d": 2.8,
+                "a": 12.1,
+                "kp": 81.5
               },
               "hist": {
                 "g": 39,
@@ -5663,11 +5775,11 @@
               "name": "Raptor",
               "role": "JNG",
               "cur": {
-                "g": 17,
-                "k": 4.1,
-                "d": 2.8,
-                "a": 7.7,
-                "kp": 72.2
+                "g": 20,
+                "k": 4.0,
+                "d": 3.2,
+                "a": 7.8,
+                "kp": 72.6
               },
               "hist": {
                 "g": 39,
@@ -5681,11 +5793,11 @@
               "name": "Taeyoon",
               "role": "BOT",
               "cur": {
-                "g": 17,
+                "g": 20,
                 "k": 4.9,
-                "d": 2.7,
-                "a": 6.2,
-                "kp": 65.6
+                "d": 2.9,
+                "a": 5.8,
+                "kp": 64.0
               },
               "hist": {
                 "g": 40,
@@ -5699,11 +5811,11 @@
               "name": "Vicla",
               "role": "MID",
               "cur": {
-                "g": 17,
-                "k": 3.7,
-                "d": 3.2,
+                "g": 20,
+                "k": 3.5,
+                "d": 3.5,
                 "a": 6.9,
-                "kp": 64.3
+                "kp": 63.2
               },
               "hist": {
                 "g": 29,
@@ -5817,11 +5929,11 @@
               "name": "Delight",
               "role": "SUP",
               "cur": {
-                "g": 16,
+                "g": 18,
                 "k": 0.6,
-                "d": 3.4,
-                "a": 11.4,
-                "kp": 79.6
+                "d": 3.1,
+                "a": 11.5,
+                "kp": 79.4
               },
               "hist": {
                 "g": 40,
@@ -5835,11 +5947,11 @@
               "name": "Gumayusi",
               "role": "BOT",
               "cur": {
-                "g": 19,
-                "k": 3.9,
-                "d": 2.8,
-                "a": 5.6,
-                "kp": 67.3
+                "g": 21,
+                "k": 3.7,
+                "d": 2.7,
+                "a": 6.0,
+                "kp": 67.1
               },
               "hist": {
                 "g": 43,
@@ -5853,11 +5965,11 @@
               "name": "Kanavi",
               "role": "JNG",
               "cur": {
-                "g": 19,
-                "k": 2.8,
-                "d": 4.7,
-                "a": 8.1,
-                "kp": 75.7
+                "g": 21,
+                "k": 3.4,
+                "d": 4.3,
+                "a": 7.9,
+                "kp": 76.9
               },
               "hist": {
                 "g": 43,
@@ -5871,11 +5983,11 @@
               "name": "Zeka",
               "role": "MID",
               "cur": {
-                "g": 19,
+                "g": 21,
                 "k": 4.3,
-                "d": 2.3,
-                "a": 6.5,
-                "kp": 73.2
+                "d": 2.1,
+                "a": 6.4,
+                "kp": 72.0
               },
               "hist": {
                 "g": 43,
@@ -5889,11 +6001,11 @@
               "name": "Zeus",
               "role": "TOP",
               "cur": {
-                "g": 19,
-                "k": 3.3,
+                "g": 21,
+                "k": 3.1,
                 "d": 3.2,
-                "a": 5.5,
-                "kp": 58.2
+                "a": 5.6,
+                "kp": 57.3
               },
               "hist": {
                 "g": 43,
@@ -5912,11 +6024,11 @@
               "name": "Diable",
               "role": "BOT",
               "cur": {
-                "g": 17,
-                "k": 4.2,
-                "d": 2.6,
+                "g": 20,
+                "k": 4.7,
+                "d": 2.4,
                 "a": 6.5,
-                "kp": 63.4
+                "kp": 63.5
               },
               "hist": {
                 "g": 38,
@@ -5930,11 +6042,11 @@
               "name": "Lehends",
               "role": "SUP",
               "cur": {
-                "g": 17,
-                "k": 0.9,
+                "g": 20,
+                "k": 1.0,
                 "d": 4.6,
-                "a": 11.2,
-                "kp": 73.4
+                "a": 11.6,
+                "kp": 73.0
               },
               "hist": {
                 "g": 34,
@@ -5948,11 +6060,11 @@
               "name": "Scout",
               "role": "MID",
               "cur": {
-                "g": 17,
-                "k": 5.6,
-                "d": 2.5,
+                "g": 20,
+                "k": 5.5,
+                "d": 2.4,
                 "a": 6.3,
-                "kp": 70.2
+                "kp": 69.2
               },
               "hist": {
                 "g": 41,
@@ -5966,11 +6078,11 @@
               "name": "Sponge",
               "role": "JNG",
               "cur": {
-                "g": 17,
-                "k": 2.6,
-                "d": 3.5,
-                "a": 9.2,
-                "kp": 69.6
+                "g": 20,
+                "k": 2.7,
+                "d": 3.6,
+                "a": 9.1,
+                "kp": 67.8
               },
               "hist": {
                 "g": 41,
@@ -5984,11 +6096,11 @@
               "name": "kingen",
               "role": "TOP",
               "cur": {
-                "g": 17,
-                "k": 3.4,
+                "g": 20,
+                "k": 3.5,
                 "d": 3.3,
-                "a": 5.9,
-                "kp": 56.7
+                "a": 5.4,
+                "kp": 52.8
               },
               "hist": {
                 "g": 41,
@@ -6007,11 +6119,11 @@
               "name": "Doran",
               "role": "TOP",
               "cur": {
-                "g": 17,
-                "k": 3.1,
+                "g": 19,
+                "k": 2.8,
                 "d": 2.9,
-                "a": 4.5,
-                "kp": 52.3
+                "a": 4.3,
+                "kp": 50.9
               },
               "hist": {
                 "g": 40,
@@ -6025,11 +6137,11 @@
               "name": "Faker",
               "role": "MID",
               "cur": {
-                "g": 17,
-                "k": 3.0,
-                "d": 2.8,
-                "a": 5.4,
-                "kp": 59.3
+                "g": 19,
+                "k": 2.7,
+                "d": 2.9,
+                "a": 5.1,
+                "kp": 58.9
               },
               "hist": {
                 "g": 40,
@@ -6043,11 +6155,11 @@
               "name": "Keria",
               "role": "SUP",
               "cur": {
-                "g": 17,
+                "g": 19,
                 "k": 0.7,
                 "d": 2.2,
-                "a": 9.5,
-                "kp": 70.5
+                "a": 8.8,
+                "kp": 71.0
               },
               "hist": {
                 "g": 40,
@@ -6061,11 +6173,11 @@
               "name": "Oner",
               "role": "JNG",
               "cur": {
-                "g": 14,
-                "k": 2.1,
+                "g": 16,
+                "k": 2.0,
                 "d": 3.4,
-                "a": 7.3,
-                "kp": 64.9
+                "a": 6.8,
+                "kp": 66.6
               },
               "hist": {
                 "g": 40,
@@ -6079,11 +6191,11 @@
               "name": "Peyz",
               "role": "BOT",
               "cur": {
-                "g": 17,
-                "k": 5.4,
-                "d": 1.8,
-                "a": 4.9,
-                "kp": 70.9
+                "g": 19,
+                "k": 5.1,
+                "d": 2.1,
+                "a": 4.5,
+                "kp": 69.1
               },
               "hist": {
                 "g": 40,
@@ -6097,6 +6209,266 @@
         }
       },
       "past_matches": [
+        {
+          "week": "Week 13",
+          "date": "2026-08-23",
+          "patch": "16.16",
+          "teamA": "Nongshim RedForce",
+          "teamB": "BNK FearX",
+          "winner": "Nongshim RedForce",
+          "score": "2-1",
+          "actual": {
+            "Nongshim RedForce": {
+              "kingen": {
+                "k": 11,
+                "d": 7,
+                "a": 4
+              },
+              "Sponge": {
+                "k": 5,
+                "d": 9,
+                "a": 19
+              },
+              "Scout": {
+                "k": 9,
+                "d": 4,
+                "a": 13
+              },
+              "Diable": {
+                "k": 16,
+                "d": 3,
+                "a": 11
+              },
+              "Lehends": {
+                "k": 2,
+                "d": 10,
+                "a": 29
+              }
+            },
+            "BNK FearX": {
+              "Clear": {
+                "k": 9,
+                "d": 5,
+                "a": 8
+              },
+              "Raptor": {
+                "k": 7,
+                "d": 11,
+                "a": 22
+              },
+              "Vicla": {
+                "k": 6,
+                "d": 11,
+                "a": 15
+              },
+              "Taeyoon": {
+                "k": 11,
+                "d": 8,
+                "a": 9
+              },
+              "Kellin": {
+                "k": 0,
+                "d": 8,
+                "a": 28
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 13",
+          "date": "2026-08-23",
+          "patch": "16.16",
+          "teamA": "T1",
+          "teamB": "Hanwha Life Esports",
+          "winner": "Hanwha Life Esports",
+          "score": "0-2",
+          "actual": {
+            "T1": {
+              "Doran": {
+                "k": 1,
+                "d": 6,
+                "a": 4
+              },
+              "Oner": {
+                "k": 3,
+                "d": 6,
+                "a": 6
+              },
+              "Faker": {
+                "k": 1,
+                "d": 8,
+                "a": 6
+              },
+              "Peyz": {
+                "k": 5,
+                "d": 9,
+                "a": 1
+              },
+              "Keria": {
+                "k": 2,
+                "d": 5,
+                "a": 7
+              }
+            },
+            "Hanwha Life Esports": {
+              "Zeus": {
+                "k": 4,
+                "d": 6,
+                "a": 13
+              },
+              "Kanavi": {
+                "k": 18,
+                "d": 1,
+                "a": 12
+              },
+              "Zeka": {
+                "k": 8,
+                "d": 2,
+                "a": 12
+              },
+              "Gumayusi": {
+                "k": 3,
+                "d": 2,
+                "a": 19
+              },
+              "Delight": {
+                "k": 1,
+                "d": 1,
+                "a": 25
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 13",
+          "date": "2026-08-21",
+          "patch": "16.16",
+          "teamA": "T1",
+          "teamB": "KT Rolster",
+          "winner": "T1",
+          "score": "2-1",
+          "actual": {
+            "T1": {
+              "Doran": {
+                "k": 4,
+                "d": 6,
+                "a": 11
+              },
+              "Oner": {
+                "k": 1,
+                "d": 12,
+                "a": 17
+              },
+              "Faker": {
+                "k": 8,
+                "d": 4,
+                "a": 14
+              },
+              "Peyz": {
+                "k": 17,
+                "d": 2,
+                "a": 10
+              },
+              "Keria": {
+                "k": 0,
+                "d": 4,
+                "a": 29
+              }
+            },
+            "KT Rolster": {
+              "PerfecT": {
+                "k": 2,
+                "d": 6,
+                "a": 10
+              },
+              "Cuzz": {
+                "k": 8,
+                "d": 7,
+                "a": 17
+              },
+              "Bdd": {
+                "k": 12,
+                "d": 6,
+                "a": 11
+              },
+              "Jiwoo": {
+                "k": 6,
+                "d": 5,
+                "a": 17
+              },
+              "Effort": {
+                "k": 0,
+                "d": 6,
+                "a": 22
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 13",
+          "date": "2026-08-22",
+          "patch": "16.16",
+          "teamA": "Kiwoom DRX",
+          "teamB": "DN SOOPers",
+          "winner": "DN SOOPers",
+          "score": "0-2",
+          "actual": {
+            "Kiwoom DRX": {
+              "Frog": {
+                "k": 6,
+                "d": 8,
+                "a": 6
+              },
+              "Willer": {
+                "k": 3,
+                "d": 7,
+                "a": 9
+              },
+              "Ucal": {
+                "k": 3,
+                "d": 5,
+                "a": 9
+              },
+              "Aiming": {
+                "k": 6,
+                "d": 8,
+                "a": 3
+              },
+              "Andil": {
+                "k": 0,
+                "d": 1,
+                "a": 12
+              }
+            },
+            "DN SOOPers": {
+              "DuDu": {
+                "k": 3,
+                "d": 7,
+                "a": 9
+              },
+              "Sharvel": {
+                "k": 9,
+                "d": 2,
+                "a": 14
+              },
+              "Clozer": {
+                "k": 9,
+                "d": 3,
+                "a": 17
+              },
+              "deokdam": {
+                "k": 10,
+                "d": 3,
+                "a": 10
+              },
+              "Peter": {
+                "k": 0,
+                "d": 3,
+                "a": 24
+              }
+            }
+          }
+        },
         {
           "week": "Week 13",
           "date": "2026-08-22",
@@ -6223,71 +6595,6 @@
                 "k": 0,
                 "d": 5,
                 "a": 20
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 13",
-          "date": "2026-08-21",
-          "patch": "16.16",
-          "teamA": "T1",
-          "teamB": "KT Rolster",
-          "winner": "T1",
-          "score": "2-1",
-          "actual": {
-            "T1": {
-              "Doran": {
-                "k": 4,
-                "d": 6,
-                "a": 11
-              },
-              "Oner": {
-                "k": 1,
-                "d": 12,
-                "a": 17
-              },
-              "Faker": {
-                "k": 8,
-                "d": 4,
-                "a": 14
-              },
-              "Peyz": {
-                "k": 17,
-                "d": 2,
-                "a": 10
-              },
-              "Keria": {
-                "k": 0,
-                "d": 4,
-                "a": 29
-              }
-            },
-            "KT Rolster": {
-              "PerfecT": {
-                "k": 2,
-                "d": 6,
-                "a": 10
-              },
-              "Cuzz": {
-                "k": 8,
-                "d": 7,
-                "a": 17
-              },
-              "Bdd": {
-                "k": 12,
-                "d": 6,
-                "a": 11
-              },
-              "Jiwoo": {
-                "k": 6,
-                "d": 5,
-                "a": 17
-              },
-              "Effort": {
-                "k": 0,
-                "d": 6,
-                "a": 22
               }
             }
           }
@@ -6424,71 +6731,6 @@
         },
         {
           "week": "Week 13",
-          "date": "2026-08-22",
-          "patch": "16.16",
-          "teamA": "Kiwoom DRX",
-          "teamB": "DN SOOPers",
-          "winner": "DN SOOPers",
-          "score": "0-2",
-          "actual": {
-            "Kiwoom DRX": {
-              "Frog": {
-                "k": 6,
-                "d": 8,
-                "a": 6
-              },
-              "Willer": {
-                "k": 3,
-                "d": 7,
-                "a": 9
-              },
-              "Ucal": {
-                "k": 3,
-                "d": 5,
-                "a": 9
-              },
-              "Aiming": {
-                "k": 6,
-                "d": 8,
-                "a": 3
-              },
-              "Andil": {
-                "k": 0,
-                "d": 1,
-                "a": 12
-              }
-            },
-            "DN SOOPers": {
-              "DuDu": {
-                "k": 3,
-                "d": 7,
-                "a": 9
-              },
-              "Sharvel": {
-                "k": 9,
-                "d": 2,
-                "a": 14
-              },
-              "Clozer": {
-                "k": 9,
-                "d": 3,
-                "a": 17
-              },
-              "deokdam": {
-                "k": 10,
-                "d": 3,
-                "a": 10
-              },
-              "Peter": {
-                "k": 0,
-                "d": 3,
-                "a": 24
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 13",
           "date": "2026-08-19",
           "patch": "16.16",
           "teamA": "DN SOOPers",
@@ -6548,71 +6790,6 @@
                 "k": 2,
                 "d": 2,
                 "a": 30
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 13",
-          "date": "2026-08-19",
-          "patch": "16.16",
-          "teamA": "Gen.G",
-          "teamB": "KT Rolster",
-          "winner": "Gen.G",
-          "score": "2-1",
-          "actual": {
-            "Gen.G": {
-              "Kiin": {
-                "k": 6,
-                "d": 4,
-                "a": 2
-              },
-              "Canyon": {
-                "k": 4,
-                "d": 6,
-                "a": 11
-              },
-              "Chovy": {
-                "k": 1,
-                "d": 2,
-                "a": 8
-              },
-              "Ruler": {
-                "k": 6,
-                "d": 5,
-                "a": 8
-              },
-              "Duro": {
-                "k": 2,
-                "d": 3,
-                "a": 14
-              }
-            },
-            "KT Rolster": {
-              "PerfecT": {
-                "k": 4,
-                "d": 3,
-                "a": 7
-              },
-              "Cuzz": {
-                "k": 3,
-                "d": 4,
-                "a": 10
-              },
-              "Bdd": {
-                "k": 7,
-                "d": 4,
-                "a": 8
-              },
-              "Jiwoo": {
-                "k": 4,
-                "d": 3,
-                "a": 10
-              },
-              "Effort": {
-                "k": 2,
-                "d": 5,
-                "a": 14
               }
             }
           }
@@ -6748,66 +6925,66 @@
           }
         },
         {
-          "week": "Week 12",
-          "date": "2026-08-15",
-          "patch": "16.15",
-          "teamA": "KT Rolster",
-          "teamB": "Hanwha Life Esports",
-          "winner": "Hanwha Life Esports",
-          "score": "1-2",
+          "week": "Week 13",
+          "date": "2026-08-19",
+          "patch": "16.16",
+          "teamA": "Gen.G",
+          "teamB": "KT Rolster",
+          "winner": "Gen.G",
+          "score": "2-1",
           "actual": {
-            "KT Rolster": {
-              "PerfecT": {
-                "k": 1,
+            "Gen.G": {
+              "Kiin": {
+                "k": 6,
                 "d": 4,
-                "a": 16
+                "a": 2
               },
-              "Cuzz": {
-                "k": 7,
-                "d": 6,
-                "a": 19
-              },
-              "Bdd": {
-                "k": 10,
-                "d": 5,
-                "a": 12
-              },
-              "Jiwoo": {
-                "k": 10,
-                "d": 6,
-                "a": 13
-              },
-              "Effort": {
+              "Canyon": {
                 "k": 4,
-                "d": 3,
-                "a": 25
-              }
-            },
-            "Hanwha Life Esports": {
-              "Zeus": {
-                "k": 5,
                 "d": 6,
-                "a": 6
+                "a": 11
               },
-              "Kanavi": {
-                "k": 3,
-                "d": 9,
-                "a": 14
+              "Chovy": {
+                "k": 1,
+                "d": 2,
+                "a": 8
               },
-              "Zeka": {
-                "k": 9,
-                "d": 7,
-                "a": 7
-              },
-              "Gumayusi": {
+              "Ruler": {
                 "k": 6,
                 "d": 5,
-                "a": 14
+                "a": 8
               },
-              "Bluffing": {
-                "k": 1,
+              "Duro": {
+                "k": 2,
+                "d": 3,
+                "a": 14
+              }
+            },
+            "KT Rolster": {
+              "PerfecT": {
+                "k": 4,
+                "d": 3,
+                "a": 7
+              },
+              "Cuzz": {
+                "k": 3,
+                "d": 4,
+                "a": 10
+              },
+              "Bdd": {
+                "k": 7,
+                "d": 4,
+                "a": 8
+              },
+              "Jiwoo": {
+                "k": 4,
+                "d": 3,
+                "a": 10
+              },
+              "Effort": {
+                "k": 2,
                 "d": 5,
-                "a": 21
+                "a": 14
               }
             }
           }
@@ -7009,65 +7186,130 @@
         },
         {
           "week": "Week 12",
-          "date": "2026-08-12",
+          "date": "2026-08-15",
           "patch": "16.15",
-          "teamA": "Dplus KIA",
-          "teamB": "KT Rolster",
-          "winner": "Dplus KIA",
-          "score": "2-0",
+          "teamA": "KT Rolster",
+          "teamB": "Hanwha Life Esports",
+          "winner": "Hanwha Life Esports",
+          "score": "1-2",
           "actual": {
-            "Dplus KIA": {
-              "Siwoo": {
-                "k": 8,
-                "d": 3,
-                "a": 9
-              },
-              "Lucid": {
-                "k": 2,
-                "d": 2,
-                "a": 20
-              },
-              "ShowMaker": {
-                "k": 7,
-                "d": 4,
-                "a": 10
-              },
-              "Smash": {
-                "k": 12,
-                "d": 0,
-                "a": 9
-              },
-              "Career": {
-                "k": 4,
-                "d": 5,
-                "a": 19
-              }
-            },
             "KT Rolster": {
               "PerfecT": {
-                "k": 5,
-                "d": 7,
-                "a": 4
+                "k": 1,
+                "d": 4,
+                "a": 16
               },
               "Cuzz": {
-                "k": 3,
-                "d": 7,
-                "a": 7
+                "k": 7,
+                "d": 6,
+                "a": 19
               },
               "Bdd": {
-                "k": 3,
+                "k": 10,
+                "d": 5,
+                "a": 12
+              },
+              "Jiwoo": {
+                "k": 10,
+                "d": 6,
+                "a": 13
+              },
+              "Effort": {
+                "k": 4,
+                "d": 3,
+                "a": 25
+              }
+            },
+            "Hanwha Life Esports": {
+              "Zeus": {
+                "k": 5,
                 "d": 6,
                 "a": 6
               },
-              "Jiwoo": {
+              "Kanavi": {
+                "k": 3,
+                "d": 9,
+                "a": 14
+              },
+              "Zeka": {
+                "k": 9,
+                "d": 7,
+                "a": 7
+              },
+              "Gumayusi": {
+                "k": 6,
+                "d": 5,
+                "a": 14
+              },
+              "Bluffing": {
+                "k": 1,
+                "d": 5,
+                "a": 21
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 12",
+          "date": "2026-08-13",
+          "patch": "16.15",
+          "teamA": "Hanwha Life Esports",
+          "teamB": "Gen.G",
+          "winner": "Gen.G",
+          "score": "0-2",
+          "actual": {
+            "Hanwha Life Esports": {
+              "Zeus": {
                 "k": 3,
                 "d": 7,
-                "a": 3
+                "a": 17
               },
-              "Effort": {
+              "Kanavi": {
+                "k": 12,
+                "d": 9,
+                "a": 14
+              },
+              "Zeka": {
+                "k": 7,
+                "d": 9,
+                "a": 16
+              },
+              "Gumayusi": {
+                "k": 4,
+                "d": 6,
+                "a": 12
+              },
+              "Delight": {
+                "k": 3,
+                "d": 5,
+                "a": 22
+              }
+            },
+            "Gen.G": {
+              "Kiin": {
+                "k": 7,
+                "d": 7,
+                "a": 13
+              },
+              "Canyon": {
+                "k": 8,
+                "d": 3,
+                "a": 19
+              },
+              "Chovy": {
+                "k": 14,
+                "d": 8,
+                "a": 14
+              },
+              "Ruler": {
+                "k": 7,
+                "d": 5,
+                "a": 18
+              },
+              "Duro": {
                 "k": 0,
                 "d": 6,
-                "a": 9
+                "a": 31
               }
             }
           }
@@ -7139,65 +7381,65 @@
         },
         {
           "week": "Week 12",
-          "date": "2026-08-13",
+          "date": "2026-08-12",
           "patch": "16.15",
-          "teamA": "Hanwha Life Esports",
-          "teamB": "Gen.G",
-          "winner": "Gen.G",
-          "score": "0-2",
+          "teamA": "Dplus KIA",
+          "teamB": "KT Rolster",
+          "winner": "Dplus KIA",
+          "score": "2-0",
           "actual": {
-            "Hanwha Life Esports": {
-              "Zeus": {
-                "k": 3,
-                "d": 7,
-                "a": 17
-              },
-              "Kanavi": {
-                "k": 12,
-                "d": 9,
-                "a": 14
-              },
-              "Zeka": {
-                "k": 7,
-                "d": 9,
-                "a": 16
-              },
-              "Gumayusi": {
-                "k": 4,
-                "d": 6,
-                "a": 12
-              },
-              "Delight": {
-                "k": 3,
-                "d": 5,
-                "a": 22
-              }
-            },
-            "Gen.G": {
-              "Kiin": {
-                "k": 7,
-                "d": 7,
-                "a": 13
-              },
-              "Canyon": {
+            "Dplus KIA": {
+              "Siwoo": {
                 "k": 8,
                 "d": 3,
-                "a": 19
+                "a": 9
               },
-              "Chovy": {
-                "k": 14,
-                "d": 8,
-                "a": 14
+              "Lucid": {
+                "k": 2,
+                "d": 2,
+                "a": 20
               },
-              "Ruler": {
+              "ShowMaker": {
                 "k": 7,
-                "d": 5,
-                "a": 18
+                "d": 4,
+                "a": 10
               },
-              "Duro": {
+              "Smash": {
+                "k": 12,
+                "d": 0,
+                "a": 9
+              },
+              "Career": {
+                "k": 4,
+                "d": 5,
+                "a": 19
+              }
+            },
+            "KT Rolster": {
+              "PerfecT": {
+                "k": 5,
+                "d": 7,
+                "a": 4
+              },
+              "Cuzz": {
+                "k": 3,
+                "d": 7,
+                "a": 7
+              },
+              "Bdd": {
+                "k": 3,
+                "d": 6,
+                "a": 6
+              },
+              "Jiwoo": {
+                "k": 3,
+                "d": 7,
+                "a": 3
+              },
+              "Effort": {
                 "k": 0,
                 "d": 6,
-                "a": 31
+                "a": 9
               }
             }
           }
@@ -7661,71 +7903,6 @@
           "week": "Week 11",
           "date": "2026-08-06",
           "patch": "16.15",
-          "teamA": "T1",
-          "teamB": "Dplus KIA",
-          "winner": "T1",
-          "score": "2-0",
-          "actual": {
-            "T1": {
-              "Doran": {
-                "k": 9,
-                "d": 4,
-                "a": 6
-              },
-              "Oner": {
-                "k": 3,
-                "d": 1,
-                "a": 18
-              },
-              "Faker": {
-                "k": 7,
-                "d": 1,
-                "a": 6
-              },
-              "Peyz": {
-                "k": 18,
-                "d": 3,
-                "a": 8
-              },
-              "Keria": {
-                "k": 0,
-                "d": 2,
-                "a": 25
-              }
-            },
-            "Dplus KIA": {
-              "Siwoo": {
-                "k": 5,
-                "d": 5,
-                "a": 2
-              },
-              "Lucid": {
-                "k": 1,
-                "d": 10,
-                "a": 3
-              },
-              "ShowMaker": {
-                "k": 3,
-                "d": 7,
-                "a": 1
-              },
-              "Smash": {
-                "k": 2,
-                "d": 6,
-                "a": 1
-              },
-              "Career": {
-                "k": 0,
-                "d": 9,
-                "a": 6
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 11",
-          "date": "2026-08-06",
-          "patch": "16.15",
           "teamA": "Kiwoom DRX",
           "teamB": "DN SOOPers",
           "winner": "Kiwoom DRX",
@@ -7783,6 +7960,71 @@
                 "k": 0,
                 "d": 14,
                 "a": 12
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 11",
+          "date": "2026-08-06",
+          "patch": "16.15",
+          "teamA": "T1",
+          "teamB": "Dplus KIA",
+          "winner": "T1",
+          "score": "2-0",
+          "actual": {
+            "T1": {
+              "Doran": {
+                "k": 9,
+                "d": 4,
+                "a": 6
+              },
+              "Oner": {
+                "k": 3,
+                "d": 1,
+                "a": 18
+              },
+              "Faker": {
+                "k": 7,
+                "d": 1,
+                "a": 6
+              },
+              "Peyz": {
+                "k": 18,
+                "d": 3,
+                "a": 8
+              },
+              "Keria": {
+                "k": 0,
+                "d": 2,
+                "a": 25
+              }
+            },
+            "Dplus KIA": {
+              "Siwoo": {
+                "k": 5,
+                "d": 5,
+                "a": 2
+              },
+              "Lucid": {
+                "k": 1,
+                "d": 10,
+                "a": 3
+              },
+              "ShowMaker": {
+                "k": 3,
+                "d": 7,
+                "a": 1
+              },
+              "Smash": {
+                "k": 2,
+                "d": 6,
+                "a": 1
+              },
+              "Career": {
+                "k": 0,
+                "d": 9,
+                "a": 6
               }
             }
           }
@@ -8051,71 +8293,6 @@
           "week": "Week 10",
           "date": "2026-08-01",
           "patch": "16.14",
-          "teamA": "Gen.G",
-          "teamB": "Dplus KIA",
-          "winner": "Dplus KIA",
-          "score": "1-1",
-          "actual": {
-            "Gen.G": {
-              "Siwoo": {
-                "k": 0,
-                "d": 1,
-                "a": 1
-              },
-              "Lucid": {
-                "k": 1,
-                "d": 0,
-                "a": 5
-              },
-              "ShowMaker": {
-                "k": 3,
-                "d": 1,
-                "a": 2
-              },
-              "Smash": {
-                "k": 3,
-                "d": 0,
-                "a": 2
-              },
-              "Career": {
-                "k": 0,
-                "d": 0,
-                "a": 7
-              }
-            },
-            "Dplus KIA": {
-              "Kiin": {
-                "k": 0,
-                "d": 2,
-                "a": 2
-              },
-              "Canyon": {
-                "k": 1,
-                "d": 2,
-                "a": 0
-              },
-              "Chovy": {
-                "k": 1,
-                "d": 1,
-                "a": 0
-              },
-              "Ruler": {
-                "k": 0,
-                "d": 1,
-                "a": 1
-              },
-              "Duro": {
-                "k": 0,
-                "d": 1,
-                "a": 2
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 10",
-          "date": "2026-08-01",
-          "patch": "16.14",
           "teamA": "Nongshim RedForce",
           "teamB": "BNK FearX",
           "winner": "Nongshim RedForce",
@@ -8173,6 +8350,71 @@
                 "k": 2,
                 "d": 7,
                 "a": 32
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 10",
+          "date": "2026-08-01",
+          "patch": "16.14",
+          "teamA": "Gen.G",
+          "teamB": "Dplus KIA",
+          "winner": "Dplus KIA",
+          "score": "1-1",
+          "actual": {
+            "Gen.G": {
+              "Siwoo": {
+                "k": 0,
+                "d": 1,
+                "a": 1
+              },
+              "Lucid": {
+                "k": 1,
+                "d": 0,
+                "a": 5
+              },
+              "ShowMaker": {
+                "k": 3,
+                "d": 1,
+                "a": 2
+              },
+              "Smash": {
+                "k": 3,
+                "d": 0,
+                "a": 2
+              },
+              "Career": {
+                "k": 0,
+                "d": 0,
+                "a": 7
+              }
+            },
+            "Dplus KIA": {
+              "Kiin": {
+                "k": 0,
+                "d": 2,
+                "a": 2
+              },
+              "Canyon": {
+                "k": 1,
+                "d": 2,
+                "a": 0
+              },
+              "Chovy": {
+                "k": 1,
+                "d": 1,
+                "a": 0
+              },
+              "Ruler": {
+                "k": 0,
+                "d": 1,
+                "a": 1
+              },
+              "Duro": {
+                "k": 0,
+                "d": 1,
+                "a": 2
               }
             }
           }
@@ -8568,14 +8810,7 @@
           }
         }
       ],
-      "upcoming_matches": [
-        {
-          "date": "2026-08-23T10:00:00Z",
-          "teamA": "BNK FearX",
-          "teamB": "Nongshim RedForce",
-          "block": "Week 13"
-        }
-      ]
+      "upcoming_matches": []
     },
     "LPL": {
       "teams": {
@@ -8770,11 +9005,11 @@
               "name": "Ahn",
               "role": "BOT",
               "cur": {
-                "g": 34,
-                "k": 3.1,
-                "d": 3.4,
-                "a": 6.2,
-                "kp": 66.3
+                "g": 36,
+                "k": 3.0,
+                "d": 3.5,
+                "a": 6.3,
+                "kp": 66.6
               },
               "hist": {
                 "g": 14,
@@ -8788,11 +9023,11 @@
               "name": "Feather",
               "role": "SUP",
               "cur": {
-                "g": 34,
+                "g": 36,
                 "k": 0.9,
-                "d": 3.7,
-                "a": 9.5,
-                "kp": 71.7
+                "d": 3.8,
+                "a": 9.4,
+                "kp": 71.2
               },
               "hist": {
                 "g": 14,
@@ -8806,11 +9041,11 @@
               "name": "Heru",
               "role": "MID",
               "cur": {
-                "g": 34,
-                "k": 3.1,
-                "d": 3.4,
-                "a": 6.6,
-                "kp": 66.0
+                "g": 36,
+                "k": 3.2,
+                "d": 3.6,
+                "a": 6.5,
+                "kp": 66.5
               },
               "hist": {
                 "g": 14,
@@ -8824,11 +9059,11 @@
               "name": "Junhao",
               "role": "JNG",
               "cur": {
-                "g": 34,
+                "g": 36,
                 "k": 3.8,
-                "d": 3.2,
+                "d": 3.4,
                 "a": 6.7,
-                "kp": 74.4
+                "kp": 74.5
               },
               "hist": {
                 "g": 14,
@@ -8842,11 +9077,11 @@
               "name": "Keshi",
               "role": "TOP",
               "cur": {
-                "g": 34,
+                "g": 36,
                 "k": 3.1,
                 "d": 3.8,
                 "a": 3.8,
-                "kp": 49.2
+                "kp": 48.6
               },
               "hist": {
                 "g": 14,
@@ -8883,11 +9118,11 @@
               "name": "Knight",
               "role": "MID",
               "cur": {
-                "g": 32,
+                "g": 35,
                 "k": 6.1,
                 "d": 2.4,
                 "a": 7.0,
-                "kp": 67.0
+                "kp": 66.9
               },
               "hist": {
                 "g": 32,
@@ -8901,11 +9136,11 @@
               "name": "ON",
               "role": "SUP",
               "cur": {
-                "g": 32,
-                "k": 1.1,
-                "d": 3.8,
-                "a": 13.2,
-                "kp": 74.5
+                "g": 35,
+                "k": 1.2,
+                "d": 4.1,
+                "a": 13.3,
+                "kp": 75.0
               },
               "hist": {
                 "g": 32,
@@ -8919,11 +9154,11 @@
               "name": "Viper",
               "role": "BOT",
               "cur": {
-                "g": 32,
-                "k": 5.6,
+                "g": 35,
+                "k": 5.5,
                 "d": 2.5,
                 "a": 7.0,
-                "kp": 65.3
+                "kp": 64.6
               },
               "hist": {
                 "g": 32,
@@ -8937,11 +9172,11 @@
               "name": "XUN",
               "role": "JNG",
               "cur": {
-                "g": 32,
-                "k": 3.9,
-                "d": 2.7,
-                "a": 9.8,
-                "kp": 69.1
+                "g": 35,
+                "k": 4.0,
+                "d": 2.8,
+                "a": 9.7,
+                "kp": 68.8
               },
               "hist": {
                 "g": 32,
@@ -8960,11 +9195,11 @@
               "name": "Breathe",
               "role": "TOP",
               "cur": {
-                "g": 33,
+                "g": 36,
                 "k": 3.5,
-                "d": 2.1,
-                "a": 5.8,
-                "kp": 51.9
+                "d": 2.3,
+                "a": 5.9,
+                "kp": 51.8
               },
               "hist": {
                 "g": 35,
@@ -8978,10 +9213,10 @@
               "name": "Hope",
               "role": "BOT",
               "cur": {
-                "g": 33,
-                "k": 4.5,
-                "d": 1.9,
-                "a": 6.8,
+                "g": 36,
+                "k": 4.6,
+                "d": 2.1,
+                "a": 6.7,
                 "kp": 63.0
               },
               "hist": {
@@ -8996,11 +9231,11 @@
               "name": "Kael",
               "role": "SUP",
               "cur": {
-                "g": 33,
-                "k": 0.6,
-                "d": 2.9,
-                "a": 12.5,
-                "kp": 74.3
+                "g": 36,
+                "k": 0.7,
+                "d": 2.8,
+                "a": 12.6,
+                "kp": 75.0
               },
               "hist": {
                 "g": 31,
@@ -9014,11 +9249,11 @@
               "name": "Shanks",
               "role": "MID",
               "cur": {
-                "g": 33,
-                "k": 4.8,
-                "d": 2.4,
-                "a": 7.3,
-                "kp": 70.7
+                "g": 36,
+                "k": 4.6,
+                "d": 2.6,
+                "a": 7.2,
+                "kp": 68.8
               },
               "hist": {
                 "g": 31,
@@ -9032,11 +9267,11 @@
               "name": "Tarzan",
               "role": "JNG",
               "cur": {
-                "g": 33,
-                "k": 4.3,
-                "d": 2.2,
-                "a": 9.5,
-                "kp": 78.1
+                "g": 36,
+                "k": 4.4,
+                "d": 2.4,
+                "a": 9.4,
+                "kp": 77.2
               },
               "hist": {
                 "g": 31,
@@ -9055,11 +9290,11 @@
               "name": "Bulldog",
               "role": "MID",
               "cur": {
-                "g": 26,
-                "k": 3.0,
+                "g": 29,
+                "k": 2.9,
                 "d": 3.1,
                 "a": 4.2,
-                "kp": 57.4
+                "kp": 56.8
               },
               "hist": {
                 "g": 13,
@@ -9073,11 +9308,11 @@
               "name": "Jiejie",
               "role": "JNG",
               "cur": {
-                "g": 22,
+                "g": 25,
                 "k": 2.7,
-                "d": 3.7,
-                "a": 6.0,
-                "kp": 73.3
+                "d": 3.6,
+                "a": 5.9,
+                "kp": 73.5
               },
               "hist": {
                 "g": 35,
@@ -9091,11 +9326,11 @@
               "name": "Leave",
               "role": "BOT",
               "cur": {
-                "g": 28,
-                "k": 2.7,
+                "g": 31,
+                "k": 2.6,
                 "d": 3.6,
-                "a": 4.8,
-                "kp": 62.9
+                "a": 4.6,
+                "kp": 61.5
               },
               "hist": {
                 "g": 14,
@@ -9109,11 +9344,11 @@
               "name": "Parukia",
               "role": "SUP",
               "cur": {
-                "g": 28,
+                "g": 31,
                 "k": 0.7,
-                "d": 4.7,
-                "a": 7.7,
-                "kp": 69.5
+                "d": 4.6,
+                "a": 7.5,
+                "kp": 68.5
               },
               "hist": null
             },
@@ -9121,11 +9356,11 @@
               "name": "Zdz",
               "role": "TOP",
               "cur": {
-                "g": 28,
-                "k": 2.5,
-                "d": 4.5,
-                "a": 4.4,
-                "kp": 58.4
+                "g": 31,
+                "k": 2.6,
+                "d": 4.4,
+                "a": 4.1,
+                "kp": 55.4
               },
               "hist": {
                 "g": 14,
@@ -9144,11 +9379,11 @@
               "name": "Burdol",
               "role": "TOP",
               "cur": {
-                "g": 33,
+                "g": 35,
                 "k": 2.6,
                 "d": 2.6,
-                "a": 4.8,
-                "kp": 49.3
+                "a": 5.0,
+                "kp": 48.6
               },
               "hist": {
                 "g": 12,
@@ -9162,11 +9397,11 @@
               "name": "Crisp",
               "role": "SUP",
               "cur": {
-                "g": 33,
+                "g": 35,
                 "k": 0.5,
-                "d": 2.8,
-                "a": 10.2,
-                "kp": 72.8
+                "d": 2.9,
+                "a": 10.7,
+                "kp": 72.5
               },
               "hist": null
             },
@@ -9174,11 +9409,11 @@
               "name": "Heng",
               "role": "JNG",
               "cur": {
-                "g": 33,
-                "k": 3.4,
+                "g": 35,
+                "k": 3.5,
                 "d": 2.7,
-                "a": 7.3,
-                "kp": 73.4
+                "a": 7.9,
+                "kp": 73.5
               },
               "hist": {
                 "g": 12,
@@ -9192,11 +9427,11 @@
               "name": "Shaoye",
               "role": "BOT",
               "cur": {
-                "g": 33,
-                "k": 3.6,
+                "g": 35,
+                "k": 3.7,
                 "d": 2.8,
-                "a": 5.6,
-                "kp": 61.7
+                "a": 5.8,
+                "kp": 61.0
               },
               "hist": {
                 "g": 12,
@@ -9210,11 +9445,11 @@
               "name": "Tangyuan",
               "role": "MID",
               "cur": {
-                "g": 33,
-                "k": 4.4,
-                "d": 2.2,
-                "a": 5.6,
-                "kp": 66.2
+                "g": 35,
+                "k": 5.0,
+                "d": 2.1,
+                "a": 5.8,
+                "kp": 67.4
               },
               "hist": {
                 "g": 12,
@@ -9518,11 +9753,11 @@
               "name": "GALA",
               "role": "BOT",
               "cur": {
-                "g": 34,
+                "g": 37,
                 "k": 4.4,
                 "d": 2.1,
                 "a": 5.5,
-                "kp": 65.6
+                "kp": 64.6
               },
               "hist": {
                 "g": 35,
@@ -9536,11 +9771,11 @@
               "name": "HongQ",
               "role": "MID",
               "cur": {
-                "g": 34,
-                "k": 4.1,
+                "g": 37,
+                "k": 4.2,
                 "d": 2.9,
-                "a": 6.3,
-                "kp": 71.2
+                "a": 6.1,
+                "kp": 69.8
               },
               "hist": {
                 "g": 35,
@@ -9572,11 +9807,11 @@
               "name": "Vampire",
               "role": "SUP",
               "cur": {
-                "g": 34,
+                "g": 37,
                 "k": 0.4,
                 "d": 3.4,
-                "a": 10.6,
-                "kp": 75.1
+                "a": 10.7,
+                "kp": 74.7
               },
               "hist": {
                 "g": 35,
@@ -9590,11 +9825,11 @@
               "name": "Xiaoxu",
               "role": "TOP",
               "cur": {
-                "g": 34,
+                "g": 37,
                 "k": 2.9,
-                "d": 3.0,
+                "d": 2.8,
                 "a": 5.0,
-                "kp": 53.6
+                "kp": 53.5
               },
               "hist": {
                 "g": 35,
@@ -9693,65 +9928,195 @@
       "past_matches": [
         {
           "week": "Week 5",
-          "date": "2026-08-21",
+          "date": "2026-08-23",
+          "patch": "16.16",
+          "teamA": "JD Gaming",
+          "teamB": "EDward Gaming",
+          "winner": "JD Gaming",
+          "score": "2-1",
+          "actual": {
+            "JD Gaming": {
+              "Xiaoxu": {
+                "k": 7,
+                "d": 3,
+                "a": 8
+              },
+              "xiaofang": {
+                "k": 6,
+                "d": 6,
+                "a": 10
+              },
+              "HongQ": {
+                "k": 6,
+                "d": 5,
+                "a": 5
+              },
+              "GALA": {
+                "k": 5,
+                "d": 6,
+                "a": 9
+              },
+              "Vampire": {
+                "k": 0,
+                "d": 7,
+                "a": 16
+              }
+            },
+            "EDward Gaming": {
+              "Zdz": {
+                "k": 10,
+                "d": 6,
+                "a": 4
+              },
+              "Jiejie": {
+                "k": 5,
+                "d": 4,
+                "a": 14
+              },
+              "Bulldog": {
+                "k": 4,
+                "d": 4,
+                "a": 9
+              },
+              "Leave": {
+                "k": 6,
+                "d": 4,
+                "a": 9
+              },
+              "Parukia": {
+                "k": 2,
+                "d": 6,
+                "a": 15
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 5",
+          "date": "2026-08-23",
+          "patch": "16.16",
+          "teamA": "LGD Gaming",
+          "teamB": "ThunderTalk Gaming",
+          "winner": "LGD Gaming",
+          "score": "2-0",
+          "actual": {
+            "LGD Gaming": {
+              "Burdol": {
+                "k": 5,
+                "d": 6,
+                "a": 15
+              },
+              "Heng": {
+                "k": 8,
+                "d": 5,
+                "a": 34
+              },
+              "Tangyuan": {
+                "k": 29,
+                "d": 3,
+                "a": 18
+              },
+              "Shaoye": {
+                "k": 12,
+                "d": 6,
+                "a": 17
+              },
+              "Crisp": {
+                "k": 1,
+                "d": 7,
+                "a": 37
+              }
+            },
+            "ThunderTalk Gaming": {
+              "Keshi": {
+                "k": 6,
+                "d": 8,
+                "a": 6
+              },
+              "Junhao": {
+                "k": 6,
+                "d": 12,
+                "a": 13
+              },
+              "Heru": {
+                "k": 10,
+                "d": 14,
+                "a": 10
+              },
+              "Ahn": {
+                "k": 2,
+                "d": 11,
+                "a": 16
+              },
+              "Feather": {
+                "k": 3,
+                "d": 10,
+                "a": 15
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 5",
+          "date": "2026-08-23",
           "patch": "16.16",
           "teamA": "Anyone s Legend",
-          "teamB": "Team WE",
-          "winner": "Team WE",
+          "teamB": "Bilibili Gaming",
+          "winner": "Bilibili Gaming",
           "score": "1-2",
           "actual": {
             "Anyone s Legend": {
               "Breathe": {
-                "k": 9,
-                "d": 6,
-                "a": 7
+                "k": 8,
+                "d": 8,
+                "a": 17
               },
               "Tarzan": {
-                "k": 7,
-                "d": 6,
+                "k": 12,
+                "d": 10,
                 "a": 19
               },
               "Shanks": {
-                "k": 12,
-                "d": 5,
-                "a": 17
+                "k": 7,
+                "d": 9,
+                "a": 14
               },
               "Hope": {
-                "k": 4,
-                "d": 5,
-                "a": 17
+                "k": 10,
+                "d": 6,
+                "a": 15
               },
               "Kael": {
-                "k": 2,
-                "d": 3,
-                "a": 26
+                "k": 3,
+                "d": 4,
+                "a": 31
               }
             },
-            "Team WE": {
-              "Cube": {
-                "k": 4,
-                "d": 7,
+            "Bilibili Gaming": {
+              "Flandre": {
+                "k": 3,
+                "d": 6,
                 "a": 12
               },
-              "Monki": {
-                "k": 9,
-                "d": 9,
-                "a": 11
-              },
-              "Karis": {
-                "k": 6,
-                "d": 5,
-                "a": 9
-              },
-              "About": {
-                "k": 5,
-                "d": 6,
-                "a": 11
-              },
-              "Erha": {
-                "k": 1,
+              "XUN": {
+                "k": 10,
                 "d": 7,
-                "a": 21
+                "a": 15
+              },
+              "Knight": {
+                "k": 8,
+                "d": 5,
+                "a": 15
+              },
+              "Viper": {
+                "k": 12,
+                "d": 8,
+                "a": 10
+              },
+              "ON": {
+                "k": 4,
+                "d": 14,
+                "a": 29
               }
             }
           }
@@ -9825,6 +10190,71 @@
           "week": "Week 5",
           "date": "2026-08-22",
           "patch": "16.16",
+          "teamA": "LGD Gaming",
+          "teamB": "Team WE",
+          "winner": "LGD Gaming",
+          "score": "2-1",
+          "actual": {
+            "LGD Gaming": {
+              "Burdol": {
+                "k": 3,
+                "d": 5,
+                "a": 13
+              },
+              "Heng": {
+                "k": 6,
+                "d": 5,
+                "a": 22
+              },
+              "Tangyuan": {
+                "k": 21,
+                "d": 4,
+                "a": 13
+              },
+              "Shaoye": {
+                "k": 7,
+                "d": 4,
+                "a": 19
+              },
+              "Crisp": {
+                "k": 2,
+                "d": 7,
+                "a": 30
+              }
+            },
+            "Team WE": {
+              "Cube": {
+                "k": 4,
+                "d": 8,
+                "a": 13
+              },
+              "Monki": {
+                "k": 4,
+                "d": 12,
+                "a": 17
+              },
+              "Karis": {
+                "k": 7,
+                "d": 5,
+                "a": 14
+              },
+              "About": {
+                "k": 10,
+                "d": 7,
+                "a": 12
+              },
+              "Erha": {
+                "k": 0,
+                "d": 7,
+                "a": 22
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 5",
+          "date": "2026-08-22",
+          "patch": "16.16",
           "teamA": "Top Esports",
           "teamB": "JD Gaming",
           "winner": "JD Gaming",
@@ -9882,6 +10312,71 @@
                 "k": 0,
                 "d": 3,
                 "a": 37
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 5",
+          "date": "2026-08-21",
+          "patch": "16.16",
+          "teamA": "Anyone s Legend",
+          "teamB": "Team WE",
+          "winner": "Team WE",
+          "score": "1-2",
+          "actual": {
+            "Anyone s Legend": {
+              "Breathe": {
+                "k": 9,
+                "d": 6,
+                "a": 7
+              },
+              "Tarzan": {
+                "k": 7,
+                "d": 6,
+                "a": 19
+              },
+              "Shanks": {
+                "k": 12,
+                "d": 5,
+                "a": 17
+              },
+              "Hope": {
+                "k": 4,
+                "d": 5,
+                "a": 17
+              },
+              "Kael": {
+                "k": 2,
+                "d": 3,
+                "a": 26
+              }
+            },
+            "Team WE": {
+              "Cube": {
+                "k": 4,
+                "d": 7,
+                "a": 12
+              },
+              "Monki": {
+                "k": 9,
+                "d": 9,
+                "a": 11
+              },
+              "Karis": {
+                "k": 6,
+                "d": 5,
+                "a": 9
+              },
+              "About": {
+                "k": 5,
+                "d": 6,
+                "a": 11
+              },
+              "Erha": {
+                "k": 1,
+                "d": 7,
+                "a": 21
               }
             }
           }
@@ -10018,130 +10513,65 @@
         },
         {
           "week": "Week 5",
-          "date": "2026-08-22",
-          "patch": "16.16",
-          "teamA": "LGD Gaming",
-          "teamB": "Team WE",
-          "winner": "LGD Gaming",
-          "score": "2-1",
-          "actual": {
-            "LGD Gaming": {
-              "Burdol": {
-                "k": 3,
-                "d": 5,
-                "a": 13
-              },
-              "Heng": {
-                "k": 6,
-                "d": 5,
-                "a": 22
-              },
-              "Tangyuan": {
-                "k": 21,
-                "d": 4,
-                "a": 13
-              },
-              "Shaoye": {
-                "k": 7,
-                "d": 4,
-                "a": 19
-              },
-              "Crisp": {
-                "k": 2,
-                "d": 7,
-                "a": 30
-              }
-            },
-            "Team WE": {
-              "Cube": {
-                "k": 4,
-                "d": 8,
-                "a": 13
-              },
-              "Monki": {
-                "k": 4,
-                "d": 12,
-                "a": 17
-              },
-              "Karis": {
-                "k": 7,
-                "d": 5,
-                "a": 14
-              },
-              "About": {
-                "k": 10,
-                "d": 7,
-                "a": 12
-              },
-              "Erha": {
-                "k": 0,
-                "d": 7,
-                "a": 22
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 5",
           "date": "2026-08-20",
           "patch": "16.16",
-          "teamA": "LGD Gaming",
-          "teamB": "Bilibili Gaming",
-          "winner": "Bilibili Gaming",
+          "teamA": "ThunderTalk Gaming",
+          "teamB": "JD Gaming",
+          "winner": "JD Gaming",
           "score": "1-2",
           "actual": {
-            "LGD Gaming": {
-              "Burdol": {
+            "ThunderTalk Gaming": {
+              "Keshi": {
+                "k": 10,
+                "d": 6,
+                "a": 2
+              },
+              "Junhao": {
                 "k": 6,
-                "d": 6,
-                "a": 7
-              },
-              "Heng": {
-                "k": 3,
-                "d": 6,
-                "a": 13
-              },
-              "Tangyuan": {
-                "k": 15,
-                "d": 4,
-                "a": 9
-              },
-              "Shaoye": {
-                "k": 5,
-                "d": 5,
-                "a": 13
-              },
-              "Crisp": {
-                "k": 1,
-                "d": 3,
-                "a": 16
-              }
-            },
-            "Bilibili Gaming": {
-              "Bin": {
-                "k": 2,
-                "d": 8,
-                "a": 8
-              },
-              "XUN": {
-                "k": 4,
-                "d": 8,
-                "a": 12
-              },
-              "Knight": {
-                "k": 7,
                 "d": 5,
                 "a": 10
               },
-              "Viper": {
-                "k": 11,
+              "Heru": {
+                "k": 2,
+                "d": 4,
+                "a": 13
+              },
+              "Ahn": {
+                "k": 3,
                 "d": 2,
+                "a": 16
+              },
+              "Feather": {
+                "k": 2,
+                "d": 5,
+                "a": 14
+              }
+            },
+            "JD Gaming": {
+              "Xiaoxu": {
+                "k": 7,
+                "d": 5,
+                "a": 7
+              },
+              "JunJia": {
+                "k": 2,
+                "d": 5,
+                "a": 12
+              },
+              "HongQ": {
+                "k": 9,
+                "d": 6,
                 "a": 5
               },
-              "ON": {
+              "GALA": {
+                "k": 4,
+                "d": 4,
+                "a": 12
+              },
+              "Vampire": {
                 "k": 0,
-                "d": 7,
-                "a": 19
+                "d": 3,
+                "a": 18
               }
             }
           }
@@ -10215,128 +10645,63 @@
           "week": "Week 5",
           "date": "2026-08-20",
           "patch": "16.16",
-          "teamA": "ThunderTalk Gaming",
-          "teamB": "JD Gaming",
-          "winner": "JD Gaming",
+          "teamA": "LGD Gaming",
+          "teamB": "Bilibili Gaming",
+          "winner": "Bilibili Gaming",
           "score": "1-2",
           "actual": {
-            "ThunderTalk Gaming": {
-              "Keshi": {
-                "k": 10,
-                "d": 6,
-                "a": 2
-              },
-              "Junhao": {
+            "LGD Gaming": {
+              "Burdol": {
                 "k": 6,
+                "d": 6,
+                "a": 7
+              },
+              "Heng": {
+                "k": 3,
+                "d": 6,
+                "a": 13
+              },
+              "Tangyuan": {
+                "k": 15,
+                "d": 4,
+                "a": 9
+              },
+              "Shaoye": {
+                "k": 5,
+                "d": 5,
+                "a": 13
+              },
+              "Crisp": {
+                "k": 1,
+                "d": 3,
+                "a": 16
+              }
+            },
+            "Bilibili Gaming": {
+              "Bin": {
+                "k": 2,
+                "d": 8,
+                "a": 8
+              },
+              "XUN": {
+                "k": 4,
+                "d": 8,
+                "a": 12
+              },
+              "Knight": {
+                "k": 7,
                 "d": 5,
                 "a": 10
               },
-              "Heru": {
-                "k": 2,
-                "d": 4,
-                "a": 13
-              },
-              "Ahn": {
-                "k": 3,
+              "Viper": {
+                "k": 11,
                 "d": 2,
-                "a": 16
-              },
-              "Feather": {
-                "k": 2,
-                "d": 5,
-                "a": 14
-              }
-            },
-            "JD Gaming": {
-              "Xiaoxu": {
-                "k": 7,
-                "d": 5,
-                "a": 7
-              },
-              "JunJia": {
-                "k": 2,
-                "d": 5,
-                "a": 12
-              },
-              "HongQ": {
-                "k": 9,
-                "d": 6,
                 "a": 5
               },
-              "GALA": {
-                "k": 4,
-                "d": 4,
-                "a": 12
-              },
-              "Vampire": {
+              "ON": {
                 "k": 0,
-                "d": 3,
-                "a": 18
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 5",
-          "date": "2026-08-19",
-          "patch": "16.16",
-          "teamA": "Weibo Gaming",
-          "teamB": "LNG Esports",
-          "winner": "Weibo Gaming",
-          "score": "2-1",
-          "actual": {
-            "Weibo Gaming": {
-              "Zika": {
-                "k": 2,
                 "d": 7,
-                "a": 9
-              },
-              "Xiaohao": {
-                "k": 4,
-                "d": 5,
-                "a": 9
-              },
-              "xiaohu": {
-                "k": 5,
-                "d": 5,
-                "a": 6
-              },
-              "Elk": {
-                "k": 4,
-                "d": 6,
-                "a": 6
-              },
-              "Moham": {
-                "k": 0,
-                "d": 6,
-                "a": 7
-              }
-            },
-            "LNG Esports": {
-              "sheer": {
-                "k": 8,
-                "d": 2,
-                "a": 12
-              },
-              "WeiWei": {
-                "k": 6,
-                "d": 3,
-                "a": 16
-              },
-              "Nia": {
-                "k": 7,
-                "d": 3,
-                "a": 12
-              },
-              "1xn": {
-                "k": 7,
-                "d": 2,
-                "a": 13
-              },
-              "Ycx": {
-                "k": 1,
-                "d": 5,
-                "a": 21
+                "a": 19
               }
             }
           }
@@ -10402,6 +10767,71 @@
                 "k": 2,
                 "d": 7,
                 "a": 7
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 5",
+          "date": "2026-08-19",
+          "patch": "16.16",
+          "teamA": "Weibo Gaming",
+          "teamB": "LNG Esports",
+          "winner": "Weibo Gaming",
+          "score": "2-1",
+          "actual": {
+            "Weibo Gaming": {
+              "Zika": {
+                "k": 2,
+                "d": 7,
+                "a": 9
+              },
+              "Xiaohao": {
+                "k": 4,
+                "d": 5,
+                "a": 9
+              },
+              "xiaohu": {
+                "k": 5,
+                "d": 5,
+                "a": 6
+              },
+              "Elk": {
+                "k": 4,
+                "d": 6,
+                "a": 6
+              },
+              "Moham": {
+                "k": 0,
+                "d": 6,
+                "a": 7
+              }
+            },
+            "LNG Esports": {
+              "sheer": {
+                "k": 8,
+                "d": 2,
+                "a": 12
+              },
+              "WeiWei": {
+                "k": 6,
+                "d": 3,
+                "a": 16
+              },
+              "Nia": {
+                "k": 7,
+                "d": 3,
+                "a": 12
+              },
+              "1xn": {
+                "k": 7,
+                "d": 2,
+                "a": 13
+              },
+              "Ycx": {
+                "k": 1,
+                "d": 5,
+                "a": 21
               }
             }
           }
@@ -10475,71 +10905,6 @@
           "week": "Week 4",
           "date": "2026-08-16",
           "patch": "16.15",
-          "teamA": "Invictus Gaming",
-          "teamB": "Weibo Gaming",
-          "winner": "Invictus Gaming",
-          "score": "2-1",
-          "actual": {
-            "Invictus Gaming": {
-              "TheShy": {
-                "k": 3,
-                "d": 9,
-                "a": 11
-              },
-              "Wei": {
-                "k": 10,
-                "d": 6,
-                "a": 24
-              },
-              "RooKie": {
-                "k": 10,
-                "d": 6,
-                "a": 19
-              },
-              "JiaQi": {
-                "k": 14,
-                "d": 8,
-                "a": 11
-              },
-              "meiko": {
-                "k": 1,
-                "d": 9,
-                "a": 26
-              }
-            },
-            "Weibo Gaming": {
-              "Zika": {
-                "k": 12,
-                "d": 9,
-                "a": 7
-              },
-              "Xiaohao": {
-                "k": 7,
-                "d": 7,
-                "a": 15
-              },
-              "xiaohu": {
-                "k": 3,
-                "d": 7,
-                "a": 25
-              },
-              "Elk": {
-                "k": 13,
-                "d": 10,
-                "a": 12
-              },
-              "Moham": {
-                "k": 3,
-                "d": 6,
-                "a": 29
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 4",
-          "date": "2026-08-16",
-          "patch": "16.15",
           "teamA": "JD Gaming",
           "teamB": "LGD Gaming",
           "winner": "LGD Gaming",
@@ -10597,6 +10962,71 @@
                 "k": 1,
                 "d": 4,
                 "a": 27
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 4",
+          "date": "2026-08-16",
+          "patch": "16.15",
+          "teamA": "Invictus Gaming",
+          "teamB": "Weibo Gaming",
+          "winner": "Invictus Gaming",
+          "score": "2-1",
+          "actual": {
+            "Invictus Gaming": {
+              "TheShy": {
+                "k": 3,
+                "d": 9,
+                "a": 11
+              },
+              "Wei": {
+                "k": 10,
+                "d": 6,
+                "a": 24
+              },
+              "RooKie": {
+                "k": 10,
+                "d": 6,
+                "a": 19
+              },
+              "JiaQi": {
+                "k": 14,
+                "d": 8,
+                "a": 11
+              },
+              "meiko": {
+                "k": 1,
+                "d": 9,
+                "a": 26
+              }
+            },
+            "Weibo Gaming": {
+              "Zika": {
+                "k": 12,
+                "d": 9,
+                "a": 7
+              },
+              "Xiaohao": {
+                "k": 7,
+                "d": 7,
+                "a": 15
+              },
+              "xiaohu": {
+                "k": 3,
+                "d": 7,
+                "a": 25
+              },
+              "Elk": {
+                "k": 13,
+                "d": 10,
+                "a": 12
+              },
+              "Moham": {
+                "k": 3,
+                "d": 6,
+                "a": 29
               }
             }
           }
@@ -10733,71 +11163,6 @@
         },
         {
           "week": "Week 4",
-          "date": "2026-08-15",
-          "patch": "16.15",
-          "teamA": "LNG Esports",
-          "teamB": "Ninjas in Pyjamas",
-          "winner": "Ninjas in Pyjamas",
-          "score": "1-2",
-          "actual": {
-            "LNG Esports": {
-              "sheer": {
-                "k": 10,
-                "d": 7,
-                "a": 11
-              },
-              "WeiWei": {
-                "k": 5,
-                "d": 6,
-                "a": 19
-              },
-              "Nia": {
-                "k": 4,
-                "d": 8,
-                "a": 16
-              },
-              "1xn": {
-                "k": 9,
-                "d": 7,
-                "a": 15
-              },
-              "Ycx": {
-                "k": 3,
-                "d": 3,
-                "a": 23
-              }
-            },
-            "Ninjas in Pyjamas": {
-              "Hoya": {
-                "k": 3,
-                "d": 6,
-                "a": 11
-              },
-              "Guwon": {
-                "k": 10,
-                "d": 8,
-                "a": 16
-              },
-              "Care": {
-                "k": 6,
-                "d": 5,
-                "a": 17
-              },
-              "Photic": {
-                "k": 10,
-                "d": 5,
-                "a": 9
-              },
-              "fengyue": {
-                "k": 2,
-                "d": 7,
-                "a": 23
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 4",
           "date": "2026-08-14",
           "patch": "16.15",
           "teamA": "JD Gaming",
@@ -10922,6 +11287,71 @@
                 "k": 6,
                 "d": 5,
                 "a": 34
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 4",
+          "date": "2026-08-15",
+          "patch": "16.15",
+          "teamA": "LNG Esports",
+          "teamB": "Ninjas in Pyjamas",
+          "winner": "Ninjas in Pyjamas",
+          "score": "1-2",
+          "actual": {
+            "LNG Esports": {
+              "sheer": {
+                "k": 10,
+                "d": 7,
+                "a": 11
+              },
+              "WeiWei": {
+                "k": 5,
+                "d": 6,
+                "a": 19
+              },
+              "Nia": {
+                "k": 4,
+                "d": 8,
+                "a": 16
+              },
+              "1xn": {
+                "k": 9,
+                "d": 7,
+                "a": 15
+              },
+              "Ycx": {
+                "k": 3,
+                "d": 3,
+                "a": 23
+              }
+            },
+            "Ninjas in Pyjamas": {
+              "Hoya": {
+                "k": 3,
+                "d": 6,
+                "a": 11
+              },
+              "Guwon": {
+                "k": 10,
+                "d": 8,
+                "a": 16
+              },
+              "Care": {
+                "k": 6,
+                "d": 5,
+                "a": 17
+              },
+              "Photic": {
+                "k": 10,
+                "d": 5,
+                "a": 9
+              },
+              "fengyue": {
+                "k": 2,
+                "d": 7,
+                "a": 23
               }
             }
           }
@@ -11060,71 +11490,6 @@
           "week": "Week 4",
           "date": "2026-08-13",
           "patch": "16.15",
-          "teamA": "Ninjas in Pyjamas",
-          "teamB": "Weibo Gaming",
-          "winner": "Ninjas in Pyjamas",
-          "score": "2-1",
-          "actual": {
-            "Ninjas in Pyjamas": {
-              "Hoya": {
-                "k": 5,
-                "d": 6,
-                "a": 6
-              },
-              "Guwon": {
-                "k": 9,
-                "d": 4,
-                "a": 11
-              },
-              "Care": {
-                "k": 7,
-                "d": 5,
-                "a": 10
-              },
-              "Photic": {
-                "k": 6,
-                "d": 5,
-                "a": 12
-              },
-              "fengyue": {
-                "k": 1,
-                "d": 6,
-                "a": 23
-              }
-            },
-            "Weibo Gaming": {
-              "Zika": {
-                "k": 3,
-                "d": 3,
-                "a": 2
-              },
-              "Xiaohao": {
-                "k": 7,
-                "d": 4,
-                "a": 12
-              },
-              "xiaohu": {
-                "k": 9,
-                "d": 6,
-                "a": 9
-              },
-              "Elk": {
-                "k": 7,
-                "d": 9,
-                "a": 11
-              },
-              "Moham": {
-                "k": 0,
-                "d": 6,
-                "a": 16
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 4",
-          "date": "2026-08-13",
-          "patch": "16.15",
           "teamA": "LGD Gaming",
           "teamB": "Top Esports",
           "winner": "LGD Gaming",
@@ -11182,6 +11547,71 @@
                 "k": 1,
                 "d": 7,
                 "a": 9
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 4",
+          "date": "2026-08-13",
+          "patch": "16.15",
+          "teamA": "Ninjas in Pyjamas",
+          "teamB": "Weibo Gaming",
+          "winner": "Ninjas in Pyjamas",
+          "score": "2-1",
+          "actual": {
+            "Ninjas in Pyjamas": {
+              "Hoya": {
+                "k": 5,
+                "d": 6,
+                "a": 6
+              },
+              "Guwon": {
+                "k": 9,
+                "d": 4,
+                "a": 11
+              },
+              "Care": {
+                "k": 7,
+                "d": 5,
+                "a": 10
+              },
+              "Photic": {
+                "k": 6,
+                "d": 5,
+                "a": 12
+              },
+              "fengyue": {
+                "k": 1,
+                "d": 6,
+                "a": 23
+              }
+            },
+            "Weibo Gaming": {
+              "Zika": {
+                "k": 3,
+                "d": 3,
+                "a": 2
+              },
+              "Xiaohao": {
+                "k": 7,
+                "d": 4,
+                "a": 12
+              },
+              "xiaohu": {
+                "k": 9,
+                "d": 6,
+                "a": 9
+              },
+              "Elk": {
+                "k": 7,
+                "d": 9,
+                "a": 11
+              },
+              "Moham": {
+                "k": 0,
+                "d": 6,
+                "a": 16
               }
             }
           }
@@ -11448,64 +11878,64 @@
         },
         {
           "week": "Week 3",
-          "date": "2026-08-08",
+          "date": "2026-08-09",
           "patch": "16.15",
-          "teamA": "EDward Gaming",
-          "teamB": "Bilibili Gaming",
-          "winner": "Bilibili Gaming",
+          "teamA": "LNG Esports",
+          "teamB": "Invictus Gaming",
+          "winner": "Invictus Gaming",
           "score": "0-2",
           "actual": {
-            "EDward Gaming": {
-              "Zdz": {
-                "k": 4,
-                "d": 13,
-                "a": 13
-              },
-              "Jiejie": {
+            "LNG Esports": {
+              "sheer": {
                 "k": 7,
-                "d": 11,
-                "a": 15
+                "d": 8,
+                "a": 9
               },
-              "Bulldog": {
-                "k": 10,
+              "WeiWei": {
+                "k": 5,
                 "d": 7,
-                "a": 6
-              },
-              "Leave": {
-                "k": 6,
-                "d": 10,
                 "a": 13
               },
-              "Parukia": {
-                "k": 3,
+              "Nia": {
+                "k": 4,
+                "d": 8,
+                "a": 13
+              },
+              "1xn": {
+                "k": 7,
                 "d": 12,
-                "a": 17
+                "a": 10
+              },
+              "Missing": {
+                "k": 1,
+                "d": 13,
+                "a": 14
               }
             },
-            "Bilibili Gaming": {
-              "Wenbo": {
-                "k": 13,
-                "d": 8,
-                "a": 18
+            "Invictus Gaming": {
+              "TheShy": {
+                "k": 14,
+                "d": 4,
+                "a": 12
               },
-              "XUN": {
-                "k": 18,
-                "d": 3,
+              "Wei": {
+                "k": 7,
+                "d": 4,
+                "a": 31
+              },
+              "RooKie": {
+                "k": 10,
+                "d": 5,
+                "a": 20
+              },
+              "Assum": {
+                "k": 16,
+                "d": 4,
                 "a": 22
               },
-              "Knight": {
-                "k": 5,
-                "d": 5,
-                "a": 23
-              },
-              "Viper": {
-                "k": 16,
-                "d": 6,
-                "a": 17
-              },
-              "ON": {
+              "meiko": {
                 "k": 1,
-                "d": 8,
+                "d": 7,
                 "a": 36
               }
             }
@@ -11578,64 +12008,129 @@
         },
         {
           "week": "Week 3",
-          "date": "2026-08-09",
+          "date": "2026-08-07",
           "patch": "16.15",
-          "teamA": "LNG Esports",
-          "teamB": "Invictus Gaming",
-          "winner": "Invictus Gaming",
-          "score": "0-2",
+          "teamA": "Top Esports",
+          "teamB": "Bilibili Gaming",
+          "winner": "Top Esports",
+          "score": "2-0",
           "actual": {
-            "LNG Esports": {
-              "sheer": {
-                "k": 7,
-                "d": 8,
-                "a": 9
-              },
-              "WeiWei": {
-                "k": 5,
+            "Top Esports": {
+              "ZUIAN": {
+                "k": 21,
                 "d": 7,
-                "a": 13
+                "a": 23
               },
-              "Nia": {
-                "k": 4,
-                "d": 8,
-                "a": 13
-              },
-              "1xn": {
-                "k": 7,
+              "Tian": {
+                "k": 11,
                 "d": 12,
-                "a": 10
+                "a": 21
               },
-              "Missing": {
-                "k": 1,
-                "d": 13,
-                "a": 14
+              "Creme": {
+                "k": 5,
+                "d": 6,
+                "a": 27
+              },
+              "JackeyLove": {
+                "k": 21,
+                "d": 4,
+                "a": 27
+              },
+              "Zhuo": {
+                "k": 2,
+                "d": 7,
+                "a": 50
               }
             },
-            "Invictus Gaming": {
-              "TheShy": {
-                "k": 14,
-                "d": 4,
+            "Bilibili Gaming": {
+              "Wenbo": {
+                "k": 8,
+                "d": 10,
                 "a": 12
               },
-              "Wei": {
+              "XUN": {
+                "k": 3,
+                "d": 11,
+                "a": 23
+              },
+              "Knight": {
                 "k": 7,
-                "d": 4,
-                "a": 31
+                "d": 11,
+                "a": 19
               },
-              "RooKie": {
-                "k": 10,
-                "d": 5,
-                "a": 20
-              },
-              "Assum": {
+              "Viper": {
                 "k": 16,
-                "d": 4,
+                "d": 13,
+                "a": 7
+              },
+              "ON": {
+                "k": 2,
+                "d": 15,
+                "a": 19
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 3",
+          "date": "2026-08-08",
+          "patch": "16.15",
+          "teamA": "EDward Gaming",
+          "teamB": "Bilibili Gaming",
+          "winner": "Bilibili Gaming",
+          "score": "0-2",
+          "actual": {
+            "EDward Gaming": {
+              "Zdz": {
+                "k": 4,
+                "d": 13,
+                "a": 13
+              },
+              "Jiejie": {
+                "k": 7,
+                "d": 11,
+                "a": 15
+              },
+              "Bulldog": {
+                "k": 10,
+                "d": 7,
+                "a": 6
+              },
+              "Leave": {
+                "k": 6,
+                "d": 10,
+                "a": 13
+              },
+              "Parukia": {
+                "k": 3,
+                "d": 12,
+                "a": 17
+              }
+            },
+            "Bilibili Gaming": {
+              "Wenbo": {
+                "k": 13,
+                "d": 8,
+                "a": 18
+              },
+              "XUN": {
+                "k": 18,
+                "d": 3,
                 "a": 22
               },
-              "meiko": {
+              "Knight": {
+                "k": 5,
+                "d": 5,
+                "a": 23
+              },
+              "Viper": {
+                "k": 16,
+                "d": 6,
+                "a": 17
+              },
+              "ON": {
                 "k": 1,
-                "d": 7,
+                "d": 8,
                 "a": 36
               }
             }
@@ -11702,71 +12197,6 @@
                 "k": 1,
                 "d": 7,
                 "a": 34
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 3",
-          "date": "2026-08-07",
-          "patch": "16.15",
-          "teamA": "Top Esports",
-          "teamB": "Bilibili Gaming",
-          "winner": "Top Esports",
-          "score": "2-0",
-          "actual": {
-            "Top Esports": {
-              "ZUIAN": {
-                "k": 21,
-                "d": 7,
-                "a": 23
-              },
-              "Tian": {
-                "k": 11,
-                "d": 12,
-                "a": 21
-              },
-              "Creme": {
-                "k": 5,
-                "d": 6,
-                "a": 27
-              },
-              "JackeyLove": {
-                "k": 21,
-                "d": 4,
-                "a": 27
-              },
-              "Zhuo": {
-                "k": 2,
-                "d": 7,
-                "a": 50
-              }
-            },
-            "Bilibili Gaming": {
-              "Wenbo": {
-                "k": 8,
-                "d": 10,
-                "a": 12
-              },
-              "XUN": {
-                "k": 3,
-                "d": 11,
-                "a": 23
-              },
-              "Knight": {
-                "k": 7,
-                "d": 11,
-                "a": 19
-              },
-              "Viper": {
-                "k": 16,
-                "d": 13,
-                "a": 7
-              },
-              "ON": {
-                "k": 2,
-                "d": 15,
-                "a": 19
               }
             }
           }
@@ -11905,71 +12335,6 @@
           "week": "Week 3",
           "date": "2026-08-06",
           "patch": "16.15",
-          "teamA": "Anyone s Legend",
-          "teamB": "Team WE",
-          "winner": "Team WE",
-          "score": "0-2",
-          "actual": {
-            "Anyone s Legend": {
-              "Breathe": {
-                "k": 13,
-                "d": 6,
-                "a": 11
-              },
-              "Tarzan": {
-                "k": 10,
-                "d": 6,
-                "a": 25
-              },
-              "Shanks": {
-                "k": 11,
-                "d": 7,
-                "a": 17
-              },
-              "Hope": {
-                "k": 14,
-                "d": 5,
-                "a": 21
-              },
-              "Kael": {
-                "k": 1,
-                "d": 12,
-                "a": 32
-              }
-            },
-            "Team WE": {
-              "Cube": {
-                "k": 4,
-                "d": 6,
-                "a": 13
-              },
-              "Monki": {
-                "k": 6,
-                "d": 13,
-                "a": 18
-              },
-              "Karis": {
-                "k": 16,
-                "d": 6,
-                "a": 12
-              },
-              "About": {
-                "k": 6,
-                "d": 12,
-                "a": 16
-              },
-              "Erha": {
-                "k": 4,
-                "d": 12,
-                "a": 21
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 3",
-          "date": "2026-08-06",
-          "patch": "16.15",
           "teamA": "Ninjas in Pyjamas",
           "teamB": "Invictus Gaming",
           "winner": "Ninjas in Pyjamas",
@@ -12026,6 +12391,71 @@
               "meiko": {
                 "k": 4,
                 "d": 11,
+                "a": 21
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 3",
+          "date": "2026-08-06",
+          "patch": "16.15",
+          "teamA": "Anyone s Legend",
+          "teamB": "Team WE",
+          "winner": "Team WE",
+          "score": "0-2",
+          "actual": {
+            "Anyone s Legend": {
+              "Breathe": {
+                "k": 13,
+                "d": 6,
+                "a": 11
+              },
+              "Tarzan": {
+                "k": 10,
+                "d": 6,
+                "a": 25
+              },
+              "Shanks": {
+                "k": 11,
+                "d": 7,
+                "a": 17
+              },
+              "Hope": {
+                "k": 14,
+                "d": 5,
+                "a": 21
+              },
+              "Kael": {
+                "k": 1,
+                "d": 12,
+                "a": 32
+              }
+            },
+            "Team WE": {
+              "Cube": {
+                "k": 4,
+                "d": 6,
+                "a": 13
+              },
+              "Monki": {
+                "k": 6,
+                "d": 13,
+                "a": 18
+              },
+              "Karis": {
+                "k": 16,
+                "d": 6,
+                "a": 12
+              },
+              "About": {
+                "k": 6,
+                "d": 12,
+                "a": 16
+              },
+              "Erha": {
+                "k": 4,
+                "d": 12,
                 "a": 21
               }
             }
@@ -12358,71 +12788,6 @@
         },
         {
           "week": "Week 2",
-          "date": "2026-08-02",
-          "patch": "16.14",
-          "teamA": "Team WE",
-          "teamB": "ThunderTalk Gaming",
-          "winner": "Team WE",
-          "score": "2-1",
-          "actual": {
-            "Team WE": {
-              "Cube": {
-                "k": 6,
-                "d": 10,
-                "a": 8
-              },
-              "Monki": {
-                "k": 9,
-                "d": 9,
-                "a": 13
-              },
-              "Karis": {
-                "k": 11,
-                "d": 7,
-                "a": 14
-              },
-              "About": {
-                "k": 13,
-                "d": 9,
-                "a": 11
-              },
-              "Erha": {
-                "k": 0,
-                "d": 6,
-                "a": 31
-              }
-            },
-            "ThunderTalk Gaming": {
-              "Keshi": {
-                "k": 9,
-                "d": 6,
-                "a": 8
-              },
-              "Junhao": {
-                "k": 9,
-                "d": 7,
-                "a": 25
-              },
-              "Heru": {
-                "k": 12,
-                "d": 9,
-                "a": 18
-              },
-              "Ahn": {
-                "k": 11,
-                "d": 7,
-                "a": 10
-              },
-              "Feather": {
-                "k": 0,
-                "d": 10,
-                "a": 21
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 2",
           "date": "2026-08-01",
           "patch": "16.14",
           "teamA": "Bilibili Gaming",
@@ -12482,6 +12847,71 @@
                 "k": 0,
                 "d": 10,
                 "a": 11
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 2",
+          "date": "2026-08-02",
+          "patch": "16.14",
+          "teamA": "Team WE",
+          "teamB": "ThunderTalk Gaming",
+          "winner": "Team WE",
+          "score": "2-1",
+          "actual": {
+            "Team WE": {
+              "Cube": {
+                "k": 6,
+                "d": 10,
+                "a": 8
+              },
+              "Monki": {
+                "k": 9,
+                "d": 9,
+                "a": 13
+              },
+              "Karis": {
+                "k": 11,
+                "d": 7,
+                "a": 14
+              },
+              "About": {
+                "k": 13,
+                "d": 9,
+                "a": 11
+              },
+              "Erha": {
+                "k": 0,
+                "d": 6,
+                "a": 31
+              }
+            },
+            "ThunderTalk Gaming": {
+              "Keshi": {
+                "k": 9,
+                "d": 6,
+                "a": 8
+              },
+              "Junhao": {
+                "k": 9,
+                "d": 7,
+                "a": 25
+              },
+              "Heru": {
+                "k": 12,
+                "d": 9,
+                "a": 18
+              },
+              "Ahn": {
+                "k": 11,
+                "d": 7,
+                "a": 10
+              },
+              "Feather": {
+                "k": 0,
+                "d": 10,
+                "a": 21
               }
             }
           }
@@ -12878,71 +13308,6 @@
         },
         {
           "week": "Week 2",
-          "date": "2026-07-30",
-          "patch": "16.14",
-          "teamA": "Weibo Gaming",
-          "teamB": "Ninjas in Pyjamas",
-          "winner": "Ninjas in Pyjamas",
-          "score": "0-2",
-          "actual": {
-            "Weibo Gaming": {
-              "Zika": {
-                "k": 1,
-                "d": 6,
-                "a": 4
-              },
-              "Jiejie": {
-                "k": 2,
-                "d": 7,
-                "a": 5
-              },
-              "xiaohu": {
-                "k": 3,
-                "d": 3,
-                "a": 3
-              },
-              "Elk": {
-                "k": 5,
-                "d": 6,
-                "a": 5
-              },
-              "Jwei": {
-                "k": 2,
-                "d": 8,
-                "a": 8
-              }
-            },
-            "Ninjas in Pyjamas": {
-              "Hoya": {
-                "k": 3,
-                "d": 3,
-                "a": 12
-              },
-              "Guwon": {
-                "k": 6,
-                "d": 1,
-                "a": 15
-              },
-              "Care": {
-                "k": 8,
-                "d": 2,
-                "a": 12
-              },
-              "Photic": {
-                "k": 11,
-                "d": 2,
-                "a": 12
-              },
-              "fengyue": {
-                "k": 2,
-                "d": 5,
-                "a": 24
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 2",
           "date": "2026-07-29",
           "patch": "16.14",
           "teamA": "LGD Gaming",
@@ -13002,6 +13367,71 @@
                 "k": 7,
                 "d": 11,
                 "a": 17
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 2",
+          "date": "2026-07-30",
+          "patch": "16.14",
+          "teamA": "Weibo Gaming",
+          "teamB": "Ninjas in Pyjamas",
+          "winner": "Ninjas in Pyjamas",
+          "score": "0-2",
+          "actual": {
+            "Weibo Gaming": {
+              "Zika": {
+                "k": 1,
+                "d": 6,
+                "a": 4
+              },
+              "Jiejie": {
+                "k": 2,
+                "d": 7,
+                "a": 5
+              },
+              "xiaohu": {
+                "k": 3,
+                "d": 3,
+                "a": 3
+              },
+              "Elk": {
+                "k": 5,
+                "d": 6,
+                "a": 5
+              },
+              "Jwei": {
+                "k": 2,
+                "d": 8,
+                "a": 8
+              }
+            },
+            "Ninjas in Pyjamas": {
+              "Hoya": {
+                "k": 3,
+                "d": 3,
+                "a": 12
+              },
+              "Guwon": {
+                "k": 6,
+                "d": 1,
+                "a": 15
+              },
+              "Care": {
+                "k": 8,
+                "d": 2,
+                "a": 12
+              },
+              "Photic": {
+                "k": 11,
+                "d": 2,
+                "a": 12
+              },
+              "fengyue": {
+                "k": 2,
+                "d": 5,
+                "a": 24
               }
             }
           }
@@ -13140,71 +13570,6 @@
           "week": "Week 1",
           "date": "2026-07-26",
           "patch": "16.14",
-          "teamA": "EDward Gaming",
-          "teamB": "ThunderTalk Gaming",
-          "winner": "ThunderTalk Gaming",
-          "score": "0-2",
-          "actual": {
-            "EDward Gaming": {
-              "Zdz": {
-                "k": 5,
-                "d": 6,
-                "a": 5
-              },
-              "Xiaohao": {
-                "k": 4,
-                "d": 7,
-                "a": 6
-              },
-              "Bulldog": {
-                "k": 3,
-                "d": 4,
-                "a": 7
-              },
-              "Leave": {
-                "k": 2,
-                "d": 6,
-                "a": 3
-              },
-              "Parukia": {
-                "k": 0,
-                "d": 10,
-                "a": 8
-              }
-            },
-            "ThunderTalk Gaming": {
-              "Keshi": {
-                "k": 8,
-                "d": 6,
-                "a": 13
-              },
-              "Junhao": {
-                "k": 9,
-                "d": 0,
-                "a": 21
-              },
-              "Heru": {
-                "k": 8,
-                "d": 6,
-                "a": 18
-              },
-              "Ahn": {
-                "k": 8,
-                "d": 1,
-                "a": 21
-              },
-              "Feather": {
-                "k": 0,
-                "d": 1,
-                "a": 28
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 1",
-          "date": "2026-07-26",
-          "patch": "16.14",
           "teamA": "Ninjas in Pyjamas",
           "teamB": "LNG Esports",
           "winner": "Ninjas in Pyjamas",
@@ -13333,6 +13698,71 @@
         },
         {
           "week": "Week 1",
+          "date": "2026-07-26",
+          "patch": "16.14",
+          "teamA": "EDward Gaming",
+          "teamB": "ThunderTalk Gaming",
+          "winner": "ThunderTalk Gaming",
+          "score": "0-2",
+          "actual": {
+            "EDward Gaming": {
+              "Zdz": {
+                "k": 5,
+                "d": 6,
+                "a": 5
+              },
+              "Xiaohao": {
+                "k": 4,
+                "d": 7,
+                "a": 6
+              },
+              "Bulldog": {
+                "k": 3,
+                "d": 4,
+                "a": 7
+              },
+              "Leave": {
+                "k": 2,
+                "d": 6,
+                "a": 3
+              },
+              "Parukia": {
+                "k": 0,
+                "d": 10,
+                "a": 8
+              }
+            },
+            "ThunderTalk Gaming": {
+              "Keshi": {
+                "k": 8,
+                "d": 6,
+                "a": 13
+              },
+              "Junhao": {
+                "k": 9,
+                "d": 0,
+                "a": 21
+              },
+              "Heru": {
+                "k": 8,
+                "d": 6,
+                "a": 18
+              },
+              "Ahn": {
+                "k": 8,
+                "d": 1,
+                "a": 21
+              },
+              "Feather": {
+                "k": 0,
+                "d": 1,
+                "a": 28
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 1",
           "date": "2026-07-25",
           "patch": "16.14",
           "teamA": "Weibo Gaming",
@@ -13398,71 +13828,6 @@
         },
         {
           "week": "Week 1",
-          "date": "2026-07-24",
-          "patch": "16.14",
-          "teamA": "Bilibili Gaming",
-          "teamB": "EDward Gaming",
-          "winner": "Bilibili Gaming",
-          "score": "2-1",
-          "actual": {
-            "Bilibili Gaming": {
-              "Wenbo": {
-                "k": 12,
-                "d": 7,
-                "a": 10
-              },
-              "XUN": {
-                "k": 4,
-                "d": 11,
-                "a": 20
-              },
-              "Knight": {
-                "k": 11,
-                "d": 5,
-                "a": 17
-              },
-              "Viper": {
-                "k": 16,
-                "d": 5,
-                "a": 15
-              },
-              "ON": {
-                "k": 0,
-                "d": 9,
-                "a": 30
-              }
-            },
-            "EDward Gaming": {
-              "Zdz": {
-                "k": 19,
-                "d": 10,
-                "a": 3
-              },
-              "Xiaohao": {
-                "k": 7,
-                "d": 8,
-                "a": 18
-              },
-              "Bulldog": {
-                "k": 5,
-                "d": 6,
-                "a": 19
-              },
-              "Leave": {
-                "k": 5,
-                "d": 8,
-                "a": 20
-              },
-              "Parukia": {
-                "k": 1,
-                "d": 11,
-                "a": 24
-              }
-            }
-          }
-        },
-        {
-          "week": "Week 1",
           "date": "2026-07-25",
           "patch": "16.14",
           "teamA": "Team WE",
@@ -13522,6 +13887,71 @@
                 "k": 2,
                 "d": 8,
                 "a": 7
+              }
+            }
+          }
+        },
+        {
+          "week": "Week 1",
+          "date": "2026-07-24",
+          "patch": "16.14",
+          "teamA": "Bilibili Gaming",
+          "teamB": "EDward Gaming",
+          "winner": "Bilibili Gaming",
+          "score": "2-1",
+          "actual": {
+            "Bilibili Gaming": {
+              "Wenbo": {
+                "k": 12,
+                "d": 7,
+                "a": 10
+              },
+              "XUN": {
+                "k": 4,
+                "d": 11,
+                "a": 20
+              },
+              "Knight": {
+                "k": 11,
+                "d": 5,
+                "a": 17
+              },
+              "Viper": {
+                "k": 16,
+                "d": 5,
+                "a": 15
+              },
+              "ON": {
+                "k": 0,
+                "d": 9,
+                "a": 30
+              }
+            },
+            "EDward Gaming": {
+              "Zdz": {
+                "k": 19,
+                "d": 10,
+                "a": 3
+              },
+              "Xiaohao": {
+                "k": 7,
+                "d": 8,
+                "a": 18
+              },
+              "Bulldog": {
+                "k": 5,
+                "d": 6,
+                "a": 19
+              },
+              "Leave": {
+                "k": 5,
+                "d": 8,
+                "a": 20
+              },
+              "Parukia": {
+                "k": 1,
+                "d": 11,
+                "a": 24
               }
             }
           }
