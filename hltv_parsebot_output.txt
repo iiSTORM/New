@@ -1,0 +1,481 @@
+============================================================
+get_results(limit=5)
+  GET https://api.parse.bot/scraper/b3500f47-4f4d-4f28-b85d-7e73293b70d1/get_results  params={'limit': 5}
+============================================================
+  status: 200
+  credit headers: {'x-credits-charged': '1', 'x-credits-limit': '200', 'x-credits-remaining': '199'}
+{
+  "status": "success",
+  "data": {
+    "results": [
+      {
+        "match_id": "2397029",
+        "date": "Results for August 23rd 2026",
+        "team1": "K27",
+        "team2": "Rune Eaters",
+        "score": "2 - 0",
+        "event": "GLuck Moscow Cyber Games 2026 Closed Qualifier",
+        "url": "https://www.hltv.org/matches/2397029/k27-vs-rune-eaters-gluck-moscow-cyber-games-2026-closed-qualifier",
+        "team1_logo": "https://img-cdn.hltv.org/teamlogo/7LmOZHYhlq-fIAm23aM2q1.png?ixlib=java-2.1.0&w=50&s=e194cf9c20b306723ae899eac0e8a356",
+        "team2_logo": "https://img-cdn.hltv.org/teamlogo/sAUU1xlaHaJ7WtXCi7SOOi.png?ixlib=java-2.1.0&w=50&s=dcdcaaca153483919e2f74f582732cbb"
+      },
+      {
+        "match_id": "2396710",
+        "date": "Results for August 23rd 2026",
+        "team1": "Nordic Partners",
+        "team2": "Black Phoenix",
+        "score": "1 - 2",
+        "event": "NODWIN Clutch Series 11",
+        "url": "https://www.hltv.org/matches/2396710/nordic-partners-vs-black-phoenix-nodwin-clutch-series-11",
+        "team1_logo": "https://img-cdn.hltv.org/teamlogo/ThJ-T9QS6Wy5JjNstspK4x.png?invert=true&ixlib=java-2.1.0&sat=-100&w=50&s=31f36bdc17f619f5d3cca27ab92513f2",
+        "team2_logo": "https://img-cdn.hltv.org/teamlogo/SE3Ks_UvWSfZHc6iR4mTjA.png?invert=true&ixlib=java-2.1.0&sat=-100&w=50&s=ba825ddc7d8e9d230981b0cf28d9231f"
+      },
+      {
+        "match_id": "2396871",
+        "date": "Results for August 23rd 2026",
+        "team1": "WBT",
+        "team2": "Noir Verse",
+        "score": "2 - 1",
+        "event": "CCT 2026 Challengers Europe Series 5",
+        "url": "https://www.hltv.org/matches/2396871/wbt-vs-noir-verse-cct-2026-challengers-europe-series-5",
+        "team1_logo": "https://img-cdn.hltv.org/teamlogo/_coqH_U02fBToVR-m_CKsU.png?ixlib=java-2.1.0&w=50&s=75768cd6a2752f22940f96c831bb31a6",
+        "team2_logo": "https://img-cdn.hltv.org/teamlogo/b-Io2gTRPLWPGCh3ZV8a_I.png?ixlib=java-2.1.0&w=50&s=0a149d61923d0b6f11979dddc4bdffb3"
+      },
+      {
+        "match_id": "2396770",
+        "date": "Results for August 23rd 2026",
+        "team1": "Honv\u00e9d",
+        "team2": "Revise",
+        "score": "2 - 0",
+        "event": "Exort Fiesta Series 1",
+        "url": "https://www.hltv.org/matches/2396770/honvd-vs-revise-exort-fiesta-series-1",
+        "team1_logo": "https://img-cdn.hltv.org/teamlogo/GRDCTjbpIWDj6cS-k5j69x.png?ixlib=java-2.1.0&w=50&s=9eeb2cd0832ec343547466896a0b8f89",
+        "team2_logo": "https://www.hltv.org/dynamic-svg/teamplaceholder?letter=R"
+      },
+      {
+        "match_id": "2396664",
+        "date": "Results for August 23rd 2026",
+        "team1": "Drip Too Hard",
+        "team2": "MASONIC",
+        "score": "2 - 0",
+        "event": "CCT 2026 Europe Series 7",
+        "url": "https://www.hltv.org/matches/2396664/drip-too-hard-vs-masonic-cct-2026-europe-series-7",
+        "team1_logo": "https://www.hltv.org/dynamic-svg/teamplaceholder?letter=D",
+        "team2_logo": "https://img-cdn.hltv.org/teamlogo/LXy16DLCLqmbZWSr4RxeQu.svg?ixlib=java-2.1.0&s=dcd79250b3b5e2e757a89b7c27c6770d"
+      }
+    ]
+  }
+}
+
+! No match_id found in get_results — skipping get_match_details
+
+============================================================
+get_player_stats(days=30, limit=10)
+  GET https://api.parse.bot/scraper/b3500f47-4f4d-4f28-b85d-7e73293b70d1/get_player_stats  params={'days': 30, 'limit': 10}
+============================================================
+  status: 200
+  credit headers: {'x-credits-charged': '5', 'x-credits-limit': '200', 'x-credits-remaining': '195'}
+{
+  "status": "success",
+  "data": {
+    "players": [
+      {
+        "player_id": "21167",
+        "name": "donk",
+        "team": "Spirit",
+        "maps": "27",
+        "rounds": "586",
+        "kd_diff": "+145",
+        "kd": "1.37",
+        "rating": "1.40",
+        "logo": "https://www.hltv.org/img/static/flags/30x20/RU.gif",
+        "team_logo": "https://img-cdn.hltv.org/teamlogo/syrtYYKR7sBRw3ZHy1YFX7.png?ixlib=java-2.1.0&w=50&s=40e66714687bec05ea422255b1c0099e"
+      },
+      {
+        "player_id": "13602",
+        "name": "nicoodoz",
+        "team": "Phantom",
+        "maps": "24",
+        "rounds": "507",
+        "kd_diff": "+137",
+        "kd": "1.45",
+        "rating": "1.30",
+        "logo": "https://www.hltv.org/img/static/flags/30x20/DK.gif",
+        "team_logo": "https://img-cdn.hltv.org/teamlogo/DzhUnKXRRy9yV2MILp29YH.png?ixlib=java-2.1.0&w=50&s=a856dc9cf0a2e9cb79c3166059885bed"
+      },
+      {
+        "player_id": "25902",
+        "name": "tired73",
+        "team": "WBT",
+        "maps": "19",
+        "rounds": "399",
+        "kd_diff": "+109",
+        "kd": "1.46",
+        "rating": "1.30",
+        "logo": "https://www.hltv.org/img/static/flags/30x20/UA.gif",
+        "team_logo": "https://img-cdn.hltv.org/teamlogo/_coqH_U02fBToVR-m_CKsU.png?ixlib=java-2.1.0&w=50&s=75768cd6a2752f22940f96c831bb31a6"
+      },
+      {
+        "player_id": "19614",
+        "name": "s4ltovsk1yy",
+        "team": "Jam",
+        "maps": "18",
+        "rounds": "371",
+        "kd_diff": "+105",
+        "kd": "1.56",
+        "rating": "1.28",
+        "logo": "https://www.hltv.org/img/static/flags/30x20/UA.gif",
+        "team_logo": "https://www.hltv.org/dynamic-svg/teamplaceholder?letter=J"
+      },
+      {
+        "player_id": "23637",
+        "name": "b1st",
+        "team": "Virtus.pro",
+        "maps": "22",
+        "rounds": "455",
+        "kd_diff": "+95",
+        "kd": "1.36",
+        "rating": "1.27",
+        "logo": "https://www.hltv.org/img/static/flags/30x20/RU.gif",
+        "team_logo": "https://img-cdn.hltv.org/teamlogo/yZ6Bpuui1rW3jocXQ68XgZ.svg?ixlib=java-2.1.0&s=f39be1d3e7baf30a4e7f0b1216720875"
+      },
+      {
+        "player_id": "22060",
+        "name": "delle",
+        "team": "Entropy",
+        "maps": "18",
+        "rounds": "429",
+        "kd_diff": "+51",
+        "kd": "1.17",
+        "rating": "1.27",
+        "logo": "https://www.hltv.org/img/static/flags/30x20/SE.gif",
+        "team_logo": "https://img-cdn.hltv.org/teamlogo/5eaT8WHS6_lCrT8R5pthQg.png?ixlib=java-2.1.0&w=50&s=64395fa42978b51ce0e47ad276c85254"
+      },
+      {
+        "player_id": "22884",
+        "name": "gr1ks",
+        "team": "BIG",
+        "maps": "18",
+        "rounds": "362",
+        "kd_diff": "+102",
+        "kd": "1.51",
+        "rating": "1.26",
+        "logo": "https://www.hltv.org/img/static/flags/30x20/BY.gif",
+        "team_logo": "https://img-cdn.hltv.org/teamlogo/OgMRQA35hopXA8kDwMFHIY.svg?ixlib=java-2.1.0&s=ec7bc44165c7acf4224a22a1338ab7d7"
+      },
+      {
+        "player_id": "20960",
+        "name": "ex1st",
+        "team": "Betclic",
+        "maps": "24",
+        "rounds": "514",
+        "kd_diff": "+73",
+        "kd": "1.23",
+        "rating": "1.26",
+        "logo": "https://www.hltv.org/img/static/flags/30x20/PL.gif",
+        "team_logo": "https://img-cdn.hltv.org/teamlogo/iX5wi-ZLkdHTARnXcMEvZF.png?ixlib=java-2.1.0&w=50&s=d543c7f38ede96ef911a66c407b6b6cd"
+      },
+      {
+        "player_id": "8738",
+        "name": "EliGE",
+        "team": "Liquid",
+        "maps": "23",
+        "rounds": "471",
+        "kd_diff": "+67",
+        "kd": "1.21",
+        "rating": "1.25",
+        "logo": "https://www.hltv.org/img/static/flags/30x20/US.gif",
+        "team_logo": "https://img-cdn.hltv.org/teamlogo/JMeLLbWKCIEJrmfPaqOz4O.svg?ixlib=java-2.1.0&s=c02caf90234d3a3ebac074c84ba1ea62"
+      },
+      {
+        "player_id": "25509",
+        "name": "turbo",
+        "team": "BAKS",
+        "maps": "18",
+        "rounds": "358",
+        "kd_diff": "+57",
+        "kd": "1.26",
+        "rating": "1.24",
+        "logo": "https://www.hltv.org/img/static/flags/30x20/RU.gif",
+        "team_logo": "https://img-cdn.hltv.org/teamlogo/addrkF7msTiD-HdGMcCXbZ.png?ixlib=java-2.1.0&w=50&s=77c6157e0f8f6c0cc067dba37eb1110c"
+      },
+      {
+        "player_id": "23414",
+        "name": "jackasmo",
+        "team": "fnatic",
+        "maps": "20",
+        "rounds": "417",
+        "kd_diff": "+78",
+        "kd": "1.31",
+        "rating": "1.24",
+        "logo": "https://www.hltv.org/img/static/flags/30x20/UA.gif",
+        "team_logo": "https://img-cdn.hltv.org/teamlogo/dLtWEdSV58lIX1amAFggy0.svg?ixlib=java-2.1.0&s=f24d0a7b3ef24ed57184a51d35202b4e"
+      },
+      {
+        "player_id": "25010",
+        "name": "Botpa1",
+        "team": "Omega",
+        "maps": "20",
+        "rounds": "420",
+        "kd_diff": "+38",
+        "kd": "1.14",
+        "rating": "1.24",
+        "logo": "https://www.hltv.org/img/static/flags/30x20/KZ.gif",
+    
+
+============================================================
+get_team_stats(days=30, limit=10)
+  GET https://api.parse.bot/scraper/b3500f47-4f4d-4f28-b85d-7e73293b70d1/get_team_stats  params={'days': 30, 'limit': 10}
+============================================================
+  ! request failed: ReadTimeout: HTTPSConnectionPool(host='api.parse.bot', port=443): Read timed out. (read timeout=20)
+
+============================================================
+get_upcoming_matches()
+  GET https://api.parse.bot/scraper/b3500f47-4f4d-4f28-b85d-7e73293b70d1/get_upcoming_matches  params={}
+============================================================
+  status: 200
+  credit headers: {'x-credits-charged': '5', 'x-credits-limit': '200', 'x-credits-remaining': '189'}
+{
+  "status": "success",
+  "data": {
+    "matches": [
+      {
+        "status": "UPCOMING",
+        "date": "Sunday - 2026-08-23",
+        "time": "17:00",
+        "team1": "HOTU",
+        "team2": "CYBERSHOKE Prospects",
+        "event": "GLuck Moscow Cyber Games 2026 Closed Qualifier",
+        "match_id": "2397030",
+        "url": "https://www.hltv.org/matches/2397030/hotu-vs-cybershoke-prospects-gluck-moscow-cyber-games-2026-closed-qualifier",
+        "team1_logo": "https://img-cdn.hltv.org/teamlogo/UH5TD1Lyutr_JwKu2ldl-A.png?ixlib=java-2.1.0&w=50&s=6ff0544743996e6f3b166643371d2839",
+        "team2_logo": "https://img-cdn.hltv.org/teamlogo/SMf-lhuD18aFmRZBBcmkQp.png?ixlib=java-2.1.0&w=50&s=d33b9f24edb077b393a79c91335f8452"
+      },
+      {
+        "status": "UPCOMING",
+        "date": "Sunday - 2026-08-23",
+        "time": "19:00",
+        "team1": "Just Players",
+        "team2": "ex-Zero Tenacity",
+        "event": "CCT 2026 Europe Series 7",
+        "match_id": "2396666",
+        "url": "https://www.hltv.org/matches/2396666/just-players-vs-ex-zero-tenacity-cct-2026-europe-series-7",
+        "team1_logo": "https://www.hltv.org/dynamic-svg/teamplaceholder?letter=J",
+        "team2_logo": "https://www.hltv.org/dynamic-svg/teamplaceholder?letter=e"
+      },
+      {
+        "status": "UPCOMING",
+        "date": "Sunday - 2026-08-23",
+        "time": "19:00",
+        "team1": "Endless Journey",
+        "team2": "ex-Zero Tenacity",
+        "event": "Exort Fiesta Series 1",
+        "match_id": "2396772",
+        "url": "https://www.hltv.org/matches/2396772/endless-journey-vs-ex-zero-tenacity-exort-fiesta-series-1",
+        "team1_logo": "https://img-cdn.hltv.org/teamlogo/-VGJ9TgalwRy5escWx2rL2.png?ixlib=java-2.1.0&w=50&s=be4064de8c96bea264797616b0701aec",
+        "team2_logo": "https://www.hltv.org/dynamic-svg/teamplaceholder?letter=e"
+      },
+      {
+        "status": "UPCOMING",
+        "date": "Sunday - 2026-08-23",
+        "time": "20:00",
+        "team1": "ex-RUBY",
+        "team2": "Black Phoenix",
+        "event": "GLuck Moscow Cyber Games 2026 Closed Qualifier",
+        "match_id": "2397031",
+        "url": "https://www.hltv.org/matches/2397031/ex-ruby-vs-black-phoenix-gluck-moscow-cyber-games-2026-closed-qualifier",
+        "team1_logo": "https://www.hltv.org/dynamic-svg/teamplaceholder?letter=e",
+        "team2_logo": "https://img-cdn.hltv.org/teamlogo/SE3Ks_UvWSfZHc6iR4mTjA.png?invert=true&ixlib=java-2.1.0&sat=-100&w=50&s=ba825ddc7d8e9d230981b0cf28d9231f"
+      },
+      {
+        "status": "UPCOMING",
+        "date": "Monday - 2026-08-24",
+        "time": "08:00",
+        "team1": "The Huns",
+        "team2": "Vitalem Aerem",
+        "event": "GLuck Moscow Cyber Games 2026 Asia Closed Qualifier",
+        "match_id": "2397020",
+        "url": "https://www.hltv.org/matches/2397020/the-huns-vs-vitalem-aerem-gluck-moscow-cyber-games-2026-asia-closed-qualifier",
+        "team1_logo": "https://img-cdn.hltv.org/teamlogo/VgVw2z9BmJJ2knbbyXeDfc.png?ixlib=java-2.1.0&w=50&s=c1577bd514234eb3d106357de5ea6aa4",
+        "team2_logo": "https://www.hltv.org/dynamic-svg/teamplaceholder?letter=V"
+      },
+      {
+        "status": "UPCOMING",
+        "date": "Monday - 2026-08-24",
+        "time": "10:00",
+        "team1": "BET-M",
+        "team2": "HYPERSPIRIT",
+        "event": "NODWIN Clutch Series 11",
+        "match_id": "2396713",
+        "url": "https://www.hltv.org/matches/2396713/bet-m-vs-hyperspirit-nodwin-clutch-series-11",
+        "team1_logo": "https://img-cdn.hltv.org/teamlogo/V7kOhjpI4AiRCPnthLVvL6.png?ixlib=java-2.1.0&w=50&s=6ded0349cde3e1cc18b4b28c3d8cb91c",
+        "team2_logo": "https://img-cdn.hltv.org/teamlogo/MdMPxRh2SX6Y3tOWO3Ok3M.png?ixlib=java-2.1.0&w=50&s=7ab5b1a592da8b9b944a10cff37b7a99"
+      },
+      {
+        "status": "UPCOMING",
+        "date": "Monday - 2026-08-24",
+        "time": "11:00",
+        "team1": "Kaleido",
+        "team2": "TBD",
+        "event": "GLuck Moscow Cyber Games 2026 Asia Closed Qualifier",
+        "match_id": "2397021",
+        "url": "https://www.hltv.org/matches/2397021/kaleido-vs-5star-alter-ego-loser-gluck-moscow-cyber-games-2026-asia-closed-qualifier",
+        "team1_logo": "https://img-cdn.hltv.org/teamlogo/7CqKzJ3jTU826IibHi_a5z.png?ixlib=java-2.1.0&w=50&s=e2ee54f65106fe1152c00c974c27505e",
+        "team2_logo": null
+      },
+      {
+        "status": "UPCOMING",
+        "date": "Monday - 2026-08-24",
+        "time": "11:00",
+        "team1": "TBD",
+        "team2": "TBD",
+        "event": "GLuck Moscow Cyber Games 2026 Closed Qualifier",
+        "match_id": "2397032",
+        "url": "https://www.hltv.org/matches/2397032/gluck-moscow-cyber-games-2026-closed-qualifier-swiss-round-2-1-gluck-moscow-cyber-games-2026-closed-qualifier",
+        "team1_logo": null,
+        "team2_logo": null
+      },
+      {
+        "status": "UPCOMING",
+        "date": "Monday - 2026-08-24",
+        "time": "13:00",
+        "team1": "TBD",
+        "team2": "TBD",
+        "event
+
+============================================================
+get_team_rankings()
+  GET https://api.parse.bot/scraper/b3500f47-4f4d-4f28-b85d-7e73293b70d1/get_team_rankings  params={}
+============================================================
+  status: 200
+  credit headers: {'x-credits-charged': '3', 'x-credits-limit': '200', 'x-credits-remaining': '191'}
+{
+  "status": "success",
+  "data": {
+    "rankings": [
+      {
+        "rank": "1",
+        "team": "Falcons",
+        "points": "(812 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/4eJSkDQINNM6Tbs4WvLzkN.png?ixlib=java-2.1.0&w=50&s=d8c857ea47046f61eca695beab0d12ef"
+      },
+      {
+        "rank": "2",
+        "team": "Spirit",
+        "points": "(731 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/syrtYYKR7sBRw3ZHy1YFX7.png?ixlib=java-2.1.0&w=50&s=40e66714687bec05ea422255b1c0099e"
+      },
+      {
+        "rank": "3",
+        "team": "FURIA",
+        "points": "(669 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/mvNQc4csFGtxXk5guAh8m1.svg?ixlib=java-2.1.0&s=11e5056829ad5d6c06c5961bbe76d20c"
+      },
+      {
+        "rank": "4",
+        "team": "Vitality",
+        "points": "(668 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/ogcHrcCdzRvxbYvAz04KAN.png?ixlib=java-2.1.0&w=50&s=e1f6019aa9f274ffe45a5e99c88dbc02"
+      },
+      {
+        "rank": "5",
+        "team": "MOUZ",
+        "points": "(568 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/IejtXpquZnE8KqYPB1LNKw.svg?ixlib=java-2.1.0&s=7fd33b8def053fbfd8fdbb58e3bdcd3c"
+      },
+      {
+        "rank": "6",
+        "team": "Natus Vincere",
+        "points": "(493 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/9iMirAi7ArBLNU8p3kqUTZ.svg?ixlib=java-2.1.0&s=4dd8635be16122656093ae9884675d0c"
+      },
+      {
+        "rank": "7",
+        "team": "FaZe",
+        "points": "(362 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/OKLwq88GXjl5GQ48Y5SrvW.png?ixlib=java-2.1.0&w=50&s=0a0d65eeb1b0e82ada20c42c038552fa"
+      },
+      {
+        "rank": "8",
+        "team": "Aurora",
+        "points": "(357 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/yJzPNOeXlyiniNxanYJCrv.png?ixlib=java-2.1.0&w=50&s=2c08f70c2f2f8c2024a438ddcf19bbf1"
+      },
+      {
+        "rank": "9",
+        "team": "9z",
+        "points": "(349 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/COZDFWOIm41AT0srqOHFhM.png?invert=true&ixlib=java-2.1.0&sat=-100&w=50&s=b00d55fe74b90f91c5b7e2b58bda5afb"
+      },
+      {
+        "rank": "10",
+        "team": "G2",
+        "points": "(310 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/zFLwAELOD15BjJSDMMNBWQ.png?ixlib=java-2.1.0&w=50&s=affb583e6716d8ee904826992255cc4b"
+      },
+      {
+        "rank": "11",
+        "team": "Astralis",
+        "points": "(305 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/9bgXHp-oh1oaXr7F0mTGmd.svg?ixlib=java-2.1.0&s=f567161ab183001be33948b98c4b2067"
+      },
+      {
+        "rank": "12",
+        "team": "Legacy",
+        "points": "(278 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/RWbHH6RA8uGwJurGeLFvSr.png?ixlib=java-2.1.0&w=50&s=3d251032e156cab2f6df8c630ca29745"
+      },
+      {
+        "rank": "13",
+        "team": "The MongolZ",
+        "points": "(276 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/bRk2sh_tSTO6fq1GLhgcal.png?ixlib=java-2.1.0&w=50&s=8b08e53858eb817852ae74b30a30151d"
+      },
+      {
+        "rank": "14",
+        "team": "FUT",
+        "points": "(256 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/Os71GAOy8KDuQFc0M8HE6O.png?ixlib=java-2.1.0&w=50&s=86f2bded6bcb7c690a42a62250ed69e7"
+      },
+      {
+        "rank": "15",
+        "team": "BetBoom",
+        "points": "(243 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/G4ZrdB0-q41USPd_z27IQA.png?ixlib=java-2.1.0&w=50&s=9c15ddf70f9c66399d4a47e0d8e93511"
+      },
+      {
+        "rank": "16",
+        "team": "PARIVISION",
+        "points": "(239 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/MFcDe-M8wfGOUU6x4sRELR.png?ixlib=java-2.1.0&w=50&s=1d91076a58b354d8c3eaeda3162c292e"
+      },
+      {
+        "rank": "17",
+        "team": "B8",
+        "points": "(209 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/O6nRWTCjUzBAR4pcOcrpSG.png?ixlib=java-2.1.0&w=50&s=305dde82e764725dab7e626800328137"
+      },
+      {
+        "rank": "18",
+        "team": "paiN",
+        "points": "(175 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/iUUCFwCOFmOrwhB8q8smMg.svg?ixlib=java-2.1.0&s=1446e1cf3d02deb8190fe6efd14e4ce4"
+      },
+      {
+        "rank": "19",
+        "team": "BIG",
+        "points": "(163 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/OgMRQA35hopXA8kDwMFHIY.svg?ixlib=java-2.1.0&s=ec7bc44165c7acf4224a22a1338ab7d7"
+      },
+      {
+        "rank": "20",
+        "team": "Liquid",
+        "points": "(154 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/JMeLLbWKCIEJrmfPaqOz4O.svg?ixlib=java-2.1.0&s=c02caf90234d3a3ebac074c84ba1ea62"
+      },
+      {
+        "rank": "21",
+        "team": "magic",
+        "points": "(152 HLTV points)",
+        "logo": "https://img-cdn.hltv.org/teamlogo/KYi27Dm-DVyEUj0WIG5Bdx.png
+
