@@ -314,6 +314,9 @@ const FALLBACK_REGIONS_LOL = {
   LEC: { teams: {}, past_matches: [], upcoming_matches: [] },
   LCK: { teams: {}, past_matches: [], upcoming_matches: [] },
   LPL: { teams: {}, past_matches: [], upcoming_matches: [] },
+  LCP: { teams: {}, past_matches: [], upcoming_matches: [] },
+  CBLOL: { teams: {}, past_matches: [], upcoming_matches: [] },
+  TCL: { teams: {}, past_matches: [], upcoming_matches: [] },
 };
 const FALLBACK_REGIONS_VALORANT = {
   "VCT Americas": { teams: {}, past_matches: [], upcoming_matches: [] },
@@ -334,8 +337,8 @@ const GAMES = {
   lol: {
     label: "League of Legends",
     dataUrl: DATA_URL_LOL,
-    regionList: ["LCS", "LEC", "LCK", "LPL"],
-    regionLabels: { LCS: "LCS", LEC: "LEC", LCK: "LCK", LPL: "LPL" },
+    regionList: ["LCS", "LEC", "LCK", "LPL", "LCP", "CBLOL", "TCL"],
+    regionLabels: { LCS: "LCS", LEC: "LEC", LCK: "LCK", LPL: "LPL", LCP: "LCP", CBLOL: "CBLOL", TCL: "TCL" },
     fallbackRegions: FALLBACK_REGIONS_LOL,
   },
   valorant: {
@@ -1555,13 +1558,13 @@ function KillProjector() {
             onRetry={() => fetchGameData(game)}
           />
 
-          <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+          <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
             {gameCfg.regionList.map((key) => (
               <button
                 key={key}
                 onClick={() => setRegion(key)}
                 style={{
-                  flex: 1, padding: "9px 0", ...cardShape(theme.cornerStyle), border: "1px solid " + (region === key ? theme.accent : theme.steel),
+                  flex: "1 1 80px", minWidth: 70, padding: "9px 0", ...cardShape(theme.cornerStyle), border: "1px solid " + (region === key ? theme.accent : theme.steel),
                   background: region === key ? theme.accentSoft : theme.graphite, color: region === key ? theme.accent : theme.textDim,
                   fontSize: 13, fontWeight: 700, cursor: "pointer",
                 }}
