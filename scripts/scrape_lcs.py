@@ -35,6 +35,14 @@ REGIONS = {
     "LEC": {"current": "LEC 2026 Summer Season", "historical": "LEC 2026 Spring Season"},
     "LCK": {"current": "LCK 2026 Rounds 3-4", "historical": "LCK 2026 Rounds 1-2"},
     "LPL": {"current": "LPL 2026 Split 3", "historical": "LPL 2026 Split 2"},
+    "LCP": {"current": "LCP 2026 Split 3", "historical": "LCP 2026 Split 2"},
+    "CBLOL": {"current": "CBLOL 2026 Split 2", "historical": "CBLOL 2026 Split 1"},
+    "TCL": {"current": "TCL 2026 Summer", "historical": "TCL 2026 Spring"},
+    # LLA is intentionally omitted — confirmed via research (not an
+    # oversight) that it wasn't reinstated as a standalone league for
+    # 2026 after the LTA merger dissolved; its former teams (Leviatán,
+    # etc.) now compete within LCS/CBLOL directly and will already
+    # appear there.
 }
 
 # Cycled per-team as new teams are discovered — not hand-picked brand colors
