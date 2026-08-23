@@ -648,21 +648,30 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
 }
 
 // Per-stat-type defaults, tuned via a real backtest against historical
-// results (scripts/optimize_weights.py) rather than picked by feel. A
-// separate diagnostic (--diagnose-opponent) confirmed opponent=0 isn't an
-// artifact of thin data — the team-wide opponent signal is real but weak
-// and doesn't strengthen with more games logged, so it's correctly being
-// zeroed out here rather than mistuned. Recovering that signal properly
-// would need a lane-specific opponent comparison (a real player vs. their
-// direct positional opponent) rather than a team-wide average — noted as
-// a follow-up, not something these weights can fix on their own.
-// Assists' patchDiscount is an interpolated placeholder (the exact
-// searched value got lost in a copy-paste) — replace with the real number
-// from a fresh `--stat assists` run when you have it; low-stakes since
+// results (scripts/optimize_weights.py) rather than picked by feel.
+// The `opponent` weight went through a real investigative arc worth
+// knowing: a first pass found team-wide opponent comparison carried no
+// usable signal (opponent=0), which held up under a noise-vs-data-volume
+// diagnostic. Switching to a LANE-SPECIFIC comparison (a player vs. their
+// direct positional opponent, not the whole enemy roster) initially still
+// converged to opponent=0 — not because lane-specific data was uninformative
+// (a --diagnose-opponent run split by lane-specific-vs-fallback rows showed
+// real, positive signal in the lane-specific subset), but because the model
+// was falling back to the same weak/negative team-wide signal whenever
+// lane-specific data wasn't available (~63% of rows), which cancelled out
+// the real signal in the other ~37%. Changing the fallback to neutral (no
+// adjustment) instead of team-wide finally let the lane-specific signal
+// through: opponent settled at a genuine non-zero value for both kills and
+// deaths. Assists intentionally stays on team-wide comparison throughout —
+// the diagnostic found assists' signal lives at the team level, not the lane
+// level, which tracks with assists coming from the whole team's kills.
+// Assists' patchDiscount is still an interpolated placeholder (the exact
+// searched value never got captured) — replace with the real number from a
+// fresh `--stat assists` run whenever convenient; low-stakes since
 // patchDiscount only matters when cross-patch data exists at all.
 const DEFAULT_WEIGHTS_BY_STAT = {
-  kills: { history: 0.6, opponent: 0.0, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.0 },
-  deaths: { history: 0.8, opponent: 0.0, kp: 0.3, recencyHalfLife: 2, patchDiscount: 1.0 },
+  kills: { history: 0.7, opponent: 0.4, kp: 0.0, recencyHalfLife: 5, patchDiscount: 0.1 },
+  deaths: { history: 0.8, opponent: 0.2, kp: 0.3, recencyHalfLife: 3, patchDiscount: 0.0 },
   assists: { history: 0.6, opponent: 0.0, kp: 0.2, recencyHalfLife: 4, patchDiscount: 0.5 /* placeholder — see note above */ },
 };
 
