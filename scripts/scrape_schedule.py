@@ -17,7 +17,7 @@ API = "https://esports-api.lolesports.com/persisted/gw"
 API_KEY = "0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z"
 HEADERS = {"x-api-key": API_KEY}
 
-REGION_KEYS = ["LCS", "LEC", "LCK", "LPL"]
+REGION_KEYS = ["LCS", "LEC", "LCK", "LPL", "LCP", "CBLOL", "TCL"]
 
 
 def get_all_leagues():
@@ -57,13 +57,19 @@ def main():
             print(f"  ! {region_key} schedule fetch failed: {e}", file=sys.stderr)
             continue
 
+        print(f"  {region_key}: {len(events)} raw events from the API")
+        state_counts = {}
+        dropped_team_count = 0
         upcoming = []
         for e in events:
-            if e.get("state") != "unstarted":
+            state = e.get("state")
+            state_counts[state] = state_counts.get(state, 0) + 1
+            if state != "unstarted":
                 continue
             match = e.get("match", {})
             teams = match.get("teams", [])
             if len(teams) != 2:
+                dropped_team_count += 1
                 continue
             upcoming.append({
                 "date": e["startTime"],  # ISO 8601 UTC — app formats to local time
@@ -71,8 +77,12 @@ def main():
                 "teamB": teams[1]["name"],
                 "block": e.get("blockName", ""),
             })
+        print(f"    event states: {state_counts}")
+        if dropped_team_count:
+            print(f"    {dropped_team_count} 'unstarted' events dropped for not having exactly 2 teams "
+                  f"(likely TBD bracket slots)")
         regions[region_key] = upcoming
-        print(f"  {region_key}: {len(upcoming)} upcoming matches")
+        print(f"  {region_key}: {len(upcoming)} upcoming matches after filtering")
 
     with open("schedule.json", "w") as f:
         json.dump({"regions": regions}, f, indent=2)
