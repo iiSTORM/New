@@ -113,6 +113,23 @@ function useTheme() {
   return useContext(ThemeContext);
 }
 
+// Live viewport-width detection rather than user-agent sniffing — user
+// agents lie, and this also adapts correctly if someone just resizes a
+// browser window rather than needing a reload. 860px is roughly where a
+// single ~640px mobile column plus a real sidebar stops feeling cramped.
+const DESKTOP_BREAKPOINT = 860;
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(
+    typeof window !== "undefined" ? window.innerWidth >= DESKTOP_BREAKPOINT : false
+  );
+  useEffect(() => {
+    const onResize = () => setIsDesktop(window.innerWidth >= DESKTOP_BREAKPOINT);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return isDesktop;
+}
+
 function loadStored(key, fallback) {
   try {
     const raw = window.localStorage.getItem(key);
@@ -807,7 +824,7 @@ function computeEloRatings(regionsData, regionList, kFactor = 32) {
     .sort((a, b) => b.rating - a.rating);
 }
 
-function StandingsTab({ teams, pastMatches, regionsData, regionList, regionLabels }) {
+function StandingsTab({ teams, pastMatches, regionsData, regionList, regionLabels, isDesktop }) {
   const theme = useTheme();
   const standings = computeStandings(teams, pastMatches);
   const power = computeEloRatings(regionsData, regionList);
@@ -821,8 +838,8 @@ function StandingsTab({ teams, pastMatches, regionsData, regionList, regionLabel
   }
 
   return (
-    <div>
-      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), overflow: "hidden", marginBottom: 20 }}>
+    <div style={isDesktop ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "start" } : undefined}>
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), overflow: "hidden", marginBottom: isDesktop ? 0 : 20 }}>
         <div style={{ padding: "10px 14px", borderBottom: `1px solid ${theme.steel}`, fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
           STANDINGS
         </div>
@@ -1106,7 +1123,7 @@ function WeekHeader({ label }) {
   );
 }
 
-function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType }) {
+function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isDesktop }) {
   const theme = useTheme();
   const [customMode, setCustomMode] = useState(false);
   const teamNames = Object.keys(teams);
@@ -1121,6 +1138,14 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType }) {
     return ta < tb ? -1 : ta > tb ? 1 : 0;
   });
   const grouped = groupByLabel(sorted, (m) => m.block || m.week || null);
+  // On wide screens, let cards flow into as many columns as fit rather than
+  // a single stacked column — auto-fill means this scales smoothly with
+  // whatever width is actually available instead of a hard 2-vs-1 rule.
+  // alignItems: "start" keeps each card its own natural height rather than
+  // stretching to match a taller expanded neighbor in the same row.
+  const gridStyle = isDesktop
+    ? { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 10, alignItems: "start" }
+    : {};
 
   return (
     <div>
@@ -1136,7 +1161,9 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType }) {
       {grouped.map(([label, matches]) => (
         <div key={label}>
           <WeekHeader label={label} />
-          {matches.map((m, i) => <FutureMatchCard key={i} teams={teams} pastMatches={pastMatches} match={m} weights={weights} statType={statType} />)}
+          <div style={gridStyle}>
+            {matches.map((m, i) => <FutureMatchCard key={i} teams={teams} pastMatches={pastMatches} match={m} weights={weights} statType={statType} />)}
+          </div>
         </div>
       ))}
 
@@ -1244,7 +1271,7 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
   );
 }
 
-function PastResultsTab({ teams, pastMatches, weights, statType }) {
+function PastResultsTab({ teams, pastMatches, weights, statType, isDesktop }) {
   const theme = useTheme();
   // Sort by actual date (newest first) rather than trusting array order —
   // the live scraper and the offline fallback snapshot store matches in
@@ -1255,6 +1282,9 @@ function PastResultsTab({ teams, pastMatches, weights, statType }) {
     return da < db ? 1 : da > db ? -1 : 0;
   });
   const grouped = groupByLabel(sorted, (m) => m.week || null);
+  const gridStyle = isDesktop
+    ? { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 10, alignItems: "start" }
+    : {};
   return (
     <div>
       <div style={{ fontSize: 11, color: theme.textFaint, marginBottom: 12, lineHeight: 1.5 }}>
@@ -1266,7 +1296,9 @@ function PastResultsTab({ teams, pastMatches, weights, statType }) {
       {grouped.map(([label, matches]) => (
         <div key={label}>
           <WeekHeader label={label} />
-          {matches.map((m, i) => <PastMatchCard key={i} teams={teams} pastMatches={pastMatches} match={m} weights={weights} statType={statType} />)}
+          <div style={gridStyle}>
+            {matches.map((m, i) => <PastMatchCard key={i} teams={teams} pastMatches={pastMatches} match={m} weights={weights} statType={statType} />)}
+          </div>
         </div>
       ))}
     </div>
@@ -1407,6 +1439,7 @@ function SettingsPanel({ theme, accentOverride, setAccentOverride, cornerStyle, 
 }
 
 function KillProjector() {
+  const isDesktop = useIsDesktop();
   const [game, setGame] = useState("lol");
   const [region, setRegion] = useState("LCS");
   const [tab, setTab] = useState("future");
@@ -1518,12 +1551,16 @@ function KillProjector() {
 
   return (
     <ThemeContext.Provider value={theme}>
-      <div style={{ minHeight: "100vh", background: theme.void, color: theme.text, fontFamily: "'Inter', -apple-system, sans-serif", padding: "24px 16px 60px" }}>
+      <div style={{ minHeight: "100vh", background: theme.void, color: theme.text, fontFamily: "'Inter', -apple-system, sans-serif", padding: isDesktop ? "32px 32px 60px" : "24px 16px 60px" }}>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" />
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&display=swap" />
-        <div style={{ maxWidth: 640, margin: "0 auto" }}>
-          <div style={{ marginBottom: 20, display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-            <div>
+        <div style={{
+          maxWidth: isDesktop ? 1180 : 640, margin: "0 auto",
+          display: isDesktop ? "flex" : "block", alignItems: "flex-start", gap: isDesktop ? 28 : 0,
+        }}>
+          {/* ---------- Sidebar on desktop / top stack on mobile: header + all controls ---------- */}
+          <div style={{ width: isDesktop ? 320 : "100%", flexShrink: 0, position: isDesktop ? "sticky" : "static", top: isDesktop ? 32 : "auto" }}>
+            <div style={{ marginBottom: 20 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, letterSpacing: 3, color: theme.accent, fontFamily: "'IBM Plex Mono', monospace" }}>
                 <Reticle size={13} color={theme.accent} active />
                 ESPORTS — KILL PROJECTOR
@@ -1531,104 +1568,117 @@ function KillProjector() {
               <div style={{ fontSize: 24, fontWeight: 700, marginTop: 4, fontFamily: "'Chakra Petch', sans-serif" }}>Weighted kill projections</div>
               <div style={{ fontSize: 13, color: theme.textDim, marginTop: 2 }}>Blends this split's rates with prior-split history, opponent strength, and kill-participation.</div>
             </div>
-          </div>
 
-          <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-            {GAME_LIST.map((id) => (
-              <button
-                key={id}
-                onClick={() => selectGame(id)}
-                style={{
-                  flex: 1, padding: "11px 0", ...cardShape(theme.cornerStyle),
-                  border: "1px solid " + (game === id ? GAME_ACCENTS[id].accent : theme.steel),
-                  background: game === id ? GAME_ACCENTS[id].accentSoft : theme.graphite,
-                  color: game === id ? GAME_ACCENTS[id].accent : theme.textDim,
-                  fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Chakra Petch', sans-serif",
-                }}
-              >
-                {GAMES[id].label}
-              </button>
-            ))}
-          </div>
-
-          <DataStatus
-            status={statusByGame[game]}
-            lastUpdated={lastUpdatedByGame[game]}
-            errorDetail={errorByGame[game]}
-            onRetry={() => fetchGameData(game)}
-          />
-
-          <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
-            {gameCfg.regionList.map((key) => (
-              <button
-                key={key}
-                onClick={() => setRegion(key)}
-                style={{
-                  flex: "1 1 80px", minWidth: 70, padding: "9px 0", ...cardShape(theme.cornerStyle), border: "1px solid " + (region === key ? theme.accent : theme.steel),
-                  background: region === key ? theme.accentSoft : theme.graphite, color: region === key ? theme.accent : theme.textDim,
-                  fontSize: 13, fontWeight: 700, cursor: "pointer",
-                }}
-              >
-                {gameCfg.regionLabels[key]}
-              </button>
-            ))}
-          </div>
-
-          <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-            {[["future", "Future"], ["past", "Past Results"], ["standings", "Standings"]].map(([id, label]) => (
-              <button
-                key={id}
-                onClick={() => setTab(id)}
-                style={{
-                  flex: 1, padding: "10px 0", ...cardShape(theme.cornerStyle), border: "1px solid " + (tab === id ? theme.accent : theme.steel),
-                  background: tab === id ? theme.accentSoft : theme.graphite, color: tab === id ? theme.accent : theme.textDim,
-                  fontSize: 13, fontWeight: 700, cursor: "pointer",
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          <StatTypeSelector statType={statType} setStatType={setStatType} />
-
-          <WeightControls
-            games={games} setGames={setGames}
-            weights={weights} onChangeWeight={setWeight}
-            expanded={slidersExpanded} onToggleExpanded={() => setSlidersExpanded(!slidersExpanded)}
-            statLabel={STAT_TYPES[statType].label}
-          />
-
-          <SettingsPanel
-            theme={theme}
-            accentOverride={accentOverride} setAccentOverride={setAccentOverride}
-            cornerStyle={cornerStyle} setCornerStyle={setCornerStyle}
-            open={settingsOpen} setOpen={setSettingsOpen}
-          />
-
-          {!hasData ? (
-            <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: "20px 16px", textAlign: "center" }}>
-              <div style={{ fontSize: 13, color: theme.textDim }}>No {gameCfg.regionLabels[region]} data available yet.</div>
-              <div style={{ fontSize: 12, color: theme.textFaint, marginTop: 4 }}>
-                {statusByGame[game] === "live" || statusByGame[game] === "loading"
-                  ? "This region may not have loaded from the live source — try refresh above."
-                  : "The live source hasn't loaded, and there's no offline snapshot for this region yet."}
-              </div>
+            <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+              {GAME_LIST.map((id) => (
+                <button
+                  key={id}
+                  onClick={() => selectGame(id)}
+                  style={{
+                    flex: 1, padding: "11px 0", ...cardShape(theme.cornerStyle),
+                    border: "1px solid " + (game === id ? GAME_ACCENTS[id].accent : theme.steel),
+                    background: game === id ? GAME_ACCENTS[id].accentSoft : theme.graphite,
+                    color: game === id ? GAME_ACCENTS[id].accent : theme.textDim,
+                    fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Chakra Petch', sans-serif",
+                  }}
+                >
+                  {GAMES[id].label}
+                </button>
+              ))}
             </div>
-          ) : tab === "future" ? (
-            <FutureTab teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} />
-          ) : tab === "past" ? (
-            <PastResultsTab teams={current.teams} pastMatches={current.past_matches || []} weights={weights} statType={statType} />
-          ) : (
-            <StandingsTab
-              teams={current.teams} pastMatches={current.past_matches || []}
-              regionsData={regionsData} regionList={gameCfg.regionList} regionLabels={gameCfg.regionLabels}
-            />
-          )}
 
-          <div style={{ marginTop: 20, fontSize: 11, color: theme.textFaint, lineHeight: 1.6 }}>
-            Tap any match card to expand player-level detail.
-            Data: {game === "lol" ? "regular-season box scores (gol.gg) and schedule (LoL Esports API)" : "match stats (VLR.gg)"}.
+            <DataStatus
+              status={statusByGame[game]}
+              lastUpdated={lastUpdatedByGame[game]}
+              errorDetail={errorByGame[game]}
+              onRetry={() => fetchGameData(game)}
+            />
+
+            <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
+              {gameCfg.regionList.map((key) => (
+                <button
+                  key={key}
+                  onClick={() => setRegion(key)}
+                  style={{
+                    flex: "1 1 80px", minWidth: 70, padding: "9px 0", ...cardShape(theme.cornerStyle), border: "1px solid " + (region === key ? theme.accent : theme.steel),
+                    background: region === key ? theme.accentSoft : theme.graphite, color: region === key ? theme.accent : theme.textDim,
+                    fontSize: 13, fontWeight: 700, cursor: "pointer",
+                  }}
+                >
+                  {gameCfg.regionLabels[key]}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+              {[["future", "Future"], ["past", "Past Results"], ["standings", "Standings"]].map(([id, label]) => (
+                <button
+                  key={id}
+                  onClick={() => setTab(id)}
+                  style={{
+                    flex: 1, padding: "10px 0", ...cardShape(theme.cornerStyle), border: "1px solid " + (tab === id ? theme.accent : theme.steel),
+                    background: tab === id ? theme.accentSoft : theme.graphite, color: tab === id ? theme.accent : theme.textDim,
+                    fontSize: 13, fontWeight: 700, cursor: "pointer",
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <StatTypeSelector statType={statType} setStatType={setStatType} />
+
+            <WeightControls
+              games={games} setGames={setGames}
+              weights={weights} onChangeWeight={setWeight}
+              expanded={slidersExpanded} onToggleExpanded={() => setSlidersExpanded(!slidersExpanded)}
+              statLabel={STAT_TYPES[statType].label}
+            />
+
+            <SettingsPanel
+              theme={theme}
+              accentOverride={accentOverride} setAccentOverride={setAccentOverride}
+              cornerStyle={cornerStyle} setCornerStyle={setCornerStyle}
+              open={settingsOpen} setOpen={setSettingsOpen}
+            />
+
+            {!isDesktop && (
+              <div style={{ marginTop: 20, fontSize: 11, color: theme.textFaint, lineHeight: 1.6 }}>
+                Tap any match card to expand player-level detail.
+                Data: {game === "lol" ? "regular-season box scores (gol.gg) and schedule (LoL Esports API)" : "match stats (VLR.gg)"}.
+              </div>
+            )}
+          </div>
+
+          {/* ---------- Main content: whichever tab is selected ---------- */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {!hasData ? (
+              <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: "20px 16px", textAlign: "center" }}>
+                <div style={{ fontSize: 13, color: theme.textDim }}>No {gameCfg.regionLabels[region]} data available yet.</div>
+                <div style={{ fontSize: 12, color: theme.textFaint, marginTop: 4 }}>
+                  {statusByGame[game] === "live" || statusByGame[game] === "loading"
+                    ? "This region may not have loaded from the live source — try refresh above."
+                    : "The live source hasn't loaded, and there's no offline snapshot for this region yet."}
+                </div>
+              </div>
+            ) : tab === "future" ? (
+              <FutureTab teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} isDesktop={isDesktop} />
+            ) : tab === "past" ? (
+              <PastResultsTab teams={current.teams} pastMatches={current.past_matches || []} weights={weights} statType={statType} isDesktop={isDesktop} />
+            ) : (
+              <StandingsTab
+                teams={current.teams} pastMatches={current.past_matches || []}
+                regionsData={regionsData} regionList={gameCfg.regionList} regionLabels={gameCfg.regionLabels}
+                isDesktop={isDesktop}
+              />
+            )}
+
+            {isDesktop && (
+              <div style={{ marginTop: 20, fontSize: 11, color: theme.textFaint, lineHeight: 1.6 }}>
+                Tap any match card to expand player-level detail.
+                Data: {game === "lol" ? "regular-season box scores (gol.gg) and schedule (LoL Esports API)" : "match stats (VLR.gg)"}.
+              </div>
+            )}
           </div>
         </div>
       </div>
