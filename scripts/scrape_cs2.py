@@ -199,8 +199,15 @@ async def build_region_payload(cs2, session):
 
     # ---- Past matches: scan the global finished() feed, filter for tracked teams ----
     print(f"Scanning {FINISHED_SCAN_PAGES} pages of finished() for tracked teams' matches...")
-    tracked_ids = {v["id"] for v in team_id_by_slug.values()}
+    # Compared as strings — a real, confirmed cause of an earlier run
+    # finding zero matches across 1500 scanned despite including several
+    # top-ranked teams: search_teams() gives integer IDs, but cs2api's
+    # finished() wrapper may return team1_id/team2_id as strings
+    # internally, and "654" in {654, ...} is False in Python even though
+    # the values represent the same team.
+    tracked_ids = {str(v["id"]) for v in team_id_by_slug.values()}
     candidate_matches = []
+    first_page_ids = None
     for page in range(FINISHED_SCAN_PAGES):
         try:
             # NOTE: "offset" as the pagination kwarg is a reasonable guess
@@ -215,8 +222,20 @@ async def build_region_payload(cs2, session):
         results = batch.get("results", batch) if isinstance(batch, dict) else batch
         if not results:
             break
+        page_ids = [m.get("id") for m in results[:5]]
+        if page == 0:
+            print(f"  [debug] page 0 sample match ids: {page_ids}")
+            sample = results[0]
+            print(f"  [debug] page 0 first match: team1_id={sample.get('team1_id')!r} "
+                  f"(type {type(sample.get('team1_id')).__name__}), "
+                  f"team2_id={sample.get('team2_id')!r}, "
+                  f"team1={sample.get('team1')!r}, team2={sample.get('team2')!r}")
+            first_page_ids = page_ids
+        elif page == 1 and page_ids == first_page_ids:
+            print(f"  [debug] !! page 1's first 5 match ids are IDENTICAL to page 0's — "
+                  f"pagination (offset=) is very likely not actually advancing")
         for m in results:
-            if m.get("team1_id") in tracked_ids or m.get("team2_id") in tracked_ids:
+            if str(m.get("team1_id")) in tracked_ids or str(m.get("team2_id")) in tracked_ids:
                 candidate_matches.append(m)
         await asyncio.sleep(0.2)
     print(f"  {len(candidate_matches)} matches found involving a tracked team\n")
