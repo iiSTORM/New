@@ -1,313 +1,42 @@
 ============================================================
-get_results(limit=5)
-  GET https://api.parse.bot/scraper/b3500f47-4f4d-4f28-b85d-7e73293b70d1/get_results  params={'limit': 5}
+get_results(limit=50) — scanning for a notable match
+  GET https://api.parse.bot/scraper/b3500f47-4f4d-4f28-b85d-7e73293b70d1/get_results  params={'limit': 50}
 ============================================================
   status: 200
-  credit headers: {'x-credits-charged': '1', 'x-credits-limit': '200', 'x-credits-remaining': '178'}
-{
-  "results": [
-    {
-      "match_id": "2396778",
-      "date": "Results for August 25th 2026",
-      "team1": "Revise",
-      "team2": "Bebop",
-      "score": "2 - 0",
-      "event": "Exort Fiesta Series 1",
-      "url": "https://www.hltv.org/matches/2396778/revise-vs-bebop-exort-fiesta-series-1",
-      "team1_logo": "https://www.hltv.org/dynamic-svg/teamplaceholder?letter=R",
-      "team2_logo": "https://www.hltv.org/dynamic-svg/teamplaceholder?letter=B"
-    },
-    {
-      "match_id": "2396964",
-      "date": "Results for August 25th 2026",
-      "team1": "paiN Academy",
-      "team2": "Peladona",
-      "score": "0 - 2",
-      "event": "CCT 2026 South America Series 5",
-      "url": "https://www.hltv.org/matches/2396964/pain-academy-vs-peladona-cct-2026-south-america-series-5",
-      "team1_logo": "https://img-cdn.hltv.org/teamlogo/DJqL2qlXf6Fi01v-8QxQP1.png?ixlib=java-2.1.0&w=50&s=0e2a00494324afe7b104b4c749b70697",
-      "team2_logo": "https://www.hltv.org/dynamic-svg/teamplaceholder?letter=P"
-    },
-    {
-      "match_id": "2397038",
-      "date": "Results for August 25th 2026",
-      "team1": "ex-RUBY",
-      "team2": "BET-M",
-      "score": "2 - 0",
-      "event": "GLuck Moscow Cyber Games 2026 Closed Qualifier",
-      "url": "https://www.hltv.org/matches/2397038/ex-ruby-vs-bet-m-gluck-moscow-cyber-games-2026-closed-qualifier",
-      "team1_logo": "https://www.hltv.org/dynamic-svg/teamplaceholder?letter=e",
-      "team2_logo": "https://img-cdn.hltv.org/teamlogo/V7kOhjpI4AiRCPnthLVvL6.png?ixlib=java-2.1.0&w=50&s=6ded0349cde3e1cc18b4b28c3d8cb91c"
-    },
-    {
-      "match_id": "2396963",
-      "date": "Results for August 25th 2026",
-      "team1": "BORRACHEIROS",
-      "team2": "DAMAJUANA",
-      "score": "2 - 1",
-      "event": "CCT 2026 South America Series 5",
-      "url": "https://www.hltv.org/matches/2396963/borracheiros-vs-damajuana-cct-2026-south-america-series-5",
-      "team1_logo": "https://www.hltv.org/dynamic-svg/teamplaceholder?letter=B",
-      "team2_logo": "https://img-cdn.hltv.org/teamlogo/UkUKmLXnhRYsDg4q_q-BKJ.png?invert=true&ixlib=java-2.1.0&sat=-100&w=50&s=2a81de46dbb8199118cb2ed7097e1acb"
-    },
-    {
-      "match_id": "2396671",
-      "date": "Results for August 25th 2026",
-      "team1": "G2 Ares",
-      "team2": "ex-RUSTEC",
-      "score": "0 - 2",
-      "event": "CCT 2026 Europe Series 7",
-      "url": "https://www.hltv.org/matches/2396671/g2-ares-vs-ex-rustec-cct-2026-europe-series-7",
-      "team1_logo": "https://img-cdn.hltv.org/teamlogo/7s-UIVdwo4C6iV1zYq20Ou.png?ixlib=java-2.1.0&w=50&s=30beb08dcc7ff03452b4ab839828307a",
-      "team2_logo": "https://www.hltv.org/dynamic-svg/teamplaceholder?letter=e"
-    }
-  ]
-}
+  credit headers: {'x-credits-charged': '1', 'x-credits-limit': '200', 'x-credits-remaining': '173'}
+  50 results returned
 
-Using match_id='2396778' (from the most recent real result) for get_match_details below
+Testing get_match_details on: 1win vs Nemiga (GLuck Moscow Cyber Games 2026 Closed Qualifier), match_id=2397037
 
 ============================================================
-get_match_details(match_id='2396778') — THE CRITICAL ONE, check 'stats' array shape
-  GET https://api.parse.bot/scraper/b3500f47-4f4d-4f28-b85d-7e73293b70d1/get_match_details  params={'match_id': '2396778'}
+get_match_details(2397037) — notable-team test
+  GET https://api.parse.bot/scraper/b3500f47-4f4d-4f28-b85d-7e73293b70d1/get_match_details  params={'match_id': '2397037'}
 ============================================================
   status: 200
-  credit headers: {'x-credits-charged': '2', 'x-credits-limit': '200', 'x-credits-remaining': '176'}
+  credit headers: {'x-credits-charged': '2', 'x-credits-limit': '200', 'x-credits-remaining': '172'}
 {
-  "match_id": "2396778",
+  "match_id": "2397037",
   "teams": [
-    "Revise",
-    "Bebop",
-    "Revise",
-    "Bebop"
+    "1win",
+    "Nemiga",
+    "1win",
+    "Nemiga"
   ],
   "maps": [
     {
+      "name": "Anubis",
+      "score": "1win16STATS (5:7; 7:5) (4:2)Nemiga14"
+    },
+    {
       "name": "Dust2",
-      "score": "Revise16STATS (6:6; 6:6) (4:0)Bebop12"
+      "score": "1win13STATS (9:3; 4:3)Nemiga6"
     },
     {
       "name": "Cache",
-      "score": "Revise13STATS (5:7; 8:4)Bebop11"
-    },
-    {
-      "name": "Mirage",
-      "score": "Revise-Bebop-"
+      "score": "1win-Nemiga-"
     }
   ],
   "stats": []
 }
 
-============================================================
-get_team_stats(days=30, limit=10)
-  GET https://api.parse.bot/scraper/b3500f47-4f4d-4f28-b85d-7e73293b70d1/get_team_stats  params={'days': 30, 'limit': 10}
-============================================================
-  status: 200
-  credit headers: {'x-credits-charged': '2', 'x-credits-limit': '200', 'x-credits-remaining': '176'}
-{
-  "teams": [
-    {
-      "team_id": "5378",
-      "name": "Virtus.pro",
-      "maps": "22",
-      "kd_diff": "+200",
-      "kd": "1.14",
-      "rating": "1.15",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/RU.gif"
-    },
-    {
-      "team_id": "12916",
-      "name": "Betclic",
-      "maps": "24",
-      "kd_diff": "+295",
-      "kd": "1.19",
-      "rating": "1.14",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/PL.gif"
-    },
-    {
-      "team_id": "9455",
-      "name": "Imperial",
-      "maps": "23",
-      "kd_diff": "+236",
-      "kd": "1.16",
-      "rating": "1.13",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/BR.gif"
-    },
-    {
-      "team_id": "11581",
-      "name": "HOTU",
-      "maps": "27",
-      "kd_diff": "+233",
-      "kd": "1.13",
-      "rating": "1.13",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/RU.gif"
-    },
-    {
-      "team_id": "13573",
-      "name": "ex-Zero Tenacity",
-      "maps": "23",
-      "kd_diff": "+179",
-      "kd": "1.13",
-      "rating": "1.11",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/RS.gif"
-    },
-    {
-      "team_id": "13814",
-      "name": "INOX Division",
-      "maps": "42",
-      "kd_diff": "+348",
-      "kd": "1.12",
-      "rating": "1.11",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/EU.gif"
-    },
-    {
-      "team_id": "13173",
-      "name": "Phantom",
-      "maps": "23",
-      "kd_diff": "+167",
-      "kd": "1.11",
-      "rating": "1.10",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/PL.gif"
-    },
-    {
-      "team_id": "13281",
-      "name": "Bushido Wildcats",
-      "maps": "63",
-      "kd_diff": "+359",
-      "kd": "1.08",
-      "rating": "1.10",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/TR.gif"
-    },
-    {
-      "team_id": "13683",
-      "name": "WBT",
-      "maps": "22",
-      "kd_diff": "+167",
-      "kd": "1.12",
-      "rating": "1.10",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/UA.gif"
-    },
-    {
-      "team_id": "11712",
-      "name": "Sashi",
-      "maps": "32",
-      "kd_diff": "+185",
-      "kd": "1.09",
-      "rating": "1.09",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/DK.gif"
-    },
-    {
-      "team_id": "7020",
-      "name": "Spirit",
-      "maps": "29",
-      "kd_diff": "+133",
-      "kd": "1.07",
-      "rating": "1.09",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/RU.gif"
-    },
-    {
-      "team_id": "10503",
-      "name": "OG",
-      "maps": "31",
-      "kd_diff": "+216",
-      "kd": "1.11",
-      "rating": "1.09",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/EU.gif"
-    },
-    {
-      "team_id": "13599",
-      "name": "benched gods",
-      "maps": "24",
-      "kd_diff": "+73",
-      "kd": "1.04",
-      "rating": "1.08",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/RU.gif"
-    },
-    {
-      "team_id": "11609",
-      "name": "GenOne",
-      "maps": "58",
-      "kd_diff": "+150",
-      "kd": "1.04",
-      "rating": "1.08",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/FR.gif"
-    },
-    {
-      "team_id": "12380",
-      "name": "CYBERSHOKE",
-      "maps": "28",
-      "kd_diff": "+11",
-      "kd": "1.01",
-      "rating": "1.07",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/RU.gif"
-    },
-    {
-      "team_id": "12267",
-      "name": "UNiTY",
-      "maps": "50",
-      "kd_diff": "+312",
-      "kd": "1.08",
-      "rating": "1.07",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/EU.gif"
-    },
-    {
-      "team_id": "13181",
-      "name": "BASEMENT BOYS",
-      "maps": "37",
-      "kd_diff": "+59",
-      "kd": "1.02",
-      "rating": "1.07",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/UA.gif"
-    },
-    {
-      "team_id": "13973",
-      "name": "Color",
-      "maps": "25",
-      "kd_diff": "+39",
-      "kd": "1.02",
-      "rating": "1.07",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/RU.gif"
-    },
-    {
-      "team_id": "13619",
-      "name": "BET-M",
-      "maps": "29",
-      "kd_diff": "+7",
-      "kd": "1.00",
-      "rating": "1.07",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/RU.gif"
-    },
-    {
-      "team_id": "13827",
-      "name": "NEW VISION",
-      "maps": "22",
-      "kd_diff": "+56",
-      "kd": "1.04",
-      "rating": "1.07",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/RU.gif"
-    },
-    {
-      "team_id": "11641",
-      "name": "Metizport",
-      "maps": "28",
-      "kd_diff": "+128",
-      "kd": "1.07",
-      "rating": "1.07",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/EU.gif"
-    },
-    {
-      "team_id": "10621",
-      "name": "1win",
-      "maps": "31",
-      "kd_diff": "+62",
-      "kd": "1.03",
-      "rating": "1.07",
-      "logo": "https://www.hltv.org/img/static/flags/30x20/RU.gif"
-    },
-    {
-      "team_id": "13838",
-      "name": "EAC",
-      "maps": "43",
-      "kd_diff": "+153",
-      "kd": "1.05",
-      "rating": 
-
+>>> stats array length: 0
