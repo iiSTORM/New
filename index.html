@@ -793,6 +793,10 @@ function computeStandings(teams, pastMatches) {
   }
   for (const m of pastMatches) {
     if (!m.teamA || !m.teamB || !m.winner) continue;
+    // Playoff results don't fold into regular-season standings — they never
+    // are on any real broadcast, and blending them would silently produce a
+    // wrong table the moment a region enters its bracket.
+    if (m.week && playoffRoundRank(m.week) !== null) continue;
     const loser = m.winner === m.teamA ? m.teamB : m.teamA;
     if (standings[m.winner]) standings[m.winner].wins += 1;
     if (standings[loser]) standings[loser].losses += 1;
@@ -843,12 +847,26 @@ function computeEloRatings(regionsData, regionList, kFactor = 32) {
     .sort((a, b) => b.rating - a.rating);
 }
 
-function StandingsTab({ teams, pastMatches, regionsData, regionList, regionLabels, isDesktop }) {
+function StandingsTab({ teams, pastMatches, upcomingMatches, regionsData, regionList, regionLabels, isDesktop }) {
   const theme = useTheme();
   const standings = computeStandings(teams, pastMatches);
   const power = computeEloRatings(regionsData, regionList);
 
-  if (standings.every((s) => s.wins === 0 && s.losses === 0)) {
+  // Combine completed playoff results and scheduled-but-unplayed playoff
+  // matches into one normalized list so the bracket status reads as a
+  // single coherent picture instead of being split across tabs — grouped
+  // and ordered by the same tournament-progression logic used in
+  // Future/Past Results, not naive chronological/alphabetical order.
+  const playoffPast = pastMatches
+    .filter((m) => m.week && playoffRoundRank(m.week) !== null)
+    .map((m) => ({ ...m, roundLabel: m.week, played: true }));
+  const playoffUpcoming = (upcomingMatches || [])
+    .filter((m) => (m.block || m.week) && playoffRoundRank(m.block || m.week) !== null)
+    .map((m) => ({ ...m, roundLabel: m.block || m.week, played: false }));
+  const playoffGroups = sortGroupsByProgression(groupByLabel([...playoffPast, ...playoffUpcoming], (m) => m.roundLabel));
+  const inPlayoffs = playoffGroups.length > 0;
+
+  if (standings.every((s) => s.wins === 0 && s.losses === 0) && !inPlayoffs) {
     return (
       <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: "20px 16px", textAlign: "center" }}>
         <div style={{ fontSize: 13, color: theme.textDim }}>No completed matches yet this split.</div>
@@ -857,46 +875,80 @@ function StandingsTab({ teams, pastMatches, regionsData, regionList, regionLabel
   }
 
   return (
-    <div style={isDesktop ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "start" } : undefined}>
-      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), overflow: "hidden", marginBottom: isDesktop ? 0 : 20 }}>
-        <div style={{ padding: "10px 14px", borderBottom: `1px solid ${theme.steel}`, fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
-          STANDINGS
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 40px 40px 56px", padding: "6px 14px", fontSize: 10, letterSpacing: 1, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
-          <span>TEAM</span><span style={{ textAlign: "right" }}>W</span><span style={{ textAlign: "right" }}>L</span><span style={{ textAlign: "right" }}>GAMES</span>
-        </div>
-        {standings.map((s, i) => (
-          <div key={s.team} style={{ display: "grid", gridTemplateColumns: "1fr 40px 40px 56px", padding: "9px 14px", fontSize: 13, borderTop: `1px solid ${theme.steelSoft}`, alignItems: "center" }}>
-            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", width: 14 }}>{i + 1}</span>
-              <span style={{ width: 5, height: 16, background: teams[s.team] ? teams[s.team].color : theme.textFaint }} />
-              <span style={{ fontFamily: "'Chakra Petch', sans-serif", fontWeight: 600 }}>{s.team}</span>
-            </span>
-            <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.good }}>{s.wins}</span>
-            <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.bad }}>{s.losses}</span>
-            <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.textDim, fontSize: 11 }}>{s.gameWins}-{s.gameLosses}</span>
+    <div>
+      <div style={isDesktop ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "start" } : undefined}>
+        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), overflow: "hidden", marginBottom: isDesktop ? 0 : 20 }}>
+          <div style={{ padding: "10px 14px", borderBottom: `1px solid ${theme.steel}`, fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
+            STANDINGS{inPlayoffs ? " · REGULAR SEASON (FINAL)" : ""}
           </div>
-        ))}
+          {inPlayoffs && (
+            <div style={{ padding: "8px 14px", fontSize: 11, color: theme.textDim, lineHeight: 1.5, borderBottom: `1px solid ${theme.steelSoft}` }}>
+              This region has entered playoffs — the table below reflects the completed regular season only. See the bracket below for playoff results.
+            </div>
+          )}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 40px 40px 56px", padding: "6px 14px", fontSize: 10, letterSpacing: 1, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
+            <span>TEAM</span><span style={{ textAlign: "right" }}>W</span><span style={{ textAlign: "right" }}>L</span><span style={{ textAlign: "right" }}>GAMES</span>
+          </div>
+          {standings.map((s, i) => (
+            <div key={s.team} style={{ display: "grid", gridTemplateColumns: "1fr 40px 40px 56px", padding: "9px 14px", fontSize: 13, borderTop: `1px solid ${theme.steelSoft}`, alignItems: "center" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", width: 14 }}>{i + 1}</span>
+                <span style={{ width: 5, height: 16, background: teams[s.team] ? teams[s.team].color : theme.textFaint }} />
+                <span style={{ fontFamily: "'Chakra Petch', sans-serif", fontWeight: 600 }}>{s.team}</span>
+              </span>
+              <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.good }}>{s.wins}</span>
+              <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.bad }}>{s.losses}</span>
+              <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.textDim, fontSize: 11 }}>{s.gameWins}-{s.gameLosses}</span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), overflow: "hidden" }}>
+          <div style={{ padding: "10px 14px", borderBottom: `1px solid ${theme.steel}`, fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
+            POWER RANKING · ALL REGIONS
+          </div>
+          <div style={{ padding: "8px 14px", fontSize: 11, color: theme.textFaint, lineHeight: 1.5, borderBottom: `1px solid ${theme.steelSoft}` }}>
+            Elo-style rating pooled across every region — meaningful for cross-region comparison once international matches (MSI, Worlds, Champions) start feeding in. Until then it tracks closely with in-region record, which is expected.
+          </div>
+          {power.map((p, i) => (
+            <div key={p.team} style={{ display: "grid", gridTemplateColumns: "1fr 70px 60px", padding: "9px 14px", fontSize: 13, borderTop: `1px solid ${theme.steelSoft}`, alignItems: "center" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", width: 14 }}>{i + 1}</span>
+                <span style={{ fontFamily: "'Chakra Petch', sans-serif", fontWeight: 600 }}>{p.team}</span>
+              </span>
+              <span style={{ textAlign: "right", fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>{regionLabels[p.region] || p.region}</span>
+              <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.accent, fontWeight: 700 }}>{Math.round(p.rating)}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), overflow: "hidden" }}>
-        <div style={{ padding: "10px 14px", borderBottom: `1px solid ${theme.steel}`, fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
-          POWER RANKING · ALL REGIONS
-        </div>
-        <div style={{ padding: "8px 14px", fontSize: 11, color: theme.textFaint, lineHeight: 1.5, borderBottom: `1px solid ${theme.steelSoft}` }}>
-          Elo-style rating pooled across every region — meaningful for cross-region comparison once international matches (MSI, Worlds, Champions) start feeding in. Until then it tracks closely with in-region record, which is expected.
-        </div>
-        {power.map((p, i) => (
-          <div key={p.team} style={{ display: "grid", gridTemplateColumns: "1fr 70px 60px", padding: "9px 14px", fontSize: 13, borderTop: `1px solid ${theme.steelSoft}`, alignItems: "center" }}>
-            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", width: 14 }}>{i + 1}</span>
-              <span style={{ fontFamily: "'Chakra Petch', sans-serif", fontWeight: 600 }}>{p.team}</span>
-            </span>
-            <span style={{ textAlign: "right", fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>{regionLabels[p.region] || p.region}</span>
-            <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.accent, fontWeight: 700 }}>{Math.round(p.rating)}</span>
+      {inPlayoffs && (
+        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), overflow: "hidden", marginTop: 20 }}>
+          <div style={{ padding: "10px 14px", borderBottom: `1px solid ${theme.steel}`, fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
+            PLAYOFFS
           </div>
-        ))}
-      </div>
+          {playoffGroups.map(([label, matches]) => (
+            <div key={label}>
+              <div style={{ padding: "8px 14px 4px", fontSize: 10, letterSpacing: 1.5, color: theme.accent, fontFamily: "'IBM Plex Mono', monospace", borderTop: `1px solid ${theme.steelSoft}`, textTransform: "uppercase" }}>
+                {label}
+              </div>
+              {matches.map((m, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 14px", fontSize: 12 }}>
+                  <span>
+                    <span style={{ color: teams[m.teamA] ? teams[m.teamA].color : theme.text, fontWeight: m.winner === m.teamA ? 700 : 400 }}>{m.teamA}</span>
+                    <span style={{ color: theme.textFaint }}> vs </span>
+                    <span style={{ color: teams[m.teamB] ? teams[m.teamB].color : theme.text, fontWeight: m.winner === m.teamB ? 700 : 400 }}>{m.teamB}</span>
+                  </span>
+                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: m.played ? theme.textDim : theme.accent }}>
+                    {m.played ? `${m.score} · ${m.winner} won` : (m.date || "TBD")}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -1112,6 +1164,64 @@ function groupByLabel(items, labelFn) {
   return groups;
 }
 
+/* ============================================================
+   PLAYOFF-AWARE ORDERING — groupByLabel above just buckets items in
+   whatever order their label was first encountered, which tracks
+   correctly with tournament progression for "Week 1, Week 2, ..."
+   labels (since match dates are already monotonic with week number)
+   but isn't reliable once playoff round names enter the picture —
+   a double-elimination bracket's lower-bracket rounds can chronologically
+   interleave with upper-bracket rounds in ways that don't read as a
+   sensible progression if you just sort by whichever round's first
+   match happened earliest. This gives playoff-style labels an explicit
+   canonical rank instead, confirmed against a real live TCL 2026 Summer
+   bracket (Upper/Lower Bracket Quarterfinals/Semifinals/Final, Grand
+   Final) rather than guessed — falls back to alphabetical for any label
+   that doesn't match a known pattern, so an unrecognized label degrades
+   gracefully instead of crashing or vanishing.
+   ============================================================ */
+
+const PLAYOFF_STAGE_PATTERNS = [
+  { test: (l) => /swiss|group stage|regular season/.test(l), rank: 0 },
+  { test: (l) => /play-?in/.test(l), rank: 1 },
+  { test: (l) => /upper.*(round\s*1|ro\s*16)/.test(l), rank: 10 },
+  { test: (l) => /lower.*(round\s*1|ro\s*16)/.test(l), rank: 11 },
+  { test: (l) => /upper.*(quarterfinal|ro\s*8)/.test(l), rank: 20 },
+  { test: (l) => /lower.*round\s*2/.test(l), rank: 21 },
+  { test: (l) => /lower.*(quarterfinal|ro\s*8)/.test(l), rank: 22 },
+  { test: (l) => /^(quarterfinal|ro\s*8)/.test(l), rank: 20 }, // unqualified — single-elimination regions
+  { test: (l) => /upper.*(semifinal|ro\s*4)/.test(l), rank: 30 },
+  { test: (l) => /lower.*(semifinal|ro\s*4)/.test(l), rank: 32 },
+  { test: (l) => /^(semifinal|ro\s*4)/.test(l), rank: 30 },
+  { test: (l) => /upper.*final/.test(l), rank: 40 },
+  { test: (l) => /lower.*final/.test(l), rank: 42 },
+  { test: (l) => /grand final|^final(s)?$/.test(l), rank: 50 },
+];
+
+function playoffRoundRank(label) {
+  const l = label.toLowerCase();
+  for (const { test, rank } of PLAYOFF_STAGE_PATTERNS) {
+    if (test(l)) return rank;
+  }
+  return null; // not a recognized playoff-stage label
+}
+
+function sortGroupsByProgression(groups) {
+  return groups.slice().sort(([labelA], [labelB]) => {
+    const weekA = /^Week (\d+)$/i.exec(labelA);
+    const weekB = /^Week (\d+)$/i.exec(labelB);
+    if (weekA && weekB) return parseInt(weekA[1], 10) - parseInt(weekB[1], 10);
+    if (weekA && !weekB) return -1; // regular-season weeks always precede playoff rounds
+    if (!weekA && weekB) return 1;
+    const rankA = playoffRoundRank(labelA);
+    const rankB = playoffRoundRank(labelB);
+    if (rankA !== null && rankB !== null) return rankA - rankB;
+    if (rankA !== null) return -1; // a recognized playoff stage precedes an unrecognized label
+    if (rankB !== null) return 1;
+    return labelA.localeCompare(labelB);
+  });
+}
+
 function WeekHeader({ label }) {
   const theme = useTheme();
   return (
@@ -1135,7 +1245,7 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isD
     const tb = b._sortKey || b.date || "";
     return ta < tb ? -1 : ta > tb ? 1 : 0;
   });
-  const grouped = groupByLabel(sorted, (m) => m.block || m.week || null);
+  const grouped = sortGroupsByProgression(groupByLabel(sorted, (m) => m.block || m.week || null));
   // On wide screens, let cards flow into as many columns as fit rather than
   // a single stacked column — auto-fill means this scales smoothly with
   // whatever width is actually available instead of a hard 2-vs-1 rule.
@@ -1279,7 +1389,7 @@ function PastResultsTab({ teams, pastMatches, weights, statType, isDesktop }) {
     const db = b.date || "";
     return da < db ? 1 : da > db ? -1 : 0;
   });
-  const grouped = groupByLabel(sorted, (m) => m.week || null);
+  const grouped = sortGroupsByProgression(groupByLabel(sorted, (m) => m.week || null));
   const gridStyle = isDesktop
     ? { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 10, alignItems: "start" }
     : {};
@@ -1701,7 +1811,7 @@ function KillProjector() {
               <PastResultsTab teams={current.teams} pastMatches={current.past_matches || []} weights={weights} statType={statType} isDesktop={isDesktop} />
             ) : (
               <StandingsTab
-                teams={current.teams} pastMatches={current.past_matches || []}
+                teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming}
                 regionsData={regionsData} regionList={gameCfg.regionList} regionLabels={gameCfg.regionLabels}
                 isDesktop={isDesktop}
               />
