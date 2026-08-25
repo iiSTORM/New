@@ -122,6 +122,18 @@ function elevation(tier = "card") {
   return { boxShadow: "0 3px 10px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05)" };
 }
 
+// Targeting-bracket accents (see the .kp-bracket CSS rule) only make sense
+// paired with the angular corner style — in rounded mode there's no "sharp
+// corner" for them to sit in, so they're skipped entirely rather than
+// looking out of place. bracketStyle's CSS custom property lets the accent
+// color track the current theme/game without a separate CSS rule per color.
+function bracketClass(theme) {
+  return theme.cornerStyle === "angular" ? "kp-bracket" : "";
+}
+function bracketStyle(theme, color) {
+  return theme.cornerStyle === "angular" ? { "--kp-bracket-color": color || theme.accent } : {};
+}
+
 const ThemeContext = createContext(null);
 function useTheme() {
   return useContext(ThemeContext);
@@ -738,7 +750,7 @@ function PlayerRow({ teams, pastMatches, p, team, opponentTeam, games, weights, 
           <span style={{ width: 6, height: 24, background: teamColor }} />
           <div>
             <div style={{ fontWeight: 600, color: theme.text, fontSize: 14, fontFamily: "'Chakra Petch', sans-serif" }}>{p.name}</div>
-            <div style={{ fontSize: 10, letterSpacing: 1, color: theme.textFaint }}>{p.role}</div>
+            {p.role && <span className="kp-chip" style={{ background: theme.steelSoft, color: theme.textDim, marginTop: 2 }}>{p.role}</span>}
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
@@ -877,7 +889,7 @@ function StandingsTab({ teams, pastMatches, upcomingMatches, regionsData, region
   return (
     <div>
       <div style={isDesktop ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "start" } : undefined}>
-        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), overflow: "hidden", marginBottom: isDesktop ? 0 : 20 }}>
+        <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), overflow: "hidden", marginBottom: isDesktop ? 0 : 20 }}>
           <div style={{ padding: "10px 14px", borderBottom: `1px solid ${theme.steel}`, fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
             STANDINGS{inPlayoffs ? " · REGULAR SEASON (FINAL)" : ""}
           </div>
@@ -903,7 +915,7 @@ function StandingsTab({ teams, pastMatches, upcomingMatches, regionsData, region
           ))}
         </div>
 
-        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), overflow: "hidden" }}>
+        <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), overflow: "hidden" }}>
           <div style={{ padding: "10px 14px", borderBottom: `1px solid ${theme.steel}`, fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
             POWER RANKING · ALL REGIONS
           </div>
@@ -924,7 +936,7 @@ function StandingsTab({ teams, pastMatches, upcomingMatches, regionsData, region
       </div>
 
       {inPlayoffs && (
-        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), overflow: "hidden", marginTop: 20 }}>
+        <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), overflow: "hidden", marginTop: 20 }}>
           <div style={{ padding: "10px 14px", borderBottom: `1px solid ${theme.steel}`, fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
             PLAYOFFS
           </div>
@@ -1034,7 +1046,7 @@ function MatchupPanel({ teams, pastMatches, teamA, teamB, games, weights, statTy
       <HeadToHeadCard teams={teams} pastMatches={pastMatches} teamA={teamA} teamB={teamB} />
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         {[[teamA, teamB, totalsA], [teamB, teamA, totalsB]].map(([team, opp, total], i) => (
-          <div key={i} style={{ background: theme.graphite, border: `1px solid ${teams[team].color}33`, ...cardShape(theme.cornerStyle), ...elevation(), overflow: "hidden" }}>
+          <div key={i} className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${teams[team].color}33`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme, teams[team].color), overflow: "hidden" }}>
             <div style={{ padding: "10px 12px", background: `${teams[team].color}18`, borderBottom: `1px solid ${teams[team].color}33`, display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <span style={{ fontWeight: 700, fontSize: 14, fontFamily: "'Chakra Petch', sans-serif" }}>{team}</span>
               <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, color: teams[team].color }}>Σ {total.toFixed(1)}</span>
@@ -1126,7 +1138,7 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games }
   const totalProj = rows.reduce((s, r) => s + r.proj, 0);
 
   return (
-    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), marginBottom: 10, overflow: "hidden" }}>
+    <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), marginBottom: 10, overflow: "hidden" }}>
       <div className="kp-clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer", padding: "12px 14px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
@@ -1152,7 +1164,7 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games }
               <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <span style={{ width: 5, height: 16, background: teams[r.team].color }} />
                 {r.name}
-                <span style={{ color: theme.textFaint, fontSize: 10 }}>{r.role}</span>
+                {r.role && <span className="kp-chip" style={{ background: theme.steelSoft, color: theme.textFaint }}>{r.role}</span>}
               </span>
               <span style={{ textAlign: "right", color: theme.accent, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700 }}>{r.proj.toFixed(1)}</span>
             </div>
@@ -1371,7 +1383,7 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
   const coldStartCount = rows.filter((r) => r.priorGames === 0).length;
 
   return (
-    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), marginBottom: 10, overflow: "hidden" }}>
+    <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), marginBottom: 10, overflow: "hidden" }}>
       <div className="kp-clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer", padding: "12px 14px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
@@ -1399,7 +1411,7 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
               <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <span style={{ width: 5, height: 16, background: teams[r.team].color }} />
                 {r.name}
-                {r.priorGames === 0 && <span style={{ fontSize: 9, color: theme.textFaint }}>(no prior form)</span>}
+                {r.priorGames === 0 && <span className="kp-chip" style={{ background: `${theme.bad}18`, color: theme.bad, border: `1px solid ${theme.bad}44` }}>NO PRIOR FORM</span>}
               </span>
               <span style={{ textAlign: "right", color: theme.textDim, fontFamily: "'IBM Plex Mono', monospace" }}>{r.proj.toFixed(1)}</span>
               <span style={{ textAlign: "right", color: theme.text, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}>{r.actual}</span>
@@ -1798,6 +1810,23 @@ function KillProjector() {
           @keyframes kp-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
           .kp-menu-anim { animation: kp-fade-in 0.16s ease; }
           .kp-backdrop-anim { animation: kp-backdrop-in 0.16s ease; }
+          /* Targeting-bracket corner marks — the two sharp corners the
+             angular clip-path doesn't cut (top-left, bottom-right) get
+             small viewfinder-style accent marks. A deliberate nod to the
+             "kill projector / reticle" identity rather than generic corner
+             decoration — only makes sense paired with the angular corner
+             style, so it's applied conditionally in JS, not always-on. */
+          .kp-bracket { position: relative; }
+          .kp-bracket::before, .kp-bracket::after {
+            content: ""; position: absolute; width: 11px; height: 11px; pointer-events: none; opacity: 0.85;
+          }
+          .kp-bracket::before { top: 2px; left: 2px; border-top: 1.5px solid var(--kp-bracket-color); border-left: 1.5px solid var(--kp-bracket-color); }
+          .kp-bracket::after { bottom: 2px; right: 2px; border-bottom: 1.5px solid var(--kp-bracket-color); border-right: 1.5px solid var(--kp-bracket-color); }
+          .kp-chip {
+            display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 3px;
+            font-size: 9px; font-weight: 700; letter-spacing: 0.4px; font-family: 'IBM Plex Mono', monospace;
+          }
+          .kp-divider { border: none; height: 1px; }
         `}</style>
         <div style={{
           maxWidth: isDesktop ? 1180 : 640, margin: "0 auto",
@@ -1845,7 +1874,7 @@ function KillProjector() {
                 ))}
               </div>
 
-              <div style={{ height: 1, background: theme.steelSoft, margin: "0 -16px 16px" }} />
+              <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${theme.steelSoft} 20%, ${theme.steelSoft} 80%, transparent)`, margin: "0 -16px 16px" }} />
 
               <div style={{ fontSize: 10, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", marginBottom: 10 }}>VIEW</div>
               <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
@@ -1865,7 +1894,7 @@ function KillProjector() {
                 ))}
               </div>
 
-              <div style={{ height: 1, background: theme.steelSoft, margin: "0 -16px 16px" }} />
+              <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${theme.steelSoft} 20%, ${theme.steelSoft} 80%, transparent)`, margin: "0 -16px 16px" }} />
 
               <div style={{ fontSize: 10, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", marginBottom: 10 }}>STAT</div>
               <div style={{ display: "flex", gap: 6 }}>
