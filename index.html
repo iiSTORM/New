@@ -108,6 +108,20 @@ function cardShape(cornerStyle) {
   };
 }
 
+// Drop shadows barely register on a near-black background — the trick dark
+// UIs actually use for a "raised surface" feeling is a faint highlight on
+// the top edge (simulating light catching a raised panel) combined with a
+// real shadow for separation from whatever's behind it. Two tiers: "card"
+// for normal content surfaces, "sunken" for the opposite effect (a recessed
+// well, used for the page's nav/control surfaces to differentiate them from
+// content cards rather than making everything look identical).
+function elevation(tier = "card") {
+  if (tier === "sunken") {
+    return { boxShadow: "inset 0 1px 3px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.02)" };
+  }
+  return { boxShadow: "0 3px 10px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05)" };
+}
+
 const ThemeContext = createContext(null);
 function useTheme() {
   return useContext(ThemeContext);
@@ -728,8 +742,13 @@ function PlayerRow({ teams, pastMatches, p, team, opponentTeam, games, weights, 
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 20, color: theme.accent, fontWeight: 700 }}>{r.total.toFixed(1)}</div>
-          <div style={{ fontSize: 10, color: theme.textFaint }}>proj. {cfg.label.toLowerCase()} / {games}g</div>
+          <div style={{
+            display: "inline-block", fontFamily: "'IBM Plex Mono', monospace", fontSize: 20, color: theme.accent, fontWeight: 700,
+            background: theme.accentSoft, padding: "2px 10px", borderRadius: 4, border: `1px solid ${theme.accentBorder}`,
+          }}>
+            {r.total.toFixed(1)}
+          </div>
+          <div style={{ fontSize: 10, color: theme.textFaint, marginTop: 3 }}>proj. {cfg.label.toLowerCase()} / {games}g</div>
         </div>
       </div>
       {open && (
@@ -831,7 +850,7 @@ function StandingsTab({ teams, pastMatches, regionsData, regionList, regionLabel
 
   if (standings.every((s) => s.wins === 0 && s.losses === 0)) {
     return (
-      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: "20px 16px", textAlign: "center" }}>
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: "20px 16px", textAlign: "center" }}>
         <div style={{ fontSize: 13, color: theme.textDim }}>No completed matches yet this split.</div>
       </div>
     );
@@ -839,7 +858,7 @@ function StandingsTab({ teams, pastMatches, regionsData, regionList, regionLabel
 
   return (
     <div style={isDesktop ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "start" } : undefined}>
-      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), overflow: "hidden", marginBottom: isDesktop ? 0 : 20 }}>
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), overflow: "hidden", marginBottom: isDesktop ? 0 : 20 }}>
         <div style={{ padding: "10px 14px", borderBottom: `1px solid ${theme.steel}`, fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
           STANDINGS
         </div>
@@ -860,7 +879,7 @@ function StandingsTab({ teams, pastMatches, regionsData, regionList, regionLabel
         ))}
       </div>
 
-      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), overflow: "hidden" }}>
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), overflow: "hidden" }}>
         <div style={{ padding: "10px 14px", borderBottom: `1px solid ${theme.steel}`, fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
           POWER RANKING · ALL REGIONS
         </div>
@@ -941,7 +960,7 @@ function HeadToHeadCard({ teams, pastMatches, teamA, teamB, bare = false }) {
 
   if (bare) return <div style={{ padding: "12px 14px" }}>{content}</div>;
   return (
-    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: 14, marginBottom: 12 }}>
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: 14, marginBottom: 12 }}>
       {content}
     </div>
   );
@@ -956,7 +975,7 @@ function MatchupPanel({ teams, pastMatches, teamA, teamB, games, weights, statTy
       <HeadToHeadCard teams={teams} pastMatches={pastMatches} teamA={teamA} teamB={teamB} />
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         {[[teamA, teamB, totalsA], [teamB, teamA, totalsB]].map(([team, opp, total], i) => (
-          <div key={i} style={{ background: theme.graphite, border: `1px solid ${teams[team].color}33`, ...cardShape(theme.cornerStyle), overflow: "hidden" }}>
+          <div key={i} style={{ background: theme.graphite, border: `1px solid ${teams[team].color}33`, ...cardShape(theme.cornerStyle), ...elevation(), overflow: "hidden" }}>
             <div style={{ padding: "10px 12px", background: `${teams[team].color}18`, borderBottom: `1px solid ${teams[team].color}33`, display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <span style={{ fontWeight: 700, fontSize: 14, fontFamily: "'Chakra Petch', sans-serif" }}>{team}</span>
               <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, color: teams[team].color }}>Σ {total.toFixed(1)}</span>
@@ -971,34 +990,13 @@ function MatchupPanel({ teams, pastMatches, teamA, teamB, games, weights, statTy
   );
 }
 
-function StatTypeSelector({ statType, setStatType }) {
-  const theme = useTheme();
-  return (
-    <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-      {Object.entries(STAT_TYPES).map(([key, cfg]) => (
-        <button
-          key={key}
-          onClick={() => setStatType(key)}
-          style={{
-            flex: 1, padding: "8px 0", ...cardShape(theme.cornerStyle), border: "1px solid " + (statType === key ? theme.accent : theme.steel),
-            background: statType === key ? theme.accentSoft : theme.graphite, color: statType === key ? theme.accent : theme.textDim,
-            fontSize: 12, fontWeight: 700, cursor: "pointer",
-          }}
-        >
-          {cfg.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 function WeightControls({ games, setGames, weights, onChangeWeight, expanded, onToggleExpanded, statLabel }) {
   const theme = useTheme();
   const summary = `History ${Math.round(weights.history * 100)}% · Opponent ${weights.opponent.toFixed(1)}× · `
     + `KP ${Math.round(weights.kp * 100)}% · Recency ${weights.recencyHalfLife >= 20 ? "flat" : weights.recencyHalfLife + "m"} · `
     + `Patch -${Math.round(weights.patchDiscount * 100)}%`;
   return (
-    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: 16, marginBottom: 20 }}>
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: 18, marginBottom: 22 }}>
       <div
         onClick={onToggleExpanded}
         style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginBottom: expanded ? 12 : 0 }}
@@ -1061,7 +1059,7 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType }) {
   const totalProj = rows.reduce((s, r) => s + r.proj, 0);
 
   return (
-    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), marginBottom: 10, overflow: "hidden" }}>
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), marginBottom: 10, overflow: "hidden" }}>
       <div onClick={() => setOpen(!open)} style={{ cursor: "pointer", padding: "12px 14px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
@@ -1154,7 +1152,7 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isD
         upcoming matchup, using current model weights.
       </div>
       {upcomingMatches.length === 0 && (
-        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: "16px", textAlign: "center", fontSize: 12, color: theme.textDim, marginBottom: 10 }}>
+        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: "16px", textAlign: "center", fontSize: 12, color: theme.textDim, marginBottom: 10 }}>
           No upcoming matches loaded. Use the custom matchup tool below.
         </div>
       )}
@@ -1213,7 +1211,7 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
     // Legacy fallback data only ever tracked kills — nothing to show for
     // deaths/assists on those matches.
     return (
-      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), marginBottom: 10, padding: "12px 14px", fontSize: 12, color: theme.textFaint }}>
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), marginBottom: 10, padding: "12px 14px", fontSize: 12, color: theme.textFaint }}>
         {match.teamA} vs {match.teamB} — {cfg.label.toLowerCase()} data not available for this match.
       </div>
     );
@@ -1228,7 +1226,7 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
   const coldStartCount = rows.filter((r) => r.priorGames === 0).length;
 
   return (
-    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), marginBottom: 10, overflow: "hidden" }}>
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), marginBottom: 10, overflow: "hidden" }}>
       <div onClick={() => setOpen(!open)} style={{ cursor: "pointer", padding: "12px 14px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
@@ -1316,7 +1314,7 @@ function DataStatus({ status, lastUpdated, errorDetail, onRetry }) {
     status === "no-url" ? "Using bundled snapshot (no live source configured)" :
     "Live fetch failed — using bundled snapshot";
   return (
-    <div style={{ marginBottom: 16, padding: "8px 12px", background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle) }}>
+    <div style={{ marginBottom: 16, padding: "8px 12px", background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation() }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: theme.textDim }}>
           <span style={{ width: 6, height: 6, borderRadius: "50%", background: color }} />
@@ -1375,7 +1373,7 @@ function SettingsPanel({ theme, accentOverride, setAccentOverride, cornerStyle, 
         <span style={{ fontSize: 13 }}>⚙</span> customize {open ? "▴" : "▾"}
       </button>
       {open && (
-        <div style={{ marginTop: 10, background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: 14 }}>
+        <div style={{ marginTop: 10, background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: 14 }}>
           <div style={{ fontSize: 11, letterSpacing: 1, color: theme.textFaint, marginBottom: 8, fontFamily: "'IBM Plex Mono', monospace" }}>ACCENT COLOR</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
             <button
@@ -1551,7 +1549,13 @@ function KillProjector() {
 
   return (
     <ThemeContext.Provider value={theme}>
-      <div style={{ minHeight: "100vh", background: theme.void, color: theme.text, fontFamily: "'Inter', -apple-system, sans-serif", padding: isDesktop ? "32px 32px 60px" : "24px 16px 60px" }}>
+      <div style={{
+        minHeight: "100vh", color: theme.text, fontFamily: "'Inter', -apple-system, sans-serif", padding: isDesktop ? "32px 32px 60px" : "24px 16px 60px",
+        background: `radial-gradient(ellipse 1200px 800px at 50% -10%, ${theme.accent}0d, transparent 60%), `
+          + `linear-gradient(${theme.steelSoft}33 1px, transparent 1px), linear-gradient(90deg, ${theme.steelSoft}33 1px, transparent 1px), `
+          + theme.void,
+        backgroundSize: "auto, 48px 48px, 48px 48px, auto",
+      }}>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" />
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&display=swap" />
         <div style={{
@@ -1560,31 +1564,13 @@ function KillProjector() {
         }}>
           {/* ---------- Sidebar on desktop / top stack on mobile: header + all controls ---------- */}
           <div style={{ width: isDesktop ? 320 : "100%", flexShrink: 0, position: isDesktop ? "sticky" : "static", top: isDesktop ? 32 : "auto" }}>
-            <div style={{ marginBottom: 20 }}>
+            <div style={{ marginBottom: 22 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, letterSpacing: 3, color: theme.accent, fontFamily: "'IBM Plex Mono', monospace" }}>
                 <Reticle size={13} color={theme.accent} active />
                 ESPORTS — KILL PROJECTOR
               </div>
               <div style={{ fontSize: 24, fontWeight: 700, marginTop: 4, fontFamily: "'Chakra Petch', sans-serif" }}>Weighted kill projections</div>
               <div style={{ fontSize: 13, color: theme.textDim, marginTop: 2 }}>Blends this split's rates with prior-split history, opponent strength, and kill-participation.</div>
-            </div>
-
-            <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-              {GAME_LIST.map((id) => (
-                <button
-                  key={id}
-                  onClick={() => selectGame(id)}
-                  style={{
-                    flex: 1, padding: "11px 0", ...cardShape(theme.cornerStyle),
-                    border: "1px solid " + (game === id ? GAME_ACCENTS[id].accent : theme.steel),
-                    background: game === id ? GAME_ACCENTS[id].accentSoft : theme.graphite,
-                    color: game === id ? GAME_ACCENTS[id].accent : theme.textDim,
-                    fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Chakra Petch', sans-serif",
-                  }}
-                >
-                  {GAMES[id].label}
-                </button>
-              ))}
             </div>
 
             <DataStatus
@@ -1594,40 +1580,88 @@ function KillProjector() {
               onRetry={() => fetchGameData(game)}
             />
 
-            <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
-              {gameCfg.regionList.map((key) => (
-                <button
-                  key={key}
-                  onClick={() => setRegion(key)}
-                  style={{
-                    flex: "1 1 80px", minWidth: 70, padding: "9px 0", ...cardShape(theme.cornerStyle), border: "1px solid " + (region === key ? theme.accent : theme.steel),
-                    background: region === key ? theme.accentSoft : theme.graphite, color: region === key ? theme.accent : theme.textDim,
-                    fontSize: 13, fontWeight: 700, cursor: "pointer",
-                  }}
-                >
-                  {gameCfg.regionLabels[key]}
-                </button>
-              ))}
+            {/* ---------- Navigation surface: Game / Region / View / Stat, one
+                cohesive recessed panel with internal section dividers instead
+                of four separate flat button rows sitting on the page. ---------- */}
+            <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation("sunken"), padding: 16, marginBottom: 22 }}>
+              <div style={{ fontSize: 10, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", marginBottom: 10 }}>GAME</div>
+              <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+                {GAME_LIST.map((id) => (
+                  <button
+                    key={id}
+                    onClick={() => selectGame(id)}
+                    style={{
+                      flex: 1, padding: "11px 0", borderRadius: 6,
+                      border: "1px solid " + (game === id ? GAME_ACCENTS[id].accent : theme.steel),
+                      background: game === id ? GAME_ACCENTS[id].accentSoft : "transparent",
+                      color: game === id ? GAME_ACCENTS[id].accent : theme.textDim,
+                      fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Chakra Petch', sans-serif",
+                    }}
+                  >
+                    {GAMES[id].label}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ height: 1, background: theme.steelSoft, margin: "0 -16px 16px" }} />
+
+              <div style={{ fontSize: 10, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", marginBottom: 10 }}>REGION</div>
+              <div style={{ display: "flex", gap: 6, marginBottom: 18, flexWrap: "wrap" }}>
+                {gameCfg.regionList.map((key) => (
+                  <button
+                    key={key}
+                    onClick={() => setRegion(key)}
+                    style={{
+                      flex: "1 1 80px", minWidth: 70, padding: "9px 0", borderRadius: 6, border: "1px solid " + (region === key ? theme.accent : theme.steel),
+                      background: region === key ? theme.accentSoft : "transparent", color: region === key ? theme.accent : theme.textDim,
+                      fontSize: 13, fontWeight: 700, cursor: "pointer",
+                    }}
+                  >
+                    {gameCfg.regionLabels[key]}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ height: 1, background: theme.steelSoft, margin: "0 -16px 16px" }} />
+
+              <div style={{ fontSize: 10, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", marginBottom: 10 }}>VIEW</div>
+              <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+                {[["future", "Future"], ["past", "Past Results"], ["standings", "Standings"]].map(([id, label]) => (
+                  <button
+                    key={id}
+                    onClick={() => setTab(id)}
+                    style={{
+                      flex: 1, padding: "10px 0", borderRadius: 6, border: "1px solid " + (tab === id ? theme.accent : theme.steel),
+                      background: tab === id ? theme.accentSoft : "transparent", color: tab === id ? theme.accent : theme.textDim,
+                      fontSize: 13, fontWeight: 700, cursor: "pointer",
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ height: 1, background: theme.steelSoft, margin: "0 -16px 16px" }} />
+
+              <div style={{ fontSize: 10, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", marginBottom: 10 }}>STAT</div>
+              <div style={{ display: "flex", gap: 6 }}>
+                {Object.entries(STAT_TYPES).map(([key, cfg]) => (
+                  <button
+                    key={key}
+                    onClick={() => setStatType(key)}
+                    style={{
+                      flex: 1, padding: "8px 0", borderRadius: 6, border: "1px solid " + (statType === key ? theme.accent : theme.steel),
+                      background: statType === key ? theme.accentSoft : "transparent", color: statType === key ? theme.accent : theme.textDim,
+                      fontSize: 12, fontWeight: 700, cursor: "pointer",
+                    }}
+                  >
+                    {cfg.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-              {[["future", "Future"], ["past", "Past Results"], ["standings", "Standings"]].map(([id, label]) => (
-                <button
-                  key={id}
-                  onClick={() => setTab(id)}
-                  style={{
-                    flex: 1, padding: "10px 0", ...cardShape(theme.cornerStyle), border: "1px solid " + (tab === id ? theme.accent : theme.steel),
-                    background: tab === id ? theme.accentSoft : theme.graphite, color: tab === id ? theme.accent : theme.textDim,
-                    fontSize: 13, fontWeight: 700, cursor: "pointer",
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            <StatTypeSelector statType={statType} setStatType={setStatType} />
-
+            {/* ---------- Model configuration surface: weights + customize ---------- */}
             <WeightControls
               games={games} setGames={setGames}
               weights={weights} onChangeWeight={setWeight}
@@ -1653,7 +1687,7 @@ function KillProjector() {
           {/* ---------- Main content: whichever tab is selected ---------- */}
           <div style={{ flex: 1, minWidth: 0 }}>
             {!hasData ? (
-              <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: "20px 16px", textAlign: "center" }}>
+              <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: "20px 16px", textAlign: "center" }}>
                 <div style={{ fontSize: 13, color: theme.textDim }}>No {gameCfg.regionLabels[region]} data available yet.</div>
                 <div style={{ fontSize: 12, color: theme.textFaint, marginTop: 4 }}>
                   {statusByGame[game] === "live" || statusByGame[game] === "loading"
