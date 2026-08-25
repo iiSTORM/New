@@ -1,27 +1,19 @@
 #!/usr/bin/env python3
 """
-Follow-up to the first parse.bot test run. That run confirmed get_results,
-get_upcoming_matches, get_team_rankings, and get_player_stats all work with
-real data — but two things are still unresolved:
+Follow-up to the second parse.bot test run, which revealed something
+important: get_match_details returned "stats": [] — completely empty —
+for a real, genuinely completed match. Before concluding the endpoint is
+broken, this rules out one explanation: that match was a very minor
+qualifier ("Exort Fiesta Series 1"), and HLTV itself might just not track
+detailed stats for lower-tier matches. This scans a larger batch of
+results for a match involving a top-ranked team (using team names already
+confirmed strong via get_team_stats: Virtus.pro, Betclic, Imperial,
+Spirit, etc.) and tests get_match_details on that instead — a fairer test
+of whether the field works at all when real stats coverage should exist.
 
-  1. A bug in THIS script (not the API): every response is wrapped as
-     {"status": "success", "data": {...}}, and the first version looked for
-     "results" at the top level instead of inside "data" — which is why
-     get_match_details never actually ran despite real match_ids being
-     right there in the response. Fixed below.
-  2. get_team_stats timed out at 20s — bumped to 45s here to see if it's
-     just slow rather than broken.
-
-The real target this run: get_match_details. get_player_stats already
-confirmed "kd" is a ratio (e.g. "1.37"), not raw kill/death counts — the
-critical open question is whether get_match_details has the same
-limitation (in which case we'd reconstruct real counts algebraically from
-kd + kd_diff, like the player_stats endpoint allows) or gives raw counts
-directly per map.
-
-Costs about 7 credits this run (get_results 1 + get_match_details 2 +
-get_team_stats ~2-5), reusing the same env var setup as before:
-    python scripts/test_hltv_parsebot.py > hltv_parsebot_output_2.txt 2>&1
+Costs about 3 credits (get_results with a larger limit + one
+get_match_details call):
+    python scripts/test_hltv_parsebot_2.py > hltv_parsebot_output_3.txt 2>&1
 """
 import json
 import os
@@ -31,8 +23,15 @@ import requests
 
 API_KEY = os.environ.get("PARSE_API_KEY")
 BASE = "https://api.parse.bot/scraper/b3500f47-4f4d-4f28-b85d-7e73293b70d1"
-
 HEADERS = {"X-API-Key": API_KEY} if API_KEY else {}
+
+# Confirmed strong/notable teams from the previous get_team_stats run — a
+# match involving any of these is far more likely to have real HLTV stats
+# coverage than a minor regional qualifier.
+NOTABLE_TEAMS = {
+    "virtus.pro", "betclic", "imperial", "hotu", "spirit", "og",
+    "bushido wildcats", "cybershoke", "1win", "metizport",
+}
 
 
 def call(endpoint, params=None, label=None):
@@ -43,47 +42,63 @@ def call(endpoint, params=None, label=None):
     print("=" * 60)
     try:
         resp = requests.get(url, headers=HEADERS, params=params or {}, timeout=45)
-        print(f"  status: {resp.status_code}")
-        credit_headers = {k: v for k, v in resp.headers.items() if "credit" in k.lower()}
-        if credit_headers:
-            print(f"  credit headers: {credit_headers}")
-        if resp.status_code == 200:
-            envelope = resp.json()
-            # Every response is wrapped as {"status": "success", "data": {...}}
-            # — unwrap it here so callers just get the real payload.
-            data = envelope.get("data", envelope) if isinstance(envelope, dict) else envelope
-            print(json.dumps(data, indent=2, default=str)[:5000])
-            print()
-            return data
-        else:
-            print(f"  body: {resp.text[:500]}\n")
     except Exception as e:
         print(f"  ! request failed: {type(e).__name__}: {e}\n")
-    return None
+        return None
+    print(f"  status: {resp.status_code}")
+    credit_headers = {k: v for k, v in resp.headers.items() if "credit" in k.lower()}
+    if credit_headers:
+        print(f"  credit headers: {credit_headers}")
+    if resp.status_code != 200:
+        print(f"  body: {resp.text[:500]}\n")
+        return None
+    envelope = resp.json()
+    data = envelope.get("data", envelope) if isinstance(envelope, dict) else envelope
+    return data
 
 
 def main():
     if not API_KEY:
-        print("! PARSE_API_KEY environment variable not set. "
-              "Run: export PARSE_API_KEY=your_key_here", file=sys.stderr)
+        print("! PARSE_API_KEY environment variable not set.", file=sys.stderr)
         sys.exit(1)
 
-    results = call("get_results", {"limit": 5}, "get_results(limit=5)")
+    results = call("get_results", {"limit": 50}, "get_results(limit=50) — scanning for a notable match")
+    if not results:
+        print("! get_results failed, can't continue")
+        sys.exit(1)
 
-    match_id = None
-    if results and isinstance(results, dict):
-        items = results.get("results", [])
-        if items:
-            match_id = items[0].get("match_id")
-            print(f"Using match_id={match_id!r} (from the most recent real result) for get_match_details below\n")
+    items = results.get("results", [])
+    print(f"  {len(items)} results returned\n")
 
-    if match_id:
-        call("get_match_details", {"match_id": match_id},
-             f"get_match_details(match_id={match_id!r}) — THE CRITICAL ONE, check 'stats' array shape")
-    else:
-        print("! No match_id found in get_results — skipping get_match_details\n")
+    notable_match = None
+    for m in items:
+        t1 = (m.get("team1") or "").lower()
+        t2 = (m.get("team2") or "").lower()
+        if t1 in NOTABLE_TEAMS or t2 in NOTABLE_TEAMS:
+            notable_match = m
+            break
 
-    call("get_team_stats", {"days": 30, "limit": 10}, "get_team_stats(days=30, limit=10)")
+    if not notable_match:
+        print("! No match involving a known notable team found in the last 50 results — "
+              "trying the first result anyway as a fallback")
+        notable_match = items[0] if items else None
+
+    if not notable_match:
+        print("! No results at all — can't test get_match_details")
+        sys.exit(1)
+
+    print(f"Testing get_match_details on: {notable_match['team1']} vs {notable_match['team2']} "
+          f"({notable_match['event']}), match_id={notable_match['match_id']}\n")
+
+    details = call("get_match_details", {"match_id": notable_match["match_id"]},
+                    f"get_match_details({notable_match['match_id']}) — notable-team test")
+    if details:
+        print(json.dumps(details, indent=2, default=str))
+        stats = details.get("stats", [])
+        print(f"\n>>> stats array length: {len(stats)}")
+        if stats:
+            print(">>> First stats entry, full shape:")
+            print(json.dumps(stats[0], indent=2, default=str))
 
 
 if __name__ == "__main__":
