@@ -51,7 +51,7 @@ async def try_get(session, url, label, print_full=False):
 
 async def main():
     async with aiohttp.ClientSession() as session:
-        match = await try_get(session, f"{BASE}/matches/{MATCH_SLUG}", "GET /matches/{slug} — resolve real match")
+        match = await try_get(session, f"{BASE}/matches/{MATCH_SLUG}?with=games", "GET /matches/{slug}?with=games — resolve real match")
         if not match:
             print("! Could not resolve match slug — stopping")
             return
