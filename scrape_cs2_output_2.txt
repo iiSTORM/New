@@ -1,0 +1,32 @@
+Resolving tracked team slugs to bo3.gg team IDs...
+  falcons -> id=2713 name='Falcons'
+  spirit -> id=654 name='Spirit'
+  furia -> id=648 name='FURIA'
+  vitality -> id=667 name='Vitality'
+  mouz -> id=765 name='MOUZ'
+  natus-vincere -> id=787 name='Natus Vincere'
+  faze -> id=791 name='FaZe'
+  aurora -> id=3598 name='Aurora'
+  9z -> id=324 name='9z'
+  g2 -> id=793 name='G2'
+  astralis -> id=794 name='Astralis'
+  legacy-br -> id=8118 name='Legacy'
+  the-mongolz -> id=736 name='The MongolZ'
+  fut -> id=20832 name='FUT'
+  betboom -> id=7498 name='BetBoom'
+  parivision -> id=8171 name='PARIVISION'
+  b8 -> id=1539 name='B8'
+  pain -> id=637 name='paiN'
+  big -> id=756 name='BIG'
+  liquid -> id=790 name='Liquid'
+
+Resolved 20/20 tracked teams
+
+Fetching upcoming matches per tracked team...
+  8 real upcoming matches (TBD opponents excluded)
+
+Fetching finished() — confirmed-working zero-argument call, page 1 only for now...
+  [debug] first match: team1_id=20832 (type int), team2_id=654
+  95 matches found involving a tracked team (out of 100 most-recent global matches scanned)
+
+Fetching per-map player stats for each match (this is the slow part)...
