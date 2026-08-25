@@ -27,6 +27,17 @@ TEAM_NAME_MAP = {
     "beijing jdg esports": "JD Gaming",
     "thunder talk gaming": "ThunderTalk Gaming",  # gol.gg has no space between Thunder/Talk
     "anyone's legend": "Anyone s Legend",  # gol.gg's own listing drops the apostrophe
+    # CBLOL — confirmed against a real gol.gg game page titled "RED Canids
+    # vs Los Grandes": the API uses "RED Kalunga" (drops "Canids") while
+    # gol.gg drops the sponsor "Kalunga" instead; "LOS" is API shorthand
+    # for the full "Los Grandes".
+    "red kalunga": "RED Canids",
+    "los": "Los Grandes",
+    # TCL — confirmed against a real current TCL 2026 Summer team list:
+    # "PCIFIC Esports" (unusual spelling, genuinely correct on both sides,
+    # not a typo) and "SU Esports" (API adds sponsor prefix "Avella" that
+    # gol.gg drops, same pattern as the LPL entries above).
+    "avella su esports": "SU Esports",
 }
 
 
