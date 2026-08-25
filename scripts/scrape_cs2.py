@@ -53,11 +53,6 @@ TRACKED_TEAMS = [
     "fut", "betboom", "parivision", "b8", "pain", "big", "liquid",
 ]
 
-# How many pages of the global finished() feed to scan for each tracked
-# team's recent matches (100 per page). finished() is sorted most-recent-
-# first, so this effectively sets the recency window for "cur" stats.
-FINISHED_SCAN_PAGES = 15
-
 COLOR_PALETTE = [
     "#e0c341", "#4fa8e0", "#e05f9a", "#5fd97a", "#e07a4f", "#9a7ae0",
     "#4fd9c9", "#d94f7a", "#a8d94f", "#4f7ae0",
@@ -198,47 +193,40 @@ async def build_region_payload(cs2, session):
     print(f"  {len(upcoming_matches)} real upcoming matches (TBD opponents excluded)\n")
 
     # ---- Past matches: scan the global finished() feed, filter for tracked teams ----
-    print(f"Scanning {FINISHED_SCAN_PAGES} pages of finished() for tracked teams' matches...")
-    # Compared as strings — a real, confirmed cause of an earlier run
-    # finding zero matches across 1500 scanned despite including several
-    # top-ranked teams: search_teams() gives integer IDs, but cs2api's
-    # finished() wrapper may return team1_id/team2_id as strings
-    # internally, and "654" in {654, ...} is False in Python even though
-    # the values represent the same team.
+    # Deliberately simplified from the previous version, which guessed at a
+    # pagination kwarg (offset=) that was never actually confirmed — and the
+    # evidence now points at it actively breaking the call rather than being
+    # silently ignored (finished() with zero arguments was confirmed working
+    # months ago; adding offset= produced zero results with no error, which
+    # is consistent with the underlying request coming back empty rather
+    # than the results just not containing tracked teams). Rather than
+    # guess a third parameter name blindly, this uses ONLY the confirmed-
+    # working zero-argument call (page 1, ~100 most recent global matches)
+    # for now. Proper multi-page pagination is a real, known follow-up —
+    # not solved here — but shouldn't block getting real data flowing.
+    print("Fetching finished() — confirmed-working zero-argument call, page 1 only for now...")
     tracked_ids = {str(v["id"]) for v in team_id_by_slug.values()}
     candidate_matches = []
-    first_page_ids = None
-    for page in range(FINISHED_SCAN_PAGES):
-        try:
-            # NOTE: "offset" as the pagination kwarg is a reasonable guess
-            # based on the response shape ({"total": {"offset": 0, "limit":
-            # 100}, ...}) but was never directly confirmed against cs2api's
-            # actual method signature — if this throws a TypeError on the
-            # first real run, that's the thing to check/fix first.
-            batch = await cs2.finished(offset=page * 100)
-        except Exception as e:
-            print(f"  ! finished() page {page} failed: {e}", file=sys.stderr)
-            continue
+    try:
+        batch = await cs2.finished()
+    except Exception as e:
+        print(f"  ! finished() failed: {e}", file=sys.stderr)
+        batch = None
+
+    if batch:
         results = batch.get("results", batch) if isinstance(batch, dict) else batch
-        if not results:
-            break
-        page_ids = [m.get("id") for m in results[:5]]
-        if page == 0:
-            print(f"  [debug] page 0 sample match ids: {page_ids}")
+        if results:
             sample = results[0]
-            print(f"  [debug] page 0 first match: team1_id={sample.get('team1_id')!r} "
-                  f"(type {type(sample.get('team1_id')).__name__}), "
-                  f"team2_id={sample.get('team2_id')!r}, "
-                  f"team1={sample.get('team1')!r}, team2={sample.get('team2')!r}")
-            first_page_ids = page_ids
-        elif page == 1 and page_ids == first_page_ids:
-            print(f"  [debug] !! page 1's first 5 match ids are IDENTICAL to page 0's — "
-                  f"pagination (offset=) is very likely not actually advancing")
-        for m in results:
-            if str(m.get("team1_id")) in tracked_ids or str(m.get("team2_id")) in tracked_ids:
-                candidate_matches.append(m)
-        await asyncio.sleep(0.2)
-    print(f"  {len(candidate_matches)} matches found involving a tracked team\n")
+            print(f"  [debug] first match: team1_id={sample.get('team1_id')!r} "
+                  f"(type {type(sample.get('team1_id')).__name__}), team2_id={sample.get('team2_id')!r}")
+            for m in results:
+                if str(m.get("team1_id")) in tracked_ids or str(m.get("team2_id")) in tracked_ids:
+                    candidate_matches.append(m)
+        else:
+            print("  [debug] finished() returned a batch but 'results' was empty — "
+                  "check the [debug] line above for the raw shape next time")
+    print(f"  {len(candidate_matches)} matches found involving a tracked team "
+          f"(out of {len(results) if batch and results else 0} most-recent global matches scanned)\n")
 
     print("Fetching per-map player stats for each match (this is the slow part)...")
     sem = asyncio.Semaphore(6)
