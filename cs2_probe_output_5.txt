@@ -1,0 +1,66 @@
+============================================================
+GET /matches/{slug} — resolve real match
+  URL: https://api.bo3.gg/api/v1/matches/ex-ruby-vs-black-phoenix-25-08-2026
+============================================================
+  status: 200
+{
+  "id": 127026,
+  "slug": "ex-ruby-vs-black-phoenix-25-08-2026",
+  "round_id": 39108,
+  "team1_id": 22408,
+  "team2_id": 24924,
+  "winner_team_id": 24924,
+  "loser_team_id": 22408,
+  "tournament_id": 5834,
+  "team1_score": 1,
+  "team2_score": 2,
+  "status": "finished",
+  "bo_type": 3,
+  "start_date": "2026-08-25T08:00:00.000+00:00",
+  "end_date": "2026-08-25T11:22:34.000+00:00",
+  "stage_id": 10550,
+  "maps_score": [
+    false,
+    true,
+    true
+  ],
+  "parsed_status": "done",
+  "tier": "b",
+  "tier_rank": 3,
+  "position": null,
+  "team1_last_game_score": null,
+  "team2_last_game_score": null,
+  "live_updates": null,
+  "points": null,
+  "rating": 0.19183673469387755,
+  "stars": 1,
+  "live_coverage": false,
+  "live_coverage_advantage": false,
+  "live_coverage_source": null,
+  "discipline_id": 1,
+  "prev_match1_winner": false,
+  "prev_match2_winner": false,
+  "prev_match1_id": null,
+  "prev_match2_id": null,
+  "game_version": 2,
+  "team1_new_participant": false,
+  "team2_new_participant": false,
+  "comments_count": 0,
+  "bet_updates": {
+    "path": "https://refpa04636.pro/L?tag=d_4812392m_129584c_bo3_odds_ww&site=4812392&ad=129584&utm_source=bo3_odds_ww&utm_medium=fix&r=/en/live/Esports/2923315-CS-2-NODWIN-Clutch-Series/747082928-ex-RUBY-Black-Phoenix",
+    "team_1": {
+      "name": "ex-RUBY",
+      "coeff": 6.21,
+      "active": true,
+      "team_id": 22408,
+      "max_coeff": 11.7,
+      "aggrement_score": 0.46
+    },
+    "team_2": {
+      "name": "Black Phoenix",
+      "c
+...[truncated, 26399 total chars]
+
+Found 0 games in this match: []
+
+! No games found in this match at all — stopping
