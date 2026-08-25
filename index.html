@@ -1020,6 +1020,13 @@ function HeadToHeadCard({ teams, pastMatches, teamA, teamB, bare = false }) {
 
 function MatchupPanel({ teams, pastMatches, teamA, teamB, games, weights, statType }) {
   const theme = useTheme();
+  if (!teams[teamA] || !teams[teamB]) {
+    return (
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: "12px 14px", fontSize: 12, color: theme.textFaint }}>
+        Roster data not loaded for one of these teams yet.
+      </div>
+    );
+  }
   const totalsA = teams[teamA].players.reduce((s, p) => s + project(teams, pastMatches, p, teamA, teamB, games, weights, statType).total, 0);
   const totalsB = teams[teamB].players.reduce((s, p) => s + project(teams, pastMatches, p, teamB, teamA, games, weights, statType).total, 0);
   return (
@@ -1097,15 +1104,23 @@ function WeightControls({ games, setGames, weights, onChangeWeight, expanded, on
 
 /* ---------- Future tab (card list, like Past, predicted only) ---------- */
 
-function FutureMatchCard({ teams, pastMatches, match, weights, statType }) {
+function FutureMatchCard({ teams, pastMatches, match, weights, statType, games }) {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
   const teamKeys = [match.teamA, match.teamB];
 
+  if (!teams[match.teamA] || !teams[match.teamB]) {
+    return (
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), marginBottom: 10, padding: "12px 14px", fontSize: 12, color: theme.textFaint }}>
+        {match.teamA} vs {match.teamB} — roster data not loaded for one of these teams yet.
+      </div>
+    );
+  }
+
   const rows = teamKeys.flatMap((team) => {
     const opp = team === match.teamA ? match.teamB : match.teamA;
     return teams[team].players.map((p) => ({
-      team, name: p.name, role: p.role, proj: project(teams, pastMatches, p, team, opp, 2, weights, statType).total,
+      team, name: p.name, role: p.role, proj: project(teams, pastMatches, p, team, opp, games, weights, statType).total,
     }));
   });
   const totalProj = rows.reduce((s, r) => s + r.proj, 0);
@@ -1231,12 +1246,13 @@ function WeekHeader({ label }) {
   );
 }
 
-function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isDesktop }) {
+function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isDesktop, games }) {
   const theme = useTheme();
   const [customMode, setCustomMode] = useState(false);
   const teamNames = Object.keys(teams);
   const [customA, setCustomA] = useState(teamNames[0]);
   const [customB, setCustomB] = useState(teamNames[1]);
+  const canCustomMatchup = teamNames.length >= 2;
 
   // Sort by actual scheduled time (soonest first) before grouping — don't
   // rely on whatever order the source data happened to arrive in.
@@ -1258,7 +1274,7 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isD
   return (
     <div>
       <div style={{ fontSize: 11, color: theme.textFaint, marginBottom: 12, lineHeight: 1.5 }}>
-        Projected {STAT_TYPES[statType].label.toLowerCase()} (games 1+2 combined) for each
+        Projected {STAT_TYPES[statType].label.toLowerCase()} ({games} game{games > 1 ? "s" : ""} combined) for each
         upcoming matchup, using current model weights.
       </div>
       {upcomingMatches.length === 0 && (
@@ -1270,28 +1286,34 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isD
         <div key={label}>
           <WeekHeader label={label} />
           <div style={gridStyle}>
-            {matches.map((m, i) => <FutureMatchCard key={i} teams={teams} pastMatches={pastMatches} match={m} weights={weights} statType={statType} />)}
+            {matches.map((m, i) => <FutureMatchCard key={i} teams={teams} pastMatches={pastMatches} match={m} weights={weights} statType={statType} games={games} />)}
           </div>
         </div>
       ))}
 
-      <button
-        onClick={() => setCustomMode(!customMode)}
-        style={{ width: "100%", marginTop: 8, padding: "10px", background: theme.graphiteLight, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), color: theme.accent, fontSize: 13, fontWeight: 600, cursor: "pointer" }}
-      >
-        {customMode ? "Hide custom matchup" : "Explore a custom matchup →"}
-      </button>
+      {canCustomMatchup ? (
+        <button
+          onClick={() => setCustomMode(!customMode)}
+          style={{ width: "100%", marginTop: 8, padding: "10px", background: theme.graphiteLight, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), color: theme.accent, fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+        >
+          {customMode ? "Hide custom matchup" : "Explore a custom matchup →"}
+        </button>
+      ) : (
+        <div style={{ marginTop: 8, padding: "10px 14px", fontSize: 11, color: theme.textFaint, textAlign: "center" }}>
+          Custom matchup needs at least 2 teams with data loaded for this region — only {teamNames.length} currently available.
+        </div>
+      )}
 
-      {customMode && (
+      {customMode && canCustomMatchup && (
         <div style={{ marginTop: 16 }}>
           <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
             {[[customA, setCustomA], [customB, setCustomB]].map(([val, setter], i) => (
-              <select key={i} value={val} onChange={(e) => setter(e.target.value)} style={{ flex: 1, background: theme.graphiteLight, color: theme.text, border: `1px solid ${teams[val].color}55`, ...cardShape(theme.cornerStyle), padding: "10px 8px", fontSize: 14, fontWeight: 600 }}>
+              <select key={i} value={val} onChange={(e) => setter(e.target.value)} style={{ flex: 1, background: theme.graphiteLight, color: theme.text, border: `1px solid ${teams[val] ? teams[val].color : theme.steel}55`, ...cardShape(theme.cornerStyle), padding: "10px 8px", fontSize: 14, fontWeight: 600 }}>
                 {teamNames.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             ))}
           </div>
-          <MatchupPanel teams={teams} pastMatches={pastMatches} teamA={customA} teamB={customB} games={2} weights={weights} statType={statType} />
+          <MatchupPanel teams={teams} pastMatches={pastMatches} teamA={customA} teamB={customB} games={games} weights={weights} statType={statType} />
         </div>
       )}
     </div>
@@ -1300,11 +1322,24 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isD
 
 /* ---------- Past Results tab ---------- */
 
+// The "games in series" slider intentionally does NOT apply here — every
+// past match's "actual" data represents exactly 2 real games (maps 1+2,
+// the app's established convention), so projecting for a different game
+// count would compare against actual data that doesn't match, silently
+// biasing the backtest. Fixed at 2 on purpose, not an oversight.
 function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
   const cfg = STAT_TYPES[statType];
   const teamKeys = [match.teamA, match.teamB];
+
+  if (!teams[match.teamA] || !teams[match.teamB]) {
+    return (
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), marginBottom: 10, padding: "12px 14px", fontSize: 12, color: theme.textFaint }}>
+        {match.teamA} vs {match.teamB} — roster data not loaded for one of these teams yet.
+      </div>
+    );
+  }
 
   const rows = teamKeys.flatMap((team) => {
     const opp = team === match.teamA ? match.teamB : match.teamA;
@@ -1806,7 +1841,7 @@ function KillProjector() {
                 </div>
               </div>
             ) : tab === "future" ? (
-              <FutureTab teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} isDesktop={isDesktop} />
+              <FutureTab teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} isDesktop={isDesktop} games={games} />
             ) : tab === "past" ? (
               <PastResultsTab teams={current.teams} pastMatches={current.past_matches || []} weights={weights} statType={statType} isDesktop={isDesktop} />
             ) : (
