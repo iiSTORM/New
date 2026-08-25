@@ -1061,7 +1061,7 @@ function MatchupPanel({ teams, pastMatches, teamA, teamB, games, weights, statTy
   );
 }
 
-function WeightControls({ games, setGames, weights, onChangeWeight, expanded, onToggleExpanded, statLabel }) {
+function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, statLabel }) {
   const theme = useTheme();
   const summary = `History ${Math.round(weights.history * 100)}% · Opponent ${weights.opponent.toFixed(1)}× · `
     + `KP ${Math.round(weights.kp * 100)}% · Recency ${weights.recencyHalfLife >= 20 ? "flat" : weights.recencyHalfLife + "m"} · `
@@ -1069,11 +1069,12 @@ function WeightControls({ games, setGames, weights, onChangeWeight, expanded, on
   return (
     <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: 18, marginBottom: 22 }}>
       <div
+        className="kp-clickable"
         onClick={onToggleExpanded}
-        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginBottom: expanded ? 12 : 0 }}
+        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: expanded ? 12 : 0 }}
       >
         <div style={{ fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
-          MODEL WEIGHTS <span style={{ color: theme.textDim, letterSpacing: 0 }}>· {statLabel}</span>
+          ADVANCED TUNING <span style={{ color: theme.textDim, letterSpacing: 0 }}>· {statLabel} · optional</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 14, color: theme.textDim, transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}>▾</span>
@@ -1081,12 +1082,14 @@ function WeightControls({ games, setGames, weights, onChangeWeight, expanded, on
       </div>
       {!expanded && (
         <div style={{ fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {summary}
+          Using backtest-tuned defaults · {summary}
         </div>
       )}
       {expanded && (
         <>
-          <Slider label="Games in series" value={games} onChange={setGames} min={1} max={3} step={1} format={(v) => `${v} game${v > 1 ? "s" : ""}`} />
+          <div style={{ fontSize: 11, color: theme.textFaint, lineHeight: 1.5, marginBottom: 14 }}>
+            The defaults here were already tuned against real historical results (see optimize_weights.py) — only touch these if you want to experiment.
+          </div>
           <Slider label="Historical (prior split) weight" value={weights.history} onChange={(v) => onChangeWeight("history", v)} min={0} max={1} step={0.05} format={(v) => `${Math.round(v * 100)}% history / ${Math.round((1 - v) * 100)}% this split`} />
           <Slider label="Opponent-strength adjustment" value={weights.opponent} onChange={(v) => onChangeWeight("opponent", v)} min={0} max={2} step={0.1} format={(v) => `${v.toFixed(1)}×`} />
           <Slider label="Kill-participation influence" value={weights.kp} onChange={(v) => onChangeWeight("kp", v)} min={0} max={1} step={0.05} format={(v) => `${Math.round(v * 100)}%`} />
@@ -1110,6 +1113,34 @@ function WeightControls({ games, setGames, weights, onChangeWeight, expanded, on
           />
         </>
       )}
+    </div>
+  );
+}
+
+/* ---------- Games-in-series control — pulled out of the weight tuning
+   panel entirely, since this is a "what am I asking for" choice used
+   often, not a model-tuning knob touched rarely. Always visible. ---------- */
+
+function GamesControl({ theme, games, setGames }) {
+  return (
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: 14, marginBottom: 16 }}>
+      <div style={{ fontSize: 10, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", marginBottom: 10 }}>GAMES IN SERIES</div>
+      <div style={{ display: "flex", gap: 6 }}>
+        {[1, 2, 3].map((n) => (
+          <button
+            key={n}
+            className="kp-btn"
+            onClick={() => setGames(n)}
+            style={{
+              flex: 1, padding: "11px 0", borderRadius: 6, border: "1px solid " + (games === n ? theme.accent : theme.steel),
+              background: games === n ? theme.accentSoft : "transparent", color: games === n ? theme.accent : theme.textDim,
+              fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "'IBM Plex Mono', monospace",
+            }}
+          >
+            {n}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1592,6 +1623,76 @@ function GameSwitcher({ game, selectGame, statusByGame, theme }) {
   );
 }
 
+/* ---------- Top navigation: Region / View / Stat, redesigned with real
+   visual presence — big pill buttons for region, underlined tabs for view,
+   a segmented control for stat — instead of three cramped, near-identical
+   button rows squeezed into a narrow column. Placed at the top of the main
+   content area on desktop (full width to work with) and in the mobile
+   stack on small screens (still bigger/clearer than the old treatment). ---------- */
+
+function TopNav({ theme, gameCfg, region, setRegion, tab, setTab, statType, setStatType, isDesktop }) {
+  return (
+    <div style={{ marginBottom: 22 }}>
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+        {gameCfg.regionList.map((key) => (
+          <button
+            key={key}
+            className="kp-btn"
+            onClick={() => setRegion(key)}
+            style={{
+              padding: isDesktop ? "11px 22px" : "10px 16px", borderRadius: 7,
+              border: "1px solid " + (region === key ? theme.accent : theme.steel),
+              background: region === key ? theme.accentSoft : theme.graphite,
+              color: region === key ? theme.accent : theme.textDim,
+              fontSize: isDesktop ? 15 : 13, fontWeight: 700, cursor: "pointer",
+              fontFamily: "'Chakra Petch', sans-serif", ...elevation(),
+            }}
+          >
+            {gameCfg.regionLabels[key]}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12, borderBottom: `1px solid ${theme.steel}` }}>
+        <div style={{ display: "flex", gap: isDesktop ? 24 : 16 }}>
+          {[["future", "Future"], ["past", "Past Results"], ["standings", "Standings"]].map(([id, label]) => (
+            <button
+              key={id}
+              className="kp-btn"
+              onClick={() => setTab(id)}
+              style={{
+                padding: "10px 2px 12px", background: "none", border: "none",
+                borderBottom: `2px solid ${tab === id ? theme.accent : "transparent"}`,
+                color: tab === id ? theme.accent : theme.textDim,
+                fontSize: isDesktop ? 15 : 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Chakra Petch', sans-serif",
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
+          {Object.entries(STAT_TYPES).map(([key, cfg]) => (
+            <button
+              key={key}
+              className="kp-btn"
+              onClick={() => setStatType(key)}
+              style={{
+                padding: "7px 14px", borderRadius: 5, border: "1px solid " + (statType === key ? theme.accent : theme.steel),
+                background: statType === key ? theme.accentSoft : "transparent",
+                color: statType === key ? theme.accent : theme.textDim,
+                fontSize: 12, fontWeight: 700, cursor: "pointer",
+              }}
+            >
+              {cfg.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ---------- Settings panel ---------- */
 
 function SettingsPanel({ theme, accentOverride, setAccentOverride, cornerStyle, setCornerStyle, open, setOpen }) {
@@ -1687,7 +1788,7 @@ function KillProjector() {
   const weights = weightsByStat[statType];
   const setWeight = (key, value) => setWeightsByStat((prev) => ({ ...prev, [statType]: { ...prev[statType], [key]: value } }));
 
-  const [slidersExpanded, setSlidersExpanded] = useState(() => loadStored("kp.slidersExpanded", true));
+  const [slidersExpanded, setSlidersExpanded] = useState(() => loadStored("kp.slidersExpanded", false));
   useEffect(() => saveStored("kp.slidersExpanded", slidersExpanded), [slidersExpanded]);
 
   const [accentOverride, setAccentOverride] = useState(() => loadStored("kp.accentOverride", null));
@@ -1829,11 +1930,13 @@ function KillProjector() {
           .kp-divider { border: none; height: 1px; }
         `}</style>
         <div style={{
-          maxWidth: isDesktop ? 1180 : 640, margin: "0 auto",
-          display: isDesktop ? "flex" : "block", alignItems: "flex-start", gap: isDesktop ? 28 : 0,
+          maxWidth: isDesktop ? 1400 : 640, margin: "0 auto",
+          display: isDesktop ? "flex" : "block", alignItems: "flex-start", gap: isDesktop ? 32 : 0,
         }}>
-          {/* ---------- Sidebar on desktop / top stack on mobile: header + all controls ---------- */}
-          <div style={{ width: isDesktop ? 320 : "100%", flexShrink: 0, position: isDesktop ? "sticky" : "static", top: isDesktop ? 32 : "auto" }}>
+          {/* ---------- Sidebar on desktop / top stack on mobile: header +
+              game/status/games-count/advanced controls. Region/View/Stat
+              live in TopNav now, not here — see below. ---------- */}
+          <div style={{ width: isDesktop ? 260 : "100%", flexShrink: 0, position: isDesktop ? "sticky" : "static", top: isDesktop ? 32 : "auto" }}>
             <div style={{ marginBottom: 18 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, letterSpacing: 3, color: theme.accent, fontFamily: "'IBM Plex Mono', monospace" }}>
                 <Reticle size={13} color={theme.accent} active />
@@ -1852,72 +1955,20 @@ function KillProjector() {
               onRetry={() => fetchGameData(game)}
             />
 
-            {/* ---------- Navigation surface: Region / View / Stat, one cohesive
-                recessed panel with internal section dividers instead of
-                separate flat button rows sitting on the page. ---------- */}
-            <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation("sunken"), padding: 16, marginBottom: 22 }}>
-              <div style={{ fontSize: 10, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", marginBottom: 10 }}>REGION</div>
-              <div style={{ display: "flex", gap: 6, marginBottom: 18, flexWrap: "wrap" }}>
-                {gameCfg.regionList.map((key) => (
-                  <button
-                    key={key}
-                    className="kp-btn"
-                    onClick={() => setRegion(key)}
-                    style={{
-                      flex: "1 1 80px", minWidth: 70, padding: "9px 0", borderRadius: 6, border: "1px solid " + (region === key ? theme.accent : theme.steel),
-                      background: region === key ? theme.accentSoft : "transparent", color: region === key ? theme.accent : theme.textDim,
-                      fontSize: 13, fontWeight: 700, cursor: "pointer",
-                    }}
-                  >
-                    {gameCfg.regionLabels[key]}
-                  </button>
-                ))}
-              </div>
+            {!isDesktop && (
+              <TopNav
+                theme={theme} gameCfg={gameCfg}
+                region={region} setRegion={setRegion}
+                tab={tab} setTab={setTab}
+                statType={statType} setStatType={setStatType}
+                isDesktop={isDesktop}
+              />
+            )}
 
-              <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${theme.steelSoft} 20%, ${theme.steelSoft} 80%, transparent)`, margin: "0 -16px 16px" }} />
+            <GamesControl theme={theme} games={games} setGames={setGames} />
 
-              <div style={{ fontSize: 10, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", marginBottom: 10 }}>VIEW</div>
-              <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
-                {[["future", "Future"], ["past", "Past Results"], ["standings", "Standings"]].map(([id, label]) => (
-                  <button
-                    key={id}
-                    className="kp-btn"
-                    onClick={() => setTab(id)}
-                    style={{
-                      flex: 1, padding: "10px 0", borderRadius: 6, border: "1px solid " + (tab === id ? theme.accent : theme.steel),
-                      background: tab === id ? theme.accentSoft : "transparent", color: tab === id ? theme.accent : theme.textDim,
-                      fontSize: 13, fontWeight: 700, cursor: "pointer",
-                    }}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-
-              <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${theme.steelSoft} 20%, ${theme.steelSoft} 80%, transparent)`, margin: "0 -16px 16px" }} />
-
-              <div style={{ fontSize: 10, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", marginBottom: 10 }}>STAT</div>
-              <div style={{ display: "flex", gap: 6 }}>
-                {Object.entries(STAT_TYPES).map(([key, cfg]) => (
-                  <button
-                    key={key}
-                    className="kp-btn"
-                    onClick={() => setStatType(key)}
-                    style={{
-                      flex: 1, padding: "8px 0", borderRadius: 6, border: "1px solid " + (statType === key ? theme.accent : theme.steel),
-                      background: statType === key ? theme.accentSoft : "transparent", color: statType === key ? theme.accent : theme.textDim,
-                      fontSize: 12, fontWeight: 700, cursor: "pointer",
-                    }}
-                  >
-                    {cfg.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* ---------- Model configuration surface: weights + customize ---------- */}
+            {/* ---------- Advanced/optional model tuning, collapsed by default ---------- */}
             <WeightControls
-              games={games} setGames={setGames}
               weights={weights} onChangeWeight={setWeight}
               expanded={slidersExpanded} onToggleExpanded={() => setSlidersExpanded(!slidersExpanded)}
               statLabel={STAT_TYPES[statType].label}
@@ -1938,8 +1989,19 @@ function KillProjector() {
             )}
           </div>
 
-          {/* ---------- Main content: whichever tab is selected ---------- */}
+          {/* ---------- Main content: TopNav (desktop only — full width here
+              instead of squeezed into the sidebar) + whichever tab is selected ---------- */}
           <div style={{ flex: 1, minWidth: 0 }}>
+            {isDesktop && (
+              <TopNav
+                theme={theme} gameCfg={gameCfg}
+                region={region} setRegion={setRegion}
+                tab={tab} setTab={setTab}
+                statType={statType} setStatType={setStatType}
+                isDesktop={isDesktop}
+              />
+            )}
+
             {!hasData ? (
               <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: "20px 16px", textAlign: "center" }}>
                 <div style={{ fontSize: 13, color: theme.textDim }}>No {gameCfg.regionLabels[region]} data available yet.</div>
