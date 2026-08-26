@@ -96,3 +96,45 @@ jobs:
             sleep $((RANDOM % 5 + 1))
           done
           git push
+
+  scrape-cs2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install cs2api aiohttp
+
+      - name: Scrape bo3.gg (CS2 per-map player stats via direct API + cs2api discovery)
+        # New/experimental — MATCH_LIMIT is currently capped at 20 in
+        # scrape_cs2.py (a deliberate validation-mode limit, not yet raised
+        # for full production coverage). continue-on-error so a hiccup here
+        # never blocks LoL/Valorant data from committing.
+        run: python scripts/scrape_cs2.py
+        continue-on-error: true
+
+      - name: Commit cs2_data.json
+        run: |
+          git config user.name "esports-data-bot"
+          git config user.email "actions@github.com"
+          if [ ! -f cs2_data.json ]; then
+            echo "cs2_data.json wasn't produced this run, nothing to commit"
+            exit 0
+          fi
+          git add cs2_data.json
+          if git diff --quiet --cached; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Update CS2 data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          for i in 1 2 3 4 5; do
+            git push && exit 0
+            echo "Push rejected, pulling and retrying ($i/5)..."
+            git pull --rebase
+            sleep $((RANDOM % 5 + 1))
+          done
+          git push

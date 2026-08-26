@@ -86,6 +86,7 @@ const BASE_TOKENS = {
 const GAME_ACCENTS = {
   lol: { accent: "#C9A86A", accentSoft: "#C9A86A18", accentBorder: "#C9A86A55", name: "Hextech Gold" },
   valorant: { accent: "#FF4655", accentSoft: "#FF465518", accentBorder: "#FF465555", name: "Valorant Red" },
+  cs2: { accent: "#4FC3F7", accentSoft: "#4FC3F718", accentBorder: "#4FC3F755", name: "Tactical Cyan" },
 };
 
 const ACCENT_SWATCHES = [
@@ -196,6 +197,7 @@ function Reticle({ size = 16, color, active = false }) {
    ============================================================ */
 const DATA_URL_LOL = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/data.json";
 const DATA_URL_VALORANT = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/valorant_data.json";
+const DATA_URL_CS2 = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/cs2_data.json";
 
 /* ============================================================
    FALLBACK DATA — used if a game's DATA_URL is blank or the fetch
@@ -367,6 +369,9 @@ const FALLBACK_REGIONS_VALORANT = {
   "VCT Pacific": { teams: {}, past_matches: [], upcoming_matches: [] },
   "VCT China": { teams: {}, past_matches: [], upcoming_matches: [] },
 };
+const FALLBACK_REGIONS_CS2 = {
+  CS2: { teams: {}, past_matches: [], upcoming_matches: [] },
+};
 
 /* ============================================================
    GAMES — everything that differs between League of Legends and
@@ -390,6 +395,18 @@ const GAMES = {
     regionList: ["VCT Americas", "VCT EMEA", "VCT Pacific", "VCT China"],
     regionLabels: { "VCT Americas": "Americas", "VCT EMEA": "EMEA", "VCT Pacific": "Pacific", "VCT China": "China" },
     fallbackRegions: FALLBACK_REGIONS_VALORANT,
+  },
+  cs2: {
+    label: "CS2",
+    dataUrl: DATA_URL_CS2,
+    // CS2 doesn't have franchised regions the way LCS/VCT do — it's an
+    // individually-ranked global scene, tournament-based rather than
+    // league-based. One pseudo-region tracking a curated list of
+    // currently top-ranked teams (see scrape_cs2.py's TRACKED_TEAMS)
+    // stands in for a real region here.
+    regionList: ["CS2"],
+    regionLabels: { CS2: "Top Teams" },
+    fallbackRegions: FALLBACK_REGIONS_CS2,
   },
 };
 const GAME_LIST = Object.keys(GAMES);
