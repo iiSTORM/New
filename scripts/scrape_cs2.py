@@ -287,14 +287,24 @@ async def build_region_payload(cs2, session):
 
     # ---- Discover which teams are actually notable right now, from the
     # matches just processed — no hardcoded list, this naturally scales to
-    # however many teams are playing at an accepted tier currently. ----
-    team_id_by_current_name = {}
+    # however many teams are playing at an accepted tier currently.
+    # Tracks EVERY name variant seen per team_id (not just one) — clan_name
+    # is confirmed NOT stable across different matches for the same team
+    # (e.g. "MIBR" vs "MIBR!LOS", "Luminosity" vs "Luminosity Gaming" turned
+    # out to be the same team_id with different clan_name strings depending
+    # on which specific match record you look at), so reconciliation below
+    # needs the full list to catch this, not just one name per ID. ----
+    names_seen_by_id = {}
     for m in past_matches:
         if m.get("_team1_id") is not None:
-            team_id_by_current_name[m["teamA"]] = m["_team1_id"]
+            names_seen_by_id.setdefault(m["_team1_id"], []).append(m["teamA"])
         if m.get("_team2_id") is not None:
-            team_id_by_current_name[m["teamB"]] = m["_team2_id"]
-    discovered_team_ids = set(team_id_by_current_name.values())
+            names_seen_by_id.setdefault(m["_team2_id"], []).append(m["teamB"])
+    discovered_team_ids = set(names_seen_by_id.keys())
+    multi_name_ids = {tid: names for tid, names in names_seen_by_id.items() if len(set(names)) > 1}
+    if multi_name_ids:
+        print(f"  [debug] {len(multi_name_ids)} team(s) have inconsistent naming across matches "
+              f"in the source data itself: { {tid: list(set(n)) for tid, n in multi_name_ids.items()} }")
     print(f"Discovered {len(discovered_team_ids)} distinct teams currently playing notable matches\n")
 
     # ---- Upcoming matches: today's global feed (notable-match filtered,
@@ -348,6 +358,40 @@ async def build_region_payload(cs2, session):
             add_upcoming(m)
     print(f"  {len(upcoming_matches)} total upcoming matches (today's global feed + discovered teams' schedules)\n")
 
+    # ---- Reconcile names BEFORE aggregating player stats, not after —
+    # every name variant seen for a given team_id gets mapped to ONE
+    # canonical name (the short form matching upcoming_matches when known,
+    # otherwise the most-recently-seen clan_name for that ID) and applied
+    # to past_matches directly. This has to happen before the player-stat
+    # averaging below, not as a post-hoc merge on teams_payload — merging
+    # two already-averaged player lists after the fact would silently drop
+    # whichever name variant's matches got processed second, understating
+    # a player's real per-game average instead of reflecting their full
+    # match history. ----
+    canonical_name_by_id = {}
+    for tid, names in names_seen_by_id.items():
+        canonical_name_by_id[tid] = short_name_by_team_id.get(tid, names[0])
+
+    name_rename_map = {}
+    for tid, names in names_seen_by_id.items():
+        canonical = canonical_name_by_id[tid]
+        for name in set(names):
+            if name != canonical:
+                name_rename_map[name] = canonical
+
+    if name_rename_map:
+        print(f"Reconciling {len(name_rename_map)} team name variant(s) to one canonical name each: "
+              f"{name_rename_map}\n")
+
+    for m in past_matches:
+        m["teamA"] = name_rename_map.get(m["teamA"], m["teamA"])
+        m["teamB"] = name_rename_map.get(m["teamB"], m["teamB"])
+        if m["winner"] in name_rename_map:
+            m["winner"] = name_rename_map[m["winner"]]
+        m["actual"] = {name_rename_map.get(k, k): v for k, v in m["actual"].items()}
+        m.pop("_team1_id", None)
+        m.pop("_team2_id", None)
+
     # ---- Build teams payload from whoever actually showed up in past_matches ----
     for m in past_matches:
         for side in ("teamA", "teamB"):
@@ -382,43 +426,6 @@ async def build_region_payload(cs2, session):
                     "hist": None,  # no clean split boundary for CS2 — model falls back to cur alone
                 })
                 existing_names.add(player_name)
-
-    # ---- Reconcile names: rename any teams_payload entry to the short
-    # form (matching upcoming_matches) wherever a team_id match confirms
-    # they're the same team, so future-match lookups succeed. Applied to
-    # both teams_payload and past_matches for consistency. ----
-    name_rename_map = {}
-    for old_name in list(teams_payload.keys()):
-        team_id = team_id_by_current_name.get(old_name)
-        if team_id is not None and team_id in short_name_by_team_id:
-            new_name = short_name_by_team_id[team_id]
-            if new_name != old_name:
-                name_rename_map[old_name] = new_name
-
-    if name_rename_map:
-        print(f"Reconciling {len(name_rename_map)} team name(s) to the short form used by "
-              f"upcoming/schedule data: {name_rename_map}\n")
-
-    new_teams_payload = {}
-    for old_name, team_data in teams_payload.items():
-        new_name = name_rename_map.get(old_name, old_name)
-        if new_name in new_teams_payload:
-            existing_names = {p["name"] for p in new_teams_payload[new_name]["players"]}
-            for p in team_data["players"]:
-                if p["name"] not in existing_names:
-                    new_teams_payload[new_name]["players"].append(p)
-        else:
-            new_teams_payload[new_name] = team_data
-    teams_payload = new_teams_payload
-
-    for m in past_matches:
-        m["teamA"] = name_rename_map.get(m["teamA"], m["teamA"])
-        m["teamB"] = name_rename_map.get(m["teamB"], m["teamB"])
-        if m["winner"] in name_rename_map:
-            m["winner"] = name_rename_map[m["winner"]]
-        m["actual"] = {name_rename_map.get(k, k): v for k, v in m["actual"].items()}
-        m.pop("_team1_id", None)
-        m.pop("_team2_id", None)
 
     return {"teams": teams_payload, "past_matches": past_matches, "upcoming_matches": upcoming_matches}
 
