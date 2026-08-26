@@ -39,7 +39,7 @@ rather than forcing a fake historical window.
 import asyncio
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import aiohttp
 from cs2api import CS2
@@ -86,6 +86,40 @@ async def bo3_get(session, path, params=None):
             print(f"  ! {url} attempt {attempt + 1}/3 failed: {e}", file=sys.stderr)
         await asyncio.sleep(1 + attempt)
     return None
+
+
+async def fetch_team_recent_matches(session, team_id, limit=10):
+    """Direct, team-scoped match history — the real endpoint+params found
+    in cs2api's own get_team_matches() source (confirmed broken only by a
+    self._make_request vs self._api._make_request typo in that package,
+    not because the request itself is wrong). Confirmed via live testing
+    to correctly return a specific team's own matches, unlike scanning the
+    global finished() sample, which only surfaces a team if they happened
+    to appear in the last ~100 notable results.
+
+    Response shape here nests team info as team1/team2 objects (via the
+    with=teams expansion) rather than flat team1_id/team2_id fields used
+    elsewhere in this file — but downstream code (process()) only needs
+    each match's "slug", which is present either way, so no further
+    normalization is needed."""
+    today = datetime.now(timezone.utc).date()
+    start_date = today - timedelta(days=180)
+    params = {
+        "scope": "widget-map-pool",
+        "page[offset]": "0",
+        "page[limit]": str(limit),
+        "sort": "-start_date",
+        "filter[matches.status][in]": "finished",
+        "filter[matches.team_ids][overlap]": str(team_id),
+        "filter[matches.start_date][lt]": today.isoformat(),
+        "filter[matches.start_date][gt]": start_date.isoformat(),
+        "filter[matches.discipline_id][eq]": "1",
+        "with": "teams,tournament,ai_predictions,games,match_maps",
+    }
+    data = await bo3_get(session, "/matches", params=params)
+    if not data:
+        return []
+    return data.get("results", data) if isinstance(data, dict) else data
 
 
 async def fetch_map_player_stats(session, game_id, canonical_name_by_team_id):
@@ -476,8 +510,12 @@ async def build_region_payload(cs2, session):
             team = exact or candidates[0]
             opp_id = team["id"]
             short_name_by_team_id[opp_id] = name
-            their_matches = [m for m in results
-                              if m.get("team1_id") == opp_id or m.get("team2_id") == opp_id][:BACKFILL_MATCHES_PER_TEAM]
+            # Direct, team-scoped lookup — no longer dependent on whether
+            # this team happened to appear in the ~100-match global sample
+            # (confirmed via live testing: DENDELE and Inner Circle both
+            # had zero matches in that sample, but this endpoint correctly
+            # returns their real match history directly).
+            their_matches = await fetch_team_recent_matches(session, opp_id, limit=BACKFILL_MATCHES_PER_TEAM)
             print(f"  {name!r} -> id={opp_id}, {len(their_matches)} recent match(es) found to backfill from")
             backfill_matches.extend(their_matches)
 
