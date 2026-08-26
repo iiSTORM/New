@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-26T20:50:10.575244+00:00",
+  "generated_at": "2026-08-26T23:24:46.391322+00:00",
   "regions": {
     "CS2": {
       "teams": {
@@ -2148,6 +2148,7 @@
             }
           ]
         },
+<<<<<<< HEAD
         "ShindeN": {
           "color": "#5fd97a",
           "players": [
@@ -3026,6 +3027,10 @@
         },
         "Inner Circle": {
           "color": "#9a7ae0",
+=======
+        "Inner Circle": {
+          "color": "#5fd97a",
+>>>>>>> 68af0d15cd7762e5e684f8075f95a0cdeae8d978
           "players": [
             {
               "name": "zeRRoFIX",
@@ -3088,6 +3093,7 @@
               "hist": null
             }
           ]
+<<<<<<< HEAD
         },
         "ODDIK": {
           "color": "#4fd9c9",
@@ -3562,6 +3568,8 @@
               "hist": null
             }
           ]
+=======
+>>>>>>> 68af0d15cd7762e5e684f8075f95a0cdeae8d978
         }
       },
       "past_matches": [
@@ -5153,72 +5161,6 @@
           "week": null,
           "date": "2026-08-16",
           "patch": null,
-          "teamA": "Lynn Vision",
-          "teamB": "Vitality",
-          "winner": "Vitality",
-          "score": "2-0",
-          "actual": {
-            "Lynn Vision": {
-              "EmiliaQAQ": {
-                "k": 15,
-                "d": 26,
-                "a": 4
-              },
-              "Westmelon": {
-                "k": 13,
-                "d": 27,
-                "a": 6
-              },
-              "Starry": {
-                "k": 14,
-                "d": 26,
-                "a": 7
-              },
-              "z4kr": {
-                "k": 17,
-                "d": 31,
-                "a": 6
-              },
-              "C4LLM3SU3": {
-                "k": 15,
-                "d": 31,
-                "a": 5
-              }
-            },
-            "Vitality": {
-              "apEX": {
-                "k": 20,
-                "d": 18,
-                "a": 17
-              },
-              "ZywOo": {
-                "k": 40,
-                "d": 17,
-                "a": 13
-              },
-              "flameZ": {
-                "k": 26,
-                "d": 14,
-                "a": 10
-              },
-              "ropz": {
-                "k": 26,
-                "d": 13,
-                "a": 4
-              },
-              "mezii": {
-                "k": 28,
-                "d": 13,
-                "a": 11
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-16",
-          "patch": null,
           "teamA": "The MongolZ",
           "teamB": "paiN",
           "winner": "The MongolZ",
@@ -5276,6 +5218,72 @@
                 "k": 34,
                 "d": 25,
                 "a": 9
+              }
+            }
+          },
+          "games": 2
+        },
+        {
+          "week": null,
+          "date": "2026-08-16",
+          "patch": null,
+          "teamA": "Lynn Vision",
+          "teamB": "Vitality",
+          "winner": "Vitality",
+          "score": "2-0",
+          "actual": {
+            "Lynn Vision": {
+              "EmiliaQAQ": {
+                "k": 15,
+                "d": 26,
+                "a": 4
+              },
+              "Westmelon": {
+                "k": 13,
+                "d": 27,
+                "a": 6
+              },
+              "Starry": {
+                "k": 14,
+                "d": 26,
+                "a": 7
+              },
+              "z4kr": {
+                "k": 17,
+                "d": 31,
+                "a": 6
+              },
+              "C4LLM3SU3": {
+                "k": 15,
+                "d": 31,
+                "a": 5
+              }
+            },
+            "Vitality": {
+              "apEX": {
+                "k": 20,
+                "d": 18,
+                "a": 17
+              },
+              "ZywOo": {
+                "k": 40,
+                "d": 17,
+                "a": 13
+              },
+              "flameZ": {
+                "k": 26,
+                "d": 14,
+                "a": 10
+              },
+              "ropz": {
+                "k": 26,
+                "d": 13,
+                "a": 4
+              },
+              "mezii": {
+                "k": 28,
+                "d": 13,
+                "a": 11
               }
             }
           },
@@ -7475,6 +7483,7 @@
                 "a": 2
               },
               "lux": {
+<<<<<<< HEAD
                 "k": 12,
                 "d": 14,
                 "a": 3
@@ -7869,717 +7878,57 @@
                 "k": 39,
                 "d": 17,
                 "a": 10
-              },
-              "kye": {
-                "k": 28,
-                "d": 22,
-                "a": 12
-              },
-              "Ltz": {
-                "k": 21,
-                "d": 18,
-                "a": 9
-              },
-              "zevy": {
-                "k": 27,
-                "d": 15,
-                "a": 4
-              },
-              "exit": {
-                "k": 24,
-                "d": 15,
-                "a": 10
-              }
-            },
-            "PEAK": {
-              "Straafer": {
-                "k": 16,
-                "d": 30,
-                "a": 7
-              },
-              "sakamoto": {
-                "k": 20,
-                "d": 27,
-                "a": 2
-              },
-              "rw": {
+=======
                 "k": 12,
-                "d": 28,
-                "a": 7
+                "d": 14,
+                "a": 3
               },
-              "veroneze": {
-                "k": 12,
-                "d": 28,
+              "Bymas": {
+                "k": 8,
+                "d": 15,
+                "a": 6
+              },
+              "AZUWU": {
+                "k": 7,
+                "d": 15,
+                "a": 3
+>>>>>>> 68af0d15cd7762e5e684f8075f95a0cdeae8d978
+              },
+              "Rainwaker": {
+                "k": 2,
+                "d": 13,
                 "a": 0
-              },
-              "KLR": {
-                "k": 27,
-                "d": 26,
-                "a": 5
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-09",
-          "patch": null,
-          "teamA": "Fnatic",
-          "teamB": "Fluxo",
-          "winner": "Fnatic",
-          "score": "0-2",
-          "actual": {
-            "Fnatic": {
-              "jackasmo": {
-                "k": 32,
-                "d": 32,
-                "a": 9
-              },
-              "mazay": {
-                "k": 40,
-                "d": 28,
-                "a": 6
-              },
-              "jambo": {
-                "k": 38,
-                "d": 30,
-                "a": 5
-              },
-              "cairne": {
-                "k": 23,
-                "d": 28,
-                "a": 12
-              },
-              "fEAR": {
-                "k": 22,
-                "d": 33,
-                "a": 11
               }
             },
-            "Fluxo": {
-              "kye": {
-                "k": 32,
-                "d": 28,
-                "a": 10
-              },
-              "exit": {
-                "k": 30,
-                "d": 32,
-                "a": 6
-              },
-              "zevy": {
-                "k": 28,
-                "d": 34,
-                "a": 13
-              },
-              "Ltz": {
-                "k": 32,
-                "d": 33,
-                "a": 13
-              },
-              "dav1deuS": {
-                "k": 28,
-                "d": 29,
-                "a": 10
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-08",
-          "patch": null,
-          "teamA": "Dusty",
-          "teamB": "Fluxo",
-          "winner": "Fluxo",
-          "score": "2-0",
-          "actual": {
-            "Dusty": {
-              "peterr": {
-                "k": 27,
-                "d": 30,
-                "a": 3
-              },
-              "Dabbehhh": {
-                "k": 13,
-                "d": 35,
-                "a": 8
-              },
-              "RavlE": {
-                "k": 19,
-                "d": 35,
-                "a": 10
-              },
-              "PANDAZ": {
-                "k": 26,
-                "d": 36,
-                "a": 6
-              },
-              "tonysalva": {
-                "k": 29,
-                "d": 32,
-                "a": 7
-              }
-            },
-            "Fluxo": {
-              "kye": {
-                "k": 34,
-                "d": 21,
-                "a": 14
-              },
-              "exit": {
-                "k": 32,
-                "d": 18,
-                "a": 15
-              },
-              "dav1deuS": {
-                "k": 32,
-                "d": 24,
-                "a": 7
-              },
-              "Ltz": {
-                "k": 34,
-                "d": 30,
-                "a": 13
-              },
-              "zevy": {
-                "k": 31,
-                "d": 22,
-                "a": 6
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-25",
-          "patch": null,
-          "teamA": "BORRACHEIROS",
-          "teamB": "Galorys",
-          "winner": "Galorys",
-          "score": "1-2",
-          "actual": {
-            "BORRACHEIROS": {
-              "zock9": {
-                "k": 32,
-                "d": 31,
-                "a": 13
-              },
-              "neozix": {
-                "k": 39,
-                "d": 40,
-                "a": 14
-              },
-              "Lacerda": {
-                "k": 35,
-                "d": 41,
-                "a": 14
-              },
-              "flash": {
-                "k": 32,
-                "d": 38,
-                "a": 18
-              },
-              "trindade": {
-                "k": 38,
-                "d": 35,
-                "a": 10
-              }
-            },
-            "Galorys": {
-              "gbb": {
-                "k": 33,
-                "d": 39,
-                "a": 10
-              },
-              "detr0ittJ": {
-                "k": 38,
-                "d": 36,
-                "a": 13
-              },
-              "PKL": {
-                "k": 28,
-                "d": 39,
-                "a": 17
-              },
-              "tomate": {
-                "k": 43,
-                "d": 30,
-                "a": 25
-              },
-              "destiny": {
-                "k": 42,
-                "d": 33,
-                "a": 6
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-15",
-          "patch": null,
-          "teamA": "Keyd Stars",
-          "teamB": "Galorys",
-          "winner": "Keyd Stars",
-          "score": "2-1",
-          "actual": {
-            "Keyd Stars": {
-              "xureba": {
-                "k": 21,
-                "d": 25,
-                "a": 16
-              },
-              "lash": {
-                "k": 28,
-                "d": 24,
-                "a": 9
-              },
-              "matios": {
-                "k": 30,
-                "d": 32,
-                "a": 6
-              },
-              "zede": {
-                "k": 27,
-                "d": 27,
-                "a": 10
-              },
-              "ckzao": {
-                "k": 41,
-                "d": 29,
-                "a": 8
-              }
-            },
-            "Galorys": {
-              "PKL": {
-                "k": 13,
-                "d": 31,
-                "a": 13
-              },
-              "gbb": {
-                "k": 26,
-                "d": 31,
-                "a": 15
-              },
-              "tomate": {
-                "k": 45,
-                "d": 25,
-                "a": 7
-              },
-              "detr0ittJ": {
-                "k": 24,
-                "d": 30,
-                "a": 7
-              },
-              "destiny": {
-                "k": 27,
-                "d": 30,
-                "a": 9
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-14",
-          "patch": null,
-          "teamA": "BORRACHEIROS",
-          "teamB": "Galorys",
-          "winner": "Galorys",
-          "score": "2-0",
-          "actual": {
-            "BORRACHEIROS": {
-              "neozix": {
-                "k": 18,
-                "d": 33,
-                "a": 4
-              },
-              "trindade": {
-                "k": 14,
-                "d": 31,
-                "a": 7
-              },
-              "nolkz": {
-                "k": 16,
-                "d": 28,
-                "a": 4
-              },
-              "zock9": {
-                "k": 18,
-                "d": 29,
-                "a": 3
-              },
-              "Lacerda": {
-                "k": 11,
-                "d": 27,
-                "a": 3
-              }
-            },
-            "Galorys": {
-              "detr0ittJ": {
-                "k": 32,
-                "d": 15,
-                "a": 9
-              },
-              "tomate": {
-                "k": 36,
-                "d": 11,
-                "a": 11
-              },
-              "PKL": {
-                "k": 25,
-                "d": 17,
-                "a": 13
-              },
-              "destiny": {
-                "k": 22,
-                "d": 19,
-                "a": 14
-              },
-              "gbb": {
-                "k": 31,
-                "d": 17,
-                "a": 11
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-13",
-          "patch": null,
-          "teamA": "MEIA NOITE",
-          "teamB": "Gr\u00eamio",
-          "winner": "MEIA NOITE",
-          "score": "1-2",
-          "actual": {
-            "MEIA NOITE": {
-              "abr": {
-                "k": 50,
-                "d": 44,
-                "a": 7
-              },
-              "bsd": {
-                "k": 40,
-                "d": 44,
-                "a": 6
-              },
-              "BK1": {
-                "k": 35,
-                "d": 49,
-                "a": 11
-              },
-              "nyezin": {
-                "k": 42,
-                "d": 45,
-                "a": 11
-              },
-              "Bruninho": {
-                "k": 34,
-                "d": 44,
-                "a": 10
-              }
-            },
-            "Gr\u00eamio": {
-              "yeda": {
-                "k": 41,
-                "d": 42,
-                "a": 14
-              },
-              "MITHPUTTINI": {
-                "k": 46,
-                "d": 41,
-                "a": 9
-              },
-              "souz4h": {
-                "k": 38,
-                "d": 39,
-                "a": 23
-              },
-              "rag3-": {
-                "k": 51,
-                "d": 40,
-                "a": 15
-              },
-              "levandosk1z": {
-                "k": 48,
-                "d": 39,
-                "a": 12
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-11",
-          "patch": null,
-          "teamA": "cobblemon",
-          "teamB": "Gr\u00eamio",
-          "winner": "Gr\u00eamio",
-          "score": "0-2",
-          "actual": {
-            "cobblemon": {
-              "guizK": {
-                "k": 22,
-                "d": 24,
-                "a": 5
-              },
-              "astro": {
-                "k": 29,
-                "d": 23,
-                "a": 8
-              },
-              "nightz": {
-                "k": 18,
-                "d": 36,
-                "a": 4
-              },
-              "Swords": {
-                "k": 16,
-                "d": 21,
-                "a": 9
-              },
-              "Glimmz": {
-                "k": 22,
-                "d": 20,
-                "a": 5
-              }
-            },
-            "Gr\u00eamio": {
-              "yeda": {
-                "k": 36,
-                "d": 34,
-                "a": 11
-              },
-              "MITHPUTTINI": {
-                "k": 33,
-                "d": 25,
-                "a": 6
-              },
-              "souz4h": {
-                "k": 20,
-                "d": 22,
-                "a": 6
-              },
-              "rag3-": {
-                "k": 36,
-                "d": 30,
-                "a": 6
-              },
-              "levandosk1z": {
-                "k": 23,
-                "d": 20,
-                "a": 8
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-25",
-          "patch": null,
-          "teamA": "paiN Academy",
-          "teamB": "Imperial",
-          "winner": "Imperial",
-          "score": "0-2",
-          "actual": {
-            "paiN Academy": {
-              "misfit": {
-                "k": 15,
-                "d": 26,
-                "a": 3
-              },
-              "Tatu": {
+            "GamerLegion": {
+              "FL4MUS": {
                 "k": 17,
-                "d": 25,
-                "a": 4
+                "d": 9,
+                "a": 5
               },
-              "tsug": {
-                "k": 10,
-                "d": 32,
-                "a": 6
-              },
-              "shazn": {
-                "k": 18,
-                "d": 28,
+              "Snax": {
+                "k": 11,
+                "d": 11,
                 "a": 3
               },
-              "Rkzinho": {
-                "k": 19,
-                "d": 28,
-                "a": 2
-              }
-            },
-            "Imperial": {
-              "chelo": {
-                "k": 25,
-                "d": 19,
-                "a": 6
+              "hypex": {
+                "k": 11,
+                "d": 4,
+                "a": 3
               },
-              "saadzin": {
-                "k": 28,
+              "REZ": {
+                "k": 19,
+                "d": 6,
+                "a": 3
+              },
+              "Tauson": {
+                "k": 12,
                 "d": 10,
-                "a": 8
-              },
-              "VINI": {
-                "k": 25,
-                "d": 18,
-                "a": 16
-              },
-              "noway": {
-                "k": 29,
-                "d": 15,
-                "a": 5
-              },
-              "decenty": {
-                "k": 32,
-                "d": 17,
-                "a": 4
+                "a": 3
               }
             }
           },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-16",
-          "patch": null,
-          "teamA": "Keyd Stars",
-          "teamB": "Imperial",
-          "winner": "Imperial",
-          "score": "2-0",
-          "actual": {
-            "Keyd Stars": {
-              "matios": {
-                "k": 24,
-                "d": 36,
-                "a": 7
-              },
-              "zede": {
-                "k": 19,
-                "d": 35,
-                "a": 5
-              },
-              "lash": {
-                "k": 27,
-                "d": 36,
-                "a": 16
-              },
-              "xureba": {
-                "k": 31,
-                "d": 36,
-                "a": 11
-              },
-              "ckzao": {
-                "k": 43,
-                "d": 37,
-                "a": 14
-              }
-            },
-            "Imperial": {
-              "saadzin": {
-                "k": 39,
-                "d": 27,
-                "a": 10
-              },
-              "decenty": {
-                "k": 49,
-                "d": 29,
-                "a": 12
-              },
-              "chelo": {
-                "k": 33,
-                "d": 28,
-                "a": 13
-              },
-              "noway": {
-                "k": 24,
-                "d": 30,
-                "a": 9
-              },
-              "VINI": {
-                "k": 35,
-                "d": 32,
-                "a": 11
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-15",
-          "patch": null,
-          "teamA": "Bestia",
-          "teamB": "Imperial",
-          "winner": "Imperial",
-          "score": "2-1",
-          "actual": {
-            "Bestia": {
-              "nacho": {
-                "k": 26,
-                "d": 28,
-                "a": 10
-              },
-              "buda": {
-                "k": 27,
-                "d": 31,
-                "a": 8
-              },
-              "cass1n": {
-                "k": 24,
-                "d": 26,
-                "a": 13
-              },
-              "tomaszin": {
-                "k": 30,
-                "d": 27,
-                "a": 4
-              },
-              "timo": {
-                "k": 30,
-                "d": 29,
-                "a": 7
-              }
-            },
-            "Imperial": {
-              "noway": {
-                "k": 27,
-                "d": 29,
-                "a": 7
-              },
-              "decenty": {
-                "k": 31,
-                "d": 26,
-                "a": 6
-              },
-              "chelo": {
-                "k": 24,
-                "d": 31,
-                "a": 12
-              },
-              "VINI": {
-                "k": 27,
-                "d": 29,
-                "a": 4
-              },
-              "saadzin": {
-                "k": 32,
-                "d": 24,
-                "a": 7
-              }
-            }
-          },
-          "games": 2
+          "games": 1
         },
         {
           "week": null,
@@ -8778,6 +8127,7 @@
             }
           },
           "games": 2
+<<<<<<< HEAD
         },
         {
           "week": null,
@@ -10433,10 +9783,13 @@
             }
           },
           "games": 2
+=======
+>>>>>>> 68af0d15cd7762e5e684f8075f95a0cdeae8d978
         }
       ],
       "upcoming_matches": [
         {
+<<<<<<< HEAD
           "date": "2026-08-26T22:00:00.000+00:00",
           "teamA": "Gr\u00eamio",
           "teamB": "Sementes do Mal",
@@ -10497,6 +9850,8 @@
           "block": null
         },
         {
+=======
+>>>>>>> 68af0d15cd7762e5e684f8075f95a0cdeae8d978
           "date": "2026-08-28T09:00:00.000+00:00",
           "teamA": "Aurora",
           "teamB": "DENDELE",
