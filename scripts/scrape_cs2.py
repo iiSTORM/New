@@ -224,13 +224,50 @@ def normalize_team_name(name):
 
 
 def is_notable_match(m):
-    """The one predicate deciding what counts as 'worth projecting' —
-    stars is the primary signal (more reliably populated than tier, per
-    real confirmed output); tier is an OR'd secondary signal for whenever
-    it happens to be present."""
+    """The one predicate deciding what counts as 'worth projecting' for
+    matches that have ALREADY happened — stars is the primary signal
+    (more reliably populated than tier, per real confirmed output for
+    finished matches); tier is an OR'd secondary signal for whenever it
+    happens to be present."""
     tier = (m.get("tier") or "").lower()
     stars = m.get("stars") or 0
     return tier in ACCEPTED_TIERS or stars >= MIN_STARS
+
+
+def is_relevant_upcoming_match(m, discovered_team_ids, notable_tournament_ids):
+    """Separate predicate for matches that HAVEN'T happened yet. tier is
+    100% unpopulated for upcoming matches (real data: 29/29 today's
+    matches had tier=None) and stars is near-zero pre-match (looks like
+    accumulated post-match interest, not pre-match importance) — both
+    dead signals here. bet_updates presence (real betting odds data) is
+    the one confirmed genuinely correct signal: an earlier, more
+    conservative version of this function excluded it as "too broad"
+    based on team names looking minor (BESTIA Academy, paiN Academy,
+    etc.) — but confirmed directly by the person using this app that
+    those are real, bettable matches they can see elsewhere. Team-name
+    pattern-matching was the wrong basis for that call; "has real posted
+    odds" is the actual ground truth for "can be bet on", so it's used
+    here as its own sufficient condition, not just a fallback. Tournament
+    membership in notable_tournament_ids is kept as an additional OR
+    condition since it doesn't hurt and may catch cases bet_updates
+    misses."""
+    tier = (m.get("tier") or "").lower()
+    if tier in ACCEPTED_TIERS:
+        return True
+    t1id, t2id = m.get("team1_id"), m.get("team2_id")
+    if t1id in discovered_team_ids or t2id in discovered_team_ids:
+        return True
+    if m.get("tournament_id") in notable_tournament_ids:
+        return True
+    return bool(m.get("bet_updates"))
+
+
+def print_bet_updates_presence(matches, label):
+    """Diagnostic — how many matches in this batch have populated
+    bet_updates (real betting odds), to confirm this is a meaningfully
+    selective signal before relying on it further."""
+    present = sum(1 for m in matches if m.get("bet_updates"))
+    print(f"  [debug] {label}: {present}/{len(matches)} have non-null bet_updates")
 
 
 def print_star_distribution(matches, label):
@@ -242,6 +279,16 @@ def print_star_distribution(matches, label):
         counts[m.get("stars")] = counts.get(m.get("stars"), 0) + 1
     ordered = sorted(counts.items(), key=lambda kv: (kv[0] is None, kv[0]))
     print(f"  [debug] {label} star distribution: " + ", ".join(f"{k}★={v}" for k, v in ordered))
+
+
+def print_tier_distribution(matches, label):
+    """Same idea as print_star_distribution but for tier — helps confirm
+    whether tier is reliably populated for upcoming matches specifically,
+    since it wasn't for at least one finished match tested earlier."""
+    counts = {}
+    for m in matches:
+        counts[m.get("tier")] = counts.get(m.get("tier"), 0) + 1
+    print(f"  [debug] {label} tier distribution: " + ", ".join(f"{k!r}={v}" for k, v in counts.items()))
 
 
 def extract_match_team_names(m):
@@ -287,6 +334,17 @@ async def build_region_payload(cs2, session):
     tier_filtered = [m for m in results if is_notable_match(m)]
     print(f"  {len(tier_filtered)} notable matches (tier in {sorted(ACCEPTED_TIERS)} OR stars >= {MIN_STARS}) "
           f"(out of {len(results)} most-recent global matches scanned)\n")
+
+    # Tournament-level reputation, built from matches already confirmed
+    # notable — used below for upcoming matches, since tier/stars/
+    # bet_updates were all tested live and found unreliable or too broad
+    # pre-match (tier: 100% None for upcoming matches; stars: near-zero
+    # pre-match; bet_updates: present on 23/29 matches, basically every
+    # match with any bookmaker coverage at all, not a meaningful filter).
+    # A match belonging to the SAME tournament as an already-confirmed
+    # notable result is a much more principled signal than anything on
+    # the individual upcoming match record itself.
+    notable_tournament_ids = {m.get("tournament_id") for m in tier_filtered if m.get("tournament_id") is not None}
 
     MATCH_LIMIT = 60
     matches_to_process = tier_filtered[:MATCH_LIMIT]
@@ -371,7 +429,7 @@ async def build_region_payload(cs2, session):
         upcoming_stats["added"] += 1
         upcoming_matches.append({"date": m.get("start_date") or m.get("date"), "teamA": team1, "teamB": team2, "block": None})
 
-    print("Fetching today's global matches (notable-match filtered)...")
+    print("Fetching today's global matches (tier or known-team filtered — see is_relevant_upcoming_match)...")
     try:
         today_batch = await cs2.get_todays_matches()
     except Exception as e:
@@ -380,11 +438,16 @@ async def build_region_payload(cs2, session):
     today_matches = (today_batch.get("results", today_batch) if isinstance(today_batch, dict) else today_batch) if today_batch else []
     if today_matches:
         print_star_distribution(today_matches, "today's global matches")
+        print_tier_distribution(today_matches, "today's global matches")
+        print_bet_updates_presence(today_matches, "today's global matches")
+        today_tournament_overlap = sum(1 for m in today_matches if m.get("tournament_id") in notable_tournament_ids)
+        print(f"  [debug] today's global matches: {today_tournament_overlap}/{len(today_matches)} "
+              f"belong to a tournament that already produced a notable finished match")
     for m in today_matches:
-        if is_notable_match(m):
+        if is_relevant_upcoming_match(m, discovered_team_ids, notable_tournament_ids):
             add_upcoming(m)
-    print(f"  {len(upcoming_matches)} from today's notable-match-filtered global feed "
-          f"(of {len(today_matches)} raw matches today, before the notable-match filter)\n")
+    print(f"  {len(upcoming_matches)} from today's global feed "
+          f"(of {len(today_matches)} raw matches today, before filtering)\n")
 
     print(f"Fetching multi-day schedules for {len(discovered_team_ids)} discovered teams...")
     schedule_fetch_failures = 0
