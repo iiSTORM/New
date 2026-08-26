@@ -131,10 +131,31 @@ jobs:
             exit 0
           fi
           git commit -m "Update CS2 data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          # cs2_data.json is wholesale-regenerated every run, not
+          # incrementally edited — a real conflict-marker was found
+          # committed to this file after two overlapping runs both tried
+          # to push near-total rewrites of it, which is close to the
+          # worst case for git's line-level rebase/merge. Since the file
+          # is idempotently regenerated (not hand-edited), a content-level
+          # merge is never actually meaningful here — on push rejection,
+          # this discards the local commit's position entirely, resets to
+          # the latest remote state, and re-applies the SAME already-
+          # generated file fresh on top, so "whoever pushes last simply
+          # wins with their snapshot" rather than attempting a merge that
+          # was never going to succeed cleanly for a full-file rewrite.
           for i in 1 2 3 4 5; do
             git push && exit 0
-            echo "Push rejected, pulling and retrying ($i/5)..."
-            git pull --rebase
+            echo "Push rejected ($i/5) — resetting to latest remote and reapplying this run's snapshot..."
+            cp cs2_data.json /tmp/cs2_data.json.new
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/cs2_data.json.new cs2_data.json
+            git add cs2_data.json
+            if git diff --quiet --cached; then
+              echo "Remote already has this exact snapshot — nothing left to push"
+              exit 0
+            fi
+            git commit -m "Update CS2 data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             sleep $((RANDOM % 5 + 1))
           done
           git push
