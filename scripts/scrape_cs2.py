@@ -556,7 +556,16 @@ async def build_region_payload(cs2, session):
     if unresolved_opponents:
         print(f"Backfilling roster data for {len(unresolved_opponents)} opponent(s) with no roster yet: "
               f"{unresolved_opponents}")
-        BACKFILL_MATCHES_PER_TEAM = 3
+        # Widened from 3 to 6 — confirmed via live diagnosis that a real
+        # match can flip from empty player stats to fully populated
+        # within minutes (bo3.gg's own stats pipeline hasn't finished
+        # processing very recent matches yet, not a bug on our end: a
+        # game's raw "state" field is null/rounds_count null/scores null
+        # when stats aren't ready, vs "done" with real scores when they
+        # are). Fetching more candidates per team gives a better chance
+        # of landing on an already-processed match instead of the
+        # very latest one that might still be mid-pipeline.
+        BACKFILL_MATCHES_PER_TEAM = 6
         backfill_matches = []
         team_name_by_match_slug = {}  # tracks which target opponent each match came from, for the per-team success report below
         for name in unresolved_opponents:
