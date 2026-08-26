@@ -316,10 +316,13 @@ async def build_region_payload(cs2, session):
     # disagree (e.g. "Team Falcons" vs "Falcons"). ----
     short_name_by_team_id = {}
     seen_upcoming_ids = set()
+    upcoming_stats = {"raw": 0, "duplicate": 0, "tbd_excluded": 0, "added": 0}
 
     def add_upcoming(m):
         mid = m.get("id")
+        upcoming_stats["raw"] += 1
         if mid in seen_upcoming_ids:
+            upcoming_stats["duplicate"] += 1
             return
         team1, team2 = extract_match_team_names(m)
         t1id, t2id = m.get("team1_id"), m.get("team2_id")
@@ -328,8 +331,10 @@ async def build_region_payload(cs2, session):
         if t2id is not None and team2:
             short_name_by_team_id[t2id] = team2
         if not team1 or not team2 or "TBD" in (team1, team2):
+            upcoming_stats["tbd_excluded"] += 1
             return
         seen_upcoming_ids.add(mid)
+        upcoming_stats["added"] += 1
         upcoming_matches.append({"date": m.get("start_date") or m.get("date"), "teamA": team1, "teamB": team2, "block": None})
 
     print("Fetching today's global matches (notable-match filtered)...")
@@ -344,18 +349,28 @@ async def build_region_payload(cs2, session):
     for m in today_matches:
         if is_notable_match(m):
             add_upcoming(m)
-    print(f"  {len(upcoming_matches)} from today's notable-match-filtered global feed\n")
+    print(f"  {len(upcoming_matches)} from today's notable-match-filtered global feed "
+          f"(of {len(today_matches)} raw matches today, before the notable-match filter)\n")
 
     print(f"Fetching multi-day schedules for {len(discovered_team_ids)} discovered teams...")
+    schedule_fetch_failures = 0
+    schedule_raw_total = 0
     for team_id in discovered_team_ids:
         try:
             sched = await cs2.get_team_upcoming_matches(team_id)
         except Exception as e:
+            schedule_fetch_failures += 1
             print(f"  ! get_team_upcoming_matches({team_id}) failed: {e}", file=sys.stderr)
             continue
         matches = sched.get("results", sched) if isinstance(sched, dict) else sched
+        schedule_raw_total += len(matches or [])
         for m in (matches or []):
             add_upcoming(m)
+    print(f"  {schedule_raw_total} raw matches across all team schedules "
+          f"({schedule_fetch_failures} team(s) failed to fetch)")
+    print(f"  [debug] upcoming funnel: {upcoming_stats['raw']} raw seen -> "
+          f"{upcoming_stats['duplicate']} duplicate, {upcoming_stats['tbd_excluded']} TBD-excluded, "
+          f"{upcoming_stats['added']} added")
     print(f"  {len(upcoming_matches)} total upcoming matches (today's global feed + discovered teams' schedules)\n")
 
     # ---- Reconcile names BEFORE aggregating player stats, not after —
@@ -426,6 +441,94 @@ async def build_region_payload(cs2, session):
                     "hist": None,  # no clean split boundary for CS2 — model falls back to cur alone
                 })
                 existing_names.add(player_name)
+
+    # ---- Opponent backfill: any team appearing in upcoming_matches that
+    # still has no roster data (genuinely outside the tier/star-notable set
+    # that drove discovery — e.g. a team whose OWN recent matches didn't
+    # individually clear the notability bar, even though they're currently
+    # scheduled against a team that did). Without this, these matches would
+    # permanently show "roster data not loaded" no matter how discovery is
+    # tuned, since they'd never appear via the tier/star filter on their own.
+    # Reuses the SAME global finished() results already fetched (via
+    # `results`, still in scope) — no extra scanning needed. ----
+    covered_names = set(teams_payload.keys())
+    unresolved_opponents = sorted({
+        name for m in upcoming_matches for name in (m["teamA"], m["teamB"])
+        if name not in covered_names
+    })
+    if unresolved_opponents:
+        print(f"Backfilling roster data for {len(unresolved_opponents)} opponent(s) with no roster yet: "
+              f"{unresolved_opponents}")
+        BACKFILL_MATCHES_PER_TEAM = 3
+        backfill_matches = []
+        for name in unresolved_opponents:
+            try:
+                found = await cs2.search_teams(name)
+            except Exception as e:
+                print(f"  ! search_teams({name!r}) failed: {e}", file=sys.stderr)
+                continue
+            candidates = found.get("results", found) if isinstance(found, dict) else found
+            if not candidates:
+                print(f"  ! no team found for opponent {name!r} — will keep showing "
+                      f"'roster data not loaded' for this one")
+                continue
+            exact = next((t for t in candidates if t.get("name") == name), None)
+            team = exact or candidates[0]
+            opp_id = team["id"]
+            short_name_by_team_id[opp_id] = name
+            their_matches = [m for m in results
+                              if m.get("team1_id") == opp_id or m.get("team2_id") == opp_id][:BACKFILL_MATCHES_PER_TEAM]
+            print(f"  {name!r} -> id={opp_id}, {len(their_matches)} recent match(es) found to backfill from")
+            backfill_matches.extend(their_matches)
+
+        if backfill_matches:
+            backfill_processed = await asyncio.gather(
+                *[process(m, short_name_by_team_id) for m in backfill_matches]
+            )
+            added = 0
+            for entry in backfill_processed:
+                if entry and entry["actual"]:
+                    entry["teamA"] = short_name_by_team_id.get(entry.pop("_team1_id", None), entry["teamA"])
+                    entry["teamB"] = short_name_by_team_id.get(entry.pop("_team2_id", None), entry["teamB"])
+                    past_matches.append(entry)
+                    added += 1
+            print(f"  added {added} backfilled match(es) with real player stats\n")
+
+            # Fold the newly-backfilled matches into teams_payload directly
+            # — same aggregation logic as the main pass, scoped to just
+            # these new teams so it doesn't redo work already done.
+            for m in past_matches[-added:] if added else []:
+                for side in ("teamA", "teamB"):
+                    team_name = m[side]
+                    if team_name not in unresolved_opponents:
+                        continue  # only building entries for the teams we just backfilled
+                    if team_name not in teams_payload:
+                        teams_payload[team_name] = {"color": COLOR_PALETTE[color_index % len(COLOR_PALETTE)], "players": []}
+                        color_index += 1
+                    existing_names = {p["name"] for p in teams_payload[team_name]["players"]}
+                    for player_name, stats in (m["actual"].get(team_name) or {}).items():
+                        if player_name in existing_names:
+                            continue
+                        total_k = total_d = total_a = total_games = 0
+                        for mm in past_matches:
+                            for s in ("teamA", "teamB"):
+                                if mm[s] != team_name:
+                                    continue
+                                row = (mm["actual"].get(team_name) or {}).get(player_name)
+                                if row:
+                                    total_k += row["k"]
+                                    total_d += row["d"]
+                                    total_a += row["a"]
+                                    total_games += mm.get("games", 2)
+                        if total_games == 0:
+                            continue
+                        teams_payload[team_name]["players"].append({
+                            "name": player_name, "role": None,
+                            "cur": {"g": total_games, "k": total_k / total_games, "d": total_d / total_games,
+                                    "a": total_a / total_games, "kp": 0},
+                            "hist": None,
+                        })
+                        existing_names.add(player_name)
 
     return {"teams": teams_payload, "past_matches": past_matches, "upcoming_matches": upcoming_matches}
 
