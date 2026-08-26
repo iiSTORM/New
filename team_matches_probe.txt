@@ -1,0 +1,464 @@
+
+############################################################
+# TEAM ID 24956
+############################################################
+
+============================================================
+GET /teams/24956?with=matches
+  URL: https://api.bo3.gg/api/v1/teams/24956  params={'with': 'matches'}
+============================================================
+  status: 404
+  body: {"status":"record_not_found","message":"Record not found"}
+
+============================================================
+GET /teams/24956/matches
+  URL: https://api.bo3.gg/api/v1/teams/24956/matches  params=None
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+GET /teams/24956/finished_matches
+  URL: https://api.bo3.gg/api/v1/teams/24956/finished_matches  params=None
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+GET /teams/24956/results
+  URL: https://api.bo3.gg/api/v1/teams/24956/results  params=None
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+GET /teams/24956/recent_matches
+  URL: https://api.bo3.gg/api/v1/teams/24956/recent_matches  params=None
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+GET /teams/24956/match_history
+  URL: https://api.bo3.gg/api/v1/teams/24956/match_history  params=None
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+GET /teams/24956 — bare, full shape
+  URL: https://api.bo3.gg/api/v1/teams/24956  params=None
+============================================================
+  status: 404
+  body: {"status":"record_not_found","message":"Record not found"}
+
+============================================================
+GET /matches?filter[team_id]=24956
+  URL: https://api.bo3.gg/api/v1/matches  params={'filter[team_id]': 24956, 'limit': 10}
+============================================================
+  status: 200
+{
+  "total": {
+    "count": 79370,
+    "pages": 7937,
+    "offset": 0,
+    "limit": 10
+  },
+  "results": [
+    {
+      "id": 1,
+      "slug": "vitality-cs-go-vs-mousesports-cs-go-08-12-2020",
+      "round_id": 1,
+      "team1_id": 667,
+      "team2_id": 765,
+      "winner_team_id": 667,
+      "loser_team_id": 765,
+      "tournament_id": 9,
+      "team1_score": 2,
+      "team2_score": 0,
+      "status": "finished",
+      "bo_type": 3,
+      "start_date": "2020-12-08T17:55:00.000+00:00",
+      "end_date": "2020-12-08T20:15:44.000+00:00",
+      "stage_id": 1,
+      "maps_score": [
+        true,
+        true,
+        false
+      ],
+      "parsed_status": "done",
+      "tier": "s",
+      "tier_rank": 1,
+      "position": 1,
+      "points": null,
+      "rating": null,
+      "stars": null,
+      "team1_last_game_score": null,
+      "team2_last_game_score": null,
+      "live_updates": null,
+      "live_coverage": true,
+      "live_coverage_advantage": true,
+      "live_coverage_source": 1,
+      "discipline_id": 1,
+      "prev_match1_winner": false,
+      "prev_match2_winner": false,
+      "prev_match1_id": null,
+      "prev_match2_id": null,
+      "game_version": 1,
+      "team1_new_participant": false,
+      "team2_new_participant": false,
+      "comments_count": 0,
+      "bet_updates": null,
+      "comments": []
+    },
+    {
+      "id": 2,
+      "slug": "natus-vincere-cs-go-vs-astralis-08-12-2020",
+      "round_id": 1,
+      "team1_id": 787,
+      "team2_id": 794,
+      "winner_team_id": 787,
+      "loser_team_id": 794,
+      "tournament_id": 9,
+      "team1_score": 2,
+      "team2_score": 1,
+      "status": "finished",
+      "bo_type": 3,
+      "start_date": "2020-12-08T20:26:30.000+00:00",
+      "end_date": "2020-12-09T00:59:02.000+00:00",
+      "stage_id": 1,
+      "maps_score": [
+        false,
+        true,
+        true
+      ],
+      "parsed_status": "done",
+      "tier": "s",
+      "tier_rank": 1,
+      "position": 2,
+      "points": null,
+      "rating": null,
+  
+...[truncated, 12657 total chars]
+
+============================================================
+GET /matches?team_id=24956
+  URL: https://api.bo3.gg/api/v1/matches  params={'team_id': 24956, 'limit': 10}
+============================================================
+  status: 200
+{
+  "total": {
+    "count": 79370,
+    "pages": 7937,
+    "offset": 0,
+    "limit": 10
+  },
+  "results": [
+    {
+      "id": 1,
+      "slug": "vitality-cs-go-vs-mousesports-cs-go-08-12-2020",
+      "round_id": 1,
+      "team1_id": 667,
+      "team2_id": 765,
+      "winner_team_id": 667,
+      "loser_team_id": 765,
+      "tournament_id": 9,
+      "team1_score": 2,
+      "team2_score": 0,
+      "status": "finished",
+      "bo_type": 3,
+      "start_date": "2020-12-08T17:55:00.000+00:00",
+      "end_date": "2020-12-08T20:15:44.000+00:00",
+      "stage_id": 1,
+      "maps_score": [
+        true,
+        true,
+        false
+      ],
+      "parsed_status": "done",
+      "tier": "s",
+      "tier_rank": 1,
+      "position": 1,
+      "points": null,
+      "rating": null,
+      "stars": null,
+      "team1_last_game_score": null,
+      "team2_last_game_score": null,
+      "live_updates": null,
+      "live_coverage": true,
+      "live_coverage_advantage": true,
+      "live_coverage_source": 1,
+      "discipline_id": 1,
+      "prev_match1_winner": false,
+      "prev_match2_winner": false,
+      "prev_match1_id": null,
+      "prev_match2_id": null,
+      "game_version": 1,
+      "team1_new_participant": false,
+      "team2_new_participant": false,
+      "comments_count": 0,
+      "bet_updates": null,
+      "comments": []
+    },
+    {
+      "id": 2,
+      "slug": "natus-vincere-cs-go-vs-astralis-08-12-2020",
+      "round_id": 1,
+      "team1_id": 787,
+      "team2_id": 794,
+      "winner_team_id": 787,
+      "loser_team_id": 794,
+      "tournament_id": 9,
+      "team1_score": 2,
+      "team2_score": 1,
+      "status": "finished",
+      "bo_type": 3,
+      "start_date": "2020-12-08T20:26:30.000+00:00",
+      "end_date": "2020-12-09T00:59:02.000+00:00",
+      "stage_id": 1,
+      "maps_score": [
+        false,
+        true,
+        true
+      ],
+      "parsed_status": "done",
+      "tier": "s",
+      "tier_rank": 1,
+      "position": 2,
+      "points": null,
+      "rating": null,
+  
+...[truncated, 12657 total chars]
+
+
+############################################################
+# TEAM ID 19186
+############################################################
+
+============================================================
+GET /teams/19186?with=matches
+  URL: https://api.bo3.gg/api/v1/teams/19186  params={'with': 'matches'}
+============================================================
+  status: 404
+  body: {"status":"record_not_found","message":"Record not found"}
+
+============================================================
+GET /teams/19186/matches
+  URL: https://api.bo3.gg/api/v1/teams/19186/matches  params=None
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+GET /teams/19186/finished_matches
+  URL: https://api.bo3.gg/api/v1/teams/19186/finished_matches  params=None
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+GET /teams/19186/results
+  URL: https://api.bo3.gg/api/v1/teams/19186/results  params=None
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+GET /teams/19186/recent_matches
+  URL: https://api.bo3.gg/api/v1/teams/19186/recent_matches  params=None
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+GET /teams/19186/match_history
+  URL: https://api.bo3.gg/api/v1/teams/19186/match_history  params=None
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+GET /teams/19186 — bare, full shape
+  URL: https://api.bo3.gg/api/v1/teams/19186  params=None
+============================================================
+  status: 404
+  body: {"status":"record_not_found","message":"Record not found"}
+
+============================================================
+GET /matches?filter[team_id]=19186
+  URL: https://api.bo3.gg/api/v1/matches  params={'filter[team_id]': 19186, 'limit': 10}
+============================================================
+  status: 200
+{
+  "total": {
+    "count": 79370,
+    "pages": 7937,
+    "offset": 0,
+    "limit": 10
+  },
+  "results": [
+    {
+      "id": 1,
+      "slug": "vitality-cs-go-vs-mousesports-cs-go-08-12-2020",
+      "round_id": 1,
+      "team1_id": 667,
+      "team2_id": 765,
+      "winner_team_id": 667,
+      "loser_team_id": 765,
+      "tournament_id": 9,
+      "team1_score": 2,
+      "team2_score": 0,
+      "status": "finished",
+      "bo_type": 3,
+      "start_date": "2020-12-08T17:55:00.000+00:00",
+      "end_date": "2020-12-08T20:15:44.000+00:00",
+      "stage_id": 1,
+      "maps_score": [
+        true,
+        true,
+        false
+      ],
+      "parsed_status": "done",
+      "tier": "s",
+      "tier_rank": 1,
+      "position": 1,
+      "points": null,
+      "rating": null,
+      "stars": null,
+      "team1_last_game_score": null,
+      "team2_last_game_score": null,
+      "live_updates": null,
+      "live_coverage": true,
+      "live_coverage_advantage": true,
+      "live_coverage_source": 1,
+      "discipline_id": 1,
+      "prev_match1_winner": false,
+      "prev_match2_winner": false,
+      "prev_match1_id": null,
+      "prev_match2_id": null,
+      "game_version": 1,
+      "team1_new_participant": false,
+      "team2_new_participant": false,
+      "comments_count": 0,
+      "bet_updates": null,
+      "comments": []
+    },
+    {
+      "id": 2,
+      "slug": "natus-vincere-cs-go-vs-astralis-08-12-2020",
+      "round_id": 1,
+      "team1_id": 787,
+      "team2_id": 794,
+      "winner_team_id": 787,
+      "loser_team_id": 794,
+      "tournament_id": 9,
+      "team1_score": 2,
+      "team2_score": 1,
+      "status": "finished",
+      "bo_type": 3,
+      "start_date": "2020-12-08T20:26:30.000+00:00",
+      "end_date": "2020-12-09T00:59:02.000+00:00",
+      "stage_id": 1,
+      "maps_score": [
+        false,
+        true,
+        true
+      ],
+      "parsed_status": "done",
+      "tier": "s",
+      "tier_rank": 1,
+      "position": 2,
+      "points": null,
+      "rating": null,
+  
+...[truncated, 12657 total chars]
+
+============================================================
+GET /matches?team_id=19186
+  URL: https://api.bo3.gg/api/v1/matches  params={'team_id': 19186, 'limit': 10}
+============================================================
+  status: 200
+{
+  "total": {
+    "count": 79370,
+    "pages": 7937,
+    "offset": 0,
+    "limit": 10
+  },
+  "results": [
+    {
+      "id": 1,
+      "slug": "vitality-cs-go-vs-mousesports-cs-go-08-12-2020",
+      "round_id": 1,
+      "team1_id": 667,
+      "team2_id": 765,
+      "winner_team_id": 667,
+      "loser_team_id": 765,
+      "tournament_id": 9,
+      "team1_score": 2,
+      "team2_score": 0,
+      "status": "finished",
+      "bo_type": 3,
+      "start_date": "2020-12-08T17:55:00.000+00:00",
+      "end_date": "2020-12-08T20:15:44.000+00:00",
+      "stage_id": 1,
+      "maps_score": [
+        true,
+        true,
+        false
+      ],
+      "parsed_status": "done",
+      "tier": "s",
+      "tier_rank": 1,
+      "position": 1,
+      "points": null,
+      "rating": null,
+      "stars": null,
+      "team1_last_game_score": null,
+      "team2_last_game_score": null,
+      "live_updates": null,
+      "live_coverage": true,
+      "live_coverage_advantage": true,
+      "live_coverage_source": 1,
+      "discipline_id": 1,
+      "prev_match1_winner": false,
+      "prev_match2_winner": false,
+      "prev_match1_id": null,
+      "prev_match2_id": null,
+      "game_version": 1,
+      "team1_new_participant": false,
+      "team2_new_participant": false,
+      "comments_count": 0,
+      "bet_updates": null,
+      "comments": []
+    },
+    {
+      "id": 2,
+      "slug": "natus-vincere-cs-go-vs-astralis-08-12-2020",
+      "round_id": 1,
+      "team1_id": 787,
+      "team2_id": 794,
+      "winner_team_id": 787,
+      "loser_team_id": 794,
+      "tournament_id": 9,
+      "team1_score": 2,
+      "team2_score": 1,
+      "status": "finished",
+      "bo_type": 3,
+      "start_date": "2020-12-08T20:26:30.000+00:00",
+      "end_date": "2020-12-09T00:59:02.000+00:00",
+      "stage_id": 1,
+      "maps_score": [
+        false,
+        true,
+        true
+      ],
+      "parsed_status": "done",
+      "tier": "s",
+      "tier_rank": 1,
+      "position": 2,
+      "points": null,
+      "rating": null,
+  
+...[truncated, 12657 total chars]
+
