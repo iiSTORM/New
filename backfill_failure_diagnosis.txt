@@ -1,0 +1,224 @@
+
+############################################################
+# ALKA (id=23043)
+############################################################
+
+  GET https://api.bo3.gg/api/v1/matches params={'scope': 'widget-map-pool', 'page[offset]': '0', 'page[limit]': '3', 'sort': '-start_date', 'filter[matches.status][in]': 'finished', 'filter[matches.team_ids][overlap]': '23043', 'filter[matches.start_date][lt]': '2026-08-26', 'filter[matches.start_date][gt]': '2026-02-27', 'filter[matches.discipline_id][eq]': '1', 'with': 'teams,tournament,ai_predictions,games,match_maps'} -> status 200
+
+  Testing first match: shinden-vs-alka-25-08-2026
+
+  GET https://api.bo3.gg/api/v1/matches/shinden-vs-alka-25-08-2026 params={'with': 'games'} -> status 200
+  games list length: 2
+  games raw: [
+  {
+    "id": 182727,
+    "begin_at": "2026-08-25T22:06:44.000+00:00",
+    "state": "done",
+    "partially_state": null,
+    "status": "finished",
+    "map_name": "de_dust2",
+    "number": 2,
+    "rounds_count": 24,
+    "ov_index": 0,
+    "winner_clan_score": 13,
+    "loser_clan_score": 11,
+    "winner_clan_name": "ShindeN",
+    "loser_clan_name": "ALKA",
+    "match_id": 127735,
+    "game_version": 2,
+    "winner_team_clan": {
+      "clan_name": "ShindeN",
+      "team_id": 11174,
+      "created_at": "2024-08-30T09:16:49.858+00:00",
+      "updated_at": "2024-08-30T09:16:49.858+00:00",
+      "id": 8646,
+      "team": {
+        "id": 11174,
+        "slug": "shinden",
+        "name": "ShindeN",
+        "image_url": "https://files.bo3.gg/uploads/team/11174/image/webp-1b676d27e092ed8f1ad3c5d7e
+
+  Testing players_stats for first game_id=182727...
+  GET https://api.bo3.gg/api/v1/games/182727/players_stats params=None -> status 200
+  players_stats result: [
+  {
+    "id": 1860379,
+    "game_id": 182727,
+    "steam_profile_id": 601,
+    "clan_name": "ShindeN",
+    "win": 1,
+    "kills": 11,
+    "death": 14,
+    "assists": 5,
+    "headshots": 3,
+    "first_kills": 1,
+    "first_death": 1,
+    "trade_kills": 1,
+    "trade_death": 2,
+    "kast": 0.7083333333333334,
+    "player_rating": 5.220322332353597,
+    "multikills": {
+      "2": 1,
+      "3": 1,
+      "4": 0,
+      "5": 0
+    },
+    "adr": 55.625,
+    "hits": 42,
+    "shots": 324,
+    "got_damage": 1946,
+    "damage": 1335,
+    "utility_value": 2700,
+    "money_spent": 35250,
+    "money_save": 44400,
+    "cumulative_round_damages": {
+      "1": 10,
+      "2": 10,
+      "3": 10,
+      "4": 69,
+      "5": 69,
+      "6": 69,
+      "7": 96,
+      "8": 196,
+      "9": 296,
+      "10": 377,
+      "11": 427,
+      "12": 550,
+      "13": 550,
+      "14": 761,
+      "15": 823,
+      "16": 823,
+      "17": 823,
+      "18": 957,
+      "19": 957,
+      "20": 1057,
+      "21": 1057,
+      "22": 1116,
+      "23": 1235,
+      "24": 1335
+    },
+    "clutches": 1,
+    "total_equipment_value": 105400,
+    "additional_value": 25600,
+    "pistols_value": 1000,
+    "weapons_value": 11900,
+    "player_rating_value": 835.2515731765756,
+    "enemy_clan_name": "ALKA",
+    "team_clan": {
+      "clan_name": "ShindeN",
+      "team_id": 11174,
+      "created_at": "2024-08-30T09:16:49.858+00:00",
+      "updated_at": "2024-08-30T09:16:49.858+00:00",
+      "id": 8646,
+      "team": {
+        "id": 11174,
+  
+  >>> players_stats length: 10
+  GET https://api.bo3.gg/api/v1/games/182727/game_steam_profiles params=None -> status 200
+  >>> game_steam_profiles length: 10
+
+
+############################################################
+# RED Canids Academy (id=16743)
+############################################################
+
+  GET https://api.bo3.gg/api/v1/matches params={'scope': 'widget-map-pool', 'page[offset]': '0', 'page[limit]': '3', 'sort': '-start_date', 'filter[matches.status][in]': 'finished', 'filter[matches.team_ids][overlap]': '16743', 'filter[matches.start_date][lt]': '2026-08-26', 'filter[matches.start_date][gt]': '2026-02-27', 'filter[matches.discipline_id][eq]': '1', 'with': 'teams,tournament,ai_predictions,games,match_maps'} -> status 200
+
+  Testing first match: red-canids-academy-vs-pain-gaming-academy-24-08-2026
+
+  GET https://api.bo3.gg/api/v1/matches/red-canids-academy-vs-pain-gaming-academy-24-08-2026 params={'with': 'games'} -> status 200
+  games list length: 3
+  games raw: [
+  {
+    "id": 182313,
+    "begin_at": "2026-08-24T21:06:47.000+00:00",
+    "state": null,
+    "partially_state": null,
+    "status": "finished",
+    "map_name": "de_dust2",
+    "number": 3,
+    "rounds_count": null,
+    "ov_index": null,
+    "winner_clan_score": null,
+    "loser_clan_score": null,
+    "winner_clan_name": null,
+    "loser_clan_name": null,
+    "match_id": 127523,
+    "game_version": 2,
+    "winner_team_clan": null,
+    "loser_team_clan": null
+  },
+  {
+    "id": 182314,
+    "begin_at": "2026-08-24T20:07:51.000+00:00",
+    "state": null,
+    "partially_state": null,
+    "status": "finished",
+    "map_name": "de_mirage",
+    "number": 2,
+    "rounds_count": null,
+    "ov_index": null,
+    "winner_clan_score": null,
+    "loser_clan_score": null,
+    "winner_clan_name": null,
+
+
+  Testing players_stats for first game_id=182313...
+  GET https://api.bo3.gg/api/v1/games/182313/players_stats params=None -> status 200
+  players_stats result: []
+  >>> players_stats length: 0
+  GET https://api.bo3.gg/api/v1/games/182313/game_steam_profiles params=None -> status 200
+  >>> game_steam_profiles length: 0
+
+
+############################################################
+# Sementes do Mal (id=25188)
+############################################################
+
+  GET https://api.bo3.gg/api/v1/matches params={'scope': 'widget-map-pool', 'page[offset]': '0', 'page[limit]': '3', 'sort': '-start_date', 'filter[matches.status][in]': 'finished', 'filter[matches.team_ids][overlap]': '25188', 'filter[matches.start_date][lt]': '2026-08-26', 'filter[matches.start_date][gt]': '2026-02-27', 'filter[matches.discipline_id][eq]': '1', 'with': 'teams,tournament,ai_predictions,games,match_maps'} -> status 200
+
+  Testing first match: bestia-academy-vs-sementes-do-mal-24-08-2026
+
+  GET https://api.bo3.gg/api/v1/matches/bestia-academy-vs-sementes-do-mal-24-08-2026 params={'with': 'games'} -> status 200
+  games list length: 2
+  games raw: [
+  {
+    "id": 182461,
+    "begin_at": "2026-08-24T22:23:38.000+00:00",
+    "state": null,
+    "partially_state": null,
+    "status": "finished",
+    "map_name": "de_inferno",
+    "number": 2,
+    "rounds_count": null,
+    "ov_index": null,
+    "winner_clan_score": null,
+    "loser_clan_score": null,
+    "winner_clan_name": null,
+    "loser_clan_name": null,
+    "match_id": 127576,
+    "game_version": 2,
+    "winner_team_clan": null,
+    "loser_team_clan": null
+  },
+  {
+    "id": 182462,
+    "begin_at": "2026-08-24T21:21:27.000+00:00",
+    "state": null,
+    "partially_state": null,
+    "status": "finished",
+    "map_name": "de_cache",
+    "number": 1,
+    "rounds_count": null,
+    "ov_index": null,
+    "winner_clan_score": null,
+    "loser_clan_score": null,
+    "winner_clan_name": null,
+
+  Testing players_stats for first game_id=182461...
+  GET https://api.bo3.gg/api/v1/games/182461/players_stats params=None -> status 200
+  players_stats result: []
+  >>> players_stats length: 0
+  GET https://api.bo3.gg/api/v1/games/182461/game_steam_profiles params=None -> status 200
+  >>> game_steam_profiles length: 0
+
