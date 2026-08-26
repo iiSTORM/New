@@ -558,6 +558,7 @@ async def build_region_payload(cs2, session):
               f"{unresolved_opponents}")
         BACKFILL_MATCHES_PER_TEAM = 3
         backfill_matches = []
+        team_name_by_match_slug = {}  # tracks which target opponent each match came from, for the per-team success report below
         for name in unresolved_opponents:
             try:
                 found = await cs2.search_teams(name)
@@ -580,6 +581,8 @@ async def build_region_payload(cs2, session):
             # returns their real match history directly).
             their_matches = await fetch_team_recent_matches(session, opp_id, limit=BACKFILL_MATCHES_PER_TEAM)
             print(f"  {name!r} -> id={opp_id}, {len(their_matches)} recent match(es) found to backfill from")
+            for m in their_matches:
+                team_name_by_match_slug[m.get("slug")] = name
             backfill_matches.extend(their_matches)
 
         if backfill_matches:
@@ -587,13 +590,36 @@ async def build_region_payload(cs2, session):
                 *[process(m, short_name_by_team_id) for m in backfill_matches]
             )
             added = 0
-            for entry in backfill_processed:
+            succeeded_by_team = {}
+            attempted_by_team = {}
+            for m in backfill_matches:
+                target = team_name_by_match_slug.get(m.get("slug"))
+                if target:
+                    attempted_by_team[target] = attempted_by_team.get(target, 0) + 1
+            for m, entry in zip(backfill_matches, backfill_processed):
+                target = team_name_by_match_slug.get(m.get("slug"))
                 if entry and entry["actual"]:
                     entry["teamA"] = short_name_by_team_id.get(entry.pop("_team1_id", None), entry["teamA"])
                     entry["teamB"] = short_name_by_team_id.get(entry.pop("_team2_id", None), entry["teamB"])
                     past_matches.append(entry)
                     added += 1
+                    if target:
+                        succeeded_by_team[target] = succeeded_by_team.get(target, 0) + 1
             print(f"  added {added} backfilled match(es) with real player stats\n")
+
+            # Per-team success report — distinguishes "found matches but
+            # they all failed to process" from "no matches found at all",
+            # since both look identical downstream (still no roster) but
+            # need different fixes.
+            failed_teams = [name for name in unresolved_opponents
+                             if succeeded_by_team.get(name, 0) == 0]
+            if failed_teams:
+                print(f"  [debug] {len(failed_teams)} opponent(s) still have NO usable player data "
+                      f"after backfill — attempted vs succeeded per team:")
+                for name in failed_teams:
+                    print(f"    {name!r}: {attempted_by_team.get(name, 0)} match(es) attempted, "
+                          f"{succeeded_by_team.get(name, 0)} succeeded")
+                print()
 
             # Fold the newly-backfilled matches into teams_payload directly
             # — same aggregation logic as the main pass, scoped to just
