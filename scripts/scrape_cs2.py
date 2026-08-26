@@ -77,15 +77,18 @@ async def bo3_get(session, path, params=None):
 
 
 async def fetch_map_player_stats(session, game_id):
-    """Returns {player_name: {"k":.., "d":.., "a":.., "team": clan_name}}
-    for one specific map, joining players_stats (K/D/A) with
-    game_steam_profiles (names) by steam_profile_id."""
+    """Returns ({player_name: {"k":.., "d":.., "a":.., "team": clan_name}},
+    {team_id: clan_name}) for one specific map — the second dict is a
+    reliable team_id<->name mapping straight from players_stats' own
+    nested team_clan field, used later to determine the winner correctly
+    instead of guessing at a team-name field on a different endpoint that
+    likely doesn't have one."""
     stats, profiles = await asyncio.gather(
         bo3_get(session, f"/games/{game_id}/players_stats"),
         bo3_get(session, f"/games/{game_id}/game_steam_profiles"),
     )
     if not stats or not profiles:
-        return {}
+        return {}, {}
 
     name_by_profile_id = {}
     for p in profiles:
@@ -95,23 +98,30 @@ async def fetch_map_player_stats(session, game_id):
             name_by_profile_id[p.get("steam_profile_id")] = nickname
 
     result = {}
+    clan_name_by_team_id = {}
     for s in stats:
         pid = s.get("steam_profile_id")
         name = name_by_profile_id.get(pid)
+        clan_name = s.get("clan_name", "")
+        team_clan = s.get("team_clan") or {}
+        if team_clan.get("team_id") is not None:
+            clan_name_by_team_id[team_clan["team_id"]] = clan_name
         if not name:
             continue  # can't attribute this row to a real player name — skip rather than guess
-        result[name] = {
-            "k": s.get("kills", 0), "d": s.get("death", 0), "a": s.get("assists", 0),
-            "team": s.get("clan_name", ""),
-        }
-    return result
+        result[name] = {"k": s.get("kills", 0), "d": s.get("death", 0), "a": s.get("assists", 0), "team": clan_name}
+    return result, clan_name_by_team_id
 
 
 async def fetch_match_actuals(session, match_slug):
     """Fetches one finished match's games (maps), and per-player K/D/A for
     maps 1+2 only, capped exactly like scrape_valorant.py does — the 3rd
     map of a Bo3 that went the distance is excluded so 'actual' data lines
-    up with what the model always projects for (2 games)."""
+    up with what the model always projects for (2 games).
+
+    Returns (totals, maps_played, winner_name, team1_name, team2_name) —
+    all team names derived from players_stats' own clan_name field, the
+    one confirmed-reliable source, rather than any name field on the
+    finished()-list match object (which very likely doesn't have one)."""
     match = await bo3_get(session, f"/matches/{match_slug}", params={"with": "games"})
     if not match:
         return None
@@ -119,10 +129,12 @@ async def fetch_match_actuals(session, match_slug):
     if not games:
         return None
 
-    per_map_stats = await asyncio.gather(*[fetch_map_player_stats(session, g["id"]) for g in games])
+    per_map_results = await asyncio.gather(*[fetch_map_player_stats(session, g["id"]) for g in games])
 
     totals = {}
-    for map_stats in per_map_stats:
+    clan_name_by_team_id = {}
+    for map_stats, clan_map in per_map_results:
+        clan_name_by_team_id.update(clan_map)
         for player_name, row in map_stats.items():
             team = row["team"]
             totals.setdefault(team, {})
@@ -130,7 +142,17 @@ async def fetch_match_actuals(session, match_slug):
             slot["k"] += row["k"]
             slot["d"] += row["d"]
             slot["a"] += row["a"]
-    return totals, len(games)
+
+    team_names = list(totals.keys())
+    if len(team_names) != 2:
+        return None  # incomplete data for this match — better to skip than build a lopsided entry
+
+    winner_team_id = match.get("winner_team_id")
+    winner_name = clan_name_by_team_id.get(winner_team_id)
+    if winner_name not in team_names:
+        winner_name = None  # couldn't reliably resolve — leave unset rather than guess
+
+    return totals, len(games), winner_name, team_names[0], team_names[1]
 
 
 def normalize_team_name(name):
@@ -228,24 +250,33 @@ async def build_region_payload(cs2, session):
     print(f"  {len(candidate_matches)} matches found involving a tracked team "
           f"(out of {len(results) if batch and results else 0} most-recent global matches scanned)\n")
 
-    print("Fetching per-map player stats for each match (this is the slow part)...")
+    # Capped for this validation run — confirming the pipeline works
+    # end-to-end matters more right now than maximizing coverage on the
+    # first real attempt. Raise or remove once confirmed working.
+    MATCH_LIMIT = 20
+    matches_to_process = candidate_matches[:MATCH_LIMIT]
+    print(f"Fetching per-map player stats for {len(matches_to_process)} matches "
+          f"(capped from {len(candidate_matches)} found; this is the slow part)...")
     sem = asyncio.Semaphore(6)
+    progress = {"done": 0}
 
     async def process(m):
         async with sem:
             result = await fetch_match_actuals(session, m["slug"])
+            progress["done"] += 1
+            if progress["done"] % 5 == 0 or progress["done"] == len(matches_to_process):
+                print(f"  ...{progress['done']}/{len(matches_to_process)} matches processed")
             if not result:
                 return None
-            totals, maps_played = result
+            totals, maps_played, winner_name, team1_name, team2_name = result
             return {
                 "week": None, "date": (m.get("date") or "")[:10] if m.get("date") else None,
-                "patch": None, "teamA": normalize_team_name(m.get("team1")),
-                "teamB": normalize_team_name(m.get("team2")),
-                "winner": normalize_team_name(m.get("team1") if str(m.get("winner_team_id")) == str(m.get("team1_id")) else m.get("team2")),
+                "patch": None, "teamA": team1_name, "teamB": team2_name,
+                "winner": winner_name,
                 "score": m.get("score", ""), "actual": totals, "games": maps_played,
             }
 
-    processed = await asyncio.gather(*[process(m) for m in candidate_matches])
+    processed = await asyncio.gather(*[process(m) for m in matches_to_process])
     for entry in processed:
         if entry and entry["actual"]:
             past_matches.append(entry)
