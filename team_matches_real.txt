@@ -1,0 +1,266 @@
+
+############################################################
+# TEAM ID 24956
+############################################################
+
+============================================================
+GET /matches with real filter[matches.team_ids][overlap]=24956
+  URL: https://api.bo3.gg/api/v1/matches
+  params: {'scope': 'widget-map-pool', 'page[offset]': '0', 'page[limit]': '20', 'sort': '-start_date', 'filter[matches.status][in]': 'finished', 'filter[matches.team_ids][overlap]': '24956', 'filter[matches.start_date][lt]': '2026-08-26', 'filter[matches.start_date][gt]': '2026-02-27', 'filter[matches.discipline_id][eq]': '1', 'with': 'teams,tournament,ai_predictions,games,match_maps'}
+============================================================
+  status: 200
+{
+  "total": {
+    "count": 5,
+    "pages": 1,
+    "offset": 0,
+    "limit": 20
+  },
+  "results": [
+    {
+      "id": 126336,
+      "slug": "jijiehao-vs-dendele-cs-09-08-2026",
+      "start_date": "2026-08-09T09:20:00.000+00:00",
+      "discipline_id": 1,
+      "tournament": {
+        "id": 5121,
+        "image_url": "https://files.bo3.gg/uploads/tournament/5121/image/webp-66340635ccbcb3085dadf6a89152dc33.webp",
+        "last_match_date": "2026-08-09T16:00:00.000+00:00"
+      },
+      "team1": {
+        "id": 3869,
+        "slug": "jijiehao",
+        "name": "JiJieHao",
+        "image_url": "https://files.bo3.gg/uploads/team/3869/image/webp-812abeff13fafa120347d9d5de3770dd.webp"
+      },
+      "team2": {
+        "id": 24956,
+        "slug": "dendele-cs",
+        "name": "DENDELE",
+        "image_url": "https://files.bo3.gg/uploads/team/24956/image/webp-faa4b489f27e86c29c5d66ca95c14082.webp"
+      },
+      "match_maps": [
+        {
+          "id": 1381741,
+          "order": 1,
+          "choice_type": 2,
+          "team_id": 3869,
+          "maps": {
+            "id": 4,
+            "slug": "nuke",
+            "name": "Nuke",
+            "scenarion": "Bomb defusal",
+            "alternative_names": [
+              "nuke",
+              "de_nuke"
+            ],
+            "map_name": "de_nuke",
+            "discipline_id": 1,
+            "map_pool": true
+          }
+        },
+        {
+          "id": 1381742,
+          "order": 2,
+          "choice_type": 2,
+          "team_id": 24956,
+          "maps": {
+            "id": 6,
+            "slug": "dust2",
+            "name": "Dust2",
+            "scenarion": "Bomb defusal",
+            "alternative_names": [
+              "dust2",
+              "de_dust2"
+            ],
+            "map_name": "de_dust2",
+            "discipline_id": 1,
+            "map_pool": true
+          }
+        },
+        {
+          "id": 1381743,
+          "order": 3,
+          "choice_type": 1,
+          "team_id": 3869,
+          "maps": {
+            "id": 1,
+            "slug": "inferno",
+            "name": "Inferno",
+            "scenarion": "Bomb defusal",
+            "alternative_names": [
+              "inferno",
+              "de_inferno"
+            ],
+            "map_name": "de_inferno",
+            "discipline_id": 1,
+            "map_pool": true
+          }
+        },
+        {
+          "id": 1381744,
+          "order": 4,
+          "choice_type": 1,
+          "team_id": 24956,
+          "maps": {
+            "id": 8,
+            "slug": "cache",
+            "name": "Cache",
+            "scenarion": "Bomb defusal",
+            "alternative_names": [
+              "cache",
+              "de_cache"
+            ],
+            "map_name": "de_cache",
+            "discipline_id": 1,
+            "map_pool": true
+          }
+        },
+        {
+          "id": 1381745,
+          "order": 5,
+          "choice_type": 2,
+          "team_id": 3869,
+          "maps": {
+            "id": 27,
+            "slug": "anu
+...[truncated, 21263 total chars]
+
+>>> 5 match(es) returned for team_id=24956
+
+>>> distinct (team1_id, team2_id) pairs seen: {(None, None)}
+>>> every match actually involves team_id=24956: False
+
+
+############################################################
+# TEAM ID 19186
+############################################################
+
+============================================================
+GET /matches with real filter[matches.team_ids][overlap]=19186
+  URL: https://api.bo3.gg/api/v1/matches
+  params: {'scope': 'widget-map-pool', 'page[offset]': '0', 'page[limit]': '20', 'sort': '-start_date', 'filter[matches.status][in]': 'finished', 'filter[matches.team_ids][overlap]': '19186', 'filter[matches.start_date][lt]': '2026-08-26', 'filter[matches.start_date][gt]': '2026-02-27', 'filter[matches.discipline_id][eq]': '1', 'with': 'teams,tournament,ai_predictions,games,match_maps'}
+============================================================
+  status: 200
+{
+  "total": {
+    "count": 47,
+    "pages": 3,
+    "offset": 0,
+    "limit": 20
+  },
+  "results": [
+    {
+      "id": 126348,
+      "slug": "hotu-vs-inner-circle-esports-09-08-2026",
+      "start_date": "2026-08-09T12:45:00.000+00:00",
+      "discipline_id": 1,
+      "tournament": {
+        "id": 5121,
+        "image_url": "https://files.bo3.gg/uploads/tournament/5121/image/webp-66340635ccbcb3085dadf6a89152dc33.webp",
+        "last_match_date": "2026-08-09T16:00:00.000+00:00"
+      },
+      "team1": {
+        "id": 19186,
+        "slug": "inner-circle-esports",
+        "name": "Inner Circle",
+        "image_url": "https://files.bo3.gg/uploads/team/19186/image/webp-6aedbd6f8fdc86d26052f90540031e1e.webp"
+      },
+      "team2": {
+        "id": 2720,
+        "slug": "hotu",
+        "name": "HOTU",
+        "image_url": "https://files.bo3.gg/uploads/team/2720/image/f958862f2e46f042058744c797bd9b8c.png"
+      },
+      "match_maps": [
+        {
+          "id": 1381769,
+          "order": 1,
+          "choice_type": 2,
+          "team_id": 19186,
+          "maps": {
+            "id": 6,
+            "slug": "dust2",
+            "name": "Dust2",
+            "scenarion": "Bomb defusal",
+            "alternative_names": [
+              "dust2",
+              "de_dust2"
+            ],
+            "map_name": "de_dust2",
+            "discipline_id": 1,
+            "map_pool": true
+          }
+        },
+        {
+          "id": 1381770,
+          "order": 2,
+          "choice_type": 2,
+          "team_id": 2720,
+          "maps": {
+            "id": 3,
+            "slug": "mirage",
+            "name": "Mirage",
+            "scenarion": "Bomb defusal",
+            "alternative_names": [
+              "mirage",
+              "de_mirage"
+            ],
+            "map_name": "de_mirage",
+            "discipline_id": 1,
+            "map_pool": true
+          }
+        },
+        {
+          "id": 1381771,
+          "order": 3,
+          "choice_type": 1,
+          "team_id": 19186,
+          "maps": {
+            "id": 26,
+            "slug": "ancient",
+            "name": "Ancient",
+            "scenarion": "Bomb defusal",
+            "alternative_names": [
+              "ancient",
+              "de_ancient"
+            ],
+            "map_name": "de_ancient",
+            "discipline_id": 1,
+            "map_pool": true
+          }
+        },
+        {
+          "id": 1381772,
+          "order": 4,
+          "choice_type": 1,
+          "team_id": 2720,
+          "maps": {
+            "id": 4,
+            "slug": "nuke",
+            "name": "Nuke",
+            "scenarion": "Bomb defusal",
+            "alternative_names": [
+              "nuke",
+              "de_nuke"
+            ],
+            "map_name": "de_nuke",
+            "discipline_id": 1,
+            "map_pool": true
+          }
+        },
+        {
+          "id": 1381773,
+          "order": 5,
+          "choice_type": 2,
+          "team_id": 19186,
+          "maps": {
+            "id": 1,
+          
+...[truncated, 108447 total chars]
+
+>>> 20 match(es) returned for team_id=19186
+
+>>> distinct (team1_id, team2_id) pairs seen: {(None, None)}
+>>> every match actually involves team_id=19186: False
+
