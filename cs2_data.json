@@ -1,10 +1,140 @@
 {
-  "generated_at": "2026-08-27T16:45:50.512737+00:00",
+  "generated_at": "2026-08-27T19:20:39.125167+00:00",
   "regions": {
     "CS2": {
       "teams": {
-        "MOUZ": {
+        "FUT": {
           "color": "#e0c341",
+          "players": [
+            {
+              "name": "dziugss",
+              "role": null,
+              "cur": {
+                "g": 12,
+                "k": 13.75,
+                "d": 15.416666666666666,
+                "a": 5.5,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "dem0n",
+              "role": null,
+              "cur": {
+                "g": 12,
+                "k": 17.083333333333332,
+                "d": 15.833333333333334,
+                "a": 4.833333333333333,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "Krabeni",
+              "role": null,
+              "cur": {
+                "g": 12,
+                "k": 15.916666666666666,
+                "d": 17.333333333333332,
+                "a": 6.5,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "xfl0ud",
+              "role": null,
+              "cur": {
+                "g": 12,
+                "k": 17.833333333333332,
+                "d": 16.5,
+                "a": 6.083333333333333,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "cmtry",
+              "role": null,
+              "cur": {
+                "g": 12,
+                "k": 15.083333333333334,
+                "d": 14.333333333333334,
+                "a": 5.25,
+                "kp": 0
+              },
+              "hist": null
+            }
+          ]
+        },
+        "Legacy": {
+          "color": "#4fa8e0",
+          "players": [
+            {
+              "name": "arT",
+              "role": null,
+              "cur": {
+                "g": 15,
+                "k": 11.133333333333333,
+                "d": 14.133333333333333,
+                "a": 6.466666666666667,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "latto",
+              "role": null,
+              "cur": {
+                "g": 15,
+                "k": 15.066666666666666,
+                "d": 11.733333333333333,
+                "a": 4.733333333333333,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "try",
+              "role": null,
+              "cur": {
+                "g": 15,
+                "k": 17.6,
+                "d": 11.4,
+                "a": 3.2666666666666666,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "dumau",
+              "role": null,
+              "cur": {
+                "g": 15,
+                "k": 14.666666666666666,
+                "d": 14.266666666666667,
+                "a": 5.933333333333334,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "n1ssim",
+              "role": null,
+              "cur": {
+                "g": 15,
+                "k": 13.933333333333334,
+                "d": 12.466666666666667,
+                "a": 3.8,
+                "kp": 0
+              },
+              "hist": null
+            }
+          ]
+        },
+        "MOUZ": {
+          "color": "#e05f9a",
           "players": [
             {
               "name": "torzsi",
@@ -69,7 +199,7 @@
           ]
         },
         "9z": {
-          "color": "#4fa8e0",
+          "color": "#5fd97a",
           "players": [
             {
               "name": "HUASOPEEK",
@@ -134,7 +264,7 @@
           ]
         },
         "Vitality": {
-          "color": "#e05f9a",
+          "color": "#e07a4f",
           "players": [
             {
               "name": "flameZ",
@@ -211,7 +341,7 @@
           ]
         },
         "Inner Circle": {
-          "color": "#5fd97a",
+          "color": "#9a7ae0",
           "players": [
             {
               "name": "cptkurtka023",
@@ -276,7 +406,7 @@
           ]
         },
         "FURIA": {
-          "color": "#e07a4f",
+          "color": "#4fd9c9",
           "players": [
             {
               "name": "FalleN",
@@ -341,7 +471,7 @@
           ]
         },
         "paiN": {
-          "color": "#9a7ae0",
+          "color": "#d94f7a",
           "players": [
             {
               "name": "piriajr",
@@ -406,7 +536,7 @@
           ]
         },
         "Natus Vincere": {
-          "color": "#4fd9c9",
+          "color": "#a8d94f",
           "players": [
             {
               "name": "makazze",
@@ -471,7 +601,7 @@
           ]
         },
         "M80": {
-          "color": "#d94f7a",
+          "color": "#4f7ae0",
           "players": [
             {
               "name": "JBa",
@@ -536,7 +666,7 @@
           ]
         },
         "Spirit": {
-          "color": "#a8d94f",
+          "color": "#e0c341",
           "players": [
             {
               "name": "donk",
@@ -601,7 +731,7 @@
           ]
         },
         "DENDELE": {
-          "color": "#4f7ae0",
+          "color": "#4fa8e0",
           "players": [
             {
               "name": "maxxkor",
@@ -666,7 +796,7 @@
           ]
         },
         "G2": {
-          "color": "#e0c341",
+          "color": "#e05f9a",
           "players": [
             {
               "name": "MATYS",
@@ -731,7 +861,7 @@
           ]
         },
         "Aurora": {
-          "color": "#4fa8e0",
+          "color": "#5fd97a",
           "players": [
             {
               "name": "XANTARES",
@@ -789,136 +919,6 @@
                 "k": 12.875,
                 "d": 15.75,
                 "a": 6.125,
-                "kp": 0
-              },
-              "hist": null
-            }
-          ]
-        },
-        "FUT": {
-          "color": "#e05f9a",
-          "players": [
-            {
-              "name": "cmtry",
-              "role": null,
-              "cur": {
-                "g": 10,
-                "k": 15.5,
-                "d": 13.7,
-                "a": 5.5,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Krabeni",
-              "role": null,
-              "cur": {
-                "g": 10,
-                "k": 16.1,
-                "d": 17.4,
-                "a": 6.6,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "dem0n",
-              "role": null,
-              "cur": {
-                "g": 10,
-                "k": 17.2,
-                "d": 15.8,
-                "a": 4.5,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "dziugss",
-              "role": null,
-              "cur": {
-                "g": 10,
-                "k": 14.3,
-                "d": 15.0,
-                "a": 5.6,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "xfl0ud",
-              "role": null,
-              "cur": {
-                "g": 10,
-                "k": 18.3,
-                "d": 16.6,
-                "a": 6.7,
-                "kp": 0
-              },
-              "hist": null
-            }
-          ]
-        },
-        "Legacy": {
-          "color": "#5fd97a",
-          "players": [
-            {
-              "name": "dumau",
-              "role": null,
-              "cur": {
-                "g": 13,
-                "k": 14.384615384615385,
-                "d": 13.538461538461538,
-                "a": 5.538461538461538,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "try",
-              "role": null,
-              "cur": {
-                "g": 13,
-                "k": 17.076923076923077,
-                "d": 11.461538461538462,
-                "a": 3.230769230769231,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "latto",
-              "role": null,
-              "cur": {
-                "g": 13,
-                "k": 14.538461538461538,
-                "d": 11.76923076923077,
-                "a": 4.615384615384615,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "n1ssim",
-              "role": null,
-              "cur": {
-                "g": 13,
-                "k": 14.0,
-                "d": 12.23076923076923,
-                "a": 3.4615384615384617,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "arT",
-              "role": null,
-              "cur": {
-                "g": 13,
-                "k": 10.692307692307692,
-                "d": 13.846153846153847,
-                "a": 6.153846153846154,
                 "kp": 0
               },
               "hist": null
@@ -2225,174 +2225,8 @@
             }
           ]
         },
-        "ALKA": {
-          "color": "#e07a4f",
-          "players": [
-            {
-              "name": "puni",
-              "role": null,
-              "cur": {
-                "g": 8,
-                "k": 9.75,
-                "d": 16.0,
-                "a": 4.75,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "proSHOW",
-              "role": null,
-              "cur": {
-                "g": 8,
-                "k": 19.625,
-                "d": 14.125,
-                "a": 4.5,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "bnc",
-              "role": null,
-              "cur": {
-                "g": 8,
-                "k": 14.0,
-                "d": 16.625,
-                "a": 5.875,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "vinaabEAST",
-              "role": null,
-              "cur": {
-                "g": 8,
-                "k": 12.75,
-                "d": 16.75,
-                "a": 4.5,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "cerolzin",
-              "role": null,
-              "cur": {
-                "g": 8,
-                "k": 12.375,
-                "d": 15.25,
-                "a": 3.625,
-                "kp": 0
-              },
-              "hist": null
-            }
-          ]
-        },
-        "Turma do Pagode": {
-          "color": "#9a7ae0",
-          "players": [
-            {
-              "name": "WOOD7",
-              "role": null,
-              "cur": {
-                "g": 16,
-                "k": 9.875,
-                "d": 13.6875,
-                "a": 4.75,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "ksloks",
-              "role": null,
-              "cur": {
-                "g": 16,
-                "k": 15.3125,
-                "d": 13.1875,
-                "a": 3.0625,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Lucaozy",
-              "role": null,
-              "cur": {
-                "g": 8,
-                "k": 18.0,
-                "d": 14.5,
-                "a": 5.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "naitte",
-              "role": null,
-              "cur": {
-                "g": 16,
-                "k": 12.5625,
-                "d": 15.5625,
-                "a": 6.3125,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Tuurtle",
-              "role": null,
-              "cur": {
-                "g": 8,
-                "k": 15.0,
-                "d": 14.25,
-                "a": 4.75,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "pesadelo",
-              "role": null,
-              "cur": {
-                "g": 8,
-                "k": 13.75,
-                "d": 14.375,
-                "a": 4.125,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "felps",
-              "role": null,
-              "cur": {
-                "g": 8,
-                "k": 16.25,
-                "d": 16.0,
-                "a": 5.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "k1not1",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 7.5,
-                "d": 8.0,
-                "a": 1.0,
-                "kp": 0
-              },
-              "hist": null
-            }
-          ]
-        },
         "Alliance": {
-          "color": "#4fd9c9",
+          "color": "#e07a4f",
           "players": [
             {
               "name": "upE",
@@ -2457,7 +2291,7 @@
           ]
         },
         "BESTIA Academy": {
-          "color": "#d94f7a",
+          "color": "#9a7ae0",
           "players": [
             {
               "name": "Jotag3",
@@ -2522,7 +2356,7 @@
           ]
         },
         "Bounty Hunters": {
-          "color": "#a8d94f",
+          "color": "#4fd9c9",
           "players": [
             {
               "name": "urban0",
@@ -2599,7 +2433,7 @@
           ]
         },
         "MEIA NOITE": {
-          "color": "#4f7ae0",
+          "color": "#d94f7a",
           "players": [
             {
               "name": "Jerr1",
@@ -2617,10 +2451,10 @@
               "name": "bsd",
               "role": null,
               "cur": {
-                "g": 16,
-                "k": 15.375,
-                "d": 17.1875,
-                "a": 2.875,
+                "g": 14,
+                "k": 14.714285714285714,
+                "d": 16.5,
+                "a": 2.857142857142857,
                 "kp": 0
               },
               "hist": null
@@ -2629,10 +2463,10 @@
               "name": "nyezin",
               "role": null,
               "cur": {
-                "g": 16,
-                "k": 16.9375,
-                "d": 17.8125,
-                "a": 5.3125,
+                "g": 14,
+                "k": 16.357142857142858,
+                "d": 17.142857142857142,
+                "a": 5.285714285714286,
                 "kp": 0
               },
               "hist": null
@@ -2653,22 +2487,10 @@
               "name": "abr",
               "role": null,
               "cur": {
-                "g": 16,
-                "k": 14.875,
-                "d": 17.5625,
-                "a": 3.5625,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "BK1",
-              "role": null,
-              "cur": {
-                "g": 6,
-                "k": 15.833333333333334,
-                "d": 24.166666666666668,
-                "a": 5.333333333333333,
+                "g": 14,
+                "k": 13.428571428571429,
+                "d": 16.928571428571427,
+                "a": 3.5714285714285716,
                 "kp": 0
               },
               "hist": null
@@ -2677,10 +2499,22 @@
               "name": "Bruninho",
               "role": null,
               "cur": {
-                "g": 6,
-                "k": 20.333333333333332,
-                "d": 21.333333333333332,
-                "a": 5.166666666666667,
+                "g": 4,
+                "k": 22.0,
+                "d": 21.0,
+                "a": 5.25,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "BK1",
+              "role": null,
+              "cur": {
+                "g": 4,
+                "k": 15.0,
+                "d": 24.0,
+                "a": 5.25,
                 "kp": 0
               },
               "hist": null
@@ -2688,7 +2522,7 @@
           ]
         },
         "ODDIK": {
-          "color": "#e0c341",
+          "color": "#a8d94f",
           "players": [
             {
               "name": "Ceruttera",
@@ -2765,16 +2599,16 @@
           ]
         },
         "Color": {
-          "color": "#4fa8e0",
+          "color": "#4f7ae0",
           "players": [
             {
               "name": "lattykk",
               "role": null,
               "cur": {
-                "g": 13,
-                "k": 16.53846153846154,
-                "d": 10.538461538461538,
-                "a": 4.461538461538462,
+                "g": 11,
+                "k": 16.90909090909091,
+                "d": 11.363636363636363,
+                "a": 4.818181818181818,
                 "kp": 0
               },
               "hist": null
@@ -2783,10 +2617,10 @@
               "name": "oz1k",
               "role": null,
               "cur": {
-                "g": 13,
-                "k": 14.692307692307692,
-                "d": 14.23076923076923,
-                "a": 4.461538461538462,
+                "g": 11,
+                "k": 15.363636363636363,
+                "d": 14.909090909090908,
+                "a": 4.545454545454546,
                 "kp": 0
               },
               "hist": null
@@ -2795,10 +2629,10 @@
               "name": "cronuss",
               "role": null,
               "cur": {
-                "g": 13,
-                "k": 17.23076923076923,
-                "d": 16.923076923076923,
-                "a": 5.6923076923076925,
+                "g": 11,
+                "k": 16.636363636363637,
+                "d": 17.636363636363637,
+                "a": 5.818181818181818,
                 "kp": 0
               },
               "hist": null
@@ -2807,10 +2641,10 @@
               "name": "reyoz",
               "role": null,
               "cur": {
-                "g": 13,
-                "k": 13.461538461538462,
-                "d": 14.23076923076923,
-                "a": 4.923076923076923,
+                "g": 11,
+                "k": 13.818181818181818,
+                "d": 14.454545454545455,
+                "a": 5.181818181818182,
                 "kp": 0
               },
               "hist": null
@@ -2831,489 +2665,10 @@
               "name": "Qikert",
               "role": null,
               "cur": {
-                "g": 6,
-                "k": 9.666666666666666,
-                "d": 11.0,
-                "a": 4.666666666666667,
-                "kp": 0
-              },
-              "hist": null
-            }
-          ]
-        },
-        "Inner Circle Academy": {
-          "color": "#e05f9a",
-          "players": [
-            {
-              "name": "Tamefear",
-              "role": null,
-              "cur": {
-                "g": 8,
+                "g": 4,
                 "k": 9.25,
-                "d": 13.5,
-                "a": 3.375,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Flierax",
-              "role": null,
-              "cur": {
-                "g": 8,
-                "k": 14.5,
-                "d": 10.125,
-                "a": 4.125,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "3ippoch",
-              "role": null,
-              "cur": {
-                "g": 6,
-                "k": 10.333333333333334,
-                "d": 14.0,
-                "a": 3.3333333333333335,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "n0rths",
-              "role": null,
-              "cur": {
-                "g": 8,
-                "k": 10.625,
-                "d": 13.75,
-                "a": 3.875,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "luffy",
-              "role": null,
-              "cur": {
-                "g": 8,
-                "k": 15.625,
-                "d": 14.375,
-                "a": 2.5,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "St0m4k",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 15.0,
-                "d": 13.0,
-                "a": 3.0,
-                "kp": 0
-              },
-              "hist": null
-            }
-          ]
-        },
-        "Dark Moon": {
-          "color": "#5fd97a",
-          "players": [
-            {
-              "name": "Maison",
-              "role": null,
-              "cur": {
-                "g": 1,
-                "k": 18.0,
-                "d": 15.0,
-                "a": 6.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "d3j4vy",
-              "role": null,
-              "cur": {
-                "g": 1,
-                "k": 16.0,
-                "d": 12.0,
-                "a": 6.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Torby",
-              "role": null,
-              "cur": {
-                "g": 1,
-                "k": 17.0,
-                "d": 15.0,
-                "a": 5.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "crewwwl",
-              "role": null,
-              "cur": {
-                "g": 1,
-                "k": 19.0,
-                "d": 14.0,
-                "a": 5.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "keiyon",
-              "role": null,
-              "cur": {
-                "g": 1,
-                "k": 9.0,
-                "d": 13.0,
-                "a": 10.0,
-                "kp": 0
-              },
-              "hist": null
-            }
-          ]
-        },
-        "Diamant": {
-          "color": "#e07a4f",
-          "players": [
-            {
-              "name": "Damsi",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 15.0,
-                "d": 12.0,
-                "a": 2.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "jernejj",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 11.0,
-                "d": 12.0,
-                "a": 4.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Libraa",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 19.0,
-                "d": 13.0,
-                "a": 4.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "jkXy",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 23.0,
-                "d": 13.0,
-                "a": 8.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Destro",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 15.0,
-                "d": 14.0,
-                "a": 8.0,
-                "kp": 0
-              },
-              "hist": null
-            }
-          ]
-        },
-        "Fortress": {
-          "color": "#9a7ae0",
-          "players": [
-            {
-              "name": "Brand",
-              "role": null,
-              "cur": {
-                "g": 8,
-                "k": 9.125,
-                "d": 15.5,
-                "a": 2.75,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "K1ngShield",
-              "role": null,
-              "cur": {
-                "g": 8,
-                "k": 10.875,
-                "d": 14.75,
-                "a": 2.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "BqreBedre",
-              "role": null,
-              "cur": {
-                "g": 8,
-                "k": 11.625,
-                "d": 14.875,
-                "a": 4.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "As K",
-              "role": null,
-              "cur": {
-                "g": 8,
-                "k": 7.375,
-                "d": 15.75,
+                "d": 11.5,
                 "a": 4.5,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "GrEnNiE",
-              "role": null,
-              "cur": {
-                "g": 8,
-                "k": 9.375,
-                "d": 14.5,
-                "a": 2.625,
-                "kp": 0
-              },
-              "hist": null
-            }
-          ]
-        },
-        "ENCE": {
-          "color": "#4fd9c9",
-          "players": [
-            {
-              "name": "millert",
-              "role": null,
-              "cur": {
-                "g": 14,
-                "k": 12.785714285714286,
-                "d": 12.928571428571429,
-                "a": 3.9285714285714284,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Schwarz",
-              "role": null,
-              "cur": {
-                "g": 12,
-                "k": 14.0,
-                "d": 14.25,
-                "a": 5.916666666666667,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "HENU",
-              "role": null,
-              "cur": {
-                "g": 14,
-                "k": 14.642857142857142,
-                "d": 14.928571428571429,
-                "a": 3.9285714285714284,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "joeski",
-              "role": null,
-              "cur": {
-                "g": 14,
-                "k": 14.785714285714286,
-                "d": 13.642857142857142,
-                "a": 3.7857142857142856,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "teme",
-              "role": null,
-              "cur": {
-                "g": 14,
-                "k": 13.714285714285714,
-                "d": 13.5,
-                "a": 4.214285714285714,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "allu",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 7.5,
-                "d": 15.5,
-                "a": 2.5,
-                "kp": 0
-              },
-              "hist": null
-            }
-          ]
-        },
-        "ZOTIX": {
-          "color": "#d94f7a",
-          "players": [
-            {
-              "name": "byr9",
-              "role": null,
-              "cur": {
-                "g": 1,
-                "k": 13.0,
-                "d": 15.0,
-                "a": 3.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "shen",
-              "role": null,
-              "cur": {
-                "g": 1,
-                "k": 13.0,
-                "d": 16.0,
-                "a": 4.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "-EsD",
-              "role": null,
-              "cur": {
-                "g": 1,
-                "k": 15.0,
-                "d": 13.0,
-                "a": 3.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Dy4ka",
-              "role": null,
-              "cur": {
-                "g": 1,
-                "k": 20.0,
-                "d": 18.0,
-                "a": 3.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "certa1n",
-              "role": null,
-              "cur": {
-                "g": 1,
-                "k": 20.0,
-                "d": 16.0,
-                "a": 4.0,
-                "kp": 0
-              },
-              "hist": null
-            }
-          ]
-        },
-        "ENRAGE": {
-          "color": "#a8d94f",
-          "players": [
-            {
-              "name": "hazza",
-              "role": null,
-              "cur": {
-                "g": 1,
-                "k": 17.0,
-                "d": 16.0,
-                "a": 3.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "blocker",
-              "role": null,
-              "cur": {
-                "g": 1,
-                "k": 20.0,
-                "d": 16.0,
-                "a": 6.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "tissuekb",
-              "role": null,
-              "cur": {
-                "g": 1,
-                "k": 18.0,
-                "d": 17.0,
-                "a": 2.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "miteww",
-              "role": null,
-              "cur": {
-                "g": 1,
-                "k": 10.0,
-                "d": 14.0,
-                "a": 6.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "niki1",
-              "role": null,
-              "cur": {
-                "g": 1,
-                "k": 9.0,
-                "d": 18.0,
-                "a": 8.0,
                 "kp": 0
               },
               "hist": null
@@ -3321,7 +2676,7 @@
           ]
         },
         "EYEBALLERS": {
-          "color": "#4f7ae0",
+          "color": "#e0c341",
           "players": [
             {
               "name": "dex",
@@ -3398,7 +2753,7 @@
           ]
         },
         "Eternal Fire": {
-          "color": "#e0c341",
+          "color": "#4fa8e0",
           "players": [
             {
               "name": "soulfly",
@@ -3474,328 +2829,8 @@
             }
           ]
         },
-        "INOX Division": {
-          "color": "#4fa8e0",
-          "players": [
-            {
-              "name": "fin",
-              "role": null,
-              "cur": {
-                "g": 9,
-                "k": 16.333333333333332,
-                "d": 12.555555555555555,
-                "a": 5.888888888888889,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "k1slll",
-              "role": null,
-              "cur": {
-                "g": 9,
-                "k": 13.11111111111111,
-                "d": 12.444444444444445,
-                "a": 5.888888888888889,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "K0s",
-              "role": null,
-              "cur": {
-                "g": 11,
-                "k": 16.181818181818183,
-                "d": 15.272727272727273,
-                "a": 6.090909090909091,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "notineki",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 14.0,
-                "d": 12.0,
-                "a": 2.5,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "FenomeN",
-              "role": null,
-              "cur": {
-                "g": 11,
-                "k": 16.727272727272727,
-                "d": 12.818181818181818,
-                "a": 4.454545454545454,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "gooddeph",
-              "role": null,
-              "cur": {
-                "g": 9,
-                "k": 14.11111111111111,
-                "d": 15.444444444444445,
-                "a": 5.777777777777778,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "finW",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 17.0,
-                "d": 22.0,
-                "a": 5.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "heartbrxxken",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 18.5,
-                "d": 20.0,
-                "a": 10.5,
-                "kp": 0
-              },
-              "hist": null
-            }
-          ]
-        },
-        "Fire Flux": {
-          "color": "#e05f9a",
-          "players": [
-            {
-              "name": "zer0UKY",
-              "role": null,
-              "cur": {
-                "g": 5,
-                "k": 14.2,
-                "d": 15.0,
-                "a": 2.6,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "xEternaLxx",
-              "role": null,
-              "cur": {
-                "g": 5,
-                "k": 14.4,
-                "d": 16.6,
-                "a": 4.8,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Quality",
-              "role": null,
-              "cur": {
-                "g": 5,
-                "k": 16.0,
-                "d": 15.2,
-                "a": 5.4,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "zemix",
-              "role": null,
-              "cur": {
-                "g": 5,
-                "k": 12.8,
-                "d": 18.0,
-                "a": 5.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Cizzx",
-              "role": null,
-              "cur": {
-                "g": 5,
-                "k": 12.4,
-                "d": 17.2,
-                "a": 4.6,
-                "kp": 0
-              },
-              "hist": null
-            }
-          ]
-        },
-        "Gr\u00eamio": {
-          "color": "#5fd97a",
-          "players": [
-            {
-              "name": "rag3-",
-              "role": null,
-              "cur": {
-                "g": 14,
-                "k": 15.214285714285714,
-                "d": 14.0,
-                "a": 4.357142857142857,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "MITHPUTTINI",
-              "role": null,
-              "cur": {
-                "g": 14,
-                "k": 16.857142857142858,
-                "d": 14.285714285714286,
-                "a": 2.857142857142857,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "balencyy",
-              "role": null,
-              "cur": {
-                "g": 6,
-                "k": 11.0,
-                "d": 14.5,
-                "a": 4.5,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "souz4h",
-              "role": null,
-              "cur": {
-                "g": 14,
-                "k": 11.571428571428571,
-                "d": 13.857142857142858,
-                "a": 5.928571428571429,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "yeda",
-              "role": null,
-              "cur": {
-                "g": 14,
-                "k": 13.214285714285714,
-                "d": 14.571428571428571,
-                "a": 4.642857142857143,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "levandosk1z",
-              "role": null,
-              "cur": {
-                "g": 8,
-                "k": 16.875,
-                "d": 13.875,
-                "a": 4.375,
-                "kp": 0
-              },
-              "hist": null
-            }
-          ]
-        },
-        "Isurus": {
-          "color": "#e07a4f",
-          "players": [
-            {
-              "name": "deco",
-              "role": null,
-              "cur": {
-                "g": 20,
-                "k": 12.7,
-                "d": 13.45,
-                "a": 5.35,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Hezz",
-              "role": null,
-              "cur": {
-                "g": 20,
-                "k": 12.9,
-                "d": 13.85,
-                "a": 4.3,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "dott1",
-              "role": null,
-              "cur": {
-                "g": 20,
-                "k": 12.6,
-                "d": 13.45,
-                "a": 4.75,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "atarax1a",
-              "role": null,
-              "cur": {
-                "g": 20,
-                "k": 14.2,
-                "d": 13.6,
-                "a": 3.4,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "rzk",
-              "role": null,
-              "cur": {
-                "g": 18,
-                "k": 11.722222222222221,
-                "d": 15.11111111111111,
-                "a": 4.555555555555555,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "BK1",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 11.5,
-                "d": 15.0,
-                "a": 2.0,
-                "kp": 0
-              },
-              "hist": null
-            }
-          ]
-        },
         "HEROIC": {
-          "color": "#9a7ae0",
+          "color": "#e05f9a",
           "players": [
             {
               "name": "susp",
@@ -3860,7 +2895,7 @@
           ]
         },
         "HOTU": {
-          "color": "#4fd9c9",
+          "color": "#5fd97a",
           "players": [
             {
               "name": "kade0",
@@ -3924,65 +2959,77 @@
             }
           ]
         },
-        "Hermine": {
-          "color": "#d94f7a",
+        "Isurus": {
+          "color": "#e07a4f",
           "players": [
             {
-              "name": "AMANEK",
+              "name": "rzk",
               "role": null,
               "cur": {
-                "g": 3,
-                "k": 14.666666666666666,
-                "d": 15.333333333333334,
-                "a": 5.0,
+                "g": 16,
+                "k": 11.5625,
+                "d": 15.3125,
+                "a": 4.375,
                 "kp": 0
               },
               "hist": null
             },
             {
-              "name": "Tr1cky",
+              "name": "deco",
               "role": null,
               "cur": {
-                "g": 3,
-                "k": 11.0,
-                "d": 16.333333333333332,
-                "a": 1.3333333333333333,
+                "g": 18,
+                "k": 12.555555555555555,
+                "d": 13.777777777777779,
+                "a": 5.166666666666667,
                 "kp": 0
               },
               "hist": null
             },
             {
-              "name": "Fiction",
+              "name": "atarax1a",
               "role": null,
               "cur": {
-                "g": 3,
-                "k": 13.666666666666666,
-                "d": 14.0,
-                "a": 4.333333333333333,
+                "g": 18,
+                "k": 13.833333333333334,
+                "d": 13.944444444444445,
+                "a": 3.388888888888889,
                 "kp": 0
               },
               "hist": null
             },
             {
-              "name": "xReal",
+              "name": "dott1",
+              "role": null,
+              "cur": {
+                "g": 18,
+                "k": 12.222222222222221,
+                "d": 13.833333333333334,
+                "a": 4.777777777777778,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "Hezz",
+              "role": null,
+              "cur": {
+                "g": 18,
+                "k": 12.38888888888889,
+                "d": 14.222222222222221,
+                "a": 4.111111111111111,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "BK1",
               "role": null,
               "cur": {
                 "g": 2,
-                "k": 14.5,
-                "d": 18.5,
-                "a": 4.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "mASTHEAD",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 14.0,
-                "d": 13.0,
-                "a": 3.0,
+                "k": 11.5,
+                "d": 15.0,
+                "a": 2.0,
                 "kp": 0
               },
               "hist": null
@@ -3990,7 +3037,7 @@
           ]
         },
         "Yawara": {
-          "color": "#a8d94f",
+          "color": "#9a7ae0",
           "players": [
             {
               "name": "r3kt",
@@ -4090,109 +3137,8 @@
             }
           ]
         },
-        "Just Players": {
-          "color": "#4f7ae0",
-          "players": [
-            {
-              "name": "shg",
-              "role": null,
-              "cur": {
-                "g": 4,
-                "k": 12.0,
-                "d": 14.0,
-                "a": 2.5,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "sm3t",
-              "role": null,
-              "cur": {
-                "g": 14,
-                "k": 14.5,
-                "d": 14.0,
-                "a": 4.142857142857143,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "sstiNiX",
-              "role": null,
-              "cur": {
-                "g": 14,
-                "k": 14.642857142857142,
-                "d": 14.5,
-                "a": 4.785714285714286,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Something",
-              "role": null,
-              "cur": {
-                "g": 12,
-                "k": 12.25,
-                "d": 14.083333333333334,
-                "a": 4.166666666666667,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "h1te",
-              "role": null,
-              "cur": {
-                "g": 14,
-                "k": 12.928571428571429,
-                "d": 13.142857142857142,
-                "a": 4.214285714285714,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "sowalio",
-              "role": null,
-              "cur": {
-                "g": 4,
-                "k": 13.0,
-                "d": 14.75,
-                "a": 4.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "spirit",
-              "role": null,
-              "cur": {
-                "g": 6,
-                "k": 12.666666666666666,
-                "d": 14.333333333333334,
-                "a": 3.3333333333333335,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "kAlash",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 13.0,
-                "d": 17.5,
-                "a": 2.5,
-                "kp": 0
-              },
-              "hist": null
-            }
-          ]
-        },
         "Keyd Stars": {
-          "color": "#e0c341",
+          "color": "#4fd9c9",
           "players": [
             {
               "name": "zede",
@@ -4256,150 +3202,8 @@
             }
           ]
         },
-        "Misa": {
-          "color": "#4fa8e0",
-          "players": [
-            {
-              "name": "Zuedsta",
-              "role": null,
-              "cur": {
-                "g": 4,
-                "k": 17.25,
-                "d": 19.0,
-                "a": 7.5,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "souv",
-              "role": null,
-              "cur": {
-                "g": 4,
-                "k": 21.25,
-                "d": 19.75,
-                "a": 7.5,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "h0kz",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 28.0,
-                "d": 22.0,
-                "a": 6.5,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Ckanic",
-              "role": null,
-              "cur": {
-                "g": 4,
-                "k": 17.75,
-                "d": 16.0,
-                "a": 5.5,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "EMSTAR",
-              "role": null,
-              "cur": {
-                "g": 4,
-                "k": 21.75,
-                "d": 20.5,
-                "a": 10.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Mertowsk1",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 19.0,
-                "d": 11.5,
-                "a": 6.0,
-                "kp": 0
-              },
-              "hist": null
-            }
-          ]
-        },
-        "NAVI Junior": {
-          "color": "#e05f9a",
-          "players": [
-            {
-              "name": "player756",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 14.0,
-                "d": 18.0,
-                "a": 4.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Yoki",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 16.0,
-                "d": 19.0,
-                "a": 5.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "MahaR",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 12.0,
-                "d": 19.0,
-                "a": 7.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "kodak",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 19.5,
-                "d": 17.0,
-                "a": 7.5,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "skizzyee",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 16.5,
-                "d": 21.0,
-                "a": 6.5,
-                "kp": 0
-              },
-              "hist": null
-            }
-          ]
-        },
         "Nemiga": {
-          "color": "#5fd97a",
+          "color": "#d94f7a",
           "players": [
             {
               "name": "robo",
@@ -4488,7 +3292,7 @@
           ]
         },
         "Nuclear TigeRES": {
-          "color": "#e07a4f",
+          "color": "#a8d94f",
           "players": [
             {
               "name": "senka",
@@ -4553,7 +3357,7 @@
           ]
         },
         "RED Canids Academy": {
-          "color": "#9a7ae0",
+          "color": "#4f7ae0",
           "players": [
             {
               "name": "rafa",
@@ -4617,130 +3421,101 @@
             }
           ]
         },
-        "Privateer": {
-          "color": "#4fd9c9",
+        "Turma do Pagode": {
+          "color": "#e0c341",
           "players": [
             {
-              "name": "Prime",
+              "name": "WOOD7",
               "role": null,
               "cur": {
-                "g": 2,
-                "k": 15.0,
-                "d": 17.0,
-                "a": 3.0,
+                "g": 14,
+                "k": 9.785714285714286,
+                "d": 13.714285714285714,
+                "a": 4.5,
                 "kp": 0
               },
               "hist": null
             },
             {
-              "name": "Frazehh",
+              "name": "ksloks",
               "role": null,
               "cur": {
-                "g": 2,
-                "k": 19.5,
-                "d": 15.5,
+                "g": 14,
+                "k": 15.214285714285714,
+                "d": 13.428571428571429,
+                "a": 2.7857142857142856,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "Lucaozy",
+              "role": null,
+              "cur": {
+                "g": 6,
+                "k": 18.5,
+                "d": 14.333333333333334,
                 "a": 5.0,
                 "kp": 0
               },
               "hist": null
             },
             {
-              "name": "M1n1maL",
+              "name": "naitte",
+              "role": null,
+              "cur": {
+                "g": 14,
+                "k": 12.285714285714286,
+                "d": 15.642857142857142,
+                "a": 5.928571428571429,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "Tuurtle",
+              "role": null,
+              "cur": {
+                "g": 6,
+                "k": 13.666666666666666,
+                "d": 15.0,
+                "a": 5.333333333333333,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "pesadelo",
+              "role": null,
+              "cur": {
+                "g": 8,
+                "k": 13.75,
+                "d": 14.375,
+                "a": 4.125,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "felps",
+              "role": null,
+              "cur": {
+                "g": 8,
+                "k": 16.25,
+                "d": 16.0,
+                "a": 5.0,
+                "kp": 0
+              },
+              "hist": null
+            },
+            {
+              "name": "k1not1",
               "role": null,
               "cur": {
                 "g": 2,
-                "k": 16.0,
-                "d": 17.5,
-                "a": 4.5,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Ariant0",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 15.5,
-                "d": 20.0,
-                "a": 6.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "dobbo",
-              "role": null,
-              "cur": {
-                "g": 2,
-                "k": 16.0,
-                "d": 19.5,
-                "a": 6.5,
-                "kp": 0
-              },
-              "hist": null
-            }
-          ]
-        },
-        "STATE": {
-          "color": "#d94f7a",
-          "players": [
-            {
-              "name": "Patti",
-              "role": null,
-              "cur": {
-                "g": 12,
-                "k": 11.916666666666666,
-                "d": 9.583333333333334,
-                "a": 3.5,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Queenix",
-              "role": null,
-              "cur": {
-                "g": 12,
-                "k": 9.583333333333334,
-                "d": 9.833333333333334,
-                "a": 4.333333333333333,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "kwezz",
-              "role": null,
-              "cur": {
-                "g": 12,
-                "k": 15.333333333333334,
-                "d": 13.083333333333334,
-                "a": 4.5,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Zanto",
-              "role": null,
-              "cur": {
-                "g": 12,
-                "k": 12.25,
-                "d": 9.833333333333334,
-                "a": 3.0,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "sL1m3",
-              "role": null,
-              "cur": {
-                "g": 12,
-                "k": 12.166666666666666,
-                "d": 11.583333333333334,
-                "a": 3.1666666666666665,
+                "k": 7.5,
+                "d": 8.0,
+                "a": 1.0,
                 "kp": 0
               },
               "hist": null
@@ -4748,7 +3523,7 @@
           ]
         },
         "ex-MIBR Academy": {
-          "color": "#a8d94f",
+          "color": "#4fa8e0",
           "players": [
             {
               "name": "-stormzin",
@@ -4811,74 +3586,75 @@
               "hist": null
             }
           ]
-        },
-        "Younglings": {
-          "color": "#4f7ae0",
-          "players": [
-            {
-              "name": "cheerful",
-              "role": null,
-              "cur": {
-                "g": 6,
-                "k": 17.166666666666668,
-                "d": 13.333333333333334,
-                "a": 3.8333333333333335,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Hayato",
-              "role": null,
-              "cur": {
-                "g": 6,
-                "k": 16.166666666666668,
-                "d": 17.0,
-                "a": 5.666666666666667,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "MoNaTy",
-              "role": null,
-              "cur": {
-                "g": 6,
-                "k": 13.833333333333334,
-                "d": 15.666666666666666,
-                "a": 5.166666666666667,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "Shed0Z",
-              "role": null,
-              "cur": {
-                "g": 6,
-                "k": 15.833333333333334,
-                "d": 13.166666666666666,
-                "a": 5.833333333333333,
-                "kp": 0
-              },
-              "hist": null
-            },
-            {
-              "name": "arun",
-              "role": null,
-              "cur": {
-                "g": 6,
-                "k": 11.666666666666666,
-                "d": 13.166666666666666,
-                "a": 3.1666666666666665,
-                "kp": 0
-              },
-              "hist": null
-            }
-          ]
         }
       },
       "past_matches": [
+        {
+          "week": null,
+          "date": "2026-08-27",
+          "patch": null,
+          "teamA": "FUT",
+          "teamB": "Legacy",
+          "winner": "Legacy",
+          "score": "2-0",
+          "actual": {
+            "FUT": {
+              "dziugss": {
+                "k": 22,
+                "d": 35,
+                "a": 10
+              },
+              "dem0n": {
+                "k": 33,
+                "d": 32,
+                "a": 13
+              },
+              "Krabeni": {
+                "k": 30,
+                "d": 34,
+                "a": 12
+              },
+              "xfl0ud": {
+                "k": 31,
+                "d": 32,
+                "a": 6
+              },
+              "cmtry": {
+                "k": 26,
+                "d": 35,
+                "a": 8
+              }
+            },
+            "Legacy": {
+              "arT": {
+                "k": 28,
+                "d": 32,
+                "a": 17
+              },
+              "latto": {
+                "k": 37,
+                "d": 23,
+                "a": 11
+              },
+              "try": {
+                "k": 42,
+                "d": 22,
+                "a": 7
+              },
+              "dumau": {
+                "k": 33,
+                "d": 38,
+                "a": 17
+              },
+              "n1ssim": {
+                "k": 27,
+                "d": 28,
+                "a": 12
+              }
+            }
+          },
+          "games": 2
+        },
         {
           "week": null,
           "date": "2026-08-27",
@@ -8775,204 +7551,6 @@
         },
         {
           "week": null,
-          "date": "2026-08-26",
-          "patch": null,
-          "teamA": "ALKA",
-          "teamB": "Turma do Pagode",
-          "winner": "Turma do Pagode",
-          "score": "1-2",
-          "actual": {
-            "ALKA": {
-              "puni": {
-                "k": 17,
-                "d": 30,
-                "a": 8
-              },
-              "proSHOW": {
-                "k": 42,
-                "d": 29,
-                "a": 10
-              },
-              "bnc": {
-                "k": 21,
-                "d": 35,
-                "a": 13
-              },
-              "vinaabEAST": {
-                "k": 24,
-                "d": 33,
-                "a": 7
-              },
-              "cerolzin": {
-                "k": 28,
-                "d": 30,
-                "a": 5
-              }
-            },
-            "Turma do Pagode": {
-              "WOOD7": {
-                "k": 21,
-                "d": 27,
-                "a": 13
-              },
-              "ksloks": {
-                "k": 32,
-                "d": 23,
-                "a": 10
-              },
-              "Lucaozy": {
-                "k": 33,
-                "d": 30,
-                "a": 10
-              },
-              "naitte": {
-                "k": 29,
-                "d": 30,
-                "a": 18
-              },
-              "Tuurtle": {
-                "k": 38,
-                "d": 24,
-                "a": 6
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-26",
-          "patch": null,
-          "teamA": "Pugdesonesto",
-          "teamB": "ALKA",
-          "winner": "ALKA",
-          "score": "2-1",
-          "actual": {
-            "Pugdesonesto": {
-              "sakamoto": {
-                "k": 37,
-                "d": 28,
-                "a": 11
-              },
-              "KLR": {
-                "k": 35,
-                "d": 29,
-                "a": 13
-              },
-              "LIN": {
-                "k": 29,
-                "d": 34,
-                "a": 9
-              },
-              "Thuister": {
-                "k": 26,
-                "d": 32,
-                "a": 10
-              },
-              "lcs": {
-                "k": 21,
-                "d": 29,
-                "a": 8
-              }
-            },
-            "ALKA": {
-              "cerolzin": {
-                "k": 17,
-                "d": 29,
-                "a": 9
-              },
-              "bnc": {
-                "k": 36,
-                "d": 29,
-                "a": 16
-              },
-              "vinaabEAST": {
-                "k": 26,
-                "d": 35,
-                "a": 11
-              },
-              "puni": {
-                "k": 30,
-                "d": 31,
-                "a": 8
-              },
-              "proSHOW": {
-                "k": 42,
-                "d": 24,
-                "a": 8
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-25",
-          "patch": null,
-          "teamA": "ShindeN",
-          "teamB": "ALKA",
-          "winner": "ShindeN",
-          "score": "2-0",
-          "actual": {
-            "ShindeN": {
-              "naz": {
-                "k": 31,
-                "d": 22,
-                "a": 13
-              },
-              "tom1jed": {
-                "k": 36,
-                "d": 30,
-                "a": 11
-              },
-              "GuTy2k": {
-                "k": 34,
-                "d": 28,
-                "a": 13
-              },
-              "abizz": {
-                "k": 30,
-                "d": 26,
-                "a": 8
-              },
-              "ivz": {
-                "k": 36,
-                "d": 27,
-                "a": 5
-              }
-            },
-            "ALKA": {
-              "proSHOW": {
-                "k": 31,
-                "d": 31,
-                "a": 8
-              },
-              "vinaabEAST": {
-                "k": 28,
-                "d": 33,
-                "a": 11
-              },
-              "cerolzin": {
-                "k": 26,
-                "d": 33,
-                "a": 10
-              },
-              "puni": {
-                "k": 14,
-                "d": 37,
-                "a": 14
-              },
-              "bnc": {
-                "k": 34,
-                "d": 34,
-                "a": 5
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
           "date": "2026-07-11",
           "patch": null,
           "teamA": "9z",
@@ -9897,600 +8475,6 @@
         },
         {
           "week": null,
-          "date": "2026-08-17",
-          "patch": null,
-          "teamA": "SANGAL 1XALTERS",
-          "teamB": "Dark Moon",
-          "winner": "Dark Moon",
-          "score": "0-1",
-          "actual": {
-            "SANGAL 1XALTERS": {
-              "cyber": {
-                "k": 12,
-                "d": 16,
-                "a": 1
-              },
-              "hyp3rrrr": {
-                "k": 12,
-                "d": 15,
-                "a": 1
-              },
-              "s0nglex": {
-                "k": 19,
-                "d": 15,
-                "a": 0
-              },
-              "tgN": {
-                "k": 13,
-                "d": 18,
-                "a": 6
-              },
-              "vengeance": {
-                "k": 13,
-                "d": 15,
-                "a": 8
-              }
-            },
-            "Dark Moon": {
-              "Maison": {
-                "k": 18,
-                "d": 15,
-                "a": 6
-              },
-              "d3j4vy": {
-                "k": 16,
-                "d": 12,
-                "a": 6
-              },
-              "Torby": {
-                "k": 17,
-                "d": 15,
-                "a": 5
-              },
-              "crewwwl": {
-                "k": 19,
-                "d": 14,
-                "a": 5
-              },
-              "keiyon": {
-                "k": 9,
-                "d": 13,
-                "a": 10
-              }
-            }
-          },
-          "games": 1
-        },
-        {
-          "week": null,
-          "date": "2026-08-17",
-          "patch": null,
-          "teamA": "Diamant",
-          "teamB": "Fortress",
-          "winner": "Diamant",
-          "score": "1-0",
-          "actual": {
-            "Diamant": {
-              "Damsi": {
-                "k": 15,
-                "d": 12,
-                "a": 2
-              },
-              "jernejj": {
-                "k": 11,
-                "d": 12,
-                "a": 4
-              },
-              "Libraa": {
-                "k": 19,
-                "d": 13,
-                "a": 4
-              },
-              "jkXy": {
-                "k": 23,
-                "d": 13,
-                "a": 8
-              },
-              "Destro": {
-                "k": 15,
-                "d": 14,
-                "a": 8
-              }
-            },
-            "Fortress": {
-              "Brand": {
-                "k": 10,
-                "d": 18,
-                "a": 6
-              },
-              "K1ngShield": {
-                "k": 18,
-                "d": 16,
-                "a": 4
-              },
-              "BqreBedre": {
-                "k": 14,
-                "d": 17,
-                "a": 4
-              },
-              "As K": {
-                "k": 9,
-                "d": 17,
-                "a": 9
-              },
-              "GrEnNiE": {
-                "k": 12,
-                "d": 15,
-                "a": 2
-              }
-            }
-          },
-          "games": 1
-        },
-        {
-          "week": null,
-          "date": "2026-08-22",
-          "patch": null,
-          "teamA": "ENCE",
-          "teamB": "Falcons Force",
-          "winner": "ENCE",
-          "score": "0-2",
-          "actual": {
-            "ENCE": {
-              "millert": {
-                "k": 30,
-                "d": 26,
-                "a": 7
-              },
-              "Schwarz": {
-                "k": 34,
-                "d": 33,
-                "a": 17
-              },
-              "HENU": {
-                "k": 31,
-                "d": 37,
-                "a": 14
-              },
-              "joeski": {
-                "k": 33,
-                "d": 28,
-                "a": 8
-              },
-              "teme": {
-                "k": 36,
-                "d": 28,
-                "a": 12
-              }
-            },
-            "Falcons Force": {
-              "VENO": {
-                "k": 37,
-                "d": 33,
-                "a": 5
-              },
-              "grecu": {
-                "k": 35,
-                "d": 29,
-                "a": 6
-              },
-              "Tapewaare": {
-                "k": 19,
-                "d": 34,
-                "a": 16
-              },
-              "Clockzi": {
-                "k": 30,
-                "d": 34,
-                "a": 12
-              },
-              "Nucleonz": {
-                "k": 30,
-                "d": 35,
-                "a": 7
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-20",
-          "patch": null,
-          "teamA": "Lavked",
-          "teamB": "ENCE",
-          "winner": "ENCE",
-          "score": "0-2",
-          "actual": {
-            "Lavked": {
-              "xm1nd": {
-                "k": 32,
-                "d": 28,
-                "a": 7
-              },
-              "sol": {
-                "k": 17,
-                "d": 27,
-                "a": 15
-              },
-              "1NVISIBLEE": {
-                "k": 23,
-                "d": 36,
-                "a": 13
-              },
-              "azukay": {
-                "k": 36,
-                "d": 29,
-                "a": 8
-              },
-              "k4nfuz": {
-                "k": 24,
-                "d": 28,
-                "a": 3
-              }
-            },
-            "ENCE": {
-              "HENU": {
-                "k": 30,
-                "d": 27,
-                "a": 10
-              },
-              "Schwarz": {
-                "k": 35,
-                "d": 25,
-                "a": 11
-              },
-              "millert": {
-                "k": 21,
-                "d": 25,
-                "a": 9
-              },
-              "joeski": {
-                "k": 28,
-                "d": 29,
-                "a": 5
-              },
-              "teme": {
-                "k": 34,
-                "d": 28,
-                "a": 6
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-19",
-          "patch": null,
-          "teamA": "Noir Verse",
-          "teamB": "ENCE",
-          "winner": "Noir Verse",
-          "score": "2-1",
-          "actual": {
-            "Noir Verse": {
-              "kirxttu": {
-                "k": 30,
-                "d": 22,
-                "a": 14
-              },
-              "deeN": {
-                "k": 28,
-                "d": 23,
-                "a": 9
-              },
-              "Santuriano": {
-                "k": 23,
-                "d": 27,
-                "a": 7
-              },
-              "Naginat": {
-                "k": 24,
-                "d": 30,
-                "a": 12
-              },
-              "xeNji": {
-                "k": 39,
-                "d": 25,
-                "a": 6
-              }
-            },
-            "ENCE": {
-              "teme": {
-                "k": 19,
-                "d": 29,
-                "a": 12
-              },
-              "millert": {
-                "k": 25,
-                "d": 31,
-                "a": 7
-              },
-              "HENU": {
-                "k": 29,
-                "d": 27,
-                "a": 7
-              },
-              "joeski": {
-                "k": 28,
-                "d": 31,
-                "a": 4
-              },
-              "Schwarz": {
-                "k": 26,
-                "d": 26,
-                "a": 8
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-18",
-          "patch": null,
-          "teamA": "ENCE",
-          "teamB": "Mai Tai",
-          "winner": "ENCE",
-          "score": "2-1",
-          "actual": {
-            "ENCE": {
-              "millert": {
-                "k": 20,
-                "d": 22,
-                "a": 12
-              },
-              "teme": {
-                "k": 31,
-                "d": 24,
-                "a": 9
-              },
-              "Schwarz": {
-                "k": 25,
-                "d": 26,
-                "a": 6
-              },
-              "HENU": {
-                "k": 27,
-                "d": 29,
-                "a": 8
-              },
-              "joeski": {
-                "k": 27,
-                "d": 24,
-                "a": 11
-              }
-            },
-            "Mai Tai": {
-              "eltrzzi": {
-                "k": 25,
-                "d": 27,
-                "a": 12
-              },
-              "Nami": {
-                "k": 24,
-                "d": 24,
-                "a": 12
-              },
-              "elem": {
-                "k": 20,
-                "d": 25,
-                "a": 6
-              },
-              "darchevile": {
-                "k": 20,
-                "d": 32,
-                "a": 6
-              },
-              "chudy": {
-                "k": 32,
-                "d": 25,
-                "a": 9
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-17",
-          "patch": null,
-          "teamA": "ENCE",
-          "teamB": "BERG",
-          "winner": "ENCE",
-          "score": "2-0",
-          "actual": {
-            "ENCE": {
-              "HENU": {
-                "k": 30,
-                "d": 29,
-                "a": 6
-              },
-              "joeski": {
-                "k": 30,
-                "d": 25,
-                "a": 9
-              },
-              "millert": {
-                "k": 32,
-                "d": 21,
-                "a": 9
-              },
-              "teme": {
-                "k": 27,
-                "d": 23,
-                "a": 6
-              },
-              "Schwarz": {
-                "k": 28,
-                "d": 28,
-                "a": 13
-              }
-            },
-            "BERG": {
-              "KiMaRR": {
-                "k": 29,
-                "d": 34,
-                "a": 11
-              },
-              "kdaN": {
-                "k": 19,
-                "d": 28,
-                "a": 6
-              },
-              "Askan": {
-                "k": 26,
-                "d": 28,
-                "a": 14
-              },
-              "nopzy": {
-                "k": 32,
-                "d": 30,
-                "a": 8
-              },
-              "Rezst": {
-                "k": 19,
-                "d": 28,
-                "a": 8
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-16",
-          "patch": null,
-          "teamA": "ENCE",
-          "teamB": "WBT",
-          "winner": "WBT",
-          "score": "0-2",
-          "actual": {
-            "ENCE": {
-              "HENU": {
-                "k": 26,
-                "d": 30,
-                "a": 4
-              },
-              "teme": {
-                "k": 18,
-                "d": 29,
-                "a": 6
-              },
-              "joeski": {
-                "k": 20,
-                "d": 29,
-                "a": 4
-              },
-              "allu": {
-                "k": 15,
-                "d": 31,
-                "a": 5
-              },
-              "millert": {
-                "k": 31,
-                "d": 29,
-                "a": 3
-              }
-            },
-            "WBT": {
-              "fl1peR": {
-                "k": 27,
-                "d": 21,
-                "a": 10
-              },
-              "svemyy": {
-                "k": 28,
-                "d": 23,
-                "a": 6
-              },
-              "marat2k": {
-                "k": 31,
-                "d": 17,
-                "a": 10
-              },
-              "NxStep": {
-                "k": 36,
-                "d": 25,
-                "a": 11
-              },
-              "tired73": {
-                "k": 24,
-                "d": 24,
-                "a": 5
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-12",
-          "patch": null,
-          "teamA": "ZOTIX",
-          "teamB": "ENRAGE",
-          "winner": "ENRAGE",
-          "score": "0-1",
-          "actual": {
-            "ZOTIX": {
-              "byr9": {
-                "k": 13,
-                "d": 15,
-                "a": 3
-              },
-              "shen": {
-                "k": 13,
-                "d": 16,
-                "a": 4
-              },
-              "-EsD": {
-                "k": 15,
-                "d": 13,
-                "a": 3
-              },
-              "Dy4ka": {
-                "k": 20,
-                "d": 18,
-                "a": 3
-              },
-              "certa1n": {
-                "k": 20,
-                "d": 16,
-                "a": 4
-              }
-            },
-            "ENRAGE": {
-              "hazza": {
-                "k": 17,
-                "d": 16,
-                "a": 3
-              },
-              "blocker": {
-                "k": 20,
-                "d": 16,
-                "a": 6
-              },
-              "tissuekb": {
-                "k": 18,
-                "d": 17,
-                "a": 2
-              },
-              "miteww": {
-                "k": 10,
-                "d": 14,
-                "a": 6
-              },
-              "niki1": {
-                "k": 9,
-                "d": 18,
-                "a": 8
-              }
-            }
-          },
-          "games": 1
-        },
-        {
-          "week": null,
           "date": "2026-08-09",
           "patch": null,
           "teamA": "K27",
@@ -11283,732 +9267,6 @@
         },
         {
           "week": null,
-          "date": "2026-08-19",
-          "patch": null,
-          "teamA": "Fire Flux",
-          "teamB": "Metizport",
-          "winner": "Metizport",
-          "score": "2-0",
-          "actual": {
-            "Fire Flux": {
-              "zer0UKY": {
-                "k": 19,
-                "d": 28,
-                "a": 3
-              },
-              "xEternaLxx": {
-                "k": 24,
-                "d": 26,
-                "a": 8
-              },
-              "Quality": {
-                "k": 27,
-                "d": 27,
-                "a": 9
-              },
-              "zemix": {
-                "k": 13,
-                "d": 33,
-                "a": 8
-              },
-              "Cizzx": {
-                "k": 19,
-                "d": 35,
-                "a": 5
-              }
-            },
-            "Metizport": {
-              "forsyy": {
-                "k": 36,
-                "d": 22,
-                "a": 10
-              },
-              "MaiL09": {
-                "k": 35,
-                "d": 19,
-                "a": 11
-              },
-              "stanislaw": {
-                "k": 15,
-                "d": 20,
-                "a": 10
-              },
-              "Plopski": {
-                "k": 27,
-                "d": 25,
-                "a": 15
-              },
-              "F1KU": {
-                "k": 36,
-                "d": 16,
-                "a": 8
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-19",
-          "patch": null,
-          "teamA": "Fire Flux",
-          "teamB": "Entropy",
-          "winner": "Fire Flux",
-          "score": "2-1",
-          "actual": {
-            "Fire Flux": {
-              "zer0UKY": {
-                "k": 27,
-                "d": 32,
-                "a": 4
-              },
-              "zemix": {
-                "k": 30,
-                "d": 33,
-                "a": 11
-              },
-              "xEternaLxx": {
-                "k": 31,
-                "d": 30,
-                "a": 8
-              },
-              "Quality": {
-                "k": 32,
-                "d": 31,
-                "a": 12
-              },
-              "Cizzx": {
-                "k": 26,
-                "d": 32,
-                "a": 11
-              }
-            },
-            "Entropy": {
-              "L00m1": {
-                "k": 32,
-                "d": 26,
-                "a": 7
-              },
-              "dottie": {
-                "k": 40,
-                "d": 33,
-                "a": 10
-              },
-              "flaw": {
-                "k": 26,
-                "d": 33,
-                "a": 11
-              },
-              "Sapec": {
-                "k": 30,
-                "d": 30,
-                "a": 15
-              },
-              "toshas": {
-                "k": 27,
-                "d": 26,
-                "a": 13
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-18",
-          "patch": null,
-          "teamA": "Permitta",
-          "teamB": "Fortress",
-          "winner": "Permitta",
-          "score": "0-2",
-          "actual": {
-            "Permitta": {
-              "showk": {
-                "k": 29,
-                "d": 16,
-                "a": 10
-              },
-              "AdrieN": {
-                "k": 34,
-                "d": 19,
-                "a": 9
-              },
-              "Marko\u015b": {
-                "k": 27,
-                "d": 13,
-                "a": 10
-              },
-              "maaryy": {
-                "k": 31,
-                "d": 17,
-                "a": 8
-              },
-              "tomiko": {
-                "k": 25,
-                "d": 23,
-                "a": 11
-              }
-            },
-            "Fortress": {
-              "BqreBedre": {
-                "k": 20,
-                "d": 29,
-                "a": 13
-              },
-              "GrEnNiE": {
-                "k": 18,
-                "d": 28,
-                "a": 8
-              },
-              "As K": {
-                "k": 11,
-                "d": 30,
-                "a": 2
-              },
-              "K1ngShield": {
-                "k": 18,
-                "d": 29,
-                "a": 3
-              },
-              "Brand": {
-                "k": 21,
-                "d": 30,
-                "a": 1
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-18",
-          "patch": null,
-          "teamA": "Esport Academy Copenhagen",
-          "teamB": "Fortress",
-          "winner": "Esport Academy Copenhagen",
-          "score": "2-0",
-          "actual": {
-            "Esport Academy Copenhagen": {
-              "sSen": {
-                "k": 24,
-                "d": 15,
-                "a": 14
-              },
-              "bekker": {
-                "k": 30,
-                "d": 14,
-                "a": 13
-              },
-              "Fessor": {
-                "k": 32,
-                "d": 18,
-                "a": 12
-              },
-              "n1Xen": {
-                "k": 26,
-                "d": 17,
-                "a": 12
-              },
-              "anber": {
-                "k": 38,
-                "d": 20,
-                "a": 8
-              }
-            },
-            "Fortress": {
-              "BqreBedre": {
-                "k": 23,
-                "d": 30,
-                "a": 3
-              },
-              "Brand": {
-                "k": 14,
-                "d": 31,
-                "a": 3
-              },
-              "GrEnNiE": {
-                "k": 14,
-                "d": 30,
-                "a": 4
-              },
-              "K1ngShield": {
-                "k": 17,
-                "d": 30,
-                "a": 1
-              },
-              "As K": {
-                "k": 15,
-                "d": 30,
-                "a": 8
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-18",
-          "patch": null,
-          "teamA": "Fortress",
-          "teamB": "ex-MANA",
-          "winner": "ex-MANA",
-          "score": "0-2",
-          "actual": {
-            "Fortress": {
-              "As K": {
-                "k": 15,
-                "d": 32,
-                "a": 8
-              },
-              "Brand": {
-                "k": 18,
-                "d": 27,
-                "a": 6
-              },
-              "K1ngShield": {
-                "k": 16,
-                "d": 27,
-                "a": 4
-              },
-              "GrEnNiE": {
-                "k": 19,
-                "d": 28,
-                "a": 5
-              },
-              "BqreBedre": {
-                "k": 22,
-                "d": 26,
-                "a": 8
-              }
-            },
-            "ex-MANA": {
-              "xonn1k": {
-                "k": 29,
-                "d": 16,
-                "a": 8
-              },
-              "cerber": {
-                "k": 31,
-                "d": 20,
-                "a": 9
-              },
-              "ammar": {
-                "k": 27,
-                "d": 19,
-                "a": 14
-              },
-              "vAloN": {
-                "k": 18,
-                "d": 20,
-                "a": 12
-              },
-              "BledarD": {
-                "k": 35,
-                "d": 15,
-                "a": 6
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-17",
-          "patch": null,
-          "teamA": "Diamant",
-          "teamB": "Fortress",
-          "winner": "Diamant",
-          "score": "1-0",
-          "actual": {
-            "Diamant": {
-              "Damsi": {
-                "k": 15,
-                "d": 12,
-                "a": 2
-              },
-              "jernejj": {
-                "k": 11,
-                "d": 12,
-                "a": 4
-              },
-              "Libraa": {
-                "k": 19,
-                "d": 13,
-                "a": 4
-              },
-              "jkXy": {
-                "k": 23,
-                "d": 13,
-                "a": 8
-              },
-              "Destro": {
-                "k": 15,
-                "d": 14,
-                "a": 8
-              }
-            },
-            "Fortress": {
-              "Brand": {
-                "k": 10,
-                "d": 18,
-                "a": 6
-              },
-              "K1ngShield": {
-                "k": 18,
-                "d": 16,
-                "a": 4
-              },
-              "BqreBedre": {
-                "k": 14,
-                "d": 17,
-                "a": 4
-              },
-              "As K": {
-                "k": 9,
-                "d": 17,
-                "a": 9
-              },
-              "GrEnNiE": {
-                "k": 12,
-                "d": 15,
-                "a": 2
-              }
-            }
-          },
-          "games": 1
-        },
-        {
-          "week": null,
-          "date": "2026-08-26",
-          "patch": null,
-          "teamA": "Gr\u00eamio",
-          "teamB": "Semente do Mal",
-          "winner": "Gr\u00eamio",
-          "score": "2-0",
-          "actual": {
-            "Gr\u00eamio": {
-              "rag3-": {
-                "k": 20,
-                "d": 14,
-                "a": 7
-              },
-              "MITHPUTTINI": {
-                "k": 36,
-                "d": 13,
-                "a": 3
-              },
-              "balencyy": {
-                "k": 28,
-                "d": 17,
-                "a": 9
-              },
-              "souz4h": {
-                "k": 32,
-                "d": 15,
-                "a": 7
-              },
-              "yeda": {
-                "k": 19,
-                "d": 16,
-                "a": 7
-              }
-            },
-            "Semente do Mal": {
-              "terran": {
-                "k": 17,
-                "d": 27,
-                "a": 7
-              },
-              "Kaiserzy": {
-                "k": 14,
-                "d": 27,
-                "a": 5
-              },
-              "MrD": {
-                "k": 13,
-                "d": 27,
-                "a": 2
-              },
-              "Aker": {
-                "k": 13,
-                "d": 29,
-                "a": 7
-              },
-              "coxa": {
-                "k": 18,
-                "d": 26,
-                "a": 5
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-13",
-          "patch": null,
-          "teamA": "MEIA NOITE",
-          "teamB": "Gr\u00eamio",
-          "winner": "MEIA NOITE",
-          "score": "1-2",
-          "actual": {
-            "MEIA NOITE": {
-              "abr": {
-                "k": 50,
-                "d": 44,
-                "a": 7
-              },
-              "bsd": {
-                "k": 40,
-                "d": 44,
-                "a": 6
-              },
-              "BK1": {
-                "k": 35,
-                "d": 49,
-                "a": 11
-              },
-              "nyezin": {
-                "k": 42,
-                "d": 45,
-                "a": 11
-              },
-              "Bruninho": {
-                "k": 34,
-                "d": 44,
-                "a": 10
-              }
-            },
-            "Gr\u00eamio": {
-              "yeda": {
-                "k": 41,
-                "d": 42,
-                "a": 14
-              },
-              "MITHPUTTINI": {
-                "k": 46,
-                "d": 41,
-                "a": 9
-              },
-              "souz4h": {
-                "k": 38,
-                "d": 39,
-                "a": 23
-              },
-              "rag3-": {
-                "k": 51,
-                "d": 40,
-                "a": 15
-              },
-              "levandosk1z": {
-                "k": 48,
-                "d": 39,
-                "a": 12
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-11",
-          "patch": null,
-          "teamA": "cobblemon",
-          "teamB": "Gr\u00eamio",
-          "winner": "Gr\u00eamio",
-          "score": "0-2",
-          "actual": {
-            "cobblemon": {
-              "guizK": {
-                "k": 22,
-                "d": 24,
-                "a": 5
-              },
-              "astro": {
-                "k": 29,
-                "d": 23,
-                "a": 8
-              },
-              "nightz": {
-                "k": 18,
-                "d": 36,
-                "a": 4
-              },
-              "Swords": {
-                "k": 16,
-                "d": 21,
-                "a": 9
-              },
-              "Glimmz": {
-                "k": 22,
-                "d": 20,
-                "a": 5
-              }
-            },
-            "Gr\u00eamio": {
-              "yeda": {
-                "k": 36,
-                "d": 34,
-                "a": 11
-              },
-              "MITHPUTTINI": {
-                "k": 33,
-                "d": 25,
-                "a": 6
-              },
-              "souz4h": {
-                "k": 20,
-                "d": 22,
-                "a": 6
-              },
-              "rag3-": {
-                "k": 36,
-                "d": 30,
-                "a": 6
-              },
-              "levandosk1z": {
-                "k": 23,
-                "d": 20,
-                "a": 8
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-10",
-          "patch": null,
-          "teamA": "Isurus",
-          "teamB": "Gr\u00eamio",
-          "winner": "Isurus",
-          "score": "2-0",
-          "actual": {
-            "Isurus": {
-              "deco": {
-                "k": 28,
-                "d": 21,
-                "a": 14
-              },
-              "Hezz": {
-                "k": 35,
-                "d": 21,
-                "a": 12
-              },
-              "dott1": {
-                "k": 32,
-                "d": 20,
-                "a": 9
-              },
-              "atarax1a": {
-                "k": 35,
-                "d": 21,
-                "a": 7
-              },
-              "rzk": {
-                "k": 26,
-                "d": 27,
-                "a": 12
-              }
-            },
-            "Gr\u00eamio": {
-              "rag3-": {
-                "k": 23,
-                "d": 29,
-                "a": 9
-              },
-              "yeda": {
-                "k": 22,
-                "d": 28,
-                "a": 9
-              },
-              "souz4h": {
-                "k": 12,
-                "d": 33,
-                "a": 10
-              },
-              "balencyy": {
-                "k": 19,
-                "d": 35,
-                "a": 9
-              },
-              "MITHPUTTINI": {
-                "k": 32,
-                "d": 33,
-                "a": 6
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-10",
-          "patch": null,
-          "teamA": "Gr\u00eamio",
-          "teamB": "QUINTESSENCIA",
-          "winner": "QUINTESSENCIA",
-          "score": "0-2",
-          "actual": {
-            "Gr\u00eamio": {
-              "yeda": {
-                "k": 4,
-                "d": 14,
-                "a": 1
-              },
-              "MITHPUTTINI": {
-                "k": 11,
-                "d": 14,
-                "a": 1
-              },
-              "souz4h": {
-                "k": 10,
-                "d": 13,
-                "a": 4
-              },
-              "rag3-": {
-                "k": 9,
-                "d": 14,
-                "a": 0
-              },
-              "levandosk1z": {
-                "k": 16,
-                "d": 13,
-                "a": 3
-              }
-            },
-            "QUINTESSENCIA": {
-              "FasteR": {
-                "k": 27,
-                "d": 20,
-                "a": 6
-              },
-              "n0page": {
-                "k": 13,
-                "d": 10,
-                "a": 7
-              },
-              "edv": {
-                "k": 32,
-                "d": 17,
-                "a": 2
-              },
-              "prozinszsz": {
-                "k": 32,
-                "d": 19,
-                "a": 13
-              },
-              "cz1k4": {
-                "k": 18,
-                "d": 15,
-                "a": 5
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
           "date": "2026-08-09",
           "patch": null,
           "teamA": "HEROIC",
@@ -12735,727 +9993,6 @@
         },
         {
           "week": null,
-          "date": "2026-07-31",
-          "patch": null,
-          "teamA": "Hermine",
-          "teamB": "Subtop De France",
-          "winner": "Subtop De France",
-          "score": "0-1",
-          "actual": {
-            "Hermine": {
-              "AMANEK": {
-                "k": 8,
-                "d": 15,
-                "a": 8
-              },
-              "Tr1cky": {
-                "k": 9,
-                "d": 16,
-                "a": 1
-              },
-              "Fiction": {
-                "k": 15,
-                "d": 11,
-                "a": 4
-              }
-            },
-            "Subtop De France": {
-              "sanjoCRAKITO": {
-                "k": 10,
-                "d": 10,
-                "a": 3
-              },
-              "Razzmo": {
-                "k": 14,
-                "d": 12,
-                "a": 2
-              },
-              "Supr3me": {
-                "k": 13,
-                "d": 13,
-                "a": 3
-              },
-              "Revol": {
-                "k": 13,
-                "d": 12,
-                "a": 1
-              },
-              "XiMaa": {
-                "k": 16,
-                "d": 13,
-                "a": 5
-              }
-            }
-          },
-          "games": 1
-        },
-        {
-          "week": null,
-          "date": "2026-07-24",
-          "patch": null,
-          "teamA": "Hermine",
-          "teamB": "Fire Flux",
-          "winner": "Hermine",
-          "score": "1-0",
-          "actual": {
-            "Hermine": {
-              "xReal": {
-                "k": 25,
-                "d": 23,
-                "a": 1
-              },
-              "AMANEK": {
-                "k": 25,
-                "d": 20,
-                "a": 6
-              },
-              "Tr1cky": {
-                "k": 19,
-                "d": 21,
-                "a": 3
-              },
-              "mASTHEAD": {
-                "k": 19,
-                "d": 16,
-                "a": 6
-              },
-              "Fiction": {
-                "k": 15,
-                "d": 21,
-                "a": 8
-              }
-            },
-            "Fire Flux": {
-              "Cizzx": {
-                "k": 17,
-                "d": 19,
-                "a": 7
-              },
-              "zemix": {
-                "k": 21,
-                "d": 24,
-                "a": 6
-              },
-              "zer0UKY": {
-                "k": 25,
-                "d": 15,
-                "a": 6
-              },
-              "xEternaLxx": {
-                "k": 17,
-                "d": 27,
-                "a": 8
-              },
-              "Quality": {
-                "k": 21,
-                "d": 18,
-                "a": 6
-              }
-            }
-          },
-          "games": 1
-        },
-        {
-          "week": null,
-          "date": "2026-07-22",
-          "patch": null,
-          "teamA": "Hermine",
-          "teamB": "SANGAL 1XALTERS",
-          "winner": "SANGAL 1XALTERS",
-          "score": "0-1",
-          "actual": {
-            "Hermine": {
-              "xReal": {
-                "k": 4,
-                "d": 14,
-                "a": 7
-              },
-              "AMANEK": {
-                "k": 11,
-                "d": 11,
-                "a": 1
-              },
-              "Tr1cky": {
-                "k": 5,
-                "d": 12,
-                "a": 0
-              },
-              "mASTHEAD": {
-                "k": 9,
-                "d": 10,
-                "a": 0
-              },
-              "Fiction": {
-                "k": 11,
-                "d": 10,
-                "a": 1
-              }
-            },
-            "SANGAL 1XALTERS": {
-              "cyber": {
-                "k": 12,
-                "d": 10,
-                "a": 3
-              },
-              "hyp3rrrr": {
-                "k": 12,
-                "d": 7,
-                "a": 2
-              },
-              "edgyS": {
-                "k": 10,
-                "d": 9,
-                "a": 1
-              },
-              "tgN": {
-                "k": 12,
-                "d": 10,
-                "a": 1
-              },
-              "vengeance": {
-                "k": 11,
-                "d": 6,
-                "a": 2
-              }
-            }
-          },
-          "games": 1
-        },
-        {
-          "week": null,
-          "date": "2026-08-26",
-          "patch": null,
-          "teamA": "SPARTA",
-          "teamB": "INOX Division",
-          "winner": "INOX Division",
-          "score": "2-1",
-          "actual": {
-            "SPARTA": {
-              "TRAVIS": {
-                "k": 19,
-                "d": 28,
-                "a": 14
-              },
-              "El1an": {
-                "k": 25,
-                "d": 27,
-                "a": 9
-              },
-              "glowiing": {
-                "k": 50,
-                "d": 23,
-                "a": 10
-              },
-              "sugaR": {
-                "k": 29,
-                "d": 27,
-                "a": 6
-              },
-              "NickelBack": {
-                "k": 28,
-                "d": 29,
-                "a": 14
-              }
-            },
-            "INOX Division": {
-              "K0s": {
-                "k": 25,
-                "d": 35,
-                "a": 13
-              },
-              "fin": {
-                "k": 29,
-                "d": 31,
-                "a": 12
-              },
-              "gooddeph": {
-                "k": 23,
-                "d": 33,
-                "a": 9
-              },
-              "k1slll": {
-                "k": 22,
-                "d": 28,
-                "a": 12
-              },
-              "FenomeN": {
-                "k": 31,
-                "d": 28,
-                "a": 6
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-24",
-          "patch": null,
-          "teamA": "100 Thieves Roobet",
-          "teamB": "INOX Division",
-          "winner": "100 Thieves Roobet",
-          "score": "1-0",
-          "actual": {
-            "100 Thieves Roobet": {
-              "poiii": {
-                "k": 13,
-                "d": 12,
-                "a": 5
-              },
-              "rain": {
-                "k": 19,
-                "d": 12,
-                "a": 4
-              },
-              "Gizmy": {
-                "k": 13,
-                "d": 13,
-                "a": 7
-              },
-              "sirah": {
-                "k": 13,
-                "d": 16,
-                "a": 6
-              },
-              "dev1ce": {
-                "k": 19,
-                "d": 12,
-                "a": 2
-              }
-            },
-            "INOX Division": {
-              "gooddeph": {
-                "k": 15,
-                "d": 17,
-                "a": 3
-              },
-              "FenomeN": {
-                "k": 11,
-                "d": 14,
-                "a": 6
-              },
-              "fin": {
-                "k": 14,
-                "d": 15,
-                "a": 3
-              },
-              "k1slll": {
-                "k": 8,
-                "d": 15,
-                "a": 7
-              },
-              "K0s": {
-                "k": 17,
-                "d": 16,
-                "a": 3
-              }
-            }
-          },
-          "games": 1
-        },
-        {
-          "week": null,
-          "date": "2026-08-24",
-          "patch": null,
-          "teamA": "Butterfly",
-          "teamB": "INOX Division",
-          "winner": "INOX Division",
-          "score": "2-0",
-          "actual": {
-            "Butterfly": {
-              "Forester": {
-                "k": 26,
-                "d": 29,
-                "a": 7
-              },
-              "Kuruma": {
-                "k": 24,
-                "d": 33,
-                "a": 11
-              },
-              "k1ssly": {
-                "k": 15,
-                "d": 35,
-                "a": 12
-              },
-              "ayano": {
-                "k": 26,
-                "d": 29,
-                "a": 9
-              },
-              "nitzie": {
-                "k": 21,
-                "d": 29,
-                "a": 3
-              }
-            },
-            "INOX Division": {
-              "k1slll": {
-                "k": 24,
-                "d": 24,
-                "a": 11
-              },
-              "fin": {
-                "k": 36,
-                "d": 20,
-                "a": 15
-              },
-              "FenomeN": {
-                "k": 34,
-                "d": 19,
-                "a": 7
-              },
-              "gooddeph": {
-                "k": 27,
-                "d": 26,
-                "a": 15
-              },
-              "K0s": {
-                "k": 32,
-                "d": 25,
-                "a": 11
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-22",
-          "patch": null,
-          "teamA": "Honv\u00e9d",
-          "teamB": "INOX Division",
-          "winner": "INOX Division",
-          "score": "2-0",
-          "actual": {
-            "Honv\u00e9d": {
-              "marTineZ": {
-                "k": 19,
-                "d": 31,
-                "a": 8
-              },
-              "iBally": {
-                "k": 24,
-                "d": 29,
-                "a": 8
-              },
-              "esor": {
-                "k": 33,
-                "d": 28,
-                "a": 12
-              },
-              "1NSERT2": {
-                "k": 24,
-                "d": 31,
-                "a": 3
-              },
-              "noleN": {
-                "k": 16,
-                "d": 29,
-                "a": 13
-              }
-            },
-            "INOX Division": {
-              "fin": {
-                "k": 31,
-                "d": 25,
-                "a": 8
-              },
-              "gooddeph": {
-                "k": 21,
-                "d": 26,
-                "a": 7
-              },
-              "FenomeN": {
-                "k": 34,
-                "d": 23,
-                "a": 11
-              },
-              "k1slll": {
-                "k": 33,
-                "d": 20,
-                "a": 8
-              },
-              "K0s": {
-                "k": 27,
-                "d": 24,
-                "a": 13
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-18",
-          "patch": null,
-          "teamA": "Inner Circle Prospects",
-          "teamB": "INOX Division",
-          "winner": "INOX Division",
-          "score": "0-2",
-          "actual": {
-            "Inner Circle Prospects": {
-              "qw3zy": {
-                "k": 37,
-                "d": 46,
-                "a": 18
-              },
-              "Trou": {
-                "k": 30,
-                "d": 44,
-                "a": 9
-              },
-              "defly": {
-                "k": 36,
-                "d": 42,
-                "a": 9
-              },
-              "fr1s": {
-                "k": 29,
-                "d": 45,
-                "a": 11
-              },
-              "h1mal8ya": {
-                "k": 60,
-                "d": 36,
-                "a": 7
-              }
-            },
-            "INOX Division": {
-              "gooddeph": {
-                "k": 41,
-                "d": 37,
-                "a": 18
-              },
-              "K0s": {
-                "k": 52,
-                "d": 40,
-                "a": 10
-              },
-              "finW": {
-                "k": 34,
-                "d": 44,
-                "a": 10
-              },
-              "FenomeN": {
-                "k": 48,
-                "d": 31,
-                "a": 16
-              },
-              "heartbrxxken": {
-                "k": 37,
-                "d": 40,
-                "a": 21
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-23",
-          "patch": null,
-          "teamA": "Honv\u00e9d",
-          "teamB": "Inner Circle Academy",
-          "winner": "Inner Circle Academy",
-          "score": "0-2",
-          "actual": {
-            "Honv\u00e9d": {
-              "esor": {
-                "k": 26,
-                "d": 30,
-                "a": 4
-              },
-              "marTineZ": {
-                "k": 37,
-                "d": 36,
-                "a": 9
-              },
-              "iBally": {
-                "k": 16,
-                "d": 33,
-                "a": 11
-              },
-              "1NSERT2": {
-                "k": 32,
-                "d": 32,
-                "a": 9
-              },
-              "noleN": {
-                "k": 22,
-                "d": 32,
-                "a": 8
-              }
-            },
-            "Inner Circle Academy": {
-              "St0m4k": {
-                "k": 30,
-                "d": 26,
-                "a": 6
-              },
-              "n0rths": {
-                "k": 28,
-                "d": 32,
-                "a": 10
-              },
-              "Flierax": {
-                "k": 33,
-                "d": 21,
-                "a": 13
-              },
-              "Tamefear": {
-                "k": 20,
-                "d": 28,
-                "a": 9
-              },
-              "luffy": {
-                "k": 51,
-                "d": 27,
-                "a": 9
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-21",
-          "patch": null,
-          "teamA": "Inner Circle Academy",
-          "teamB": "Color",
-          "winner": "Color",
-          "score": "2-0",
-          "actual": {
-            "Inner Circle Academy": {
-              "Tamefear": {
-                "k": 11,
-                "d": 28,
-                "a": 5
-              },
-              "Flierax": {
-                "k": 26,
-                "d": 20,
-                "a": 6
-              },
-              "3ippoch": {
-                "k": 19,
-                "d": 31,
-                "a": 5
-              },
-              "n0rths": {
-                "k": 20,
-                "d": 27,
-                "a": 7
-              },
-              "luffy": {
-                "k": 28,
-                "d": 31,
-                "a": 3
-              }
-            },
-            "Color": {
-              "reyoz": {
-                "k": 23,
-                "d": 26,
-                "a": 7
-              },
-              "Qikert": {
-                "k": 21,
-                "d": 20,
-                "a": 10
-              },
-              "cronuss": {
-                "k": 41,
-                "d": 26,
-                "a": 10
-              },
-              "oz1k": {
-                "k": 22,
-                "d": 21,
-                "a": 8
-              },
-              "lattykk": {
-                "k": 29,
-                "d": 12,
-                "a": 5
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-19",
-          "patch": null,
-          "teamA": "MOUZ NXT",
-          "teamB": "Inner Circle Academy",
-          "winner": "Inner Circle Academy",
-          "score": "2-1",
-          "actual": {
-            "MOUZ NXT": {
-              "opdust": {
-                "k": 27,
-                "d": 26,
-                "a": 9
-              },
-              "eSx": {
-                "k": 24,
-                "d": 22,
-                "a": 5
-              },
-              "mixer": {
-                "k": 14,
-                "d": 12,
-                "a": 2
-              },
-              "Ay0k": {
-                "k": 18,
-                "d": 25,
-                "a": 8
-              },
-              "Nikodeon": {
-                "k": 30,
-                "d": 21,
-                "a": 14
-              },
-              "LMBT": {
-                "k": 3,
-                "d": 16,
-                "a": 2
-              }
-            },
-            "Inner Circle Academy": {
-              "3ippoch": {
-                "k": 24,
-                "d": 22,
-                "a": 10
-              },
-              "luffy": {
-                "k": 18,
-                "d": 26,
-                "a": 5
-              },
-              "Flierax": {
-                "k": 31,
-                "d": 20,
-                "a": 8
-              },
-              "n0rths": {
-                "k": 17,
-                "d": 24,
-                "a": 7
-              },
-              "Tamefear": {
-                "k": 32,
-                "d": 24,
-                "a": 8
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
           "date": "2026-08-26",
           "patch": null,
           "teamA": "paiN Academy",
@@ -13657,7 +10194,7 @@
           "date": "2026-08-10",
           "patch": null,
           "teamA": "Isurus",
-          "teamB": "Gr\u00eamio",
+          "teamB": "Gremio",
           "winner": "Isurus",
           "score": "2-0",
           "actual": {
@@ -13688,7 +10225,7 @@
                 "a": 12
               }
             },
-            "Gr\u00eamio": {
+            "Gremio": {
               "rag3-": {
                 "k": 23,
                 "d": 29,
@@ -13845,402 +10382,6 @@
                 "k": 18,
                 "d": 34,
                 "a": 13
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-25",
-          "patch": null,
-          "teamA": "Just Players",
-          "teamB": "Drip Too Hard",
-          "winner": "Just Players",
-          "score": "1-2",
-          "actual": {
-            "Just Players": {
-              "shg": {
-                "k": 24,
-                "d": 29,
-                "a": 5
-              },
-              "sm3t": {
-                "k": 22,
-                "d": 30,
-                "a": 7
-              },
-              "sstiNiX": {
-                "k": 36,
-                "d": 26,
-                "a": 9
-              },
-              "Something": {
-                "k": 21,
-                "d": 26,
-                "a": 9
-              },
-              "h1te": {
-                "k": 41,
-                "d": 25,
-                "a": 9
-              }
-            },
-            "Drip Too Hard": {
-              "rud": {
-                "k": 30,
-                "d": 25,
-                "a": 6
-              },
-              "tein": {
-                "k": 23,
-                "d": 28,
-                "a": 4
-              },
-              "aNdu": {
-                "k": 29,
-                "d": 33,
-                "a": 13
-              },
-              "Sapec": {
-                "k": 32,
-                "d": 32,
-                "a": 3
-              },
-              "mASKED": {
-                "k": 17,
-                "d": 27,
-                "a": 14
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-23",
-          "patch": null,
-          "teamA": "Just Players",
-          "teamB": "ex-Zero Tenacity",
-          "winner": "ex-Zero Tenacity",
-          "score": "1-2",
-          "actual": {
-            "Just Players": {
-              "shg": {
-                "k": 24,
-                "d": 27,
-                "a": 5
-              },
-              "sstiNiX": {
-                "k": 28,
-                "d": 23,
-                "a": 4
-              },
-              "sm3t": {
-                "k": 20,
-                "d": 25,
-                "a": 4
-              },
-              "Something": {
-                "k": 21,
-                "d": 23,
-                "a": 9
-              },
-              "h1te": {
-                "k": 18,
-                "d": 22,
-                "a": 8
-              }
-            },
-            "ex-Zero Tenacity": {
-              "Dragon": {
-                "k": 25,
-                "d": 24,
-                "a": 9
-              },
-              "Cjoffo": {
-                "k": 25,
-                "d": 22,
-                "a": 8
-              },
-              "Kind0": {
-                "k": 29,
-                "d": 23,
-                "a": 10
-              },
-              "brutmonster": {
-                "k": 21,
-                "d": 25,
-                "a": 5
-              },
-              "emi": {
-                "k": 19,
-                "d": 18,
-                "a": 5
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-21",
-          "patch": null,
-          "teamA": "Just Players",
-          "teamB": "HyperSpirit",
-          "winner": "Just Players",
-          "score": "1-2",
-          "actual": {
-            "Just Players": {
-              "sstiNiX": {
-                "k": 17,
-                "d": 36,
-                "a": 8
-              },
-              "Something": {
-                "k": 31,
-                "d": 33,
-                "a": 4
-              },
-              "sowalio": {
-                "k": 24,
-                "d": 32,
-                "a": 11
-              },
-              "sm3t": {
-                "k": 31,
-                "d": 31,
-                "a": 8
-              },
-              "h1te": {
-                "k": 28,
-                "d": 32,
-                "a": 5
-              }
-            },
-            "HyperSpirit": {
-              "starplajerz": {
-                "k": 26,
-                "d": 31,
-                "a": 17
-              },
-              "Scr0b": {
-                "k": 27,
-                "d": 23,
-                "a": 8
-              },
-              "d1maje": {
-                "k": 35,
-                "d": 31,
-                "a": 7
-              },
-              "Ciocardau": {
-                "k": 35,
-                "d": 29,
-                "a": 13
-              },
-              "Q-Q": {
-                "k": 39,
-                "d": 19,
-                "a": 16
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-18",
-          "patch": null,
-          "teamA": "Just Players",
-          "teamB": "PCIFIC ESPOR",
-          "winner": "Just Players",
-          "score": "0-2",
-          "actual": {
-            "Just Players": {
-              "sm3t": {
-                "k": 37,
-                "d": 26,
-                "a": 9
-              },
-              "Something": {
-                "k": 22,
-                "d": 30,
-                "a": 11
-              },
-              "sstiNiX": {
-                "k": 41,
-                "d": 24,
-                "a": 20
-              },
-              "h1te": {
-                "k": 32,
-                "d": 21,
-                "a": 14
-              },
-              "sowalio": {
-                "k": 28,
-                "d": 27,
-                "a": 5
-              }
-            },
-            "PCIFIC ESPOR": {
-              "scolleN": {
-                "k": 31,
-                "d": 33,
-                "a": 8
-              },
-              "oyesil": {
-                "k": 19,
-                "d": 33,
-                "a": 5
-              },
-              "eNs": {
-                "k": 22,
-                "d": 30,
-                "a": 3
-              },
-              "lugseN": {
-                "k": 33,
-                "d": 34,
-                "a": 5
-              },
-              "Weirdaimm": {
-                "k": 21,
-                "d": 30,
-                "a": 10
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-14",
-          "patch": null,
-          "teamA": "Just Players",
-          "teamB": "ENCE",
-          "winner": "ENCE",
-          "score": "1-2",
-          "actual": {
-            "Just Players": {
-              "spirit": {
-                "k": 21,
-                "d": 29,
-                "a": 6
-              },
-              "Something": {
-                "k": 31,
-                "d": 28,
-                "a": 11
-              },
-              "sstiNiX": {
-                "k": 33,
-                "d": 29,
-                "a": 7
-              },
-              "h1te": {
-                "k": 25,
-                "d": 29,
-                "a": 11
-              },
-              "sm3t": {
-                "k": 30,
-                "d": 27,
-                "a": 9
-              }
-            },
-            "ENCE": {
-              "millert": {
-                "k": 20,
-                "d": 27,
-                "a": 8
-              },
-              "teme": {
-                "k": 27,
-                "d": 28,
-                "a": 8
-              },
-              "HENU": {
-                "k": 32,
-                "d": 30,
-                "a": 6
-              },
-              "joeski": {
-                "k": 41,
-                "d": 25,
-                "a": 12
-              },
-              "Schwarz": {
-                "k": 20,
-                "d": 33,
-                "a": 16
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-13",
-          "patch": null,
-          "teamA": "Just Players",
-          "teamB": "MOUZ NXT",
-          "winner": "MOUZ NXT",
-          "score": "0-2",
-          "actual": {
-            "Just Players": {
-              "spirit": {
-                "k": 22,
-                "d": 26,
-                "a": 5
-              },
-              "sstiNiX": {
-                "k": 23,
-                "d": 28,
-                "a": 9
-              },
-              "sm3t": {
-                "k": 29,
-                "d": 27,
-                "a": 12
-              },
-              "h1te": {
-                "k": 20,
-                "d": 23,
-                "a": 4
-              },
-              "Something": {
-                "k": 21,
-                "d": 29,
-                "a": 6
-              }
-            },
-            "MOUZ NXT": {
-              "opdust": {
-                "k": 33,
-                "d": 20,
-                "a": 7
-              },
-              "Ay0k": {
-                "k": 19,
-                "d": 22,
-                "a": 5
-              },
-              "eSx": {
-                "k": 25,
-                "d": 25,
-                "a": 9
-              },
-              "mixer": {
-                "k": 25,
-                "d": 24,
-                "a": 6
-              },
-              "Nikodeon": {
-                "k": 30,
-                "d": 25,
-                "a": 7
               }
             }
           },
@@ -14911,7 +11052,7 @@
           "date": "2026-08-13",
           "patch": null,
           "teamA": "MEIA NOITE",
-          "teamB": "Gr\u00eamio",
+          "teamB": "GREMIO",
           "winner": "MEIA NOITE",
           "score": "1-2",
           "actual": {
@@ -14942,7 +11083,7 @@
                 "a": 10
               }
             },
-            "Gr\u00eamio": {
+            "GREMIO": {
               "yeda": {
                 "k": 41,
                 "d": 42,
@@ -14967,204 +11108,6 @@
                 "k": 48,
                 "d": 39,
                 "a": 12
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-19",
-          "patch": null,
-          "teamA": "ex-Sashi Academy",
-          "teamB": "Misa",
-          "winner": "ex-Sashi Academy",
-          "score": "1-2",
-          "actual": {
-            "ex-Sashi Academy": {
-              "Mol011": {
-                "k": 56,
-                "d": 52,
-                "a": 10
-              },
-              "Mizi": {
-                "k": 46,
-                "d": 51,
-                "a": 21
-              },
-              "Damsi": {
-                "k": 50,
-                "d": 50,
-                "a": 23
-              },
-              "Thom": {
-                "k": 48,
-                "d": 45,
-                "a": 11
-              },
-              "noike": {
-                "k": 42,
-                "d": 48,
-                "a": 6
-              }
-            },
-            "Misa": {
-              "Zuedsta": {
-                "k": 49,
-                "d": 47,
-                "a": 18
-              },
-              "souv": {
-                "k": 48,
-                "d": 53,
-                "a": 16
-              },
-              "h0kz": {
-                "k": 56,
-                "d": 44,
-                "a": 13
-              },
-              "Ckanic": {
-                "k": 40,
-                "d": 44,
-                "a": 17
-              },
-              "EMSTAR": {
-                "k": 52,
-                "d": 57,
-                "a": 25
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-18",
-          "patch": null,
-          "teamA": "Strael Bora",
-          "teamB": "Misa",
-          "winner": "Misa",
-          "score": "2-0",
-          "actual": {
-            "Strael Bora": {
-              "levantino": {
-                "k": 29,
-                "d": 32,
-                "a": 11
-              },
-              "AdaMmMm": {
-                "k": 19,
-                "d": 31,
-                "a": 6
-              },
-              "newhope": {
-                "k": 15,
-                "d": 34,
-                "a": 5
-              },
-              "svn": {
-                "k": 21,
-                "d": 35,
-                "a": 11
-              },
-              "maddeN": {
-                "k": 38,
-                "d": 30,
-                "a": 7
-              }
-            },
-            "Misa": {
-              "Mertowsk1": {
-                "k": 38,
-                "d": 23,
-                "a": 12
-              },
-              "Ckanic": {
-                "k": 31,
-                "d": 20,
-                "a": 5
-              },
-              "Zuedsta": {
-                "k": 20,
-                "d": 29,
-                "a": 12
-              },
-              "souv": {
-                "k": 37,
-                "d": 26,
-                "a": 14
-              },
-              "EMSTAR": {
-                "k": 35,
-                "d": 25,
-                "a": 15
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-08",
-          "patch": null,
-          "teamA": "LPH",
-          "teamB": "NAVI Junior",
-          "winner": "LPH",
-          "score": "0-2",
-          "actual": {
-            "LPH": {
-              "Fajr": {
-                "k": 53,
-                "d": 28,
-                "a": 13
-              },
-              "d0mZ1k": {
-                "k": 30,
-                "d": 32,
-                "a": 5
-              },
-              "lojzo": {
-                "k": 27,
-                "d": 36,
-                "a": 8
-              },
-              "NIKOLAJ": {
-                "k": 37,
-                "d": 31,
-                "a": 12
-              },
-              "KAD1M": {
-                "k": 39,
-                "d": 30,
-                "a": 10
-              }
-            },
-            "NAVI Junior": {
-              "player756": {
-                "k": 28,
-                "d": 36,
-                "a": 8
-              },
-              "Yoki": {
-                "k": 32,
-                "d": 38,
-                "a": 10
-              },
-              "MahaR": {
-                "k": 24,
-                "d": 38,
-                "a": 14
-              },
-              "kodak": {
-                "k": 39,
-                "d": 34,
-                "a": 15
-              },
-              "skizzyee": {
-                "k": 33,
-                "d": 42,
-                "a": 13
               }
             }
           },
@@ -16228,72 +12171,6 @@
         },
         {
           "week": null,
-          "date": "2026-08-20",
-          "patch": null,
-          "teamA": "The Last Resort",
-          "teamB": "Privateer",
-          "winner": "The Last Resort",
-          "score": "2-0",
-          "actual": {
-            "The Last Resort": {
-              "bevve": {
-                "k": 52,
-                "d": 38,
-                "a": 13
-              },
-              "Extinct": {
-                "k": 28,
-                "d": 35,
-                "a": 12
-              },
-              "Vacancy": {
-                "k": 31,
-                "d": 36,
-                "a": 5
-              },
-              "arTisT": {
-                "k": 40,
-                "d": 26,
-                "a": 7
-              },
-              "Girafffe": {
-                "k": 27,
-                "d": 31,
-                "a": 12
-              }
-            },
-            "Privateer": {
-              "Prime": {
-                "k": 30,
-                "d": 34,
-                "a": 6
-              },
-              "Frazehh": {
-                "k": 39,
-                "d": 31,
-                "a": 10
-              },
-              "M1n1maL": {
-                "k": 32,
-                "d": 35,
-                "a": 9
-              },
-              "Ariant0": {
-                "k": 31,
-                "d": 40,
-                "a": 12
-              },
-              "dobbo": {
-                "k": 32,
-                "d": 39,
-                "a": 13
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
           "date": "2026-08-04",
           "patch": null,
           "teamA": "ODDIK",
@@ -16360,410 +12237,14 @@
         },
         {
           "week": null,
-          "date": "2026-08-18",
-          "patch": null,
-          "teamA": "Vitality Academy",
-          "teamB": "STATE",
-          "winner": "Vitality Academy",
-          "score": "2-1",
-          "actual": {
-            "Vitality Academy": {
-              "Katkame": {
-                "k": 35,
-                "d": 30,
-                "a": 5
-              },
-              "HOLY": {
-                "k": 26,
-                "d": 30,
-                "a": 13
-              },
-              "Reqqen": {
-                "k": 20,
-                "d": 29,
-                "a": 6
-              },
-              "patrenzo": {
-                "k": 26,
-                "d": 30,
-                "a": 7
-              },
-              "luca39": {
-                "k": 28,
-                "d": 32,
-                "a": 13
-              }
-            },
-            "STATE": {
-              "Patti": {
-                "k": 29,
-                "d": 29,
-                "a": 14
-              },
-              "Queenix": {
-                "k": 32,
-                "d": 28,
-                "a": 4
-              },
-              "kwezz": {
-                "k": 33,
-                "d": 27,
-                "a": 14
-              },
-              "Zanto": {
-                "k": 32,
-                "d": 22,
-                "a": 10
-              },
-              "sL1m3": {
-                "k": 24,
-                "d": 29,
-                "a": 10
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-17",
-          "patch": null,
-          "teamA": "STATE",
-          "teamB": "VP.Prodigy",
-          "winner": "STATE",
-          "score": "2-0",
-          "actual": {
-            "STATE": {
-              "Patti": {
-                "k": 26,
-                "d": 15,
-                "a": 3
-              },
-              "Queenix": {
-                "k": 25,
-                "d": 15,
-                "a": 9
-              },
-              "kwezz": {
-                "k": 30,
-                "d": 22,
-                "a": 8
-              },
-              "Zanto": {
-                "k": 21,
-                "d": 15,
-                "a": 5
-              },
-              "sL1m3": {
-                "k": 20,
-                "d": 22,
-                "a": 5
-              }
-            },
-            "VP.Prodigy": {
-              "rokilan": {
-                "k": 11,
-                "d": 25,
-                "a": 3
-              },
-              "lasfas": {
-                "k": 15,
-                "d": 25,
-                "a": 3
-              },
-              "MRcreed": {
-                "k": 15,
-                "d": 27,
-                "a": 7
-              },
-              "TriBorgg1": {
-                "k": 22,
-                "d": 22,
-                "a": 4
-              },
-              "Sm1th": {
-                "k": 25,
-                "d": 24,
-                "a": 3
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-16",
-          "patch": null,
-          "teamA": "STATE",
-          "teamB": "Inner Circle Prospects",
-          "winner": "Inner Circle Prospects",
-          "score": "1-2",
-          "actual": {
-            "STATE": {
-              "kwezz": {
-                "k": 30,
-                "d": 25,
-                "a": 8
-              },
-              "Zanto": {
-                "k": 23,
-                "d": 23,
-                "a": 6
-              },
-              "Patti": {
-                "k": 10,
-                "d": 10,
-                "a": 9
-              },
-              "Queenix": {
-                "k": 8,
-                "d": 6,
-                "a": 5
-              },
-              "sL1m3": {
-                "k": 13,
-                "d": 7,
-                "a": 5
-              }
-            },
-            "Inner Circle Prospects": {
-              "qw3zy": {
-                "k": 20,
-                "d": 26,
-                "a": 7
-              },
-              "Trou": {
-                "k": 16,
-                "d": 30,
-                "a": 1
-              },
-              "defly": {
-                "k": 20,
-                "d": 21,
-                "a": 5
-              },
-              "fr1s": {
-                "k": 27,
-                "d": 27,
-                "a": 9
-              },
-              "h1mal8ya": {
-                "k": 29,
-                "d": 23,
-                "a": 3
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-15",
-          "patch": null,
-          "teamA": "STATE",
-          "teamB": "Teletubisie",
-          "winner": "Teletubisie",
-          "score": "2-1",
-          "actual": {
-            "STATE": {
-              "Patti": {
-                "k": 22,
-                "d": 18,
-                "a": 3
-              },
-              "Queenix": {
-                "k": 14,
-                "d": 18,
-                "a": 7
-              },
-              "kwezz": {
-                "k": 29,
-                "d": 36,
-                "a": 10
-              },
-              "Zanto": {
-                "k": 12,
-                "d": 17,
-                "a": 4
-              },
-              "sL1m3": {
-                "k": 23,
-                "d": 34,
-                "a": 5
-              }
-            },
-            "Teletubisie": {
-              "byali": {
-                "k": 35,
-                "d": 29,
-                "a": 9
-              },
-              "MICHU": {
-                "k": 29,
-                "d": 31,
-                "a": 14
-              },
-              "dycha": {
-                "k": 34,
-                "d": 32,
-                "a": 10
-              },
-              "Sobol": {
-                "k": 36,
-                "d": 31,
-                "a": 9
-              },
-              "POLO": {
-                "k": 37,
-                "d": 26,
-                "a": 7
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-13",
-          "patch": null,
-          "teamA": "STATE",
-          "teamB": "Bushido Wildcats",
-          "winner": "STATE",
-          "score": "2-1",
-          "actual": {
-            "STATE": {
-              "Patti": {
-                "k": 25,
-                "d": 23,
-                "a": 7
-              },
-              "Queenix": {
-                "k": 20,
-                "d": 28,
-                "a": 16
-              },
-              "kwezz": {
-                "k": 36,
-                "d": 26,
-                "a": 9
-              },
-              "Zanto": {
-                "k": 32,
-                "d": 17,
-                "a": 3
-              },
-              "sL1m3": {
-                "k": 26,
-                "d": 25,
-                "a": 9
-              }
-            },
-            "Bushido Wildcats": {
-              "cacan": {
-                "k": 31,
-                "d": 28,
-                "a": 7
-              },
-              "Darendeli": {
-                "k": 15,
-                "d": 29,
-                "a": 6
-              },
-              "Vej": {
-                "k": 28,
-                "d": 27,
-                "a": 8
-              },
-              "cadnyx": {
-                "k": 18,
-                "d": 28,
-                "a": 8
-              },
-              "Muk0s": {
-                "k": 27,
-                "d": 30,
-                "a": 5
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-13",
-          "patch": null,
-          "teamA": "STATE",
-          "teamB": "INFURITY Gaming",
-          "winner": "STATE",
-          "score": "2-0",
-          "actual": {
-            "STATE": {
-              "Patti": {
-                "k": 31,
-                "d": 20,
-                "a": 6
-              },
-              "Queenix": {
-                "k": 16,
-                "d": 23,
-                "a": 11
-              },
-              "kwezz": {
-                "k": 26,
-                "d": 21,
-                "a": 5
-              },
-              "Zanto": {
-                "k": 27,
-                "d": 24,
-                "a": 8
-              },
-              "sL1m3": {
-                "k": 40,
-                "d": 22,
-                "a": 4
-              }
-            },
-            "INFURITY Gaming": {
-              "shyyne": {
-                "k": 17,
-                "d": 27,
-                "a": 3
-              },
-              "zyme": {
-                "k": 18,
-                "d": 32,
-                "a": 4
-              },
-              "sirius": {
-                "k": 20,
-                "d": 15,
-                "a": 2
-              },
-              "CHANKY": {
-                "k": 19,
-                "d": 17,
-                "a": 6
-              },
-              "oontoma": {
-                "k": 11,
-                "d": 14,
-                "a": 3
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
           "date": "2026-08-26",
           "patch": null,
-          "teamA": "ALKA",
+          "teamA": "ALKA Gaming",
           "teamB": "Turma do Pagode",
           "winner": "Turma do Pagode",
           "score": "1-2",
           "actual": {
-            "ALKA": {
+            "ALKA Gaming": {
               "puni": {
                 "k": 17,
                 "d": 30,
@@ -17553,204 +13034,6 @@
         },
         {
           "week": null,
-          "date": "2026-08-23",
-          "patch": null,
-          "teamA": "FORZE Reload",
-          "teamB": "Younglings",
-          "winner": "FORZE Reload",
-          "score": "2-0",
-          "actual": {
-            "FORZE Reload": {
-              "Kaide": {
-                "k": 47,
-                "d": 28,
-                "a": 6
-              },
-              "HeCkBNk": {
-                "k": 37,
-                "d": 19,
-                "a": 7
-              },
-              "Lack1": {
-                "k": 26,
-                "d": 29,
-                "a": 9
-              },
-              "YumsaN": {
-                "k": 25,
-                "d": 25,
-                "a": 14
-              },
-              "KusMe": {
-                "k": 20,
-                "d": 27,
-                "a": 6
-              }
-            },
-            "Younglings": {
-              "cheerful": {
-                "k": 29,
-                "d": 29,
-                "a": 5
-              },
-              "Hayato": {
-                "k": 26,
-                "d": 36,
-                "a": 8
-              },
-              "MoNaTy": {
-                "k": 33,
-                "d": 31,
-                "a": 8
-              },
-              "Shed0Z": {
-                "k": 25,
-                "d": 30,
-                "a": 7
-              },
-              "arun": {
-                "k": 15,
-                "d": 30,
-                "a": 6
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-22",
-          "patch": null,
-          "teamA": "IMHOWeRGOAT",
-          "teamB": "Younglings",
-          "winner": "Younglings",
-          "score": "1-2",
-          "actual": {
-            "IMHOWeRGOAT": {
-              "savelef": {
-                "k": 40,
-                "d": 34,
-                "a": 9
-              },
-              "stxwme": {
-                "k": 15,
-                "d": 35,
-                "a": 7
-              },
-              "scarface": {
-                "k": 33,
-                "d": 35,
-                "a": 7
-              },
-              "0772": {
-                "k": 18,
-                "d": 29,
-                "a": 8
-              },
-              "Kaminariko": {
-                "k": 29,
-                "d": 33,
-                "a": 9
-              }
-            },
-            "Younglings": {
-              "cheerful": {
-                "k": 34,
-                "d": 26,
-                "a": 10
-              },
-              "arun": {
-                "k": 24,
-                "d": 22,
-                "a": 7
-              },
-              "Hayato": {
-                "k": 40,
-                "d": 31,
-                "a": 10
-              },
-              "Shed0Z": {
-                "k": 39,
-                "d": 26,
-                "a": 13
-              },
-              "MoNaTy": {
-                "k": 25,
-                "d": 32,
-                "a": 14
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-08-21",
-          "patch": null,
-          "teamA": "Younglings",
-          "teamB": "TrafficPills Esports",
-          "winner": "Younglings",
-          "score": "0-2",
-          "actual": {
-            "Younglings": {
-              "Hayato": {
-                "k": 31,
-                "d": 35,
-                "a": 16
-              },
-              "cheerful": {
-                "k": 40,
-                "d": 25,
-                "a": 8
-              },
-              "MoNaTy": {
-                "k": 25,
-                "d": 31,
-                "a": 9
-              },
-              "Shed0Z": {
-                "k": 31,
-                "d": 23,
-                "a": 15
-              },
-              "arun": {
-                "k": 31,
-                "d": 27,
-                "a": 6
-              }
-            },
-            "TrafficPills Esports": {
-              "LECY": {
-                "k": 28,
-                "d": 35,
-                "a": 8
-              },
-              "F1n3tw": {
-                "k": 29,
-                "d": 30,
-                "a": 8
-              },
-              "KENHY": {
-                "k": 20,
-                "d": 33,
-                "a": 15
-              },
-              "GREATEST": {
-                "k": 30,
-                "d": 32,
-                "a": 6
-              },
-              "MoWeL": {
-                "k": 34,
-                "d": 28,
-                "a": 5
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
           "date": "2026-08-26",
           "patch": null,
           "teamA": "ShindeN",
@@ -17884,21 +13167,15 @@
       ],
       "upcoming_matches": [
         {
-          "date": "2026-08-27T17:00:00.000+00:00",
-          "teamA": "Falcons",
-          "teamB": "Lynn Vision",
-          "block": null
-        },
-        {
-          "date": "2026-08-27T21:00:00.000+00:00",
-          "teamA": "ex-MIBR Academy",
-          "teamB": "MEIA NOITE",
-          "block": null
-        },
-        {
           "date": "2026-08-27T21:00:00.000+00:00",
           "teamA": "Keyd Stars",
           "teamB": "Isurus",
+          "block": null
+        },
+        {
+          "date": "2026-08-27T21:00:00.000+00:00",
+          "teamA": "ODDIK",
+          "teamB": "Yawara",
           "block": null
         },
         {
@@ -17909,20 +13186,8 @@
         },
         {
           "date": "2026-08-27T21:00:00.000+00:00",
-          "teamA": "ODDIK",
-          "teamB": "Yawara",
-          "block": null
-        },
-        {
-          "date": "2026-08-27T17:00:00.000+00:00",
-          "teamA": "STATE",
-          "teamB": "ENCE",
-          "block": null
-        },
-        {
-          "date": "2026-08-27T17:00:00.000+00:00",
-          "teamA": "INOX Division",
-          "teamB": "Just Players",
+          "teamA": "ex-MIBR Academy",
+          "teamB": "MEIA NOITE",
           "block": null
         },
         {
@@ -17934,84 +13199,6 @@
         {
           "date": "2026-08-27T19:30:00.000+00:00",
           "teamA": "GoldRashers",
-          "teamB": "Banger Gang",
-          "block": null
-        },
-        {
-          "date": "2026-08-27T18:30:00.000+00:00",
-          "teamA": "Fire Flux",
-          "teamB": "Misa",
-          "block": null
-        },
-        {
-          "date": "2026-08-27T18:30:00.000+00:00",
-          "teamA": "Gr\u00eamio",
-          "teamB": "ALKA",
-          "block": null
-        },
-        {
-          "date": "2026-08-27T18:30:00.000+00:00",
-          "teamA": "eSuba",
-          "teamB": "Hermine",
-          "block": null
-        },
-        {
-          "date": "2026-08-27T18:30:00.000+00:00",
-          "teamA": "NAVI Junior",
-          "teamB": "Younglings",
-          "block": null
-        },
-        {
-          "date": "2026-08-27T18:30:00.000+00:00",
-          "teamA": "ZOTIX",
-          "teamB": "Inner Circle Academy",
-          "block": null
-        },
-        {
-          "date": "2026-08-27T18:30:00.000+00:00",
-          "teamA": "ENRAGE",
-          "teamB": "Privateer",
-          "block": null
-        },
-        {
-          "date": "2026-08-27T18:30:00.000+00:00",
-          "teamA": "XI",
-          "teamB": "Dark Moon",
-          "block": null
-        },
-        {
-          "date": "2026-08-27T17:15:00.000+00:00",
-          "teamA": "OLDBOYS PL",
-          "teamB": "NAVI Junior",
-          "block": null
-        },
-        {
-          "date": "2026-08-27T17:00:00.000+00:00",
-          "teamA": "Diamant",
-          "teamB": "ROUNDS",
-          "block": null
-        },
-        {
-          "date": "2026-08-27T17:00:00.000+00:00",
-          "teamA": "XI",
-          "teamB": "Hermine",
-          "block": null
-        },
-        {
-          "date": "2026-08-27T17:00:00.000+00:00",
-          "teamA": "ex-Sangal ALTERS",
-          "teamB": "Spirit Academy Green",
-          "block": null
-        },
-        {
-          "date": "2026-08-27T17:00:00.000+00:00",
-          "teamA": "Dark Moon",
-          "teamB": "Privateer",
-          "block": null
-        },
-        {
-          "date": "2026-08-27T17:00:00.000+00:00",
-          "teamA": "Fortress",
           "teamB": "Banger Gang",
           "block": null
         },
@@ -18055,6 +13242,12 @@
           "date": "2026-09-08T09:00:00.000+00:00",
           "teamA": "MIBR",
           "teamB": "FaZe",
+          "block": null
+        },
+        {
+          "date": "2026-08-27T17:10:00.000+00:00",
+          "teamA": "Falcons",
+          "teamB": "Lynn Vision",
           "block": null
         },
         {
