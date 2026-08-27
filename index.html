@@ -1845,11 +1845,30 @@ function KillProjector() {
     }
     setStatusByGame((prev) => ({ ...prev, [gameId]: "loading" }));
     setErrorByGame((prev) => ({ ...prev, [gameId]: null }));
-    fetch(cfg.dataUrl, { cache: "no-store" })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-        return res.json();
-      })
+
+    // One retry, after a short delay, on ANY failure (network error, bad
+    // HTTP status, or invalid JSON) — a fresh scraper commit can very
+    // briefly serve a truncated/mid-write response from
+    // raw.githubusercontent.com's CDN before the push fully propagates,
+    // which throws immediately on JSON.parse with no way to distinguish
+    // it from a genuinely bad file. A short delay + one retry is enough
+    // for that propagation race to resolve without meaningfully
+    // delaying the common case where the fetch just works the first time.
+    const attemptFetch = (attemptsLeft) =>
+      fetch(cfg.dataUrl, { cache: "no-store" })
+        .then((res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+          return res.json();
+        })
+        .catch((err) => {
+          if (attemptsLeft > 0) {
+            console.warn(`Fetch/parse failed for ${gameId}, retrying once in 1.5s:`, err);
+            return new Promise((resolve) => setTimeout(resolve, 1500)).then(() => attemptFetch(attemptsLeft - 1));
+          }
+          throw err;
+        });
+
+    attemptFetch(1)
       .then((data) => {
         const fetchedRegions = data.regions || {};
         const anyTeams = Object.values(fetchedRegions).some(
