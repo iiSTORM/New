@@ -135,6 +135,78 @@ function bracketStyle(theme, color) {
   return theme.cornerStyle === "angular" ? { "--kp-bracket-color": color || theme.accent } : {};
 }
 
+// Initials for the player-badge circle — first 2 alphanumeric characters,
+// uppercased. Handles the handle-style names common in esports (e.g.
+// "sh1ro" -> "SH", "ZywOo" -> "ZY") rather than assuming space-separated
+// first/last names, which most pro handles don't have.
+function initialsFor(name) {
+  const clean = (name || "").replace(/[^a-zA-Z0-9]/g, "");
+  return (clean.slice(0, 2) || "?").toUpperCase();
+}
+
+/* Shared, larger player row used under both upcoming and past matches —
+   previously each card hand-rolled its own cramped 12px/7px-padding grid
+   row independently, which was the main source of the "too small to
+   read" feeling. One component now, sized for real readability, with a
+   flexible stats array so it works for both the single-number "PROJ"
+   case (future matches) and the three-number "PROJ / ACT / DIFF" case
+   (past matches) without duplicating markup. */
+function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats }) {
+  return (
+    <div
+      style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+        padding: "13px 16px", borderTop: `1px solid ${theme.steelSoft}`,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
+        <span
+          style={{
+            width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: `${teamColor}22`, border: `1.5px solid ${teamColor}`,
+            color: teamColor, fontFamily: "'Chakra Petch', sans-serif", fontWeight: 700, fontSize: 12,
+          }}
+        >
+          {initialsFor(name)}
+        </span>
+        <div style={{ minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: 15, fontWeight: 600, color: theme.text, fontFamily: "'Chakra Petch', sans-serif",
+              whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+            }}
+          >
+            {name}
+          </div>
+          {(role || extraChip) && (
+            <div style={{ display: "flex", gap: 4, marginTop: 4, flexWrap: "wrap" }}>
+              {role && <span className="kp-chip" style={{ background: theme.steelSoft, color: theme.textFaint }}>{role}</span>}
+              {extraChip}
+            </div>
+          )}
+        </div>
+      </div>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 16, flexShrink: 0 }}>
+        {stats.map((s, i) => (
+          <div key={i} style={{ textAlign: "right", minWidth: s.big ? 52 : 38 }}>
+            <div style={{ fontSize: 9, letterSpacing: 0.6, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>{s.label}</div>
+            <div
+              style={{
+                fontSize: s.big ? 19 : 14, fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace",
+                color: s.color || theme.text, marginTop: 2,
+                ...(s.big ? { background: theme.accentSoft, border: `1px solid ${theme.accentBorder}`, borderRadius: 4, padding: "2px 8px" } : {}),
+              }}
+            >
+              {s.value}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const ThemeContext = createContext(null);
 function useTheme() {
   return useContext(ThemeContext);
@@ -797,23 +869,32 @@ function PlayerRow({ teams, pastMatches, p, team, opponentTeam, games, weights, 
   const r = project(teams, pastMatches, p, team, opponentTeam, games, weights, statType);
   const [open, setOpen] = useState(false);
   return (
-    <div className="kp-clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer", borderBottom: `1px solid ${theme.steel}`, padding: "10px 12px", background: open ? theme.graphiteLight : "transparent" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ width: 6, height: 24, background: teamColor }} />
-          <div>
-            <div style={{ fontWeight: 600, color: theme.text, fontSize: 14, fontFamily: "'Chakra Petch', sans-serif" }}>{p.name}</div>
-            {p.role && <span className="kp-chip" style={{ background: theme.steelSoft, color: theme.textDim, marginTop: 2 }}>{p.role}</span>}
+    <div className="kp-clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer", borderBottom: `1px solid ${theme.steel}`, padding: "13px 16px", background: open ? theme.graphiteLight : "transparent" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
+          <span
+            style={{
+              width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: `${teamColor}22`, border: `1.5px solid ${teamColor}`,
+              color: teamColor, fontFamily: "'Chakra Petch', sans-serif", fontWeight: 700, fontSize: 12,
+            }}
+          >
+            {initialsFor(p.name)}
+          </span>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontWeight: 600, color: theme.text, fontSize: 15, fontFamily: "'Chakra Petch', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</div>
+            {p.role && <span className="kp-chip" style={{ background: theme.steelSoft, color: theme.textDim, marginTop: 4 }}>{p.role}</span>}
           </div>
         </div>
-        <div style={{ textAlign: "right" }}>
+        <div style={{ textAlign: "right", flexShrink: 0 }}>
           <div style={{
             display: "inline-block", fontFamily: "'IBM Plex Mono', monospace", fontSize: 20, color: theme.accent, fontWeight: 700,
-            background: theme.accentSoft, padding: "2px 10px", borderRadius: 4, border: `1px solid ${theme.accentBorder}`,
+            background: theme.accentSoft, padding: "3px 11px", borderRadius: 4, border: `1px solid ${theme.accentBorder}`,
           }}>
             {r.total.toFixed(1)}
           </div>
-          <div style={{ fontSize: 10, color: theme.textFaint, marginTop: 3 }}>proj. {cfg.label.toLowerCase()} / {games}g</div>
+          <div style={{ fontSize: 10, color: theme.textFaint, marginTop: 4 }}>proj. {cfg.label.toLowerCase()} / {games}g</div>
         </div>
       </div>
       {open && (
@@ -1240,18 +1321,15 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games }
       {open && (
         <div style={{ borderTop: `1px solid ${theme.steel}` }}>
           <HeadToHeadCard teams={teams} pastMatches={pastMatches} teamA={match.teamA} teamB={match.teamB} bare />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 60px", padding: "6px 14px", fontSize: 10, letterSpacing: 1, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", borderTop: `1px solid ${theme.steel}` }}>
-            <span>PLAYER</span><span style={{ textAlign: "right" }}>PROJ</span>
-          </div>
           {rows.map((r) => (
-            <div key={r.team + r.name} style={{ display: "grid", gridTemplateColumns: "1fr 60px", padding: "7px 14px", fontSize: 12, borderTop: `1px solid ${theme.steelSoft}`, alignItems: "center" }}>
-              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ width: 5, height: 16, background: teams[r.team].color }} />
-                {r.name}
-                {r.role && <span className="kp-chip" style={{ background: theme.steelSoft, color: theme.textFaint }}>{r.role}</span>}
-              </span>
-              <span style={{ textAlign: "right", color: theme.accent, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700 }}>{r.proj.toFixed(1)}</span>
-            </div>
+            <MatchPlayerRow
+              key={r.team + r.name}
+              theme={theme}
+              teamColor={teams[r.team].color}
+              name={r.name}
+              role={r.role}
+              stats={[{ label: "PROJ", value: r.proj.toFixed(1), color: theme.accent, big: true }]}
+            />
           ))}
         </div>
       )}
@@ -1487,22 +1565,22 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
       </div>
       {open && (
         <div style={{ borderTop: `1px solid ${theme.steel}` }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 44px 44px 44px", padding: "6px 14px", fontSize: 10, letterSpacing: 1, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
-            <span>PLAYER</span><span style={{ textAlign: "right" }}>PROJ</span><span style={{ textAlign: "right" }}>ACT</span><span style={{ textAlign: "right" }}>DIFF</span>
-          </div>
           {rows.map((r) => (
-            <div key={r.team + r.name} style={{ display: "grid", gridTemplateColumns: "1fr 44px 44px 44px", padding: "7px 14px", fontSize: 12, borderTop: `1px solid ${theme.steelSoft}`, alignItems: "center" }}>
-              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ width: 5, height: 16, background: teams[r.team].color }} />
-                {r.name}
-                {r.priorGames === 0 && <span className="kp-chip" style={{ background: `${theme.bad}18`, color: theme.bad, border: `1px solid ${theme.bad}44` }}>NO PRIOR FORM</span>}
-              </span>
-              <span style={{ textAlign: "right", color: theme.textDim, fontFamily: "'IBM Plex Mono', monospace" }}>{r.proj.toFixed(1)}</span>
-              <span style={{ textAlign: "right", color: theme.text, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}>{r.actual}</span>
-              <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: r.diff > 0 ? theme.good : r.diff < 0 ? theme.bad : theme.textFaint }}>
-                {r.diff > 0 ? "+" : ""}{r.diff.toFixed(1)}
-              </span>
-            </div>
+            <MatchPlayerRow
+              key={r.team + r.name}
+              theme={theme}
+              teamColor={teams[r.team].color}
+              name={r.name}
+              role={r.role}
+              extraChip={r.priorGames === 0 && (
+                <span className="kp-chip" style={{ background: `${theme.bad}18`, color: theme.bad, border: `1px solid ${theme.bad}44` }}>NO PRIOR FORM</span>
+              )}
+              stats={[
+                { label: "PROJ", value: r.proj.toFixed(1), color: theme.textDim },
+                { label: "ACT", value: r.actual, color: theme.text },
+                { label: "DIFF", value: `${r.diff > 0 ? "+" : ""}${r.diff.toFixed(1)}`, color: r.diff > 0 ? theme.good : r.diff < 0 ? theme.bad : theme.textFaint },
+              ]}
+            />
           ))}
         </div>
       )}
