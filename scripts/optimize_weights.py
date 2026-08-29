@@ -112,15 +112,24 @@ def recency_weighted_rate(past_matches, team, player_name, stat_key, cutoff_date
 
 
 def team_stat_per_game(teams, team_name, stat_key):
-    players = teams[team_name]["players"]
+    # A team can appear in past_matches without having an entry in `teams`
+    # — real case: CS2's "Haunted House" showed up as a historical
+    # opponent but was never in the discovered/backfilled team set, which
+    # crashed the whole assists run with a KeyError. Returning None lets
+    # callers fall back to a league-average-style estimate instead of
+    # dying on one incomplete team.
+    entry = teams.get(team_name)
+    if not entry or not entry.get("players"):
+        return None
+    players = entry["players"]
     distinct_roles = len(set(p.get("role") for p in players))
     divisor = distinct_roles if distinct_roles > 1 else (min(5, len(players)) or 1)
     return sum(p["cur"][stat_key] for p in players) / divisor
 
 
 def league_avg_stat(teams, stat_key):
-    names = list(teams.keys())
-    return sum(team_stat_per_game(teams, t, stat_key) for t in names) / len(names)
+    values = [v for v in (team_stat_per_game(teams, t, stat_key) for t in teams) if v is not None]
+    return sum(values) / len(values) if values else None
 
 
 def point_in_time_team_stat(past_matches, team, stat_key, cutoff_date):
@@ -215,6 +224,8 @@ def resolve_opponent_multiplier(teams, past_matches, player, opponent_team, opp_
     league_avg_pt = point_in_time_league_avg_stat(past_matches, teams, cfg["oppBasis"], cutoff_date)
     opp_stat = opp_stat_pt if opp_stat_pt is not None else team_stat_per_game(teams, opponent_team, cfg["oppBasis"])
     league_avg = league_avg_pt if league_avg_pt is not None else league_avg_stat(teams, cfg["oppBasis"])
+    if opp_stat is None or not league_avg:
+        return 1.0  # no usable opponent estimate — stay neutral rather than guess
     return 1 + opp_strength * (opp_stat / league_avg - 1)
 
 
@@ -507,9 +518,10 @@ def diagnose_opponent_signal(region_data, stat_type, weights, threshold=8):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--stat", choices=["kills", "deaths", "assists", "all"], default="all")
-    ap.add_argument("--game", choices=["lol", "valorant", "all"], default="all")
+    ap.add_argument("--game", choices=["lol", "valorant", "cs2", "all"], default="all")
     ap.add_argument("--data", default="data.json")
     ap.add_argument("--valorant-data", default="valorant_data.json")
+    ap.add_argument("--cs2-data", default="cs2_data.json")
     ap.add_argument("--diagnose-opponent", action="store_true",
                      help="Investigate whether the opponent-strength signal correlates with real "
                           "outcomes, and whether it improves once the opponent has more prior games "
@@ -524,13 +536,37 @@ def main():
         region_data.update(load_region_data(args.data))
     if args.game in ("valorant", "all"):
         region_data.update(load_region_data(args.valorant_data))
+    if args.game in ("cs2", "all"):
+        region_data.update(load_region_data(args.cs2_data))
 
     if not region_data:
-        print("No region data loaded — check --data / --valorant-data paths point at real files "
-              "with populated 'teams' and 'past_matches'.", file=sys.stderr)
+        print("No region data loaded — check --data / --valorant-data / --cs2-data paths point at "
+              "real files with populated 'teams' and 'past_matches'.", file=sys.stderr)
         sys.exit(1)
 
     print(f"Loaded regions: {list(region_data.keys())}\n")
+
+    # CS2's data shape makes some weights structurally inert — flag this
+    # explicitly rather than letting a search "tune" parameters that
+    # cannot affect the output. CS2 players have hist=None (no
+    # Spring/Summer-style split exists in CS2's continuous tournament
+    # calendar) and kp=0 (kill participation isn't computed), so:
+    #   - the `history` weight has no historical rate to blend against
+    #     (project_point_in_time falls back to the point-in-time rate)
+    #   - the `kp` weight multiplies by exactly 1.0 (kp_multiplier
+    #     short-circuits when cur.kp is falsy)
+    #   - `patchDiscount` has no patch data to discount against
+    # Only `opponent` and `recencyHalfLife` can actually move CS2
+    # predictions. Any "improvement" reported for the others on CS2-only
+    # data would be search noise, not signal.
+    cs2_regions = [k for k, v in region_data.items()
+                   if any(p.get("hist") is None and not p.get("cur", {}).get("kp")
+                          for t in (v.get("teams") or {}).values()
+                          for p in (t.get("players") or []))]
+    if cs2_regions:
+        print(f"NOTE: {cs2_regions} have players with hist=None and kp=0 — for those regions the "
+              f"'history', 'kp', and 'patchDiscount' weights are structurally inert (they cannot "
+              f"change predictions). Only 'opponent' and 'recencyHalfLife' are meaningful there.\n")
 
     stat_types = ["kills", "deaths", "assists"] if args.stat == "all" else [args.stat]
 

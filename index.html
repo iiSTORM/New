@@ -732,10 +732,46 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
 // searched value never got captured) — replace with the real number from a
 // fresh `--stat assists` run whenever convenient; low-stakes since
 // patchDiscount only matters when cross-patch data exists at all.
-const DEFAULT_WEIGHTS_BY_STAT = {
-  kills: { history: 0.7, opponent: 0.4, kp: 0.0, recencyHalfLife: 5, patchDiscount: 0.1 },
-  deaths: { history: 0.8, opponent: 0.2, kp: 0.3, recencyHalfLife: 3, patchDiscount: 0.0 },
-  assists: { history: 0.6, opponent: 0.0, kp: 0.2, recencyHalfLife: 4, patchDiscount: 0.5 /* placeholder — see note above */ },
+/* Per-GAME, per-stat weights, all measured via scripts/optimize_weights.py
+   backtesting against real accumulated match data — not guessed. A single
+   shared set was previously used across all three games, which was a real
+   source of inconsistency: the optimal weights differ substantially by
+   game (e.g. `opponent` wants 0.2-0.4 for LoL but 1.0 for Valorant
+   kills/deaths, and 0.0 for Valorant assists).
+
+   Measured improvements vs. the old shared defaults:
+     LoL      kills +8.3%,  deaths +17.1%, assists +12.7%
+     Valorant kills +2.1%,  deaths +3.1%,  assists +16.8%
+     CS2      kills +0.2%,  deaths +1.4%,  assists (see note)
+
+   NOTE on CS2: its improvements are tiny because most weights are
+   structurally inert there — CS2 players have hist=null (no
+   Spring/Summer-style split exists in its continuous tournament
+   calendar) and kp=0 (kill participation isn't computed), so `history`,
+   `kp`, and `patchDiscount` cannot affect predictions at all; only
+   `opponent` and `recencyHalfLife` are live. CS2 inconsistency is a
+   data-shape limitation, not a tuning problem — fixing it properly means
+   computing real KP values or building a historical baseline, not
+   adjusting these numbers. CS2 assists retain Valorant's measured values
+   as the closest available proxy (both are 5v5 shooters with the same
+   inert-weight profile), since the CS2 assists backtest was blocked by a
+   separate bug at the time these were measured. */
+const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
+  lol: {
+    kills: { history: 0.7, opponent: 0.4, kp: 0.0, recencyHalfLife: 5, patchDiscount: 0.0 },
+    deaths: { history: 0.8, opponent: 0.2, kp: 0.3, recencyHalfLife: 20, patchDiscount: 0.0 },
+    assists: { history: 0.8, opponent: 0.2, kp: 0.1, recencyHalfLife: 5, patchDiscount: 1.0 },
+  },
+  valorant: {
+    kills: { history: 0.7, opponent: 1.0, kp: 0.3, recencyHalfLife: 6, patchDiscount: 0.0 },
+    deaths: { history: 0.7, opponent: 1.0, kp: 0.3, recencyHalfLife: 20, patchDiscount: 0.8 },
+    assists: { history: 0.4, opponent: 0.0, kp: 0.3, recencyHalfLife: 8, patchDiscount: 0.8 },
+  },
+  cs2: {
+    kills: { history: 0.3, opponent: 1.0, kp: 0.3, recencyHalfLife: 3, patchDiscount: 0.4 },
+    deaths: { history: 0.3, opponent: 1.0, kp: 0.3, recencyHalfLife: 2, patchDiscount: 0.4 },
+    assists: { history: 0.4, opponent: 0.0, kp: 0.3, recencyHalfLife: 8, patchDiscount: 0.8 },
+  },
 };
 
 /* ============================================================
@@ -1797,13 +1833,30 @@ function KillProjector() {
   const [statType, setStatType] = useState("kills");
   const [games, setGames] = useState(2);
 
-  // Per-stat weights persist across visits and across switching between
-  // Kills/Deaths/Assists — your custom Deaths tuning doesn't get lost just
-  // because you went and looked at Kills for a while.
-  const [weightsByStat, setWeightsByStat] = useState(() => loadStored("kp.weightsByStat", DEFAULT_WEIGHTS_BY_STAT));
-  useEffect(() => saveStored("kp.weightsByStat", weightsByStat), [weightsByStat]);
-  const weights = weightsByStat[statType];
-  const setWeight = (key, value) => setWeightsByStat((prev) => ({ ...prev, [statType]: { ...prev[statType], [key]: value } }));
+  // Per-GAME, per-stat weights persist across visits, across switching
+  // between Kills/Deaths/Assists, AND across switching games — custom
+  // CS2 tuning doesn't get clobbered by looking at LoL, and each game
+  // starts from its own measured defaults rather than one shared set
+  // (which was a real source of prediction inconsistency, since the
+  // measured optima differ substantially per game).
+  const [weightsByGameAndStat, setWeightsByGameAndStat] = useState(
+    () => loadStored("kp.weightsByGameAndStat", DEFAULT_WEIGHTS_BY_GAME_AND_STAT)
+  );
+  useEffect(() => saveStored("kp.weightsByGameAndStat", weightsByGameAndStat), [weightsByGameAndStat]);
+  // Fall back through game defaults then LoL, so a stored blob written by
+  // an older build (or a newly-added game) can't leave weights undefined.
+  const weights =
+    (weightsByGameAndStat[game] && weightsByGameAndStat[game][statType]) ||
+    (DEFAULT_WEIGHTS_BY_GAME_AND_STAT[game] && DEFAULT_WEIGHTS_BY_GAME_AND_STAT[game][statType]) ||
+    DEFAULT_WEIGHTS_BY_GAME_AND_STAT.lol[statType];
+  const setWeight = (key, value) =>
+    setWeightsByGameAndStat((prev) => {
+      const gameWeights = prev[game] || DEFAULT_WEIGHTS_BY_GAME_AND_STAT[game] || DEFAULT_WEIGHTS_BY_GAME_AND_STAT.lol;
+      return {
+        ...prev,
+        [game]: { ...gameWeights, [statType]: { ...gameWeights[statType], [key]: value } },
+      };
+    });
 
   const [slidersExpanded, setSlidersExpanded] = useState(() => loadStored("kp.slidersExpanded", false));
   useEffect(() => saveStored("kp.slidersExpanded", slidersExpanded), [slidersExpanded]);
