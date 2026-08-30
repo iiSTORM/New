@@ -91,7 +91,8 @@
                 "d": 2.3,
                 "a": 6.6,
                 "kp": 65.3
-              }
+              },
+              "career": null
             },
             {
               "name": "Isles",
@@ -2458,7 +2459,44 @@
           }
         }
       ],
-      "upcoming_matches": []
+      "upcoming_matches": [
+        {
+          "date": "2026-08-30T20:00:00Z",
+          "teamA": "LYON",
+          "teamB": "Team Liquid",
+          "block": "Week 6"
+        },
+        {
+          "date": "2026-08-30T23:00:00Z",
+          "teamA": "Cloud9",
+          "teamB": "Shopify Rebellion",
+          "block": "Week 6"
+        },
+        {
+          "date": "2026-09-05T20:00:00Z",
+          "teamA": "Sentinels",
+          "teamB": "Cloud9",
+          "block": "Week 7"
+        },
+        {
+          "date": "2026-09-05T23:00:00Z",
+          "teamA": "Dignitas",
+          "teamB": "Team Liquid",
+          "block": "Week 7"
+        },
+        {
+          "date": "2026-09-06T20:00:00Z",
+          "teamA": "FlyQuest",
+          "teamB": "Shopify Rebellion",
+          "block": "Week 7"
+        },
+        {
+          "date": "2026-09-06T23:00:00Z",
+          "teamA": "Disguised",
+          "teamB": "LYON",
+          "block": "Week 7"
+        }
+      ]
     },
     "LEC": {
       "teams": {
@@ -6453,7 +6491,14 @@
           }
         }
       ],
-      "upcoming_matches": []
+      "upcoming_matches": [
+        {
+          "date": "2026-08-30T16:30:00Z",
+          "teamA": "GIANTX",
+          "teamB": "Fnatic",
+          "block": "Week 6"
+        }
+      ]
     },
     "LCK": {
       "teams": {
@@ -10348,7 +10393,26 @@
           }
         }
       ],
-      "upcoming_matches": []
+      "upcoming_matches": [
+        {
+          "date": "2026-09-01T08:00:00Z",
+          "teamA": "Gen.G",
+          "teamB": "KT Rolster",
+          "block": "Playoffs"
+        },
+        {
+          "date": "2026-09-02T08:00:00Z",
+          "teamA": "Hanwha Life Esports",
+          "teamB": "T1",
+          "block": "Playoffs"
+        },
+        {
+          "date": "2026-09-03T08:00:00Z",
+          "teamA": "Dplus KIA",
+          "teamB": "BNK FearX",
+          "block": "Playoffs"
+        }
+      ]
     },
     "LPL": {
       "teams": {
@@ -16307,6 +16371,12 @@
       ],
       "upcoming_matches": [
         {
+          "date": "2026-09-03T09:00:00Z",
+          "teamA": "Team WE",
+          "teamB": "Bilibili Gaming",
+          "block": "Playoffs"
+        },
+        {
           "date": "2026-09-04T09:00:00Z",
           "teamA": "LGD Gaming",
           "teamB": "Anyone s Legend",
@@ -16316,6 +16386,12 @@
           "date": "2026-09-05T06:00:00Z",
           "teamA": "Top Esports",
           "teamB": "Ninjas in Pyjamas",
+          "block": "Playoffs"
+        },
+        {
+          "date": "2026-09-05T09:00:00Z",
+          "teamA": "JD Gaming",
+          "teamB": "Invictus Gaming",
           "block": "Playoffs"
         }
       ]
@@ -21566,7 +21642,14 @@
           }
         }
       ],
-      "upcoming_matches": []
+      "upcoming_matches": [
+        {
+          "date": "2026-08-30T16:00:00Z",
+          "teamA": "paiN Gaming",
+          "teamB": "Vivo Keyd Stars",
+          "block": "Week 6"
+        }
+      ]
     },
     "TCL": {
       "teams": {
@@ -23568,7 +23651,20 @@
           }
         }
       ],
-      "upcoming_matches": []
+      "upcoming_matches": [
+        {
+          "date": "2026-09-01T15:00:00Z",
+          "teamA": "PCIFIC Esports",
+          "teamB": "Dark Passage",
+          "block": "Playoffs"
+        },
+        {
+          "date": "2026-09-02T15:00:00Z",
+          "teamA": "Bushido Wildcats",
+          "teamB": "SU Esports",
+          "block": "Playoffs"
+        }
+      ]
     }
   }
 }
