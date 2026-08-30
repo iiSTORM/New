@@ -588,7 +588,21 @@ def scrape_region(region_key, current_tournament, historical_tournament):
         # carry — keeps old-shaped match records (from before this
         # existed) and any genuinely empty result equally harmless to
         # consumers that check for the key defensively.
-        if any(any(p.get("champion") for p in team.values()) for team in per_game if team):
+        # Walks per_game (list of games) -> game (dict of team->players)
+        # -> team_players (dict of player->stats) -> the actual
+        # "champion" key. An earlier version of this check was one level
+        # too shallow (checking team_players itself for "champion"
+        # instead of each individual player's stats within it), which
+        # meant it always evaluated False and per_game silently never
+        # got attached — confirmed by a real run showing 0/241 matches
+        # aggregatable despite champion parsing itself working.
+        has_champion_data = any(
+            player_stats.get("champion")
+            for game in per_game if game
+            for team_players in game.values()
+            for player_stats in team_players.values()
+        )
+        if has_champion_data:
             entry["per_game"] = per_game
         return entry
 

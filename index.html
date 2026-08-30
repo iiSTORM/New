@@ -211,6 +211,10 @@ const ThemeContext = createContext(null);
 function useTheme() {
   return useContext(ThemeContext);
 }
+const ChampionStatsContext = createContext(null);
+function useChampionStats() {
+  return useContext(ChampionStatsContext);
+}
 
 // Live viewport-width detection rather than user-agent sniffing — user
 // agents lie, and this also adapts correctly if someone just resizes a
@@ -270,6 +274,10 @@ function Reticle({ size = 16, color, active = false }) {
 const DATA_URL_LOL = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/data.json";
 const DATA_URL_VALORANT = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/valorant_data.json";
 const DATA_URL_CS2 = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/cs2_data.json";
+// Champion-level stat baselines (scripts/aggregate_champion_stats.py) —
+// LoL-only for now, and not tied to the per-game GAMES fetch loop below
+// since it's a standalone reference table, not one game's live snapshot.
+const DATA_URL_CHAMPION_STATS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/champion_stats.json";
 
 /* ============================================================
    FALLBACK DATA — used if a game's DATA_URL is blank or the fetch
@@ -930,8 +938,10 @@ function Slider({ label, value, onChange, min, max, step, format }) {
 
 function PlayerRow({ teams, pastMatches, p, team, opponentTeam, games, weights, teamColor, statType }) {
   const theme = useTheme();
+  const championStats = useChampionStats();
   const cfg = STAT_TYPES[statType];
   const r = project(teams, pastMatches, p, team, opponentTeam, games, weights, statType);
+  const consistency = championStats ? championPoolConsistency(p.name, championStats, cfg.key) : null;
   const [open, setOpen] = useState(false);
   return (
     <div className="kp-clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer", borderBottom: `1px solid ${theme.steel}`, padding: "13px 16px", background: open ? theme.graphiteLight : "transparent" }}>
@@ -971,6 +981,22 @@ function PlayerRow({ teams, pastMatches, p, team, opponentTeam, games, weights, 
           <div style={{ marginTop: 4, color: theme.textFaint }}>
             flat season avg: {p.cur[cfg.key].toFixed(1)} {cfg.key}/g ({p.cur.g}g) &nbsp;|&nbsp; historical: {p.hist ? `${p.hist[cfg.key].toFixed(1)} ${cfg.key}/g (${p.hist.g}g)` : "no data on file"}
           </div>
+          {consistency && (
+            <div style={{ marginTop: 8, paddingTop: 8, borderTop: `1px solid ${theme.steelSoft}`, color: theme.textFaint }}>
+              <div>
+                champion-pool consistency ({consistency.championsConsidered} champs, {consistency.totalGames}g) &nbsp;→&nbsp;
+                {" "}CV={consistency.coefficientOfVariation != null ? consistency.coefficientOfVariation.toFixed(2) : "n/a"}
+                {consistency.coefficientOfVariation != null && (
+                  <span style={{ color: consistency.coefficientOfVariation < 0.3 ? theme.good : consistency.coefficientOfVariation > 0.6 ? theme.bad : theme.textFaint }}>
+                    {" "}({consistency.coefficientOfVariation < 0.3 ? "steady regardless of pick" : consistency.coefficientOfVariation > 0.6 ? "swings a lot by champion" : "moderate variation"})
+                  </span>
+                )}
+              </div>
+              <div style={{ marginTop: 2 }}>
+                {consistency.entries.slice(0, 3).map((e) => `${e.champion} (${e[cfg.key].toFixed(1)}/g, ${e.g}g)`).join("  ·  ")}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -1182,6 +1208,39 @@ function getHeadToHead(pastMatches, teamA, teamB) {
     else if (m.winner === teamB) winsB++;
   }
   return { meetings, winsA, winsB };
+}
+
+// Champion-pool CONSISTENCY — a genuinely forward-usable confidence
+// signal, unlike anything that would need to guess an opponent's future
+// draft. Uses only a player's OWN past per-champion performance (always
+// knowable ahead of time) to measure how much their output swings
+// depending on what they're playing. A low coefficient of variation
+// means their numbers hold up regardless of champion; a high one means
+// their projection should be trusted less tightly, since the actual
+// draft (unknown until minutes before the game) could meaningfully move
+// the real outcome either direction.
+function championPoolConsistency(playerName, championStats, statKey, minGamesPerChampion = 2) {
+  if (!championStats || !championStats.player_champions) return null;
+  const prefix = `${playerName}|`;
+  const entries = Object.entries(championStats.player_champions)
+    .filter(([key, stats]) => key.startsWith(prefix) && stats.g >= minGamesPerChampion)
+    .map(([key, stats]) => ({ champion: key.slice(prefix.length), ...stats }));
+  if (entries.length < 2) return null; // need 2+ distinct, reasonably-sampled champions to say anything about consistency at all
+
+  const totalGames = entries.reduce((sum, e) => sum + e.g, 0);
+  const weightedMean = entries.reduce((sum, e) => sum + e[statKey] * e.g, 0) / totalGames;
+  const weightedVariance = entries.reduce((sum, e) => sum + e.g * Math.pow(e[statKey] - weightedMean, 2), 0) / totalGames;
+  const stdDev = Math.sqrt(weightedVariance);
+  const coefficientOfVariation = weightedMean > 0 ? stdDev / weightedMean : null;
+
+  return {
+    championsConsidered: entries.length,
+    totalGames,
+    weightedMean,
+    stdDev,
+    coefficientOfVariation,
+    entries: entries.sort((a, b) => b.g - a.g), // most-played first
+  };
 }
 
 function HeadToHeadCard({ teams, pastMatches, teamA, teamB, bare = false }) {
@@ -2129,6 +2188,45 @@ function KillProjector() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Separate, simple fetch for champion_stats.json — a standalone
+  // reference table, not tied to any one game's live snapshot, so it
+  // doesn't need the same per-game merge/fallback machinery above. Same
+  // one-retry-on-failure treatment as the main data fetches, for the
+  // same CDN-propagation-race reason.
+  //
+  // NOTE on scope: an earlier design here tried to use Fearless Draft
+  // ban-pool carryover from a team's PRIOR series to inform an UPCOMING
+  // one. That doesn't actually hold up on reflection, for two
+  // independent reasons: (1) this app's data model only ever captures
+  // FULLY COMPLETED series as single past_matches entries — there's no
+  // "game 1 done, game 2 pending" state the scrape cadence would ever
+  // observe: and (2) Fearless ban-pool carryover is scoped to a single
+  // series anyway, not across separate series on different days, so
+  // even with finer-grained data it wouldn't be the right signal for a
+  // genuinely new, upcoming series. What's actually usable here instead
+  // is champion-pool CONSISTENCY as a confidence signal (see
+  // championPoolConsistency below) — it only needs a player's own past
+  // performance, which is always known ahead of time, unlike an
+  // opponent's future draft.
+  const [championStats, setChampionStats] = useState(null);
+  useEffect(() => {
+    const attemptFetch = (attemptsLeft) =>
+      fetch(DATA_URL_CHAMPION_STATS, { cache: "no-store" })
+        .then((res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+          return res.json();
+        })
+        .catch((err) => {
+          if (attemptsLeft > 0) {
+            return new Promise((resolve) => setTimeout(resolve, 1500)).then(() => attemptFetch(attemptsLeft - 1));
+          }
+          throw err;
+        });
+    attemptFetch(1)
+      .then((data) => setChampionStats(data))
+      .catch((err) => console.warn("Champion stats fetch failed (champion-pool consistency insight will be unavailable):", err));
+  }, []);
+
   const gameCfg = GAMES[game];
   const regionsData = dataByGame[game] || gameCfg.fallbackRegions;
   const current = regionsData[region] || { teams: {}, past_matches: [], upcoming_matches: [] };
@@ -2142,6 +2240,7 @@ function KillProjector() {
 
   return (
     <ThemeContext.Provider value={theme}>
+    <ChampionStatsContext.Provider value={championStats}>
       <div style={{
         minHeight: "100vh", color: theme.text, fontFamily: "'Inter', -apple-system, sans-serif", padding: isDesktop ? "32px 32px 60px" : "24px 16px 60px",
         background: `radial-gradient(ellipse 1200px 800px at 50% -10%, ${theme.accent}0d, transparent 60%), `
@@ -2289,6 +2388,7 @@ function KillProjector() {
           </div>
         </div>
       </div>
+    </ChampionStatsContext.Provider>
     </ThemeContext.Provider>
   );
 }
