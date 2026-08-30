@@ -343,7 +343,7 @@ def coordinate_descent(region_data, stat_type, start_weights, passes=3):
         "kp": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 1.0],
         "recencyHalfLife": [2, 3, 4, 5, 6, 8, 10, 14, 20],
         "patchDiscount": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0],
-        "career": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+        "career": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95, 1.0],
     }
     cfg = STAT_TYPES[stat_type]
     params = ["history", "opponent", "recencyHalfLife", "patchDiscount", "career"]

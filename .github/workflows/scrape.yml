@@ -49,12 +49,32 @@ jobs:
             exit 0
           fi
           git commit -m "Update LoL data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          # The Valorant job may push around the same time — pull --rebase
-          # and retry a few times rather than failing outright on a race.
+          # data.json is wholesale-regenerated every run (scrape_lcs.py +
+          # scrape_schedule.py + merge.py all rebuild it fresh, nothing is
+          # incrementally edited) — a real merge-conflict was found
+          # committed to this exact file after two overlapping runs both
+          # pushed near-total rewrites, the same failure mode already
+          # fixed for cs2_data.json below. Since the file is idempotently
+          # regenerated, a content-level merge is never actually
+          # meaningful here — on push rejection, this discards the local
+          # commit's position entirely, resets to the latest remote
+          # state, and re-applies this run's already-generated file fresh
+          # on top, so "whoever pushes last simply wins with their
+          # snapshot" rather than attempting a merge that was never going
+          # to succeed cleanly for a full-file rewrite.
           for i in 1 2 3 4 5; do
             git push && exit 0
-            echo "Push rejected, pulling and retrying ($i/5)..."
-            git pull --rebase
+            echo "Push rejected ($i/5) — resetting to latest remote and reapplying this run's snapshot..."
+            cp data.json /tmp/data.json.new
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/data.json.new data.json
+            git add data.json
+            if git diff --quiet --cached; then
+              echo "Remote already has this exact snapshot — nothing left to push"
+              exit 0
+            fi
+            git commit -m "Update LoL data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             sleep $((RANDOM % 5 + 1))
           done
           git push
@@ -89,10 +109,24 @@ jobs:
             exit 0
           fi
           git commit -m "Update Valorant data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          # Same reasoning as data.json/cs2_data.json below — this file is
+          # wholesale-regenerated every run, not incrementally edited, so
+          # reset-and-reapply on push rejection is correct; a content-
+          # level git merge was never going to be meaningful for a full-
+          # file rewrite in the first place.
           for i in 1 2 3 4 5; do
             git push && exit 0
-            echo "Push rejected, pulling and retrying ($i/5)..."
-            git pull --rebase
+            echo "Push rejected ($i/5) — resetting to latest remote and reapplying this run's snapshot..."
+            cp valorant_data.json /tmp/valorant_data.json.new
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/valorant_data.json.new valorant_data.json
+            git add valorant_data.json
+            if git diff --quiet --cached; then
+              echo "Remote already has this exact snapshot — nothing left to push"
+              exit 0
+            fi
+            git commit -m "Update Valorant data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             sleep $((RANDOM % 5 + 1))
           done
           git push
