@@ -33,6 +33,15 @@ TEAM_NAME_MAP = {
     # for the full "Los Grandes".
     "red kalunga": "RED Canids",
     "los": "Los Grandes",
+    # Leviatán was originally a one-off CBLOL Cup guest team (LLA), but was
+    # confirmed as a full 2026 CBLOL partner team for the whole season —
+    # this entry matters beyond just the Cup now. LoL Esports API keeps
+    # the accent ("LEVIATÁN"); gol.gg appears to drop it, per a real
+    # indexed gol.gg game page titled "Leviatan vs RED Canids" (CBLOL Cup
+    # 2026 Week 1) — inferred from that page title, not directly
+    # confirmed against gol.gg's own stored team name, so double-check
+    # this resolves cleanly on the next merge run.
+    "leviatán": "Leviatan",
     # TCL — confirmed against a real current TCL 2026 Summer team list:
     # "PCIFIC Esports" (unusual spelling, genuinely correct on both sides,
     # not a typo) and "SU Esports" (API adds sponsor prefix "Avella" that
