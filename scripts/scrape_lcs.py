@@ -287,9 +287,98 @@ def parse_match_list(tournament):
     return matches
 
 
+def parse_game_draft(soup, team_names):
+    """Extracts draft info from the SAME page parse_game_kills already
+    fetches — no extra request needed. Confirmed via live reconnaissance
+    on a real current game page (RED Canids vs LOUD, CBLOL Cup 2026):
+
+      - Fearless Draft tournaments are explicitly labeled as such right
+        on the page (e.g. "CBLOL Cup 2026 (BR) - Fearless Draft") --
+        detecting this is a simple text check, not a hardcoded list of
+        which tournaments use the format.
+      - Each team has its OWN "Bans" then "Picks" section within that
+        team's own block of the page (not one shared "Bans" header
+        split between both teams) -- team switching is tracked the same
+        way parse_game_kills already reliably does it, via the
+        blue-line-header/red-line-header divs, not by alternating on
+        "Bans"/"Picks" text alone.
+      - Champion names are recoverable from each champion link's
+        title/alt text ("Rumble stats" -> "Rumble"), via links to
+        /champion/champion-stats/{id}/....
+      - A "First Pick" badge marks draft priority for whichever team's
+        block it appears in.
+
+    Bans/Picks sections aren't in a confirmed, named container (only
+    inspected via rendered content, not raw HTML), so this anchors on
+    the literal "Bans"/"Picks" text nodes and collects champion links
+    between consecutive anchors within each team's block -- a defensive
+    strategy that should survive minor markup differences, but --
+    consistent with every other scraper in this project -- needs one
+    real run against actual HTML to confirm it actually works."""
+    page_text = soup.get_text()
+    fearless = "Fearless Draft" in page_text
+
+    champion_link_re = re.compile(r"/champion/champion-stats/(\d+)/")
+
+    def champion_name_from_link(a):
+        title = a.get("title", "")
+        return title[:-len(" stats")] if title.endswith(" stats") else (a.get_text(strip=True) or None)
+
+    bans = {t: [] for t in team_names}
+    picks = {t: [] for t in team_names}
+    first_pick_team = None
+
+    if len(team_names) != 2:
+        return {"fearless": fearless, "bans": bans, "picks": picks, "first_pick_team": None}
+
+    current_team = None
+    current_section = None  # "bans" | "picks" | None
+
+    for el in soup.find_all(["div", "span", "td", "th", "p", "a", "img", "table"]):
+        if el.name == "table":
+            # Real draft summary data (Bans/Picks per team) only ever
+            # appears BEFORE the per-player stat tables in document
+            # order — confirmed by a real bug this exact boundary check
+            # fixes: without it, champion links inside the per-player
+            # tables (needed separately, per-player, for parse_game_kills)
+            # kept getting vacuumed into whichever team was last active
+            # here, producing duplicated/misattributed picks once the
+            # walk continued past the summary section.
+            break
+        classes = el.get("class") or []
+        if "blue-line-header" in classes:
+            current_team, current_section = team_names[0], None
+            continue
+        if "red-line-header" in classes:
+            current_team, current_section = team_names[1], None
+            continue
+        text = el.get_text(strip=True) if el.name != "img" else ""
+        if text == "Bans":
+            current_section = "bans"
+            continue
+        if text == "Picks":
+            current_section = "picks"
+            continue
+        if el.name == "img" and "first" in (el.get("src", "") or "").lower():
+            first_pick_team = current_team
+        if el.name == "a" and current_team and current_section:
+            m = champion_link_re.search(el.get("href", ""))
+            if m:
+                champ = champion_name_from_link(el)
+                if champ:
+                    (bans if current_section == "bans" else picks)[current_team].append(champ)
+
+    if not any(bans.values()) and not any(picks.values()):
+        print(f"  [debug] parse_game_draft found no bans/picks for game — page structure may not "
+              f"match what was confirmed via reconnaissance; needs a real look at this page's raw "
+              f"HTML", file=sys.stderr)
+
+    return {"fearless": fearless, "bans": bans, "picks": picks, "first_pick_team": first_pick_team}
+
+
 def parse_game_kills(game_id):
-    """Returns {team: {player: {"k":kills,"d":deaths,"a":assists}}} for a
-    single game page.
+    """Returns {"kda": {team: {player: {"k","d","a","champion"}}}, "draft": {...}}
+    for a single game page.
 
     gol.gg's per-game table nests a lot of extra markup per player (rune and
     item breakdowns), which inflates naive <tr> counts and makes position-based
@@ -297,7 +386,13 @@ def parse_game_kills(game_id):
     a player's profile (unambiguous signal), and within that same row look for
     a standalone "N/N/N" KDA pattern. Each player cell also has a champion-icon
     link before the name link, so we take the *last* link in the cell, not the
-    first, when extracting the name.
+    first, when extracting the name — and now also read the FIRST link (the
+    champion icon) to capture the champion each player picked, which used to
+    be silently discarded here.
+
+    Also parses draft info (bans, picks, Fearless Draft flag) from this same
+    page fetch via parse_game_draft() — see that function for how it locates
+    the Bans/Picks sections.
     """
     url = f"{BASE}/game/stats/{game_id}/page-game/"
     html = get(url)
@@ -313,7 +408,15 @@ def parse_game_kills(game_id):
     team_names = list(result.keys())
     if len(team_names) != 2:
         print(f"  ! game {game_id}: expected 2 teams from headers, got {team_names}", file=sys.stderr)
-        return result
+        return {"kda": result, "draft": None}
+
+    draft = parse_game_draft(soup, team_names)
+
+    champion_link_re = re.compile(r"/champion/champion-stats/(\d+)/")
+
+    def champion_name_from_link(a):
+        title = a.get("title", "")
+        return title[:-len(" stats")] if title.endswith(" stats") else (a.get_text(strip=True) or None)
 
     kda_pattern = re.compile(r"^\s*(\d+)\s*/\s*(\d+)\s*/\s*(\d+)\s*$")
     parsed = []
@@ -325,6 +428,15 @@ def parse_game_kills(game_id):
         name = player_links[-1].get_text(strip=True)  # last link = name, not champion icon
         if not name or name in seen_names:
             continue
+        # The champion icon link precedes the name link in the same cell —
+        # find it via the champion-stats href pattern rather than assuming
+        # a fixed position, since other links (runes, items) may also
+        # appear in the row.
+        champion = None
+        for a in row.find_all("a", href=champion_link_re):
+            champion = champion_name_from_link(a)
+            if champion:
+                break
         # Look for a cell in this row whose text is EXACTLY a "N/N/N" pattern
         # (avoids accidentally matching item/rune stat text that merely
         # contains digits and slashes).
@@ -332,7 +444,7 @@ def parse_game_kills(game_id):
         for td in row.find_all("td"):
             m = kda_pattern.match(td.get_text(strip=True))
             if m:
-                kda = {"k": int(m.group(1)), "d": int(m.group(2)), "a": int(m.group(3))}
+                kda = {"k": int(m.group(1)), "d": int(m.group(2)), "a": int(m.group(3)), "champion": champion}
                 break
         if kda is None:
             continue
@@ -348,27 +460,60 @@ def parse_game_kills(game_id):
     for name, kda in parsed[half:]:
         result[team_names[1]][name] = kda
 
-    return result
+    missing_champs = sum(1 for _, kda in parsed if not kda.get("champion"))
+    if missing_champs:
+        print(f"  ! game {game_id}: {missing_champs}/{len(parsed)} players had no champion parsed "
+              f"— champion-link extraction may need adjustment", file=sys.stderr)
+
+    return {"kda": result, "draft": draft}
 
 
 def series_g1_g2_kills(base_id, score):
     """Given the first game's ID, returns combined game-1 + game-2 K/D/A per
-    player, per team. Works the same regardless of series length (Bo3 or
-    Bo5) since it always fetches exactly the first two individual games."""
+    player, per team (unchanged shape — this is what the rest of the model
+    already depends on as "actual"), PLUS separate per-game draft info
+    (bans, picks, Fearless Draft flag, first-pick side) that callers can use
+    without disturbing anything that already consumes "actual". Works the
+    same regardless of series length (Bo3 or Bo5) since it always fetches
+    exactly the first two individual games.
+
+    Champion isn't combined into the summed KDA — unlike k/d/a, "champion
+    picked" doesn't make sense to sum across two different games (a player
+    likely played two different champions) — so per-game picks live in
+    draft.games[i] instead."""
     g1 = parse_game_kills(base_id)
     g2 = parse_game_kills(base_id + 1)
+    g1_kda, g2_kda = g1["kda"], g2["kda"]
     empty = {"k": 0, "d": 0, "a": 0}
     combined = {}
-    for team in g1:
+    for team in g1_kda:
         combined[team] = {}
-        for p, kda1 in g1[team].items():
-            kda2 = g2.get(team, {}).get(p, empty)
+        for p, kda1 in g1_kda[team].items():
+            kda2 = g2_kda.get(team, {}).get(p, empty)
             combined[team][p] = {
                 "k": kda1["k"] + kda2["k"],
                 "d": kda1["d"] + kda2["d"],
                 "a": kda1["a"] + kda2["a"],
             }
-    return combined
+
+    draft = None
+    if g1["draft"] or g2["draft"]:
+        # Fearless flag and first-pick side are per-tournament/per-game
+        # properties, not summed — take whichever game actually has them.
+        fearless = (g1["draft"] or {}).get("fearless") or (g2["draft"] or {}).get("fearless") or False
+        draft = {"fearless": fearless, "games": [g1["draft"], g2["draft"]]}
+
+    # Per-game, per-player breakdown WITH champion attached — this is
+    # exactly what parse_game_kills already computes per individual game,
+    # just preserved here instead of being discarded once summed into
+    # `combined` above. Needed for anything champion-aware (e.g. "how did
+    # this player perform on this specific champion"), since neither
+    # `combined` (summed, no champion) nor `draft.games[i].picks` (an
+    # unordered 5-champion list per team, no explicit per-player link)
+    # can answer that question alone.
+    per_game = [g1_kda, g2_kda]
+
+    return combined, draft, per_game
 
 
 def build_teams_payload(cur_players, hist_players, roster):
@@ -428,15 +573,24 @@ def scrape_region(region_key, current_tournament, historical_tournament):
     past_matches = []
 
     def fetch_one(m):
-        kills = series_g1_g2_kills(m["base_game_id"], m["score"])
+        kills, draft, per_game = series_g1_g2_kills(m["base_game_id"], m["score"])
         left_score, right_score = (int(x) for x in m["score"].split("-"))
         winner = m["team_left"] if left_score > right_score else m["team_right"]
-        return {
+        entry = {
             "week": m["week"], "date": m["date"], "patch": m.get("patch"),
             "teamA": m["team_left"], "teamB": m["team_right"],
             "winner": winner, "score": m["score"],
             "actual": kills,
         }
+        if draft:
+            entry["draft"] = draft
+        # Only stored when there's real per-player champion data to
+        # carry — keeps old-shaped match records (from before this
+        # existed) and any genuinely empty result equally harmless to
+        # consumers that check for the key defensively.
+        if any(any(p.get("champion") for p in team.values()) for team in per_game if team):
+            entry["per_game"] = per_game
+        return entry
 
     with ThreadPoolExecutor(max_workers=6) as pool:
         futures = {pool.submit(fetch_one, m): m for m in matches}
