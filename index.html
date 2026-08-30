@@ -619,11 +619,33 @@ function project(teams, pastMatches, player, team, opponentTeam, games, weights,
   const refPatch = latestPatch(pastMatches, null);
   const weighted = recencyWeightedRate(pastMatches, team, player.name, cfg.key, null, weights.recencyHalfLife, refPatch, weights.patchDiscount);
   const curRate = weighted.rate !== null ? weighted.rate : player.cur[cfg.key]; // safety net if pastMatches is thin
-  const base = player.hist ? weights.history * player.hist[cfg.key] + (1 - weights.history) * curRate : curRate;
+  let base = player.hist ? weights.history * player.hist[cfg.key] + (1 - weights.history) * curRate : curRate;
+  base = applyCareerTier(base, player, weights, cfg);
   const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, null);
   const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp) : 1;
   const perGame = base * oppMult * kpMult;
   return { base, oppMult, kpMult, perGame, total: perGame * games };
+}
+
+// Career tier — a longer-horizon (multi-season, decay-weighted) prior
+// blended on TOP of the existing recent-form/split-history base, using
+// its own independent weight rather than forcing a 3-way sum-to-1
+// average — consistent with how patchDiscount/kp are already separate
+// multiplicative layers rather than folded into one blend. Shared by
+// both project() (live) and projectPointInTime() (backtesting) so they
+// never drift apart, mirroring scripts/optimize_weights.py's Python
+// version of the same logic exactly. Falls back cleanly (base
+// unchanged) when a player has no career data yet — rookies, or any
+// game/region career history hasn't been built for (Valorant/CS2 don't
+// have their own career scraper yet). weights.career defaults to 0 until
+// backtested for real, so this has zero effect on any already-measured
+// weights until deliberately tuned.
+function applyCareerTier(base, player, weights, cfg) {
+  const careerRate = player.career ? player.career[cfg.key] : null;
+  if (careerRate != null && weights.career > 0) {
+    return weights.career * careerRate + (1 - weights.career) * base;
+  }
+  return base;
 }
 
 /* ============================================================
@@ -772,6 +794,7 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
   } else {
     base = histRate !== null ? histRate : player.cur[cfg.key];
   }
+  base = applyCareerTier(base, player, weights, cfg);
 
   const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, cutoffDate);
 
@@ -830,19 +853,19 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
    separate bug at the time these were measured. */
 const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
   lol: {
-    kills: { history: 0.7, opponent: 0.4, kp: 0.0, recencyHalfLife: 5, patchDiscount: 0.0 },
-    deaths: { history: 0.8, opponent: 0.2, kp: 0.3, recencyHalfLife: 20, patchDiscount: 0.0 },
-    assists: { history: 0.8, opponent: 0.2, kp: 0.1, recencyHalfLife: 5, patchDiscount: 1.0 },
+    kills: { history: 0.7, opponent: 0.4, kp: 0.0, recencyHalfLife: 5, patchDiscount: 0.0, career: 0.0 },
+    deaths: { history: 0.8, opponent: 0.2, kp: 0.3, recencyHalfLife: 20, patchDiscount: 0.0, career: 0.0 },
+    assists: { history: 0.8, opponent: 0.2, kp: 0.1, recencyHalfLife: 5, patchDiscount: 1.0, career: 0.0 },
   },
   valorant: {
-    kills: { history: 0.7, opponent: 1.0, kp: 0.3, recencyHalfLife: 6, patchDiscount: 0.0 },
-    deaths: { history: 0.7, opponent: 1.0, kp: 0.3, recencyHalfLife: 20, patchDiscount: 0.8 },
-    assists: { history: 0.4, opponent: 0.0, kp: 0.3, recencyHalfLife: 8, patchDiscount: 0.8 },
+    kills: { history: 0.7, opponent: 1.0, kp: 0.3, recencyHalfLife: 6, patchDiscount: 0.0, career: 0.0 },
+    deaths: { history: 0.7, opponent: 1.0, kp: 0.3, recencyHalfLife: 20, patchDiscount: 0.8, career: 0.0 },
+    assists: { history: 0.4, opponent: 0.0, kp: 0.3, recencyHalfLife: 8, patchDiscount: 0.8, career: 0.0 },
   },
   cs2: {
-    kills: { history: 0.3, opponent: 1.0, kp: 0.3, recencyHalfLife: 3, patchDiscount: 0.4 },
-    deaths: { history: 0.3, opponent: 1.0, kp: 0.3, recencyHalfLife: 2, patchDiscount: 0.4 },
-    assists: { history: 0.4, opponent: 0.0, kp: 0.3, recencyHalfLife: 8, patchDiscount: 0.8 },
+    kills: { history: 0.3, opponent: 1.0, kp: 0.3, recencyHalfLife: 3, patchDiscount: 0.4, career: 0.0 },
+    deaths: { history: 0.3, opponent: 1.0, kp: 0.3, recencyHalfLife: 2, patchDiscount: 0.4, career: 0.0 },
+    assists: { history: 0.4, opponent: 0.0, kp: 0.3, recencyHalfLife: 8, patchDiscount: 0.8, career: 0.0 },
   },
 };
 
@@ -1199,7 +1222,8 @@ function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, s
   const theme = useTheme();
   const summary = `History ${Math.round(weights.history * 100)}% · Opponent ${weights.opponent.toFixed(1)}× · `
     + `KP ${Math.round(weights.kp * 100)}% · Recency ${weights.recencyHalfLife >= 20 ? "flat" : weights.recencyHalfLife + "m"} · `
-    + `Patch -${Math.round(weights.patchDiscount * 100)}%`;
+    + `Patch -${Math.round(weights.patchDiscount * 100)}%`
+    + (weights.career > 0 ? ` · Career ${Math.round(weights.career * 100)}%` : "");
   return (
     <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: 18, marginBottom: 22 }}>
       <div
@@ -1244,6 +1268,15 @@ function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, s
             max={1}
             step={0.05}
             format={(v) => (v === 0 ? "ignore patch" : `-${Math.round(v * 100)}% weight for matches on an older patch`)}
+          />
+          <Slider
+            label="Career (multi-season) weight"
+            value={weights.career}
+            onChange={(v) => onChangeWeight("career", v)}
+            min={0}
+            max={0.8}
+            step={0.05}
+            format={(v) => (v === 0 ? "off — recent form / split history only" : `${Math.round(v * 100)}% career baseline blended in`)}
           />
         </>
       )}
@@ -1917,9 +1950,24 @@ function KillProjector() {
   // starts from its own measured defaults rather than one shared set
   // (which was a real source of prediction inconsistency, since the
   // measured optima differ substantially per game).
-  const [weightsByGameAndStat, setWeightsByGameAndStat] = useState(
-    () => loadStored("kp.weightsByGameAndStat", DEFAULT_WEIGHTS_BY_GAME_AND_STAT)
-  );
+  const [weightsByGameAndStat, setWeightsByGameAndStat] = useState(() => {
+    const stored = loadStored("kp.weightsByGameAndStat", DEFAULT_WEIGHTS_BY_GAME_AND_STAT);
+    // Migration: a blob saved before a new weight key existed (e.g.
+    // "career", added after this was first shipped) would otherwise
+    // leave that key undefined for anyone with existing saved state —
+    // safe for the projection math itself (undefined > 0 is false) but
+    // not for a <Slider value={undefined}>. Backfill any missing key
+    // from the current defaults, per game and stat, without touching
+    // anything the person already customized.
+    const migrated = {};
+    for (const g of Object.keys(DEFAULT_WEIGHTS_BY_GAME_AND_STAT)) {
+      migrated[g] = {};
+      for (const s of Object.keys(DEFAULT_WEIGHTS_BY_GAME_AND_STAT[g])) {
+        migrated[g][s] = { ...DEFAULT_WEIGHTS_BY_GAME_AND_STAT[g][s], ...(stored[g] && stored[g][s] ? stored[g][s] : {}) };
+      }
+    }
+    return migrated;
+  });
   useEffect(() => saveStored("kp.weightsByGameAndStat", weightsByGameAndStat), [weightsByGameAndStat]);
   // Fall back through game defaults then LoL, so a stored blob written by
   // an older build (or a newly-added game) can't leave weights undefined.

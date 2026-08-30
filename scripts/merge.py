@@ -52,6 +52,64 @@ def build_lookup(known_teams):
     return {t.lower(): t for t in known_teams}
 
 
+def merge_career_data(data):
+    """Folds each player's decayed career baseline (from scrape_career.py's
+    output) into their existing record in data.json. career_data.json is
+    keyed by gol.gg's numeric player ID, but data.json's players are keyed
+    by name within each team — so this builds a name-based lookup rather
+    than an ID-based one, since data.json has no gol.gg IDs stored at all.
+
+    Gracefully optional: if career_data.json doesn't exist yet (career
+    history hasn't been run, or isn't wired into this particular
+    workflow), every player just gets career=None and the rest of the
+    pipeline is unaffected — same pattern as schedule.json being missing
+    above."""
+    try:
+        with open("career_data.json") as f:
+            career_data = json.load(f)
+    except FileNotFoundError:
+        print("! career_data.json not found — skipping career merge (every player gets career=None; "
+              "run scrape_career.py first if this wasn't intentional)", file=sys.stderr)
+        career_data = {}
+
+    # Multiple gol.gg player IDs sharing an identical short handle across
+    # different currently-tracked players is possible in principle (two
+    # different pros both going by the same short name) though rare —
+    # logged rather than silently overwritten so it's visible if it
+    # happens.
+    career_by_name = {}
+    for player_id, record in career_data.items():
+        name = record.get("name")
+        if not name:
+            continue
+        if name in career_by_name and career_by_name[name][0] != player_id:
+            print(f"  ! duplicate career-data name '{name}' (ids {career_by_name[name][0]} and {player_id}) "
+                  f"— keeping the later one", file=sys.stderr)
+        career_by_name[name] = (player_id, record.get("career"))
+
+    matched = 0
+    unmatched = []
+    for region_key, region_data in data.get("regions", {}).items():
+        for team_name, team in region_data.get("teams", {}).items():
+            for player in team.get("players", []):
+                name = player.get("name")
+                entry = career_by_name.get(name)
+                if entry and entry[1]:
+                    player["career"] = entry[1]
+                    matched += 1
+                else:
+                    player["career"] = None
+                    unmatched.append(f"{region_key}/{team_name}/{name}")
+
+    total = matched + len(unmatched)
+    print(f"Merged career data: {matched}/{total} player(s) matched")
+    if unmatched:
+        shown = unmatched[:20]
+        more = f" ... (+{len(unmatched) - 20} more)" if len(unmatched) > 20 else ""
+        print(f"  ! unmatched (no career data — career=None, falls back to cur/hist only): {shown}{more}",
+              file=sys.stderr)
+
+
 def main():
     with open("data.json") as f:
         data = json.load(f)
@@ -82,6 +140,8 @@ def main():
         region_data["upcoming_matches"] = upcoming
         print(f"{region_key}: merged {len(upcoming)}/{len(region_schedule)} upcoming matches "
               f"({dropped} dropped)")
+
+    merge_career_data(data)
 
     with open("data.json", "w") as f:
         json.dump(data, f, indent=2)

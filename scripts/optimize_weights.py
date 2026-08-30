@@ -39,7 +39,7 @@ STAT_TYPES = {
 
 DEFAULT_WEIGHTS = {
     "history": 0.3, "opponent": 1.0, "kp": 0.3,
-    "recencyHalfLife": 6, "patchDiscount": 0.4,
+    "recencyHalfLife": 6, "patchDiscount": 0.4, "career": 0.0,
 }
 
 
@@ -255,6 +255,22 @@ def project_point_in_time(past_matches, teams, player, team, opponent_team, game
     else:
         base = hist_rate if hist_rate is not None else player["cur"][cfg["key"]]
 
+    # Career tier — a longer-horizon (multi-season, decay-weighted) prior
+    # blended on TOP of the existing recent-form/split-history base,
+    # using its own independent weight rather than forcing a 3-way sum-
+    # to-1 average. Consistent with how patchDiscount/kp are already
+    # separate multiplicative layers rather than folded into one blend.
+    # Falls back cleanly (base unchanged) when a player has no career
+    # data (career=None -- rookies, or any game/region this hasn't been
+    # built for yet, e.g. Valorant/CS2 before their own career scrapers
+    # exist). weights["career"] defaults to 0.0 until backtested for
+    # real, so existing measured weights for history/opponent/kp/etc are
+    # completely unaffected until this is deliberately tuned.
+    career = player.get("career")
+    career_rate = career.get(cfg["key"]) if career else None
+    if career_rate is not None and weights.get("career", 0) > 0:
+        base = weights["career"] * career_rate + (1 - weights["career"]) * base
+
     opp_mult = resolve_opponent_multiplier(teams, past_matches, player, opponent_team, weights["opponent"], cfg, cutoff_date)
 
     kp_mult = kp_multiplier(player, weights["history"], weights["kp"]) if cfg["useKP"] else 1.0
@@ -327,9 +343,10 @@ def coordinate_descent(region_data, stat_type, start_weights, passes=3):
         "kp": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 1.0],
         "recencyHalfLife": [2, 3, 4, 5, 6, 8, 10, 14, 20],
         "patchDiscount": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0],
+        "career": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
     }
     cfg = STAT_TYPES[stat_type]
-    params = ["history", "opponent", "recencyHalfLife", "patchDiscount"]
+    params = ["history", "opponent", "recencyHalfLife", "patchDiscount", "career"]
     if cfg["useKP"]:
         params.append("kp")
 

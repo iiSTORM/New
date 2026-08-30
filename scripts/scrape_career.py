@@ -65,6 +65,7 @@ OUTPUT_PATH = "career_data.json"
 MATCHLIST_CAP = 200  # confirmed real cap on the season-ALL match list view
 CURRENT_SEASON = "S16"  # confirmed current season from live nav — update each split if gol.gg's own season counter advances
 CONCURRENCY = 6  # matches scrape_lcs.py's proven-safe concurrency level against this same site
+_debug_sample_printed = {"done": False}  # shared across threads — see parse_matchlist_html's note on why this is printed only once
 SEASON_HALF_LIFE = 1.5  # seasons — a season 1.5 back gets half weight, 3 back gets a quarter, etc. Not yet backtested; see note below.
 
 # Real team IDs are no longer needed for player discovery — see
@@ -199,11 +200,16 @@ def resolve_player_ids(team_id):
 def get_career_game_count(player_id):
     """Cheap check before deciding whether per-season pagination is
     needed — parses 'Record: 193W - 163L' from the career-aggregate
-    page into a total game count."""
+    page into a total game count. Matches against BeautifulSoup's
+    tag-stripped text, not the raw HTML string directly — real markup
+    between the number and "W"/"L" (spans, nested tags) would silently
+    break a plain regex against raw HTML even though the rendered text
+    looks clean."""
     html = fetch(f"{BASE}/players/player-stats/{player_id}/season-ALL/split-ALL/tournament-ALL/")
     if not html:
         return None
-    m = re.search(r"(\d+)W\s*-\s*(\d+)L", html)
+    text = BeautifulSoup(html, "html.parser").get_text()
+    m = re.search(r"(\d+)W\s*-\s*(\d+)L", text)
     if not m:
         return None
     return int(m.group(1)) + int(m.group(2))
@@ -213,31 +219,51 @@ def parse_matchlist_html(html):
     """Parses the per-game table on a player-matchlist page. Table
     columns confirmed via live reconnaissance: Champion | Result |
     Duration | KDA | CSM | DPM | KP% | Build | Date | Game | Tournament.
-    Returns a list of {k, d, a, kp, date, opponent_context, tournament}."""
+    Returns a list of {k, d, a, kp, date, opponent_context, tournament}.
+
+    Tries EVERY <table> on the page and keeps whichever produces the most
+    valid rows, rather than assuming the first <table> found is the data
+    table — a real test run returned zero games for all 306 correctly-
+    resolved players, a total/uniform failure consistent with grabbing
+    the wrong table (gol.gg pages likely render filter/nav elements as
+    their own small tables before the actual data table), not a
+    per-player data issue."""
     soup = BeautifulSoup(html, "html.parser")
-    table = soup.find("table")
-    if not table:
-        return []
-    rows = []
-    for tr in table.find_all("tr"):
-        cells = tr.find_all("td")
-        if len(cells) < 10:
-            continue  # header row or malformed row — skip rather than guess
-        kda_text = cells[3].get_text(strip=True)
-        kda_match = re.match(r"(\d+)\s*/\s*(\d+)\s*/\s*(\d+)", kda_text)
-        if not kda_match:
-            continue
-        k, d, a = (int(x) for x in kda_match.groups())
-        kp_text = cells[6].get_text(strip=True).replace("%", "")
-        try:
-            kp = float(kp_text) / 100 if kp_text and kp_text != "-" else None
-        except ValueError:
-            kp = None
-        date_text = cells[8].get_text(strip=True)
-        game_text = cells[9].get_text(strip=True)
-        tournament_text = cells[10].get_text(strip=True) if len(cells) > 10 else None
-        rows.append({"k": k, "d": d, "a": a, "kp": kp, "date": date_text, "game": game_text, "tournament": tournament_text})
-    return rows
+    best_rows = []
+    for table in soup.find_all("table"):
+        rows = []
+        for tr in table.find_all("tr"):
+            cells = tr.find_all("td")
+            if len(cells) < 10:
+                continue  # header row or malformed row — skip rather than guess
+            kda_text = cells[3].get_text(strip=True)
+            kda_match = re.match(r"(\d+)\s*/\s*(\d+)\s*/\s*(\d+)", kda_text)
+            if not kda_match:
+                continue
+            k, d, a = (int(x) for x in kda_match.groups())
+            kp_text = cells[6].get_text(strip=True).replace("%", "")
+            try:
+                kp = float(kp_text) / 100 if kp_text and kp_text != "-" else None
+            except ValueError:
+                kp = None
+            date_text = cells[8].get_text(strip=True)
+            game_text = cells[9].get_text(strip=True)
+            tournament_text = cells[10].get_text(strip=True) if len(cells) > 10 else None
+            rows.append({"k": k, "d": d, "a": a, "kp": kp, "date": date_text, "game": game_text, "tournament": tournament_text})
+        if len(rows) > len(best_rows):
+            best_rows = rows
+    if not best_rows:
+        # A zero-result season is often just correct — a player's
+        # pre-career seasons genuinely have no games (e.g. checking S6
+        # for a player who debuted in S11). Only dump the full raw HTML
+        # ONCE per run as a representative sample; repeating a near-
+        # identical 1500-char dump for every empty season buries any
+        # real signal about whether parsing is actually broken.
+        if not _debug_sample_printed["done"]:
+            _debug_sample_printed["done"] = True
+            print(f"  [debug] 0 games parsed from any table ({len(soup.find_all('table'))} tables on page) — "
+                  f"raw HTML sample (first 1500 chars, printed once per run):\n{html[:1500]}\n", file=sys.stderr)
+    return best_rows
 
 
 def fetch_player_season(player_id, season):
