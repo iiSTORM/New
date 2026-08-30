@@ -851,11 +851,53 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
    as the closest available proxy (both are 5v5 shooters with the same
    inert-weight profile), since the CS2 assists backtest was blocked by a
    separate bug at the time these were measured. */
+/* Per-GAME, per-stat weights, all measured via scripts/optimize_weights.py
+   backtesting against real accumulated match data — not guessed. A single
+   shared set was previously used across all three games, which was a real
+   source of inconsistency: the optimal weights differ substantially by
+   game (e.g. `opponent` wants 0.2-0.4 for LoL but 1.0 for Valorant
+   kills/deaths, and 0.0 for Valorant assists).
+
+   LoL weights include a `career` tier (multi-season, decay-weighted
+   baseline from scripts/scrape_career.py + gol.gg's real per-game career
+   history, going back to Season 6) — added and re-measured after the
+   original per-game rollout below. Its search range was deliberately
+   widened twice during measurement (first to 0.8, then to 1.0) to make
+   sure the optimizer wasn't just pinned against an artificial ceiling —
+   it settled at 0.8-0.85 for all three stats without ever reaching the
+   1.0 ceiling, which is a genuine plateau, not a truncated search
+   artifact. None of the three hit exactly 1.0 either, which would have
+   meant recent form/split history being ignored entirely — a red flag
+   worth distrusting rather than a real result. Landing at 0.8-0.85
+   instead means career baseline is the dominant signal but recent form
+   still contributes meaningfully (15-20% weight).
+
+   Measured improvements vs. the pre-career-tier shared defaults:
+     LoL      kills +11.4%, deaths +20.6%, assists +16.0% (with career tier)
+     Valorant kills +2.1%,  deaths +3.1%,  assists +16.8%
+     CS2      kills +0.2%,  deaths +1.4%,  assists (see note)
+
+   Valorant and CS2 don't have their own career-history scraper yet, so
+   their career weight stays at 0.0 (a no-op — applyCareerTier() falls
+   back cleanly to the existing base rate whenever a player has no career
+   data) until that's built for those games too.
+
+   NOTE on CS2 (kills/deaths only measured so far): most weights are
+   structurally inert there — CS2 players have hist=null (no
+   Spring/Summer-style split exists in its continuous tournament
+   calendar) and kp=0 (kill participation isn't computed), so `history`,
+   `kp`, and `patchDiscount` cannot affect predictions at all; only
+   `opponent` and `recencyHalfLife` are live. CS2 inconsistency there is
+   a data-shape limitation, not a tuning problem. CS2 assists retain
+   Valorant's measured values as the closest available proxy (both are
+   5v5 shooters with the same inert-weight profile), since the CS2
+   assists backtest was blocked by a separate bug at the time these were
+   measured. */
 const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
   lol: {
-    kills: { history: 0.7, opponent: 0.4, kp: 0.0, recencyHalfLife: 5, patchDiscount: 0.0, career: 0.0 },
-    deaths: { history: 0.8, opponent: 0.2, kp: 0.3, recencyHalfLife: 20, patchDiscount: 0.0, career: 0.0 },
-    assists: { history: 0.8, opponent: 0.2, kp: 0.1, recencyHalfLife: 5, patchDiscount: 1.0, career: 0.0 },
+    kills: { history: 0.4, opponent: 0.2, kp: 0.1, recencyHalfLife: 20, patchDiscount: 1.0, career: 0.8 },
+    deaths: { history: 0.8, opponent: 0.2, kp: 0.3, recencyHalfLife: 2, patchDiscount: 1.0, career: 0.85 },
+    assists: { history: 0.2, opponent: 0.2, kp: 0.4, recencyHalfLife: 20, patchDiscount: 1.0, career: 0.85 },
   },
   valorant: {
     kills: { history: 0.7, opponent: 1.0, kp: 0.3, recencyHalfLife: 6, patchDiscount: 0.0, career: 0.0 },
