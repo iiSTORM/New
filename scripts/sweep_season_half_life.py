@@ -35,7 +35,7 @@ from optimize_weights import evaluate, load_region_data, DEFAULT_WEIGHTS  # noqa
 DATA_PATH = "data.json"
 CAREER_DATA_PATH = "career_data.json"
 
-CANDIDATE_HALF_LIVES = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0, 6.0]
+CANDIDATE_HALF_LIVES = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0, 6.0]
 
 # The model's own career weight, already measured for real via
 # optimize_weights.py — held fixed here so this sweep isolates the
@@ -78,6 +78,7 @@ def main():
           f"candidate half-lives per stat, no re-scraping.\n")
 
     for stat_type, career_weight in MEASURED_CAREER_WEIGHT.items():
+        stat_key = {"kills": "k", "deaths": "d", "assists": "a"}[stat_type]
         print(f"=== {stat_type.upper()} (career weight held fixed at {career_weight}, as already measured) ===")
         weights = {**DEFAULT_WEIGHTS, "career": career_weight}
         results = []
@@ -87,7 +88,27 @@ def main():
             results.append((half_life, mae))
             print(f"  half_life={half_life:>4}  MAE={mae:.4f}")
         best_half_life, best_mae = min(results, key=lambda r: r[1])
-        print(f"  best: half_life={best_half_life}  MAE={best_mae:.4f}\n")
+        print(f"  best: half_life={best_half_life}  MAE={best_mae:.4f}")
+
+        # Direct empirical check for the degenerate case: at this
+        # half-life, does "career" still meaningfully differ from just
+        # the player's current-season rate alone? If it's converged to
+        # near-identical, the real finding is "weight the current season
+        # more", not "multi-season history matters" — worth knowing
+        # which one this actually is, not just inferring it from the MAE
+        # trend. Sampled across a few players with real multi-season
+        # data (2+ seasons), not just one.
+        sample_names = [name for name, seasons in career_by_name.items() if len(seasons) >= 2][:5]
+        if sample_names:
+            print(f"  sample check (career vs. current-season-only, at half_life={best_half_life}):")
+            for name in sample_names:
+                seasons = career_by_name[name]
+                career = decayed_career_baseline(seasons, CURRENT_SEASON, half_life_override=best_half_life)
+                current_only = seasons.get(CURRENT_SEASON)
+                if career and current_only:
+                    diff = career[stat_key] - current_only[stat_key]
+                    print(f"    {name}: career={career[stat_key]:.2f}  current-season-only={current_only[stat_key]:.2f}  diff={diff:+.2f}")
+        print()
 
 
 if __name__ == "__main__":

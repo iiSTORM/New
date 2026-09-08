@@ -207,19 +207,47 @@ def lane_opponent_multiplier(past_matches, teams, player, opponent_team, opp_str
     return 1 + opp_strength * (opp_stat / league_avg - 1)
 
 
+def game_has_role_data(teams):
+    """True if ANY player in this dataset has role info at all — used to
+    distinguish "this specific player is missing a role" (LoL/Valorant,
+    where a real diagnostic found team-wide as a FALLBACK for that case
+    specifically to be weak-to-negative — see resolve_opponent_multiplier)
+    from "this game doesn't track roles at all" (CS2 — role is always
+    None for every player, confirmed via direct inspection, not an edge
+    case). The original neutral-over-team-wide-fallback finding was
+    measured before CS2 existed in this app at all, so it was never
+    actually validated for a game with zero role data; applying it there
+    anyway made `opponent` completely inert for CS2 kills/deaths without
+    that ever being a deliberate, tested decision — this restores a
+    real, functioning opponent adjustment for CS2 specifically without
+    touching LoL/Valorant's already-validated behavior at all."""
+    return any(p.get("role") for team in teams.values() for p in team.get("players", []))
+
+
 def resolve_opponent_multiplier(teams, past_matches, player, opponent_team, opp_strength, cfg, cutoff_date):
-    if cfg["laneSpecific"]:
-        # For lane-specific stats (kills, deaths), a real diagnostic
-        # (--diagnose-opponent, split by used_lane) found the team-wide
-        # fallback signal weak-to-negative on its own -- using it as a
-        # fallback was silently cancelling out the real lane-specific
-        # signal, since a single opponent weight applies uniformly across
-        # both populations. Neutral (no adjustment) beats a fallback we've
-        # specifically measured to be unreliable.
+    if cfg["laneSpecific"] and game_has_role_data(teams):
+        # Only reached for games that actually track roles (LoL,
+        # Valorant). For lane-specific stats (kills, deaths) there, a
+        # real diagnostic (--diagnose-opponent, split by used_lane) found
+        # the team-wide fallback signal weak-to-negative on its own --
+        # using it as a fallback for the occasional player missing a
+        # role match was silently cancelling out the real lane-specific
+        # signal, since a single opponent weight applies uniformly
+        # across both populations. Neutral (no adjustment) beats a
+        # fallback we've specifically measured to be unreliable, for
+        # THIS case specifically.
         lane_mult = lane_opponent_multiplier(past_matches, teams, player, opponent_team, opp_strength, cfg["oppBasis"], cutoff_date)
         return lane_mult if lane_mult is not None else 1.0
-    # Team-wide path — used only for assists, where the diagnostic found
-    # team-wide to be the stronger signal in the first place.
+    # Team-wide path — used for assists always (laneSpecific=False), AND
+    # now for kills/deaths in any game with NO role data at all (CS2).
+    # That second case used to silently fall through to the branch above
+    # and always return neutral (1.0), since lane_opponent_multiplier
+    # immediately bails when player.get("role") is falsy — which is
+    # EVERY CS2 player, always, confirmed via direct inspection, not an
+    # edge case. That meant `opponent` was completely inert for CS2
+    # kills/deaths, undocumented and unintended, not a deliberate
+    # decision the way the neutral-fallback above actually was for
+    # LoL/Valorant.
     opp_stat_pt = point_in_time_team_stat(past_matches, opponent_team, cfg["oppBasis"], cutoff_date)
     league_avg_pt = point_in_time_league_avg_stat(past_matches, teams, cfg["oppBasis"], cutoff_date)
     opp_stat = opp_stat_pt if opp_stat_pt is not None else team_stat_per_game(teams, opponent_team, cfg["oppBasis"])
@@ -563,27 +591,40 @@ def main():
 
     print(f"Loaded regions: {list(region_data.keys())}\n")
 
-    # CS2's data shape makes some weights structurally inert — flag this
+    # CS2's data shape makes SOME weights structurally inert — flag this
     # explicitly rather than letting a search "tune" parameters that
     # cannot affect the output. CS2 players have hist=None (no
     # Spring/Summer-style split exists in CS2's continuous tournament
-    # calendar) and kp=0 (kill participation isn't computed), so:
-    #   - the `history` weight has no historical rate to blend against
-    #     (project_point_in_time falls back to the point-in-time rate)
-    #   - the `kp` weight multiplies by exactly 1.0 (kp_multiplier
-    #     short-circuits when cur.kp is falsy)
-    #   - `patchDiscount` has no patch data to discount against
-    # Only `opponent` and `recencyHalfLife` can actually move CS2
-    # predictions. Any "improvement" reported for the others on CS2-only
-    # data would be search noise, not signal.
-    cs2_regions = [k for k, v in region_data.items()
-                   if any(p.get("hist") is None and not p.get("cur", {}).get("kp")
-                          for t in (v.get("teams") or {}).values()
-                          for p in (t.get("players") or []))]
-    if cs2_regions:
-        print(f"NOTE: {cs2_regions} have players with hist=None and kp=0 — for those regions the "
-              f"'history', 'kp', and 'patchDiscount' weights are structurally inert (they cannot "
-              f"change predictions). Only 'opponent' and 'recencyHalfLife' are meaningful there.\n")
+    # calendar), so `history` has no historical rate to blend against
+    # (project_point_in_time falls back to the point-in-time rate) and
+    # `patchDiscount` has no patch data to discount against.
+    #
+    # kp is checked SEPARATELY now, not folded into the same condition —
+    # it used to be hardcoded to 0 for every CS2 player (a real bug in
+    # scrape_cs2.py, now fixed: kp is computed from real per-map
+    # players_stats data, the same source k/d/a already come from), so
+    # treating "hist=None" and "kp=0" as one combined signal would
+    # incorrectly claim kp is still inert for CS2 even after it started
+    # carrying real, live data.
+    hist_inert_regions = [k for k, v in region_data.items()
+                           if any(p.get("hist") is None
+                                  for t in (v.get("teams") or {}).values()
+                                  for p in (t.get("players") or []))]
+    if hist_inert_regions:
+        print(f"NOTE: {hist_inert_regions} have players with hist=None — for those regions the "
+              f"'history' and 'patchDiscount' weights are structurally inert (they cannot change "
+              f"predictions). 'kp' is checked separately below, since it's no longer automatically "
+              f"inert just because hist is None.\n")
+
+    kp_inert_regions = [k for k, v in region_data.items()
+                         if all(not p.get("cur", {}).get("kp")
+                                for t in (v.get("teams") or {}).values()
+                                for p in (t.get("players") or []))]
+    if kp_inert_regions:
+        print(f"NOTE: {kp_inert_regions} have EVERY player with kp=0/falsy — 'kp' is structurally "
+              f"inert there too (kp_multiplier short-circuits when cur.kp is falsy). If this "
+              f"includes CS2, that's unexpected after the kp computation fix — worth checking "
+              f"whether data.json was actually re-scraped with the fix, or is still stale.\n")
 
     stat_types = ["kills", "deaths", "assists"] if args.stat == "all" else [args.stat]
 
