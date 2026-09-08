@@ -635,19 +635,29 @@ function project(teams, pastMatches, player, team, opponentTeam, games, weights,
   return { base, oppMult, kpMult, perGame, total: perGame * games };
 }
 
-// Career tier — a longer-horizon (multi-season, decay-weighted) prior
-// blended on TOP of the existing recent-form/split-history base, using
-// its own independent weight rather than forcing a 3-way sum-to-1
-// average — consistent with how patchDiscount/kp are already separate
+// Career tier — a prior derived from scripts/scrape_career.py, blended
+// on TOP of the existing recent-form/split-history base, using its own
+// independent weight rather than forcing a 3-way sum-to-1 average —
+// consistent with how patchDiscount/kp are already separate
 // multiplicative layers rather than folded into one blend. Shared by
 // both project() (live) and projectPointInTime() (backtesting) so they
 // never drift apart, mirroring scripts/optimize_weights.py's Python
 // version of the same logic exactly. Falls back cleanly (base
 // unchanged) when a player has no career data yet — rookies, or any
 // game/region career history hasn't been built for (Valorant/CS2 don't
-// have their own career scraper yet). weights.career defaults to 0 until
-// backtested for real, so this has zero effect on any already-measured
-// weights until deliberately tuned.
+// have their own career scraper yet).
+//
+// IMPORTANT, measured finding — this is NOT genuine multi-season
+// history in practice: a real backtest (scripts/sweep_season_half_life.py)
+// found the optimal season-decay rate so aggressive (half_life=0.05)
+// that "career" ends up nearly identical to the player's CURRENT season
+// alone (confirmed via direct sample comparison, diffs ~0.00-0.03).
+// The real, honest reason this weight still measurably helps is most
+// likely that it's an independently-sourced current-season measurement
+// (gol.gg's own canonical player pages) layered on top of the app's
+// separate in-house current-season tracking — noise reduction /
+// coverage improvement, not real cross-season trend-capturing. Worth
+// knowing before assuming this reflects a player's multi-year career.
 function applyCareerTier(base, player, weights, cfg) {
   const careerRate = player.career ? player.career[cfg.key] : null;
   if (careerRate != null && weights.career > 0) {
@@ -761,20 +771,45 @@ function laneOpponentMultiplier(pastMatches, teams, player, opponentTeam, oppStr
   return 1 + oppStrength * (oppStat / leagueAvg - 1);
 }
 
+function gameHasRoleData(teams) {
+  // True if ANY player in this dataset has role info at all — used to
+  // distinguish "this specific player is missing a role" (LoL/Valorant,
+  // where a real diagnostic found team-wide as a FALLBACK for that case
+  // specifically to be weak-to-negative — see resolveOpponentMultiplier)
+  // from "this game doesn't track roles at all" (CS2 — role is always
+  // null for every player, confirmed via direct inspection, not an edge
+  // case). The original neutral-over-team-wide-fallback finding was
+  // measured before CS2 existed in this app at all, so it was never
+  // actually validated for a game with zero role data; applying it there
+  // anyway made `opponent` completely inert for CS2 kills/deaths without
+  // that ever being a deliberate, tested decision.
+  return Object.values(teams).some((team) => team.players.some((p) => p.role));
+}
+
 function resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, oppStrength, cfg, cutoffDate) {
-  if (cfg.laneSpecific) {
-    // For stats using lane-specific comparison (kills, deaths), a real
-    // diagnostic (scripts/optimize_weights.py --diagnose-opponent) found
-    // the team-wide fallback signal is weak-to-negative on its own — using
-    // it as a fallback was silently cancelling out the real lane-specific
-    // signal, since a single opponent weight applies uniformly across both
-    // populations. Better to apply no adjustment (neutral) than a fallback
-    // we've specifically measured to be unreliable.
+  if (cfg.laneSpecific && gameHasRoleData(teams)) {
+    // Only reached for games that actually track roles (LoL, Valorant).
+    // For lane-specific stats (kills, deaths) there, a real diagnostic
+    // (scripts/optimize_weights.py --diagnose-opponent) found the
+    // team-wide fallback signal is weak-to-negative on its own — using
+    // it as a fallback for the occasional player missing a role match
+    // was silently cancelling out the real lane-specific signal, since
+    // a single opponent weight applies uniformly across both
+    // populations. Neutral (no adjustment) beats a fallback we've
+    // specifically measured to be unreliable, for THIS case
+    // specifically.
     const laneMult = laneOpponentMultiplier(pastMatches, teams, player, opponentTeam, oppStrength, cfg.oppBasis, cutoffDate);
     return laneMult !== null ? laneMult : 1;
   }
-  // Team-wide path — used only for assists, where the diagnostic found
-  // team-wide to be the stronger signal in the first place.
+  // Team-wide path — used for assists always (laneSpecific=false), AND
+  // now for kills/deaths in any game with NO role data at all (CS2).
+  // That second case used to silently fall through to the branch above
+  // and always return neutral (1), since laneOpponentMultiplier
+  // immediately bails when player.role is falsy — which is EVERY CS2
+  // player, always, confirmed via direct inspection, not an edge case.
+  // That meant `opponent` was completely inert for CS2 kills/deaths,
+  // undocumented and unintended, not a deliberate decision the way the
+  // neutral-fallback above actually was for LoL/Valorant.
   if (cutoffDate === null) {
     return opponentMultiplier(teams, opponentTeam, oppStrength, cfg.oppBasis);
   }
@@ -845,20 +880,37 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
    Measured improvements vs. the old shared defaults:
      LoL      kills +8.3%,  deaths +17.1%, assists +12.7%
      Valorant kills +2.1%,  deaths +3.1%,  assists +16.8%
-     CS2      kills +0.2%,  deaths +1.4%,  assists (see note)
+     CS2      kills +0.2%,  deaths +1.4%,  assists +11.7% (n=1040)
+     ^ CS2 numbers above are STALE — see note below, pending re-measurement
 
-   NOTE on CS2: its improvements are tiny because most weights are
-   structurally inert there — CS2 players have hist=null (no
-   Spring/Summer-style split exists in its continuous tournament
-   calendar) and kp=0 (kill participation isn't computed), so `history`,
-   `kp`, and `patchDiscount` cannot affect predictions at all; only
-   `opponent` and `recencyHalfLife` are live. CS2 inconsistency is a
-   data-shape limitation, not a tuning problem — fixing it properly means
-   computing real KP values or building a historical baseline, not
-   adjusting these numbers. CS2 assists retain Valorant's measured values
-   as the closest available proxy (both are 5v5 shooters with the same
-   inert-weight profile), since the CS2 assists backtest was blocked by a
-   separate bug at the time these were measured. */
+   NOTE on CS2, TWO real bugs found and fixed after the numbers above
+   were measured, both changing what CS2's weights can actually do:
+
+   (1) `opponent` was COMPLETELY inert for kills/deaths, silently, this
+   whole time — not a documented limitation, an actual bug.
+   resolveOpponentMultiplier's lane-specific path requires player.role,
+   which is null for EVERY CS2 player (CS2 doesn't track discrete
+   positions the way LoL does) — so it always fell through to neutral
+   (1), regardless of the opponent weight's value. Now routes CS2's
+   lane-specific stats through the team-wide path instead (same one
+   already used for assists), via gameHasRoleData() distinguishing "this
+   game has no role data at all" (CS2) from "this specific player is
+   missing a role" (the original, still-valid LoL/Valorant finding for
+   why team-wide as a FALLBACK was worse than staying neutral there).
+
+   (2) `kp` was hardcoded to 0 for every CS2 player in scrape_cs2.py,
+   despite being genuinely computable from data already fetched —
+   players_stats returns all 10 players' kills/deaths/assists per map
+   with team labels, so kill participation is just (kills+assists) /
+   team's total kills for that map, the same math LoL already uses.
+   Now computed for real.
+
+   `history` and `patchDiscount` remain genuinely inert for CS2 (hist is
+   still null — no Spring/Summer-style split exists in its continuous
+   tournament calendar) — that part of the original finding still holds.
+   But `opponent` and `kp` are no longer inert, which the CS2 numbers
+   above don't yet reflect — they need a fresh optimize_weights.py run
+   before being trusted. */
 /* Per-GAME, per-stat weights, all measured via scripts/optimize_weights.py
    backtesting against real accumulated match data — not guessed. A single
    shared set was previously used across all three games, which was a real
@@ -866,10 +918,12 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
    game (e.g. `opponent` wants 0.2-0.4 for LoL but 1.0 for Valorant
    kills/deaths, and 0.0 for Valorant assists).
 
-   LoL weights include a `career` tier (multi-season, decay-weighted
-   baseline from scripts/scrape_career.py + gol.gg's real per-game career
-   history, going back to Season 6) — added and re-measured after the
-   original per-game rollout below. Its search range was deliberately
+   LoL weights include a `career` tier (see applyCareerTier's own
+   detailed note for what this signal actually turned out to measure —
+   in short, NOT genuine multi-season history at its optimal
+   configuration, more likely a cleaner independently-sourced current-
+   season number) — added and re-measured after the original per-game
+   rollout below. The career WEIGHT's search range was deliberately
    widened twice during measurement (first to 0.8, then to 1.0) to make
    sure the optimizer wasn't just pinned against an artificial ceiling —
    it settled at 0.8-0.85 for all three stats without ever reaching the
@@ -877,8 +931,10 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
    artifact. None of the three hit exactly 1.0 either, which would have
    meant recent form/split history being ignored entirely — a red flag
    worth distrusting rather than a real result. Landing at 0.8-0.85
-   instead means career baseline is the dominant signal but recent form
-   still contributes meaningfully (15-20% weight).
+   instead means the career signal is the dominant input but recent form
+   still contributes meaningfully (15-20% weight) — this part of the
+   finding still holds regardless of what "career" actually turned out
+   to represent underneath.
 
    Measured improvements vs. the pre-career-tier shared defaults:
      LoL      kills +11.4%, deaths +20.6%, assists +16.0% (with career tier)
@@ -888,19 +944,7 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
    Valorant and CS2 don't have their own career-history scraper yet, so
    their career weight stays at 0.0 (a no-op — applyCareerTier() falls
    back cleanly to the existing base rate whenever a player has no career
-   data) until that's built for those games too.
-
-   NOTE on CS2 (kills/deaths only measured so far): most weights are
-   structurally inert there — CS2 players have hist=null (no
-   Spring/Summer-style split exists in its continuous tournament
-   calendar) and kp=0 (kill participation isn't computed), so `history`,
-   `kp`, and `patchDiscount` cannot affect predictions at all; only
-   `opponent` and `recencyHalfLife` are live. CS2 inconsistency there is
-   a data-shape limitation, not a tuning problem. CS2 assists retain
-   Valorant's measured values as the closest available proxy (both are
-   5v5 shooters with the same inert-weight profile), since the CS2
-   assists backtest was blocked by a separate bug at the time these were
-   measured. */
+   data) until that's built for those games too. */
 const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
   lol: {
     kills: { history: 0.4, opponent: 0.2, kp: 0.1, recencyHalfLife: 20, patchDiscount: 1.0, career: 0.8 },
@@ -915,7 +959,14 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
   cs2: {
     kills: { history: 0.3, opponent: 1.0, kp: 0.3, recencyHalfLife: 3, patchDiscount: 0.4, career: 0.0 },
     deaths: { history: 0.3, opponent: 1.0, kp: 0.3, recencyHalfLife: 2, patchDiscount: 0.4, career: 0.0 },
-    assists: { history: 0.4, opponent: 0.0, kp: 0.3, recencyHalfLife: 8, patchDiscount: 0.8, career: 0.0 },
+    // Now genuinely measured for CS2 specifically (+11.7% vs baseline,
+    // n=1040) — no longer borrowing Valorant's values as a proxy, now
+    // that the KeyError bug blocking this backtest is fixed. career:0.0
+    // is a real, correct result, not a placeholder — CS2 has no career-
+    // history scraper yet, so there's no career data for this weight to
+    // use, and the optimizer correctly left it at zero rather than the
+    // search finding any benefit to move it.
+    assists: { history: 0.3, opponent: 0.2, kp: 0.3, recencyHalfLife: 20, patchDiscount: 0.4, career: 0.0 },
   },
 };
 
@@ -1371,7 +1422,7 @@ function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, s
             format={(v) => (v === 0 ? "ignore patch" : `-${Math.round(v * 100)}% weight for matches on an older patch`)}
           />
           <Slider
-            label="Career (multi-season) weight"
+            label="Career (gol.gg baseline) weight"
             value={weights.career}
             onChange={(v) => onChangeWeight("career", v)}
             min={0}
