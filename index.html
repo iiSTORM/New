@@ -880,11 +880,12 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
    Measured improvements vs. the old shared defaults:
      LoL      kills +8.3%,  deaths +17.1%, assists +12.7%
      Valorant kills +2.1%,  deaths +3.1%,  assists +16.8%
-     CS2      kills +0.2%,  deaths +1.4%,  assists +11.7% (n=1040)
-     ^ CS2 numbers above are STALE — see note below, pending re-measurement
+     CS2      kills +38.0%, deaths +29.4%, assists +20.3% (n=530, confirmed with both fixes below live)
 
-   NOTE on CS2, TWO real bugs found and fixed after the numbers above
-   were measured, both changing what CS2's weights can actually do:
+   NOTE on CS2, TWO real bugs found and fixed, both changing what CS2's
+   weights can actually do — confirmed via a real re-scrape + re-measure
+   with both fixes live (the numbers above reflect that, not the
+   original broken state):
 
    (1) `opponent` was COMPLETELY inert for kills/deaths, silently, this
    whole time — not a documented limitation, an actual bug.
@@ -905,12 +906,20 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
    team's total kills for that map, the same math LoL already uses.
    Now computed for real.
 
+   A real, notable side-finding from the confirmed re-measurement:
+   `opponent` actually working for the first time made the DEFAULT value
+   (1.0, the naive starting point) measurably WORSE for CS2 kills/assists
+   than not adjusting at all — the search moved it all the way to 0.0 for
+   those two stats. Most likely explanation: CS2's discovered-team pool
+   is smaller and more dynamic than LoL's (many thinly-sampled backfilled
+   teams, per this project's own CS2 data-pipeline history), so
+   team-strength estimates are noisier there — a strong opponent
+   adjustment amplifies that noise rather than correcting for it. This
+   is a real, deliberate result, not a leftover default.
+
    `history` and `patchDiscount` remain genuinely inert for CS2 (hist is
    still null — no Spring/Summer-style split exists in its continuous
-   tournament calendar) — that part of the original finding still holds.
-   But `opponent` and `kp` are no longer inert, which the CS2 numbers
-   above don't yet reflect — they need a fresh optimize_weights.py run
-   before being trusted. */
+   tournament calendar) — that part of the original finding still holds. */
 /* Per-GAME, per-stat weights, all measured via scripts/optimize_weights.py
    backtesting against real accumulated match data — not guessed. A single
    shared set was previously used across all three games, which was a real
@@ -957,16 +966,29 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     assists: { history: 0.4, opponent: 0.0, kp: 0.3, recencyHalfLife: 8, patchDiscount: 0.8, career: 0.0 },
   },
   cs2: {
-    kills: { history: 0.3, opponent: 1.0, kp: 0.3, recencyHalfLife: 3, patchDiscount: 0.4, career: 0.0 },
-    deaths: { history: 0.3, opponent: 1.0, kp: 0.3, recencyHalfLife: 2, patchDiscount: 0.4, career: 0.0 },
-    // Now genuinely measured for CS2 specifically (+11.7% vs baseline,
-    // n=1040) — no longer borrowing Valorant's values as a proxy, now
-    // that the KeyError bug blocking this backtest is fixed. career:0.0
-    // is a real, correct result, not a placeholder — CS2 has no career-
-    // history scraper yet, so there's no career data for this weight to
-    // use, and the optimizer correctly left it at zero rather than the
-    // search finding any benefit to move it.
-    assists: { history: 0.3, opponent: 0.2, kp: 0.3, recencyHalfLife: 20, patchDiscount: 0.4, career: 0.0 },
+    // All three stats now genuinely measured with BOTH real fixes live:
+    // kp actually computed (was hardcoded to 0) and opponent adjustment
+    // actually functioning for kills/deaths (was silently always
+    // neutral due to the role-data dependency bug — see
+    // resolveOpponentMultiplier/gameHasRoleData). Real gains: kills
+    // +38.0%, deaths +29.4%, assists +20.3% (n=530) — the largest
+    // improvements of any game this session, consistent with how much
+    // of CS2's feature set was previously non-functional.
+    //
+    // opponent:0.0 for kills/assists is a real, deliberate finding, not
+    // a leftover default — the search actively moved AWAY from
+    // opponent:1.0 (the naive starting point) once opponent adjustment
+    // started actually doing something for CS2, because it was making
+    // predictions measurably WORSE at full strength. Most likely
+    // explanation: CS2's discovered-team pool is smaller and more
+    // dynamic than LoL's (lots of thinly-sampled backfilled teams, per
+    // this project's own CS2 data-pipeline history), so team-strength
+    // estimates are noisier — a strong opponent adjustment amplifies
+    // that noise rather than correcting for it. Deaths tolerates a mild
+    // 0.2 opponent weight; kills/assists don't.
+    kills: { history: 0.3, opponent: 0.0, kp: 0.1, recencyHalfLife: 20, patchDiscount: 0.4, career: 0.0 },
+    deaths: { history: 0.3, opponent: 0.2, kp: 0.3, recencyHalfLife: 14, patchDiscount: 0.4, career: 0.0 },
+    assists: { history: 0.3, opponent: 0.0, kp: 0.1, recencyHalfLife: 10, patchDiscount: 0.4, career: 0.0 },
   },
 };
 
