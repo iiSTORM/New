@@ -162,6 +162,27 @@ async def fetch_map_player_stats(session, game_id, canonical_name_by_team_id):
         if not name:
             continue  # can't attribute this row to a real player name — skip rather than guess
         result[name] = {"k": s.get("kills", 0), "d": s.get("death", 0), "a": s.get("assists", 0), "team": team_name}
+
+    # Real kill participation, computed from data already fetched above —
+    # no extra request needed. CS2 has shipped with kp hardcoded to 0 for
+    # every player (kpMultiplier() treats 0 as "uncomputed" and stays
+    # neutral) since players_stats already has everything needed: each
+    # player's own team is right there, so team totals for this map are
+    # just a sum over players sharing that team. kp = (kills + assists) /
+    # team's total kills for the map, matching how LoL computes it.
+    team_total_kills = {}
+    for stats_row in result.values():
+        team_total_kills[stats_row["team"]] = team_total_kills.get(stats_row["team"], 0) + stats_row["k"]
+    for stats_row in result.values():
+        total = team_total_kills.get(stats_row["team"], 0)
+        stats_row["kp"] = (stats_row["k"] + stats_row["a"]) / total if total > 0 else 0
+        # Raw component carried alongside the computed percentage — needed
+        # by fetch_match_actuals to correctly combine kp across two maps
+        # as sum(kills+assists)/sum(team_total_kills), not by naively
+        # averaging two already-computed percentages (which would skew
+        # results if the two maps had very different total kill counts).
+        stats_row["team_total_k"] = total
+
     return result, resolved_name_by_team_id
 
 
@@ -194,10 +215,15 @@ async def fetch_match_actuals(session, match_slug, canonical_name_by_team_id):
         for player_name, row in map_stats.items():
             team = row["team"]
             totals.setdefault(team, {})
-            slot = totals[team].setdefault(player_name, {"k": 0, "d": 0, "a": 0})
+            slot = totals[team].setdefault(player_name, {"k": 0, "d": 0, "a": 0, "kp_numerator": 0, "kp_denominator": 0})
             slot["k"] += row["k"]
             slot["d"] += row["d"]
             slot["a"] += row["a"]
+            # kp combined as sum(kills+assists)/sum(team_total_kills)
+            # across both maps, not by averaging two already-computed
+            # percentages — see fetch_map_player_stats for why.
+            slot["kp_numerator"] += row["k"] + row["a"]
+            slot["kp_denominator"] += row["team_total_k"]
 
     team_names = list(totals.keys())
     if len(team_names) != 2:
@@ -516,6 +542,7 @@ async def build_region_payload(cs2, session):
                 if player_name in existing_names:
                     continue
                 total_k = total_d = total_a = total_games = 0
+                kp_numerator = kp_denominator = 0
                 for mm in past_matches:
                     for s in ("teamA", "teamB"):
                         if mm[s] != team_name:
@@ -526,6 +553,15 @@ async def build_region_payload(cs2, session):
                             total_d += row["d"]
                             total_a += row["a"]
                             total_games += mm.get("games", 2)
+                            # Same properly-weighted-sum approach as
+                            # k/d/a above (total events / total games,
+                            # not naive per-match averaging) — sum raw
+                            # components across ALL of this player's
+                            # matches, then compute one final kp,
+                            # rather than averaging already-computed
+                            # per-match percentages.
+                            kp_numerator += row.get("kp_numerator", 0)
+                            kp_denominator += row.get("kp_denominator", 0)
                 if total_games == 0:
                     continue
                 teams_payload[team_name]["players"].append({
@@ -533,7 +569,12 @@ async def build_region_payload(cs2, session):
                     "cur": {
                         "g": total_games,
                         "k": total_k / total_games, "d": total_d / total_games, "a": total_a / total_games,
-                        "kp": 0,  # not computed for CS2 — kpMultiplier() treats 0 as "uncomputed" and stays neutral
+                        # Now genuinely computed from real per-map data
+                        # (see fetch_map_player_stats) instead of being
+                        # hardcoded to 0 — kpMultiplier() previously
+                        # always treated CS2 as "uncomputed" and stayed
+                        # neutral for every single CS2 player, silently.
+                        "kp": kp_numerator / kp_denominator if kp_denominator > 0 else 0,
                     },
                     "hist": None,  # no clean split boundary for CS2 — model falls back to cur alone
                 })
@@ -646,6 +687,7 @@ async def build_region_payload(cs2, session):
                         if player_name in existing_names:
                             continue
                         total_k = total_d = total_a = total_games = 0
+                        kp_numerator = kp_denominator = 0
                         for mm in past_matches:
                             for s in ("teamA", "teamB"):
                                 if mm[s] != team_name:
@@ -656,12 +698,15 @@ async def build_region_payload(cs2, session):
                                     total_d += row["d"]
                                     total_a += row["a"]
                                     total_games += mm.get("games", 2)
+                                    kp_numerator += row.get("kp_numerator", 0)
+                                    kp_denominator += row.get("kp_denominator", 0)
                         if total_games == 0:
                             continue
                         teams_payload[team_name]["players"].append({
                             "name": player_name, "role": None,
                             "cur": {"g": total_games, "k": total_k / total_games, "d": total_d / total_games,
-                                    "a": total_a / total_games, "kp": 0},
+                                    "a": total_a / total_games,
+                                    "kp": kp_numerator / kp_denominator if kp_denominator > 0 else 0},
                             "hist": None,
                         })
                         existing_names.add(player_name)
