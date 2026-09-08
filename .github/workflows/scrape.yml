@@ -36,6 +36,15 @@ jobs:
         run: python scripts/scrape_schedule.py
         continue-on-error: true  # don't block the whole update if this one API hiccups
 
+      - name: Scrape LoL player career history (gol.gg, multi-season)
+        run: python scripts/scrape_career.py
+        continue-on-error: true  # incremental/cached by design, but shouldn't block data.json if it fails or times out — a stale career_data.json (or none at all) just means merge_career_data() falls back every player to career=None, which the model already handles gracefully
+        timeout-minutes: 45  # first-ever run has no cache to build on (hundreds of players, some needing all 11 seasons individually) — subsequent runs are much faster since past seasons are cached and only the current season gets re-fetched
+
+      - name: Aggregate champion-level stat baselines
+        run: python scripts/aggregate_champion_stats.py
+        continue-on-error: true  # reads data.json's per_game field (from scrape_lcs.py above) — champion_stats.json is fetched independently by the app, so a failure here doesn't affect anything else in this job
+
       - name: Merge LoL data into final data.json
         run: python scripts/merge.py
 
@@ -44,32 +53,50 @@ jobs:
           git config user.name "esports-data-bot"
           git config user.email "actions@github.com"
           git add data.json
+          # career_data.json and champion_stats.json are produced by
+          # continue-on-error steps above — they might not exist on a
+          # run where those steps failed, or partway through the very
+          # first-ever career scrape. Add them only if present, same
+          # pattern already used for valorant_data.json below.
+          [ -f career_data.json ] && git add career_data.json
+          [ -f champion_stats.json ] && git add champion_stats.json
           if git diff --quiet --cached; then
             echo "No changes to commit"
             exit 0
           fi
           git commit -m "Update LoL data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          # data.json is wholesale-regenerated every run (scrape_lcs.py +
-          # scrape_schedule.py + merge.py all rebuild it fresh, nothing is
-          # incrementally edited) — a real merge-conflict was found
-          # committed to this exact file after two overlapping runs both
-          # pushed near-total rewrites, the same failure mode already
-          # fixed for cs2_data.json below. Since the file is idempotently
-          # regenerated, a content-level merge is never actually
-          # meaningful here — on push rejection, this discards the local
-          # commit's position entirely, resets to the latest remote
-          # state, and re-applies this run's already-generated file fresh
-          # on top, so "whoever pushes last simply wins with their
-          # snapshot" rather than attempting a merge that was never going
-          # to succeed cleanly for a full-file rewrite.
+          # All three files are wholesale-regenerated every run (nothing
+          # here is incrementally edited at the git level, even though
+          # scrape_career.py's OWN internal caching is incremental) — a
+          # real merge-conflict was found committed to data.json after
+          # two overlapping runs both pushed near-total rewrites, the
+          # same failure mode already fixed for cs2_data.json below.
+          # Since these files are idempotently regenerated, a content-
+          # level merge is never actually meaningful here — on push
+          # rejection, this discards the local commit's position
+          # entirely, resets to the latest remote state, and re-applies
+          # this run's already-generated files fresh on top, so
+          # "whoever pushes last simply wins with their snapshot" rather
+          # than attempting a merge that was never going to succeed
+          # cleanly for a full-file rewrite.
           for i in 1 2 3 4 5; do
             git push && exit 0
             echo "Push rejected ($i/5) — resetting to latest remote and reapplying this run's snapshot..."
             cp data.json /tmp/data.json.new
+            [ -f career_data.json ] && cp career_data.json /tmp/career_data.json.new
+            [ -f champion_stats.json ] && cp champion_stats.json /tmp/champion_stats.json.new
             git fetch origin main
             git reset --hard origin/main
             cp /tmp/data.json.new data.json
             git add data.json
+            if [ -f /tmp/career_data.json.new ]; then
+              cp /tmp/career_data.json.new career_data.json
+              git add career_data.json
+            fi
+            if [ -f /tmp/champion_stats.json.new ]; then
+              cp /tmp/champion_stats.json.new champion_stats.json
+              git add champion_stats.json
+            fi
             if git diff --quiet --cached; then
               echo "Remote already has this exact snapshot — nothing left to push"
               exit 0

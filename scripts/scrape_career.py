@@ -297,17 +297,20 @@ def all_seasons_back_to(current_season):
     return [f"S{n}" for n in range(6, current_num + 1)]
 
 
-def decayed_career_baseline(season_aggregates, current_season):
+def decayed_career_baseline(season_aggregates, current_season, half_life_override=None):
     """Exponential decay across SEASONS (not games) — a season N seasons
-    back gets weight 0.5^(N / SEASON_HALF_LIFE). Returns one {g,k,d,a,kp}
+    back gets weight 0.5^(N / half_life). Returns one {g,k,d,a,kp}
     baseline representing career history properly weighted toward recent
     seasons, or None if there's nothing to blend.
 
-    SEASON_HALF_LIFE=1.5 is a reasonable starting point (last season
-    counts meaningfully, three seasons back is a minor signal) but is NOT
-    yet backtested — this needs its own pass through
-    optimize_weights.py once real career data exists, same as every
-    other weight in this model was measured rather than guessed."""
+    half_life_override lets scripts/sweep_season_half_life.py test
+    different decay rates against already-cached season_aggregates
+    without needing to re-scrape — normal production usage (this
+    function's only other caller) doesn't pass it, so it keeps using the
+    module-level SEASON_HALF_LIFE default as before. SEASON_HALF_LIFE's
+    own value (1.5) was a reasonable starting point, not yet backtested
+    when first written — see sweep_season_half_life.py for that."""
+    half_life = half_life_override if half_life_override is not None else SEASON_HALF_LIFE
     if not season_aggregates:
         return None
     current_num = int(current_season.lstrip("S"))
@@ -319,7 +322,7 @@ def decayed_career_baseline(season_aggregates, current_season):
             continue
         season_num = int(season.lstrip("S"))
         seasons_back = max(0, current_num - season_num)
-        weight = 0.5 ** (seasons_back / SEASON_HALF_LIFE)
+        weight = 0.5 ** (seasons_back / half_life)
         total_weight += weight * agg["g"]
         total_games += agg["g"]
         for key in ("k", "d", "a", "kp"):
