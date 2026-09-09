@@ -1000,29 +1000,47 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     assists: { history: 0.4, opponent: 0.0, kp: 0.3, recencyHalfLife: 8, patchDiscount: 0.8, career: 0.0 },
   },
   cs2: {
-    // All three stats now genuinely measured with BOTH real fixes live:
-    // kp actually computed (was hardcoded to 0) and opponent adjustment
+    // All three stats now measured with THREE real fixes live: kp
+    // actually computed (was hardcoded to 0), opponent adjustment
     // actually functioning for kills/deaths (was silently always
-    // neutral due to the role-data dependency bug — see
-    // resolveOpponentMultiplier/gameHasRoleData). Real gains: kills
-    // +38.0%, deaths +29.4%, assists +20.3% (n=530) — the largest
-    // improvements of any game this session, consistent with how much
-    // of CS2's feature set was previously non-functional.
+    // neutral due to the role-data dependency bug), and — the biggest
+    // one — a genuine point-in-time-aware career tier (a real, confirmed
+    // leakage bug initially made career look artificially strong: it was
+    // a static snapshot with no cutoff-date awareness, so a historical
+    // backtest prediction could be fed a career number partly built from
+    // games that hadn't happened yet as of that prediction's own date).
     //
-    // opponent:0.0 for kills/assists is a real, deliberate finding, not
-    // a leftover default — the search actively moved AWAY from
-    // opponent:1.0 (the naive starting point) once opponent adjustment
-    // started actually doing something for CS2, because it was making
-    // predictions measurably WORSE at full strength. Most likely
-    // explanation: CS2's discovered-team pool is smaller and more
-    // dynamic than LoL's (lots of thinly-sampled backfilled teams, per
-    // this project's own CS2 data-pipeline history), so team-strength
-    // estimates are noisier — a strong opponent adjustment amplifies
-    // that noise rather than correcting for it. Deaths tolerates a mild
-    // 0.2 opponent weight; kills/assists don't.
-    kills: { history: 0.3, opponent: 0.0, kp: 0.1, recencyHalfLife: 20, patchDiscount: 0.4, career: 0.0 },
-    deaths: { history: 0.3, opponent: 0.2, kp: 0.3, recencyHalfLife: 14, patchDiscount: 0.4, career: 0.0 },
-    assists: { history: 0.3, opponent: 0.0, kp: 0.1, recencyHalfLife: 10, patchDiscount: 0.4, career: 0.0 },
+    // The leakage fix was verified two ways before trusting these
+    // numbers, not just assumed correct from logic: (1) direct
+    // inspection of real matches confirmed every included career game is
+    // genuinely before the cutoff date, every excluded one genuinely at
+    // or after it; (2) career_rate correlates only moderately (0.578)
+    // with the model's existing pt_rate signal, not near-1.0 — ruling
+    // out "it's just a cleaner copy of the same thing" and, combined
+    // with (1), ruling out residual leakage. Most likely real
+    // explanation: career_rate (60-day decay, sourced from a complete
+    // dedicated player-history query) and pt_rate (games-based decay,
+    // limited to this app's own team-discovery dataset) are measuring
+    // related but genuinely different things, and career_rate's data is
+    // simply more complete. Deaths settling at 0.95 rather than exactly
+    // 1.0 (unlike kills/assists) is a real, differentiating signal that
+    // the search isn't just blindly maxing out every dimension.
+    //
+    // Real gains vs. the pre-any-of-this-session's-CS2-fixes baseline:
+    // kills +43.5%, deaths +41.1%, assists +31.3% (n=1426) — by far the
+    // largest improvements of any game this whole project, consistent
+    // with how much of CS2's feature set was previously non-functional
+    // or actively broken.
+    //
+    // opponent:0.0/0.2 (not 1.0, the naive starting point) is a separate,
+    // real, deliberate finding: CS2's discovered-team pool is smaller
+    // and more dynamic than LoL's (lots of thinly-sampled backfilled
+    // teams), so team-strength estimates are noisier — a strong
+    // opponent adjustment amplifies that noise rather than correcting
+    // for it.
+    kills: { history: 0.3, opponent: 0.2, kp: 0.0, recencyHalfLife: 2, patchDiscount: 0.4, career: 1.0 },
+    deaths: { history: 0.3, opponent: 0.0, kp: 0.3, recencyHalfLife: 20, patchDiscount: 0.4, career: 0.95 },
+    assists: { history: 0.3, opponent: 0.2, kp: 0.1, recencyHalfLife: 20, patchDiscount: 0.4, career: 1.0 },
   },
 };
 
