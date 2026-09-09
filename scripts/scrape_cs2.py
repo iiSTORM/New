@@ -161,7 +161,22 @@ async def fetch_map_player_stats(session, game_id, canonical_name_by_team_id):
             resolved_name_by_team_id[team_id] = team_name
         if not name:
             continue  # can't attribute this row to a real player name — skip rather than guess
-        result[name] = {"k": s.get("kills", 0), "d": s.get("death", 0), "a": s.get("assists", 0), "team": team_name}
+        # Explicit None check, not .get(key, 0) -- a real, confirmed bug
+        # (found via a live screenshot showing systematic under-
+        # prediction across every match on the page) traced back to
+        # exactly this pattern in scrape_cs2_career.py: .get(key, 0)'s
+        # default only applies when the KEY is missing, not when it's
+        # present-but-null, so a map bo3.gg hasn't finished processing
+        # yet (confirmed earlier this project: some finished-status
+        # matches still have null state/rounds_count/scores) was being
+        # silently recorded as a real 0-kill game instead of excluded.
+        # Same class of bug here, fixed the same way: skip this player's
+        # row entirely for this map rather than treating null as real
+        # data feeding cur/pt_rate.
+        k, d, a = s.get("kills"), s.get("death"), s.get("assists")
+        if k is None or d is None or a is None:
+            continue
+        result[name] = {"k": k, "d": d, "a": a, "team": team_name}
 
     # Real kill participation, computed from data already fetched above —
     # no extra request needed. CS2 has shipped with kp hardcoded to 0 for

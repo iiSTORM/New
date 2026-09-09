@@ -158,17 +158,25 @@ async def fetch_game_stats_for_player(session, game_id, player_id):
         steam_profile = row.get("steam_profile") or {}
         nested_player = steam_profile.get("player") or {}
         if nested_player.get("id") == player_id:
-            # `or 0`, not just a .get() default -- a real crash showed
-            # some rows have kills/death/assists explicitly present but
-            # set to null (not simply absent), which .get(key, 0) does
-            # NOT catch (its default only applies when the key itself is
-            # missing). Likely the same category of "not fully processed
-            # yet" issue found earlier in this project for other
-            # matches. `or 0` safely coalesces both missing-key and
-            # explicit-null cases without affecting a genuine 0 value.
-            k = row.get("kills") or 0
-            d = row.get("death") or 0
-            a = row.get("assists") or 0
+            # A real, confirmed bug: an earlier version used `or 0` here,
+            # which coalesces BOTH "key missing" AND "key explicitly
+            # null" into the same 0 -- silently treating "bo3.gg hasn't
+            # finished processing this map's stats yet" (confirmed
+            # earlier this project: some finished-status matches still
+            # have null state/rounds_count/scores) the SAME as "this
+            # player genuinely went 0 kills this map". Once career
+            # weight hit ~1.0 for CS2 kills, a handful of these fake
+            # zeros mixed into a player's MOST RECENT games (which carry
+            # the heaviest weight under the 60-day decay) was enough to
+            # drag the whole weighted average down -- a real, user-
+            # reported, systematic under-prediction across every match
+            # shown in a live screenshot. Now explicitly distinguishes
+            # "null" (exclude this game entirely, not fully processed)
+            # from "present and genuinely 0" (real, legitimate data,
+            # keep it).
+            k, d, a = row.get("kills"), row.get("death"), row.get("assists")
+            if k is None or d is None or a is None:
+                return None
             return {"k": k, "d": d, "a": a}
     return None
 
