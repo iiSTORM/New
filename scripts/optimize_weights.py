@@ -112,6 +112,19 @@ def recency_weighted_rate(past_matches, team, player_name, stat_key, cutoff_date
     return rate, n * 2
 
 
+def likely_starters(players):
+    """Same heuristic as kill-projector.jsx's likelyStarters() — the 5
+    players with the most recorded games are the most likely current
+    starters, used whenever a team's players list exceeds 5 (CS2 in
+    particular has no roster endpoint at all, so its player list is the
+    union of everyone who's appeared for that team name across the whole
+    discovery window, which can genuinely exceed 5 once a roster change
+    happens mid-window)."""
+    if len(players) <= 5:
+        return players
+    return sorted(players, key=lambda p: p.get("cur", {}).get("g", 0), reverse=True)[:5]
+
+
 def team_stat_per_game(teams, team_name, stat_key):
     # A team can appear in past_matches without having an entry in `teams`
     # — real case: CS2's "Haunted House" showed up as a historical
@@ -122,10 +135,25 @@ def team_stat_per_game(teams, team_name, stat_key):
     entry = teams.get(team_name)
     if not entry or not entry.get("players"):
         return None
-    players = entry["players"]
-    distinct_roles = len(set(p.get("role") for p in players))
-    divisor = distinct_roles if distinct_roles > 1 else (min(5, len(players)) or 1)
-    return sum(p["cur"][stat_key] for p in players) / divisor
+    all_players = entry["players"]
+    # Distinct-role count handles LoL roster swaps correctly (e.g. two
+    # players sharing "JNG" after a mid-split change still count as one
+    # active slot) — computed against the FULL roster history, not just
+    # likely starters, since a departed player's role still legitimately
+    # counts toward "how many distinct roles has this team fielded."
+    distinct_roles = len(set(p.get("role") for p in all_players))
+    if distinct_roles > 1:
+        return sum(p["cur"][stat_key] for p in all_players) / distinct_roles
+    # No role data (CS2, or Valorant players without one) — both the sum
+    # AND the divisor now consistently scope to the same likely-starters
+    # subset. A real, confirmed bug here previously summed EVERY player
+    # unconditionally while only capping the divisor at min(5,
+    # len(players)) — silently inflating any team with more than 5
+    # tracked players, which fed directly into resolve_opponent_
+    # multiplier's team-wide path (the one CS2 kills/deaths/assists all
+    # actually use).
+    players = likely_starters(all_players)
+    return sum(p["cur"][stat_key] for p in players) / (len(players) or 1)
 
 
 def league_avg_stat(teams, stat_key):

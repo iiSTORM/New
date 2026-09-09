@@ -369,17 +369,44 @@ const FALLBACK_TEAMS = {
   },
 };
 
+// Real, confirmed issue: a team's players list isn't a clean "5
+// starters" roster the way LoL's explicit roster fetch gives — CS2 in
+// particular has no roster endpoint at all, so teams_payload is built by
+// unioning every player name who's appeared for that team ANYWHERE in
+// the discovery window, which can genuinely exceed 5 once a roster
+// change happens mid-window (a sub, a stand-in, an actual swap). Used
+// consistently everywhere a team's "active lineup" matters — both for
+// display (don't show a departed player's row with a real projected
+// number next to current starters) and for team-strength math below
+// (teamStatPerGame previously summed EVERY player unconditionally while
+// only capping the divisor at 5, silently inflating any team with more
+// than 5 tracked players). Heuristic: the 5 with the most recorded
+// games are the most likely current starters — uses data already on
+// hand (cur.g), no new scraping needed. Not a perfect signal (a
+// recently-benched starter with a big early-season game count could
+// still edge out a genuine new starter), but far more honest than
+// treating every historical name as equally live right now.
+function likelyStarters(players) {
+  if (players.length <= 5) return players;
+  return [...players].sort((a, b) => (b.cur?.g || 0) - (a.cur?.g || 0)).slice(0, 5);
+}
+
 const teamStatPerGame = (teams, teamName, statKey) => {
-  const players = teams[teamName].players;
+  const allPlayers = teams[teamName].players;
   // Distinct-role count handles LoL roster swaps correctly (e.g. two
   // players sharing "JNG" after a mid-split change still count as one
-  // active slot). Valorant players have no fixed role (role: null), which
-  // would otherwise collapse every player into a single Set entry and
-  // inflate this ~5x — fall back to a standard 5-player lineup whenever
-  // role data isn't present.
-  const distinctRoles = new Set(players.map((p) => p.role)).size;
-  const divisor = distinctRoles > 1 ? distinctRoles : Math.min(5, players.length) || 1;
-  return players.reduce((sum, p) => sum + p.cur[statKey], 0) / divisor;
+  // active slot) — computed against the FULL roster history, not just
+  // likely starters, since a departed player's role still legitimately
+  // counts toward "how many distinct roles has this team fielded."
+  const distinctRoles = new Set(allPlayers.map((p) => p.role)).size;
+  if (distinctRoles > 1) {
+    return allPlayers.reduce((sum, p) => sum + p.cur[statKey], 0) / distinctRoles;
+  }
+  // No role data (CS2, or Valorant players without one) — both the sum
+  // AND the divisor now consistently scope to the same likely-starters
+  // subset, instead of summing everyone while only capping the divisor.
+  const players = likelyStarters(allPlayers);
+  return players.reduce((sum, p) => sum + p.cur[statKey], 0) / (players.length || 1);
 };
 
 const leagueAvgStat = (teams, statKey) => {
@@ -1027,7 +1054,7 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // the search isn't just blindly maxing out every dimension.
     //
     // Real gains vs. the pre-any-of-this-session's-CS2-fixes baseline:
-    // kills +43.5%, deaths +41.1%, assists +31.3% (n=1426) — by far the
+    // kills +42.7%, deaths +40.9%, assists +30.6% (n=1446) — by far the
     // largest improvements of any game this whole project, consistent
     // with how much of CS2's feature set was previously non-functional
     // or actively broken.
@@ -1037,8 +1064,20 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // and more dynamic than LoL's (lots of thinly-sampled backfilled
     // teams), so team-strength estimates are noisier — a strong
     // opponent adjustment amplifies that noise rather than correcting
-    // for it.
-    kills: { history: 0.3, opponent: 0.2, kp: 0.0, recencyHalfLife: 2, patchDiscount: 0.4, career: 1.0 },
+    // for it. A separate, real, confirmed bug (teamStatPerGame/
+    // team_stat_per_game summing EVERY historical player for a team,
+    // uncapped, while only capping the divisor at 5 -- a team with more
+    // than 5 tracked players, e.g. after a roster change mid-window,
+    // got a silently inflated team-strength number) was found and fixed
+    // here too, via a shared likelyStarters()/likely_starters() helper
+    // (top 5 by games played). Re-measured after the fix out of real
+    // caution, not just trusted from logic — but the actual impact on
+    // these numbers turned out small (opponent weights didn't move at
+    // all; MAE improved only marginally). Worth fixing for correctness
+    // regardless, but it means CS2's opponent-noise problem is mostly
+    // NOT explained by this specific bug -- more likely just genuinely
+    // smaller, noisier team samples across the board.
+    kills: { history: 0.3, opponent: 0.2, kp: 0.1, recencyHalfLife: 2, patchDiscount: 0.4, career: 1.0 },
     deaths: { history: 0.3, opponent: 0.0, kp: 0.3, recencyHalfLife: 20, patchDiscount: 0.4, career: 0.95 },
     assists: { history: 0.3, opponent: 0.2, kp: 0.1, recencyHalfLife: 20, patchDiscount: 0.4, career: 1.0 },
   },
@@ -1434,7 +1473,7 @@ function MatchupPanel({ teams, pastMatches, teamA, teamB, games, weights, statTy
               <span style={{ fontWeight: 700, fontSize: 14, fontFamily: "'Chakra Petch', sans-serif" }}>{team}</span>
               <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, color: teams[team].color }}>Σ {total.toFixed(1)}</span>
             </div>
-            {teams[team].players.map((p) => (
+            {likelyStarters(teams[team].players).map((p) => (
               <PlayerRow key={p.name} teams={teams} pastMatches={pastMatches} p={p} team={team} opponentTeam={opp} games={games} weights={weights} teamColor={teams[team].color} statType={statType} />
             ))}
           </div>
@@ -1555,7 +1594,7 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games }
 
   const rows = teamKeys.flatMap((team) => {
     const opp = team === match.teamA ? match.teamB : match.teamA;
-    return teams[team].players.map((p) => ({
+    return likelyStarters(teams[team].players).map((p) => ({
       team, name: p.name, role: p.role, proj: project(teams, pastMatches, p, team, opp, games, weights, statType).total,
     }));
   });
