@@ -1,0 +1,421 @@
+STEP 1: Finding a real recent Spirit match to extract donk's steam_profile_id from
+
+============================================================
+GET /matches for Team Spirit (to find a real match+game id)
+  URL: https://api.bo3.gg/api/v1/matches  params={'scope': 'widget-map-pool', 'page[offset]': '0', 'page[limit]': '3', 'sort': '-start_date', 'filter[matches.status][in]': 'finished', 'filter[matches.team_ids][overlap]': '654', 'filter[matches.discipline_id][eq]': '1', 'with': 'teams,games'}
+============================================================
+  status: 200
+{
+  "total": {
+    "count": 422,
+    "pages": 141,
+    "offset": 0,
+    "limit": 3
+  },
+  "results": [
+    {
+      "id": 127405,
+      "slug": "spirit-vs-mousesports-06-09-2026",
+      "start_date": "2026-09-06T14:00:00.000+00:00",
+      "discipline_id": 1,
+      "team1": {
+        "id": 654,
+        "slug": "spirit",
+        "name": "Spirit",
+        "image_url": "https://files.bo3.gg/uploads/team/654/image/webp-41b22d18a871d982f8ff87652bbb0fe6.webp"
+      },
+      "team2": {
+        "id": 765,
+        "slug": "mousesports",
+        "name": "MOUZ",
+        "image_url": "https://files.bo3.gg/uploads/team/765/image/bcbdcf50fb2c79b6ab45b0014300b9e0.png"
+      },
+      "games": [
+        {
+          "id": 182138,
+          "begin_at": "2026-09-06T17:22:22.000+00:00",
+          "winner_clan_score": 13,
+          "loser_clan_score": 6,
+          "winner_clan_name": "Spirit",
+          "loser_clan_name": "MOUZ",
+          "number": 4,
+          "map_name": "de_nuke",
+          "winner_team_clan": {
+            "team": {
+              "id": 654
+            }
+          },
+          "loser_team_clan": {
+            "team": {
+              "id": 765
+            }
+          }
+        },
+        {
+          "id": 182139,
+          "begin_at": "2026-09-06T16:19:22.000+00:00",
+          "winner_clan_score": 13,
+          "loser_clan_score": 3,
+          "winner_clan_name": "Spirit",
+          "loser_clan_name": "MOUZ",
+          "number": 3,
+          "map_name": "de_ancient",
+          "winner_team_clan": {
+            "team": {
+              "id": 654
+            }
+          },
+          "loser_team_clan": {
+            "team": {
+              "id": 765
+            }
+          }
+        },
+        {
+          "id": 182140,
+          "begin_at": "2026-09-06T15:09:02.000+00:00",
+          "winner_clan_score": 13,
+          "loser_clan_score": 11,
+          "winner_clan_name": "MOUZ",
+          "loser_clan_name": "Spirit",
+          "number": 2,
+          "map_name": "de_mirage",
+          "winner_team_clan": {
+            "team": {
+              "id": 765
+            }
+          },
+          "loser_team_clan": {
+            "team": {
+              "id": 654
+            }
+          }
+        },
+        {
+          "id": 182141,
+          "begin_at": "2026-09-06T14:03:55.000+00:00",
+          "winner_clan_score": 13,
+          "loser_clan_score": 8,
+          "winner_clan_name": "Spirit",
+          "loser_clan_name": "MOUZ",
+          "number": 1,
+          "map_name": "d
+...[truncated, 6667 total chars]
+
+>>> Using game_id=182138 from match spirit-vs-mousesports-06-09-2026
+
+============================================================
+GET /games/182138/players_stats (to find donk's steam_profile_id)
+  URL: https://api.bo3.gg/api/v1/games/182138/players_stats  params=None
+============================================================
+  status: 200
+[
+  {
+    "id": 1870399,
+    "game_id": 182138,
+    "steam_profile_id": 1420,
+    "clan_name": "Spirit",
+    "win": 1,
+    "kills": 17,
+    "death": 11,
+    "assists": 7,
+    "headshots": 12,
+    "first_kills": 6,
+    "first_death": 4,
+    "trade_kills": 3,
+    "trade_death": 4,
+    "kast": 0.8421052631578947,
+    "player_rating": 7.384236465650206,
+    "multikills": {
+      "2": 5,
+      "3": 1,
+      "4": 0,
+      "5": 0
+    },
+    "adr": 104.78947368421052,
+    "hits": 53,
+    "shots": 333,
+    "got_damage": 1215,
+    "damage": 1991,
+    "utility_value": 2900,
+    "money_spent": 28050,
+    "money_save": 29600,
+    "cumulative_round_damages": {
+      "1": 100,
+      "2": 449,
+      "3": 449,
+      "4": 701,
+      "5": 701,
+      "6": 868,
+      "7": 895,
+      "8": 1038,
+      "9": 1120,
+      "10": 1171,
+      "11": 1171,
+      "12": 1317,
+      "13": 1397,
+      "14": 1593,
+      "15": 1593,
+      "16": 1602,
+      "17": 1725,
+      "18": 1907,
+      "19": 1991
+    },
+    "clutches": 0,
+    "total_equipment_value": 87900,
+    "additional_value": 20100,
+    "pistols_value": 1500,
+    "weapons_value": 5800,
+    "player_rating_value": 1181.477834504033,
+    "enemy_clan_name": "MOUZ",
+    "team_clan": {
+      "clan_name": "Spirit",
+      "team_id": 654,
+      "created_at": null,
+      "updated_at": null,
+      "id": 52,
+      "team": {
+        "id": 654,
+        "slug": "spirit",
+        "name": "Spirit",
+        "rank": 1,
+        "image_url": "https://files.bo3.gg/uploads/team/654/image/webp-41b22d18a871d982f8ff87652bbb0fe6.webp",
+        "tshirt_image_url": "https://files.bo3.gg/uploads/team/654/tshirt_image/webp-d3630c11b1c94c371faf22998a17cb33.webp",
+        "icon_url": null,
+        "country_id": 56,
+        "discipline_id": 1,
+        "country": {
+          "id": 56,
+          "code": "RU",
+          "name": "Russian Federation",
+          "region_id": 4
+        }
+      }
+    },
+    "steam_profile": {
+      "id": 1420,
+      "steam_id_64": 76561198386265483,
+      "nickname": "donk",
+      "player_id": 31349,
+      "created_at": null,
+      "updated_at": null,
+      "player": {
+        "id": 31349,
+        "slug": "donk",
+        "nickname": "donk",
+        "first_name": "Danil",
+        "last_name": "Kryshkovets",
+        "status": 1,
+        "image_url": "https://files.bo3.gg/uploads/player/31349/image/webp-0e805518d9eaf50edea592922563a8c5.webp",
+        "country_id": 56,
+        "team_id": 654,
+        "discipline_id": 1,
+        "settings_presen
+...[truncated, 65886 total chars]
+
+>>> Spirit-side steam_profile_ids found: [1420, 1035, 293, 1205, 2892]
+
+
+STEP 2: Testing candidate player-scoped match filters using steam_profile_id=1420
+
+============================================================
+Candidate A: filter[matches.player_ids][overlap]=1420
+  URL: https://api.bo3.gg/api/v1/matches  params={'scope': 'widget-map-pool', 'page[offset]': '0', 'page[limit]': '5', 'sort': '-start_date', 'filter[matches.status][in]': 'finished', 'filter[matches.player_ids][overlap]': '1420', 'filter[matches.discipline_id][eq]': '1', 'with': 'teams,games'}
+============================================================
+  status: 200
+{
+  "total": {
+    "count": 0,
+    "pages": 0,
+    "offset": 0,
+    "limit": 5
+  },
+  "results": [],
+  "links": {
+    "self": "/api/v1/matches?filter%5Bmatches.discipline_id%5D%5Beq%5D=1&filter%5Bmatches.player_ids%5D%5Boverlap%5D=1420&filter%5Bmatches.status%5D%5Bin%5D=finished&page%5Blimit%5D=5&sort=-start_date"
+  }
+}
+
+============================================================
+Candidate B: filter[matches.steam_profile_ids][overlap]=1420
+  URL: https://api.bo3.gg/api/v1/matches  params={'scope': 'widget-map-pool', 'page[offset]': '0', 'page[limit]': '5', 'sort': '-start_date', 'filter[matches.status][in]': 'finished', 'filter[matches.steam_profile_ids][overlap]': '1420', 'filter[matches.discipline_id][eq]': '1', 'with': 'teams,games'}
+============================================================
+  status: 200
+{
+  "total": {
+    "count": 74271,
+    "pages": 14855,
+    "offset": 0,
+    "limit": 5
+  },
+  "results": [
+    {
+      "id": 129069,
+      "slug": "gothboiclique-vs-madman-08-09-2026",
+      "start_date": "2026-09-08T18:45:00.000+00:00",
+      "discipline_id": 1,
+      "team1": {
+        "id": 2913,
+        "slug": "gothboiclique",
+        "name": "gothboiclique",
+        "image_url": "https://files.bo3.gg/uploads/team/2913/image/webp-22f5e97c536cd258edc2612898b8acee.webp"
+      },
+      "team2": {
+        "id": 25276,
+        "slug": "madman",
+        "name": "MADMAN"
+      },
+      "games": [
+        {
+          "id": 184798,
+          "begin_at": "2026-09-08T20:22:30.000+00:00",
+          "number": 3,
+          "map_name": "de_mirage"
+        },
+        {
+          "id": 184799,
+          "begin_at": "2026-09-08T19:22:08.000+00:00",
+          "number": 2,
+          "map_name": "de_inferno"
+        },
+        {
+          "id": 184800,
+          "begin_at": "2026-09-08T18:45:33.000+00:00",
+          "number": 1,
+          "map_name": "de_anubis"
+        }
+      ]
+    },
+    {
+      "id": 129068,
+      "slug": "dinero-vs-bojong-08-09-2026",
+      "start_date": "2026-09-08T18:15:00.000+00:00",
+      "discipline_id": 1,
+      "team1": {
+        "id": 25289,
+        "slug": "dinero",
+        "name": "DINERO"
+      },
+      "team2": {
+        "id": 22898,
+        "slug": "bojong",
+        "name": "BOJONG",
+        "image_url": "https://files.bo3.gg/uploads/team/22898/image/webp-2efacc5a4ab012d3625f5a2143818ad3.webp"
+      },
+      "games": [
+        {
+          "id": 184795,
+          "begin_at": "2026-09-08T20:21:05.000+00:00",
+          "number": 3,
+          "map_name": "de_nuke"
+        },
+        {
+          "id": 184796,
+          "begin_at": "2026-09-08T19:24:57.000+00:00",
+          "number": 2,
+          "map_name": "de_mirage"
+        },
+        {
+          "id": 184797,
+          "begin_at": "2026-09-08T18:18:35.000+00:00",
+          "number": 1,
+          "map_name": "de_ancient"
+        }
+      ]
+    },
+    {
+      "id": 128668,
+      "slug": "younglings-vs-banger-gang-08-09-2026",
+      "start_date": "2026-09-08T17:50:00.000+00:00",
+      "discipline_id": 1,
+      "team1": {
+        "id": 9728,
+        "slug": "banger-gang",
+        "name": "Banger Gang",
+        "image_url": "https://files.bo3.gg/uploads/team/9728/image/webp-01f6227159c84121c70028d256b9f43b.webp"
+      },
+      "team2": {
+        "id": 22933,
+        "slug": "younglings",
+      
+...[truncated, 7408 total chars]
+
+============================================================
+Candidate C: GET /players/1420/games
+  URL: https://api.bo3.gg/api/v1/players/1420/games  params=None
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+Candidate D: GET /players/1420/matches
+  URL: https://api.bo3.gg/api/v1/players/1420/matches  params=None
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+Candidate E: GET /players/1420 — bare, full shape
+  URL: https://api.bo3.gg/api/v1/players/1420  params=None
+============================================================
+  status: 404
+  body: {"status":"record_not_found","message":"Record not found"}
+
+============================================================
+Candidate F: GET /filters/players?search_text=donk
+  URL: https://api.bo3.gg/api/v1/filters/players  params={'page[offset]': '0', 'page[limit]': '3', 'filter[players.discipline_id][eq]': '1', 'search_text': 'donk'}
+============================================================
+  status: 200
+{
+  "total": {
+    "count": 9,
+    "pages": 3,
+    "offset": 0,
+    "limit": 3
+  },
+  "results": [
+    {
+      "priority": 1,
+      "id": 31349,
+      "slug": "donk",
+      "nickname": "donk",
+      "first_name": "Danil",
+      "last_name": "Kryshkovets",
+      "status": 1,
+      "image_url": "https://files.bo3.gg/uploads/player/31349/image/webp-0e805518d9eaf50edea592922563a8c5.webp",
+      "rank": 2,
+      "team_id": 654,
+      "country_id": 56,
+      "discipline_id": 1
+    },
+    {
+      "priority": 1,
+      "id": 55415,
+      "slug": "donk-1857072f-8865-41b0-922c-6cc97708707f",
+      "nickname": "Donk",
+      "first_name": null,
+      "last_name": null,
+      "status": 1,
+      "image_url": null,
+      "rank": null,
+      "team_id": null,
+      "country_id": null,
+      "discipline_id": 4
+    },
+    {
+      "priority": 1,
+      "id": 77770,
+      "slug": "donk-mlbb",
+      "nickname": "Donk",
+      "first_name": "",
+      "last_name": "",
+      "status": 1,
+      "image_url": null,
+      "rank": null,
+      "team_id": 21351,
+      "country_id": 14,
+      "discipline_id": 8
+    }
+  ]
+}
+

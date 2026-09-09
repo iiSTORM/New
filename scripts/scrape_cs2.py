@@ -714,9 +714,67 @@ async def build_region_payload(cs2, session):
     return {"teams": teams_payload, "past_matches": past_matches, "upcoming_matches": upcoming_matches}
 
 
+def merge_cs2_career_data(payload):
+    """Folds each player's RAW per-game career history (from
+    scrape_cs2_career.py's output) into their existing record in this
+    payload. Simpler than LoL's equivalent (merge.py's
+    merge_career_data) since cs2_career_data.json is already keyed by
+    player name directly -- no name-based lookup construction needed,
+    CS2 has no separate numeric-ID-keyed intermediate step the way
+    gol.gg's player IDs required for LoL.
+
+    Stores the raw games list as "career_games", NOT a pre-decayed
+    number — a real, confirmed leakage issue found that computing one
+    static "career" baseline at scrape time (using "most recent N games
+    as of right now") meant a historical backtest prediction could be
+    fed a career number partly built from games that hadn't happened yet
+    as of that prediction's own date. Consumers now compute the decayed
+    baseline POINT-IN-TIME from this raw list — the same standard
+    cur/hist/opponent already hold themselves to elsewhere in this
+    model — rather than trusting one static snapshot for every
+    prediction regardless of when it's dated.
+
+    Gracefully optional: if cs2_career_data.json doesn't exist yet
+    (scrape_cs2_career.py hasn't been run, or isn't wired into this
+    particular workflow run), every player just gets career_games=[] and
+    the rest of the pipeline is unaffected."""
+    try:
+        with open("cs2_career_data.json") as f:
+            career_data = json.load(f)
+    except FileNotFoundError:
+        print("! cs2_career_data.json not found — skipping career merge (every player gets "
+              "career_games=[]; run scrape_cs2_career.py first if this wasn't intentional)",
+              file=sys.stderr)
+        career_data = {}
+
+    matched = 0
+    unmatched = []
+    for team in payload.get("teams", {}).values():
+        for player in team.get("players", []):
+            name = player.get("name")
+            record = career_data.get(name)
+            games = record.get("games") if record else None
+            if games:
+                player["career_games"] = games
+                matched += 1
+            else:
+                player["career_games"] = []
+                unmatched.append(name)
+
+    total = matched + len(unmatched)
+    print(f"Merged CS2 career data: {matched}/{total} player(s) matched")
+    if unmatched:
+        shown = unmatched[:20]
+        more = f" ... (+{len(unmatched) - 20} more)" if len(unmatched) > 20 else ""
+        print(f"  ! unmatched (no career data — career_games=[], falls back to cur only): {shown}{more}",
+              file=sys.stderr)
+
+
 async def main():
     async with CS2() as cs2, aiohttp.ClientSession() as session:
         payload = await build_region_payload(cs2, session)
+
+    merge_cs2_career_data(payload)
 
     output = {
         "generated_at": datetime.now(timezone.utc).isoformat(),

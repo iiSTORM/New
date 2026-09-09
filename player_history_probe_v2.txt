@@ -1,0 +1,137 @@
+============================================================
+GET /players/31349 — bare, full shape
+  URL: https://api.bo3.gg/api/v1/players/31349  params=None
+============================================================
+  status: 404
+  body: {"status":"record_not_found","message":"Record not found"}
+
+============================================================
+GET /players/31349/matches
+  URL: https://api.bo3.gg/api/v1/players/31349/matches  params=None
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+GET /players/31349/games
+  URL: https://api.bo3.gg/api/v1/players/31349/games  params=None
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+GET /players/31349/transfers (cs2api's own confirmed-working example)
+  URL: https://api.bo3.gg/api/v1/players/31349/transfers  params=None
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+GET /players/31349/stats
+  URL: https://api.bo3.gg/api/v1/players/31349/stats  params=None
+============================================================
+  status: 404
+  body: {"status":404,"error":"Not Found"}
+
+============================================================
+filter[matches.player_ids][overlap]=31349 (correct ID this time)
+  URL: https://api.bo3.gg/api/v1/matches  params={'scope': 'widget-map-pool', 'page[offset]': '0', 'page[limit]': '5', 'sort': '-start_date', 'filter[matches.status][in]': 'finished', 'filter[matches.player_ids][overlap]': '31349', 'filter[matches.discipline_id][eq]': '1', 'with': 'teams,games'}
+============================================================
+  status: 200
+{
+  "total": {
+    "count": 390,
+    "pages": 78,
+    "offset": 0,
+    "limit": 5
+  },
+  "results": [
+    {
+      "id": 127405,
+      "slug": "spirit-vs-mousesports-06-09-2026",
+      "start_date": "2026-09-06T14:00:00.000+00:00",
+      "discipline_id": 1,
+      "team1": {
+        "id": 654,
+        "slug": "spirit",
+        "name": "Spirit",
+        "image_url": "https://files.bo3.gg/uploads/team/654/image/webp-41b22d18a871d982f8ff87652bbb0fe6.webp"
+      },
+      "team2": {
+        "id": 765,
+        "slug": "mousesports",
+        "name": "MOUZ",
+        "image_url": "https://files.bo3.gg/uploads/team/765/image/bcbdcf50fb2c79b6ab45b0014300b9e0.png"
+      },
+      "games": [
+        {
+          "id": 182138,
+          "begin_at": "2026-09-06T17:22:22.000+00:00",
+          "winner_clan_score": 13,
+          "loser_clan_score": 6,
+          "winner_clan_name": "Spirit",
+          "loser_clan_name": "MOUZ",
+          "number": 4,
+          "map_name": "de_nuke",
+          "winner_team_clan": {
+            "team": {
+              "id": 654
+            }
+          },
+          "loser_team_clan": {
+            "team": {
+              "id": 765
+            }
+          }
+        },
+        {
+          "id": 182139,
+          "begin_at": "2026-09-06T16:19:22.000+00:00",
+          "winner_clan_score": 13,
+          "loser_clan_score": 3,
+          "winner_clan_name": "Spirit",
+          "loser_clan_name": "MOUZ",
+          "number": 3,
+          "map_name": "de_ancient",
+          "winner_team_clan": {
+            "team": {
+              "id": 654
+            }
+          },
+          "loser_team_clan": {
+            "team": {
+              "id": 765
+            }
+          }
+        },
+        {
+          "id": 182140,
+          "begin_at": "2026-09-06T15:09:02.000+00:00",
+          "winner_clan_score": 13,
+          "loser_clan_score": 11,
+          "winner_clan_name": "MOUZ",
+          "loser_clan_name": "Spirit",
+          "number": 2,
+          "map_name": "de_mirage",
+          "winner_team_clan": {
+            "team": {
+              "id": 765
+            }
+          },
+          "loser_team_clan": {
+            "team": {
+              "id": 654
+            }
+          }
+        },
+        {
+          "id": 182141,
+          "begin_at": "2026-09-06T14:03:55.000+00:00",
+          "winner_clan_score": 13,
+          "loser_clan_score": 8,
+          "winner_clan_name": "Spirit",
+          "loser_clan_name": "MOUZ",
+          "number": 1,
+          "map_name": "de
+...[truncated, 9917 total chars]
+

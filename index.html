@@ -628,7 +628,7 @@ function project(teams, pastMatches, player, team, opponentTeam, games, weights,
   const weighted = recencyWeightedRate(pastMatches, team, player.name, cfg.key, null, weights.recencyHalfLife, refPatch, weights.patchDiscount);
   const curRate = weighted.rate !== null ? weighted.rate : player.cur[cfg.key]; // safety net if pastMatches is thin
   let base = player.hist ? weights.history * player.hist[cfg.key] + (1 - weights.history) * curRate : curRate;
-  base = applyCareerTier(base, player, weights, cfg);
+  base = applyCareerTier(base, player, weights, cfg, null);
   const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, null);
   const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp) : 1;
   const perGame = base * oppMult * kpMult;
@@ -658,8 +658,42 @@ function project(teams, pastMatches, player, team, opponentTeam, games, weights,
 // separate in-house current-season tracking — noise reduction /
 // coverage improvement, not real cross-season trend-capturing. Worth
 // knowing before assuming this reflects a player's multi-year career.
-function applyCareerTier(base, player, weights, cfg) {
-  const careerRate = player.career ? player.career[cfg.key] : null;
+// CS2's career data is point-in-time computed here, from raw per-game
+// history (player.career_games), not a static pre-decayed number — a
+// real, confirmed leakage bug found that a single "career" snapshot
+// computed once at scrape time ("most recent N games as of right now")
+// let a historical backtest prediction be fed a career number partly
+// built from games that hadn't happened yet as of that prediction's own
+// date, producing a misleadingly perfect-looking career:1.0 in a real
+// backtest. LoL still uses a static player.career field for now (its own
+// leakage risk is smaller in practice — a whole-season aggregate dilutes
+// any single prediction's overlap — but isn't architecturally immune to
+// the same issue; worth applying this same fix there once CS2's is
+// validated).
+const CS2_CAREER_DAY_HALF_LIFE = 60; // matches scripts/scrape_cs2_career.py's own constant
+function pointInTimeCS2CareerRate(player, statKey, cutoffDate) {
+  const games = player.career_games || [];
+  const cutoffMs = cutoffDate ? new Date(cutoffDate).getTime() : Date.now();
+  const eligible = games.filter((g) => g.date && new Date(g.date).getTime() < cutoffMs);
+  if (!eligible.length) return null;
+  let totalWeight = 0;
+  let weighted = 0;
+  for (const g of eligible) {
+    const daysAgo = Math.max(0, (cutoffMs - new Date(g.date).getTime()) / 86400000);
+    const weight = Math.pow(0.5, daysAgo / CS2_CAREER_DAY_HALF_LIFE);
+    totalWeight += weight;
+    weighted += (g[statKey] || 0) * weight;
+  }
+  return totalWeight > 0 ? weighted / totalWeight : null;
+}
+
+function applyCareerTier(base, player, weights, cfg, cutoffDate) {
+  let careerRate;
+  if (player.career_games) {
+    careerRate = pointInTimeCS2CareerRate(player, cfg.key, cutoffDate);
+  } else {
+    careerRate = player.career ? player.career[cfg.key] : null;
+  }
   if (careerRate != null && weights.career > 0) {
     return weights.career * careerRate + (1 - weights.career) * base;
   }
@@ -837,7 +871,7 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
   } else {
     base = histRate !== null ? histRate : player.cur[cfg.key];
   }
-  base = applyCareerTier(base, player, weights, cfg);
+  base = applyCareerTier(base, player, weights, cfg, cutoffDate);
 
   const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, cutoffDate);
 

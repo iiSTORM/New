@@ -26,6 +26,7 @@ import argparse
 import json
 import re
 import sys
+from datetime import datetime
 from pathlib import Path
 
 # ============================================================
@@ -132,7 +133,13 @@ def league_avg_stat(teams, stat_key):
     return sum(values) / len(values) if values else None
 
 
+_point_in_time_team_stat_cache = {}  # keyed by (id(past_matches), team, stat_key, cutoff_date) -- past_matches is a stable object reference for the whole duration of one evaluation run, same reasoning as the game_has_role_data cache above
+
+
 def point_in_time_team_stat(past_matches, team, stat_key, cutoff_date):
+    key = (id(past_matches), team, stat_key, cutoff_date)
+    if key in _point_in_time_team_stat_cache:
+        return _point_in_time_team_stat_cache[key]
     total, games = 0.0, 0
     for m in past_matches:
         if not m.get("date") or m["date"] >= cutoff_date:
@@ -149,12 +156,33 @@ def point_in_time_team_stat(past_matches, team, stat_key, cutoff_date):
             if isinstance(val, (int, float)):
                 total += val
         games += 2
-    return total / games if games > 0 else None
+    result = total / games if games > 0 else None
+    _point_in_time_team_stat_cache[key] = result
+    return result
+
+
+_point_in_time_league_avg_stat_cache = {}  # keyed by (id(past_matches), id(teams), stat_key, cutoff_date)
 
 
 def point_in_time_league_avg_stat(past_matches, teams, stat_key, cutoff_date):
+    # This is the real, much bigger cost that was found causing a
+    # measured 20+ minute CS2 run (well outside the normal range): it
+    # loops over EVERY team and calls point_in_time_team_stat for each,
+    # which itself does a full scan over past_matches with a nested
+    # per-player loop — O(teams x matches x players), previously
+    # recomputed from scratch on every single call with zero caching.
+    # This path used to only run for assists; the earlier fix routing
+    # CS2 kills/deaths through team-wide opponent comparison (since CS2
+    # has no role data for the lane-specific path) meant it started
+    # getting hit far more often without this cost being addressed at
+    # the same time.
+    key = (id(past_matches), id(teams), stat_key, cutoff_date)
+    if key in _point_in_time_league_avg_stat_cache:
+        return _point_in_time_league_avg_stat_cache[key]
     rates = [r for r in (point_in_time_team_stat(past_matches, t, stat_key, cutoff_date) for t in teams) if r is not None]
-    return sum(rates) / len(rates) if rates else None
+    result = sum(rates) / len(rates) if rates else None
+    _point_in_time_league_avg_stat_cache[key] = result
+    return result
 
 
 # ============================================================
@@ -207,6 +235,9 @@ def lane_opponent_multiplier(past_matches, teams, player, opponent_team, opp_str
     return 1 + opp_strength * (opp_stat / league_avg - 1)
 
 
+_game_has_role_data_cache = {}  # keyed by id(teams) -- teams is a stable object reference for the whole duration of one evaluation run (loaded once via load_region_data, never reconstructed mid-search), so this is safe and avoids a real, meaningful cost: this function is called from resolve_opponent_multiplier, which runs for EVERY prediction, potentially hundreds of thousands to millions of times across a full coordinate-descent search — a real, measured slowdown (a full CS2 run taking 20+ minutes, well outside the normal range) traced back to this doing a fresh full-player scan on every single one of those calls with no caching at all.
+
+
 def game_has_role_data(teams):
     """True if ANY player in this dataset has role info at all — used to
     distinguish "this specific player is missing a role" (LoL/Valorant,
@@ -221,7 +252,12 @@ def game_has_role_data(teams):
     that ever being a deliberate, tested decision — this restores a
     real, functioning opponent adjustment for CS2 specifically without
     touching LoL/Valorant's already-validated behavior at all."""
-    return any(p.get("role") for team in teams.values() for p in team.get("players", []))
+    key = id(teams)
+    if key not in _game_has_role_data_cache:
+        _game_has_role_data_cache[key] = any(
+            p.get("role") for team in teams.values() for p in team.get("players", [])
+        )
+    return _game_has_role_data_cache[key]
 
 
 def resolve_opponent_multiplier(teams, past_matches, player, opponent_team, opp_strength, cfg, cutoff_date):
@@ -268,6 +304,45 @@ def kp_multiplier(player, history_weight, kp_strength):
     return 1 + kp_strength * (relative - 1)
 
 
+CS2_CAREER_DAY_HALF_LIFE = 60  # matches scrape_cs2_career.py's own constant
+
+
+def point_in_time_cs2_career_rate(player, stat_key, cutoff_date):
+    """Computes the decayed career baseline FRESH for this specific
+    cutoff_date, from the player's raw per-game history
+    (player["career_games"], each {"k","d","a","date"}) — replacing a
+    real, confirmed leakage bug where a single static "career" number
+    was computed once at scrape time ("most recent N games as of right
+    now") with no cutoff awareness, meaning a historical backtest
+    prediction could be fed a career number partly built from games that
+    hadn't happened yet as of that prediction's own date. Filters to
+    games strictly before cutoff_date first (string comparison, same
+    convention the rest of this file already uses for match dates), then
+    applies the same day-based exponential decay scrape_cs2_career.py's
+    own decayed_baseline() uses, just computed point-in-time here instead
+    of once globally."""
+    games = player.get("career_games") or []
+    eligible = [g for g in games if g.get("date") and g["date"] < cutoff_date]
+    if not eligible:
+        return None
+    try:
+        cutoff_dt = datetime.fromisoformat(cutoff_date.replace("Z", "+00:00")).replace(tzinfo=None)
+    except (ValueError, AttributeError):
+        return None
+    total_weight = 0.0
+    weighted = 0.0
+    for g in eligible:
+        try:
+            game_dt = datetime.fromisoformat(g["date"].replace("Z", "+00:00")).replace(tzinfo=None)
+        except (ValueError, AttributeError):
+            continue
+        days_ago = max(0, (cutoff_dt - game_dt).days)
+        weight = 0.5 ** (days_ago / CS2_CAREER_DAY_HALF_LIFE)
+        total_weight += weight
+        weighted += g.get(stat_key, 0) * weight
+    return weighted / total_weight if total_weight > 0 else None
+
+
 def project_point_in_time(past_matches, teams, player, team, opponent_team, games, weights,
                            cutoff_date, stat_type, match_patch):
     cfg = STAT_TYPES[stat_type]
@@ -283,19 +358,27 @@ def project_point_in_time(past_matches, teams, player, team, opponent_team, game
     else:
         base = hist_rate if hist_rate is not None else player["cur"][cfg["key"]]
 
-    # Career tier — a longer-horizon (multi-season, decay-weighted) prior
-    # blended on TOP of the existing recent-form/split-history base,
-    # using its own independent weight rather than forcing a 3-way sum-
-    # to-1 average. Consistent with how patchDiscount/kp are already
-    # separate multiplicative layers rather than folded into one blend.
-    # Falls back cleanly (base unchanged) when a player has no career
-    # data (career=None -- rookies, or any game/region this hasn't been
-    # built for yet, e.g. Valorant/CS2 before their own career scrapers
-    # exist). weights["career"] defaults to 0.0 until backtested for
-    # real, so existing measured weights for history/opponent/kp/etc are
-    # completely unaffected until this is deliberately tuned.
-    career = player.get("career")
-    career_rate = career.get(cfg["key"]) if career else None
+    # Career tier — a prior blended on TOP of the existing recent-form/
+    # split-history base, using its own independent weight rather than
+    # forcing a 3-way sum-to-1 average. Consistent with how patchDiscount/
+    # kp are already separate multiplicative layers rather than folded
+    # into one blend. Falls back cleanly (base unchanged) when a player
+    # has no career data.
+    #
+    # LoL players use a static player["career"] field (their own real
+    # leakage risk is smaller in practice since a whole-season aggregate
+    # dilutes any single prediction's overlap, but is NOT architecturally
+    # immune to the same issue — worth revisiting with the same fix once
+    # CS2's is validated). CS2 players use point_in_time_cs2_career_rate()
+    # instead, computed fresh per cutoff_date from raw game history —
+    # required after a real, confirmed leakage bug (see that function's
+    # docstring) made CS2's static version give a misleadingly perfect-
+    # looking career:1.0 in a real backtest.
+    if "career_games" in player:
+        career_rate = point_in_time_cs2_career_rate(player, cfg["key"], cutoff_date)
+    else:
+        career = player.get("career")
+        career_rate = career.get(cfg["key"]) if career else None
     if career_rate is not None and weights.get("career", 0) > 0:
         base = weights["career"] * career_rate + (1 - weights["career"]) * base
 
