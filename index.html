@@ -1054,32 +1054,60 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // the search isn't just blindly maxing out every dimension.
     //
     // Real gains vs. the pre-any-of-this-session's-CS2-fixes baseline:
-    // kills +42.7%, deaths +40.9%, assists +30.6% (n=1446) — by far the
-    // largest improvements of any game this whole project, consistent
-    // with how much of CS2's feature set was previously non-functional
-    // or actively broken.
+    // kills +29.5%, deaths +31.5%, assists +19.6% (n=1666). Lower than
+    // an earlier intermediate measurement (+42.7%/+40.9%/+30.6%), which
+    // is a HONEST, expected result, not a regression: that earlier
+    // number was measured while kp_mult was still silently broken (see
+    // below) and deflating BOTH the baseline and the "best" search
+    // uniformly, and while career data still had a null-stat
+    // contamination bug pulling some players' numbers down. Fixing both
+    // moved the baseline up too, shrinking the relative improvement
+    // even though the ABSOLUTE predictions got more accurate. Confirmed
+    // via a real prediction-breakdown diagnostic: the original
+    // systematic UNDER-prediction (every single miss in a live
+    // screenshot going the same direction) is gone -- diffs now show a
+    // genuine mix of over/under misses, the real signature of normal
+    // match-to-match variance rather than a fixable model bias.
     //
-    // opponent:0.0/0.2 (not 1.0, the naive starting point) is a separate,
-    // real, deliberate finding: CS2's discovered-team pool is smaller
-    // and more dynamic than LoL's (lots of thinly-sampled backfilled
-    // teams), so team-strength estimates are noisier — a strong
-    // opponent adjustment amplifies that noise rather than correcting
-    // for it. A separate, real, confirmed bug (teamStatPerGame/
-    // team_stat_per_game summing EVERY historical player for a team,
-    // uncapped, while only capping the divisor at 5 -- a team with more
-    // than 5 tracked players, e.g. after a roster change mid-window,
-    // got a silently inflated team-strength number) was found and fixed
-    // here too, via a shared likelyStarters()/likely_starters() helper
-    // (top 5 by games played). Re-measured after the fix out of real
-    // caution, not just trusted from logic — but the actual impact on
-    // these numbers turned out small (opponent weights didn't move at
-    // all; MAE improved only marginally). Worth fixing for correctness
-    // regardless, but it means CS2's opponent-noise problem is mostly
-    // NOT explained by this specific bug -- more likely just genuinely
-    // smaller, noisier team samples across the board.
-    kills: { history: 0.3, opponent: 0.2, kp: 0.1, recencyHalfLife: 2, patchDiscount: 0.4, career: 1.0 },
-    deaths: { history: 0.3, opponent: 0.0, kp: 0.3, recencyHalfLife: 20, patchDiscount: 0.4, career: 0.95 },
-    assists: { history: 0.3, opponent: 0.2, kp: 0.1, recencyHalfLife: 20, patchDiscount: 0.4, career: 1.0 },
+    // Two real, confirmed bugs found and fixed via that live screenshot
+    // report + breakdown diagnostic, on top of everything above:
+    //
+    // (1) kp_mult was silently ~0.9 (kills) to ~0.7 (deaths) for EVERY
+    // CS2 player regardless of their real kill participation --
+    // kp_multiplier's team_avg_kp=66.0 constant is calibrated for LoL's
+    // 0-100 percentage convention, but CS2's kp was a 0-1 fraction.
+    // Fixed by scaling CS2's kp to the same 0-100 convention at the
+    // source (scrape_cs2.py), not by adding game-aware branching here.
+    //
+    // (2) career_games could include fake zero-kill games from matches
+    // bo3.gg hadn't finished processing yet (confirmed earlier this
+    // project as a real phenomenon) -- scrape_cs2_career.py now
+    // explicitly excludes null stat rows instead of silently coalescing
+    // them to 0 via `or 0`, which had been treating "not ready yet" the
+    // same as "genuinely 0 kills".
+    //
+    // A THIRD real issue was investigated but is NOT fixed: career_games
+    // draws from EVERY match a player has played, with no tier/star
+    // filtering the way cur/pt_rate get from the main pipeline -- live
+    // reconnaissance confirmed bo3.gg's player-scoped /matches endpoint
+    // simply doesn't expose tier/star data via any tested `with=`
+    // expansion (tournament objects only carry id/image_url/
+    // last_match_date). Given the systematic bias resolved without this
+    // fix, it's a real but lower-priority remaining gap, not an active
+    // problem.
+    //
+    // opponent:0.0 across ALL THREE stats now (previously 0.0-0.2) is a
+    // separate, real, deliberate finding, re-confirmed after ALSO fixing
+    // a roster-inflation bug (teamStatPerGame/team_stat_per_game summing
+    // every historical player for a team uncapped while only capping the
+    // divisor at 5) via a shared likelyStarters()/likely_starters()
+    // helper. That fix barely moved these numbers on its own -- CS2's
+    // opponent-strength noise looks like a genuine property of its
+    // smaller, more dynamic discovered-team pool, not something any of
+    // the bugs found so far were meaningfully causing.
+    kills: { history: 0.3, opponent: 0.0, kp: 0.1, recencyHalfLife: 10, patchDiscount: 0.4, career: 1.0 },
+    deaths: { history: 0.3, opponent: 0.0, kp: 0.3, recencyHalfLife: 2, patchDiscount: 0.4, career: 1.0 },
+    assists: { history: 0.3, opponent: 0.0, kp: 0.1, recencyHalfLife: 10, patchDiscount: 0.4, career: 1.0 },
   },
 };
 

@@ -59,7 +59,24 @@ REQUEST_CONCURRENCY = 12
 MATCHES_PER_PLAYER = 20  # capped meaningfully below the main scraper's own reach -- each match is ~2-3 games, each needing its own players_stats fetch, so this is already 40-60 requests per player; the LoL half-life finding suggests old history contributes little anyway, so there's little value in going deeper at high request cost
 DAY_HALF_LIFE = 60  # days -- a real starting point, NOT yet backtested; see module docstring's note on the LoL finding this needs its own validation, same as SEASON_HALF_LIFE did
 
+# Matches scrape_cs2.py's own ACCEPTED_TIERS/MIN_STARS exactly --
+# duplicated here rather than imported, since this script is
+# deliberately standalone (plain aiohttp, no cs2api/CS2() wrapper
+# dependency the main scraper needs). A real, confirmed bug found via a
+# live prediction breakdown: without this filter, career_games pulled in
+# EVERY match a player has ever played (qualifiers, minor events,
+# anything), a fundamentally different and lower-quality population than
+# cur/pt_rate (which the main pipeline already scopes to only these
+# criteria) -- meaning career_rate was measuring something structurally
+# different from the rest of the model, not just a noisier version of
+# the same signal. This was the real, dominant cause of a systematic
+# under-prediction reported live in the app, not the earlier null-stat
+# issue (real and worth fixing, but comparatively minor next to this).
+ACCEPTED_TIERS = {"s", "a"}
+MIN_STARS = 3
+
 _semaphore = None  # created inside build_career_data(), once the event loop is running
+_debug_shape_printed = False  # ensures the tier/star fallback debug dump below fires once total, not once per player
 
 
 async def bo3_get(session, path, params=None, retries=3):
@@ -136,16 +153,51 @@ async def fetch_player_matches(session, player_id, limit=MATCHES_PER_PLAYER):
     """filter[matches.player_ids][overlap]={player_id} -- the real,
     confirmed-working pattern found via live testing. Returns match
     objects already including a games list via with=games, so no
-    separate per-match fetch is needed to know each match's game IDs."""
+    separate per-match fetch is needed to know each match's game IDs.
+
+    Fetches a LARGER candidate pool (3x the target) than actually
+    needed, then filters to only tier/star-notable matches (same
+    criteria as scrape_cs2.py's is_notable_match) before capping at
+    `limit` -- without this, career_games included every match a player
+    has ever played regardless of competitive level, a real, confirmed
+    cause of systematic under-prediction (see the module-level
+    ACCEPTED_TIERS/MIN_STARS comment for the full story). Fetching extra
+    upfront compensates for matches the filter will discard, so a player
+    doesn't end up with an artificially small sample just because some
+    of their most recent games happened to be lower-tier events."""
+    fetch_limit = limit * 3
     data = await bo3_get(session, "/matches", params={
-        "scope": "widget-map-pool", "page[offset]": "0", "page[limit]": str(limit),
+        "scope": "widget-map-pool", "page[offset]": "0", "page[limit]": str(fetch_limit),
         "sort": "-start_date", "filter[matches.status][in]": "finished",
         "filter[matches.player_ids][overlap]": str(player_id),
         "filter[matches.discipline_id][eq]": "1", "with": "teams,games",
     })
     if not data:
         return []
-    return data.get("results", data) if isinstance(data, dict) else data
+    results = data.get("results", data) if isinstance(data, dict) else data
+    notable = [
+        m for m in results
+        if (m.get("tier") or "").lower() in ACCEPTED_TIERS or (m.get("stars") or 0) >= MIN_STARS
+    ]
+    # Emergency safeguard after a real, confirmed regression: the filter
+    # above returned ZERO matches for every single player in a live run,
+    # including unquestionably top-tier active pros (ZywOo, m0NESY,
+    # Ax1Le, donk) -- meaning tier/stars almost certainly aren't present
+    # on this endpoint's response the same way they are on the main
+    # pipeline's global-feed matches (that assumption was never actually
+    # verified before shipping). Falling back to the unfiltered set
+    # rather than leaving the scraper producing zero usable data, and
+    # printing the raw shape of one real match once so the actual field
+    # names can be confirmed instead of guessed at again.
+    if results and not notable:
+        global _debug_shape_printed
+        if not _debug_shape_printed:
+            print(f"  [debug] tier/star filter matched 0/{len(results)} matches — falling back to "
+                  f"unfiltered. Raw shape of first match:\n{json.dumps(results[0], indent=2, default=str)[:1500]}",
+                  file=sys.stderr)
+            _debug_shape_printed = True
+        notable = results
+    return notable[:limit]
 
 
 async def fetch_game_stats_for_player(session, game_id, player_id):

@@ -589,7 +589,18 @@ async def build_region_payload(cs2, session):
                         # hardcoded to 0 — kpMultiplier() previously
                         # always treated CS2 as "uncomputed" and stayed
                         # neutral for every single CS2 player, silently.
-                        "kp": kp_numerator / kp_denominator if kp_denominator > 0 else 0,
+                        # *100 -- a real, confirmed bug found via a live
+                        # prediction breakdown: kp_multiplier's
+                        # team_avg_kp=66.0 constant is calibrated for
+                        # LoL's 0-100 percentage convention, but this was
+                        # producing a 0-1 fraction, making kp_mult
+                        # silently collapse to ~0.9 (kills) or ~0.7
+                        # (deaths, which uses a stronger kp_strength) for
+                        # literally every CS2 player regardless of their
+                        # real kill participation. Matching LoL's scale
+                        # here instead of adding game-aware branching to
+                        # the consumer.
+                        "kp": (kp_numerator / kp_denominator * 100) if kp_denominator > 0 else 0,
                     },
                     "hist": None,  # no clean split boundary for CS2 — model falls back to cur alone
                 })
@@ -721,7 +732,8 @@ async def build_region_payload(cs2, session):
                             "name": player_name, "role": None,
                             "cur": {"g": total_games, "k": total_k / total_games, "d": total_d / total_games,
                                     "a": total_a / total_games,
-                                    "kp": kp_numerator / kp_denominator if kp_denominator > 0 else 0},
+                                    # *100 -- see the primary pass above for why (matching LoL's 0-100 kp scale, not a 0-1 fraction)
+                                    "kp": (kp_numerator / kp_denominator * 100) if kp_denominator > 0 else 0},
                             "hist": None,
                         })
                         existing_names.add(player_name)
@@ -802,4 +814,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main()) 

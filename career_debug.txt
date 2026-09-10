@@ -1,0 +1,95 @@
+  [debug] tier/star filter matched 0/60 matches — falling back to unfiltered. Raw shape of first match:
+{
+  "id": 128671,
+  "slug": "falcons-force-vs-esport-berg-09-09-2026",
+  "start_date": "2026-09-09T17:45:00.000+00:00",
+  "discipline_id": 1,
+  "team1": {
+    "id": 21012,
+    "slug": "falcons-force",
+    "name": "Falcons Force",
+    "image_url": "https://files.bo3.gg/uploads/team/21012/image/webp-f9916f85cd326107ba5082e82d8c069a.webp"
+  },
+  "team2": {
+    "id": 22611,
+    "slug": "esport-berg",
+    "name": "BERG",
+    "image_url": "https://files.bo3.gg/uploads/team/22611/image/webp-3e438ab32a4fe82d8b0f17734e7915ed.webp"
+  },
+  "games": [
+    {
+      "id": 184076,
+      "begin_at": "2026-09-09T18:44:20.000+00:00",
+      "winner_clan_score": 13,
+      "loser_clan_score": 11,
+      "winner_clan_name": "Falcons Force",
+      "loser_clan_name": "Esport BERG",
+      "number": 2,
+      "map_name": "de_nuke",
+      "winner_team_clan": {
+        "team": {
+          "id": 21012
+        }
+      },
+      "loser_team_clan": {
+        "team": {
+          "id": 22611
+        }
+      }
+    },
+    {
+      "id": 184077,
+      "begin_at": "2026-09-09T17:49:17.000+00:00",
+      "winner_clan_score": 13,
+      "loser_clan_score": 9,
+      "winner_clan_name": "Falcons Force",
+      "loser_clan_name": "Esport BERG",
+      "number": 1,
+      "map_name": "de_inferno",
+      "winner_team_clan": {
+        "team": {
+          "id": 21012
+        }
+      },
+      "loser_team_clan": {
+        "team": {
+          "id": 22611
+        }
+      }
+    }
+  ]
+}
+  ! 'frozen' (id=82593): resolved to a real player, but 0 matches found — worth a manual check if this recurs for a player who should have real history
+  ! 'max' (id=68142): resolved to a real player, but 0 matches found — worth a manual check if this recurs for a player who should have real history
+  ! 'AW' (id=81138): resolved to a real player, but 0 matches found — worth a manual check if this recurs for a player who should have real history
+  ! 'sugaR' (id=29039): resolved to a real player, but 0 matches found — worth a manual check if this recurs for a player who should have real history
+Loaded 257 tracked CS2 player names from cs2_data.json
+Processing 257 players (up to 12 concurrent requests total)...
+  ...10/257 players processed
+  ...20/257 players processed
+  ...30/257 players processed
+  ...40/257 players processed
+  ...50/257 players processed
+  ...60/257 players processed
+  ...70/257 players processed
+  ...80/257 players processed
+  ...90/257 players processed
+  ...100/257 players processed
+  ...110/257 players processed
+  ...120/257 players processed
+  ...130/257 players processed
+  ...140/257 players processed
+  ...150/257 players processed
+  ...160/257 players processed
+  ...170/257 players processed
+  ...180/257 players processed
+  ...190/257 players processed
+  ...200/257 players processed
+  ...210/257 players processed
+  ...220/257 players processed
+  ...230/257 players processed
+  ...240/257 players processed
+  ...250/257 players processed
+  ...257/257 players processed
+
+Wrote cs2_career_data.json: 257 players resolved, 250 with usable raw game history
