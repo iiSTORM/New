@@ -151,58 +151,70 @@ function initialsFor(name) {
    flexible stats array so it works for both the single-number "PROJ"
    case (future matches) and the three-number "PROJ / ACT / DIFF" case
    (past matches) without duplicating markup. */
-function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats }) {
+function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, cfg, games }) {
+  const [open, setOpen] = useState(false);
+  const canExpand = !!(r && p && cfg); // callers that don't pass the full breakdown just get the plain row, same as before
   return (
     <div
+      className={canExpand ? "kp-clickable" : undefined}
+      onClick={canExpand ? () => setOpen(!open) : undefined}
       style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
         padding: "13px 16px", borderTop: `1px solid ${theme.steelSoft}`,
+        cursor: canExpand ? "pointer" : "default",
+        background: open ? theme.graphiteLight : "transparent",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
-        <span
-          style={{
-            width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            background: `${teamColor}22`, border: `1.5px solid ${teamColor}`,
-            color: teamColor, fontFamily: "'Chakra Petch', sans-serif", fontWeight: 700, fontSize: 12,
-          }}
-        >
-          {initialsFor(name)}
-        </span>
-        <div style={{ minWidth: 0 }}>
-          <div
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
+          <span
             style={{
-              fontSize: 15, fontWeight: 600, color: theme.text, fontFamily: "'Chakra Petch', sans-serif",
-              whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+              width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: `${teamColor}22`, border: `1.5px solid ${teamColor}`,
+              color: teamColor, fontFamily: "'Chakra Petch', sans-serif", fontWeight: 700, fontSize: 12,
             }}
           >
-            {name}
-          </div>
-          {(role || extraChip) && (
-            <div style={{ display: "flex", gap: 4, marginTop: 4, flexWrap: "wrap" }}>
-              {role && <span className="kp-chip" style={{ background: theme.steelSoft, color: theme.textFaint }}>{role}</span>}
-              {extraChip}
-            </div>
-          )}
-        </div>
-      </div>
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 16, flexShrink: 0 }}>
-        {stats.map((s, i) => (
-          <div key={i} style={{ textAlign: "right", minWidth: s.big ? 52 : 38 }}>
-            <div style={{ fontSize: 9, letterSpacing: 0.6, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>{s.label}</div>
+            {initialsFor(name)}
+          </span>
+          <div style={{ minWidth: 0 }}>
             <div
               style={{
-                fontSize: s.big ? 19 : 14, fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace",
-                color: s.color || theme.text, marginTop: 2,
-                ...(s.big ? { background: theme.accentSoft, border: `1px solid ${theme.accentBorder}`, borderRadius: 4, padding: "2px 8px" } : {}),
+                fontSize: 15, fontWeight: 600, color: theme.text, fontFamily: "'Chakra Petch', sans-serif",
+                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
               }}
             >
-              {s.value}
+              {name}
             </div>
+            {(role || extraChip) && (
+              <div style={{ display: "flex", gap: 4, marginTop: 4, flexWrap: "wrap" }}>
+                {role && <span className="kp-chip" style={{ background: theme.steelSoft, color: theme.textFaint }}>{role}</span>}
+                {extraChip}
+              </div>
+            )}
           </div>
-        ))}
+        </div>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 16, flexShrink: 0 }}>
+          {stats.map((s, i) => (
+            <div key={i} style={{ textAlign: "right", minWidth: s.big ? 52 : 38 }}>
+              <div style={{ fontSize: 9, letterSpacing: 0.6, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>{s.label}</div>
+              <div
+                style={{
+                  fontSize: s.big ? 19 : 14, fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace",
+                  color: s.color || theme.text, marginTop: 2,
+                  ...(s.big ? { background: theme.accentSoft, border: `1px solid ${theme.accentBorder}`, borderRadius: 4, padding: "2px 8px" } : {}),
+                }}
+              >
+                {s.value}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
+      {open && canExpand && (
+        <div style={{ marginTop: 12 }}>
+          <ProjectionDetail r={r} p={p} cfg={cfg} games={games} />
+        </div>
+      )}
     </div>
   );
 }
@@ -1255,12 +1267,103 @@ function ScoreBar({ label, value, max, unit, color }) {
   );
 }
 
-function PlayerRow({ teams, pastMatches, p, team, opponentTeam, games, weights, teamColor, statType }) {
+// Shared detail view for an expanded player projection — radar chart,
+// score decomposition, tags, and (LoL) champion cheat code. Used by
+// BOTH PlayerRow (Matchup/Custom Match exploration tab) and
+// MatchPlayerRow (the actual Upcoming/Past match cards) so they render
+// identically and can't silently drift apart the way they did before
+// this was extracted — the two were previously separate components with
+// separate detail-rendering code, which is exactly why a UI update to
+// one didn't show up in the other.
+function ProjectionDetail({ r, p, cfg, games }) {
   const theme = useTheme();
   const championStats = useChampionStats();
+  const consistency = championStats ? championPoolConsistency(p.name, championStats, cfg.key) : null;
+  const seasonAvg = p.cur[cfg.key];
+  const seasonTotal = seasonAvg * games;
+  const edgePct = seasonTotal > 0 ? ((r.total - seasonTotal) / seasonTotal) * 100 : null;
+  const axes = projectionRadarAxes(r, seasonAvg);
+  const tags = projectionTags(r, theme);
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+        <RadarChart axes={axes} color={theme.accent} />
+        <div style={{ flex: 1, minWidth: 140 }}>
+          <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 26, fontWeight: 700, color: theme.accent }}>
+            {r.total.toFixed(1)}
+          </div>
+          {edgePct != null && Math.abs(edgePct) >= 1 && (
+            <div style={{ fontSize: 12, color: edgePct > 0 ? theme.good : theme.bad, fontFamily: "'IBM Plex Mono', monospace", marginTop: 2 }}>
+              {edgePct > 0 ? "+" : ""}{edgePct.toFixed(0)}% vs season avg
+            </div>
+          )}
+          {tags.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+              {tags.map((t) => (
+                <span key={t.text} style={{
+                  fontSize: 10, padding: "3px 8px", borderRadius: 4,
+                  background: `${t.color}18`, border: `1px solid ${t.color}55`, color: t.color,
+                }}>
+                  {t.text}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div style={{ marginTop: 14 }}>
+        <ScoreBar label="Recent form" value={r.recentFormRate} max={Math.max(r.recentFormRate, r.careerRate || 0, seasonAvg) * 1.15} unit={`${cfg.key}/g`} color={theme.textDim} />
+        {r.careerRate != null && r.careerWeight > 0 && (
+          <ScoreBar label="Career baseline" value={r.careerRate} max={Math.max(r.recentFormRate, r.careerRate, seasonAvg) * 1.15} unit={`${cfg.key}/g`} color={theme.accent} />
+        )}
+        <ScoreBar label="Season average" value={seasonAvg} max={Math.max(r.recentFormRate, r.careerRate || 0, seasonAvg) * 1.15} unit={`${cfg.key}/g`} color={theme.textFaint} />
+      </div>
+
+      <div style={{ marginTop: 12, fontSize: 11, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.8, paddingTop: 10, borderTop: `1px solid ${theme.steelSoft}` }}>
+        <div>opponent ×{r.oppMult.toFixed(2)} {cfg.useKP && <>&nbsp;·&nbsp; kp ×{r.kpMult.toFixed(2)}</>} &nbsp;→&nbsp; <span style={{ color: theme.text }}>{r.perGame.toFixed(2)} {cfg.key}/game</span> × {games}g</div>
+        <div>historical: {p.hist ? `${p.hist[cfg.key].toFixed(1)} ${cfg.key}/g (${p.hist.g}g)` : "no data on file"}</div>
+      </div>
+
+      {consistency && (
+        <div style={{ marginTop: 8, paddingTop: 10, borderTop: `1px solid ${theme.steelSoft}` }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: theme.text, letterSpacing: 0.3 }}>Champion cheat code</div>
+          <div style={{ fontSize: 11, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", marginTop: 3 }}>
+            {consistency.championsConsidered} champs, {consistency.totalGames}g on file &nbsp;→&nbsp;
+            {" "}CV={consistency.coefficientOfVariation != null ? consistency.coefficientOfVariation.toFixed(2) : "n/a"}
+            {consistency.coefficientOfVariation != null && (
+              <span style={{ color: consistency.coefficientOfVariation < 0.3 ? theme.good : consistency.coefficientOfVariation > 0.6 ? theme.bad : theme.textFaint }}>
+                {" "}({consistency.coefficientOfVariation < 0.3 ? "steady regardless of pick" : consistency.coefficientOfVariation > 0.6 ? "swings a lot by champion" : "moderate variation"})
+              </span>
+            )}
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+            {consistency.entries.slice(0, 8).map((e) => {
+              const rate = e[cfg.key];
+              const diffPct = seasonAvg > 0 ? ((rate - seasonAvg) / seasonAvg) * 100 : 0;
+              const pillColor = Math.abs(diffPct) < 8 ? theme.textDim : diffPct > 0 ? theme.good : theme.bad;
+              return (
+                <span key={e.champion} title={`${rate.toFixed(1)} ${cfg.key}/g over ${e.g} games — ${diffPct >= 0 ? "+" : ""}${diffPct.toFixed(0)}% vs their own average`}
+                  style={{
+                    fontSize: 10, padding: "4px 8px", borderRadius: 4, fontFamily: "'IBM Plex Mono', monospace",
+                    background: `${pillColor}15`, border: `1px solid ${pillColor}45`, color: theme.text,
+                  }}>
+                  {e.champion} <span style={{ color: pillColor, fontWeight: 600 }}>{rate.toFixed(1)}</span>
+                  <span style={{ color: theme.textFaint }}> ({e.g}g)</span>
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PlayerRow({ teams, pastMatches, p, team, opponentTeam, games, weights, teamColor, statType }) {
+  const theme = useTheme();
   const cfg = STAT_TYPES[statType];
   const r = project(teams, pastMatches, p, team, opponentTeam, games, weights, statType);
-  const consistency = championStats ? championPoolConsistency(p.name, championStats, cfg.key) : null;
   const [open, setOpen] = useState(false);
   return (
     <div className="kp-clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer", borderBottom: `1px solid ${theme.steel}`, padding: "13px 16px", background: open ? theme.graphiteLight : "transparent" }}>
@@ -1293,87 +1396,7 @@ function PlayerRow({ teams, pastMatches, p, team, opponentTeam, games, weights, 
       </div>
       {open && (
         <div style={{ marginTop: 12 }}>
-          {(() => {
-            const seasonAvg = p.cur[cfg.key];
-            const seasonTotal = seasonAvg * games;
-            const edgePct = seasonTotal > 0 ? ((r.total - seasonTotal) / seasonTotal) * 100 : null;
-            const axes = projectionRadarAxes(r, seasonAvg);
-            const tags = projectionTags(r, theme);
-            return (
-              <>
-                <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
-                  <RadarChart axes={axes} color={theme.accent} />
-                  <div style={{ flex: 1, minWidth: 140 }}>
-                    <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 26, fontWeight: 700, color: theme.accent }}>
-                      {r.total.toFixed(1)}
-                    </div>
-                    {edgePct != null && Math.abs(edgePct) >= 1 && (
-                      <div style={{ fontSize: 12, color: edgePct > 0 ? theme.good : theme.bad, fontFamily: "'IBM Plex Mono', monospace", marginTop: 2 }}>
-                        {edgePct > 0 ? "+" : ""}{edgePct.toFixed(0)}% vs season avg
-                      </div>
-                    )}
-                    {tags.length > 0 && (
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
-                        {tags.map((t) => (
-                          <span key={t.text} style={{
-                            fontSize: 10, padding: "3px 8px", borderRadius: 4,
-                            background: `${t.color}18`, border: `1px solid ${t.color}55`, color: t.color,
-                          }}>
-                            {t.text}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div style={{ marginTop: 14 }}>
-                  <ScoreBar label="Recent form" value={r.recentFormRate} max={Math.max(r.recentFormRate, r.careerRate || 0, seasonAvg) * 1.15} unit={`${cfg.key}/g`} color={theme.textDim} />
-                  {r.careerRate != null && r.careerWeight > 0 && (
-                    <ScoreBar label="Career baseline" value={r.careerRate} max={Math.max(r.recentFormRate, r.careerRate, seasonAvg) * 1.15} unit={`${cfg.key}/g`} color={theme.accent} />
-                  )}
-                  <ScoreBar label="Season average" value={seasonAvg} max={Math.max(r.recentFormRate, r.careerRate || 0, seasonAvg) * 1.15} unit={`${cfg.key}/g`} color={theme.textFaint} />
-                </div>
-
-                <div style={{ marginTop: 12, fontSize: 11, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.8, paddingTop: 10, borderTop: `1px solid ${theme.steelSoft}` }}>
-                  <div>opponent ×{r.oppMult.toFixed(2)} {cfg.useKP && <>&nbsp;·&nbsp; kp ×{r.kpMult.toFixed(2)}</>} &nbsp;→&nbsp; <span style={{ color: theme.text }}>{r.perGame.toFixed(2)} {cfg.key}/game</span> × {games}g</div>
-                  <div>historical: {p.hist ? `${p.hist[cfg.key].toFixed(1)} ${cfg.key}/g (${p.hist.g}g)` : "no data on file"}</div>
-                </div>
-
-                {consistency && (
-                  <div style={{ marginTop: 8, paddingTop: 10, borderTop: `1px solid ${theme.steelSoft}` }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: theme.text, letterSpacing: 0.3 }}>Champion cheat code</div>
-                    <div style={{ fontSize: 11, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", marginTop: 3 }}>
-                      {consistency.championsConsidered} champs, {consistency.totalGames}g on file &nbsp;→&nbsp;
-                      {" "}CV={consistency.coefficientOfVariation != null ? consistency.coefficientOfVariation.toFixed(2) : "n/a"}
-                      {consistency.coefficientOfVariation != null && (
-                        <span style={{ color: consistency.coefficientOfVariation < 0.3 ? theme.good : consistency.coefficientOfVariation > 0.6 ? theme.bad : theme.textFaint }}>
-                          {" "}({consistency.coefficientOfVariation < 0.3 ? "steady regardless of pick" : consistency.coefficientOfVariation > 0.6 ? "swings a lot by champion" : "moderate variation"})
-                        </span>
-                      )}
-                    </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
-                      {consistency.entries.slice(0, 8).map((e) => {
-                        const rate = e[cfg.key];
-                        const diffPct = seasonAvg > 0 ? ((rate - seasonAvg) / seasonAvg) * 100 : 0;
-                        const pillColor = Math.abs(diffPct) < 8 ? theme.textDim : diffPct > 0 ? theme.good : theme.bad;
-                        return (
-                          <span key={e.champion} title={`${rate.toFixed(1)} ${cfg.key}/g over ${e.g} games — ${diffPct >= 0 ? "+" : ""}${diffPct.toFixed(0)}% vs their own average`}
-                            style={{
-                              fontSize: 10, padding: "4px 8px", borderRadius: 4, fontFamily: "'IBM Plex Mono', monospace",
-                              background: `${pillColor}15`, border: `1px solid ${pillColor}45`, color: theme.text,
-                            }}>
-                            {e.champion} <span style={{ color: pillColor, fontWeight: 600 }}>{rate.toFixed(1)}</span>
-                            <span style={{ color: theme.textFaint }}> ({e.g}g)</span>
-                          </span>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </>
-            );
-          })()}
+          <ProjectionDetail r={r} p={p} cfg={cfg} games={games} />
         </div>
       )}
     </div>
@@ -1811,13 +1834,15 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games }
     );
   }
 
+  const cfg = STAT_TYPES[statType];
   const rows = teamKeys.flatMap((team) => {
     const opp = team === match.teamA ? match.teamB : match.teamA;
-    return likelyStarters(teams[team].players).map((p) => ({
-      team, name: p.name, role: p.role, proj: project(teams, pastMatches, p, team, opp, games, weights, statType).total,
-    }));
+    return likelyStarters(teams[team].players).map((p) => {
+      const breakdown = project(teams, pastMatches, p, team, opp, games, weights, statType);
+      return { team, name: p.name, role: p.role, proj: breakdown.total, player: p, breakdown };
+    });
   });
-  const totalProj = rows.reduce((s, r) => s + r.proj, 0);
+  const totalProj = rows.reduce((s, row) => s + row.proj, 0);
 
   return (
     <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), marginBottom: 10, overflow: "hidden" }}>
@@ -1838,14 +1863,18 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games }
       {open && (
         <div style={{ borderTop: `1px solid ${theme.steel}` }}>
           <HeadToHeadCard teams={teams} pastMatches={pastMatches} teamA={match.teamA} teamB={match.teamB} bare />
-          {rows.map((r) => (
+          {rows.map((row) => (
             <MatchPlayerRow
-              key={r.team + r.name}
+              key={row.team + row.name}
               theme={theme}
-              teamColor={teams[r.team].color}
-              name={r.name}
-              role={r.role}
-              stats={[{ label: "PROJ", value: r.proj.toFixed(1), color: theme.accent, big: true }]}
+              teamColor={teams[row.team].color}
+              name={row.name}
+              role={row.role}
+              stats={[{ label: "PROJ", value: row.proj.toFixed(1), color: theme.accent, big: true }]}
+              r={row.breakdown}
+              p={row.player}
+              cfg={cfg}
+              games={games}
             />
           ))}
         </div>
@@ -2038,8 +2067,8 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
       .map((p) => ({ p, actual: getActualStat(match, team, p.name, cfg.key) }))
       .filter(({ actual }) => actual !== undefined && actual !== null) // undefined = didn't play; null = legacy data without this stat
       .map(({ p, actual }) => {
-        const r = projectPointInTime(pastMatches, teams, p, team, opp, 2, weights, match.date, statType, match.patch);
-        return { team, name: p.name, role: p.role, proj: r.total, priorGames: r.priorGames, actual, diff: actual - r.total };
+        const breakdown = projectPointInTime(pastMatches, teams, p, team, opp, 2, weights, match.date, statType, match.patch);
+        return { team, name: p.name, role: p.role, proj: breakdown.total, priorGames: breakdown.priorGames, actual, diff: actual - breakdown.total, player: p, breakdown };
       });
   });
 
@@ -2082,21 +2111,25 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
       </div>
       {open && (
         <div style={{ borderTop: `1px solid ${theme.steel}` }}>
-          {rows.map((r) => (
+          {rows.map((row) => (
             <MatchPlayerRow
-              key={r.team + r.name}
+              key={row.team + row.name}
               theme={theme}
-              teamColor={teams[r.team].color}
-              name={r.name}
-              role={r.role}
-              extraChip={r.priorGames === 0 && (
+              teamColor={teams[row.team].color}
+              name={row.name}
+              role={row.role}
+              extraChip={row.priorGames === 0 && (
                 <span className="kp-chip" style={{ background: `${theme.bad}18`, color: theme.bad, border: `1px solid ${theme.bad}44` }}>NO PRIOR FORM</span>
               )}
               stats={[
-                { label: "PROJ", value: r.proj.toFixed(1), color: theme.textDim },
-                { label: "ACT", value: r.actual, color: theme.text },
-                { label: "DIFF", value: `${r.diff > 0 ? "+" : ""}${r.diff.toFixed(1)}`, color: r.diff > 0 ? theme.good : r.diff < 0 ? theme.bad : theme.textFaint },
+                { label: "PROJ", value: row.proj.toFixed(1), color: theme.textDim },
+                { label: "ACT", value: row.actual, color: theme.text },
+                { label: "DIFF", value: `${row.diff > 0 ? "+" : ""}${row.diff.toFixed(1)}`, color: row.diff > 0 ? theme.good : row.diff < 0 ? theme.bad : theme.textFaint },
               ]}
+              r={row.breakdown}
+              p={row.player}
+              cfg={cfg}
+              games={2}
             />
           ))}
         </div>
