@@ -654,12 +654,12 @@ function project(teams, pastMatches, player, team, opponentTeam, games, weights,
   const refPatch = latestPatch(pastMatches, null);
   const weighted = recencyWeightedRate(pastMatches, team, player.name, cfg.key, null, weights.recencyHalfLife, refPatch, weights.patchDiscount);
   const curRate = weighted.rate !== null ? weighted.rate : player.cur[cfg.key]; // safety net if pastMatches is thin
-  let base = player.hist ? weights.history * player.hist[cfg.key] + (1 - weights.history) * curRate : curRate;
-  base = applyCareerTier(base, player, weights, cfg, null);
+  const recentFormRate = player.hist ? weights.history * player.hist[cfg.key] + (1 - weights.history) * curRate : curRate;
+  const { base, careerRate } = applyCareerTier(recentFormRate, player, weights, cfg, null);
   const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, null);
   const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp) : 1;
   const perGame = base * oppMult * kpMult;
-  return { base, oppMult, kpMult, perGame, total: perGame * games };
+  return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult, perGame, total: perGame * games };
 }
 
 // Career tier — a prior derived from scripts/scrape_career.py, blended
@@ -722,9 +722,9 @@ function applyCareerTier(base, player, weights, cfg, cutoffDate) {
     careerRate = player.career ? player.career[cfg.key] : null;
   }
   if (careerRate != null && weights.career > 0) {
-    return weights.career * careerRate + (1 - weights.career) * base;
+    return { base: weights.career * careerRate + (1 - weights.career) * base, careerRate };
   }
-  return base;
+  return { base, careerRate };
 }
 
 /* ============================================================
@@ -892,13 +892,13 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
   // split (no prior games yet) there's nothing to blend, so fall back to
   // prior-split alone, and only to the final-season number as a last
   // resort (true cold start, no data at all).
-  let base;
+  let recentFormRate;
   if (pt.rate !== null) {
-    base = histRate !== null ? weights.history * histRate + (1 - weights.history) * pt.rate : pt.rate;
+    recentFormRate = histRate !== null ? weights.history * histRate + (1 - weights.history) * pt.rate : pt.rate;
   } else {
-    base = histRate !== null ? histRate : player.cur[cfg.key];
+    recentFormRate = histRate !== null ? histRate : player.cur[cfg.key];
   }
-  base = applyCareerTier(base, player, weights, cfg, cutoffDate);
+  const { base, careerRate } = applyCareerTier(recentFormRate, player, weights, cfg, cutoffDate);
 
   const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, cutoffDate);
 
@@ -906,7 +906,7 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
   const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp) : 1;
 
   const perGame = base * oppMult * kpMult;
-  return { base, oppMult, kpMult, perGame, total: perGame * games, priorGames: pt.games };
+  return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult, perGame, total: perGame * games, priorGames: pt.games };
 }
 
 // Per-stat-type defaults, tuned via a real backtest against historical
@@ -1115,15 +1115,142 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
    SHARED UI PIECES
    ============================================================ */
 
-function Slider({ label, value, onChange, min, max, step, format }) {
+function Slider({ label, value, onChange, min, max, step, format, tooltip }) {
   const theme = useTheme();
   return (
     <div style={{ marginBottom: 14 }}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: theme.textDim, marginBottom: 4, fontFamily: "'IBM Plex Mono', monospace" }}>
-        <span>{label}</span>
+        <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+          {label}
+          {tooltip && (
+            <span
+              title={tooltip}
+              style={{
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                width: 13, height: 13, borderRadius: "50%", border: `1px solid ${theme.textFaint}`,
+                fontSize: 9, color: theme.textFaint, cursor: "help", flexShrink: 0,
+              }}
+            >
+              i
+            </span>
+          )}
+        </span>
         <span style={{ color: theme.accent }}>{format ? format(value) : value}</span>
       </div>
       <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(parseFloat(e.target.value))} style={{ width: "100%", accentColor: theme.accent }} />
+    </div>
+  );
+}
+
+// Radar chart visualizing a projection's real components as a shape,
+// not just a final number — inspired by a reference app's per-player
+// spider chart, adapted to what THIS model actually computes rather
+// than copying its exact axes. Each axis is normalized to "% above/
+// below neutral" on a 0-100 scale (50 = no effect), so Recent Form and
+// Career (raw per-game rates, whatever units the stat/game uses) sit on
+// the SAME comparable scale as Opponent and KP (already-centered
+// multipliers) — none of these axes share native units otherwise, so
+// without this normalization the shape wouldn't mean anything.
+function projectionRadarAxes(r, seasonAvg) {
+  const toRadar = (ratio) => Math.max(0, Math.min(100, 50 + (ratio - 1) * 100));
+  const axes = [
+    { label: "Recent Form", value: toRadar(seasonAvg > 0 ? r.recentFormRate / seasonAvg : 1) },
+    { label: "Opponent", value: toRadar(r.oppMult) },
+  ];
+  if (r.careerRate != null && r.careerWeight > 0) {
+    axes.splice(1, 0, { label: "Career", value: toRadar(seasonAvg > 0 ? r.careerRate / seasonAvg : 1) });
+  }
+  if (r.kpMult !== 1) {
+    axes.push({ label: "KP", value: toRadar(r.kpMult) });
+  }
+  return axes;
+}
+
+function RadarChart({ axes, size = 140, color }) {
+  const theme = useTheme();
+  const c = size / 2;
+  const R = size / 2 - 22; // leave room for axis labels
+  const n = axes.length;
+  if (n < 3) return null; // a radar shape needs at least 3 axes to mean anything
+  const angleFor = (i) => (2 * Math.PI * i) / n - Math.PI / 2;
+  const pointFor = (i, valuePct) => {
+    const a = angleFor(i);
+    const r = (valuePct / 100) * R;
+    return [c + r * Math.cos(a), c + r * Math.sin(a)];
+  };
+  const polygonPoints = axes.map((ax, i) => pointFor(i, ax.value).join(",")).join(" ");
+  const ringLevels = [25, 50, 75, 100];
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      {ringLevels.map((level) => (
+        <polygon
+          key={level}
+          points={axes.map((_, i) => pointFor(i, level).join(",")).join(" ")}
+          fill="none"
+          stroke={theme.steel}
+          strokeWidth={level === 50 ? 1.2 : 0.6}
+          strokeDasharray={level === 50 ? "2,2" : undefined}
+        />
+      ))}
+      {axes.map((ax, i) => {
+        const [x, y] = pointFor(i, 100);
+        return <line key={ax.label} x1={c} y1={c} x2={x} y2={y} stroke={theme.steel} strokeWidth={0.6} />;
+      })}
+      <polygon points={polygonPoints} fill={`${color}33`} stroke={color} strokeWidth={1.8} />
+      {axes.map((ax, i) => {
+        const [px, py] = pointFor(i, ax.value);
+        return <circle key={`pt-${ax.label}`} cx={px} cy={py} r={2.5} fill={color} />;
+      })}
+      {axes.map((ax, i) => {
+        const [lx, ly] = pointFor(i, 118);
+        return (
+          <text key={`label-${ax.label}`} x={lx} y={ly} fill={theme.textFaint} fontSize={9}
+                fontFamily="'IBM Plex Mono', monospace" textAnchor="middle" dominantBaseline="middle">
+            {ax.label}
+          </text>
+        );
+      })}
+    </svg>
+  );
+}
+
+// Auto-generated human-readable tags from the same real components the
+// radar chart plots — same idea as a reference app's "High Volume" /
+// "Shootout Script" tags, derived from OUR actual model output rather
+// than separately-authored narrative text, so a tag can never say
+// something the number itself doesn't support.
+function projectionTags(r, theme) {
+  const tags = [];
+  if (r.careerRate != null && r.careerWeight >= 0.5) {
+    const diff = r.careerRate - r.recentFormRate;
+    if (Math.abs(diff) > 0.15 * Math.max(r.recentFormRate, 0.1)) {
+      tags.push({ text: diff > 0 ? "Career baseline pulling up" : "Career baseline pulling down", color: diff > 0 ? theme.good : theme.bad });
+    }
+  }
+  if (r.oppMult >= 1.08) tags.push({ text: "Favorable matchup", color: theme.good });
+  else if (r.oppMult <= 0.92) tags.push({ text: "Tough matchup", color: theme.bad });
+  if (r.kpMult >= 1.05) tags.push({ text: "High involvement", color: theme.good });
+  else if (r.kpMult <= 0.95) tags.push({ text: "Low involvement", color: theme.bad });
+  return tags;
+}
+
+// Labeled horizontal progress bar for one component of a projection —
+// same idea as a reference app's "Baseline"/"Opportunity" bars, showing
+// the actual value driving a number instead of hiding it inside one
+// final total.
+function ScoreBar({ label, value, max, unit, color }) {
+  const theme = useTheme();
+  const pct = max > 0 ? Math.max(0, Math.min(100, (value / max) * 100)) : 0;
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: theme.textFaint, marginBottom: 3 }}>
+        <span>{label}</span>
+        <span style={{ fontFamily: "'IBM Plex Mono', monospace", color: theme.textDim }}>{value.toFixed(1)} {unit}</span>
+      </div>
+      <div style={{ height: 5, background: theme.steelSoft, borderRadius: 3, overflow: "hidden" }}>
+        <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 3 }} />
+      </div>
     </div>
   );
 }
@@ -1165,30 +1292,88 @@ function PlayerRow({ teams, pastMatches, p, team, opponentTeam, games, weights, 
         </div>
       </div>
       {open && (
-        <div style={{ marginTop: 10, fontSize: 11, color: theme.textDim, fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.8 }}>
-          <div>recency-weighted base rate &nbsp;→&nbsp; {r.base.toFixed(2)} {cfg.label.toLowerCase()}/game</div>
-          <div>opponent multiplier &nbsp;→&nbsp; ×{r.oppMult.toFixed(2)}</div>
-          {cfg.useKP && <div>kill-participation multiplier &nbsp;→&nbsp; ×{r.kpMult.toFixed(2)}</div>}
-          <div style={{ color: theme.accent }}>= {r.perGame.toFixed(2)} {cfg.label.toLowerCase()}/game × {games} games = {r.total.toFixed(1)}</div>
-          <div style={{ marginTop: 4, color: theme.textFaint }}>
-            flat season avg: {p.cur[cfg.key].toFixed(1)} {cfg.key}/g ({p.cur.g}g) &nbsp;|&nbsp; historical: {p.hist ? `${p.hist[cfg.key].toFixed(1)} ${cfg.key}/g (${p.hist.g}g)` : "no data on file"}
-          </div>
-          {consistency && (
-            <div style={{ marginTop: 8, paddingTop: 8, borderTop: `1px solid ${theme.steelSoft}`, color: theme.textFaint }}>
-              <div>
-                champion-pool consistency ({consistency.championsConsidered} champs, {consistency.totalGames}g) &nbsp;→&nbsp;
-                {" "}CV={consistency.coefficientOfVariation != null ? consistency.coefficientOfVariation.toFixed(2) : "n/a"}
-                {consistency.coefficientOfVariation != null && (
-                  <span style={{ color: consistency.coefficientOfVariation < 0.3 ? theme.good : consistency.coefficientOfVariation > 0.6 ? theme.bad : theme.textFaint }}>
-                    {" "}({consistency.coefficientOfVariation < 0.3 ? "steady regardless of pick" : consistency.coefficientOfVariation > 0.6 ? "swings a lot by champion" : "moderate variation"})
-                  </span>
+        <div style={{ marginTop: 12 }}>
+          {(() => {
+            const seasonAvg = p.cur[cfg.key];
+            const seasonTotal = seasonAvg * games;
+            const edgePct = seasonTotal > 0 ? ((r.total - seasonTotal) / seasonTotal) * 100 : null;
+            const axes = projectionRadarAxes(r, seasonAvg);
+            const tags = projectionTags(r, theme);
+            return (
+              <>
+                <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+                  <RadarChart axes={axes} color={theme.accent} />
+                  <div style={{ flex: 1, minWidth: 140 }}>
+                    <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 26, fontWeight: 700, color: theme.accent }}>
+                      {r.total.toFixed(1)}
+                    </div>
+                    {edgePct != null && Math.abs(edgePct) >= 1 && (
+                      <div style={{ fontSize: 12, color: edgePct > 0 ? theme.good : theme.bad, fontFamily: "'IBM Plex Mono', monospace", marginTop: 2 }}>
+                        {edgePct > 0 ? "+" : ""}{edgePct.toFixed(0)}% vs season avg
+                      </div>
+                    )}
+                    {tags.length > 0 && (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+                        {tags.map((t) => (
+                          <span key={t.text} style={{
+                            fontSize: 10, padding: "3px 8px", borderRadius: 4,
+                            background: `${t.color}18`, border: `1px solid ${t.color}55`, color: t.color,
+                          }}>
+                            {t.text}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 14 }}>
+                  <ScoreBar label="Recent form" value={r.recentFormRate} max={Math.max(r.recentFormRate, r.careerRate || 0, seasonAvg) * 1.15} unit={`${cfg.key}/g`} color={theme.textDim} />
+                  {r.careerRate != null && r.careerWeight > 0 && (
+                    <ScoreBar label="Career baseline" value={r.careerRate} max={Math.max(r.recentFormRate, r.careerRate, seasonAvg) * 1.15} unit={`${cfg.key}/g`} color={theme.accent} />
+                  )}
+                  <ScoreBar label="Season average" value={seasonAvg} max={Math.max(r.recentFormRate, r.careerRate || 0, seasonAvg) * 1.15} unit={`${cfg.key}/g`} color={theme.textFaint} />
+                </div>
+
+                <div style={{ marginTop: 12, fontSize: 11, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.8, paddingTop: 10, borderTop: `1px solid ${theme.steelSoft}` }}>
+                  <div>opponent ×{r.oppMult.toFixed(2)} {cfg.useKP && <>&nbsp;·&nbsp; kp ×{r.kpMult.toFixed(2)}</>} &nbsp;→&nbsp; <span style={{ color: theme.text }}>{r.perGame.toFixed(2)} {cfg.key}/game</span> × {games}g</div>
+                  <div>historical: {p.hist ? `${p.hist[cfg.key].toFixed(1)} ${cfg.key}/g (${p.hist.g}g)` : "no data on file"}</div>
+                </div>
+
+                {consistency && (
+                  <div style={{ marginTop: 8, paddingTop: 10, borderTop: `1px solid ${theme.steelSoft}` }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: theme.text, letterSpacing: 0.3 }}>Champion cheat code</div>
+                    <div style={{ fontSize: 11, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", marginTop: 3 }}>
+                      {consistency.championsConsidered} champs, {consistency.totalGames}g on file &nbsp;→&nbsp;
+                      {" "}CV={consistency.coefficientOfVariation != null ? consistency.coefficientOfVariation.toFixed(2) : "n/a"}
+                      {consistency.coefficientOfVariation != null && (
+                        <span style={{ color: consistency.coefficientOfVariation < 0.3 ? theme.good : consistency.coefficientOfVariation > 0.6 ? theme.bad : theme.textFaint }}>
+                          {" "}({consistency.coefficientOfVariation < 0.3 ? "steady regardless of pick" : consistency.coefficientOfVariation > 0.6 ? "swings a lot by champion" : "moderate variation"})
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                      {consistency.entries.slice(0, 8).map((e) => {
+                        const rate = e[cfg.key];
+                        const diffPct = seasonAvg > 0 ? ((rate - seasonAvg) / seasonAvg) * 100 : 0;
+                        const pillColor = Math.abs(diffPct) < 8 ? theme.textDim : diffPct > 0 ? theme.good : theme.bad;
+                        return (
+                          <span key={e.champion} title={`${rate.toFixed(1)} ${cfg.key}/g over ${e.g} games — ${diffPct >= 0 ? "+" : ""}${diffPct.toFixed(0)}% vs their own average`}
+                            style={{
+                              fontSize: 10, padding: "4px 8px", borderRadius: 4, fontFamily: "'IBM Plex Mono', monospace",
+                              background: `${pillColor}15`, border: `1px solid ${pillColor}45`, color: theme.text,
+                            }}>
+                            {e.champion} <span style={{ color: pillColor, fontWeight: 600 }}>{rate.toFixed(1)}</span>
+                            <span style={{ color: theme.textFaint }}> ({e.g}g)</span>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
                 )}
-              </div>
-              <div style={{ marginTop: 2 }}>
-                {consistency.entries.slice(0, 3).map((e) => `${e.champion} (${e[cfg.key].toFixed(1)}/g, ${e.g}g)`).join("  ·  ")}
-              </div>
-            </div>
-          )}
+              </>
+            );
+          })()}
         </div>
       )}
     </div>
@@ -1541,9 +1726,12 @@ function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, s
           <div style={{ fontSize: 11, color: theme.textFaint, lineHeight: 1.5, marginBottom: 14 }}>
             The defaults here were already tuned against real historical results (see optimize_weights.py) — only touch these if you want to experiment.
           </div>
-          <Slider label="Historical (prior split) weight" value={weights.history} onChange={(v) => onChangeWeight("history", v)} min={0} max={1} step={0.05} format={(v) => `${Math.round(v * 100)}% history / ${Math.round((1 - v) * 100)}% this split`} />
-          <Slider label="Opponent-strength adjustment" value={weights.opponent} onChange={(v) => onChangeWeight("opponent", v)} min={0} max={2} step={0.1} format={(v) => `${v.toFixed(1)}×`} />
-          <Slider label="Kill-participation influence" value={weights.kp} onChange={(v) => onChangeWeight("kp", v)} min={0} max={1} step={0.05} format={(v) => `${Math.round(v * 100)}%`} />
+          <Slider label="Historical (prior split) weight" value={weights.history} onChange={(v) => onChangeWeight("history", v)} min={0} max={1} step={0.05} format={(v) => `${Math.round(v * 100)}% history / ${Math.round((1 - v) * 100)}% this split`}
+            tooltip="How much weight the player's PREVIOUS split gets vs. their CURRENT split. Higher means the model trusts their track record more than what they've done so far this split." />
+          <Slider label="Opponent-strength adjustment" value={weights.opponent} onChange={(v) => onChangeWeight("opponent", v)} min={0} max={2} step={0.1} format={(v) => `${v.toFixed(1)}×`}
+            tooltip="How much the opponent's own strength shifts the projection up or down. 0 means the opponent is ignored entirely; higher values react more strongly to a weak or strong matchup." />
+          <Slider label="Kill-participation influence" value={weights.kp} onChange={(v) => onChangeWeight("kp", v)} min={0} max={1} step={0.05} format={(v) => `${Math.round(v * 100)}%`}
+            tooltip="How much the player's own kill participation (their share of their team's total kills) pulls the projection above or below the base rate." />
           <Slider
             label="Recency half-life (this split)"
             value={weights.recencyHalfLife}
@@ -1552,6 +1740,7 @@ function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, s
             max={20}
             step={1}
             format={(v) => (v >= 20 ? "flat average (no decay)" : `${v} match${v > 1 ? "es" : ""} — recent form weighted higher`)}
+            tooltip="How quickly older matches this split stop mattering. A low number means only the last few games really count; a high number treats the whole split as equally relevant."
           />
           <Slider
             label="Off-patch discount"
@@ -1561,6 +1750,7 @@ function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, s
             max={1}
             step={0.05}
             format={(v) => (v === 0 ? "ignore patch" : `-${Math.round(v * 100)}% weight for matches on an older patch`)}
+            tooltip="How much less a match counts if it was played on an older game patch than the one being projected for."
           />
           <Slider
             label="Career (gol.gg baseline) weight"
@@ -1570,6 +1760,7 @@ function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, s
             max={0.8}
             step={0.05}
             format={(v) => (v === 0 ? "off — recent form / split history only" : `${Math.round(v * 100)}% career baseline blended in`)}
+            tooltip="How much the player's independently-sourced career baseline (not just this app's own tracked matches) is blended into the final number."
           />
         </>
       )}
