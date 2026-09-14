@@ -625,6 +625,27 @@ def build_teams_payload(cur_players, hist_players, roster):
     return teams
 
 
+def classify_tournament_stage(tournament_name):
+    """Normalizes a raw tournament name (e.g. "LCS 2026 Summer Playoffs")
+    into a small, consistent category the UI can group/badge by, rather
+    than needing to parse the raw string itself everywhere it's
+    displayed. Order matters -- checked most-specific first, since e.g.
+    "Grand Finals" should win over a generic "Playoffs" match if a name
+    somehow contained both."""
+    name_lower = tournament_name.lower()
+    if "grand final" in name_lower or re.search(r"\bfinals?\b", name_lower):
+        return "finals"
+    if "playoff" in name_lower:
+        return "playoffs"
+    if "play-in" in name_lower or "play in" in name_lower:
+        return "play-in"
+    if "cup" in name_lower:
+        return "cup"
+    if "lock-in" in name_lower or "lock in" in name_lower or "kickoff" in name_lower:
+        return "preseason"
+    return "regular_season"
+
+
 def scrape_region(region_key, current_tournament, historical_tournament):
     print(f"\n=== {region_key} ({current_tournament}) ===")
 
@@ -651,6 +672,8 @@ def scrape_region(region_key, current_tournament, historical_tournament):
     seen_base_ids = set()
     for tournament in tournaments:
         t_matches = parse_match_list(tournament)
+        for tm in t_matches:
+            tm["tournament"] = tournament  # tagged here, before merging, so fetch_one below can carry it through to the final record
         # Dedup by base_game_id, not by team names -- two different
         # tournaments could plausibly list the same series if gol.gg's
         # own data overlaps at a boundary, and game_id is the one
@@ -678,6 +701,8 @@ def scrape_region(region_key, current_tournament, historical_tournament):
             "teamA": m["team_left"], "teamB": m["team_right"],
             "winner": winner, "score": m["score"],
             "actual": kills,
+            "tournament": m.get("tournament", current_tournament),
+            "stage": classify_tournament_stage(m.get("tournament", current_tournament)),
         }
         if draft:
             entry["draft"] = draft

@@ -1966,6 +1966,50 @@ function WeekHeader({ label }) {
   );
 }
 
+// Small, consistent visual language for tournament stage across the
+// app — regular season stays quiet, playoffs/finals stand out, since
+// those are the matches someone browsing past results is most likely
+// looking for specifically.
+const STAGE_STYLE = {
+  finals: { label: "FINALS", weight: 800 },
+  playoffs: { label: "PLAYOFFS", weight: 700 },
+  "play-in": { label: "PLAY-IN", weight: 600 },
+  cup: { label: "CUP", weight: 600 },
+  preseason: { label: "PRESEASON", weight: 500 },
+  regular_season: { label: "REGULAR SEASON", weight: 500 },
+};
+
+function StageBadge({ stage }) {
+  const theme = useTheme();
+  const s = STAGE_STYLE[stage] || STAGE_STYLE.regular_season;
+  const isFeatured = stage === "finals" || stage === "playoffs";
+  return (
+    <span
+      style={{
+        fontSize: 10, letterSpacing: 0.8, fontWeight: s.weight, padding: "2px 7px", borderRadius: 4,
+        fontFamily: "'IBM Plex Mono', monospace",
+        color: isFeatured ? theme.accent : theme.textFaint,
+        background: isFeatured ? theme.accentSoft : theme.steelSoft,
+        border: `1px solid ${isFeatured ? theme.accentBorder : theme.steel}`,
+      }}
+    >
+      {s.label}
+    </span>
+  );
+}
+
+function TournamentHeader({ tournament, stage }) {
+  const theme = useTheme();
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "24px 0 10px", paddingBottom: 8, borderBottom: `1px solid ${theme.steel}` }}>
+      <span style={{ fontSize: 14, fontWeight: 700, color: theme.text, fontFamily: "'Chakra Petch', sans-serif" }}>
+        {tournament}
+      </span>
+      <StageBadge stage={stage} />
+    </div>
+  );
+}
+
 function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isDesktop, games }) {
   const theme = useTheme();
   const [customMode, setCustomMode] = useState(false);
@@ -2140,6 +2184,8 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
 
 function PastResultsTab({ teams, pastMatches, weights, statType, isDesktop }) {
   const theme = useTheme();
+  const [stageFilter, setStageFilter] = useState("all");
+
   // Sort by actual date (newest first) rather than trusting array order —
   // the live scraper and the offline fallback snapshot store matches in
   // opposite orders, so relying on array position was fragile.
@@ -2148,10 +2194,21 @@ function PastResultsTab({ teams, pastMatches, weights, statType, isDesktop }) {
     const db = b.date || "";
     return da < db ? 1 : da > db ? -1 : 0;
   });
-  const grouped = sortGroupsByProgression(groupByLabel(sorted, (m) => m.week || null));
+
+  const availableStages = [...new Set(sorted.map((m) => m.stage).filter(Boolean))];
+  const filtered = stageFilter === "all" ? sorted : sorted.filter((m) => m.stage === stageFilter);
+
+  // Grouped by tournament first (older data without a "tournament" field
+  // falls back to a single "Other Matches" bucket rather than vanishing),
+  // then by week/round within each tournament using the existing
+  // playoff-aware ordering. Since `sorted` is already newest-first,
+  // grouping preserves that as most-recent-tournament-first too — each
+  // tournament's group naturally starts at its own latest match.
+  const byTournament = groupByLabel(filtered, (m) => m.tournament || null);
   const gridStyle = isDesktop
     ? { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 10, alignItems: "start" }
     : {};
+
   return (
     <div>
       <div style={{ fontSize: 11, color: theme.textFaint, marginBottom: 12, lineHeight: 1.5 }}>
@@ -2160,14 +2217,46 @@ function PastResultsTab({ teams, pastMatches, weights, statType, isDesktop }) {
         is a real backtest of the model, not hindsight. Rows marked "no prior form" had
         zero current-split games to draw on yet and lean on prior-split history alone.
       </div>
-      {grouped.map(([label, matches]) => (
-        <div key={label}>
-          <WeekHeader label={label} />
-          <div style={gridStyle}>
-            {matches.map((m, i) => <PastMatchCard key={i} teams={teams} pastMatches={pastMatches} match={m} weights={weights} statType={statType} />)}
-          </div>
+      {availableStages.length > 1 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
+          {["all", ...availableStages].map((s) => {
+            const active = stageFilter === s;
+            const styleInfo = s === "all" ? { label: "ALL" } : STAGE_STYLE[s] || { label: s.toUpperCase() };
+            return (
+              <button
+                key={s}
+                onClick={() => setStageFilter(s)}
+                style={{
+                  fontSize: 11, fontWeight: 600, letterSpacing: 0.5, padding: "5px 11px", borderRadius: 5,
+                  fontFamily: "'IBM Plex Mono', monospace", cursor: "pointer",
+                  color: active ? theme.accent : theme.textDim,
+                  background: active ? theme.accentSoft : "transparent",
+                  border: `1px solid ${active ? theme.accentBorder : theme.steel}`,
+                }}
+              >
+                {styleInfo.label}
+              </button>
+            );
+          })}
         </div>
-      ))}
+      )}
+      {byTournament.map(([tournament, tMatches]) => {
+        const stage = tMatches[0]?.stage || "regular_season";
+        const weekGroups = sortGroupsByProgression(groupByLabel(tMatches, (m) => m.week || null));
+        return (
+          <div key={tournament}>
+            {tournament !== "Other" && <TournamentHeader tournament={tournament} stage={stage} />}
+            {weekGroups.map(([label, matches]) => (
+              <div key={label}>
+                <WeekHeader label={label} />
+                <div style={gridStyle}>
+                  {matches.map((m, i) => <PastMatchCard key={i} teams={teams} pastMatches={pastMatches} match={m} weights={weights} statType={statType} />)}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      })}
     </div>
   );
 }
