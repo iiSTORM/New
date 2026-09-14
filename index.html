@@ -5,17 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="theme-color" content="#0A0B0D" />
+<meta name="theme-color" content="#14181F" />
 <title>Esports Kill Projector</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" />
 <style>
-  html, body { margin: 0; padding: 0; background: #0A0B0D; color: #EDEEF0; font-family: -apple-system, sans-serif; }
+  html, body { margin: 0; padding: 0; background: #14181F; color: #EDEFF4; font-family: -apple-system, sans-serif; }
   #root { min-height: 100vh; }
-  #boot-status { padding: 24px 16px; font-size: 13px; color: #9AA1AC; }
+  #boot-status { padding: 24px 16px; font-size: 13px; color: #A8B0C0; }
   #error-box { margin: 16px; padding: 14px; background: #2a1418; border: 1px solid #5c2a2a; border-radius: 8px;
                color: #ff9a9a; font-family: 'IBM Plex Mono', monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; }
-  input[type="text"]::placeholder { color: #565D68; }
+  input[type="text"]::placeholder { color: #5C6478; }
 </style>
 </head>
 <body>
@@ -71,16 +71,16 @@ const { useState, useEffect, useContext, createContext } = React;
    ============================================================ */
 
 const BASE_TOKENS = {
-  void: "#0A0B0D",
-  graphite: "#15171B",
-  graphiteLight: "#1B1E23",
-  steel: "#2A2E35",
-  steelSoft: "#20232A",
-  text: "#EDEEF0",
-  textDim: "#9AA1AC",
-  textFaint: "#565D68",
-  good: "#5FD97A",
-  bad: "#E05F5F",
+  void: "#14181F",
+  graphite: "#1B212B",
+  graphiteLight: "#222A38",
+  steel: "#2C3444",
+  steelSoft: "#232A38",
+  text: "#EDEFF4",
+  textDim: "#A8B0C0",
+  textFaint: "#5C6478",
+  good: "#6EBF8B",
+  bad: "#DA7A6D",
 };
 
 const GAME_ACCENTS = {
@@ -101,7 +101,7 @@ const ACCENT_SWATCHES = [
 const CORNER_CUT = 12; // px, used by both the clip-path and the SVG corner accents
 
 function cardShape(cornerStyle) {
-  if (cornerStyle === "rounded") return { borderRadius: 10 };
+  if (cornerStyle === "rounded") return { borderRadius: 12 };
   const c = CORNER_CUT;
   return {
     borderRadius: 0,
@@ -171,7 +171,7 @@ function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, 
               width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
               display: "flex", alignItems: "center", justifyContent: "center",
               background: `${teamColor}22`, border: `1.5px solid ${teamColor}`,
-              color: teamColor, fontFamily: "'Chakra Petch', sans-serif", fontWeight: 700, fontSize: 12,
+              color: teamColor, fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: 12,
             }}
           >
             {initialsFor(name)}
@@ -179,7 +179,7 @@ function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, 
           <div style={{ minWidth: 0 }}>
             <div
               style={{
-                fontSize: 15, fontWeight: 600, color: theme.text, fontFamily: "'Chakra Petch', sans-serif",
+                fontSize: 15, fontWeight: 600, color: theme.text, fontFamily: "'Fraunces', serif",
                 whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
               }}
             >
@@ -199,9 +199,9 @@ function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, 
               <div style={{ fontSize: 9, letterSpacing: 0.6, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>{s.label}</div>
               <div
                 style={{
-                  fontSize: s.big ? 19 : 14, fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace",
-                  color: s.color || theme.text, marginTop: 2,
-                  ...(s.big ? { background: theme.accentSoft, border: `1px solid ${theme.accentBorder}`, borderRadius: 4, padding: "2px 8px" } : {}),
+                  fontSize: s.big ? 24 : 14, fontWeight: s.big ? 600 : 700,
+                  fontFamily: s.big ? "'Fraunces', serif" : "'IBM Plex Mono', monospace",
+                  color: s.big ? theme.accent : (s.color || theme.text), marginTop: 2,
                 }}
               >
                 {s.value}
@@ -1289,7 +1289,7 @@ function ProjectionDetail({ r, p, cfg, games }) {
       <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
         <RadarChart axes={axes} color={theme.accent} />
         <div style={{ flex: 1, minWidth: 140 }}>
-          <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 26, fontWeight: 700, color: theme.accent }}>
+          <div style={{ fontFamily: "'Fraunces', serif", fontSize: 30, fontWeight: 600, color: theme.accent }}>
             {r.total.toFixed(1)}
           </div>
           {edgePct != null && Math.abs(edgePct) >= 1 && (
@@ -1301,8 +1301,8 @@ function ProjectionDetail({ r, p, cfg, games }) {
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
               {tags.map((t) => (
                 <span key={t.text} style={{
-                  fontSize: 10, padding: "3px 8px", borderRadius: 4,
-                  background: `${t.color}18`, border: `1px solid ${t.color}55`, color: t.color,
+                  fontSize: 11, fontWeight: 500, padding: "4px 11px", borderRadius: 20,
+                  fontFamily: "'Inter', sans-serif", background: `${t.color}20`, color: t.color,
                 }}>
                   {t.text}
                 </span>
@@ -1374,20 +1374,19 @@ function PlayerRow({ teams, pastMatches, p, team, opponentTeam, games, weights, 
               width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
               display: "flex", alignItems: "center", justifyContent: "center",
               background: `${teamColor}22`, border: `1.5px solid ${teamColor}`,
-              color: teamColor, fontFamily: "'Chakra Petch', sans-serif", fontWeight: 700, fontSize: 12,
+              color: teamColor, fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: 12,
             }}
           >
             {initialsFor(p.name)}
           </span>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 600, color: theme.text, fontSize: 15, fontFamily: "'Chakra Petch', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</div>
+            <div style={{ fontWeight: 600, color: theme.text, fontSize: 15, fontFamily: "'Fraunces', serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</div>
             {p.role && <span className="kp-chip" style={{ background: theme.steelSoft, color: theme.textDim, marginTop: 4 }}>{p.role}</span>}
           </div>
         </div>
         <div style={{ textAlign: "right", flexShrink: 0 }}>
           <div style={{
-            display: "inline-block", fontFamily: "'IBM Plex Mono', monospace", fontSize: 20, color: theme.accent, fontWeight: 700,
-            background: theme.accentSoft, padding: "3px 11px", borderRadius: 4, border: `1px solid ${theme.accentBorder}`,
+            fontFamily: "'Fraunces', serif", fontSize: 26, color: theme.accent, fontWeight: 600,
           }}>
             {r.total.toFixed(1)}
           </div>
@@ -1531,7 +1530,7 @@ function StandingsTab({ teams, pastMatches, upcomingMatches, regionsData, region
               <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", width: 14 }}>{i + 1}</span>
                 <span style={{ width: 5, height: 16, background: teams[s.team] ? teams[s.team].color : theme.textFaint }} />
-                <span style={{ fontFamily: "'Chakra Petch', sans-serif", fontWeight: 600 }}>{s.team}</span>
+                <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 600 }}>{s.team}</span>
               </span>
               <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.good }}>{s.wins}</span>
               <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.bad }}>{s.losses}</span>
@@ -1551,7 +1550,7 @@ function StandingsTab({ teams, pastMatches, upcomingMatches, regionsData, region
             <div key={p.team} style={{ display: "grid", gridTemplateColumns: "1fr 70px 60px", padding: "9px 14px", fontSize: 13, borderTop: `1px solid ${theme.steelSoft}`, alignItems: "center" }}>
               <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", width: 14 }}>{i + 1}</span>
-                <span style={{ fontFamily: "'Chakra Petch', sans-serif", fontWeight: 600 }}>{p.team}</span>
+                <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 600 }}>{p.team}</span>
               </span>
               <span style={{ textAlign: "right", fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>{regionLabels[p.region] || p.region}</span>
               <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.accent, fontWeight: 700 }}>{Math.round(p.rating)}</span>
@@ -1657,9 +1656,9 @@ function HeadToHeadCard({ teams, pastMatches, teamA, teamB, bare = false }) {
       ) : (
         <>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <span style={{ color: colorA, fontWeight: 700, fontFamily: "'Chakra Petch', sans-serif", fontSize: 14 }}>{teamA}</span>
+            <span style={{ color: colorA, fontWeight: 700, fontFamily: "'Fraunces', serif", fontSize: 14 }}>{teamA}</span>
             <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 20, fontWeight: 700, color: theme.text }}>{winsA} – {winsB}</span>
-            <span style={{ color: colorB, fontWeight: 700, fontFamily: "'Chakra Petch', sans-serif", fontSize: 14 }}>{teamB}</span>
+            <span style={{ color: colorB, fontWeight: 700, fontFamily: "'Fraunces', serif", fontSize: 14 }}>{teamB}</span>
           </div>
           {meetings.map((m, i) => (
             <div
@@ -1706,7 +1705,7 @@ function MatchupPanel({ teams, pastMatches, teamA, teamB, games, weights, statTy
         {[[teamA, teamB, totalsA], [teamB, teamA, totalsB]].map(([team, opp, total], i) => (
           <div key={i} className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${teams[team].color}33`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme, teams[team].color), overflow: "hidden" }}>
             <div style={{ padding: "10px 12px", background: `${teams[team].color}18`, borderBottom: `1px solid ${teams[team].color}33`, display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-              <span style={{ fontWeight: 700, fontSize: 14, fontFamily: "'Chakra Petch', sans-serif" }}>{team}</span>
+              <span style={{ fontWeight: 700, fontSize: 14, fontFamily: "'Fraunces', serif" }}>{team}</span>
               <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, color: teams[team].color }}>Σ {total.toFixed(1)}</span>
             </div>
             {likelyStarters(teams[team].players).map((p) => (
@@ -1732,8 +1731,8 @@ function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, s
         onClick={onToggleExpanded}
         style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: expanded ? 12 : 0 }}
       >
-        <div style={{ fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
-          ADVANCED TUNING <span style={{ color: theme.textDim, letterSpacing: 0 }}>· {statLabel} · optional</span>
+        <div style={{ fontSize: 13, color: theme.text, fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>
+          Advanced tuning <span style={{ color: theme.textFaint, fontWeight: 400 }}>· {statLabel} · optional</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 14, color: theme.textDim, transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}>▾</span>
@@ -1849,9 +1848,9 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games }
       <div className="kp-clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer", padding: "12px 14px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
-            <span style={{ color: teams[match.teamA].color, fontWeight: 700, fontFamily: "'Chakra Petch', sans-serif" }}>{match.teamA}</span>
+            <span style={{ color: teams[match.teamA].color, fontWeight: 700, fontFamily: "'Fraunces', serif" }}>{match.teamA}</span>
             <span style={{ color: theme.textFaint, fontSize: 11 }}>vs</span>
-            <span style={{ color: teams[match.teamB].color, fontWeight: 700, fontFamily: "'Chakra Petch', sans-serif" }}>{match.teamB}</span>
+            <span style={{ color: teams[match.teamB].color, fontWeight: 700, fontFamily: "'Fraunces', serif" }}>{match.teamB}</span>
           </div>
           <span style={{ fontSize: 11, color: theme.textDim, fontFamily: "'IBM Plex Mono', monospace" }}>{match.date}{match.time ? `, ${match.time}` : ""}</span>
         </div>
@@ -1971,12 +1970,12 @@ function WeekHeader({ label }) {
 // those are the matches someone browsing past results is most likely
 // looking for specifically.
 const STAGE_STYLE = {
-  finals: { label: "FINALS", weight: 800 },
-  playoffs: { label: "PLAYOFFS", weight: 700 },
-  "play-in": { label: "PLAY-IN", weight: 600 },
-  cup: { label: "CUP", weight: 600 },
-  preseason: { label: "PRESEASON", weight: 500 },
-  regular_season: { label: "REGULAR SEASON", weight: 500 },
+  finals: { label: "Finals", weight: 700 },
+  playoffs: { label: "Playoffs", weight: 600 },
+  "play-in": { label: "Play-in", weight: 500 },
+  cup: { label: "Cup", weight: 500 },
+  preseason: { label: "Preseason", weight: 500 },
+  regular_season: { label: "Regular season", weight: 500 },
 };
 
 function StageBadge({ stage }) {
@@ -1986,11 +1985,10 @@ function StageBadge({ stage }) {
   return (
     <span
       style={{
-        fontSize: 10, letterSpacing: 0.8, fontWeight: s.weight, padding: "2px 7px", borderRadius: 4,
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontSize: 11, fontWeight: s.weight, padding: "4px 11px", borderRadius: 20,
+        fontFamily: "'Inter', sans-serif",
         color: isFeatured ? theme.accent : theme.textFaint,
         background: isFeatured ? theme.accentSoft : theme.steelSoft,
-        border: `1px solid ${isFeatured ? theme.accentBorder : theme.steel}`,
       }}
     >
       {s.label}
@@ -2001,8 +1999,8 @@ function StageBadge({ stage }) {
 function TournamentHeader({ tournament, stage }) {
   const theme = useTheme();
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "24px 0 10px", paddingBottom: 8, borderBottom: `1px solid ${theme.steel}` }}>
-      <span style={{ fontSize: 14, fontWeight: 700, color: theme.text, fontFamily: "'Chakra Petch', sans-serif" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "28px 0 12px", paddingBottom: 10, borderBottom: `1px solid ${theme.steel}` }}>
+      <span style={{ fontSize: 18, fontWeight: 600, color: theme.text, fontFamily: "'Fraunces', serif" }}>
         {tournament}
       </span>
       <StageBadge stage={stage} />
@@ -2139,9 +2137,9 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
       <div className="kp-clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer", padding: "12px 14px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
-            <span style={{ color: teams[match.teamA].color, fontWeight: 700, fontFamily: "'Chakra Petch', sans-serif" }}>{match.teamA}</span>
+            <span style={{ color: teams[match.teamA].color, fontWeight: 700, fontFamily: "'Fraunces', serif" }}>{match.teamA}</span>
             <span style={{ color: theme.textFaint, fontSize: 11 }}>vs</span>
-            <span style={{ color: teams[match.teamB].color, fontWeight: 700, fontFamily: "'Chakra Petch', sans-serif" }}>{match.teamB}</span>
+            <span style={{ color: teams[match.teamB].color, fontWeight: 700, fontFamily: "'Fraunces', serif" }}>{match.teamB}</span>
           </div>
           <span style={{ fontSize: 11, color: theme.textDim, fontFamily: "'IBM Plex Mono', monospace" }}>{match.date}</span>
         </div>
@@ -2218,20 +2216,19 @@ function PastResultsTab({ teams, pastMatches, weights, statType, isDesktop }) {
         zero current-split games to draw on yet and lean on prior-split history alone.
       </div>
       {availableStages.length > 1 && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>
           {["all", ...availableStages].map((s) => {
             const active = stageFilter === s;
-            const styleInfo = s === "all" ? { label: "ALL" } : STAGE_STYLE[s] || { label: s.toUpperCase() };
+            const styleInfo = s === "all" ? { label: "All" } : STAGE_STYLE[s] || { label: s[0].toUpperCase() + s.slice(1) };
             return (
               <button
                 key={s}
                 onClick={() => setStageFilter(s)}
                 style={{
-                  fontSize: 11, fontWeight: 600, letterSpacing: 0.5, padding: "5px 11px", borderRadius: 5,
-                  fontFamily: "'IBM Plex Mono', monospace", cursor: "pointer",
+                  fontSize: 12, fontWeight: 600, padding: "6px 13px", borderRadius: 20,
+                  fontFamily: "'Inter', sans-serif", cursor: "pointer", border: "none",
                   color: active ? theme.accent : theme.textDim,
-                  background: active ? theme.accentSoft : "transparent",
-                  border: `1px solid ${active ? theme.accentBorder : theme.steel}`,
+                  background: active ? theme.accentSoft : theme.steelSoft,
                 }}
               >
                 {styleInfo.label}
@@ -2337,7 +2334,7 @@ function GameSwitcher({ game, selectGame, statusByGame, theme }) {
       >
         <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ width: 10, height: 10, borderRadius: "50%", background: currentAccent, boxShadow: `0 0 8px ${currentAccent}` }} />
-          <span style={{ fontFamily: "'Chakra Petch', sans-serif", fontWeight: 700, fontSize: 15, color: theme.text }}>{current.label}</span>
+          <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: 15, color: theme.text }}>{current.label}</span>
         </span>
         <span style={{ fontSize: 11, color: theme.textFaint, transform: open ? "rotate(180deg)" : "none", transition: "transform 0.15s ease" }}>▾</span>
       </button>
@@ -2376,7 +2373,7 @@ function GameSwitcher({ game, selectGame, statusByGame, theme }) {
                   <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <span style={{ width: 10, height: 10, borderRadius: "50%", background: accent }} />
                     <span>
-                      <div style={{ fontFamily: "'Chakra Petch', sans-serif", fontWeight: 700, fontSize: 14, color: isCurrent ? accent : theme.text }}>
+                      <div style={{ fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: 14, color: isCurrent ? accent : theme.text }}>
                         {GAMES[id].label}
                       </div>
                       <div style={{ fontSize: 10, color: theme.textFaint, marginTop: 1 }}>{GAMES[id].regionList.length} regions tracked</div>
@@ -2415,7 +2412,7 @@ function TopNav({ theme, gameCfg, region, setRegion, tab, setTab, statType, setS
               background: region === key ? theme.accentSoft : theme.graphite,
               color: region === key ? theme.accent : theme.textDim,
               fontSize: isDesktop ? 15 : 13, fontWeight: 700, cursor: "pointer",
-              fontFamily: "'Chakra Petch', sans-serif", ...elevation(),
+              fontFamily: "'Fraunces', serif", ...elevation(),
             }}
           >
             {gameCfg.regionLabels[key]}
@@ -2434,7 +2431,7 @@ function TopNav({ theme, gameCfg, region, setRegion, tab, setTab, statType, setS
                 padding: "10px 2px 12px", background: "none", border: "none",
                 borderBottom: `2px solid ${tab === id ? theme.accent : "transparent"}`,
                 color: tab === id ? theme.accent : theme.textDim,
-                fontSize: isDesktop ? 15 : 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Chakra Petch', sans-serif",
+                fontSize: isDesktop ? 15 : 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Fraunces', serif",
               }}
             >
               {label}
@@ -2595,7 +2592,7 @@ function KillProjector() {
 
   const [accentOverride, setAccentOverride] = useState(() => loadStored("kp.accentOverride", null));
   useEffect(() => saveStored("kp.accentOverride", accentOverride), [accentOverride]);
-  const [cornerStyle, setCornerStyle] = useState(() => loadStored("kp.cornerStyle", "angular"));
+  const [cornerStyle, setCornerStyle] = useState(() => loadStored("kp.cornerStyle", "rounded"));
   useEffect(() => saveStored("kp.cornerStyle", cornerStyle), [cornerStyle]);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -2754,7 +2751,7 @@ function KillProjector() {
         backgroundSize: "auto, 48px 48px, 48px 48px, auto",
       }}>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&display=swap" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" />
         <style>{`
           /* Everything else in this app is inline styles, which can't do
              :hover or animation — this is the one shared stylesheet, kept
@@ -2785,8 +2782,8 @@ function KillProjector() {
           .kp-bracket::before { top: 2px; left: 2px; border-top: 1.5px solid var(--kp-bracket-color); border-left: 1.5px solid var(--kp-bracket-color); }
           .kp-bracket::after { bottom: 2px; right: 2px; border-bottom: 1.5px solid var(--kp-bracket-color); border-right: 1.5px solid var(--kp-bracket-color); }
           .kp-chip {
-            display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 3px;
-            font-size: 9px; font-weight: 700; letter-spacing: 0.4px; font-family: 'IBM Plex Mono', monospace;
+            display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px;
+            font-size: 10px; font-weight: 600; letter-spacing: 0.3px; font-family: 'Inter', sans-serif;
           }
           .kp-divider { border: none; height: 1px; }
         `}</style>
@@ -2799,12 +2796,12 @@ function KillProjector() {
               live in TopNav now, not here — see below. ---------- */}
           <div style={{ width: isDesktop ? 260 : "100%", flexShrink: 0, position: isDesktop ? "sticky" : "static", top: isDesktop ? 32 : "auto" }}>
             <div style={{ marginBottom: 18 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, letterSpacing: 3, color: theme.accent, fontFamily: "'IBM Plex Mono', monospace" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11, letterSpacing: 2, color: theme.accent, fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>
                 <Reticle size={13} color={theme.accent} active />
-                ESPORTS — KILL PROJECTOR
+                KILL PROJECTOR
               </div>
-              <div style={{ fontSize: 24, fontWeight: 700, marginTop: 4, fontFamily: "'Chakra Petch', sans-serif" }}>Weighted kill projections</div>
-              <div style={{ fontSize: 13, color: theme.textDim, marginTop: 2 }}>Blends this split's rates with prior-split history, opponent strength, and kill-participation.</div>
+              <div style={{ fontSize: 26, fontWeight: 600, marginTop: 6, fontFamily: "'Fraunces', serif" }}>Weighted kill projections</div>
+              <div style={{ fontSize: 13, color: theme.textDim, marginTop: 4, lineHeight: 1.5 }}>Blends this split's rates with prior-split history, opponent strength, and kill-participation.</div>
             </div>
 
             <GameSwitcher game={game} selectGame={selectGame} statusByGame={statusByGame} theme={theme} />
