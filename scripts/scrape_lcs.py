@@ -619,10 +619,28 @@ def scrape_region(region_key, current_tournament, historical_tournament):
 
 
 def main():
+    # Merges into the EXISTING data.json rather than building from
+    # scratch — a real, confirmed failure mode showed gol.gg timing out
+    # for every single region in one run, which the previous version of
+    # this function would have written as a payload with ZERO regions,
+    # and if that got committed, would have wiped every region's
+    # previously-good data with nothing at all. A transient external
+    # outage shouldn't be able to destroy the live site's entire
+    # dataset. Any region that fails THIS run now falls back to
+    # whatever was already committed for it, with a clear warning that
+    # it's stale rather than fresh.
+    try:
+        with open("data.json") as f:
+            existing = json.load(f)
+        existing_regions = existing.get("regions", {})
+    except FileNotFoundError:
+        existing_regions = {}
+
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "regions": {},
     }
+    failed = []
     for region_key, cfg in REGIONS.items():
         try:
             payload["regions"][region_key] = scrape_region(
@@ -630,12 +648,25 @@ def main():
             )
         except Exception as e:
             print(f"! region {region_key} failed entirely: {e}", file=sys.stderr)
-            # Leave the region out rather than writing partial garbage —
-            # the app falls back to its bundled snapshot for a missing region.
+            failed.append(region_key)
+            if region_key in existing_regions:
+                print(f"  falling back to last committed data for {region_key} (stale, not "
+                      f"refreshed this run)", file=sys.stderr)
+                payload["regions"][region_key] = existing_regions[region_key]
+            else:
+                print(f"  ! no prior data.json data exists for {region_key} either — it will be "
+                      f"genuinely missing this run", file=sys.stderr)
+
+    if failed and len(failed) == len(REGIONS):
+        print(f"\n! ALL {len(REGIONS)} regions failed this run (see errors above) — likely gol.gg "
+              f"itself being unreachable, not a bug in this script. Falling back entirely to "
+              f"whatever was already committed, so this run is a genuine no-op if data.json "
+              f"already existed.", file=sys.stderr)
 
     with open("data.json", "w") as f:
         json.dump(payload, f, indent=2)
-    print(f"\nWrote data.json with regions: {list(payload['regions'].keys())}")
+    print(f"\nWrote data.json with regions: {list(payload['regions'].keys())}"
+          f"{f' ({len(failed)} fell back to stale data: {failed})' if failed else ''}")
 
 
 if __name__ == "__main__":
