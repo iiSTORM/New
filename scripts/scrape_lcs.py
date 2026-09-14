@@ -183,7 +183,10 @@ def parse_team_rosters(tournament):
                 print(f"    {team_name} roster order found: {seen}", file=sys.stderr)
             for idx, pname in enumerate(seen[:5]):
                 roster[pname] = {"team": team_name, "role": role_sequence[idx] if idx < 5 else "SUB"}
-    return roster
+    # team_urls is also returned (not just roster) so callers can reuse
+    # it for tournament discovery (see discover_tournaments) without a
+    # second fetch of this same teams-list page.
+    return roster, team_urls
 
 
 def clean_team_name(raw):
@@ -208,6 +211,86 @@ def normalize_week_label(raw):
     # "QUARTERFINALS" -> "Quarterfinals") but leave existing mixed-case or
     # already-formatted labels alone.
     return raw.title() if raw.isupper() else raw
+
+
+def discover_tournaments(current_tournament, team_urls):
+    """Finds every real tournament for this region/year -- regular
+    season AND any playoffs/finals stages -- rather than only ever
+    scraping the single regular-season tournament name hardcoded in
+    REGIONS. A real, reported gap: "past matches only covers regular
+    season in all regions", confirmed via live reconnaissance that
+    gol.gg treats playoffs as an ENTIRELY SEPARATE tournament from
+    regular season (e.g. "LEC 2026 Summer Season" vs "LEC 2026 Summer
+    Playoffs" are two different tournament names, not one tournament
+    with a playoffs section) -- and that this varies by region: LCK
+    uses a single season-wide "LCK 2026 Season Playoffs" unrelated to
+    its "Rounds X-Y" split names, LPL has separate Playoffs AND a
+    further "Grand Finals" stage per split. Hardcoding every region's
+    naming convention would be fragile and need manual updates every
+    split, so this discovers them instead: gol.gg's own team-stats pages
+    have a real, server-rendered "Tournament" dropdown listing every
+    tournament that team has ever played in (confirmed via direct
+    fetch) -- since every team in a region shares the same set of
+    tournaments, one team's dropdown gives us the whole region's list.
+    (gol.gg's own /tournament/list/ page would be a cleaner source but
+    is JS-rendered client-side with an empty table in the raw HTML --
+    confirmed via direct fetch -- so it's not usable here.)
+
+    Filtered to the CURRENT YEAR only (parsed from current_tournament),
+    not full career history, since a team that's been active for years
+    would otherwise dump its entire tournament history into this list."""
+    if not team_urls:
+        return [current_tournament]
+    year_match = re.search(r"\b(20\d{2})\b", current_tournament)
+    year = year_match.group(1) if year_match else None
+
+    sample_url = next(iter(team_urls.values()))
+    all_tournaments_url = re.sub(r"tournament-[^/]+/?$", "tournament-ALL/", sample_url)
+    try:
+        html = get(all_tournaments_url)
+    except Exception as e:
+        print(f"  ! tournament discovery failed ({e}) — falling back to just {current_tournament}", file=sys.stderr)
+        return [current_tournament]
+
+    soup = BeautifulSoup(html, "html.parser")
+    found = set()
+    # Real, confirmed markup (via direct raw-HTML inspection, not
+    # guessed): <select id='cbtournament'>, with each real tournament as
+    # an <option>. A prior version used generic soup.find("select"),
+    # which silently grabbed the WRONG element -- gol.gg's nav bar has
+    # its own <select id="selectSearch"> earlier in the page (an empty
+    # shell populated later by a JS search-autocomplete library), so
+    # find("select") always matched that one first and found zero
+    # options, never reaching the real tournament dropdown at all. Using
+    # the specific id scopes this correctly.
+    select = soup.find("select", id="cbtournament")
+    if select:
+        for opt in select.find_all("option"):
+            text = opt.get_text(strip=True)
+            if text and text != "-- ALL --":
+                found.add(text)
+
+    if not found:
+        print(f"  ! tournament discovery found nothing usable on {all_tournaments_url} — "
+              f"falling back to just {current_tournament} (playoffs/finals stages won't be "
+              f"covered this run — worth checking whether gol.gg's markup changed if this "
+              f"recurs)", file=sys.stderr)
+        return [current_tournament]
+
+    # Only tournaments actually prefixed with this region's own name
+    # (e.g. "LCS 2026 ...") -- a pure year-filter would also pull in
+    # unrelated events a team happened to play this year (confirmed via
+    # real data: "EWC 2026 Qualifier NA", "Americas Cup 2026" showed up
+    # in LCS's own dropdown), which is broader than what "past results"
+    # for this league should mean.
+    region_prefix = current_tournament[:year_match.start()].strip() if year_match else None
+    if year:
+        found = {t for t in found if year in t and (not region_prefix or t.startswith(region_prefix))}
+    found.add(current_tournament)  # always include it even if the filters or discovery missed it somehow
+    tournaments = sorted(found)
+    print(f"  discovered {len(tournaments)} tournament(s) for {year or 'this'} year: {tournaments}",
+          file=sys.stderr)
+    return tournaments
 
 
 def parse_match_list(tournament):
@@ -546,7 +629,7 @@ def scrape_region(region_key, current_tournament, historical_tournament):
     print(f"\n=== {region_key} ({current_tournament}) ===")
 
     print(f"Fetching team rosters (for team/role assignment)...")
-    roster = parse_team_rosters(current_tournament)
+    roster, team_urls = parse_team_rosters(current_tournament)
     print(f"  {len(roster)} players matched to a team/role")
 
     print(f"Fetching current-split player stats...")
@@ -560,9 +643,23 @@ def scrape_region(region_key, current_tournament, historical_tournament):
     teams_payload = build_teams_payload(cur_players, hist_players, roster)
     print(f"  built payload for {len(teams_payload)} teams: {list(teams_payload.keys())}")
 
-    print(f"Fetching match list...")
-    matches = parse_match_list(current_tournament)
-    print(f"  {len(matches)} completed series found")
+    print(f"Discovering this year's tournaments (regular season + any playoffs/finals stages)...")
+    tournaments = discover_tournaments(current_tournament, team_urls)
+
+    print(f"Fetching match list(s)...")
+    matches = []
+    seen_base_ids = set()
+    for tournament in tournaments:
+        t_matches = parse_match_list(tournament)
+        # Dedup by base_game_id, not by team names -- two different
+        # tournaments could plausibly list the same series if gol.gg's
+        # own data overlaps at a boundary, and game_id is the one
+        # genuinely unique identifier available here.
+        new_matches = [m for m in t_matches if m["base_game_id"] not in seen_base_ids]
+        seen_base_ids.update(m["base_game_id"] for m in new_matches)
+        matches.extend(new_matches)
+        print(f"  {tournament}: {len(t_matches)} completed series found ({len(new_matches)} new)")
+    print(f"  {len(matches)} completed series total across {len(tournaments)} tournament(s)")
 
     # This is the dominant cost of the whole scrape — each match needs 2
     # page fetches (game 1 + game 2), and with 20-60+ matches per region
