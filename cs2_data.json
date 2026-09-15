@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-15T14:00:15.238239+00:00",
+  "generated_at": "2026-09-15T23:20:21.372061+00:00",
   "regions": {
     "CS2": {
       "teams": {
@@ -44407,78 +44407,8 @@
             }
           ]
         },
-        "MIBR fe": {
-          "color": "#4fa8e0",
-          "players": [
-            {
-              "name": "DANI",
-              "role": null,
-              "cur": {
-                "g": 10,
-                "k": 15.0,
-                "d": 17.0,
-                "a": 5.9,
-                "kp": 29.603399433427764
-              },
-              "hist": null,
-              "career_games": []
-            },
-            {
-              "name": "Olga",
-              "role": null,
-              "cur": {
-                "g": 10,
-                "k": 16.4,
-                "d": 16.7,
-                "a": 7.1,
-                "kp": 33.286118980169974
-              },
-              "hist": null,
-              "career_games": []
-            },
-            {
-              "name": "yungher",
-              "role": null,
-              "cur": {
-                "g": 10,
-                "k": 13.0,
-                "d": 14.4,
-                "a": 3.9,
-                "kp": 23.937677053824363
-              },
-              "hist": null,
-              "career_games": []
-            },
-            {
-              "name": "poppins",
-              "role": null,
-              "cur": {
-                "g": 10,
-                "k": 14.3,
-                "d": 15.4,
-                "a": 5.1,
-                "kp": 27.47875354107649
-              },
-              "hist": null,
-              "career_games": []
-            },
-            {
-              "name": "GaBi",
-              "role": null,
-              "cur": {
-                "g": 10,
-                "k": 11.9,
-                "d": 14.9,
-                "a": 4.3,
-                "kp": 22.946175637393768
-              },
-              "hist": null,
-              "career_games": []
-            }
-          ]
-        },
         "Metizport": {
-          "color": "#e05f9a",
+          "color": "#4fa8e0",
           "players": [
             {
               "name": "MaiL09",
@@ -44548,7 +44478,7 @@
           ]
         },
         "NRG": {
-          "color": "#5fd97a",
+          "color": "#e05f9a",
           "players": [
             {
               "name": "Sonic",
@@ -45925,7 +45855,7 @@
           ]
         },
         "SINNERS": {
-          "color": "#e07a4f",
+          "color": "#5fd97a",
           "players": [
             {
               "name": "stressarN",
@@ -45995,7 +45925,7 @@
           ]
         },
         "fnatic": {
-          "color": "#9a7ae0",
+          "color": "#e07a4f",
           "players": [
             {
               "name": "mazay",
@@ -46065,7 +45995,7 @@
           ]
         },
         "Sangal": {
-          "color": "#4fd9c9",
+          "color": "#9a7ae0",
           "players": [
             {
               "name": "R4DYX",
@@ -55082,436 +55012,6 @@
         },
         {
           "week": null,
-          "date": "2026-06-26",
-          "patch": null,
-          "teamA": "Shimmer",
-          "teamB": "MIBR fe",
-          "winner": "MIBR fe",
-          "score": "1-3",
-          "actual": {
-            "Shimmer": {
-              "phoebe": {
-                "k": 45,
-                "d": 48,
-                "a": 12,
-                "kp_numerator": 57,
-                "kp_denominator": 237
-              },
-              "Serendipity": {
-                "k": 39,
-                "d": 44,
-                "a": 16,
-                "kp_numerator": 55,
-                "kp_denominator": 237
-              },
-              "Stx": {
-                "k": 52,
-                "d": 46,
-                "a": 21,
-                "kp_numerator": 73,
-                "kp_denominator": 237
-              },
-              "empathy": {
-                "k": 52,
-                "d": 47,
-                "a": 24,
-                "kp_numerator": 76,
-                "kp_denominator": 237
-              },
-              "alicerawr": {
-                "k": 49,
-                "d": 45,
-                "a": 14,
-                "kp_numerator": 63,
-                "kp_denominator": 237
-              }
-            },
-            "MIBR fe": {
-              "DANI": {
-                "k": 50,
-                "d": 53,
-                "a": 25,
-                "kp_numerator": 75,
-                "kp_denominator": 229
-              },
-              "Olga": {
-                "k": 56,
-                "d": 53,
-                "a": 26,
-                "kp_numerator": 82,
-                "kp_denominator": 229
-              },
-              "yungher": {
-                "k": 41,
-                "d": 39,
-                "a": 18,
-                "kp_numerator": 59,
-                "kp_denominator": 229
-              },
-              "poppins": {
-                "k": 44,
-                "d": 47,
-                "a": 12,
-                "kp_numerator": 56,
-                "kp_denominator": 229
-              },
-              "GaBi": {
-                "k": 38,
-                "d": 49,
-                "a": 12,
-                "kp_numerator": 50,
-                "kp_denominator": 229
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-06-25",
-          "patch": null,
-          "teamA": "MIBR fe",
-          "teamB": "Clutchain Fe",
-          "winner": "MIBR fe",
-          "score": "0-2",
-          "actual": {
-            "MIBR fe": {
-              "poppins": {
-                "k": 36,
-                "d": 19,
-                "a": 12,
-                "kp_numerator": 48,
-                "kp_denominator": 156
-              },
-              "yungher": {
-                "k": 24,
-                "d": 23,
-                "a": 9,
-                "kp_numerator": 33,
-                "kp_denominator": 156
-              },
-              "Olga": {
-                "k": 37,
-                "d": 26,
-                "a": 19,
-                "kp_numerator": 56,
-                "kp_denominator": 156
-              },
-              "DANI": {
-                "k": 35,
-                "d": 24,
-                "a": 11,
-                "kp_numerator": 46,
-                "kp_denominator": 156
-              },
-              "GaBi": {
-                "k": 24,
-                "d": 17,
-                "a": 16,
-                "kp_numerator": 40,
-                "kp_denominator": 156
-              }
-            },
-            "Clutchain Fe": {
-              "vicu": {
-                "k": 26,
-                "d": 29,
-                "a": 5,
-                "kp_numerator": 31,
-                "kp_denominator": 108
-              },
-              "tory": {
-                "k": 14,
-                "d": 32,
-                "a": 8,
-                "kp_numerator": 22,
-                "kp_denominator": 108
-              },
-              "twenty3": {
-                "k": 20,
-                "d": 32,
-                "a": 7,
-                "kp_numerator": 27,
-                "kp_denominator": 108
-              },
-              "Kat": {
-                "k": 16,
-                "d": 32,
-                "a": 11,
-                "kp_numerator": 27,
-                "kp_denominator": 108
-              },
-              "zAAz": {
-                "k": 32,
-                "d": 32,
-                "a": 9,
-                "kp_numerator": 41,
-                "kp_denominator": 108
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-05-16",
-          "patch": null,
-          "teamA": "Guara eSports",
-          "teamB": "MIBR fe",
-          "winner": "Guara eSports",
-          "score": "1-2",
-          "actual": {
-            "Guara eSports": {
-              "paqueta": {
-                "k": 37,
-                "d": 25,
-                "a": 8,
-                "kp_numerator": 45,
-                "kp_denominator": 145
-              },
-              "neskk": {
-                "k": 25,
-                "d": 33,
-                "a": 11,
-                "kp_numerator": 36,
-                "kp_denominator": 145
-              },
-              "fnbJESUS": {
-                "k": 26,
-                "d": 33,
-                "a": 8,
-                "kp_numerator": 34,
-                "kp_denominator": 145
-              },
-              "alwayz": {
-                "k": 22,
-                "d": 35,
-                "a": 5,
-                "kp_numerator": 27,
-                "kp_denominator": 145
-              },
-              "Tineu": {
-                "k": 35,
-                "d": 34,
-                "a": 7,
-                "kp_numerator": 42,
-                "kp_denominator": 145
-              }
-            },
-            "MIBR fe": {
-              "poppins": {
-                "k": 26,
-                "d": 31,
-                "a": 13,
-                "kp_numerator": 39,
-                "kp_denominator": 157
-              },
-              "yungher": {
-                "k": 34,
-                "d": 25,
-                "a": 6,
-                "kp_numerator": 40,
-                "kp_denominator": 157
-              },
-              "GaBi": {
-                "k": 29,
-                "d": 27,
-                "a": 6,
-                "kp_numerator": 35,
-                "kp_denominator": 157
-              },
-              "Olga": {
-                "k": 43,
-                "d": 31,
-                "a": 12,
-                "kp_numerator": 55,
-                "kp_denominator": 157
-              },
-              "DANI": {
-                "k": 25,
-                "d": 35,
-                "a": 12,
-                "kp_numerator": 37,
-                "kp_denominator": 157
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-05-15",
-          "patch": null,
-          "teamA": "paiN Academy",
-          "teamB": "MIBR fe",
-          "winner": "paiN Academy",
-          "score": "0-2",
-          "actual": {
-            "paiN Academy": {
-              "Rkzinho": {
-                "k": 36,
-                "d": 14,
-                "a": 7,
-                "kp_numerator": 43,
-                "kp_denominator": 139
-              },
-              "Markz": {
-                "k": 22,
-                "d": 14,
-                "a": 9,
-                "kp_numerator": 31,
-                "kp_denominator": 139
-              },
-              "tsug": {
-                "k": 28,
-                "d": 13,
-                "a": 10,
-                "kp_numerator": 38,
-                "kp_denominator": 139
-              },
-              "k9izer": {
-                "k": 25,
-                "d": 19,
-                "a": 8,
-                "kp_numerator": 33,
-                "kp_denominator": 139
-              },
-              "Tatu": {
-                "k": 28,
-                "d": 20,
-                "a": 8,
-                "kp_numerator": 36,
-                "kp_denominator": 139
-              }
-            },
-            "MIBR fe": {
-              "yungher": {
-                "k": 15,
-                "d": 29,
-                "a": 3,
-                "kp_numerator": 18,
-                "kp_denominator": 80
-              },
-              "DANI": {
-                "k": 26,
-                "d": 27,
-                "a": 4,
-                "kp_numerator": 30,
-                "kp_denominator": 80
-              },
-              "poppins": {
-                "k": 13,
-                "d": 29,
-                "a": 10,
-                "kp_numerator": 23,
-                "kp_denominator": 80
-              },
-              "Olga": {
-                "k": 12,
-                "d": 27,
-                "a": 5,
-                "kp_numerator": 17,
-                "kp_denominator": 80
-              },
-              "GaBi": {
-                "k": 14,
-                "d": 27,
-                "a": 4,
-                "kp_numerator": 18,
-                "kp_denominator": 80
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
-          "date": "2026-05-12",
-          "patch": null,
-          "teamA": "MIBR fe",
-          "teamB": "Bounty Hunters Esports",
-          "winner": "Bounty Hunters Esports",
-          "score": "2-0",
-          "actual": {
-            "MIBR fe": {
-              "yungher": {
-                "k": 16,
-                "d": 28,
-                "a": 3,
-                "kp_numerator": 19,
-                "kp_denominator": 84
-              },
-              "GaBi": {
-                "k": 14,
-                "d": 29,
-                "a": 5,
-                "kp_numerator": 19,
-                "kp_denominator": 84
-              },
-              "DANI": {
-                "k": 14,
-                "d": 31,
-                "a": 7,
-                "kp_numerator": 21,
-                "kp_denominator": 84
-              },
-              "poppins": {
-                "k": 24,
-                "d": 28,
-                "a": 4,
-                "kp_numerator": 28,
-                "kp_denominator": 84
-              },
-              "Olga": {
-                "k": 16,
-                "d": 30,
-                "a": 9,
-                "kp_numerator": 25,
-                "kp_denominator": 84
-              }
-            },
-            "Bounty Hunters Esports": {
-              "zock": {
-                "k": 34,
-                "d": 20,
-                "a": 10,
-                "kp_numerator": 44,
-                "kp_denominator": 144
-              },
-              "fREQ": {
-                "k": 29,
-                "d": 16,
-                "a": 5,
-                "kp_numerator": 34,
-                "kp_denominator": 144
-              },
-              "pepe": {
-                "k": 28,
-                "d": 17,
-                "a": 10,
-                "kp_numerator": 38,
-                "kp_denominator": 144
-              },
-              "ponter": {
-                "k": 30,
-                "d": 16,
-                "a": 7,
-                "kp_numerator": 37,
-                "kp_denominator": 144
-              },
-              "KAISER": {
-                "k": 23,
-                "d": 17,
-                "a": 13,
-                "kp_numerator": 36,
-                "kp_denominator": 144
-              }
-            }
-          },
-          "games": 2
-        },
-        {
-          "week": null,
           "date": "2026-09-14",
           "patch": null,
           "teamA": "Metizport",
@@ -58102,12 +57602,6 @@
           "date": "2026-09-15T23:45:00.000+00:00",
           "teamA": "RUSH",
           "teamB": "Gr\u00eamio",
-          "block": null
-        },
-        {
-          "date": "2026-09-15T21:00:00.000+00:00",
-          "teamA": "MIBR fe",
-          "teamB": "HOLANDA 78",
           "block": null
         },
         {
