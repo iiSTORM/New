@@ -27,6 +27,7 @@ import json
 import re
 import sys
 from datetime import datetime
+from functools import lru_cache
 from pathlib import Path
 
 # ============================================================
@@ -41,6 +42,7 @@ STAT_TYPES = {
 DEFAULT_WEIGHTS = {
     "history": 0.3, "opponent": 1.0, "kp": 0.3,
     "recencyHalfLife": 6, "patchDiscount": 0.4, "career": 0.0,
+    "careerRamp": 0,  # 0 = off, reproducing the previous flat career weight exactly; see project_point_in_time for what this measures and why
 }
 
 
@@ -57,7 +59,12 @@ def get_actual_stat(match, team, player_name, stat_key):
     return raw.get(stat_key)
 
 
+@lru_cache(maxsize=None)
 def parse_patch(patch_str):
+    # Pure function of a short string, called once per match per
+    # (player, cutoff) cache fill — memoized because the regex showed up
+    # as real cost at search scale, and the set of distinct patch strings
+    # across a whole dataset is tiny (a few dozen).
     if not patch_str:
         return None
     m = re.match(r"^(\d+)\.(\d+)", patch_str)
@@ -83,8 +90,38 @@ def latest_patch(past_matches, cutoff_date):
     return best
 
 
-def recency_weighted_rate(past_matches, team, player_name, stat_key, cutoff_date, half_life,
-                           reference_patch, patch_discount):
+_recency_entries_cache = {}  # keyed by (id(past_matches), team, player_name, stat_key, cutoff_date)
+
+
+def _recency_entries(past_matches, team, player_name, stat_key, cutoff_date):
+    """Builds the (date, val, patch) list for one player as of one
+    cutoff -- the expensive half of recency_weighted_rate, split out and
+    cached because NONE of it depends on the weights being searched.
+
+    This was a real, measured bottleneck. recency_weighted_rate runs
+    once per prediction, and each call rescanned every match in the
+    region and ran the parse_patch regex on each one. A full LoL search
+    is ~7,400 predictions x ~210 weight evaluations per stat, so the
+    identical filter+sort+regex work was being redone hundreds of times
+    for every single (player, cutoff) pair -- hundreds of millions of
+    regex calls per stat. After the tournament-discovery work quadrupled
+    the match pool (241 -> 967 series), that tipped a full run into tens
+    of minutes.
+
+    Only the weighting loop left in recency_weighted_rate actually
+    varies with half_life / patch_discount / reference_patch, so that
+    stays uncached and cheap (it iterates just this player's games).
+
+    Cached on id(past_matches) following the same rationale already
+    documented for _point_in_time_team_stat_cache: past_matches is a
+    stable object reference for the whole duration of one run, loaded
+    once via load_region_data and never rebuilt mid-search. Entries are
+    plain tuples rather than dicts to keep the cache lean, since it
+    holds roughly one list per (player, match) pair."""
+    key = (id(past_matches), team, player_name, stat_key, cutoff_date)
+    cached = _recency_entries_cache.get(key)
+    if cached is not None:
+        return cached
     entries = []
     for m in past_matches:
         if cutoff_date is not None and (not m.get("date") or m["date"] >= cutoff_date):
@@ -94,19 +131,26 @@ def recency_weighted_rate(past_matches, team, player_name, stat_key, cutoff_date
         val = get_actual_stat(m, team, player_name, stat_key)
         if val is None or val == "unavailable":
             continue
-        entries.append({"date": m.get("date") or "", "val": val, "patch": parse_patch(m.get("patch"))})
+        entries.append((m.get("date") or "", val, parse_patch(m.get("patch"))))
+    entries.sort(key=lambda e: e[0])
+    _recency_entries_cache[key] = entries
+    return entries
+
+
+def recency_weighted_rate(past_matches, team, player_name, stat_key, cutoff_date, half_life,
+                           reference_patch, patch_discount):
+    entries = _recency_entries(past_matches, team, player_name, stat_key, cutoff_date)
     if not entries:
         return None, 0
-    entries.sort(key=lambda e: e["date"])
     n = len(entries)
     flat = half_life >= 20
     weighted_sum, weighted_games = 0.0, 0.0
-    for idx, e in enumerate(entries):
+    for idx, (_date, val, patch) in enumerate(entries):
         matches_ago = (n - 1) - idx
         weight = 1.0 if flat else 0.5 ** (matches_ago / half_life)
-        if reference_patch and e["patch"] and compare_patch(e["patch"], reference_patch) != 0:
+        if reference_patch and patch and compare_patch(patch, reference_patch) != 0:
             weight *= (1 - patch_discount)
-        weighted_sum += e["val"] * weight
+        weighted_sum += val * weight
         weighted_games += 2 * weight
     rate = weighted_sum / weighted_games if weighted_games > 0 else None
     return rate, n * 2
@@ -221,7 +265,19 @@ def point_in_time_league_avg_stat(past_matches, teams, stat_key, cutoff_date):
 # diagnostic found assists had the strongest team-wide signal of the three.
 # ============================================================
 
+_player_names_stat_cache = {}  # keyed by (id(past_matches), team, player_names, stat_key, cutoff_date)
+
+
 def point_in_time_player_names_stat(past_matches, team, player_names, stat_key, cutoff_date):
+    # Cached: weight-independent, and profiling a real LoL search showed
+    # this single function accounting for ~95% of total runtime
+    # (92,400 calls per weight evaluation, x ~630 evaluations in a full
+    # 3-stat search). See point_in_time_league_avg_for_role below for
+    # the bigger structural reason it was called so often.
+    key = (id(past_matches), team, tuple(player_names), stat_key, cutoff_date)
+    cached = _player_names_stat_cache.get(key)
+    if cached is not None:
+        return cached
     total, games = 0.0, 0
     for m in past_matches:
         if not m.get("date") or m["date"] >= cutoff_date:
@@ -234,10 +290,35 @@ def point_in_time_player_names_stat(past_matches, team, player_names, stat_key, 
                 total += val
                 games += 2
     rate = total / games if games > 0 else None
-    return rate, games
+    result = (rate, games)
+    _player_names_stat_cache[key] = result
+    return result
+
+
+_league_avg_for_role_cache = {}  # keyed by (id(past_matches), id(teams), role, stat_key, cutoff_date)
 
 
 def point_in_time_league_avg_for_role(past_matches, teams, role, stat_key, cutoff_date):
+    """Cached — this was the single dominant cost in a full weight
+    search, and the reason is structural rather than subtle.
+
+    For a given (role, stat_key, cutoff_date) this returns the SAME
+    league-wide average for every player in that role, and it does not
+    depend on any weight being searched. But it sits inside
+    resolve_opponent_multiplier, which runs once per prediction, so it
+    was being recomputed ~8,400 times per weight evaluation and ~630
+    times over a full 3-stat search — scanning every match in the region
+    for every team on each of those calls. Across a real dataset that is
+    on the order of 700 genuinely distinct values being computed tens of
+    millions of times.
+
+    Same id()-keyed caching rationale already documented for the other
+    point-in-time caches: past_matches and teams are stable object
+    references for the whole duration of one run."""
+    key = (id(past_matches), id(teams), role, stat_key, cutoff_date)
+    cached = _league_avg_for_role_cache.get(key)
+    if cached is not None:
+        return cached
     rates = []
     for team_name, team_data in teams.items():
         role_names = [p["name"] for p in team_data["players"] if p.get("role") == role]
@@ -246,7 +327,9 @@ def point_in_time_league_avg_for_role(past_matches, teams, role, stat_key, cutof
         r, _ = point_in_time_player_names_stat(past_matches, team_name, role_names, stat_key, cutoff_date)
         if r is not None:
             rates.append(r)
-    return sum(rates) / len(rates) if rates else None
+    result = sum(rates) / len(rates) if rates else None
+    _league_avg_for_role_cache[key] = result
+    return result
 
 
 def lane_opponent_multiplier(past_matches, teams, player, opponent_team, opp_strength, opp_basis_key, cutoff_date):
@@ -332,7 +415,7 @@ def kp_multiplier(player, history_weight, kp_strength):
     return 1 + kp_strength * (relative - 1)
 
 
-CS2_CAREER_DAY_HALF_LIFE = 60  # matches scrape_cs2_career.py's own constant
+CS2_CAREER_DAY_HALF_LIFE = 180  # matches scrape_cs2_career.py's own constant -- measured via scripts/sweep_cs2_day_half_life.py; see that constant's comment for why the honest read is "this parameter barely matters" rather than "180 is the answer"
 
 
 def point_in_time_cs2_career_rate(player, stat_key, cutoff_date):
@@ -408,7 +491,37 @@ def project_point_in_time(past_matches, teams, player, team, opponent_team, game
         career = player.get("career")
         career_rate = career.get(cfg["key"]) if career else None
     if career_rate is not None and weights.get("career", 0) > 0:
-        base = weights["career"] * career_rate + (1 - weights["career"]) * base
+        # careerRamp: scales the career weight by how much CURRENT-split
+        # data the player has accumulated as of this cutoff, instead of
+        # applying one flat weight regardless.
+        #
+        # This exists because of a real measured finding, not a hunch.
+        # scripts/diagnose_lol_career_leakage.py bucketed every LoL
+        # prediction by season quartile and found career's benefit rising
+        # monotonically through the season -- kills -1.1% -> +6.6%,
+        # assists -1.5% -> +10.8%, deaths +0.3% -> +4.6%. Career is
+        # actively HARMFUL early and strongly helpful late, consistently
+        # across all three stats. (That same diagnostic was built to test
+        # the opposite hypothesis -- that career was LEAKING future data
+        # and therefore flattering early-season matches. The data refuted
+        # it outright: the gradient runs the other way.)
+        #
+        # Plausible mechanism: at SEASON_HALF_LIFE=0.05 the career figure
+        # collapses to roughly the player's current-SEASON aggregate,
+        # which early in a split is dominated by other splits entirely
+        # (different meta, sometimes different roster) and is a blurry
+        # comparison; late in a split it is mostly that split's own
+        # games, making it a clean independently-sourced measurement of
+        # exactly the thing being predicted.
+        #
+        # ramp = 0 disables this and reproduces the previous flat-weight
+        # behaviour EXACTLY, so it is safe as a default and the weight
+        # search can rule the whole idea out by choosing 0.
+        career_weight = weights["career"]
+        ramp = weights.get("careerRamp", 0)
+        if ramp:
+            career_weight *= min(1.0, pt_games / ramp)
+        base = career_weight * career_rate + (1 - career_weight) * base
 
     opp_mult = resolve_opponent_multiplier(teams, past_matches, player, opponent_team, weights["opponent"], cfg, cutoff_date)
 
@@ -483,9 +596,14 @@ def coordinate_descent(region_data, stat_type, start_weights, passes=3):
         "recencyHalfLife": [2, 3, 4, 5, 6, 8, 10, 14, 20],
         "patchDiscount": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0],
         "career": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95, 1.0],
+        # 0 = off (flat career weight, previous behaviour). Non-zero = the
+        # number of prior current-split games at which career reaches its
+        # full weight, ramping linearly up to it. The grid includes 0 so
+        # the search can reject the whole idea outright.
+        "careerRamp": [0, 2, 4, 6, 8, 10, 14, 20, 30],
     }
     cfg = STAT_TYPES[stat_type]
-    params = ["history", "opponent", "recencyHalfLife", "patchDiscount", "career"]
+    params = ["history", "opponent", "recencyHalfLife", "patchDiscount", "career", "careerRamp"]
     if cfg["useKP"]:
         params.append("kp")
 

@@ -790,6 +790,33 @@ def main():
     print(f"\nWrote data.json with regions: {list(payload['regions'].keys())}"
           f"{f' ({len(failed)} fell back to stale data: {failed})' if failed else ''}")
 
+    # This script writes a FRESH data.json; the career field is folded in
+    # afterwards by merge.py, not here. So a standalone manual run of
+    # this script silently strips career data that was previously merged
+    # — and since the LoL career weight sits at 0.8-0.85, that quietly
+    # guts most of the model until merge.py runs again. A real instance
+    # of exactly this went unnoticed until a diagnostic happened to trip
+    # over it. The scheduled workflow already chains these correctly
+    # (scrape_lcs -> scrape_career -> merge), so this warning is aimed at
+    # manual runs, which is where the footgun actually lives.
+    had_career = any(
+        p.get("career")
+        for rd in existing_regions.values()
+        for team in rd.get("teams", {}).values()
+        for p in team.get("players", [])
+    )
+    now_has_career = any(
+        p.get("career")
+        for rd in payload["regions"].values()
+        for team in rd.get("teams", {}).values()
+        for p in team.get("players", [])
+    )
+    if had_career and not now_has_career:
+        print("\n! data.json previously carried merged career data and this fresh write does not.\n"
+              "  Run `python scripts/merge.py` (and scrape_career.py first if career_data.json is\n"
+              "  stale) before committing, or the app will run with the career tier pointed at\n"
+              "  nothing.", file=sys.stderr)
+
 
 if __name__ == "__main__":
     main()
