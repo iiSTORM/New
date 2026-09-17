@@ -1005,23 +1005,45 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
    in short, NOT genuine multi-season history at its optimal
    configuration, more likely a cleaner independently-sourced current-
    season number) — added and re-measured after the original per-game
-   rollout below. The career WEIGHT's search range was deliberately
-   widened twice during measurement (first to 0.8, then to 1.0) to make
-   sure the optimizer wasn't just pinned against an artificial ceiling —
-   it settled at 0.8-0.85 for all three stats without ever reaching the
-   1.0 ceiling, which is a genuine plateau, not a truncated search
-   artifact. None of the three hit exactly 1.0 either, which would have
-   meant recent form/split history being ignored entirely — a red flag
-   worth distrusting rather than a real result. Landing at 0.8-0.85
-   instead means the career signal is the dominant input but recent form
-   still contributes meaningfully (15-20% weight) — this part of the
-   finding still holds regardless of what "career" actually turned out
-   to represent underneath.
+   RE-MEASURED after tournament discovery quadrupled the LoL dataset
+   (241 -> 967 series, ~7,400 backtested predictions across regular
+   season, playoffs, cups and preseason events). The previous weights
+   here were fit on roughly a quarter of the data and are superseded.
+   Three changes are worth understanding rather than just accepting:
 
-   Measured improvements vs. the pre-career-tier shared defaults:
-     LoL      kills +11.4%, deaths +20.6%, assists +16.0% (with career tier)
-     Valorant kills +2.1%,  deaths +3.1%,  assists +16.8%
-     CS2      kills +0.2%,  deaths +1.4%,  assists (see note)
+   - recencyHalfLife converged to 8 for ALL THREE stats (previously
+     20/2/20 — i.e. two stats on "flat average" and one on a very sharp
+     2-match decay). With a much longer history now available, a
+     moderate decay beats both extremes, and the fact that three
+     independent searches landed on the same value is a real signal
+     rather than noise.
+   - patchDiscount collapsed to 0.0 for kills and deaths (was 1.0). This
+     follows directly from the bigger pool: with matches now spanning
+     Lock-In through Summer Playoffs across many patches, most history
+     is off-patch relative to any given target, so a full discount threw
+     away nearly all of it. You cannot afford to discount off-patch
+     games when the pool is a year wide.
+   - career roughly halved (0.8/0.85/0.85 -> 0.4/0.5/0.3). This is the
+     optimizer's answer to a real measured problem: career's benefit
+     rises through a season and is actively NEGATIVE early on (see
+     scripts/diagnose_lol_career_leakage.py). A sample-maturity ramp was
+     built and tested as the "obvious" fix and was REJECTED by all three
+     stats in favour of simply lowering the flat weight.
+
+   That same diagnostic was originally built to test whether the career
+   tier was LEAKING future data into backtests — the static career field
+   has no cutoff filtering, and at SEASON_HALF_LIFE=0.05 it collapses to
+   roughly the current-season aggregate. The data refuted that outright:
+   career's benefit rises monotonically through the season (kills -1.1%
+   -> +6.6%, assists -1.5% -> +10.8%), the opposite of the contamination
+   signature. The structural leak is real but is not inflating the
+   numbers, so a point-in-time rewrite is cleanup-on-principle, not a
+   correctness emergency.
+
+   Improvements reported by the search (+3.7% kills, +7.1% deaths, +3.4%
+   assists) are measured against DEFAULT_WEIGHTS, which carries
+   career:0.0 — they are NOT a claim of that much gain over the weights
+   previously shipped here.
 
    Valorant and CS2 don't have their own career-history scraper yet, so
    their career weight stays at 0.0 (a no-op — applyCareerTier() falls
@@ -1029,9 +1051,9 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
    data) until that's built for those games too. */
 const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
   lol: {
-    kills: { history: 0.4, opponent: 0.2, kp: 0.1, recencyHalfLife: 20, patchDiscount: 1.0, career: 0.8 },
-    deaths: { history: 0.8, opponent: 0.2, kp: 0.3, recencyHalfLife: 2, patchDiscount: 1.0, career: 0.85 },
-    assists: { history: 0.2, opponent: 0.2, kp: 0.4, recencyHalfLife: 20, patchDiscount: 1.0, career: 0.85 },
+    kills: { history: 0.4, opponent: 0.4, kp: 0.1, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.4 },
+    deaths: { history: 0.3, opponent: 0.2, kp: 0.3, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.5 },
+    assists: { history: 0.4, opponent: 0.4, kp: 0.2, recencyHalfLife: 8, patchDiscount: 0.3, career: 0.3 },
   },
   valorant: {
     kills: { history: 0.7, opponent: 1.0, kp: 0.3, recencyHalfLife: 6, patchDiscount: 0.0, career: 0.0 },
@@ -1108,15 +1130,31 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // fix, it's a real but lower-priority remaining gap, not an active
     // problem.
     //
-    // opponent:0.0 across ALL THREE stats now (previously 0.0-0.2) is a
-    // separate, real, deliberate finding, re-confirmed after ALSO fixing
-    // a roster-inflation bug (teamStatPerGame/team_stat_per_game summing
-    // every historical player for a team uncapped while only capping the
-    // divisor at 5) via a shared likelyStarters()/likely_starters()
-    // helper. That fix barely moved these numbers on its own -- CS2's
-    // opponent-strength noise looks like a genuine property of its
-    // smaller, more dynamic discovered-team pool, not something any of
-    // the bugs found so far were meaningfully causing.
+    // opponent:0.0 across ALL THREE stats is now MEASURED, not inferred.
+    // --diagnose-opponent on real CS2 data (n=774) gives
+    // corr(opponent deviation, prediction residual) of just +0.015 for
+    // kills and +0.028 for assists — i.e. essentially no usable signal,
+    // so a zero weight is correct rather than a shrug. Deaths is the one
+    // exception at +0.113: weak but genuinely positive and pointing the
+    // right way, yet the weight search still landed on 0.0, which says
+    // the current multiplicative opponent form isn't capturing even that
+    // much. Likely root cause for all three: the average opponent-
+    // strength estimate rests on only ~8 prior games, which is thin
+    // enough that the estimate's own noise swamps a real effect that
+    // small. So the honest read is "not enough data per opponent yet",
+    // not "opponent strength doesn't matter in CS2" — worth re-checking
+    // as the tracked pool grows, with deaths the most likely first stat
+    // to turn on. One caveat on those numbers: --diagnose-opponent
+    // computes its base with DEFAULT_WEIGHTS (LoL-shaped) rather than
+    // the measured CS2 weights, which adds noise to the residual; the
+    // near-zero kills/assists results are almost certainly robust to
+    // that, deaths' +0.113 less so.
+    //
+    // A separate, real, confirmed bug was also fixed here
+    // (teamStatPerGame/team_stat_per_game summing every historical
+    // player for a team uncapped while only capping the divisor at 5)
+    // via a shared likelyStarters()/likely_starters() helper. That fix
+    // barely moved these numbers on its own.
     kills: { history: 0.3, opponent: 0.0, kp: 0.1, recencyHalfLife: 10, patchDiscount: 0.4, career: 1.0 },
     deaths: { history: 0.3, opponent: 0.0, kp: 0.3, recencyHalfLife: 2, patchDiscount: 0.4, career: 1.0 },
     assists: { history: 0.3, opponent: 0.0, kp: 0.1, recencyHalfLife: 10, patchDiscount: 0.4, career: 1.0 },
@@ -1130,8 +1168,8 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
 function Slider({ label, value, onChange, min, max, step, format, tooltip }) {
   const theme = useTheme();
   return (
-    <div style={{ marginBottom: 14 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: theme.textDim, marginBottom: 4, fontFamily: "'IBM Plex Mono', monospace" }}>
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: theme.textDim, marginBottom: 5, fontFamily: "'Inter', sans-serif" }}>
         <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
           {label}
           {tooltip && (
@@ -1147,7 +1185,7 @@ function Slider({ label, value, onChange, min, max, step, format, tooltip }) {
             </span>
           )}
         </span>
-        <span style={{ color: theme.accent }}>{format ? format(value) : value}</span>
+        <span style={{ color: theme.accent, fontFamily: "'IBM Plex Mono', monospace" }}>{format ? format(value) : value}</span>
       </div>
       <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(parseFloat(e.target.value))} style={{ width: "100%", accentColor: theme.accent }} />
     </div>
@@ -1514,22 +1552,22 @@ function StandingsTab({ teams, pastMatches, upcomingMatches, regionsData, region
     <div>
       <div style={isDesktop ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "start" } : undefined}>
         <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), overflow: "hidden", marginBottom: isDesktop ? 0 : 20 }}>
-          <div style={{ padding: "10px 14px", borderBottom: `1px solid ${theme.steel}`, fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
-            STANDINGS{inPlayoffs ? " · REGULAR SEASON (FINAL)" : ""}
+          <div style={{ padding: "12px 16px", borderBottom: `1px solid ${theme.steel}`, fontSize: 13, fontWeight: 600, color: theme.text, fontFamily: "'Inter', sans-serif" }}>
+            Standings{inPlayoffs ? <span style={{ color: theme.textFaint, fontWeight: 400 }}> · regular season (final)</span> : ""}
           </div>
           {inPlayoffs && (
-            <div style={{ padding: "8px 14px", fontSize: 11, color: theme.textDim, lineHeight: 1.5, borderBottom: `1px solid ${theme.steelSoft}` }}>
+            <div style={{ padding: "8px 16px", fontSize: 11, color: theme.textDim, lineHeight: 1.5, borderBottom: `1px solid ${theme.steelSoft}` }}>
               This region has entered playoffs — the table below reflects the completed regular season only. See the bracket below for playoff results.
             </div>
           )}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 40px 40px 56px", padding: "6px 14px", fontSize: 10, letterSpacing: 1, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
-            <span>TEAM</span><span style={{ textAlign: "right" }}>W</span><span style={{ textAlign: "right" }}>L</span><span style={{ textAlign: "right" }}>GAMES</span>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 40px 40px 56px", padding: "8px 16px", fontSize: 11, color: theme.textFaint, fontFamily: "'Inter', sans-serif", fontWeight: 500 }}>
+            <span>Team</span><span style={{ textAlign: "right" }}>W</span><span style={{ textAlign: "right" }}>L</span><span style={{ textAlign: "right" }}>Games</span>
           </div>
           {standings.map((s, i) => (
-            <div key={s.team} style={{ display: "grid", gridTemplateColumns: "1fr 40px 40px 56px", padding: "9px 14px", fontSize: 13, borderTop: `1px solid ${theme.steelSoft}`, alignItems: "center" }}>
+            <div key={s.team} style={{ display: "grid", gridTemplateColumns: "1fr 40px 40px 56px", padding: "10px 16px", fontSize: 13, borderTop: `1px solid ${theme.steelSoft}`, alignItems: "center" }}>
               <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", width: 14 }}>{i + 1}</span>
-                <span style={{ width: 5, height: 16, background: teams[s.team] ? teams[s.team].color : theme.textFaint }} />
+                <span style={{ width: 5, height: 16, borderRadius: 2, background: teams[s.team] ? teams[s.team].color : theme.textFaint }} />
                 <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 600 }}>{s.team}</span>
               </span>
               <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.good }}>{s.wins}</span>
@@ -1540,14 +1578,14 @@ function StandingsTab({ teams, pastMatches, upcomingMatches, regionsData, region
         </div>
 
         <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), overflow: "hidden" }}>
-          <div style={{ padding: "10px 14px", borderBottom: `1px solid ${theme.steel}`, fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
-            POWER RANKING · ALL REGIONS
+          <div style={{ padding: "12px 16px", borderBottom: `1px solid ${theme.steel}`, fontSize: 13, fontWeight: 600, color: theme.text, fontFamily: "'Inter', sans-serif" }}>
+            Power ranking <span style={{ color: theme.textFaint, fontWeight: 400 }}>· all regions</span>
           </div>
-          <div style={{ padding: "8px 14px", fontSize: 11, color: theme.textFaint, lineHeight: 1.5, borderBottom: `1px solid ${theme.steelSoft}` }}>
+          <div style={{ padding: "8px 16px", fontSize: 11, color: theme.textFaint, lineHeight: 1.5, borderBottom: `1px solid ${theme.steelSoft}` }}>
             Elo-style rating pooled across every region — meaningful for cross-region comparison once international matches (MSI, Worlds, Champions) start feeding in. Until then it tracks closely with in-region record, which is expected.
           </div>
           {power.map((p, i) => (
-            <div key={p.team} style={{ display: "grid", gridTemplateColumns: "1fr 70px 60px", padding: "9px 14px", fontSize: 13, borderTop: `1px solid ${theme.steelSoft}`, alignItems: "center" }}>
+            <div key={p.team} style={{ display: "grid", gridTemplateColumns: "1fr 70px 60px", padding: "10px 16px", fontSize: 13, borderTop: `1px solid ${theme.steelSoft}`, alignItems: "center" }}>
               <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", width: 14 }}>{i + 1}</span>
                 <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 600 }}>{p.team}</span>
@@ -1561,8 +1599,8 @@ function StandingsTab({ teams, pastMatches, upcomingMatches, regionsData, region
 
       {inPlayoffs && (
         <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), overflow: "hidden", marginTop: 20 }}>
-          <div style={{ padding: "10px 14px", borderBottom: `1px solid ${theme.steel}`, fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
-            PLAYOFFS
+          <div style={{ padding: "12px 16px", borderBottom: `1px solid ${theme.steel}`, fontSize: 13, fontWeight: 600, color: theme.text, fontFamily: "'Inter', sans-serif" }}>
+            Playoffs
           </div>
           {playoffGroups.map(([label, matches]) => (
             <div key={label}>
@@ -1650,7 +1688,7 @@ function HeadToHeadCard({ teams, pastMatches, teamA, teamB, bare = false }) {
 
   const content = (
     <>
-      <div style={{ fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", marginBottom: 10 }}>HEAD-TO-HEAD</div>
+      <div style={{ fontSize: 13, fontWeight: 600, color: theme.text, fontFamily: "'Inter', sans-serif", marginBottom: 12 }}>Head-to-head</div>
       {meetings.length === 0 ? (
         <div style={{ fontSize: 12, color: theme.textDim }}>No prior meetings this split.</div>
       ) : (
@@ -1797,7 +1835,7 @@ function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, s
 function GamesControl({ theme, games, setGames }) {
   return (
     <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: 14, marginBottom: 16 }}>
-      <div style={{ fontSize: 10, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", marginBottom: 10 }}>GAMES IN SERIES</div>
+      <div style={{ fontSize: 13, fontWeight: 600, color: theme.text, fontFamily: "'Inter', sans-serif", marginBottom: 12 }}>Games in series</div>
       <div style={{ display: "flex", gap: 6 }}>
         {[1, 2, 3].map((n) => (
           <button
@@ -1959,7 +1997,7 @@ function sortGroupsByProgression(groups) {
 function WeekHeader({ label }) {
   const theme = useTheme();
   return (
-    <div style={{ fontSize: 11, letterSpacing: 2, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", margin: "16px 0 8px", textTransform: "uppercase" }}>
+    <div style={{ fontSize: 12, fontWeight: 600, color: theme.textDim, fontFamily: "'Inter', sans-serif", margin: "18px 0 10px" }}>
       {label}
     </div>
   );
@@ -2161,7 +2199,7 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
               name={row.name}
               role={row.role}
               extraChip={row.priorGames === 0 && (
-                <span className="kp-chip" style={{ background: `${theme.bad}18`, color: theme.bad, border: `1px solid ${theme.bad}44` }}>NO PRIOR FORM</span>
+                <span className="kp-chip" style={{ background: `${theme.bad}20`, color: theme.bad }}>No prior form</span>
               )}
               stats={[
                 { label: "PROJ", value: row.proj.toFixed(1), color: theme.textDim },
@@ -2407,11 +2445,11 @@ function TopNav({ theme, gameCfg, region, setRegion, tab, setTab, statType, setS
             className="kp-btn"
             onClick={() => setRegion(key)}
             style={{
-              padding: isDesktop ? "11px 22px" : "10px 16px", borderRadius: 7,
+              padding: isDesktop ? "11px 22px" : "10px 16px", borderRadius: 24,
               border: "1px solid " + (region === key ? theme.accent : theme.steel),
               background: region === key ? theme.accentSoft : theme.graphite,
               color: region === key ? theme.accent : theme.textDim,
-              fontSize: isDesktop ? 15 : 13, fontWeight: 700, cursor: "pointer",
+              fontSize: isDesktop ? 15 : 13, fontWeight: 600, cursor: "pointer",
               fontFamily: "'Fraunces', serif", ...elevation(),
             }}
           >
@@ -2431,7 +2469,7 @@ function TopNav({ theme, gameCfg, region, setRegion, tab, setTab, statType, setS
                 padding: "10px 2px 12px", background: "none", border: "none",
                 borderBottom: `2px solid ${tab === id ? theme.accent : "transparent"}`,
                 color: tab === id ? theme.accent : theme.textDim,
-                fontSize: isDesktop ? 15 : 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Fraunces', serif",
+                fontSize: isDesktop ? 15 : 13, fontWeight: 600, cursor: "pointer", fontFamily: "'Fraunces', serif",
               }}
             >
               {label}
@@ -2445,10 +2483,10 @@ function TopNav({ theme, gameCfg, region, setRegion, tab, setTab, statType, setS
               className="kp-btn"
               onClick={() => setStatType(key)}
               style={{
-                padding: "7px 14px", borderRadius: 5, border: "1px solid " + (statType === key ? theme.accent : theme.steel),
+                padding: "7px 14px", borderRadius: 20, border: "1px solid " + (statType === key ? theme.accent : theme.steel),
                 background: statType === key ? theme.accentSoft : "transparent",
                 color: statType === key ? theme.accent : theme.textDim,
-                fontSize: 12, fontWeight: 700, cursor: "pointer",
+                fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Inter', sans-serif",
               }}
             >
               {cfg.label}
@@ -2465,20 +2503,20 @@ function TopNav({ theme, gameCfg, region, setRegion, tab, setTab, statType, setS
 function SettingsPanel({ theme, accentOverride, setAccentOverride, cornerStyle, setCornerStyle, open, setOpen }) {
   const [customHex, setCustomHex] = useState(accentOverride || "");
   return (
-    <div style={{ marginBottom: 14 }}>
+    <div style={{ marginBottom: 16 }}>
       <button
         onClick={() => setOpen(!open)}
         style={{
           display: "flex", alignItems: "center", gap: 6, background: "none", border: "none",
-          color: theme.textDim, fontSize: 11, cursor: "pointer", padding: 0, fontFamily: "'IBM Plex Mono', monospace",
+          color: theme.textDim, fontSize: 12, cursor: "pointer", padding: 0, fontFamily: "'Inter', sans-serif", fontWeight: 500,
         }}
       >
-        <span style={{ fontSize: 13 }}>⚙</span> customize {open ? "▴" : "▾"}
+        <span style={{ fontSize: 13 }}>⚙</span> Customize {open ? "▴" : "▾"}
       </button>
       {open && (
-        <div style={{ marginTop: 10, background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: 14 }}>
-          <div style={{ fontSize: 11, letterSpacing: 1, color: theme.textFaint, marginBottom: 8, fontFamily: "'IBM Plex Mono', monospace" }}>ACCENT COLOR</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+        <div style={{ marginTop: 12, background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: 16 }}>
+          <div style={{ fontSize: 12, color: theme.textDim, marginBottom: 10, fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>Accent color</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
             <button
               onClick={() => { setAccentOverride(null); setCustomHex(""); }}
               title="Automatic (follows selected game)"
@@ -2500,33 +2538,33 @@ function SettingsPanel({ theme, accentOverride, setAccentOverride, cornerStyle, 
               />
             ))}
           </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 14 }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 16 }}>
             <input
               type="text"
               value={customHex}
               onChange={(e) => setCustomHex(e.target.value)}
               placeholder="#RRGGBB"
-              style={{ flex: 1, background: theme.graphiteLight, border: `1px solid ${theme.steel}`, color: theme.text, padding: "6px 8px", fontSize: 12, fontFamily: "'IBM Plex Mono', monospace" }}
+              style={{ flex: 1, background: theme.graphiteLight, border: `1px solid ${theme.steel}`, borderRadius: 8, color: theme.text, padding: "7px 10px", fontSize: 12, fontFamily: "'IBM Plex Mono', monospace" }}
             />
             <button
               onClick={() => { if (/^#[0-9a-fA-F]{6}$/.test(customHex)) setAccentOverride(customHex); }}
-              style={{ background: theme.steel, border: "none", color: theme.text, padding: "6px 10px", fontSize: 12, cursor: "pointer" }}
+              style={{ background: theme.steel, border: "none", borderRadius: 8, color: theme.text, padding: "7px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Inter', sans-serif" }}
             >
-              use
+              Use
             </button>
           </div>
-          <div style={{ fontSize: 11, letterSpacing: 1, color: theme.textFaint, marginBottom: 8, fontFamily: "'IBM Plex Mono', monospace" }}>CARD CORNERS</div>
+          <div style={{ fontSize: 12, color: theme.textDim, marginBottom: 10, fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>Card corners</div>
           <div style={{ display: "flex", gap: 8 }}>
             {[["angular", "Angular"], ["rounded", "Rounded"]].map(([id, label]) => (
               <button
                 key={id}
                 onClick={() => setCornerStyle(id)}
                 style={{
-                  flex: 1, padding: "8px 0", border: "1px solid " + (cornerStyle === id ? theme.accent : theme.steel),
+                  flex: 1, padding: "9px 0", border: "1px solid " + (cornerStyle === id ? theme.accent : theme.steel),
                   background: cornerStyle === id ? theme.accentSoft : theme.graphiteLight,
                   color: cornerStyle === id ? theme.accent : theme.textDim,
-                  fontSize: 12, fontWeight: 600, cursor: "pointer",
-                  ...(id === "angular" ? { clipPath: `polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))` } : { borderRadius: 6 }),
+                  fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Inter', sans-serif",
+                  ...(id === "angular" ? { clipPath: `polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))` } : { borderRadius: 8 }),
                 }}
               >
                 {label}

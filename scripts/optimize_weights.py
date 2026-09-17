@@ -596,14 +596,21 @@ def coordinate_descent(region_data, stat_type, start_weights, passes=3):
         "recencyHalfLife": [2, 3, 4, 5, 6, 8, 10, 14, 20],
         "patchDiscount": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0],
         "career": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95, 1.0],
-        # 0 = off (flat career weight, previous behaviour). Non-zero = the
-        # number of prior current-split games at which career reaches its
-        # full weight, ramping linearly up to it. The grid includes 0 so
-        # the search can reject the whole idea outright.
-        "careerRamp": [0, 2, 4, 6, 8, 10, 14, 20, 30],
     }
     cfg = STAT_TYPES[stat_type]
-    params = ["history", "opponent", "recencyHalfLife", "patchDiscount", "career", "careerRamp"]
+    # careerRamp is deliberately NOT searched. It was a real hypothesis,
+    # properly tested, and REJECTED by the data: all three LoL stats
+    # independently chose careerRamp=0 (off). The idea came from a
+    # genuine measured finding -- career's benefit rises through the
+    # season and is actively negative early (see
+    # diagnose_lol_career_leakage.py) -- but the search answered that
+    # problem more simply, roughly halving the flat career weight
+    # instead (0.8/0.85/0.85 -> 0.4/0.5/0.3). Right diagnosis, wrong
+    # prescription. The code path in project_point_in_time still honours
+    # the parameter, so this is one line to re-enable if the data changes
+    # shape, but searching nine candidates x three passes x three stats
+    # for an option already measured as dead is pure cost.
+    params = ["history", "opponent", "recencyHalfLife", "patchDiscount", "career"]
     if cfg["useKP"]:
         params.append("kp")
 
