@@ -133,22 +133,43 @@ def main():
         lookup = build_lookup(known_teams)
         region_schedule = schedule.get("regions", {}).get(region_key, [])
         upcoming = []
-        dropped = 0
+        dropped_tbd = 0      # expected: bracket slots whose teams aren't decided yet
+        dropped_unknown = 0  # real problem: a named team we failed to resolve
         for m in region_schedule:
             a_raw, b_raw = normalize(m["teamA"]), normalize(m["teamB"])
             a = lookup.get(a_raw.lower())
             b = lookup.get(b_raw.lower())
             if a and b:
                 upcoming.append({"date": m["date"], "teamA": a, "teamB": b, "block": m.get("block", "")})
+                continue
+            # These two cases were previously summed into one "dropped"
+            # count, which made the number impossible to act on: a
+            # playoff bracket legitimately full of undecided slots looked
+            # identical to the scraper silently failing to recognise real
+            # teams. During playoffs the TBD count is expected to be
+            # LARGE and is not a defect; the unknown count should be zero
+            # and every entry is a genuine bug worth chasing.
+            side_is_tbd = (
+                m["teamA"] == "TBD" or m["teamB"] == "TBD"
+                or not m["teamA"].strip() or not m["teamB"].strip()
+            )
+            if side_is_tbd:
+                dropped_tbd += 1
             else:
-                dropped += 1
-                if m["teamA"] != "TBD":  # don't spam the log with unscheduled placeholder matches
-                    print(f"  ! {region_key}: dropped '{m['teamA']}' vs '{m['teamB']}' "
-                          f"(no match in known teams — add to TEAM_NAME_MAP if this is a real team)",
-                          file=sys.stderr)
+                dropped_unknown += 1
+                print(f"  ! {region_key}: dropped '{m['teamA']}' vs '{m['teamB']}' "
+                      f"(named team(s) not found in this region's known teams — "
+                      f"unresolved: {[n for n, r in ((m['teamA'], a), (m['teamB'], b)) if not r]}. "
+                      f"Add to TEAM_NAME_MAP if this is a real team.)",
+                      file=sys.stderr)
         region_data["upcoming_matches"] = upcoming
-        print(f"{region_key}: merged {len(upcoming)}/{len(region_schedule)} upcoming matches "
-              f"({dropped} dropped)")
+        detail = []
+        if dropped_tbd:
+            detail.append(f"{dropped_tbd} TBD/undecided")
+        if dropped_unknown:
+            detail.append(f"{dropped_unknown} UNKNOWN TEAM")
+        suffix = f" ({', '.join(detail)})" if detail else ""
+        print(f"{region_key}: merged {len(upcoming)}/{len(region_schedule)} upcoming matches{suffix}")
 
     merge_career_data(data)
 

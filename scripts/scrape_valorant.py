@@ -107,6 +107,30 @@ def parse_match_ids(event_id):
     return match_paths
 
 
+def clean_team_name(name):
+    """Normalizes vlr.gg team names that arrive as a full legal/regional
+    name with the common display name appended in parentheses, e.g.
+    "Guangzhou Huadu Bilibili Gaming(Bilibili Gaming)" or
+    "Wuxi Titan Esports Club(Titan Esports Club)". These show up for VCT
+    China teams because get_text() concatenates nested elements with no
+    separator.
+
+    Keeps the PARENTHESISED form, which is the name the team is actually
+    known by and the one other sources use. Beyond cosmetics this guards
+    against real data fragmentation: if any page renders only the short
+    form, the same team would otherwise be tracked as two distinct
+    entries and its stats split between them.
+
+    Deliberately conservative — only fires on a trailing "(...)" with no
+    nested parentheses and at least 3 characters inside, and only when
+    something precedes it, so ordinary names pass through untouched.
+    """
+    m = re.match(r"^(.*?)\s*\(([^()]{3,})\)$", name.strip())
+    if m and m.group(1).strip():
+        return m.group(2).strip()
+    return name.strip()
+
+
 def parse_match(match_id, match_path):
     """Fetches one match page using its real scraped path. Always returns a
     dict describing the match; 'played' is False for matches that haven't
@@ -119,7 +143,7 @@ def parse_match(match_id, match_path):
     team_links = soup.find_all("a", href=re.compile(r"^/team/\d+/"))
     team_names = []
     for a in team_links:
-        name = a.get_text(strip=True)
+        name = clean_team_name(a.get_text(strip=True))
         if name and name not in team_names:
             team_names.append(name)
         if len(team_names) == 2:
@@ -193,6 +217,10 @@ def parse_match(match_id, match_path):
     all_rounds_kda_re = re.compile(
         r"(\d+)\s+\d+\s+\d+\s*/\s*(\d+)\s+\d+\s+\d+\s*/\s*(\d+)\s+\d+\s+\d+"
     )
+    # Fallback for rows rendered without the all/attack/defense split —
+    # see the parse site below for why this exists and why the two
+    # patterns are safe to try in sequence.
+    combined_kda_re = re.compile(r"(\d+)\s*/\s*(\d+)\s*/\s*(\d+)")
     player_links = soup.find_all("a", href=re.compile(r"^/player/\d+/"))
 
     if not player_links:
@@ -217,6 +245,7 @@ def parse_match(match_id, match_path):
     map_occurrence_count = {team_a: {}, team_b: {}}  # per-player count of maps counted so far, capped at 2
     tag_to_team = {}  # first distinct team-tag seen -> team_a, second -> team_b
     unresolved = 0
+    unresolved_samples = []  # real row text for anything still unparseable, so a future format change surfaces itself instead of silently dropping rows again
     skipped_all_maps = 0
     skipped_no_game_id = 0
     for link in player_links:
@@ -258,9 +287,39 @@ def parse_match(match_id, match_path):
                 skipped_all_maps += 1
                 continue  # the combined "All Maps" totals view, not a real individual map
 
-        m = all_rounds_kda_re.search(row.get_text(" ", strip=True))
+        row_text = row.get_text(" ", strip=True)
+        # vlr.gg renders per-map stat rows in TWO different shapes, and
+        # only one of them was ever handled:
+        #
+        #   triple   "... 18 9 9 / 12 6 6 / 4 2 2 ..."   (all/atk/def per stat)
+        #   combined "... 222 11 / 15 / 1 -4"            (combined only)
+        #
+        # Rows in the combined shape failed the triple regex and were
+        # silently counted as `unresolved`, losing real player data. A
+        # live run lost 10 matches' worth of rows entirely (VCT China
+        # match 701044: 30/30 rows failed).
+        #
+        # SCOPE, corrected by the re-run rather than assumed: this is
+        # China-specific in practice. Fixing it recovered 90 predictions
+        # in VCT China (n 549 -> 639) and changed the other three regions
+        # not at all (n 571/570/577 before and after). An earlier version
+        # of this comment claimed every region was affected, reasoning
+        # from match 701038 carrying BOTH shapes on one page — but 701038
+        # is itself a China match, so that observation never supported
+        # the wider claim. The fallback is still the right fix and is
+        # safe everywhere; it just isn't doing anything outside China
+        # today.
+        #
+        # Tried in this order, and the two patterns are verified DISJOINT
+        # against real row text: the combined pattern does not match
+        # triple rows (the spaces before each slash break it) and the
+        # triple pattern does not match combined rows, so neither can
+        # silently mis-parse the other's format.
+        m = all_rounds_kda_re.search(row_text) or combined_kda_re.search(row_text)
         if not m:
             unresolved += 1
+            if len(unresolved_samples) < 3:
+                unresolved_samples.append(row_text[:160])
             continue
         k, d, a = (int(x) for x in m.groups())
 
@@ -299,10 +358,14 @@ def parse_match(match_id, match_path):
             print(f"  ! match {match_id}: {len(player_links)} player links found but extracted 0 rows "
                   f"({unresolved} unresolved, {skipped_all_maps} skipped as 'all maps', "
                   f"{skipped_no_game_id} with no game-id wrapper found)", file=sys.stderr)
+            for sample in unresolved_samples:
+                print(f"      unparsed row text: {sample}", file=sys.stderr)
     elif unresolved > 0 or skipped_no_game_id > 0:
         print(f"  match {match_id}: {total_players} rows extracted OK, {unresolved} unresolved, "
               f"{skipped_all_maps} skipped as 'all maps', {skipped_no_game_id} counted via fallback "
               f"(no game-id wrapper found)", file=sys.stderr)
+        for sample in unresolved_samples:
+            print(f"      unparsed row text: {sample}", file=sys.stderr)
 
     result["played"] = True
     result["actual"] = totals
@@ -349,18 +412,44 @@ def build_region_payload(region_key, current_event, historical_event):
     # (for "hist") — no separate roster/player-list page needed, since team
     # association is already known per-match.
     def aggregate(matches):
-        # name -> {team, k, d, a, games}
+        # name -> {team, k, d, a, games, kp_num, kp_den}
+        #
+        # kp is now genuinely computed rather than hardcoded to 0. It was
+        # previously written as a literal 0 for every Valorant player,
+        # which made kp_multiplier()'s `if not cur_kp: return 1.0` guard
+        # fire every single time — so the kp weight was STRUCTURALLY
+        # INERT for this whole game and could never influence a
+        # prediction, no matter what the optimizer chose for it. This is
+        # the identical bug already found and fixed on the CS2 side.
+        #
+        # Scale is 0-100 (a percentage), NOT a 0-1 fraction, to match
+        # kp_multiplier's team_avg_kp = 66.0 reference constant. Getting
+        # this wrong is not a no-op: CS2 briefly stored a fraction here
+        # and the multiplier silently collapsed to a near-constant ~0.9
+        # for every player regardless of their real participation.
         agg = {}
         for m in matches:
             for team, players in m["actual"].items():
+                team_total_k = sum(kda["k"] for kda in players.values())
                 for name, kda in players.items():
-                    slot = agg.setdefault(name, {"team": team, "k": 0, "d": 0, "a": 0, "games": 0})
+                    slot = agg.setdefault(name, {"team": team, "k": 0, "d": 0, "a": 0,
+                                                 "games": 0, "kp_num": 0, "kp_den": 0})
                     slot["team"] = team  # last-seen team wins (handles roster moves reasonably)
                     slot["k"] += kda["k"]
                     slot["d"] += kda["d"]
                     slot["a"] += kda["a"]
                     slot["games"] += m["maps_played"]
+                    # Accumulated as numerator/denominator rather than
+                    # averaging per-match ratios, so matches with more
+                    # rounds carry proportionally more weight instead of
+                    # every match counting equally.
+                    if team_total_k > 0:
+                        slot["kp_num"] += kda["k"] + kda["a"]
+                        slot["kp_den"] += team_total_k
         return agg
+
+    def kp_pct(slot):
+        return (slot["kp_num"] / slot["kp_den"] * 100) if slot["kp_den"] > 0 else 0
 
     cur_agg = aggregate(cur_played)
     hist_agg = aggregate(hist_played)
@@ -375,12 +464,14 @@ def build_region_payload(region_key, current_event, historical_event):
         g = cur["games"] or 1
         entry = {
             "name": name, "role": None,
-            "cur": {"g": cur["games"], "k": cur["k"] / g, "d": cur["d"] / g, "a": cur["a"] / g, "kp": 0},
+            "cur": {"g": cur["games"], "k": cur["k"] / g, "d": cur["d"] / g, "a": cur["a"] / g,
+                    "kp": kp_pct(cur)},
             "hist": None,
         }
         if hist and hist["games"] > 0:
             hg = hist["games"]
-            entry["hist"] = {"g": hg, "k": hist["k"] / hg, "d": hist["d"] / hg, "a": hist["a"] / hg, "kp": 0}
+            entry["hist"] = {"g": hg, "k": hist["k"] / hg, "d": hist["d"] / hg, "a": hist["a"] / hg,
+                             "kp": kp_pct(hist)}
         teams[team]["players"].append(entry)
     print(f"  built payload for {len(teams)} teams: {list(teams.keys())}")
 

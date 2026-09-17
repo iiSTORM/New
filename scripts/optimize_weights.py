@@ -92,6 +92,48 @@ def latest_patch(past_matches, cutoff_date):
 
 _recency_entries_cache = {}  # keyed by (id(past_matches), team, player_name, stat_key, cutoff_date)
 
+# CPython reuses memory addresses. Any cache keyed on id(obj) is therefore
+# only sound while that object is still ALIVE -- if it is freed, a later
+# object can be allocated at the same address and silently collide with
+# the dead one's cache entries.
+#
+# This is not hypothetical: it was caught by a real experiment that built
+# temporary filtered copies of past_matches in a loop. Each copy was
+# freed before the next was built, so all of them landed on the SAME
+# address, and pools of 100, 80 and 75 matches all read each other's
+# cached values — producing identical MAEs for genuinely different
+# inputs.
+#
+# Pinning a strong reference to every keyed object closes that hole
+# completely: while an entry is cached, its object cannot be collected,
+# so its id cannot be reused by anything else. Callers that build pools
+# dynamically should still call clear_point_in_time_caches() between
+# pools to bound memory, but correctness no longer depends on them
+# remembering to.
+_cache_keepalive = {}
+
+
+def _pin(obj):
+    """Returns id(obj), keeping a strong reference so the id stays valid
+    and unique for as long as anything is cached against it."""
+    key = id(obj)
+    if key not in _cache_keepalive:
+        _cache_keepalive[key] = obj
+    return key
+
+
+def clear_point_in_time_caches():
+    """Drops every point-in-time cache and releases the pinned objects.
+    Call this when switching to a different past_matches pool (e.g. a
+    filtering experiment) to bound memory; correctness does not depend
+    on it thanks to _pin above."""
+    _recency_entries_cache.clear()
+    _player_names_stat_cache.clear()
+    _league_avg_for_role_cache.clear()
+    _point_in_time_team_stat_cache.clear()
+    _point_in_time_league_avg_stat_cache.clear()
+    _cache_keepalive.clear()
+
 
 def _recency_entries(past_matches, team, player_name, stat_key, cutoff_date):
     """Builds the (date, val, patch) list for one player as of one
@@ -118,7 +160,7 @@ def _recency_entries(past_matches, team, player_name, stat_key, cutoff_date):
     once via load_region_data and never rebuilt mid-search. Entries are
     plain tuples rather than dicts to keep the cache lean, since it
     holds roughly one list per (player, match) pair."""
-    key = (id(past_matches), team, player_name, stat_key, cutoff_date)
+    key = (_pin(past_matches), team, player_name, stat_key, cutoff_date)
     cached = _recency_entries_cache.get(key)
     if cached is not None:
         return cached
@@ -209,7 +251,7 @@ _point_in_time_team_stat_cache = {}  # keyed by (id(past_matches), team, stat_ke
 
 
 def point_in_time_team_stat(past_matches, team, stat_key, cutoff_date):
-    key = (id(past_matches), team, stat_key, cutoff_date)
+    key = (_pin(past_matches), team, stat_key, cutoff_date)
     if key in _point_in_time_team_stat_cache:
         return _point_in_time_team_stat_cache[key]
     total, games = 0.0, 0
@@ -248,7 +290,7 @@ def point_in_time_league_avg_stat(past_matches, teams, stat_key, cutoff_date):
     # has no role data for the lane-specific path) meant it started
     # getting hit far more often without this cost being addressed at
     # the same time.
-    key = (id(past_matches), id(teams), stat_key, cutoff_date)
+    key = (_pin(past_matches), _pin(teams), stat_key, cutoff_date)
     if key in _point_in_time_league_avg_stat_cache:
         return _point_in_time_league_avg_stat_cache[key]
     rates = [r for r in (point_in_time_team_stat(past_matches, t, stat_key, cutoff_date) for t in teams) if r is not None]
@@ -274,7 +316,7 @@ def point_in_time_player_names_stat(past_matches, team, player_names, stat_key, 
     # (92,400 calls per weight evaluation, x ~630 evaluations in a full
     # 3-stat search). See point_in_time_league_avg_for_role below for
     # the bigger structural reason it was called so often.
-    key = (id(past_matches), team, tuple(player_names), stat_key, cutoff_date)
+    key = (_pin(past_matches), team, tuple(player_names), stat_key, cutoff_date)
     cached = _player_names_stat_cache.get(key)
     if cached is not None:
         return cached
@@ -315,7 +357,7 @@ def point_in_time_league_avg_for_role(past_matches, teams, role, stat_key, cutof
     Same id()-keyed caching rationale already documented for the other
     point-in-time caches: past_matches and teams are stable object
     references for the whole duration of one run."""
-    key = (id(past_matches), id(teams), role, stat_key, cutoff_date)
+    key = (_pin(past_matches), _pin(teams), role, stat_key, cutoff_date)
     cached = _league_avg_for_role_cache.get(key)
     if cached is not None:
         return cached

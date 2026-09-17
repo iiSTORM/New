@@ -1045,10 +1045,17 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
    career:0.0 — they are NOT a claim of that much gain over the weights
    previously shipped here.
 
-   Valorant and CS2 don't have their own career-history scraper yet, so
-   their career weight stays at 0.0 (a no-op — applyCareerTier() falls
-   back cleanly to the existing base rate whenever a player has no career
-   data) until that's built for those games too. */
+   One further hypothesis was tested and REJECTED: that mixing preseason
+   and cup events (Lock-In, Kickoff, LCK/CBLOL Cup — 127 of 966 matches,
+   13%) into the same history pool as regular season and playoffs was
+   adding more noise than coverage, by analogy with the real
+   tier-mismatch problem confirmed in CS2's career data.
+   scripts/experiment_stage_filtering.py measured it properly, holding
+   the evaluation set fixed (n=6631 identical across variants) and
+   varying only the history pool. Keeping everything won for all three
+   stats, and excluding more made it monotonically worse (kills 2.6556
+   -> 2.6664, assists 4.8203 -> 4.8621). Volume beats purity here; the
+   CS2 analogy did not transfer. Do not "clean up" the pool by stage. */
 const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
   lol: {
     kills: { history: 0.4, opponent: 0.4, kp: 0.1, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.4 },
@@ -1056,9 +1063,44 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     assists: { history: 0.4, opponent: 0.4, kp: 0.2, recencyHalfLife: 8, patchDiscount: 0.3, career: 0.3 },
   },
   valorant: {
-    kills: { history: 0.7, opponent: 1.0, kp: 0.3, recencyHalfLife: 6, patchDiscount: 0.0, career: 0.0 },
-    deaths: { history: 0.7, opponent: 1.0, kp: 0.3, recencyHalfLife: 20, patchDiscount: 0.8, career: 0.0 },
-    assists: { history: 0.4, opponent: 0.0, kp: 0.3, recencyHalfLife: 8, patchDiscount: 0.8, career: 0.0 },
+    // RE-MEASURED after fixing a real bug that made the kp weight
+    // STRUCTURALLY INERT for this entire game: scrape_valorant.py wrote
+    // kp as a literal 0 for every player, and kp_multiplier()'s
+    // `if not cur_kp: return 1.0` guard then fired every single time, so
+    // no kp value the optimizer picked could ever change a prediction.
+    // The previously shipped numbers here (kp: 0.3 across all three)
+    // were therefore fitted around a dead parameter. This is the same
+    // bug already found and fixed on the CS2 side.
+    //
+    // That the fix took effect is visible in the result itself: the
+    // three stats now choose DIFFERENT kp values (0.0 / 0.3 / 0.1).
+    // While kp was inert every candidate scored identically, so ties
+    // resolved to the same value for all three — divergence is the
+    // signature of the search responding to real signal.
+    //
+    // opponent: 0.0 on all three is measured, matching the same result
+    // CS2 showed. Valorant has no per-player role data either (role is
+    // None), so the lane-specific opponent path can't engage and it
+    // falls back to a team-wide estimate built on a thin sample.
+    //
+    // career: 0.0 because Valorant is now the ONLY game without its own
+    // career-history scraper (LoL has scrape_career.py, CS2 has
+    // scrape_cs2_career.py). It is a clean no-op rather than a tuned
+    // value — applyCareerTier() falls back to the base rate whenever a
+    // player carries no career data — so this stays 0.0 until a
+    // Valorant equivalent exists, at which point it needs measuring
+    // rather than assuming.
+    // These are the SECOND measurement. The first was taken with the kp
+    // fix live but before a separate parsing bug was found, which was
+    // silently discarding rows whose stats rendered without the
+    // attack/defense split (see scrape_valorant.py). Fixing that
+    // recovered 90 predictions in VCT China (n 549 -> 639) and improved
+    // that region's MAE markedly (kills 6.4953 -> 6.1139, deaths 4.5593
+    // -> 4.1734), so the earlier weights were fit on an incomplete
+    // sample and are superseded.
+    kills: { history: 0.7, opponent: 0.0, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.0 },
+    deaths: { history: 0.7, opponent: 0.0, kp: 0.3, recencyHalfLife: 6, patchDiscount: 0.3, career: 0.0 },
+    assists: { history: 0.4, opponent: 0.0, kp: 0.1, recencyHalfLife: 6, patchDiscount: 0.8, career: 0.0 },
   },
   cs2: {
     // All three stats now measured with THREE real fixes live: kp

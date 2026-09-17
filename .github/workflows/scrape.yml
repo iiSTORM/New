@@ -170,6 +170,31 @@ jobs:
       - name: Install dependencies
         run: pip install cs2api aiohttp
 
+      - name: Scrape bo3.gg CS2 career history (raw per-game, for the career tier)
+        # Runs BEFORE scrape_cs2.py deliberately. There is a circular
+        # dependency between the two: this script reads cs2_data.json to
+        # learn which players to fetch, while scrape_cs2.py's
+        # merge_cs2_career_data() folds cs2_career_data.json into its
+        # output at the end. Something has to be one run stale, and
+        # roster staleness (this script using last run's player list) is
+        # far less harmful than career staleness would be — a roster
+        # barely moves between runs, whereas running this second would
+        # mean the career data committed each run was always one cycle
+        # behind the stats it is blended with.
+        #
+        # Was previously not in this workflow AT ALL, so cs2_career_data.json
+        # only ever changed when someone ran it by hand — meaning the CS2
+        # career tier silently decayed toward stale while carrying a
+        # career weight of 0.95-1.0.
+        #
+        # continue-on-error: a bo3.gg hiccup here must never block
+        # cs2_data.json itself from being produced and committed;
+        # merge_cs2_career_data() already falls back cleanly when the
+        # career file is absent or stale.
+        run: python scripts/scrape_cs2_career.py
+        continue-on-error: true
+        timeout-minutes: 45
+
       - name: Scrape bo3.gg (CS2 per-map player stats via direct API + cs2api discovery)
         # New/experimental — MATCH_LIMIT is currently capped at 20 in
         # scrape_cs2.py (a deliberate validation-mode limit, not yet raised
@@ -186,7 +211,14 @@ jobs:
             echo "cs2_data.json wasn't produced this run, nothing to commit"
             exit 0
           fi
+          # cs2_career_data.json is staged alongside because the career
+          # step above is new to this workflow — without adding it here
+          # it would be regenerated every run and then silently thrown
+          # away, leaving the committed career data permanently stale.
+          # Guarded with -f because that step is continue-on-error and
+          # may legitimately not have produced a file.
           git add cs2_data.json
+          if [ -f cs2_career_data.json ]; then git add cs2_career_data.json; fi
           if git diff --quiet --cached; then
             echo "No changes to commit"
             exit 0
@@ -208,10 +240,13 @@ jobs:
             git push && exit 0
             echo "Push rejected ($i/5) — resetting to latest remote and reapplying this run's snapshot..."
             cp cs2_data.json /tmp/cs2_data.json.new
+            if [ -f cs2_career_data.json ]; then cp cs2_career_data.json /tmp/cs2_career_data.json.new; fi
             git fetch origin main
             git reset --hard origin/main
             cp /tmp/cs2_data.json.new cs2_data.json
+            if [ -f /tmp/cs2_career_data.json.new ]; then cp /tmp/cs2_career_data.json.new cs2_career_data.json; fi
             git add cs2_data.json
+            if [ -f cs2_career_data.json ]; then git add cs2_career_data.json; fi
             if git diff --quiet --cached; then
               echo "Remote already has this exact snapshot — nothing left to push"
               exit 0

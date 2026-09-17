@@ -15,6 +15,7 @@ lookup, so this has to be maintained by hand a few times a year.
 import json
 import re
 import sys
+import random
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
@@ -54,16 +55,68 @@ COLOR_PALETTE = [
 ROLE_ORDER = {"Top": "TOP", "Jungle": "JNG", "Mid": "MID", "ADC": "BOT", "Support": "SUP"}
 
 
-def get(url, retries=3):
+def get(url, retries=4):
+    """Fetch with retries that actually cover the failure modes this
+    project has really hit.
+
+    Three fixes over the previous version, each from an observed problem
+    rather than speculation:
+
+    1. NETWORK-LEVEL ERRORS ARE RETRIED. requests.get() RAISES on
+       connect timeouts / DNS / connection resets, so it never returns a
+       response object and the old status-code-only retry loop was
+       skipped entirely — the scraper died on the first timeout. A real
+       run failed exactly this way across all seven regions when gol.gg
+       briefly became unreachable, wiping data.json to empty teams.
+       These are now caught and retried like any other failure.
+
+    2. EXPONENTIAL BACKOFF WITH JITTER, instead of a flat 2s. If the
+       cause is load or throttling, hammering at a fixed short interval
+       is the least useful thing to do. Jitter matters because six
+       worker threads retry in lockstep otherwise.
+
+    3. 429 IS TREATED AS RATE LIMITING, honouring Retry-After when the
+       server sends it and backing off much harder when it doesn't.
+       Relevant now that tournament discovery roughly quadrupled this
+       scraper's request volume against gol.gg.
+    """
+    attempts_made = 0
     last_status = None
     for attempt in range(retries):
-        r = requests.get(url, headers=HEADERS, timeout=20)
-        last_status = r.status_code
-        if r.status_code == 200:
-            return r.text
-        time.sleep(2)
-    print(f"  ! GET {url} failed after {retries} tries, last status {last_status}", file=sys.stderr)
-    r.raise_for_status()
+        attempts_made = attempt + 1
+        try:
+            r = requests.get(url, headers=HEADERS, timeout=20)
+            last_status = r.status_code
+            if r.status_code == 200:
+                return r.text
+            if r.status_code == 429:
+                retry_after = r.headers.get("Retry-After")
+                try:
+                    delay = float(retry_after) if retry_after else None
+                except ValueError:
+                    delay = None
+                if delay is None:
+                    delay = 10 * (2 ** attempt)
+                print(f"  ! rate limited (429) on {url} — backing off {delay:.0f}s "
+                      f"(attempt {attempt + 1}/{retries})", file=sys.stderr)
+                time.sleep(delay + random.uniform(0, 2))
+                continue
+            if 400 <= r.status_code < 500 and r.status_code != 408:
+                # A genuine client error (404 for a game that doesn't
+                # exist, say) will not become a 200 by asking again —
+                # retrying just wastes the budget and slows the run.
+                break
+        except requests.exceptions.RequestException as e:
+            last_status = f"{type(e).__name__}"
+        time.sleep(min(30, 2 * (2 ** attempt)) + random.uniform(0, 1.5))
+    # attempts_made, not `retries` — the 4xx branch above deliberately
+    # breaks after ONE attempt, and reporting "failed after 4 tries" for
+    # a single-attempt 404 is actively misleading when these logs are the
+    # main tool for diagnosing scraper behaviour.
+    plural = "try" if attempts_made == 1 else "tries"
+    print(f"  ! GET {url} failed after {attempts_made} {plural}, last status {last_status}",
+          file=sys.stderr)
+    raise requests.exceptions.HTTPError(f"GET {url} failed, last status {last_status}")
 
 
 def parse_player_list(tournament):
