@@ -7,6 +7,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="theme-color" content="#14181F" />
 <title>Esports Kill Projector</title>
+<!-- The wordmark's reticle, inline: the page was requesting a favicon.ico
+     that does not exist and taking a 404 on every single load. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%3E%3Crect%20width%3D%2224%22%20height%3D%2224%22%20rx%3D%225%22%20fill%3D%22%2314181F%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%226.2%22%20stroke%3D%22%23C9A86A%22%20stroke-width%3D%221.7%22%2F%3E%3Cline%20x1%3D%2212%22%20y1%3D%222.4%22%20x2%3D%2212%22%20y2%3D%226.4%22%20stroke%3D%22%23C9A86A%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2212%22%20y1%3D%2217.6%22%20x2%3D%2212%22%20y2%3D%2221.6%22%20stroke%3D%22%23C9A86A%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%222.4%22%20y1%3D%2212%22%20x2%3D%226.4%22%20y2%3D%2212%22%20stroke%3D%22%23C9A86A%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2217.6%22%20y1%3D%2212%22%20x2%3D%2221.6%22%20y2%3D%2212%22%20stroke%3D%22%23C9A86A%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%221.7%22%20fill%3D%22%23C9A86A%22%2F%3E%3C%2Fsvg%3E" />
 <meta name="description" content="Weighted kill, death and assist projections for League of Legends, Counter-Strike 2 and Valorant, backtested against completed matches." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2064,10 +2067,12 @@ function HeadToHeadCard({ teams, pastMatches, teamA, teamB, bare = false }) {
         <div style={{ fontSize: 12, color: theme.textDim }}>No prior meetings this split.</div>
       ) : (
         <>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <span style={{ color: colorA, fontWeight: 700, fontFamily: "'Fraunces', serif", fontSize: 14 }}>{teamA}</span>
-            <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 20, fontWeight: 700, color: theme.text }}>{winsA} – {winsB}</span>
-            <span style={{ color: colorB, fontWeight: 700, fontFamily: "'Fraunces', serif", fontSize: 14 }}>{teamB}</span>
+          {/* Same colour-bar treatment as every other team reference, so
+              the record reads as the emphasis rather than the names. */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, gap: 12 }}>
+            <TeamTag name={teamA} color={colorA} dim={winsA < winsB} />
+            <span className="kp-num" style={{ fontSize: 20, fontWeight: 700, color: theme.text, flexShrink: 0 }}>{winsA} – {winsB}</span>
+            <TeamTag name={teamB} color={colorB} dim={winsB < winsA} />
           </div>
           {meetings.map((m, i) => (
             <div
@@ -2078,8 +2083,8 @@ function HeadToHeadCard({ teams, pastMatches, teamA, teamB, bare = false }) {
               }}
             >
               <span>{m.week ? `${m.week} · ` : ""}{m.date}</span>
-              <span style={{ fontFamily: "'IBM Plex Mono', monospace", color: m.winner === teamA ? colorA : m.winner === teamB ? colorB : theme.text }}>
-                {m.winner} won {m.score}
+              <span className="kp-num" style={{ color: theme.textDim }}>
+                <span style={{ color: theme.text, fontWeight: 600 }}>{m.winner}</span> won {m.score}
               </span>
             </div>
           ))}
@@ -2839,9 +2844,39 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isD
           No matches on this day.
         </div>
       )}
+      {/* An empty schedule is a normal state between splits, not an error.
+          It previously pointed the reader at a control further down the
+          page ("use the tool below") instead of just offering it. */}
       {upcomingMatches.length === 0 && (
-        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: "16px", textAlign: "center", fontSize: 12, color: theme.textDim, marginBottom: 10 }}>
-          No upcoming matches loaded. Use the custom matchup tool below.
+        <div style={{
+          background: theme.graphite, border: `1px solid ${theme.steel}`,
+          ...cardShape(theme.cornerStyle), ...elevation(),
+          padding: "34px 20px", textAlign: "center", marginBottom: 10,
+        }}>
+          <div style={{ opacity: 0.45, display: "flex", justifyContent: "center", marginBottom: 12 }}>
+            <Reticle size={26} color={theme.textDim} />
+          </div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: theme.text, fontFamily: "'Fraunces', serif" }}>
+            No upcoming matches scheduled
+          </div>
+          <div style={{ fontSize: 12, color: theme.textFaint, marginTop: 6, lineHeight: 1.55, maxWidth: 380, marginLeft: "auto", marginRight: "auto" }}>
+            Nothing is on the schedule for this region yet. You can still project any
+            two teams against each other from this split's data.
+          </div>
+          {canCustomMatchup && !customMode && (
+            <button
+              className="kp-btn"
+              onClick={() => setCustomMode(true)}
+              style={{
+                marginTop: 16, padding: "9px 18px", background: theme.accentSoft,
+                border: `1px solid ${theme.accentBorder}`, borderRadius: 10,
+                color: theme.accent, fontSize: 12.5, fontWeight: 600, cursor: "pointer",
+                fontFamily: "'Inter', sans-serif",
+              }}
+            >
+              Build a custom matchup
+            </button>
+          )}
         </div>
       )}
       {grouped.map(([label, matches]) => (
@@ -2853,18 +2888,30 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isD
         </div>
       ))}
 
-      {canCustomMatchup ? (
+      {/* A secondary action, sized like one. Full-bleed it read as a banner
+          with more weight than the projections above it. Suppressed when the
+          schedule is empty, since the empty state above already offers it —
+          otherwise the same action appears twice on the same screen. */}
+      {upcomingMatches.length > 0 && canCustomMatchup ? (
         <button
+          className="kp-btn"
           onClick={() => setCustomMode(!customMode)}
-          style={{ width: "100%", marginTop: 8, padding: "10px", background: theme.graphiteLight, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), color: theme.accent, fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+          aria-expanded={customMode}
+          style={{
+            marginTop: 14, padding: "9px 16px", background: "transparent",
+            border: `1px solid ${theme.steel}`, borderRadius: 10,
+            color: theme.textDim, fontSize: 12.5, fontWeight: 600, cursor: "pointer",
+            fontFamily: "'Inter', sans-serif", display: "inline-flex", alignItems: "center", gap: 7,
+          }}
         >
-          {customMode ? "Hide custom matchup" : "Explore a custom matchup →"}
+          {customMode ? "Hide custom matchup" : "Build a custom matchup"}
+          <Chevron open={customMode} color={theme.textFaint} size={12} />
         </button>
-      ) : (
+      ) : !canCustomMatchup ? (
         <div style={{ marginTop: 8, padding: "10px 14px", fontSize: 11, color: theme.textFaint, textAlign: "center" }}>
           Custom matchup needs at least 2 teams with data loaded for this region — only {teamNames.length} currently available.
         </div>
-      )}
+      ) : null}
 
       {customMode && canCustomMatchup && (
         <div style={{ marginTop: 16 }}>
@@ -3096,19 +3143,44 @@ function PastResultsTab({ teams, pastMatches, weights, statType, isDesktop }) {
 
 /* ---------- Data status banner ---------- */
 
+/* "updated 9/18/2026, 1:47:37 PM" makes the reader do arithmetic to answer
+   the only question they actually have, which is whether this is current.
+   The scrapers run twice a day, so elapsed time is the useful form — the
+   exact timestamp stays available on hover. Seconds were never meaningful
+   here and are dropped. */
+function relativeTime(iso) {
+  if (!iso) return null;
+  const then = new Date(iso);
+  if (isNaN(then)) return null;
+  const mins = Math.round((Date.now() - then.getTime()) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.round(hours / 24);
+  return days === 1 ? "yesterday" : `${days}d ago`;
+}
+
 function DataStatus({ status, lastUpdated, errorDetail, onRetry }) {
   const theme = useTheme();
   const color = status === "live" ? theme.good : status === "loading" ? theme.textDim : theme.accent;
+  const relative = relativeTime(lastUpdated);
+  // Data older than a day usually means the scrape has been failing, which
+  // is worth a visible change of tone rather than a quietly stale number.
+  const stale = lastUpdated && (Date.now() - new Date(lastUpdated).getTime()) > 36 * 3600 * 1000;
   const label =
-    status === "live" ? `Live data · updated ${lastUpdated}` :
+    status === "live" ? `Live data · updated ${relative || "recently"}` :
     status === "loading" ? "Loading live data…" :
     status === "no-url" ? "Using bundled snapshot (no live source configured)" :
     "Live fetch failed — using bundled snapshot";
   return (
     <div style={{ marginBottom: 16, padding: "8px 12px", background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation() }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: theme.textDim }}>
-          <span style={{ width: 6, height: 6, borderRadius: "50%", background: color }} />
+        <div
+          style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: stale ? theme.accent : theme.textDim }}
+          title={lastUpdated ? new Date(lastUpdated).toLocaleString() : undefined}
+        >
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: stale ? theme.accent : color, flexShrink: 0 }} />
           {label}
         </div>
         {status !== "loading" && (
@@ -3539,7 +3611,7 @@ function KillProjector() {
         });
         setLastUpdatedByGame((prev) => ({
           ...prev,
-          [gameId]: data.generated_at ? new Date(data.generated_at).toLocaleString() : "just now",
+          [gameId]: data.generated_at || null,
         }));
         setStatusByGame((prev) => ({ ...prev, [gameId]: "live" }));
       })
