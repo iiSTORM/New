@@ -61,8 +61,25 @@ latest remote and re-applies its own fresh snapshot instead of merging —
 a line-level merge of two full-file rewrites is meaningless and has in the
 past left real conflict markers committed to the data.
 
-Most steps are `continue-on-error`, so a green run does **not** by itself
-mean every scraper succeeded — check the individual step conclusions.
+### Failure policy
+
+Each job validates its output with `scripts/check_data.py` *before* the commit
+step, so a bad snapshot never reaches `main`. The check fails the run if the
+data is stale (the scrape didn't actually write it), structurally empty, or
+if player/match counts collapsed versus the previously committed copy — the
+last one catches a scraper that "succeeds" but silently parses nothing after
+a source site changes its markup.
+
+```bash
+python scripts/check_data.py lol        # or: valorant, cs2
+python scripts/check_data.py lol --skip-freshness   # checking data you didn't just scrape
+```
+
+The primary scrape of each game is a hard failure. Only the auxiliary LoL
+steps (schedule, career, champion stats) and the CS2 career step remain
+`continue-on-error`, because the model handles those being stale by design —
+when one of them fails the run still goes green, but a `::warning::`
+annotation is attached to it rather than the failure passing unnoticed.
 
 ## Running locally
 
