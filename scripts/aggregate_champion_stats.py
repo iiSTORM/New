@@ -91,7 +91,13 @@ def main():
     }
 
     with open(OUTPUT_PATH, "w") as f:
-        json.dump(output, f, indent=2)
+        # Written minified: these files are machine-generated and never read
+        # by hand, and indent=2 was about two thirds of the bytes
+        # (data.json: 7.5MB -> 2.4MB). GitHub serves them gzipped, so the
+        # win on the wire is smaller (~535KB -> ~340KB), but the browser
+        # still parses the full decompressed text, and every run commits a
+        # whole fresh copy.
+        json.dump(output, f, separators=(",", ":"))
 
     print(f"{matches_with_per_game}/{matches_total} matches had per_game data to aggregate from")
     print(f"Wrote {OUTPUT_PATH}: {len(output['champions'])} champions, "

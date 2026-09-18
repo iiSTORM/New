@@ -407,7 +407,13 @@ def main():
 
     data = build_career_data()
     with open(OUTPUT_PATH, "w") as f:
-        json.dump(data, f, indent=2)
+        # Written minified: these files are machine-generated and never read
+        # by hand, and indent=2 was about two thirds of the bytes
+        # (data.json: 7.5MB -> 2.4MB). GitHub serves them gzipped, so the
+        # win on the wire is smaller (~535KB -> ~340KB), but the browser
+        # still parses the full decompressed text, and every run commits a
+        # whole fresh copy.
+        json.dump(data, f, separators=(",", ":"))
     print(f"\nWrote {OUTPUT_PATH}: {len(data)} players")
 
 

@@ -896,7 +896,13 @@ def main():
               f"already existed.", file=sys.stderr)
 
     with open("data.json", "w") as f:
-        json.dump(payload, f, indent=2)
+        # Written minified: these files are machine-generated and never read
+        # by hand, and indent=2 was about two thirds of the bytes
+        # (data.json: 7.5MB -> 2.4MB). GitHub serves them gzipped, so the
+        # win on the wire is smaller (~535KB -> ~340KB), but the browser
+        # still parses the full decompressed text, and every run commits a
+        # whole fresh copy.
+        json.dump(payload, f, separators=(",", ":"))
     print(f"\nWrote data.json with regions: {list(payload['regions'].keys())}"
           f"{f' ({len(failed)} fell back to stale data: {failed})' if failed else ''}")
 

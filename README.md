@@ -55,6 +55,15 @@ served to the frontend — they are generated artifacts that must stay in git.
 the workflow doesn't commit updates to it. The copy in git is a fallback that
 `merge.py` reads if `scrape_schedule.py` fails.
 
+All generated files are written minified (`separators=(",", ":")`), which
+is purely a serialization choice — `indent=2` was about two thirds of the
+bytes. `data.json` is 2.4MB rather than 7.5MB as a result. GitHub already
+serves these gzipped, so the saving on the wire is more modest
+(~535KB -> ~340KB); the bigger wins are the browser parsing a third as much
+text and each run committing a third as many bytes. Don't expect these files
+to be readable in a diff — they never were meaningfully, since every run
+replaces them wholesale.
+
 Every data file is *wholesale regenerated* each run, never incrementally
 edited. That's why each commit step, on a push rejection, resets to the
 latest remote and re-applies its own fresh snapshot instead of merging —
