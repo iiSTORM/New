@@ -2,24 +2,77 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="theme-color" content="#14181F" />
 <title>Esports Kill Projector</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" />
+<meta name="description" content="Weighted kill, death and assist projections for League of Legends, Counter-Strike 2 and Valorant, backtested against completed matches." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preconnect" href="https://raw.githubusercontent.com" />
+<!-- One request rather than two: a second stylesheet is a second round trip
+     before any text can paint. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" />
 <style>
-  html, body { margin: 0; padding: 0; background: #14181F; color: #EDEFF4; font-family: -apple-system, sans-serif; }
+  /* Base tokens live here as CSS custom properties as well as in the JS
+     theme object, so the shell can paint correct colours before React has
+     loaded — otherwise the first frame is unstyled. */
+  :root {
+    --kp-void: #14181F;
+    --kp-graphite: #1B212B;
+    --kp-steel: #2C3444;
+    --kp-text: #EDEFF4;
+    --kp-text-dim: #A8B0C0;
+    --kp-text-faint: #5C6478;
+    --kp-accent: #C9A86A;
+  }
+  html, body { margin: 0; padding: 0; background: var(--kp-void); color: var(--kp-text);
+               font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+               -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
   #root { min-height: 100vh; }
-  #boot-status { padding: 24px 16px; font-size: 13px; color: #A8B0C0; }
   #error-box { margin: 16px; padding: 14px; background: #2a1418; border: 1px solid #5c2a2a; border-radius: 8px;
                color: #ff9a9a; font-family: 'IBM Plex Mono', monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; }
-  input[type="text"]::placeholder { color: #5C6478; }
+  input[type="text"]::placeholder { color: var(--kp-text-faint); }
+
+  /* ---- Boot skeleton ----------------------------------------------------
+     React, ReactDOM and Babel are ~3MB from a CDN and the app's JSX is then
+     compiled in the browser, so there is a real gap before first render. A
+     spinner or a "Loading…" line makes that gap feel like a failure; a
+     skeleton in the shape of the actual layout makes it feel like loading.
+     Removed by the app on first paint. */
+  #boot { padding: 28px 20px; max-width: 1400px; margin: 0 auto; display: flex; gap: 32px; }
+  #boot .boot-side { width: 260px; flex-shrink: 0; }
+  #boot .boot-main { flex: 1; min-width: 0; }
+  .sk { background: linear-gradient(90deg, #1B212B 25%, #232B39 50%, #1B212B 75%);
+        background-size: 400% 100%; animation: sk-shimmer 1.4s ease-in-out infinite;
+        border-radius: 8px; }
+  @keyframes sk-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+  @media (prefers-reduced-motion: reduce) { .sk { animation: none; } }
+  @media (max-width: 900px) { #boot { display: block; padding: 20px 16px; } #boot .boot-side { width: auto; } }
 </style>
 </head>
 <body>
-<div id="root"><div id="boot-status">Loading app…</div></div>
+<div id="root">
+  <div id="boot" aria-busy="true" aria-label="Loading projections">
+    <div class="boot-side">
+      <div class="sk" style="height:13px;width:130px;margin-bottom:14px"></div>
+      <div class="sk" style="height:30px;width:210px;margin-bottom:8px"></div>
+      <div class="sk" style="height:14px;width:100%;margin-bottom:6px"></div>
+      <div class="sk" style="height:14px;width:70%;margin-bottom:22px"></div>
+      <div class="sk" style="height:52px;margin-bottom:12px"></div>
+      <div class="sk" style="height:44px;margin-bottom:12px"></div>
+      <div class="sk" style="height:96px"></div>
+    </div>
+    <div class="boot-main">
+      <div class="sk" style="height:38px;width:82%;margin-bottom:20px"></div>
+      <div class="sk" style="height:30px;width:60%;margin-bottom:24px"></div>
+      <div class="sk" style="height:86px;margin-bottom:12px"></div>
+      <div class="sk" style="height:86px;margin-bottom:12px"></div>
+      <div class="sk" style="height:86px"></div>
+    </div>
+  </div>
+</div>
 
 <script>
   window.addEventListener('error', function (e) {
@@ -34,9 +87,9 @@
   });
 </script>
 
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/@babel/standalone@7.29.9/babel.min.js"></script>
 
 <script>
   (function () {
@@ -55,7 +108,7 @@
 <script type="text/babel" data-presets="react">
 try {
 
-const { useState, useEffect, useContext, createContext } = React;
+const { useState, useEffect, useMemo, useContext, createContext } = React;
 
 
 /* ============================================================
@@ -142,6 +195,68 @@ function bracketStyle(theme, color) {
 function initialsFor(name) {
   const clean = (name || "").replace(/[^a-zA-Z0-9]/g, "");
   return (clean.slice(0, 2) || "?").toUpperCase();
+}
+
+/* ---------- Shared presentational primitives ----------
+   Team identity used to be carried by colouring the team's NAME in its
+   own brand colour. With two teams per card and six saturated brand
+   colours on screen at once that reads as noise, and the colours were
+   doing double duty as both identity and emphasis, so nothing could be
+   emphasised. The standings table already had the better answer — a thin
+   colour bar next to neutral text — so that treatment is shared here and
+   the accent is freed up to mean "this is the number that matters". */
+function TeamTag({ name, color, size = 14, dim = false }) {
+  const theme = useTheme();
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 7, minWidth: 0 }}>
+      <span aria-hidden="true" style={{
+        width: 3, height: size + 2, borderRadius: 2, background: color, flexShrink: 0,
+        boxShadow: `0 0 8px ${color}55`,
+      }} />
+      <span style={{
+        fontFamily: "'Fraunces', serif", fontWeight: 600, fontSize: size,
+        color: dim ? theme.textDim : theme.text, whiteSpace: "nowrap",
+        overflow: "hidden", textOverflow: "ellipsis",
+      }}>{name}</span>
+    </span>
+  );
+}
+
+function Chevron({ open, color, size = 13 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true"
+         style={{ flexShrink: 0, transition: "transform 0.2s ease", transform: open ? "rotate(180deg)" : "none" }}>
+      <path d="M6 9l6 6 6-6" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/* A number with its label underneath — the app's primary readout. Sizes
+   are deliberately far apart: the old cards set the projection at 11px,
+   the same size as the hint text beside it, so the one figure a visitor
+   comes for had no more weight than "tap to expand". */
+function StatReadout({ value, label, size = 30, color, align = "right" }) {
+  const theme = useTheme();
+  return (
+    <div style={{ textAlign: align, flexShrink: 0 }}>
+      <div className="kp-num" style={{ fontSize: size, fontWeight: 700, lineHeight: 1, color: color || theme.text }}>{value}</div>
+      <div style={{ fontSize: 9.5, letterSpacing: 0.9, textTransform: "uppercase", color: theme.textFaint, marginTop: 5, fontWeight: 600 }}>{label}</div>
+    </div>
+  );
+}
+
+/* Signed delta shown as a badge. Accuracy is this product's real claim,
+   so "how far off was the model" deserves to be legible at a glance
+   rather than buried mid-sentence. */
+function DeltaBadge({ value, digits = 1, goodBelow = 2.5 }) {
+  const theme = useTheme();
+  const magnitude = Math.abs(value);
+  const tone = magnitude <= goodBelow ? theme.good : magnitude <= goodBelow * 2 ? theme.accent : theme.bad;
+  return (
+    <span className="kp-chip kp-num" style={{ background: tone + "1A", color: tone, border: `1px solid ${tone}33` }}>
+      ±{magnitude.toFixed(digits)}
+    </span>
+  );
 }
 
 /* Shared, larger player row used under both upcoming and past matches —
@@ -543,9 +658,11 @@ const GAME_LIST = Object.keys(GAMES);
    ============================================================ */
 
 const STAT_TYPES = {
-  kills: { key: "k", label: "Kills", oppBasis: "d", useKP: true, laneSpecific: true },
-  deaths: { key: "d", label: "Deaths", oppBasis: "k", useKP: false, laneSpecific: true },
-  assists: { key: "a", label: "Assists", oppBasis: "d", useKP: true, laneSpecific: false },
+  // `singular` exists for prose ("weighted kill projections"), where the
+  // plural label reads as a typo.
+  kills: { key: "k", label: "Kills", singular: "kill", oppBasis: "d", useKP: true, laneSpecific: true },
+  deaths: { key: "d", label: "Deaths", singular: "death", oppBasis: "k", useKP: false, laneSpecific: true },
+  assists: { key: "a", label: "Assists", singular: "assist", oppBasis: "d", useKP: true, laneSpecific: false },
 };
 
 /* ============================================================
@@ -2010,12 +2127,17 @@ function MatchupPanel({ teams, pastMatches, teamA, teamB, games, weights, statTy
   );
 }
 
-function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, statLabel }) {
+function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, statLabel, defaults }) {
   const theme = useTheme();
-  const summary = `History ${Math.round(weights.history * 100)}% · Opponent ${weights.opponent.toFixed(1)}× · `
-    + `KP ${Math.round(weights.kp * 100)}% · Recency ${weights.recencyHalfLife >= 20 ? "flat" : weights.recencyHalfLife + "m"} · `
-    + `Patch -${Math.round(weights.patchDiscount * 100)}%`
-    + (weights.career > 0 ? ` · Career ${Math.round(weights.career * 100)}%` : "");
+  /* The collapsed state used to print every weight as one long mono line
+     clipped with an ellipsis ("...defaults · Hist…"), which told you
+     nothing and looked like a rendering fault. What actually matters when
+     this panel is shut is whether the model is running as tuned or has
+     been altered — so say that, and offer the way back. */
+  const changed = defaults
+    ? Object.keys(defaults).filter((k) => weights[k] !== defaults[k])
+    : [];
+  const LABELS = { history: "History", opponent: "Opponent", kp: "KP", recencyHalfLife: "Recency", patchDiscount: "Patch", career: "Career" };
   return (
     <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: 18, marginBottom: 22 }}>
       <div
@@ -2031,8 +2153,28 @@ function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, s
         </div>
       </div>
       {!expanded && (
-        <div style={{ fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          Using backtest-tuned defaults · {summary}
+        <div style={{ fontSize: 11, color: theme.textFaint, lineHeight: 1.55, marginTop: 2 }}>
+          {changed.length === 0 ? (
+            <>Running on backtest-tuned defaults.</>
+          ) : (
+            <span style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <span className="kp-chip" style={{ background: `${theme.accent}1A`, color: theme.accent, border: `1px solid ${theme.accent}33` }}>
+                {changed.length} adjusted
+              </span>
+              <span>{changed.map((k) => LABELS[k] || k).join(", ")}</span>
+              <button
+                className="kp-btn"
+                onClick={(e) => { e.stopPropagation(); changed.forEach((k) => onChangeWeight(k, defaults[k])); }}
+                style={{
+                  background: "none", border: `1px solid ${theme.steel}`, borderRadius: 14,
+                  color: theme.textDim, fontSize: 10.5, padding: "3px 10px", cursor: "pointer",
+                  fontFamily: "'Inter', sans-serif", fontWeight: 600,
+                }}
+              >
+                Reset
+              </button>
+            </span>
+          )}
         </div>
       )}
       {expanded && (
@@ -2137,19 +2279,32 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games }
 
   return (
     <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), marginBottom: 10, overflow: "hidden" }}>
-      <div className="kp-clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer", padding: "16px 18px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
-            <span style={{ color: teams[match.teamA].color, fontWeight: 700, fontFamily: "'Fraunces', serif" }}>{match.teamA}</span>
-            <span style={{ color: theme.textFaint, fontSize: 11 }}>vs</span>
-            <span style={{ color: teams[match.teamB].color, fontWeight: 700, fontFamily: "'Fraunces', serif" }}>{match.teamB}</span>
+      <div
+        className="kp-clickable"
+        role="button"
+        tabIndex={0}
+        aria-expanded={open}
+        aria-label={`${match.teamA} versus ${match.teamB}, projected ${totalProj.toFixed(0)} ${cfg.label.toLowerCase()} combined. Activate for player-level detail.`}
+        onClick={() => setOpen(!open)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen(!open); }
+        }}
+        style={{ cursor: "pointer", padding: "15px 18px", display: "flex", alignItems: "center", gap: 14 }}
+      >
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
+            <TeamTag name={match.teamA} color={teams[match.teamA].color} />
+            <span style={{ color: theme.textFaint, fontSize: 10.5, fontWeight: 500 }}>vs</span>
+            <TeamTag name={match.teamB} color={teams[match.teamB].color} />
           </div>
-          <span style={{ fontSize: 11, color: theme.textDim, fontFamily: "'IBM Plex Mono', monospace" }}>{match.date}{match.time ? `, ${match.time}` : ""}</span>
+          <div style={{ marginTop: 7, fontSize: 11.5, color: theme.textFaint, display: "flex", alignItems: "center", gap: 7 }}>
+            <span>{match.date}{match.time ? ` · ${match.time}` : ""}</span>
+            <span aria-hidden="true" style={{ opacity: 0.5 }}>•</span>
+            <span>{games} game{games === 1 ? "" : "s"}</span>
+          </div>
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
-          <span style={{ fontSize: 11, color: theme.textDim }}>tap to expand player projections</span>
-          <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: theme.textDim }}>Σ {totalProj.toFixed(0)} proj {STAT_TYPES[statType].label.toLowerCase()}</span>
-        </div>
+        <StatReadout value={totalProj.toFixed(0)} label={`proj ${cfg.label}`} size={28} />
+        <Chevron open={open} color={theme.textFaint} />
       </div>
       {open && (
         <div style={{ borderTop: `1px solid ${theme.steel}` }}>
@@ -2326,11 +2481,16 @@ function DayPicker({ dates, activeDate, onChange, counts }) {
 
   const total = Object.values(counts).reduce((s, n) => s + n, 0);
 
+  /* Two lines, not three. The old chip stacked day name, date and count
+     separately, which made "All / days / 3" read as three unrelated
+     fragments and gave every chip the height of a card. */
   const Chip = ({ selected, top, bottom, count, onClick }) => (
     <button
       onClick={onClick}
+      className="kp-btn"
+      aria-pressed={selected}
       style={{
-        flex: "0 0 auto", minWidth: 76, padding: "10px 14px", cursor: "pointer",
+        flex: "0 0 auto", minWidth: 74, padding: "8px 13px", cursor: "pointer",
         borderRadius: 12, fontFamily: "'Inter', sans-serif", textAlign: "center",
         border: `1px solid ${selected ? theme.accent : theme.steel}`,
         background: selected ? theme.accentSoft : theme.graphite,
@@ -2339,9 +2499,9 @@ function DayPicker({ dates, activeDate, onChange, counts }) {
       }}
     >
       <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>{top}</div>
-      {bottom && <div style={{ fontSize: 11, opacity: 0.75, whiteSpace: "nowrap", marginTop: 1 }}>{bottom}</div>}
-      <div style={{ fontSize: 10, marginTop: 4, color: selected ? theme.accent : theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
-        {count}
+      <div style={{ fontSize: 10.5, whiteSpace: "nowrap", marginTop: 2, opacity: 0.8 }}>
+        {bottom ? <>{bottom} <span aria-hidden="true">·</span> </> : null}
+        <span className="kp-num">{count}</span>
       </div>
     </button>
   );
@@ -2354,7 +2514,7 @@ function DayPicker({ dates, activeDate, onChange, counts }) {
         paddingBottom: 8, marginBottom: 16, scrollSnapType: "x proximity",
       }}
     >
-      <Chip selected={!activeDate} top="All" bottom="days" count={total} onClick={() => onChange(null)} />
+      <Chip selected={!activeDate} top="All" bottom="" count={total} onClick={() => onChange(null)} />
       {dates.map((iso) => {
         const l = label(iso);
         return (
@@ -2539,6 +2699,91 @@ function ConsistencyCard({ row, rank, cfg }) {
   );
 }
 
+/* ============================================================
+   ACCURACY SUMMARY — the product's actual claim, stated up front.
+
+   Every projection in this app is checkable: the Past Results tab
+   already re-projects each completed match using only the data that
+   existed before it was played, then compares against what happened.
+   That backtest was previously buried one sentence at a time inside
+   individual result cards ("model missed by avg 3.3 kills/player"),
+   so the one thing that tells a visitor whether any of this is worth
+   trusting was never actually stated.
+
+   Aggregated here over the most recent matches. Deliberately capped:
+   this re-runs the point-in-time projection for every player in every
+   match counted, which is the same work the Past Results tab does per
+   card, and the headline does not get more honest by being slower.
+   ============================================================ */
+const ACCURACY_SAMPLE = 25;
+
+function AccuracySummary({ teams, pastMatches, weights, statType, isDesktop }) {
+  const theme = useTheme();
+  const cfg = STAT_TYPES[statType];
+
+  const summary = useMemo(() => {
+    const recent = [...pastMatches]
+      .sort((a, b) => ((a.date || "") < (b.date || "") ? 1 : (a.date || "") > (b.date || "") ? -1 : 0))
+      .slice(0, ACCURACY_SAMPLE);
+
+    const errors = [];
+    for (const match of recent) {
+      // BOTH teams must be in the current roster, not just the one being
+      // iterated. CS2's past_matches reference 125 teams while the roster
+      // carries 60 — the rest are opponents from other regions and older
+      // events — and the model reaches into the opponent's roster to build
+      // its opponent-strength term. Passing a team it does not have throws.
+      // The match cards already guard both sides before projecting; this
+      // aggregate has to do the same.
+      if (!teams[match.teamA] || !teams[match.teamB]) continue;
+      for (const team of [match.teamA, match.teamB]) {
+        const opp = team === match.teamA ? match.teamB : match.teamA;
+        const mapsCounted = match.maps_counted || 2;
+        for (const player of teams[team].players || []) {
+          const actual = getActualStat(match, team, player.name, cfg.key);
+          if (actual === undefined || actual === null) continue;
+          const breakdown = projectPointInTime(
+            pastMatches, teams, player, team, opp, mapsCounted, weights, match.date, statType, match.patch
+          );
+          errors.push(Math.abs(actual - breakdown.total));
+        }
+      }
+    }
+    if (errors.length === 0) return null;
+    const mae = errors.reduce((s, e) => s + e, 0) / errors.length;
+    const within3 = errors.filter((e) => e <= 3).length / errors.length;
+    return { mae, within3, players: errors.length, matches: recent.length };
+  }, [teams, pastMatches, weights, statType, cfg.key]);
+
+  if (!summary) return null;
+
+  const cells = [
+    { value: summary.mae.toFixed(1), label: `avg miss / player`, tone: theme.accent },
+    { value: `${Math.round(summary.within3 * 100)}%`, label: `within 3 ${cfg.label.toLowerCase()}`, tone: theme.good },
+    { value: summary.matches, label: `matches tested`, tone: theme.text },
+  ];
+
+  return (
+    <div className={bracketClass(theme)} style={{
+      background: theme.graphite, border: `1px solid ${theme.steel}`,
+      ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme),
+      padding: isDesktop ? "16px 20px" : "14px 16px", marginBottom: 16,
+      display: "flex", alignItems: "center", gap: isDesktop ? 28 : 16, flexWrap: "wrap",
+    }}>
+      <div style={{ display: "flex", gap: isDesktop ? 28 : 18 }}>
+        {cells.map((c) => (
+          <StatReadout key={c.label} value={c.value} label={c.label} size={isDesktop ? 26 : 22} color={c.tone} align="left" />
+        ))}
+      </div>
+      <div style={{ flex: 1, minWidth: 190, fontSize: 11.5, color: theme.textFaint, lineHeight: 1.55 }}>
+        Measured against the last {summary.matches} completed {cfg.label.toLowerCase() === "kills" ? "matches" : "matches"} in this
+        region — {summary.players.toLocaleString()} player projections, each made using only the data
+        that existed before that match was played.
+      </div>
+    </div>
+  );
+}
+
 function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isDesktop, games }) {
   const theme = useTheme();
   const [customMode, setCustomMode] = useState(false);
@@ -2694,28 +2939,51 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
 
   return (
     <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), marginBottom: 10, overflow: "hidden" }}>
-      <div className="kp-clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer", padding: "16px 18px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
-            <span style={{ color: teams[match.teamA].color, fontWeight: 700, fontFamily: "'Fraunces', serif" }}>{match.teamA}</span>
-            <span style={{ color: theme.textFaint, fontSize: 11 }}>vs</span>
-            <span style={{ color: teams[match.teamB].color, fontWeight: 700, fontFamily: "'Fraunces', serif" }}>{match.teamB}</span>
+      <div
+        className="kp-clickable"
+        role="button"
+        tabIndex={0}
+        aria-expanded={open}
+        aria-label={`${match.teamA} versus ${match.teamB}, ${match.date}. ${match.winner} won ${match.score}. Projected ${totalProj.toFixed(0)}, actual ${totalActual}. Activate for player-level detail.`}
+        onClick={() => setOpen(!open)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen(!open); }
+        }}
+        style={{ cursor: "pointer", padding: "15px 18px", display: "flex", alignItems: "center", gap: 14 }}
+      >
+        {/* Result facts on the left, model performance on the right. These
+            used to run together in one sentence that wrapped mid-number
+            ("missed by avg 3.4 / kills/player"), so neither the result nor
+            the model's error could be read at a glance. */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
+            <TeamTag name={match.teamA} color={teams[match.teamA].color} dim={match.winner !== match.teamA} />
+            <span style={{ color: theme.textFaint, fontSize: 10.5, fontWeight: 500 }}>vs</span>
+            <TeamTag name={match.teamB} color={teams[match.teamB].color} dim={match.winner !== match.teamB} />
           </div>
-          <span style={{ fontSize: 11, color: theme.textDim, fontFamily: "'IBM Plex Mono', monospace" }}>{match.date}</span>
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
-          <span style={{ fontSize: 11, color: theme.textDim }}>
-            <strong style={{ color: teams[match.winner].color }}>{match.winner}</strong> won {match.score}
+          <div style={{ marginTop: 7, fontSize: 11.5, color: theme.textFaint, display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
+            <span><span style={{ color: theme.textDim, fontWeight: 600 }}>{match.winner}</span> won {match.score}</span>
             {match.series_format && (
-              <> · <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
-                {match.series_format}, maps 1-{match.maps_counted || 2}
-              </span></>
+              <>
+                <span aria-hidden="true" style={{ opacity: 0.5 }}>•</span>
+                <span className="kp-num">{match.series_format}, maps 1-{match.maps_counted || 2}</span>
+              </>
             )}
-            {" "}· model missed by avg <strong style={{ color: theme.accent }}>{avgAbsDiff.toFixed(1)}</strong> {cfg.label.toLowerCase()}/player
-            {coldStartCount > 0 ? ` · ${coldStartCount} on prior-split data only` : ""}
-          </span>
-          <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: theme.textDim }}>{totalProj.toFixed(0)} proj / {totalActual} actual</span>
+            <span aria-hidden="true" style={{ opacity: 0.5 }}>•</span>
+            <span className="kp-num">{match.date}</span>
+            {coldStartCount > 0 && (
+              <span className="kp-chip" style={{ background: `${theme.bad}1A`, color: theme.bad, border: `1px solid ${theme.bad}33` }}>
+                {coldStartCount} no prior form
+              </span>
+            )}
+          </div>
         </div>
+        <StatReadout value={`${totalProj.toFixed(0)}/${totalActual}`} label="proj / actual" size={19} />
+        <div style={{ textAlign: "right", flexShrink: 0, minWidth: 62 }}>
+          <DeltaBadge value={avgAbsDiff} />
+          <div style={{ fontSize: 9.5, letterSpacing: 0.9, textTransform: "uppercase", color: theme.textFaint, marginTop: 6, fontWeight: 600 }}>avg miss</div>
+        </div>
+        <Chevron open={open} color={theme.textFaint} />
       </div>
       {open && (
         <div style={{ borderTop: `1px solid ${theme.steel}` }}>
@@ -2966,21 +3234,38 @@ function GameSwitcher({ game, selectGame, statusByGame, theme }) {
    stack on small screens (still bigger/clearer than the old treatment). ---------- */
 
 function TopNav({ theme, gameCfg, region, setRegion, tab, setTab, statType, setStatType, isDesktop }) {
+  const TABS = [["future", "Future"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
   return (
-    <div style={{ marginBottom: 22 }}>
-      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+    <div style={{ marginBottom: isDesktop ? 22 : 14 }}>
+      {/* Region picker. Seven regions wrapped onto two rows on a phone,
+          which cost ~90px of the first screen before any content. One
+          scrolling row instead — the same pattern the day picker uses. */}
+      <div
+        className={isDesktop ? "" : "kp-dayscroll"}
+        role="group"
+        aria-label="Region"
+        style={{
+          display: "flex", gap: 8, marginBottom: isDesktop ? 16 : 12,
+          flexWrap: isDesktop ? "wrap" : "nowrap",
+          overflowX: isDesktop ? "visible" : "auto",
+          paddingBottom: isDesktop ? 0 : 6,
+          scrollSnapType: isDesktop ? "none" : "x proximity",
+        }}
+      >
         {gameCfg.regionList.map((key) => (
           <button
             key={key}
             className="kp-btn"
             onClick={() => setRegion(key)}
+            aria-pressed={region === key}
             style={{
-              padding: isDesktop ? "11px 22px" : "10px 16px", borderRadius: 24,
+              padding: isDesktop ? "11px 22px" : "9px 15px", borderRadius: 24,
               border: "1px solid " + (region === key ? theme.accent : theme.steel),
               background: region === key ? theme.accentSoft : theme.graphite,
               color: region === key ? theme.accent : theme.textDim,
               fontSize: isDesktop ? 15 : 13, fontWeight: 600, cursor: "pointer",
-              fontFamily: "'Fraunces', serif", ...elevation(),
+              fontFamily: "'Fraunces', serif", flexShrink: 0, scrollSnapAlign: "start",
+              ...elevation(),
             }}
           >
             {gameCfg.regionLabels[key]}
@@ -2989,29 +3274,43 @@ function TopNav({ theme, gameCfg, region, setRegion, tab, setTab, statType, setS
       </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12, borderBottom: `1px solid ${theme.steel}` }}>
-        <div style={{ display: "flex", gap: isDesktop ? 24 : 16 }}>
-          {[["future", "Future"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]].map(([id, label]) => (
+        {/* Real tab semantics: these look and behave like tabs, so screen
+            readers should be told that rather than hearing four buttons. */}
+        <div
+          role="tablist"
+          aria-label="View"
+          className={isDesktop ? "" : "kp-dayscroll"}
+          style={{
+            display: "flex", gap: isDesktop ? 24 : 15,
+            overflowX: isDesktop ? "visible" : "auto", maxWidth: "100%",
+          }}
+        >
+          {TABS.map(([id, label]) => (
             <button
               key={id}
               className="kp-btn"
+              role="tab"
+              aria-selected={tab === id}
               onClick={() => setTab(id)}
               style={{
                 padding: "10px 2px 12px", background: "none", border: "none",
                 borderBottom: `2px solid ${tab === id ? theme.accent : "transparent"}`,
                 color: tab === id ? theme.accent : theme.textDim,
-                fontSize: isDesktop ? 15 : 13, fontWeight: 600, cursor: "pointer", fontFamily: "'Fraunces', serif",
+                fontSize: isDesktop ? 15 : 13.5, fontWeight: 600, cursor: "pointer",
+                fontFamily: "'Fraunces', serif", whiteSpace: "nowrap", flexShrink: 0,
               }}
             >
               {label}
             </button>
           ))}
         </div>
-        <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
+        <div role="group" aria-label="Stat" style={{ display: "flex", gap: 4, marginBottom: 8 }}>
           {Object.entries(STAT_TYPES).map(([key, cfg]) => (
             <button
               key={key}
               className="kp-btn"
               onClick={() => setStatType(key)}
+              aria-pressed={statType === key}
               style={{
                 padding: "7px 14px", borderRadius: 20, border: "1px solid " + (statType === key ? theme.accent : theme.steel),
                 background: statType === key ? theme.accentSoft : "transparent",
@@ -3027,8 +3326,6 @@ function TopNav({ theme, gameCfg, region, setRegion, tab, setTab, statType, setS
     </div>
   );
 }
-
-/* ---------- Settings panel ---------- */
 
 function SettingsPanel({ theme, accentOverride, setAccentOverride, cornerStyle, setCornerStyle, open, setOpen }) {
   const [customHex, setCustomHex] = useState(accentOverride || "");
@@ -3312,14 +3609,15 @@ function KillProjector() {
     <ThemeContext.Provider value={theme}>
     <ChampionStatsContext.Provider value={championStats}>
       <div style={{
-        minHeight: "100vh", color: theme.text, fontFamily: "'Inter', -apple-system, sans-serif", padding: isDesktop ? "32px 32px 60px" : "24px 16px 60px",
+        minHeight: "100vh", color: theme.text, fontFamily: "'Inter', -apple-system, sans-serif", padding: isDesktop ? "32px 32px 60px" : "20px 16px 56px",
+        // Exposed to CSS so the stylesheet's focus rings track the live
+        // accent without a rule per game.
+        "--kp-accent-live": theme.accent,
         background: `radial-gradient(ellipse 1200px 800px at 50% -10%, ${theme.accent}0d, transparent 60%), `
           + `linear-gradient(${theme.steelSoft}33 1px, transparent 1px), linear-gradient(90deg, ${theme.steelSoft}33 1px, transparent 1px), `
           + theme.void,
         backgroundSize: "auto, 48px 48px, 48px 48px, auto",
       }}>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" />
         <style>{`
           /* Everything else in this app is inline styles, which can't do
              :hover or animation — this is the one shared stylesheet, kept
@@ -3365,6 +3663,43 @@ function KillProjector() {
           }
           .kp-dayscroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.24); }
           .kp-divider { border: none; height: 1px; }
+          /* ---- Numerals -------------------------------------------------
+             Every figure in this app sits in a column that is compared
+             against the figure above it. Proportional digits make those
+             columns ragged and make a changing number jitter, so all
+             numeric readouts use tabular figures. */
+          .kp-num { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+          table, .kp-tabular { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+          /* ---- Focus ----------------------------------------------------
+             Cards and chips are divs with onClick, which gave keyboard
+             users no way in and no visible focus. Anything interactive now
+             takes focus and shows it, without adding a ring for mouse
+             users. */
+          .kp-btn:focus-visible, .kp-clickable:focus-visible, .kp-focus:focus-visible,
+          button:focus-visible, [role="button"]:focus-visible, input:focus-visible, select:focus-visible {
+            outline: 2px solid var(--kp-accent-live, #C9A86A);
+            outline-offset: 2px;
+          }
+          .kp-btn:focus:not(:focus-visible), .kp-clickable:focus:not(:focus-visible) { outline: none; }
+
+          /* Hairline separators that read as structure rather than as lines. */
+          .kp-row + .kp-row { border-top: 1px solid rgba(255,255,255,0.045); }
+
+          /* ---- Motion ---------------------------------------------------
+             Respect the OS setting. Animation here is decoration; nothing
+             depends on it. */
+          @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+              animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+              transition-duration: 0.01ms !important; scroll-behavior: auto !important;
+            }
+          }
+
+          /* Content appears as data resolves; a 1-frame fade stops tabs
+             from feeling like a hard cut. */
+          @keyframes kp-rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+          .kp-rise { animation: kp-rise 0.22s ease both; }
         `}</style>
         <div style={{
           maxWidth: isDesktop ? 1400 : 640, margin: "0 auto",
@@ -3374,13 +3709,26 @@ function KillProjector() {
               game/status/games-count/advanced controls. Region/View/Stat
               live in TopNav now, not here — see below. ---------- */}
           <div style={{ width: isDesktop ? 260 : "100%", flexShrink: 0, position: isDesktop ? "sticky" : "static", top: isDesktop ? 32 : "auto" }}>
-            <div style={{ marginBottom: 18 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11, letterSpacing: 2, color: theme.accent, fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>
+            {/* The full masthead is a desktop luxury — on a phone the title
+                and its explanation were ~180px of the first screen before
+                anything actionable. The phone keeps the wordmark and drops
+                the rest to a single line. */}
+            <div style={{ marginBottom: isDesktop ? 18 : 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: isDesktop ? 11 : 10.5, letterSpacing: 2, color: theme.accent, fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>
                 <Reticle size={13} color={theme.accent} active />
                 KILL PROJECTOR
               </div>
-              <div style={{ fontSize: 26, fontWeight: 600, marginTop: 6, fontFamily: "'Fraunces', serif" }}>Weighted kill projections</div>
-              <div style={{ fontSize: 13, color: theme.textDim, marginTop: 4, lineHeight: 1.5 }}>Blends this split's rates with prior-split history, opponent strength, and kill-participation.</div>
+              <h1 style={{
+                fontSize: isDesktop ? 26 : 19, fontWeight: 600, margin: isDesktop ? "6px 0 0" : "5px 0 0",
+                fontFamily: "'Fraunces', serif", letterSpacing: -0.2, lineHeight: 1.2,
+              }}>
+                Weighted {STAT_TYPES[statType].singular} projections
+              </h1>
+              {isDesktop && (
+                <div style={{ fontSize: 13, color: theme.textDim, marginTop: 4, lineHeight: 1.5 }}>
+                  Blends this split's rates with prior-split history, opponent strength and kill participation.
+                </div>
+              )}
             </div>
 
             <GameSwitcher game={game} selectGame={selectGame} statusByGame={statusByGame} theme={theme} />
@@ -3402,27 +3750,30 @@ function KillProjector() {
               />
             )}
 
-            <GamesControl theme={theme} games={games} setGames={setGames} />
+            {/* On desktop the sidebar has room for the tuning controls beside
+                the content. On a phone they stack ON TOP of it: every control
+                in this column came before the first projection, so the thing
+                the app is for started roughly a screen and a half down. They
+                render below the content instead — see the main column. */}
+            {isDesktop && (
+              <>
+                <GamesControl theme={theme} games={games} setGames={setGames} />
 
-            {/* ---------- Advanced/optional model tuning, collapsed by default ---------- */}
-            <WeightControls
-              weights={weights} onChangeWeight={setWeight}
-              expanded={slidersExpanded} onToggleExpanded={() => setSlidersExpanded(!slidersExpanded)}
-              statLabel={STAT_TYPES[statType].label}
-            />
+                {/* ---------- Advanced/optional model tuning, collapsed by default ---------- */}
+                <WeightControls
+                  weights={weights} onChangeWeight={setWeight}
+                  expanded={slidersExpanded} onToggleExpanded={() => setSlidersExpanded(!slidersExpanded)}
+                  statLabel={STAT_TYPES[statType].label}
+                  defaults={(DEFAULT_WEIGHTS_BY_GAME_AND_STAT[game] || {})[statType]}
+                />
 
-            <SettingsPanel
-              theme={theme}
-              accentOverride={accentOverride} setAccentOverride={setAccentOverride}
-              cornerStyle={cornerStyle} setCornerStyle={setCornerStyle}
-              open={settingsOpen} setOpen={setSettingsOpen}
-            />
-
-            {!isDesktop && (
-              <div style={{ marginTop: 20, fontSize: 11, color: theme.textFaint, lineHeight: 1.6 }}>
-                Tap any match card to expand player-level detail.
-                Data: {game === "lol" ? "regular-season box scores (gol.gg) and schedule (LoL Esports API)" : "match stats (VLR.gg)"}.
-              </div>
+                <SettingsPanel
+                  theme={theme}
+                  accentOverride={accentOverride} setAccentOverride={setAccentOverride}
+                  cornerStyle={cornerStyle} setCornerStyle={setCornerStyle}
+                  open={settingsOpen} setOpen={setSettingsOpen}
+                />
+              </>
             )}
           </div>
 
@@ -3448,7 +3799,19 @@ function KillProjector() {
                     : "The live source hasn't loaded, and there's no offline snapshot for this region yet."}
                 </div>
               </div>
-            ) : tab === "future" ? (
+            ) : (
+              <>
+                {/* The backtest headline applies to the projection-bearing
+                    tabs; standings and consistency are descriptive, not
+                    predictive, so it would be claiming something there
+                    that those views do not show. */}
+                {(tab === "future" || tab === "past") && (
+                  <AccuracySummary
+                    teams={current.teams} pastMatches={current.past_matches || []}
+                    weights={weights} statType={statType} isDesktop={isDesktop}
+                  />
+                )}
+                {tab === "future" ? (
               <FutureTab teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} isDesktop={isDesktop} games={games} />
             ) : tab === "past" ? (
               <PastResultsTab teams={current.teams} pastMatches={current.past_matches || []} weights={weights} statType={statType} isDesktop={isDesktop} />
@@ -3460,14 +3823,31 @@ function KillProjector() {
                 regionsData={regionsData} regionList={gameCfg.regionList} regionLabels={gameCfg.regionLabels}
                 isDesktop={isDesktop}
               />
+                )}
+              </>
             )}
 
-            {isDesktop && (
-              <div style={{ marginTop: 20, fontSize: 11, color: theme.textFaint, lineHeight: 1.6 }}>
-                Tap any match card to expand player-level detail.
-                Data: {game === "lol" ? "regular-season box scores (gol.gg) and schedule (LoL Esports API)" : "match stats (VLR.gg)"}.
+            {!isDesktop && (
+              <div style={{ marginTop: 24 }}>
+                <GamesControl theme={theme} games={games} setGames={setGames} />
+                <WeightControls
+                  weights={weights} onChangeWeight={setWeight}
+                  expanded={slidersExpanded} onToggleExpanded={() => setSlidersExpanded(!slidersExpanded)}
+                  statLabel={STAT_TYPES[statType].label}
+                  defaults={(DEFAULT_WEIGHTS_BY_GAME_AND_STAT[game] || {})[statType]}
+                />
+                <SettingsPanel
+                  theme={theme}
+                  accentOverride={accentOverride} setAccentOverride={setAccentOverride}
+                  cornerStyle={cornerStyle} setCornerStyle={setCornerStyle}
+                  open={settingsOpen} setOpen={setSettingsOpen}
+                />
               </div>
             )}
+
+            <div style={{ marginTop: 20, fontSize: 11, color: theme.textFaint, lineHeight: 1.6 }}>
+              Data: {game === "lol" ? "regular-season box scores (gol.gg) and schedule (LoL Esports API)" : "match stats (VLR.gg)"}.
+            </div>
           </div>
         </div>
       </div>
