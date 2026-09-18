@@ -196,10 +196,11 @@ jobs:
         timeout-minutes: 45
 
       - name: Scrape bo3.gg (CS2 per-map player stats via direct API + cs2api discovery)
-        # New/experimental — MATCH_LIMIT is currently capped at 20 in
-        # scrape_cs2.py (a deliberate validation-mode limit, not yet raised
-        # for full production coverage). continue-on-error so a hiccup here
-        # never blocks LoL/Valorant data from committing.
+        # MATCH_LIMIT in scrape_cs2.py caps how many tier-filtered matches
+        # are processed per run (currently 60 — see the constant in that
+        # script; this comment previously claimed 20 and had gone stale).
+        # continue-on-error so a hiccup here never blocks LoL/Valorant data
+        # from committing.
         run: python scripts/scrape_cs2.py
         continue-on-error: true
 

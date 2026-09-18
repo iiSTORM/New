@@ -45,7 +45,11 @@ career data merged in via scrape_cs2_career.py + merge_cs2_career_data).
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+# scripts/dev/ (sibling dev modules, e.g. optimize_weights) and
+# scripts/ (production modules, e.g. scrape_career) both need to be
+# importable regardless of the cwd this is launched from.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import optimize_weights  # noqa: E402  -- imported as a module so the constant can be overridden
 from optimize_weights import evaluate, load_region_data  # noqa: E402
 

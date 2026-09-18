@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Diagnostic / probe output captures.
+# The scripts in scripts/dev/ write their stdout to .txt files in the repo
+# root (see each script's header). Those are regenerable investigation
+# artifacts, not source — keep them out of git.
+*_probe*.txt
+*_output*.txt
+*_diagnosis.txt
+*_debug.txt
+scrape_cs2*.txt
+hltv_*.txt
+team_matches*.txt
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# NOTE: the generated data files are deliberately NOT ignored.
+# data.json, cs2_data.json, valorant_data.json, career_data.json,
+# cs2_career_data.json, champion_stats.json and schedule.json are
+# committed by .github/workflows/scrape.yml and served to the frontend
+# from raw.githubusercontent.com — ignoring them would break the site.
