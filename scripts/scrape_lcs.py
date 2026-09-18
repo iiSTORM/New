@@ -604,40 +604,84 @@ def parse_game_kills(game_id):
     return {"kda": result, "draft": draft}
 
 
-def series_g1_g2_kills(base_id, score):
-    """Given the first game's ID, returns combined game-1 + game-2 K/D/A per
-    player, per team (unchanged shape — this is what the rest of the model
-    already depends on as "actual"), PLUS separate per-game draft info
-    (bans, picks, Fearless Draft flag, first-pick side) that callers can use
-    without disturbing anything that already consumes "actual". Works the
-    same regardless of series length (Bo3 or Bo5) since it always fetches
-    exactly the first two individual games.
+def series_format(score):
+    """Infers the series length from the final score. The winner's score
+    IS the "best of" threshold: 2 wins decides a Bo3, 3 decides a Bo5.
+
+    Returns (label, maps_to_count) where maps_to_count is the PROP
+    WINDOW — the maps a player-stat line is normally offered over, which
+    is maps 1-2 for a Bo3 and maps 1-3 for a Bo5. That convention is why
+    this exists: counting all maps of a Bo5 would mean a line covering
+    up to five maps for one series and two for another, which are not
+    comparable numbers.
+
+    Falls back to Bo3/2 maps on anything unparseable, matching this
+    scraper's long-standing behaviour rather than inventing a new one.
+    """
+    try:
+        a, b = (int(x) for x in str(score).split("-"))
+    except (ValueError, AttributeError):
+        return "Bo3", 2
+    best = max(a, b)
+    if best <= 1:
+        return "Bo1", 1
+    if best == 2:
+        return "Bo3", 2
+    return "Bo5", 3
+
+
+def series_prop_window_kills(base_id, score):
+    """Given the first game's ID, returns combined K/D/A per player per
+    team over the series' PROP WINDOW (maps 1-2 for a Bo3, maps 1-3 for
+    a Bo5), plus per-game draft info and the per-game breakdown.
+
+    Previously this always fetched exactly two games regardless of series
+    length, so a Bo5 was measured on maps 1-2 while the lines people
+    actually care about run through map 3. Now the map count follows the
+    real format.
 
     Champion isn't combined into the summed KDA — unlike k/d/a, "champion
-    picked" doesn't make sense to sum across two different games (a player
-    likely played two different champions) — so per-game picks live in
-    draft.games[i] instead."""
-    g1 = parse_game_kills(base_id)
-    g2 = parse_game_kills(base_id + 1)
-    g1_kda, g2_kda = g1["kda"], g2["kda"]
+    picked" doesn't make sense to sum across different games (a player
+    likely played different champions) — so per-game picks live in
+    draft.games[i] instead.
+    """
+    label, n_maps = series_format(score)
+    games = []
+    for offset in range(n_maps):
+        try:
+            games.append(parse_game_kills(base_id + offset))
+        except Exception as e:
+            # A missing later map is normal and not fatal: a Bo5 that
+            # ended 3-0 has no map 4-5, and a map can simply fail to
+            # parse. Counting what we did get beats discarding the whole
+            # series, but the window we actually measured is recorded
+            # below so nothing silently claims 3 maps it never had.
+            if offset == 0:
+                raise  # no map 1 at all means there is no series to record
+            print(f"    map {offset + 1} of {label} series {base_id} unavailable ({e}) — "
+                  f"counting the {offset} map(s) that parsed", file=sys.stderr)
+            break
+
     empty = {"k": 0, "d": 0, "a": 0}
+    kda_list = [g["kda"] for g in games]
     combined = {}
-    for team in g1_kda:
+    for team in kda_list[0]:
         combined[team] = {}
-        for p, kda1 in g1_kda[team].items():
-            kda2 = g2_kda.get(team, {}).get(p, empty)
-            combined[team][p] = {
-                "k": kda1["k"] + kda2["k"],
-                "d": kda1["d"] + kda2["d"],
-                "a": kda1["a"] + kda2["a"],
-            }
+        for p in kda_list[0][team]:
+            tot = {"k": 0, "d": 0, "a": 0}
+            for kda in kda_list:
+                cur = kda.get(team, {}).get(p, empty)
+                tot["k"] += cur["k"]
+                tot["d"] += cur["d"]
+                tot["a"] += cur["a"]
+            combined[team][p] = tot
 
     draft = None
-    if g1["draft"] or g2["draft"]:
+    if any(g.get("draft") for g in games):
         # Fearless flag and first-pick side are per-tournament/per-game
         # properties, not summed — take whichever game actually has them.
-        fearless = (g1["draft"] or {}).get("fearless") or (g2["draft"] or {}).get("fearless") or False
-        draft = {"fearless": fearless, "games": [g1["draft"], g2["draft"]]}
+        fearless = any((g.get("draft") or {}).get("fearless") for g in games)
+        draft = {"fearless": fearless, "games": [g.get("draft") for g in games]}
 
     # Per-game, per-player breakdown WITH champion attached — this is
     # exactly what parse_game_kills already computes per individual game,
@@ -646,10 +690,15 @@ def series_g1_g2_kills(base_id, score):
     # this player perform on this specific champion"), since neither
     # `combined` (summed, no champion) nor `draft.games[i].picks` (an
     # unordered 5-champion list per team, no explicit per-player link)
-    # can answer that question alone.
-    per_game = [g1_kda, g2_kda]
+    # can answer that question alone. It also drives the per-map view in
+    # the app, so it must stay aligned with the maps actually counted.
+    per_game = kda_list
 
-    return combined, draft, per_game
+    # maps_counted is the number of maps that genuinely parsed, which can
+    # be lower than the format implies (a 3-0 Bo5 has no maps 4-5; a map
+    # can fail to parse). Reported separately from the label so nothing
+    # downstream has to assume Bo5 == 3 maps of data.
+    return combined, draft, per_game, label, len(kda_list)
 
 
 def build_teams_payload(cur_players, hist_players, roster):
@@ -746,7 +795,8 @@ def scrape_region(region_key, current_tournament, historical_tournament):
     past_matches = []
 
     def fetch_one(m):
-        kills, draft, per_game = series_g1_g2_kills(m["base_game_id"], m["score"])
+        kills, draft, per_game, fmt, maps_counted = series_prop_window_kills(
+            m["base_game_id"], m["score"])
         left_score, right_score = (int(x) for x in m["score"].split("-"))
         winner = m["team_left"] if left_score > right_score else m["team_right"]
         entry = {
@@ -756,6 +806,13 @@ def scrape_region(region_key, current_tournament, historical_tournament):
             "actual": kills,
             "tournament": m.get("tournament", current_tournament),
             "stage": classify_tournament_stage(m.get("tournament", current_tournament)),
+            # Series format and the number of maps "actual" actually sums
+            # over. Both are stored because they can disagree: a 3-0 Bo5
+            # is labelled Bo5 but only has 3 maps to begin with, and any
+            # map can fail to parse. Consumers that need to compare
+            # like-for-like should use maps_counted, not the label.
+            "series_format": fmt,
+            "maps_counted": maps_counted,
         }
         if draft:
             entry["draft"] = draft

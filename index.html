@@ -642,13 +642,16 @@ function recencyWeightedRate(pastMatches, team, playerName, statKey, cutoffDate,
     if (!m.actual || !(m.teamA === team || m.teamB === team) || !m.actual[team]) continue;
     const val = getActualStat(m, team, playerName, statKey);
     if (val === undefined || val === null) continue; // didn't play, or legacy data missing this stat
-    entries.push({ date: m.date || "", val, patch: parsePatch(m.patch) });
+    // maps carries the series' real map count so the weighted per-game
+    // rate divides by what the total actually covers. A Bo5 sums 3 maps
+    // but a fixed 2 would divide it by 2, inflating that player's rate.
+    entries.push({ date: m.date || "", val, patch: parsePatch(m.patch), maps: m.maps_counted || 2 });
   }
   if (entries.length === 0) return { rate: null, games: 0 };
   entries.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0)); // oldest first
   const n = entries.length;
   const flat = halfLife >= 20;
-  let weightedSum = 0, weightedGames = 0;
+  let weightedSum = 0, weightedGames = 0, totalMaps = 0;
   entries.forEach((e, idx) => {
     const matchesAgo = (n - 1) - idx; // 0 = most recent match
     let weight = flat ? 1 : Math.pow(0.5, matchesAgo / halfLife);
@@ -656,9 +659,12 @@ function recencyWeightedRate(pastMatches, team, playerName, statKey, cutoffDate,
       weight *= (1 - patchDiscount);
     }
     weightedSum += e.val * weight;
-    weightedGames += 2 * weight; // each match entry = game-1 + game-2 combined
+    weightedGames += e.maps * weight;
+    totalMaps += e.maps;
   });
-  return { rate: weightedGames > 0 ? weightedSum / weightedGames : null, games: n * 2 };
+  // games is the prior-map count used for cold-start detection, so it
+  // has to reflect real maps too rather than assuming 2 per match.
+  return { rate: weightedGames > 0 ? weightedSum / weightedGames : null, games: totalMaps };
 }
 
 function project(teams, pastMatches, player, team, opponentTeam, games, weights, statType) {
@@ -774,7 +780,7 @@ function pointInTimeTeamStat(pastMatches, team, statKey, cutoffDate) {
       const val = getActualStat(m, sourceTeam, playerName, "k"); // team-level kills, either own or conceded
       if (typeof val === "number") total += val;
     }
-    games += 2;
+    games += m.maps_counted || 2; // real map count — a Bo5 sums 3 maps, not 2
   }
   return games > 0 ? total / games : null;
 }
@@ -816,7 +822,7 @@ function pointInTimePlayerNamesStat(pastMatches, team, playerNames, statKey, cut
       const val = getActualStat(m, team, name, statKey);
       if (typeof val === "number") {
         total += val;
-        games += 2;
+        games += m.maps_counted || 2; // real map count, as above
       }
     }
   }
@@ -1368,6 +1374,9 @@ function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
   // still renders everything else rather than throwing.
   const form = pastMatches && team ? recentForm(pastMatches, team, p.name, cfg.key, 8) : [];
   const steadiness = consistencyScore(form.map((f) => f.value));
+  // Unbounded count — `form` above is capped at 8 for the chart, which
+  // would badly understate how much history actually exists.
+  const trackedCount = pastMatches && team ? recentForm(pastMatches, team, p.name, cfg.key, 500).length : 0;
   return (
     <div>
       <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
@@ -1429,7 +1438,24 @@ function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
 
       <div style={{ marginTop: 12, fontSize: 11, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.8, paddingTop: 10, borderTop: `1px solid ${theme.steelSoft}` }}>
         <div>opponent ×{r.oppMult.toFixed(2)} {cfg.useKP && <>&nbsp;·&nbsp; kp ×{r.kpMult.toFixed(2)}</>} &nbsp;→&nbsp; <span style={{ color: theme.text }}>{r.perGame.toFixed(2)} {cfg.key}/game</span> × {games}g</div>
-        <div>historical: {p.hist ? `${p.hist[cfg.key].toFixed(1)} ${cfg.key}/g (${p.hist.g}g)` : "no data on file"}</div>
+        {/* Reports the REAL tracked match history first, because the
+            prior-split aggregate below it is a narrow one-split slice
+            and reading "no data on file" made it look as though the app
+            had no history for a player at all — when it may have dozens
+            of matches on record. That field only ever covers the single
+            immediately-preceding split, so a player who changed region,
+            was promoted mid-year, or simply didn't play that one split
+            legitimately has none, which is not the same as unknown. */}
+        <div>
+          tracked history: {trackedCount > 0
+            ? `${trackedCount} match${trackedCount === 1 ? "" : "es"} on record`
+            : "none on record yet"}
+        </div>
+        <div>
+          prior split: {p.hist
+            ? `${p.hist[cfg.key].toFixed(1)} ${cfg.key}/g (${p.hist.g}g)`
+            : "didn't play the preceding split"}
+        </div>
       </div>
 
       {consistency && (
@@ -1492,6 +1518,12 @@ function recentForm(pastMatches, team, playerName, statKey, limit = 8) {
       value: val,
       opponent: m.teamA === team ? m.teamB : m.teamA,
       stage: m.stage || null,
+      // Series format and the maps "value" actually covers. Carried so
+      // the UI can show that a Bo5 figure spans 3 maps while a Bo3 spans
+      // 2 — without it, bars of different map-counts sit side by side
+      // looking directly comparable when they aren't.
+      seriesFormat: m.series_format || null,
+      mapsCounted: m.maps_counted || null,
     });
   }
   rows.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)); // newest first
@@ -1591,9 +1623,31 @@ function RecentFormChart({ rows, line, statLabel }) {
             <div style={{ fontSize: 9, color: theme.textFaint, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {r.opponent}
             </div>
+            {r.seriesFormat && (
+              <div style={{ fontSize: 8, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", opacity: 0.8 }}>
+                {r.seriesFormat}
+                {r.mapsCounted ? `·${r.mapsCounted}m` : ""}
+              </div>
+            )}
           </div>
         ))}
       </div>
+
+      {(() => {
+        // Mixed-format warning. A Bo5 figure covers 3 maps and a Bo3
+        // covers 2, so a bar chart mixing them is not an apples-to-apples
+        // comparison and the hit rate against a single line is only
+        // roughly meaningful. Say so rather than letting the chart imply
+        // more precision than it has.
+        const formats = [...new Set(ordered.map((r) => r.seriesFormat).filter(Boolean))];
+        if (formats.length <= 1) return null;
+        return (
+          <div style={{ marginTop: 8, fontSize: 10, color: theme.textFaint, lineHeight: 1.5 }}>
+            Mixed series lengths ({formats.join(" / ")}) — Bo5 bars cover 3 maps, Bo3 cover 2,
+            so heights aren't directly comparable.
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -2248,57 +2302,72 @@ function TournamentHeader({ tournament, stage }) {
   );
 }
 
-// Day selector for the upcoming-matches view. A slider rather than a
-// dropdown because the days are an ordered continuum and scrubbing
-// across them is the natural motion; an "All days" position sits at the
-// far left so the unfiltered view stays reachable in one move rather
-// than being a separate control.
-function DaySlider({ dates, index, onChange, counts }) {
+// Horizontal scrolling day picker. Chosen over a range slider because
+// the days are discrete labelled things rather than a continuum — you
+// pick "Saturday", you don't scrub toward it — and a scroll row shows
+// each day's label and match count directly instead of hiding them
+// behind a handle position. Scrolls sideways rather than wrapping so
+// the row stays one scannable line on any width.
+function DayPicker({ dates, activeDate, onChange, counts }) {
   const theme = useTheme();
-  if (dates.length <= 1) return null; // a slider over one day is just clutter
-  const isAll = index === 0;
-  const activeDate = isAll ? null : dates[index - 1];
+  if (dates.length <= 1) return null; // a picker over one day is just clutter
 
-  const label = (() => {
-    if (isAll) return "All days";
-    const d = new Date(activeDate + "T00:00:00");
-    if (isNaN(d)) return activeDate;
+  const label = (iso) => {
+    const d = new Date(iso + "T00:00:00");
+    if (isNaN(d)) return { top: iso, bottom: "" };
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const diff = Math.round((d - today) / 86400000);
-    const pretty = d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
-    if (diff === 0) return `Today · ${pretty}`;
-    if (diff === 1) return `Tomorrow · ${pretty}`;
-    return pretty;
-  })();
+    const md = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    if (diff === 0) return { top: "Today", bottom: md };
+    if (diff === 1) return { top: "Tomorrow", bottom: md };
+    return { top: d.toLocaleDateString(undefined, { weekday: "short" }), bottom: md };
+  };
 
-  const shown = isAll
-    ? Object.values(counts).reduce((s, n) => s + n, 0)
-    : counts[activeDate] || 0;
+  const total = Object.values(counts).reduce((s, n) => s + n, 0);
+
+  const Chip = ({ selected, top, bottom, count, onClick }) => (
+    <button
+      onClick={onClick}
+      style={{
+        flex: "0 0 auto", minWidth: 76, padding: "10px 14px", cursor: "pointer",
+        borderRadius: 12, fontFamily: "'Inter', sans-serif", textAlign: "center",
+        border: `1px solid ${selected ? theme.accent : theme.steel}`,
+        background: selected ? theme.accentSoft : theme.graphite,
+        color: selected ? theme.accent : theme.textDim,
+        scrollSnapAlign: "start",
+      }}
+    >
+      <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>{top}</div>
+      {bottom && <div style={{ fontSize: 11, opacity: 0.75, whiteSpace: "nowrap", marginTop: 1 }}>{bottom}</div>}
+      <div style={{ fontSize: 10, marginTop: 4, color: selected ? theme.accent : theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
+        {count}
+      </div>
+    </button>
+  );
 
   return (
-    <div style={{ marginBottom: 18, padding: "14px 16px", background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle) }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
-        <span style={{ fontSize: 16, fontWeight: 600, color: theme.text, fontFamily: "'Fraunces', serif" }}>
-          {label}
-        </span>
-        <span style={{ fontSize: 12, color: theme.textDim, fontFamily: "'IBM Plex Mono', monospace" }}>
-          {shown} match{shown === 1 ? "" : "es"}
-        </span>
-      </div>
-      <input
-        type="range"
-        min={0}
-        max={dates.length}
-        step={1}
-        value={index}
-        onChange={(e) => onChange(parseInt(e.target.value, 10))}
-        style={{ width: "100%", accentColor: theme.accent }}
-      />
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 10, color: theme.textFaint }}>
-        <span>All</span>
-        <span>{dates.length} day{dates.length === 1 ? "" : "s"} scheduled</span>
-      </div>
+    <div
+      className="kp-dayscroll"
+      style={{
+        display: "flex", gap: 8, overflowX: "auto", overflowY: "hidden",
+        paddingBottom: 8, marginBottom: 16, scrollSnapType: "x proximity",
+      }}
+    >
+      <Chip selected={!activeDate} top="All" bottom="days" count={total} onClick={() => onChange(null)} />
+      {dates.map((iso) => {
+        const l = label(iso);
+        return (
+          <Chip
+            key={iso}
+            selected={activeDate === iso}
+            top={l.top}
+            bottom={l.bottom}
+            count={counts[iso] || 0}
+            onClick={() => onChange(activeDate === iso ? null : iso)}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -2318,13 +2387,30 @@ function ConsistencyTab({ teams, pastMatches, statType, isDesktop }) {
   const theme = useTheme();
   const cfg = STAT_TYPES[statType];
   const [sortBy, setSortBy] = useState("consistency");
-  const [minGames, setMinGames] = useState(5);
+  // The analysis WINDOW — how many recent matches to score consistency
+  // over — not merely a minimum. The previous control capped at 10,
+  // which was a leftover from before tournament discovery quadrupled the
+  // match pool; players now routinely have far more history than that,
+  // and capping the window threw most of it away.
+  const [windowSize, setWindowSize] = useState(15);
+
+  // How much history actually exists, so the control can be bounded by
+  // the real data rather than an arbitrary constant that goes stale the
+  // moment the pool grows again.
+  let deepest = 0;
+  for (const [teamName, teamData] of Object.entries(teams)) {
+    for (const player of teamData.players || []) {
+      deepest = Math.max(deepest, recentForm(pastMatches, teamName, player.name, cfg.key, 200).length);
+    }
+  }
+  const maxWindow = Math.max(10, Math.min(60, deepest));
+  const effectiveWindow = Math.min(windowSize, maxWindow);
 
   const rows = [];
   for (const [teamName, teamData] of Object.entries(teams)) {
     for (const player of teamData.players || []) {
-      const form = recentForm(pastMatches, teamName, player.name, cfg.key, 12);
-      if (form.length < minGames) continue;
+      const form = recentForm(pastMatches, teamName, player.name, cfg.key, effectiveWindow);
+      if (form.length < 3) continue; // variance needs at least 3 points to mean anything
       const values = form.map((f) => f.value);
       const steadiness = consistencyScore(values);
       if (!steadiness) continue;
@@ -2364,18 +2450,19 @@ function ConsistencyTab({ teams, pastMatches, statType, isDesktop }) {
           </button>
         ))}
         <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: theme.textFaint }}>
-          min {minGames} matches
+          last {effectiveWindow} matches
           <input
-            type="range" min={3} max={10} step={1} value={minGames}
-            onChange={(e) => setMinGames(parseInt(e.target.value, 10))}
-            style={{ width: 90, accentColor: theme.accent }}
+            type="range" min={3} max={maxWindow} step={1} value={effectiveWindow}
+            onChange={(e) => setWindowSize(parseInt(e.target.value, 10))}
+            style={{ width: 110, accentColor: theme.accent }}
           />
+          <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>max {maxWindow}</span>
         </span>
       </div>
 
       {top.length === 0 ? (
         <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: 16, textAlign: "center", fontSize: 12, color: theme.textDim }}>
-          No players have {minGames}+ recent matches on record yet. Lower the minimum, or wait for more results.
+          No players have 3+ recent matches on record yet — there isn't enough match history loaded to score consistency.
         </div>
       ) : (
         <div style={isDesktop ? { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 10, alignItems: "start" } : {}}>
@@ -2475,12 +2562,14 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isD
     if (m.date) acc[m.date] = (acc[m.date] || 0) + 1;
     return acc;
   }, {});
-  const [dayIndex, setDayIndex] = useState(0);
-  // Clamp rather than trust stored state: the schedule reshapes on every
-  // refresh, so an index valid a moment ago can point past the end of a
-  // shorter list and silently render an empty view.
-  const safeDayIndex = Math.min(dayIndex, dates.length);
-  const activeDate = safeDayIndex === 0 ? null : dates[safeDayIndex - 1];
+  // Keyed on the DATE itself rather than a position index. An index is
+  // only meaningful relative to a particular list, and the schedule
+  // reshapes on every refresh — a stored index silently points at a
+  // different day (or off the end) once the list changes. A date either
+  // still exists or it doesn't, and the guard below handles that
+  // explicitly instead of quietly showing the wrong day.
+  const [selectedDate, setSelectedDate] = useState(null);
+  const activeDate = selectedDate && dates.includes(selectedDate) ? selectedDate : null;
   const visible = activeDate ? sorted.filter((m) => m.date === activeDate) : sorted;
 
   const grouped = sortGroupsByProgression(groupByLabel(visible, (m) => m.block || m.week || null));
@@ -2499,7 +2588,7 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isD
         Projected {STAT_TYPES[statType].label.toLowerCase()} ({games} game{games > 1 ? "s" : ""} combined) for each
         upcoming matchup, using current model weights.
       </div>
-      <DaySlider dates={dates} index={safeDayIndex} onChange={setDayIndex} counts={dateCounts} />
+      <DayPicker dates={dates} activeDate={activeDate} onChange={setSelectedDate} counts={dateCounts} />
       {activeDate && visible.length === 0 && (
         <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: "16px", textAlign: "center", fontSize: 12, color: theme.textDim, marginBottom: 10 }}>
           No matches on this day.
@@ -2575,8 +2664,13 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
       .map((p) => ({ p, actual: getActualStat(match, team, p.name, cfg.key) }))
       .filter(({ actual }) => actual !== undefined && actual !== null) // undefined = didn't play; null = legacy data without this stat
       .map(({ p, actual }) => {
-        const breakdown = projectPointInTime(pastMatches, teams, p, team, opp, 2, weights, match.date, statType, match.patch);
-        return { team, name: p.name, role: p.role, proj: breakdown.total, priorGames: breakdown.priorGames, actual, diff: actual - breakdown.total, player: p, breakdown };
+        // maps_counted, not 2 — "actual" sums the series' real prop
+        // window (maps 1-2 for a Bo3, 1-3 for a Bo5), so a fixed 2 here
+        // would under-predict every Bo5 and make the PROJ/ACT/DIFF
+        // columns disagree with the model's own backtest.
+        const mapsCounted = match.maps_counted || 2;
+        const breakdown = projectPointInTime(pastMatches, teams, p, team, opp, mapsCounted, weights, match.date, statType, match.patch);
+        return { team, name: p.name, role: p.role, proj: breakdown.total, priorGames: breakdown.priorGames, actual, diff: actual - breakdown.total, player: p, breakdown, mapsCounted };
       });
   });
 
@@ -2611,7 +2705,13 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
           <span style={{ fontSize: 11, color: theme.textDim }}>
-            <strong style={{ color: teams[match.winner].color }}>{match.winner}</strong> won {match.score} · model missed by avg <strong style={{ color: theme.accent }}>{avgAbsDiff.toFixed(1)}</strong> {cfg.label.toLowerCase()}/player
+            <strong style={{ color: teams[match.winner].color }}>{match.winner}</strong> won {match.score}
+            {match.series_format && (
+              <> · <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
+                {match.series_format}, maps 1-{match.maps_counted || 2}
+              </span></>
+            )}
+            {" "}· model missed by avg <strong style={{ color: theme.accent }}>{avgAbsDiff.toFixed(1)}</strong> {cfg.label.toLowerCase()}/player
             {coldStartCount > 0 ? ` · ${coldStartCount} on prior-split data only` : ""}
           </span>
           <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: theme.textDim }}>{totalProj.toFixed(0)} proj / {totalActual} actual</span>
@@ -2637,7 +2737,7 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
               r={row.breakdown}
               p={row.player}
               cfg={cfg}
-              games={2}
+              games={row.mapsCounted}
               pastMatches={pastMatches}
               team={row.team}
             />
@@ -3253,6 +3353,17 @@ function KillProjector() {
             display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px;
             font-size: 10px; font-weight: 600; letter-spacing: 0.3px; font-family: 'Inter', sans-serif;
           }
+          /* Day picker scroll row — a thin, quiet scrollbar rather than
+             the OS default, which is heavy enough to dominate a row of
+             small chips. Still visible (not hidden) so it stays obvious
+             that the row scrolls when it overflows. */
+          .kp-dayscroll { scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
+          .kp-dayscroll::-webkit-scrollbar { height: 6px; }
+          .kp-dayscroll::-webkit-scrollbar-track { background: transparent; }
+          .kp-dayscroll::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.14); border-radius: 3px;
+          }
+          .kp-dayscroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.24); }
           .kp-divider { border: none; height: 1px; }
         `}</style>
         <div style={{

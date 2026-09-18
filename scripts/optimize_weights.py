@@ -173,7 +173,14 @@ def _recency_entries(past_matches, team, player_name, stat_key, cutoff_date):
         val = get_actual_stat(m, team, player_name, stat_key)
         if val is None or val == "unavailable":
             continue
-        entries.append((m.get("date") or "", val, parse_patch(m.get("patch"))))
+        # maps_counted rides along so the weighted per-game rate below
+        # can divide by the maps a series ACTUALLY covered. Without it a
+        # Bo5's 3-map total is divided by 2, inflating that player's rate
+        # — which is exactly what pushed the optimizer to shift weight
+        # off recent form and onto the prior-split `hist` figure (which
+        # comes from gol.gg's own per-game stats and stayed correct).
+        entries.append((m.get("date") or "", val, parse_patch(m.get("patch")),
+                        m.get("maps_counted", 2)))
     entries.sort(key=lambda e: e[0])
     _recency_entries_cache[key] = entries
     return entries
@@ -187,15 +194,19 @@ def recency_weighted_rate(past_matches, team, player_name, stat_key, cutoff_date
     n = len(entries)
     flat = half_life >= 20
     weighted_sum, weighted_games = 0.0, 0.0
-    for idx, (_date, val, patch) in enumerate(entries):
+    total_maps = 0
+    for idx, (_date, val, patch, maps) in enumerate(entries):
         matches_ago = (n - 1) - idx
         weight = 1.0 if flat else 0.5 ** (matches_ago / half_life)
         if reference_patch and patch and compare_patch(patch, reference_patch) != 0:
             weight *= (1 - patch_discount)
         weighted_sum += val * weight
-        weighted_games += 2 * weight
+        weighted_games += maps * weight
+        total_maps += maps
     rate = weighted_sum / weighted_games if weighted_games > 0 else None
-    return rate, n * 2
+    # Second return value is the prior-GAMES count used for cold-start
+    # detection, so it must also reflect real maps rather than n * 2.
+    return rate, total_maps
 
 
 def likely_starters(players):
@@ -269,7 +280,10 @@ def point_in_time_team_stat(past_matches, team, stat_key, cutoff_date):
             val = get_actual_stat(m, source_team, player_name, "k")
             if isinstance(val, (int, float)):
                 total += val
-        games += 2
+        # Real map count, not a fixed 2 — "actual" sums maps 1-2 for a
+        # Bo3 but 1-3 for a Bo5, so dividing every match by 2 inflates
+        # the per-game rate for anyone with Bo5 history.
+        games += m.get("maps_counted", 2)
     result = total / games if games > 0 else None
     _point_in_time_team_stat_cache[key] = result
     return result
@@ -326,11 +340,12 @@ def point_in_time_player_names_stat(past_matches, team, player_names, stat_key, 
             continue
         if not m.get("actual") or team not in m["actual"]:
             continue
+        maps = m.get("maps_counted", 2)  # see note in point_in_time_team_stat
         for name in player_names:
             val = get_actual_stat(m, team, name, stat_key)
             if isinstance(val, (int, float)):
                 total += val
-                games += 2
+                games += maps
     rate = total / games if games > 0 else None
     result = (rate, games)
     _player_names_stat_cache[key] = result
@@ -610,8 +625,18 @@ def collect_predictions(region_data, stat_type, weights):
                     actual = get_actual_stat(match, team, player["name"], cfg["key"])
                     if actual is None or actual == "unavailable":
                         continue
+                    # maps_counted, not a hardcoded 2. "actual" now sums
+                    # the series' real prop window — maps 1-2 for a Bo3
+                    # but maps 1-3 for a Bo5 — so predicting two maps for
+                    # every match under-predicts every Bo5 by roughly a
+                    # third. That mismatch is invisible per-row and shows
+                    # up only as inflated MAE plus weights contorting to
+                    # absorb an error the model structurally cannot fix.
+                    # Defaults to 2 for records written before the field
+                    # existed.
                     predicted, prior_games = project_point_in_time(
-                        past_matches, teams, player, team, opp, 2, weights,
+                        past_matches, teams, player, team, opp,
+                        match.get("maps_counted", 2), weights,
                         match["date"], stat_type, match.get("patch")
                     )
                     if prior_games == 0 and not player.get("hist"):
@@ -628,6 +653,23 @@ def mae(results):
 
 def evaluate(region_data, stat_type, weights):
     return mae(collect_predictions(region_data, stat_type, weights))
+
+
+# Minimum RELATIVE improvement required to accept a parameter change.
+#
+# Coordinate descent otherwise takes any improvement at all, however
+# small, which is not harmless: a real LoL run accepted flipping
+# patchDiscount from 0.0 to 1.0 -- a total inversion of that parameter's
+# meaning -- to buy 0.0023 MAE (0.08%) on n=7368, and simultaneously
+# dropped recencyHalfLife from 20 to 2. Both are far inside the noise
+# floor for a sample that size, and both would have shipped as if they
+# were findings. The other two stats converged cleanly at 20/0.0, which
+# is what made the kills result visibly suspect.
+#
+# 0.25% is deliberately conservative: large enough to reject fourth-
+# decimal noise, small enough that genuine effects (every real
+# improvement measured on this project has been >1%) pass easily.
+MIN_RELATIVE_IMPROVEMENT = 0.0025
 
 
 def coordinate_descent(region_data, stat_type, start_weights, passes=3):
@@ -670,7 +712,9 @@ def coordinate_descent(region_data, stat_type, start_weights, passes=3):
                 trial = dict(weights)
                 trial[param] = cand
                 m = evaluate(region_data, stat_type, trial)
-                if m is not None and m < best_mae:
+                # Require a MEANINGFUL improvement, not merely any
+                # improvement — see MIN_RELATIVE_IMPROVEMENT above.
+                if m is not None and m < best_mae * (1 - MIN_RELATIVE_IMPROVEMENT):
                     best_mae = m
                     best_val = cand
                     improved = True
