@@ -150,3 +150,67 @@ class TestRegression:
         before = check_data.counts({"regions": {}})
         check_data.check_regression(check_data.counts(sample()), before, 50.0, errors)
         assert errors == []
+
+
+class TestAuxEntryCount:
+    def test_counts_players_in_a_flat_map(self):
+        assert check_data.aux_entry_count("career_data.json", {"1": {}, "2": {}}) == 2
+
+    def test_champion_stats_counts_its_contents_not_its_two_keys(self):
+        """Counting top-level keys would return 2 for an empty file."""
+        stats = {"champions": {"Ryze": {}, "Ezreal": {}}, "player_champions": {"a": {}}}
+        assert check_data.aux_entry_count("champion_stats.json", stats) == 3
+        assert check_data.aux_entry_count("champion_stats.json",
+                                          {"champions": {}, "player_champions": {}}) == 0
+
+    def test_non_dict_is_zero(self):
+        assert check_data.aux_entry_count("career_data.json", []) == 0
+
+
+class TestAuxFileCollapse:
+    """The failure that actually happened: gol.gg unreachable, scrape_career
+    resolved 0 of 320 players, wrote {} over a good cache and exited 0."""
+
+    @staticmethod
+    def _run(tmp_path, monkeypatch, current, baseline, name="career_data.json"):
+        import json as _json
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / name).write_text(_json.dumps(current))
+        monkeypatch.setattr(check_data, "load_baseline", lambda path, ref: baseline)
+        monkeypatch.setattr(check_data, "AUX_FILES", {"lol": [name]})
+        errors = []
+        check_data.check_aux_files("lol", 50.0, "HEAD", errors)
+        return errors
+
+    def test_emptied_cache_fails(self, tmp_path, monkeypatch):
+        errors = self._run(tmp_path, monkeypatch, {}, {str(i): {} for i in range(320)})
+        assert len(errors) == 1 and "100%" in errors[0]
+
+    def test_stable_cache_passes(self, tmp_path, monkeypatch):
+        players = {str(i): {} for i in range(320)}
+        assert self._run(tmp_path, monkeypatch, players, players) == []
+
+    def test_ordinary_churn_passes(self, tmp_path, monkeypatch):
+        """Players do leave rosters; that is not a collapse."""
+        errors = self._run(tmp_path, monkeypatch,
+                           {str(i): {} for i in range(300)},
+                           {str(i): {} for i in range(320)})
+        assert errors == []
+
+    def test_growth_passes(self, tmp_path, monkeypatch):
+        errors = self._run(tmp_path, monkeypatch,
+                           {str(i): {} for i in range(400)},
+                           {str(i): {} for i in range(320)})
+        assert errors == []
+
+    def test_missing_file_is_skipped_not_failed(self, tmp_path, monkeypatch):
+        """These steps are continue-on-error and may produce nothing."""
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(check_data, "AUX_FILES", {"lol": ["career_data.json"]})
+        errors = []
+        check_data.check_aux_files("lol", 50.0, "HEAD", errors)
+        assert errors == []
+
+    def test_no_baseline_is_skipped(self, tmp_path, monkeypatch):
+        errors = self._run(tmp_path, monkeypatch, {"1": {}}, None)
+        assert errors == []

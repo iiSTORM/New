@@ -891,9 +891,23 @@ def main():
 
     if failed and len(failed) == len(REGIONS):
         print(f"\n! ALL {len(REGIONS)} regions failed this run (see errors above) — likely gol.gg "
-              f"itself being unreachable, not a bug in this script. Falling back entirely to "
-              f"whatever was already committed, so this run is a genuine no-op if data.json "
-              f"already existed.", file=sys.stderr)
+              f"itself being unreachable, not a bug in this script.", file=sys.stderr)
+        # Do not rewrite data.json in this case.
+        #
+        # Every region fell back to the copy already committed, so the only
+        # thing a write would change is generated_at — stamping stale content
+        # as fresh. That is worse than useless: check_data.py reads that
+        # timestamp to decide whether a scrape actually happened, so a
+        # re-stamped no-op run passed the freshness check while nothing had
+        # been refreshed (run 116). Leaving the file untouched keeps its real
+        # age, and exiting non-zero makes a total outage visible instead of
+        # silently green.
+        if existing_regions:
+            print(f"  Leaving the committed data.json untouched rather than re-stamping stale "
+                  f"content as fresh. Nothing to commit this run.", file=sys.stderr)
+            sys.exit(1)
+        print(f"  ! No committed data.json to fall back to either — writing what little there "
+              f"is so the file exists at all.", file=sys.stderr)
 
     with open("data.json", "w") as f:
         # Written minified: these files are machine-generated and never read
