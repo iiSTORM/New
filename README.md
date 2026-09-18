@@ -11,10 +11,13 @@ falls back to a snapshot bundled inside the page if a fetch fails.
 ## Layout
 
 ```
-index.html                  the entire frontend
-.github/workflows/scrape.yml the twice-daily (09:00 / 21:00 UTC) update job
-scripts/                    production scrapers — run by the workflow
-scripts/dev/                investigation tooling — never run by the workflow
+index.html                     the entire frontend
+.github/workflows/scrape.yml   the twice-daily (09:00 / 21:00 UTC) update job
+.github/workflows/tests.yml    pytest, on pull requests and pushes to main
+scripts/                       production scrapers — run by the workflow
+scripts/check_data.py          pre-commit validation of a scraped file
+scripts/dev/                   investigation tooling — never run by the workflow
+tests/                         unit tests (no network, stdlib only)
 playoffs_and_international_roadmap.md  design notes
 ```
 
@@ -119,3 +122,28 @@ expect to be run from the repo root:
 ```bash
 python scripts/dev/optimize_weights.py
 ```
+
+## Working on this repo
+
+Run the tests before pushing:
+
+```bash
+pip install pytest
+python -m pytest tests/ -v
+```
+
+They cover the merge step, the data check and the shape of the committed
+data files. Nothing in them touches the network, so they run in under a
+second. The scrapers themselves are not unit-tested — they are network-bound
+end to end — so CI additionally byte-compiles every script to catch syntax
+errors in them.
+
+Commit messages are worth a sentence explaining *why*, since the history is
+the only record of decisions here. A fair number of existing commits on
+`main` say `123`, `update` or `asdf`, which makes the reasoning behind past
+changes unrecoverable — several of the more surprising choices in this repo
+(the reset-and-reapply push loop, the CS2 career step ordering) had to be
+reconstructed from code comments rather than history. Those commits are left
+as they are: `main` is pushed to by the scrape bot twice a day, and rewriting
+published history would break every existing clone and checkout for no
+functional gain.
