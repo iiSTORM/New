@@ -151,7 +151,7 @@ function initialsFor(name) {
    flexible stats array so it works for both the single-number "PROJ"
    case (future matches) and the three-number "PROJ / ACT / DIFF" case
    (past matches) without duplicating markup. */
-function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, cfg, games }) {
+function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, cfg, games, pastMatches, team }) {
   const [open, setOpen] = useState(false);
   const canExpand = !!(r && p && cfg); // callers that don't pass the full breakdown just get the plain row, same as before
   return (
@@ -159,7 +159,7 @@ function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, 
       className={canExpand ? "kp-clickable" : undefined}
       onClick={canExpand ? () => setOpen(!open) : undefined}
       style={{
-        padding: "13px 16px", borderTop: `1px solid ${theme.steelSoft}`,
+        padding: "15px 18px", borderTop: `1px solid ${theme.steelSoft}`,
         cursor: canExpand ? "pointer" : "default",
         background: open ? theme.graphiteLight : "transparent",
       }}
@@ -212,7 +212,7 @@ function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, 
       </div>
       {open && canExpand && (
         <div style={{ marginTop: 12 }}>
-          <ProjectionDetail r={r} p={p} cfg={cfg} games={games} />
+          <ProjectionDetail r={r} p={p} cfg={cfg} games={games} pastMatches={pastMatches} team={team} />
         </div>
       )}
     </div>
@@ -1355,7 +1355,7 @@ function ScoreBar({ label, value, max, unit, color }) {
 // this was extracted — the two were previously separate components with
 // separate detail-rendering code, which is exactly why a UI update to
 // one didn't show up in the other.
-function ProjectionDetail({ r, p, cfg, games }) {
+function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
   const theme = useTheme();
   const championStats = useChampionStats();
   const consistency = championStats ? championPoolConsistency(p.name, championStats, cfg.key) : null;
@@ -1364,6 +1364,10 @@ function ProjectionDetail({ r, p, cfg, games }) {
   const edgePct = seasonTotal > 0 ? ((r.total - seasonTotal) / seasonTotal) * 100 : null;
   const axes = projectionRadarAxes(r, seasonAvg);
   const tags = projectionTags(r, theme);
+  // pastMatches/team are optional so any caller that hasn't been updated
+  // still renders everything else rather than throwing.
+  const form = pastMatches && team ? recentForm(pastMatches, team, p.name, cfg.key, 8) : [];
+  const steadiness = consistencyScore(form.map((f) => f.value));
   return (
     <div>
       <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
@@ -1399,6 +1403,29 @@ function ProjectionDetail({ r, p, cfg, games }) {
         )}
         <ScoreBar label="Season average" value={seasonAvg} max={Math.max(r.recentFormRate, r.careerRate || 0, seasonAvg) * 1.15} unit={`${cfg.key}/g`} color={theme.textFaint} />
       </div>
+
+      {form.length > 0 && (
+        <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${theme.steelSoft}` }}>
+          <RecentFormChart rows={form} line={r.total} statLabel={cfg.label.toLowerCase()} />
+          {steadiness && (
+            <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 11, color: theme.textFaint }}>Consistency</span>
+              <div style={{ flex: 1, minWidth: 90, height: 5, background: theme.steelSoft, borderRadius: 3, overflow: "hidden" }}>
+                <div style={{
+                  width: `${steadiness.score}%`, height: "100%", borderRadius: 3,
+                  background: steadiness.score >= 70 ? theme.good : steadiness.score >= 45 ? theme.accent : theme.bad,
+                }} />
+              </div>
+              <span style={{ fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", color: theme.textDim }}>
+                {steadiness.score.toFixed(0)}/100
+              </span>
+              <span style={{ fontSize: 11, color: theme.textFaint }}>
+                avg {steadiness.mean.toFixed(1)} · ±{(steadiness.cv * steadiness.mean).toFixed(1)}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
 
       <div style={{ marginTop: 12, fontSize: 11, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.8, paddingTop: 10, borderTop: `1px solid ${theme.steelSoft}` }}>
         <div>opponent ×{r.oppMult.toFixed(2)} {cfg.useKP && <>&nbsp;·&nbsp; kp ×{r.kpMult.toFixed(2)}</>} &nbsp;→&nbsp; <span style={{ color: theme.text }}>{r.perGame.toFixed(2)} {cfg.key}/game</span> × {games}g</div>
@@ -1440,13 +1467,144 @@ function ProjectionDetail({ r, p, cfg, games }) {
   );
 }
 
+/* ============================================================
+   RECENT FORM & CONSISTENCY — the last N matches for a player,
+   and how reliably they produce.
+
+   Deliberately works at MATCH level rather than per-game. The LoL
+   scraper does emit a finer `per_game` field, but it is LoL-only,
+   and more importantly every projection in this app is a per-MATCH
+   number. Showing per-game history next to a per-match projection
+   would invite comparing two different units. Match level keeps the
+   history and the projection directly comparable.
+   ============================================================ */
+
+function recentForm(pastMatches, team, playerName, statKey, limit = 8) {
+  const rows = [];
+  for (const m of pastMatches) {
+    if (!m.actual) continue;
+    const onTeam = m.teamA === team || m.teamB === team;
+    if (!onTeam) continue;
+    const val = getActualStat(m, team, playerName, statKey);
+    if (val === undefined || val === null) continue;
+    rows.push({
+      date: m.date || "",
+      value: val,
+      opponent: m.teamA === team ? m.teamB : m.teamA,
+      stage: m.stage || null,
+    });
+  }
+  rows.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)); // newest first
+  return rows.slice(0, limit);
+}
+
+// Consistency as coefficient of variation (stdev / mean), inverted onto
+// a friendlier 0-100 scale. CV is the right base measure here because it
+// is scale-free: 3 assists of spread means something very different for
+// a support averaging 12 than for a top laner averaging 4, and a raw
+// standard deviation would rank every low-volume player as "consistent"
+// purely for having small numbers.
+function consistencyScore(values) {
+  const n = values.length;
+  if (n < 3) return null; // too few games for a variance figure to mean anything
+  const mean = values.reduce((s, v) => s + v, 0) / n;
+  if (mean <= 0) return null;
+  const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) / n;
+  const cv = Math.sqrt(variance) / mean;
+  // cv 0 -> 100 (perfectly steady), cv 1.0 -> 0 (spread as large as the
+  // average). Clamped because CV is unbounded above.
+  return { cv, score: Math.max(0, Math.min(100, (1 - cv) * 100)), mean, n };
+}
+
+// How often a player cleared a given line — the figure a props-style
+// view actually leads with. Ties count as a miss, matching the standard
+// "over" convention where landing exactly on the line does not win.
+function hitRate(values, line) {
+  if (!values.length || line == null) return null;
+  const hits = values.filter((v) => v > line).length;
+  return { hits, total: values.length, pct: (hits / values.length) * 100 };
+}
+
+// Props-style recent form: one bar per recent match, with the current
+// projection drawn across as the reference line so "would this have
+// cleared?" is readable at a glance. Bars are colored against that line
+// rather than against each other, since the line is the actual question.
+function RecentFormChart({ rows, line, statLabel }) {
+  const theme = useTheme();
+  if (!rows.length) return null;
+  const ordered = [...rows].reverse(); // oldest -> newest reads left to right
+  const maxVal = Math.max(...ordered.map((r) => r.value), line || 0, 1);
+  const hr = hitRate(rows.map((r) => r.value), line);
+  const H = 92;
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: theme.text, fontFamily: "'Inter', sans-serif" }}>
+          Last {ordered.length} matches
+        </span>
+        {hr && (
+          <span style={{ fontSize: 12, fontFamily: "'IBM Plex Mono', monospace", color: theme.textDim }}>
+            <span style={{ color: hr.pct >= 50 ? theme.good : theme.bad, fontWeight: 700 }}>
+              {hr.hits}/{hr.total}
+            </span>{" "}
+            over {line.toFixed(1)}
+          </span>
+        )}
+      </div>
+
+      <div style={{ position: "relative", height: H, display: "flex", alignItems: "flex-end", gap: 4 }}>
+        {line != null && maxVal > 0 && (
+          <div
+            title={`Projection: ${line.toFixed(1)} ${statLabel}`}
+            style={{
+              position: "absolute", left: 0, right: 0, bottom: (line / maxVal) * H,
+              borderTop: `1px dashed ${theme.accent}`, opacity: 0.75, pointerEvents: "none", zIndex: 1,
+            }}
+          />
+        )}
+        {ordered.map((r, i) => {
+          const h = Math.max(2, (r.value / maxVal) * H);
+          const over = line != null && r.value > line;
+          return (
+            <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+              <div
+                title={`${r.value} vs ${r.opponent}${r.date ? ` · ${r.date}` : ""}`}
+                style={{
+                  width: "100%", height: h, borderRadius: "3px 3px 0 0",
+                  background: over ? theme.good : theme.steel,
+                  border: `1px solid ${over ? theme.good : theme.steel}`,
+                  minHeight: 2,
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
+        {ordered.map((r, i) => (
+          <div key={i} style={{ flex: 1, textAlign: "center" }}>
+            <div style={{ fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", color: theme.text, fontWeight: 600 }}>
+              {r.value}
+            </div>
+            <div style={{ fontSize: 9, color: theme.textFaint, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {r.opponent}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function PlayerRow({ teams, pastMatches, p, team, opponentTeam, games, weights, teamColor, statType }) {
   const theme = useTheme();
   const cfg = STAT_TYPES[statType];
   const r = project(teams, pastMatches, p, team, opponentTeam, games, weights, statType);
   const [open, setOpen] = useState(false);
   return (
-    <div className="kp-clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer", borderBottom: `1px solid ${theme.steel}`, padding: "13px 16px", background: open ? theme.graphiteLight : "transparent" }}>
+    <div className="kp-clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer", borderBottom: `1px solid ${theme.steel}`, padding: "15px 18px", background: open ? theme.graphiteLight : "transparent" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
           <span
@@ -1475,7 +1633,7 @@ function PlayerRow({ teams, pastMatches, p, team, opponentTeam, games, weights, 
       </div>
       {open && (
         <div style={{ marginTop: 12 }}>
-          <ProjectionDetail r={r} p={p} cfg={cfg} games={games} />
+          <ProjectionDetail r={r} p={p} cfg={cfg} games={games} pastMatches={pastMatches} team={team} />
         </div>
       )}
     </div>
@@ -1925,7 +2083,7 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games }
 
   return (
     <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), marginBottom: 10, overflow: "hidden" }}>
-      <div className="kp-clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer", padding: "12px 14px" }}>
+      <div className="kp-clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer", padding: "16px 18px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
             <span style={{ color: teams[match.teamA].color, fontWeight: 700, fontFamily: "'Fraunces', serif" }}>{match.teamA}</span>
@@ -1954,6 +2112,8 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games }
               p={row.player}
               cfg={cfg}
               games={games}
+              pastMatches={pastMatches}
+              team={row.team}
             />
           ))}
         </div>
@@ -2088,6 +2248,210 @@ function TournamentHeader({ tournament, stage }) {
   );
 }
 
+// Day selector for the upcoming-matches view. A slider rather than a
+// dropdown because the days are an ordered continuum and scrubbing
+// across them is the natural motion; an "All days" position sits at the
+// far left so the unfiltered view stays reachable in one move rather
+// than being a separate control.
+function DaySlider({ dates, index, onChange, counts }) {
+  const theme = useTheme();
+  if (dates.length <= 1) return null; // a slider over one day is just clutter
+  const isAll = index === 0;
+  const activeDate = isAll ? null : dates[index - 1];
+
+  const label = (() => {
+    if (isAll) return "All days";
+    const d = new Date(activeDate + "T00:00:00");
+    if (isNaN(d)) return activeDate;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diff = Math.round((d - today) / 86400000);
+    const pretty = d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+    if (diff === 0) return `Today · ${pretty}`;
+    if (diff === 1) return `Tomorrow · ${pretty}`;
+    return pretty;
+  })();
+
+  const shown = isAll
+    ? Object.values(counts).reduce((s, n) => s + n, 0)
+    : counts[activeDate] || 0;
+
+  return (
+    <div style={{ marginBottom: 18, padding: "14px 16px", background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle) }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
+        <span style={{ fontSize: 16, fontWeight: 600, color: theme.text, fontFamily: "'Fraunces', serif" }}>
+          {label}
+        </span>
+        <span style={{ fontSize: 12, color: theme.textDim, fontFamily: "'IBM Plex Mono', monospace" }}>
+          {shown} match{shown === 1 ? "" : "es"}
+        </span>
+      </div>
+      <input
+        type="range"
+        min={0}
+        max={dates.length}
+        step={1}
+        value={index}
+        onChange={(e) => onChange(parseInt(e.target.value, 10))}
+        style={{ width: "100%", accentColor: theme.accent }}
+      />
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 10, color: theme.textFaint }}>
+        <span>All</span>
+        <span>{dates.length} day{dates.length === 1 ? "" : "s"} scheduled</span>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Consistency tab ---------- */
+
+// Ranks every tracked player by how reliably they produce, so the
+// steadiest names are browsable in one place rather than having to be
+// discovered by opening players one at a time.
+//
+// Ranking on consistency ALONE would be misleading: a player averaging
+// 1.2 kills with almost no variance would top the list while being
+// useless to act on. So volume is shown alongside, the list can be
+// sorted by either, and a minimum-games floor keeps small samples from
+// manufacturing fake steadiness.
+function ConsistencyTab({ teams, pastMatches, statType, isDesktop }) {
+  const theme = useTheme();
+  const cfg = STAT_TYPES[statType];
+  const [sortBy, setSortBy] = useState("consistency");
+  const [minGames, setMinGames] = useState(5);
+
+  const rows = [];
+  for (const [teamName, teamData] of Object.entries(teams)) {
+    for (const player of teamData.players || []) {
+      const form = recentForm(pastMatches, teamName, player.name, cfg.key, 12);
+      if (form.length < minGames) continue;
+      const values = form.map((f) => f.value);
+      const steadiness = consistencyScore(values);
+      if (!steadiness) continue;
+      rows.push({
+        name: player.name, team: teamName, role: player.role,
+        color: teamData.color, form, values,
+        score: steadiness.score, mean: steadiness.mean, cv: steadiness.cv, n: steadiness.n,
+      });
+    }
+  }
+
+  rows.sort((a, b) => (sortBy === "consistency" ? b.score - a.score : b.mean - a.mean));
+  const top = rows.slice(0, 60);
+
+  return (
+    <div>
+      <div style={{ fontSize: 11, color: theme.textFaint, marginBottom: 12, lineHeight: 1.5 }}>
+        How steady each player's {cfg.label.toLowerCase()} output has been across their recent matches.
+        Consistency is scored from the coefficient of variation (spread relative to their own average),
+        so it's comparable across high- and low-volume players. A high score means their output is
+        predictable — not that it's large, which is why the average is shown next to it.
+      </div>
+
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 16 }}>
+        {[["consistency", "Most consistent"], ["volume", "Highest average"]].map(([id, label]) => (
+          <button
+            key={id}
+            onClick={() => setSortBy(id)}
+            style={{
+              fontSize: 12, fontWeight: 600, padding: "6px 13px", borderRadius: 20,
+              fontFamily: "'Inter', sans-serif", cursor: "pointer", border: "none",
+              color: sortBy === id ? theme.accent : theme.textDim,
+              background: sortBy === id ? theme.accentSoft : theme.steelSoft,
+            }}
+          >
+            {label}
+          </button>
+        ))}
+        <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: theme.textFaint }}>
+          min {minGames} matches
+          <input
+            type="range" min={3} max={10} step={1} value={minGames}
+            onChange={(e) => setMinGames(parseInt(e.target.value, 10))}
+            style={{ width: 90, accentColor: theme.accent }}
+          />
+        </span>
+      </div>
+
+      {top.length === 0 ? (
+        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: 16, textAlign: "center", fontSize: 12, color: theme.textDim }}>
+          No players have {minGames}+ recent matches on record yet. Lower the minimum, or wait for more results.
+        </div>
+      ) : (
+        <div style={isDesktop ? { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 10, alignItems: "start" } : {}}>
+          {top.map((row, i) => (
+            <ConsistencyCard key={row.team + row.name} row={row} rank={i + 1} cfg={cfg} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ConsistencyCard({ row, rank, cfg }) {
+  const theme = useTheme();
+  const [open, setOpen] = useState(false);
+  const barColor = row.score >= 70 ? theme.good : row.score >= 45 ? theme.accent : theme.bad;
+  return (
+    <div
+      className="kp-clickable"
+      onClick={() => setOpen(!open)}
+      style={{
+        background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+        ...elevation(), marginBottom: 10, padding: "14px 16px", cursor: "pointer",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <span style={{ fontSize: 11, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", width: 20 }}>
+          {rank}
+        </span>
+        <span style={{
+          width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: `${row.color}22`, border: `1.5px solid ${row.color}`,
+          color: row.color, fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 12,
+        }}>
+          {initialsFor(row.name)}
+        </span>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: theme.text, fontFamily: "'Fraunces', serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {row.name}
+          </div>
+          <div style={{ fontSize: 11, color: theme.textFaint }}>
+            {row.team}{row.role ? ` · ${row.role}` : ""}
+          </div>
+        </div>
+        <div style={{ textAlign: "right", flexShrink: 0 }}>
+          <div style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 600, color: barColor }}>
+            {row.score.toFixed(0)}
+          </div>
+          <div style={{ fontSize: 10, color: theme.textFaint }}>consistency</div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
+        <div style={{ flex: 1, height: 5, background: theme.steelSoft, borderRadius: 3, overflow: "hidden" }}>
+          <div style={{ width: `${row.score}%`, height: "100%", background: barColor, borderRadius: 3 }} />
+        </div>
+        <span style={{ fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", color: theme.textDim }}>
+          avg {row.mean.toFixed(1)} {cfg.key}
+        </span>
+        <span style={{ fontSize: 11, color: theme.textFaint }}>{row.n}g</span>
+      </div>
+
+      {open && (
+        <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${theme.steelSoft}` }}>
+          <RecentFormChart rows={row.form.slice(0, 8)} line={row.mean} statLabel={cfg.label.toLowerCase()} />
+          <div style={{ marginTop: 8, fontSize: 11, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
+            spread ±{(row.cv * row.mean).toFixed(1)} around a {row.mean.toFixed(1)} average
+            {" "}(CV {row.cv.toFixed(2)}) — line shown is their own average, not a projection.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isDesktop, games }) {
   const theme = useTheme();
   const [customMode, setCustomMode] = useState(false);
@@ -2103,14 +2467,30 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isD
     const tb = b._sortKey || b.date || "";
     return ta < tb ? -1 : ta > tb ? 1 : 0;
   });
-  const grouped = sortGroupsByProgression(groupByLabel(sorted, (m) => m.block || m.week || null));
+
+  // Day filtering. dayIndex 0 is the "all days" position; 1..n map onto
+  // the distinct scheduled dates in order.
+  const dates = [...new Set(sorted.map((m) => m.date).filter(Boolean))].sort();
+  const dateCounts = sorted.reduce((acc, m) => {
+    if (m.date) acc[m.date] = (acc[m.date] || 0) + 1;
+    return acc;
+  }, {});
+  const [dayIndex, setDayIndex] = useState(0);
+  // Clamp rather than trust stored state: the schedule reshapes on every
+  // refresh, so an index valid a moment ago can point past the end of a
+  // shorter list and silently render an empty view.
+  const safeDayIndex = Math.min(dayIndex, dates.length);
+  const activeDate = safeDayIndex === 0 ? null : dates[safeDayIndex - 1];
+  const visible = activeDate ? sorted.filter((m) => m.date === activeDate) : sorted;
+
+  const grouped = sortGroupsByProgression(groupByLabel(visible, (m) => m.block || m.week || null));
   // On wide screens, let cards flow into as many columns as fit rather than
   // a single stacked column — auto-fill means this scales smoothly with
   // whatever width is actually available instead of a hard 2-vs-1 rule.
   // alignItems: "start" keeps each card its own natural height rather than
   // stretching to match a taller expanded neighbor in the same row.
   const gridStyle = isDesktop
-    ? { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 10, alignItems: "start" }
+    ? { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(420px, 1fr))", gap: 14, alignItems: "start" }
     : {};
 
   return (
@@ -2119,6 +2499,12 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isD
         Projected {STAT_TYPES[statType].label.toLowerCase()} ({games} game{games > 1 ? "s" : ""} combined) for each
         upcoming matchup, using current model weights.
       </div>
+      <DaySlider dates={dates} index={safeDayIndex} onChange={setDayIndex} counts={dateCounts} />
+      {activeDate && visible.length === 0 && (
+        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: "16px", textAlign: "center", fontSize: 12, color: theme.textDim, marginBottom: 10 }}>
+          No matches on this day.
+        </div>
+      )}
       {upcomingMatches.length === 0 && (
         <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: "16px", textAlign: "center", fontSize: 12, color: theme.textDim, marginBottom: 10 }}>
           No upcoming matches loaded. Use the custom matchup tool below.
@@ -2214,7 +2600,7 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
 
   return (
     <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), marginBottom: 10, overflow: "hidden" }}>
-      <div className="kp-clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer", padding: "12px 14px" }}>
+      <div className="kp-clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer", padding: "16px 18px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
             <span style={{ color: teams[match.teamA].color, fontWeight: 700, fontFamily: "'Fraunces', serif" }}>{match.teamA}</span>
@@ -2252,6 +2638,8 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
               p={row.player}
               cfg={cfg}
               games={2}
+              pastMatches={pastMatches}
+              team={row.team}
             />
           ))}
         </div>
@@ -2284,7 +2672,7 @@ function PastResultsTab({ teams, pastMatches, weights, statType, isDesktop }) {
   // tournament's group naturally starts at its own latest match.
   const byTournament = groupByLabel(filtered, (m) => m.tournament || null);
   const gridStyle = isDesktop
-    ? { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 10, alignItems: "start" }
+    ? { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(420px, 1fr))", gap: 14, alignItems: "start" }
     : {};
 
   return (
@@ -2502,7 +2890,7 @@ function TopNav({ theme, gameCfg, region, setRegion, tab, setTab, statType, setS
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12, borderBottom: `1px solid ${theme.steel}` }}>
         <div style={{ display: "flex", gap: isDesktop ? 24 : 16 }}>
-          {[["future", "Future"], ["past", "Past Results"], ["standings", "Standings"]].map(([id, label]) => (
+          {[["future", "Future"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]].map(([id, label]) => (
             <button
               key={id}
               className="kp-btn"
@@ -2953,6 +3341,8 @@ function KillProjector() {
               <FutureTab teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} isDesktop={isDesktop} games={games} />
             ) : tab === "past" ? (
               <PastResultsTab teams={current.teams} pastMatches={current.past_matches || []} weights={weights} statType={statType} isDesktop={isDesktop} />
+            ) : tab === "consistency" ? (
+              <ConsistencyTab teams={current.teams} pastMatches={current.past_matches || []} statType={statType} isDesktop={isDesktop} />
             ) : (
               <StandingsTab
                 teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming}
