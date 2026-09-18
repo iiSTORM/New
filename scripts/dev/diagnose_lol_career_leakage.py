@@ -54,7 +54,11 @@ Requires: data.json (with career data already merged in).
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+# scripts/dev/ (sibling dev modules, e.g. optimize_weights) and
+# scripts/ (production modules, e.g. scrape_career) both need to be
+# importable regardless of the cwd this is launched from.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from optimize_weights import (  # noqa: E402
     load_region_data, STAT_TYPES, project_point_in_time, get_actual_stat,
 )

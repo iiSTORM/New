@@ -28,7 +28,11 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+# scripts/dev/ (sibling dev modules, e.g. optimize_weights) and
+# scripts/ (production modules, e.g. scrape_career) both need to be
+# importable regardless of the cwd this is launched from.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from scrape_career import decayed_career_baseline, CURRENT_SEASON  # noqa: E402
 from optimize_weights import evaluate, load_region_data, DEFAULT_WEIGHTS  # noqa: E402
 

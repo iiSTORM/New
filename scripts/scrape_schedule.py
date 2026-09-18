@@ -9,6 +9,8 @@ Merges into data.json's "regions" structure alongside scrape_lcs.py's output.
 """
 import json
 import sys
+from datetime import datetime, timezone
+
 import requests
 
 API = "https://esports-api.lolesports.com/persisted/gw"
@@ -85,7 +87,14 @@ def main():
         print(f"  {region_key}: {len(upcoming)} upcoming matches after filtering")
 
     with open("schedule.json", "w") as f:
-        json.dump({"regions": regions}, f, indent=2)
+        # Written minified: these files are machine-generated and never read
+        # by hand, and indent=2 was about two thirds of the bytes
+        # (data.json: 7.5MB -> 2.4MB). GitHub serves them gzipped, so the
+        # win on the wire is smaller (~535KB -> ~340KB), but the browser
+        # still parses the full decompressed text, and every run commits a
+        # whole fresh copy.
+        json.dump({"generated_at": datetime.now(timezone.utc).isoformat(),
+                   "regions": regions}, f, separators=(",", ":"))
     print(f"Wrote schedule.json for regions: {list(regions.keys())}")
 
 

@@ -1,0 +1,51 @@
+name: Tests
+
+# Runs on pull requests and on pushes to main. The scrape workflow's own
+# bot commits land on main, so this doubles as a check that each freshly
+# scraped snapshot still has the shape index.html expects.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch: {}
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # The modules under test import nothing outside the standard library,
+      # so the scrapers' own dependencies (requests, beautifulsoup4, cs2api,
+      # aiohttp) are deliberately not installed here — the tests do not hit
+      # the network and should not need them.
+      - name: Install pytest
+        run: pip install pytest
+
+      - name: Run tests
+        run: python -m pytest tests/ -v
+
+      - name: Check every script still compiles
+        # Cheap guard for the scrapers themselves, which are not unit-tested
+        # because they are network-bound end to end.
+        run: python -m compileall -q scripts/
+
+      # ---- Front end -----------------------------------------------------
+      # index.html is generated from src/app.jsx. Committing a stale
+      # index.html would ship an app that does not match its source and is
+      # invisible in review, since the diff would simply be missing. This
+      # rebuilds and fails if the result differs from what is committed.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install build dependencies
+        run: npm ci
+
+      - name: Check index.html matches src/
+        run: npm run check

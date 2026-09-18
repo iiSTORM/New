@@ -350,7 +350,13 @@ async def build_career_data():
 def main():
     data = asyncio.run(build_career_data())
     with open(OUTPUT_PATH, "w") as f:
-        json.dump(data, f, indent=2, default=str)
+        # Written minified: these files are machine-generated and never read
+        # by hand, and indent=2 was about two thirds of the bytes
+        # (data.json: 7.5MB -> 2.4MB). GitHub serves them gzipped, so the
+        # win on the wire is smaller (~535KB -> ~340KB), but the browser
+        # still parses the full decompressed text, and every run commits a
+        # whole fresh copy.
+        json.dump(data, f, separators=(",", ":"), default=str)
     resolved = sum(1 for v in data.values() if v.get("games"))
     print(f"\nWrote {OUTPUT_PATH}: {len(data)} players resolved, {resolved} with usable raw game history")
 

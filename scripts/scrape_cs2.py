@@ -808,7 +808,13 @@ async def main():
         "regions": {"CS2": payload},
     }
     with open("cs2_data.json", "w") as f:
-        json.dump(output, f, indent=2)
+        # Written minified: these files are machine-generated and never read
+        # by hand, and indent=2 was about two thirds of the bytes
+        # (data.json: 7.5MB -> 2.4MB). GitHub serves them gzipped, so the
+        # win on the wire is smaller (~535KB -> ~340KB), but the browser
+        # still parses the full decompressed text, and every run commits a
+        # whole fresh copy.
+        json.dump(output, f, separators=(",", ":"))
     print(f"\nWrote cs2_data.json: {len(payload['teams'])} teams, "
           f"{len(payload['past_matches'])} past matches, {len(payload['upcoming_matches'])} upcoming matches")
 

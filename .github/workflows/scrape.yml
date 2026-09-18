@@ -33,20 +33,50 @@ jobs:
         run: python scripts/scrape_lcs.py
 
       - name: Scrape LoL schedule (LoL Esports API)
+        id: schedule
         run: python scripts/scrape_schedule.py
         continue-on-error: true  # don't block the whole update if this one API hiccups
 
       - name: Scrape LoL player career history (gol.gg, multi-season)
+        id: career
         run: python scripts/scrape_career.py
         continue-on-error: true  # incremental/cached by design, but shouldn't block data.json if it fails or times out — a stale career_data.json (or none at all) just means merge_career_data() falls back every player to career=None, which the model already handles gracefully
         timeout-minutes: 45  # first-ever run has no cache to build on (hundreds of players, some needing all 11 seasons individually) — subsequent runs are much faster since past seasons are cached and only the current season gets re-fetched
 
       - name: Aggregate champion-level stat baselines
+        id: champion_stats
         run: python scripts/aggregate_champion_stats.py
         continue-on-error: true  # reads data.json's per_game field (from scrape_lcs.py above) — champion_stats.json is fetched independently by the app, so a failure here doesn't affect anything else in this job
 
       - name: Merge LoL data into final data.json
         run: python scripts/merge.py
+
+      # Deliberately NOT continue-on-error, and deliberately before the
+      # commit step: if the data is stale or gutted, the run goes red and
+      # the bad snapshot never reaches main.
+      - name: Check data.json is fresh and complete
+        run: python scripts/check_data.py lol
+
+      # The steps above marked continue-on-error are allowed to fail, but
+      # a failure that nobody ever sees is how the career tier silently
+      # decayed before. Surface them as annotations on the run instead.
+      - name: Report degraded steps
+        if: always()
+        run: |
+          degraded=0
+          for step in "schedule:${{ steps.schedule.outcome }}" \
+                      "career:${{ steps.career.outcome }}" \
+                      "champion_stats:${{ steps.champion_stats.outcome }}"; do
+            name=${step%%:*}; outcome=${step#*:}
+            if [ "$outcome" != "success" ]; then
+              echo "::warning title=Degraded LoL data::'$name' step did not succeed (outcome: $outcome) — data.json was still built, but that tier is now stale"
+              degraded=1
+            fi
+          done
+          if [ "$degraded" = "0" ]; then
+            echo "All optional LoL steps succeeded"
+          fi
+          exit 0
 
       - name: Commit data.json
         run: |
@@ -60,6 +90,13 @@ jobs:
           # pattern already used for valorant_data.json below.
           [ -f career_data.json ] && git add career_data.json
           [ -f champion_stats.json ] && git add champion_stats.json
+          # schedule.json is an intermediate (merge.py folds it into
+          # data.json), but it is also the fallback merge.py reads when the
+          # schedule scrape fails. It went uncommitted, so that fallback was
+          # whatever was last committed by hand — three weeks stale, i.e.
+          # fixtures that had already been played. Committing it each run
+          # keeps the fallback at most one cycle old.
+          [ -f schedule.json ] && git add schedule.json
           if git diff --quiet --cached; then
             echo "No changes to commit"
             exit 0
@@ -85,6 +122,7 @@ jobs:
             cp data.json /tmp/data.json.new
             [ -f career_data.json ] && cp career_data.json /tmp/career_data.json.new
             [ -f champion_stats.json ] && cp champion_stats.json /tmp/champion_stats.json.new
+            [ -f schedule.json ] && cp schedule.json /tmp/schedule.json.new
             git fetch origin main
             git reset --hard origin/main
             cp /tmp/data.json.new data.json
@@ -96,6 +134,10 @@ jobs:
             if [ -f /tmp/champion_stats.json.new ]; then
               cp /tmp/champion_stats.json.new champion_stats.json
               git add champion_stats.json
+            fi
+            if [ -f /tmp/schedule.json.new ]; then
+              cp /tmp/schedule.json.new schedule.json
+              git add schedule.json
             fi
             if git diff --quiet --cached; then
               echo "Remote already has this exact snapshot — nothing left to push"
@@ -120,7 +162,14 @@ jobs:
 
       - name: Scrape VLR.gg (Valorant match stats + results)
         run: python scripts/scrape_valorant.py
-        continue-on-error: true  # experimental — don't let a failure here block the LoL data getting committed
+        # No longer continue-on-error: this is the only step in this job, so
+        # swallowing its failure left the run green with nothing updated.
+        # It runs on its own runner, so failing here cannot block the LoL or
+        # CS2 jobs from committing — which is what continue-on-error was
+        # originally protecting against.
+
+      - name: Check valorant_data.json is fresh and complete
+        run: python scripts/check_data.py valorant
 
       - name: Commit valorant_data.json
         run: |
@@ -191,17 +240,35 @@ jobs:
         # cs2_data.json itself from being produced and committed;
         # merge_cs2_career_data() already falls back cleanly when the
         # career file is absent or stale.
+        id: cs2_career
         run: python scripts/scrape_cs2_career.py
         continue-on-error: true
         timeout-minutes: 45
 
       - name: Scrape bo3.gg (CS2 per-map player stats via direct API + cs2api discovery)
-        # New/experimental — MATCH_LIMIT is currently capped at 20 in
-        # scrape_cs2.py (a deliberate validation-mode limit, not yet raised
-        # for full production coverage). continue-on-error so a hiccup here
-        # never blocks LoL/Valorant data from committing.
+        # MATCH_LIMIT in scrape_cs2.py caps how many tier-filtered matches
+        # are processed per run (currently 60 — see the constant in that
+        # script; this comment previously claimed 20 and had gone stale).
+        # continue-on-error so a hiccup here never blocks LoL/Valorant data
+        # from committing.
         run: python scripts/scrape_cs2.py
-        continue-on-error: true
+        # No longer continue-on-error — see the Valorant job. A failure here
+        # meant cs2_data.json silently kept whatever was already committed
+        # while the run reported success. The career step above stays
+        # tolerated, since stale career data is handled by design.
+
+      - name: Check cs2_data.json is fresh and complete
+        run: python scripts/check_data.py cs2
+
+      - name: Report degraded steps
+        if: always()
+        run: |
+          if [ "${{ steps.cs2_career.outcome }}" != "success" ]; then
+            echo "::warning title=Degraded CS2 data::career step did not succeed (outcome: ${{ steps.cs2_career.outcome }}) — cs2_data.json was still built, but the career tier is now stale"
+          else
+            echo "CS2 career step succeeded"
+          fi
+          exit 0
 
       - name: Commit cs2_data.json
         run: |

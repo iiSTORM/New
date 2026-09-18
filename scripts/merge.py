@@ -13,6 +13,7 @@ gol.gg's exact casing). Add more here as the logs report new mismatches —
 aren't determined yet, so it isn't projectable regardless)."""
 import json
 import sys
+from datetime import datetime, timezone
 
 TEAM_NAME_MAP = {
     # LCS
@@ -119,14 +120,56 @@ def merge_career_data(data):
               file=sys.stderr)
 
 
-def main():
-    with open("data.json") as f:
-        data = json.load(f)
+# scrape_schedule.py is continue-on-error in the workflow, so when it fails
+# the schedule.json left on disk is whatever git checked out. Reusing a
+# recent one is a reasonable fallback; reusing an old one is not, because
+# every fixture in it has since been played and would be published as
+# "upcoming". Past that age we drop upcoming matches entirely, which the
+# frontend already renders as simply having no fixtures listed.
+MAX_SCHEDULE_AGE_DAYS = 3
+
+
+def load_schedule():
+    """schedule.json, or an empty schedule if it is missing or too old."""
     try:
         with open("schedule.json") as f:
             schedule = json.load(f)
     except FileNotFoundError:
-        schedule = {"regions": {}}
+        print("No schedule.json — upcoming matches will be empty", file=sys.stderr)
+        return {"regions": {}}
+
+    stamp = schedule.get("generated_at")
+    if not stamp:
+        # Written before scrape_schedule.py stamped its output. Nothing to
+        # judge it by, so use it, but say so.
+        print("WARNING: schedule.json has no generated_at — using it, but its "
+              "age is unknown", file=sys.stderr)
+        return schedule
+
+    try:
+        generated = datetime.fromisoformat(stamp)
+    except ValueError:
+        print(f"WARNING: schedule.json has an unparseable generated_at ({stamp!r}) "
+              f"— using it anyway", file=sys.stderr)
+        return schedule
+
+    if generated.tzinfo is None:
+        generated = generated.replace(tzinfo=timezone.utc)
+    age_days = (datetime.now(timezone.utc) - generated).total_seconds() / 86400
+    if age_days > MAX_SCHEDULE_AGE_DAYS:
+        print(f"WARNING: schedule.json is {age_days:.1f} days old (limit "
+              f"{MAX_SCHEDULE_AGE_DAYS}) — the schedule scrape has been failing. "
+              f"Dropping upcoming matches rather than publishing fixtures that "
+              f"have already been played.", file=sys.stderr)
+        return {"regions": {}}
+    print(f"Schedule is {age_days:.1f} days old")
+    return schedule
+
+
+def main():
+    with open("data.json") as f:
+        data = json.load(f)
+    schedule = load_schedule()
 
     for region_key, region_data in data.get("regions", {}).items():
         known_teams = set(region_data.get("teams", {}).keys())
@@ -174,7 +217,13 @@ def main():
     merge_career_data(data)
 
     with open("data.json", "w") as f:
-        json.dump(data, f, indent=2)
+        # Written minified: these files are machine-generated and never read
+        # by hand, and indent=2 was about two thirds of the bytes
+        # (data.json: 7.5MB -> 2.4MB). GitHub serves them gzipped, so the
+        # win on the wire is smaller (~535KB -> ~340KB), but the browser
+        # still parses the full decompressed text, and every run commits a
+        # whole fresh copy.
+        json.dump(data, f, separators=(",", ":"))
 
 
 if __name__ == "__main__":
