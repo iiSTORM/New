@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#14181F" />
+<title>Esports Kill Projector</title>
+<!-- The wordmark's reticle, inline: the page was requesting a favicon.ico
+     that does not exist and taking a 404 on every single load. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%3E%3Crect%20width%3D%2224%22%20height%3D%2224%22%20rx%3D%225%22%20fill%3D%22%2314181F%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%226.2%22%20stroke%3D%22%23C9A86A%22%20stroke-width%3D%221.7%22%2F%3E%3Cline%20x1%3D%2212%22%20y1%3D%222.4%22%20x2%3D%2212%22%20y2%3D%226.4%22%20stroke%3D%22%23C9A86A%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2212%22%20y1%3D%2217.6%22%20x2%3D%2212%22%20y2%3D%2221.6%22%20stroke%3D%22%23C9A86A%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%222.4%22%20y1%3D%2212%22%20x2%3D%226.4%22%20y2%3D%2212%22%20stroke%3D%22%23C9A86A%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2217.6%22%20y1%3D%2212%22%20x2%3D%2221.6%22%20y2%3D%2212%22%20stroke%3D%22%23C9A86A%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%221.7%22%20fill%3D%22%23C9A86A%22%2F%3E%3C%2Fsvg%3E" />
+<meta name="description" content="Weighted kill, death and assist projections for League of Legends, Counter-Strike 2 and Valorant, backtested against completed matches." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preconnect" href="https://raw.githubusercontent.com" />
+<!-- One request rather than two: a second stylesheet is a second round trip
+     before any text can paint. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" />
+<style>
+  /* Base tokens live here as CSS custom properties as well as in the JS
+     theme object, so the shell can paint correct colours before React has
+     loaded — otherwise the first frame is unstyled. */
+  :root {
+    --kp-void: #14181F;
+    --kp-graphite: #1B212B;
+    --kp-steel: #2C3444;
+    --kp-text: #EDEFF4;
+    --kp-text-dim: #A8B0C0;
+    --kp-text-faint: #5C6478;
+    --kp-accent: #C9A86A;
+  }
+  html, body { margin: 0; padding: 0; background: var(--kp-void); color: var(--kp-text);
+               font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+               -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  #root { min-height: 100vh; }
+  #error-box { margin: 16px; padding: 14px; background: #2a1418; border: 1px solid #5c2a2a; border-radius: 8px;
+               color: #ff9a9a; font-family: 'IBM Plex Mono', monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; }
+  input[type="text"]::placeholder { color: var(--kp-text-faint); }
+
+  /* ---- Boot skeleton ----------------------------------------------------
+     React, ReactDOM and Babel are ~3MB from a CDN and the app's JSX is then
+     compiled in the browser, so there is a real gap before first render. A
+     spinner or a "Loading…" line makes that gap feel like a failure; a
+     skeleton in the shape of the actual layout makes it feel like loading.
+     Removed by the app on first paint. */
+  #boot { padding: 28px 20px; max-width: 1400px; margin: 0 auto; display: flex; gap: 32px; }
+  #boot .boot-side { width: 260px; flex-shrink: 0; }
+  #boot .boot-main { flex: 1; min-width: 0; }
+  .sk { background: linear-gradient(90deg, #1B212B 25%, #232B39 50%, #1B212B 75%);
+        background-size: 400% 100%; animation: sk-shimmer 1.4s ease-in-out infinite;
+        border-radius: 8px; }
+  @keyframes sk-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+  @media (prefers-reduced-motion: reduce) { .sk { animation: none; } }
+  @media (max-width: 900px) { #boot { display: block; padding: 20px 16px; } #boot .boot-side { width: auto; } }
+</style>
+</head>
+<body>
+<div id="root">
+  <div id="boot" aria-busy="true" aria-label="Loading projections">
+    <div class="boot-side">
+      <div class="sk" style="height:13px;width:130px;margin-bottom:14px"></div>
+      <div class="sk" style="height:30px;width:210px;margin-bottom:8px"></div>
+      <div class="sk" style="height:14px;width:100%;margin-bottom:6px"></div>
+      <div class="sk" style="height:14px;width:70%;margin-bottom:22px"></div>
+      <div class="sk" style="height:52px;margin-bottom:12px"></div>
+      <div class="sk" style="height:44px;margin-bottom:12px"></div>
+      <div class="sk" style="height:96px"></div>
+    </div>
+    <div class="boot-main">
+      <div class="sk" style="height:38px;width:82%;margin-bottom:20px"></div>
+      <div class="sk" style="height:30px;width:60%;margin-bottom:24px"></div>
+      <div class="sk" style="height:86px;margin-bottom:12px"></div>
+      <div class="sk" style="height:86px;margin-bottom:12px"></div>
+      <div class="sk" style="height:86px"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.addEventListener('error', function (e) {
+    var root = document.getElementById('root');
+    var box = document.createElement('div');
+    box.id = 'error-box';
+    box.textContent = 'Script error: ' + e.message +
+      '\n  at ' + (e.filename || 'inline') + ':' + e.lineno + ':' + e.colno +
+      (e.error && e.error.stack ? '\n\n' + e.error.stack : '');
+    root.innerHTML = '';
+    root.appendChild(box);
+  });
+</script>
+
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+
+<script>
+  (function () {
+    var missing = [];
+    if (typeof React === 'undefined') missing.push('React');
+    if (typeof ReactDOM === 'undefined') missing.push('ReactDOM');
+    if (typeof Babel === 'undefined') missing.push('Babel');
+    if (missing.length) {
+      document.getElementById('root').innerHTML =
+        '<div id="error-box">Failed to load from CDN: ' + missing.join(', ') +
+        '. Check your internet connection, or the CDN (unpkg.com) may be blocked on this network.</div>';
+    }
+  })();
+</script>
+
+<!-- BUILD:APP -->
+</body>
+</html>

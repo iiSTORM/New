@@ -33,3 +33,19 @@ jobs:
         # Cheap guard for the scrapers themselves, which are not unit-tested
         # because they are network-bound end to end.
         run: python -m compileall -q scripts/
+
+      # ---- Front end -----------------------------------------------------
+      # index.html is generated from src/app.jsx. Committing a stale
+      # index.html would ship an app that does not match its source and is
+      # invisible in review, since the diff would simply be missing. This
+      # rebuilds and fails if the result differs from what is committed.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install build dependencies
+        run: npm ci
+
+      - name: Check index.html matches src/
+        run: npm run check

@@ -1,0 +1,3826 @@
+try {
+
+const { useState, useEffect, useMemo, useContext, createContext } = React;
+
+
+/* ============================================================
+   THEME — a small, deliberate token system rather than scattered
+   hex codes. The accent shifts automatically with the selected
+   game (a muted hextech gold for League, Valorant's red for
+   Valorant) since the chrome itself should signal which broadcast
+   you're watching. A user override replaces that automatic accent
+   when set. Corner style ("angular" cut corners vs classic
+   "rounded") is a separate, persisted preference — angular is the
+   new default, evoking scoreboard/lower-third graphics rather than
+   a generic rounded SaaS card.
+   ============================================================ */
+
+const BASE_TOKENS = {
+  void: "#14181F",
+  graphite: "#1B212B",
+  graphiteLight: "#222A38",
+  steel: "#2C3444",
+  steelSoft: "#232A38",
+  text: "#EDEFF4",
+  textDim: "#A8B0C0",
+  textFaint: "#5C6478",
+  good: "#6EBF8B",
+  bad: "#DA7A6D",
+};
+
+const GAME_ACCENTS = {
+  lol: { accent: "#C9A86A", accentSoft: "#C9A86A18", accentBorder: "#C9A86A55", name: "Hextech Gold" },
+  valorant: { accent: "#FF4655", accentSoft: "#FF465518", accentBorder: "#FF465555", name: "Valorant Red" },
+  cs2: { accent: "#4FC3F7", accentSoft: "#4FC3F718", accentBorder: "#4FC3F755", name: "Tactical Cyan" },
+};
+
+const ACCENT_SWATCHES = [
+  { name: "Hextech Gold", hex: "#C9A86A" },
+  { name: "Valorant Red", hex: "#FF4655" },
+  { name: "Signal Cyan", hex: "#4FD8E8" },
+  { name: "Reticle Green", hex: "#7FE07A" },
+  { name: "Violet", hex: "#B07FE0" },
+  { name: "Ember", hex: "#E08A4F" },
+];
+
+const CORNER_CUT = 12; // px, used by both the clip-path and the SVG corner accents
+
+function cardShape(cornerStyle) {
+  if (cornerStyle === "rounded") return { borderRadius: 12 };
+  const c = CORNER_CUT;
+  return {
+    borderRadius: 0,
+    clipPath: `polygon(0 0, calc(100% - ${c}px) 0, 100% ${c}px, 100% 100%, ${c}px 100%, 0 calc(100% - ${c}px))`,
+  };
+}
+
+// Drop shadows barely register on a near-black background — the trick dark
+// UIs actually use for a "raised surface" feeling is a faint highlight on
+// the top edge (simulating light catching a raised panel) combined with a
+// real shadow for separation from whatever's behind it. Two tiers: "card"
+// for normal content surfaces, "sunken" for the opposite effect (a recessed
+// well, used for the page's nav/control surfaces to differentiate them from
+// content cards rather than making everything look identical).
+function elevation(tier = "card") {
+  if (tier === "sunken") {
+    return { boxShadow: "inset 0 1px 3px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.02)" };
+  }
+  return { boxShadow: "0 3px 10px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05)" };
+}
+
+// Targeting-bracket accents (see the .kp-bracket CSS rule) only make sense
+// paired with the angular corner style — in rounded mode there's no "sharp
+// corner" for them to sit in, so they're skipped entirely rather than
+// looking out of place. bracketStyle's CSS custom property lets the accent
+// color track the current theme/game without a separate CSS rule per color.
+function bracketClass(theme) {
+  return theme.cornerStyle === "angular" ? "kp-bracket" : "";
+}
+function bracketStyle(theme, color) {
+  return theme.cornerStyle === "angular" ? { "--kp-bracket-color": color || theme.accent } : {};
+}
+
+// Initials for the player-badge circle — first 2 alphanumeric characters,
+// uppercased. Handles the handle-style names common in esports (e.g.
+// "sh1ro" -> "SH", "ZywOo" -> "ZY") rather than assuming space-separated
+// first/last names, which most pro handles don't have.
+function initialsFor(name) {
+  const clean = (name || "").replace(/[^a-zA-Z0-9]/g, "");
+  return (clean.slice(0, 2) || "?").toUpperCase();
+}
+
+/* ---------- Shared presentational primitives ----------
+   Team identity used to be carried by colouring the team's NAME in its
+   own brand colour. With two teams per card and six saturated brand
+   colours on screen at once that reads as noise, and the colours were
+   doing double duty as both identity and emphasis, so nothing could be
+   emphasised. The standings table already had the better answer — a thin
+   colour bar next to neutral text — so that treatment is shared here and
+   the accent is freed up to mean "this is the number that matters". */
+function TeamTag({ name, color, size = 14, dim = false }) {
+  const theme = useTheme();
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 7, minWidth: 0 }}>
+      <span aria-hidden="true" style={{
+        width: 3, height: size + 2, borderRadius: 2, background: color, flexShrink: 0,
+        boxShadow: `0 0 8px ${color}55`,
+      }} />
+      <span style={{
+        fontFamily: "'Fraunces', serif", fontWeight: 600, fontSize: size,
+        color: dim ? theme.textDim : theme.text, whiteSpace: "nowrap",
+        overflow: "hidden", textOverflow: "ellipsis",
+      }}>{name}</span>
+    </span>
+  );
+}
+
+function Chevron({ open, color, size = 13 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true"
+         style={{ flexShrink: 0, transition: "transform 0.2s ease", transform: open ? "rotate(180deg)" : "none" }}>
+      <path d="M6 9l6 6 6-6" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/* A number with its label underneath — the app's primary readout. Sizes
+   are deliberately far apart: the old cards set the projection at 11px,
+   the same size as the hint text beside it, so the one figure a visitor
+   comes for had no more weight than "tap to expand". */
+function StatReadout({ value, label, size = 30, color, align = "right" }) {
+  const theme = useTheme();
+  return (
+    <div style={{ textAlign: align, flexShrink: 0 }}>
+      <div className="kp-num" style={{ fontSize: size, fontWeight: 700, lineHeight: 1, color: color || theme.text }}>{value}</div>
+      <div style={{ fontSize: 9.5, letterSpacing: 0.9, textTransform: "uppercase", color: theme.textFaint, marginTop: 5, fontWeight: 600 }}>{label}</div>
+    </div>
+  );
+}
+
+/* Signed delta shown as a badge. Accuracy is this product's real claim,
+   so "how far off was the model" deserves to be legible at a glance
+   rather than buried mid-sentence. */
+function DeltaBadge({ value, digits = 1, goodBelow = 2.5 }) {
+  const theme = useTheme();
+  const magnitude = Math.abs(value);
+  const tone = magnitude <= goodBelow ? theme.good : magnitude <= goodBelow * 2 ? theme.accent : theme.bad;
+  return (
+    <span className="kp-chip kp-num" style={{ background: tone + "1A", color: tone, border: `1px solid ${tone}33` }}>
+      ±{magnitude.toFixed(digits)}
+    </span>
+  );
+}
+
+/* Shared, larger player row used under both upcoming and past matches —
+   previously each card hand-rolled its own cramped 12px/7px-padding grid
+   row independently, which was the main source of the "too small to
+   read" feeling. One component now, sized for real readability, with a
+   flexible stats array so it works for both the single-number "PROJ"
+   case (future matches) and the three-number "PROJ / ACT / DIFF" case
+   (past matches) without duplicating markup. */
+function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, cfg, games, pastMatches, team }) {
+  const [open, setOpen] = useState(false);
+  const canExpand = !!(r && p && cfg); // callers that don't pass the full breakdown just get the plain row, same as before
+  return (
+    <div
+      className={canExpand ? "kp-clickable" : undefined}
+      onClick={canExpand ? () => setOpen(!open) : undefined}
+      style={{
+        padding: "15px 18px", borderTop: `1px solid ${theme.steelSoft}`,
+        cursor: canExpand ? "pointer" : "default",
+        background: open ? theme.graphiteLight : "transparent",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
+          <span
+            style={{
+              width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: `${teamColor}22`, border: `1.5px solid ${teamColor}`,
+              color: teamColor, fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: 12,
+            }}
+          >
+            {initialsFor(name)}
+          </span>
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                fontSize: 15, fontWeight: 600, color: theme.text, fontFamily: "'Fraunces', serif",
+                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+              }}
+            >
+              {name}
+            </div>
+            {(role || extraChip) && (
+              <div style={{ display: "flex", gap: 4, marginTop: 4, flexWrap: "wrap" }}>
+                {role && <span className="kp-chip" style={{ background: theme.steelSoft, color: theme.textFaint }}>{role}</span>}
+                {extraChip}
+              </div>
+            )}
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 16, flexShrink: 0 }}>
+          {stats.map((s, i) => (
+            <div key={i} style={{ textAlign: "right", minWidth: s.big ? 52 : 38 }}>
+              <div style={{ fontSize: 9, letterSpacing: 0.6, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>{s.label}</div>
+              <div
+                style={{
+                  fontSize: s.big ? 24 : 14, fontWeight: s.big ? 600 : 700,
+                  fontFamily: s.big ? "'Fraunces', serif" : "'IBM Plex Mono', monospace",
+                  color: s.big ? theme.accent : (s.color || theme.text), marginTop: 2,
+                }}
+              >
+                {s.value}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      {open && canExpand && (
+        <div style={{ marginTop: 12 }}>
+          <ProjectionDetail r={r} p={p} cfg={cfg} games={games} pastMatches={pastMatches} team={team} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+const ThemeContext = createContext(null);
+function useTheme() {
+  return useContext(ThemeContext);
+}
+const ChampionStatsContext = createContext(null);
+function useChampionStats() {
+  return useContext(ChampionStatsContext);
+}
+
+// Live viewport-width detection rather than user-agent sniffing — user
+// agents lie, and this also adapts correctly if someone just resizes a
+// browser window rather than needing a reload. 860px is roughly where a
+// single ~640px mobile column plus a real sidebar stops feeling cramped.
+const DESKTOP_BREAKPOINT = 860;
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(
+    typeof window !== "undefined" ? window.innerWidth >= DESKTOP_BREAKPOINT : false
+  );
+  useEffect(() => {
+    const onResize = () => setIsDesktop(window.innerWidth >= DESKTOP_BREAKPOINT);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return isDesktop;
+}
+
+function loadStored(key, fallback) {
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw !== null ? JSON.parse(raw) : fallback;
+  } catch (e) {
+    return fallback;
+  }
+}
+function saveStored(key, value) {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch (e) {
+    /* private browsing / storage disabled — silently no-op, not worth surfacing */
+  }
+}
+
+/* Small reticle mark — the app's one recurring signature graphic. Used in
+   the wordmark and as the live-data status dot, nowhere else. */
+function Reticle({ size = 16, color, active = false }) {
+  const s = size;
+  return (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+      <circle cx="12" cy="12" r="7" stroke={color} strokeWidth="1.6" opacity={active ? 1 : 0.55} />
+      <line x1="12" y1="1" x2="12" y2="6" stroke={color} strokeWidth="1.6" />
+      <line x1="12" y1="18" x2="12" y2="23" stroke={color} strokeWidth="1.6" />
+      <line x1="1" y1="12" x2="6" y2="12" stroke={color} strokeWidth="1.6" />
+      <line x1="18" y1="12" x2="23" y2="12" stroke={color} strokeWidth="1.6" />
+      <circle cx="12" cy="12" r="1.6" fill={color} />
+    </svg>
+  );
+}
+
+/* ============================================================
+   LIVE DATA SOURCES — one per game. Each points at a raw JSON file
+   with the same shape: { generated_at, regions: { REGION_KEY: {
+   teams, past_matches, upcoming_matches } } }. Leave a URL blank to
+   always use that game's embedded fallback snapshot below.
+   ============================================================ */
+const DATA_URL_LOL = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/data.json";
+const DATA_URL_VALORANT = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/valorant_data.json";
+const DATA_URL_CS2 = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/cs2_data.json";
+// Champion-level stat baselines (scripts/aggregate_champion_stats.py) —
+// LoL-only for now, and not tied to the per-game GAMES fetch loop below
+// since it's a standalone reference table, not one game's live snapshot.
+const DATA_URL_CHAMPION_STATS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/champion_stats.json";
+
+/* ============================================================
+   FALLBACK DATA — used if a game's DATA_URL is blank or the fetch
+   fails. This is a snapshot as of Aug 17, 2026 (through LCS Week 4).
+   Two splits per player: "cur" (current split) and "hist" (prior).
+   ============================================================ */
+
+const FALLBACK_TEAMS = {
+  LYON: {
+    color: "#e0c341",
+    players: [
+      { name: "Dhokla", role: "TOP", cur: { g: 7, k: 3.4, d: 2.7, a: 5.3, kp: 43.4 }, hist: { g: 15, k: 2.9, d: 2.4, a: 6.3, kp: 56.5 } },
+      { name: "Armao", role: "JNG", cur: { g: 7, k: 3.1, d: 2.6, a: 11.4, kp: 73.2 }, hist: null },
+      { name: "Saint", role: "MID", cur: { g: 7, k: 4.9, d: 2.1, a: 7.7, kp: 63.6 }, hist: { g: 18, k: 4.7, d: 2.6, a: 5.2, kp: 66.0 } },
+      { name: "Berserker", role: "BOT", cur: { g: 7, k: 7.6, d: 1.7, a: 5.1, kp: 60.6 }, hist: { g: 18, k: 4.4, d: 2.2, a: 6.1, kp: 70.6 } },
+      { name: "Isles", role: "SUP", cur: { g: 7, k: 1.0, d: 2.4, a: 13.1, kp: 69.8 }, hist: { g: 18, k: 0.4, d: 1.9, a: 11.3, kp: 77.4 } },
+    ],
+  },
+  Sentinels: {
+    color: "#8a9bb5",
+    players: [
+      { name: "Impact", role: "TOP", cur: { g: 9, k: 2.1, d: 3.3, a: 5.9, kp: 44.0 }, hist: { g: 18, k: 2.4, d: 2.9, a: 3.9, kp: 51.4 } },
+      { name: "HamBak", role: "JNG", cur: { g: 9, k: 5.6, d: 2.9, a: 6.1, kp: 71.9 }, hist: { g: 18, k: 3.3, d: 2.4, a: 6.1, kp: 76.9 } },
+      { name: "DarkWings", role: "MID", cur: { g: 9, k: 3.0, d: 3.7, a: 7.3, kp: 70.0 }, hist: { g: 18, k: 1.7, d: 2.6, a: 5.5, kp: 55.8 } },
+      { name: "Rahel", role: "BOT", cur: { g: 9, k: 4.7, d: 1.7, a: 5.7, kp: 68.5 }, hist: { g: 18, k: 3.7, d: 2.1, a: 4.4, kp: 72.4 } },
+      { name: "Huhi", role: "SUP", cur: { g: 9, k: 0.7, d: 3.1, a: 11.2, kp: 79.5 }, hist: { g: 18, k: 0.8, d: 2.4, a: 8.8, kp: 81.8 } },
+    ],
+  },
+  Cloud9: {
+    color: "#4fa8e0",
+    players: [
+      { name: "Thanatos", role: "TOP", cur: { g: 10, k: 4.2, d: 2.2, a: 4.4, kp: 48.3 }, hist: { g: 18, k: 2.8, d: 2.0, a: 5.2, kp: 50.5 } },
+      { name: "Blaber", role: "JNG", cur: { g: 10, k: 2.6, d: 2.9, a: 9.9, kp: 73.6 }, hist: { g: 18, k: 3.6, d: 1.8, a: 8.4, kp: 72.8 } },
+      { name: "Loki", role: "MID", cur: { g: 10, k: 5.0, d: 2.9, a: 7.8, kp: 75.2 }, hist: null },
+      { name: "Tactical", role: "BOT", cur: { g: 10, k: 4.1, d: 2.3, a: 6.3, kp: 61.3 }, hist: null },
+      { name: "Vulcan", role: "SUP", cur: { g: 10, k: 1.0, d: 2.4, a: 11.9, kp: 75.1 }, hist: { g: 18, k: 1.1, d: 1.3, a: 12.1, kp: 79.1 } },
+    ],
+  },
+  "Shopify Rebellion": {
+    color: "#7ed957",
+    players: [
+      { name: "Fudge", role: "TOP", cur: { g: 10, k: 3.5, d: 2.0, a: 5.1, kp: 58.2 }, hist: { g: 15, k: 1.9, d: 3.3, a: 3.7, kp: 44.8 } },
+      { name: "Contractz", role: "JNG", cur: { g: 10, k: 2.5, d: 2.4, a: 7.3, kp: 73.1 }, hist: { g: 15, k: 3.5, d: 3.2, a: 6.2, kp: 78.8 } },
+      { name: "Zinie", role: "MID", cur: { g: 10, k: 2.0, d: 3.0, a: 6.3, kp: 61.0 }, hist: { g: 15, k: 2.5, d: 3.1, a: 5.7, kp: 61.8 } },
+      { name: "Bvoy", role: "BOT", cur: { g: 10, k: 4.2, d: 2.2, a: 5.0, kp: 70.5 }, hist: { g: 15, k: 4.0, d: 2.3, a: 4.7, kp: 67.1 } },
+      { name: "Zeyzal", role: "SUP", cur: { g: 10, k: 1.2, d: 2.8, a: 8.4, kp: 68.9 }, hist: null },
+    ],
+  },
+  Dignitas: {
+    color: "#c95050",
+    players: [
+      { name: "Denathor", role: "TOP", cur: { g: 11, k: 1.8, d: 3.5, a: 4.2, kp: 54.9 }, hist: null },
+      { name: "eXyu", role: "JNG", cur: { g: 6, k: 2.7, d: 5.7, a: 8.5, kp: 79.2 }, hist: { g: 17, k: 1.8, d: 3.8, a: 4.8, kp: 76.1 } },
+      { name: "Dardoch", role: "JNG", cur: { g: 5, k: 1.4, d: 3.4, a: 4.2, kp: 96.7 }, hist: null },
+      { name: "Palafox", role: "MID", cur: { g: 11, k: 2.7, d: 2.9, a: 4.5, kp: 65.4 }, hist: { g: 17, k: 1.9, d: 3.7, a: 3.5, kp: 57.8 } },
+      { name: "FBI", role: "BOT", cur: { g: 11, k: 3.1, d: 3.5, a: 4.0, kp: 65.5 }, hist: { g: 17, k: 2.8, d: 2.8, a: 3.6, kp: 61.1 } },
+      { name: "IgNar", role: "SUP", cur: { g: 11, k: 0.5, d: 3.1, a: 7.5, kp: 71.8 }, hist: { g: 17, k: 0.4, d: 2.4, a: 6.4, kp: 77.1 } },
+    ],
+  },
+  FlyQuest: {
+    color: "#3fbf7f",
+    players: [
+      { name: "Gakgos", role: "TOP", cur: { g: 8, k: 1.6, d: 3.1, a: 4.1, kp: 33.8 }, hist: { g: 19, k: 2.4, d: 1.9, a: 6.4, kp: 57.6 } },
+      { name: "Gryffinn", role: "JNG", cur: { g: 8, k: 4.8, d: 3.9, a: 5.1, kp: 72.4 }, hist: { g: 19, k: 4.2, d: 2.8, a: 7.2, kp: 75.0 } },
+      { name: "Quad", role: "MID", cur: { g: 8, k: 3.4, d: 3.1, a: 6.4, kp: 74.2 }, hist: { g: 19, k: 3.2, d: 2.4, a: 7.5, kp: 70.4 } },
+      { name: "Massu", role: "BOT", cur: { g: 8, k: 3.4, d: 4.0, a: 6.0, kp: 65.0 }, hist: { g: 19, k: 4.6, d: 3.0, a: 5.9, kp: 63.3 } },
+      { name: "Cryogen", role: "SUP", cur: { g: 8, k: 0.9, d: 4.5, a: 8.8, kp: 66.4 }, hist: { g: 19, k: 0.7, d: 3.1, a: 11.3, kp: 81.1 } },
+    ],
+  },
+  "Team Liquid": {
+    color: "#1e90c8",
+    players: [
+      { name: "Morgan", role: "TOP", cur: { g: 8, k: 3.1, d: 1.6, a: 8.3, kp: 54.8 }, hist: { g: 18, k: 2.1, d: 2.7, a: 4.9, kp: 45.4 } },
+      { name: "Josedeodo", role: "JNG", cur: { g: 8, k: 4.1, d: 1.9, a: 9.8, kp: 68.3 }, hist: { g: 18, k: 4.8, d: 2.2, a: 7.1, kp: 77.9 } },
+      { name: "Quid", role: "MID", cur: { g: 8, k: 5.8, d: 1.4, a: 8.8, kp: 71.3 }, hist: { g: 18, k: 3.3, d: 2.7, a: 6.4, kp: 63.3 } },
+      { name: "Yeon", role: "BOT", cur: { g: 8, k: 6.5, d: 1.6, a: 6.9, kp: 66.3 }, hist: { g: 18, k: 3.7, d: 2.4, a: 6.2, kp: 63.0 } },
+      { name: "CoreJJ", role: "SUP", cur: { g: 8, k: 1.1, d: 1.6, a: 14.9, kp: 77.5 }, hist: { g: 18, k: 1.3, d: 2.1, a: 11.0, kp: 80.9 } },
+    ],
+  },
+  Disguised: {
+    color: "#b06fd1",
+    players: [
+      { name: "Srtty", role: "TOP", cur: { g: 9, k: 2.7, d: 3.8, a: 2.4, kp: 37.9 }, hist: { g: 4, k: 2.5, d: 2.3, a: 6.3, kp: 61.2 } },
+      { name: "KryRa", role: "JNG", cur: { g: 9, k: 2.1, d: 4.3, a: 5.4, kp: 70.8 }, hist: { g: 15, k: 2.3, d: 3.9, a: 5.5, kp: 71.8 } },
+      { name: "Callme", role: "MID", cur: { g: 9, k: 2.1, d: 3.9, a: 4.2, kp: 61.1 }, hist: { g: 15, k: 2.8, d: 3.7, a: 3.8, kp: 60.4 } },
+      { name: "sajed", role: "BOT", cur: { g: 9, k: 2.1, d: 4.6, a: 4.7, kp: 64.0 }, hist: { g: 15, k: 2.3, d: 3.6, a: 3.1, kp: 49.4 } },
+      { name: "Lyonz", role: "SUP", cur: { g: 9, k: 0.2, d: 4.2, a: 7.0, kp: 68.4 }, hist: { g: 15, k: 0.5, d: 2.9, a: 6.7, kp: 69.8 } },
+    ],
+  },
+};
+
+// Real, confirmed issue: a team's players list isn't a clean "5
+// starters" roster the way LoL's explicit roster fetch gives — CS2 in
+// particular has no roster endpoint at all, so teams_payload is built by
+// unioning every player name who's appeared for that team ANYWHERE in
+// the discovery window, which can genuinely exceed 5 once a roster
+// change happens mid-window (a sub, a stand-in, an actual swap). Used
+// consistently everywhere a team's "active lineup" matters — both for
+// display (don't show a departed player's row with a real projected
+// number next to current starters) and for team-strength math below
+// (teamStatPerGame previously summed EVERY player unconditionally while
+// only capping the divisor at 5, silently inflating any team with more
+// than 5 tracked players). Heuristic: the 5 with the most recorded
+// games are the most likely current starters — uses data already on
+// hand (cur.g), no new scraping needed. Not a perfect signal (a
+// recently-benched starter with a big early-season game count could
+// still edge out a genuine new starter), but far more honest than
+// treating every historical name as equally live right now.
+function likelyStarters(players) {
+  if (players.length <= 5) return players;
+  return [...players].sort((a, b) => (b.cur?.g || 0) - (a.cur?.g || 0)).slice(0, 5);
+}
+
+const teamStatPerGame = (teams, teamName, statKey) => {
+  const allPlayers = teams[teamName].players;
+  // Distinct-role count handles LoL roster swaps correctly (e.g. two
+  // players sharing "JNG" after a mid-split change still count as one
+  // active slot) — computed against the FULL roster history, not just
+  // likely starters, since a departed player's role still legitimately
+  // counts toward "how many distinct roles has this team fielded."
+  const distinctRoles = new Set(allPlayers.map((p) => p.role)).size;
+  if (distinctRoles > 1) {
+    return allPlayers.reduce((sum, p) => sum + p.cur[statKey], 0) / distinctRoles;
+  }
+  // No role data (CS2, or Valorant players without one) — both the sum
+  // AND the divisor now consistently scope to the same likely-starters
+  // subset, instead of summing everyone while only capping the divisor.
+  const players = likelyStarters(allPlayers);
+  return players.reduce((sum, p) => sum + p.cur[statKey], 0) / (players.length || 1);
+};
+
+const leagueAvgStat = (teams, statKey) => {
+  const names = Object.keys(teams);
+  return names.reduce((s, t) => s + teamStatPerGame(teams, t, statKey), 0) / names.length;
+};
+
+/* ============================================================
+   FALLBACK SCHEDULE
+   ============================================================ */
+
+const FALLBACK_PAST_MATCHES = [
+  { week: "Week 1", date: "2026-07-25", teamA: "FlyQuest", teamB: "LYON", winner: "LYON", score: "0-2",
+    actual: { FlyQuest: { Gakgos: 5, Gryffinn: 10, Quad: 5, Massu: 7, Cryogen: 1 }, LYON: { Dhokla: 11, Armao: 5, Saint: 9, Berserker: 16, Isles: 4 } } },
+  { week: "Week 1", date: "2026-07-25", teamA: "Dignitas", teamB: "Sentinels", winner: "Sentinels", score: "1-2",
+    actual: { Dignitas: { Denathor: 4, eXyu: 3, Palafox: 9, FBI: 8, IgNar: 0 }, Sentinels: { Impact: 4, HamBak: 19, DarkWings: 9, Rahel: 3, Huhi: 2 } } },
+  { week: "Week 1", date: "2026-07-26", teamA: "Team Liquid", teamB: "Cloud9", winner: "Team Liquid", score: "2-0",
+    actual: { "Team Liquid": { Morgan: 2, Josedeodo: 6, Quid: 14, Yeon: 13, CoreJJ: 3 }, Cloud9: { Thanatos: 8, Blaber: 2, Loki: 4, Tactical: 5, Vulcan: 1 } } },
+  { week: "Week 1", date: "2026-07-26", teamA: "Shopify Rebellion", teamB: "Disguised", winner: "Shopify Rebellion", score: "2-0",
+    actual: { "Shopify Rebellion": { Fudge: 13, Contractz: 5, Zinie: 4, Bvoy: 10, Zeyzal: 4 }, Disguised: { Srtty: 5, KryRa: 3, Callme: 4, sajed: 3, Lyonz: 1 } } },
+  { week: "Week 2", date: "2026-08-01", teamA: "Cloud9", teamB: "Dignitas", winner: "Cloud9", score: "2-1",
+    actual: { Dignitas: { Denathor: 5, eXyu: 8, Palafox: 10, FBI: 10, IgNar: 1 }, Cloud9: { Thanatos: 10, Blaber: 10, Loki: 9, Tactical: 4, Vulcan: 4 } } },
+  { week: "Week 2", date: "2026-08-01", teamA: "Disguised", teamB: "FlyQuest", winner: "FlyQuest", score: "0-2",
+    actual: { Disguised: { Srtty: 5, KryRa: 8, Callme: 5, sajed: 5, Lyonz: 0 }, FlyQuest: { Gakgos: 5, Gryffinn: 17, Quad: 10, Massu: 16, Cryogen: 5 } } },
+  { week: "Week 2", date: "2026-08-02", teamA: "LYON", teamB: "Shopify Rebellion", winner: "LYON", score: "2-0",
+    actual: { "Shopify Rebellion": { Fudge: 5, Contractz: 4, Zinie: 1, Bvoy: 7, Zeyzal: 4 }, LYON: { Dhokla: 6, Armao: 7, Saint: 12, Berserker: 20, Isles: 2 } } },
+  { week: "Week 2", date: "2026-08-02", teamA: "Team Liquid", teamB: "Sentinels", winner: "Team Liquid", score: "2-0",
+    actual: { "Team Liquid": { Morgan: 4, Josedeodo: 3, Quid: 6, Yeon: 17, CoreJJ: 2 }, Sentinels: { Impact: 2, HamBak: 6, DarkWings: 2, Rahel: 4, Huhi: 0 } } },
+  { week: "Week 3", date: "2026-08-08", teamA: "Cloud9", teamB: "Disguised", winner: "Cloud9", score: "2-1",
+    actual: { Disguised: { Srtty: 11, KryRa: 5, Callme: 5, sajed: 6, Lyonz: 1 }, Cloud9: { Thanatos: 4, Blaber: 2, Loki: 12, Tactical: 12, Vulcan: 1 } } },
+  { week: "Week 3", date: "2026-08-08", teamA: "Sentinels", teamB: "Shopify Rebellion", winner: "Shopify Rebellion", score: "1-2",
+    actual: { "Shopify Rebellion": { Fudge: 13, Contractz: 6, Zinie: 2, Bvoy: 6, Zeyzal: 2 }, Sentinels: { Impact: 5, HamBak: 9, DarkWings: 3, Rahel: 13, Huhi: 4 } } },
+  { week: "Week 3", date: "2026-08-09", teamA: "Dignitas", teamB: "LYON", winner: "LYON", score: "0-2",
+    actual: { Dignitas: { Denathor: 1, Dardoch: 2, Palafox: 4, FBI: 3, IgNar: 0 }, LYON: { Dhokla: 2, Armao: 6, Saint: 5, Berserker: 11, Isles: 1 } } },
+  { week: "Week 3", date: "2026-08-09", teamA: "FlyQuest", teamB: "Team Liquid", winner: "Team Liquid", score: "0-2",
+    actual: { "Team Liquid": { Morgan: 10, Josedeodo: 4, Quid: 14, Yeon: 10, CoreJJ: 4 }, FlyQuest: { Gakgos: 1, Gryffinn: 6, Quad: 7, Massu: 1, Cryogen: 0 } } },
+  { week: "Week 4", date: "2026-08-15", teamA: "Disguised", teamB: "Team Liquid", winner: "Team Liquid", score: "0-2",
+    actual: { "Team Liquid": { Morgan: 9, Josedeodo: 20, Quid: 12, Yeon: 12, CoreJJ: 0 }, Disguised: { Srtty: 3, KryRa: 3, Callme: 5, sajed: 5, Lyonz: 0 } } },
+  { week: "Week 4", date: "2026-08-16", teamA: "Cloud9", teamB: "FlyQuest", winner: "Cloud9", score: "2-0",
+    actual: { FlyQuest: { Gakgos: 2, Gryffinn: 5, Quad: 5, Massu: 3, Cryogen: 1 }, Cloud9: { Thanatos: 10, Blaber: 3, Loki: 12, Tactical: 11, Vulcan: 3 } } },
+];
+
+// Confirmed Week 5 slate (Liquipedia regular-season schedule) — used only
+// if the live fetch is unavailable.
+const FALLBACK_UPCOMING_MATCHES = [
+  { week: "Week 5", date: "Aug 22", time: "1:00 PM PT", teamA: "Team Liquid", teamB: "Shopify Rebellion" },
+  { week: "Week 5", date: "Aug 22", time: "4:00 PM PT", teamA: "Cloud9", teamB: "LYON" },
+  { week: "Week 5", date: "Aug 23", time: "1:00 PM PT", teamA: "Disguised", teamB: "Sentinels" },
+  { week: "Week 5", date: "Aug 23", time: "4:00 PM PT", teamA: "Dignitas", teamB: "FlyQuest" },
+];
+
+// Only LCS has a hand-built offline snapshot (from the original manual data
+// pull). Every other region/game relies entirely on the live fetch — if it
+// fails, they'll show an empty state rather than wrong/stale data.
+const FALLBACK_REGIONS_LOL = {
+  LCS: { teams: FALLBACK_TEAMS, past_matches: FALLBACK_PAST_MATCHES, upcoming_matches: FALLBACK_UPCOMING_MATCHES },
+  LEC: { teams: {}, past_matches: [], upcoming_matches: [] },
+  LCK: { teams: {}, past_matches: [], upcoming_matches: [] },
+  LPL: { teams: {}, past_matches: [], upcoming_matches: [] },
+  LCP: { teams: {}, past_matches: [], upcoming_matches: [] },
+  CBLOL: { teams: {}, past_matches: [], upcoming_matches: [] },
+  TCL: { teams: {}, past_matches: [], upcoming_matches: [] },
+};
+const FALLBACK_REGIONS_VALORANT = {
+  "VCT Americas": { teams: {}, past_matches: [], upcoming_matches: [] },
+  "VCT EMEA": { teams: {}, past_matches: [], upcoming_matches: [] },
+  "VCT Pacific": { teams: {}, past_matches: [], upcoming_matches: [] },
+  "VCT China": { teams: {}, past_matches: [], upcoming_matches: [] },
+};
+const FALLBACK_REGIONS_CS2 = {
+  CS2: { teams: {}, past_matches: [], upcoming_matches: [] },
+};
+
+/* ============================================================
+   GAMES — everything that differs between League of Legends and
+   Valorant lives in this one config. Every component below this
+   point (tabs, model, cards) is written generically against
+   whatever `teams`/`pastMatches` it's handed, with zero LoL- or
+   Valorant-specific logic — adding a third game later should only
+   mean adding an entry here plus a scraper, not touching the UI.
+   ============================================================ */
+const GAMES = {
+  lol: {
+    label: "League of Legends",
+    dataUrl: DATA_URL_LOL,
+    regionList: ["LCS", "LEC", "LCK", "LPL", "LCP", "CBLOL", "TCL"],
+    regionLabels: { LCS: "LCS", LEC: "LEC", LCK: "LCK", LPL: "LPL", LCP: "LCP", CBLOL: "CBLOL", TCL: "TCL" },
+    fallbackRegions: FALLBACK_REGIONS_LOL,
+  },
+  valorant: {
+    label: "Valorant",
+    dataUrl: DATA_URL_VALORANT,
+    regionList: ["VCT Americas", "VCT EMEA", "VCT Pacific", "VCT China"],
+    regionLabels: { "VCT Americas": "Americas", "VCT EMEA": "EMEA", "VCT Pacific": "Pacific", "VCT China": "China" },
+    fallbackRegions: FALLBACK_REGIONS_VALORANT,
+  },
+  cs2: {
+    label: "CS2",
+    dataUrl: DATA_URL_CS2,
+    // CS2 doesn't have franchised regions the way LCS/VCT do — it's an
+    // individually-ranked global scene, tournament-based rather than
+    // league-based. One pseudo-region tracking a curated list of
+    // currently top-ranked teams (see scrape_cs2.py's TRACKED_TEAMS)
+    // stands in for a real region here.
+    regionList: ["CS2"],
+    regionLabels: { CS2: "Top Teams" },
+    fallbackRegions: FALLBACK_REGIONS_CS2,
+  },
+};
+const GAME_LIST = Object.keys(GAMES);
+
+/* ============================================================
+   STAT TYPES — the model can project kills, deaths, or assists.
+   Each has a different natural "opponent adjustment" direction:
+   a player's KILLS scale with the opponent's leakiness (their
+   deaths/game); a player's DEATHS scale with the opponent's own
+   kill power (their kills/game) — the opposite basis. ASSISTS
+   follow kills' direction, since they come from the same team
+   kill-events. Kill-participation is a meaningful multiplier for
+   kills/assists (both are "kill events") but doesn't mean much
+   for deaths, so it's skipped there.
+   ============================================================ */
+
+const STAT_TYPES = {
+  // `singular` exists for prose ("weighted kill projections"), where the
+  // plural label reads as a typo.
+  kills: { key: "k", label: "Kills", singular: "kill", oppBasis: "d", useKP: true, laneSpecific: true },
+  deaths: { key: "d", label: "Deaths", singular: "death", oppBasis: "k", useKP: false, laneSpecific: true },
+  assists: { key: "a", label: "Assists", singular: "assist", oppBasis: "d", useKP: true, laneSpecific: false },
+};
+
+/* ============================================================
+   MODEL — all functions take `teams` explicitly since it can now
+   come from a live fetch instead of the module-level fallback.
+   ============================================================ */
+
+function kpMultiplier(player, historyWeight, kpStrength) {
+  const curKP = player.cur.kp;
+  // 0 is used as a sentinel for "not computed yet" (currently true for
+  // Valorant, where KP% isn't scraped) — a real player's kill participation
+  // is never actually 0, so this can't misfire on genuine data. Treat it as
+  // neutral rather than applying a bogus flat penalty across every player.
+  if (!curKP) return 1;
+  const histKP = player.hist ? player.hist.kp : curKP;
+  const blendedKP = historyWeight * histKP + (1 - historyWeight) * curKP;
+  const teamAvgKP = 66;
+  const relative = blendedKP / teamAvgKP;
+  return 1 + kpStrength * (relative - 1);
+}
+
+function opponentMultiplier(teams, opponentTeam, oppStrength, oppBasisKey) {
+  const oppStat = teamStatPerGame(teams, opponentTeam, oppBasisKey);
+  const ratio = oppStat / leagueAvgStat(teams, oppBasisKey);
+  return 1 + oppStrength * (ratio - 1);
+}
+
+function getActualStat(match, team, playerName, statKey) {
+  const raw = match.actual && match.actual[team] && match.actual[team][playerName];
+  if (raw === undefined) return undefined;
+  if (typeof raw === "number") return statKey === "k" ? raw : null; // legacy kills-only format
+  return raw[statKey];
+}
+
+/* ============================================================
+   PATCH AWARENESS — an off-patch match gets an extra weight
+   discount on top of recency decay, since a kill rate from two
+   patches ago may reflect a meta that no longer exists. Patch
+   strings look like "16.16" — compared numerically (major, minor),
+   not as plain strings, since "16.9" > "16.10" alphabetically but
+   isn't chronologically.
+   ============================================================ */
+
+function parsePatch(patchStr) {
+  if (!patchStr) return null;
+  const m = /^(\d+)\.(\d+)/.exec(patchStr);
+  if (!m) return null;
+  return [parseInt(m[1], 10), parseInt(m[2], 10)];
+}
+
+function comparePatch(a, b) {
+  if (!a || !b) return 0;
+  return a[0] !== b[0] ? a[0] - b[0] : a[1] - b[1];
+}
+
+function latestPatch(pastMatches, cutoffDate) {
+  let best = null;
+  for (const m of pastMatches) {
+    if (cutoffDate !== null && (!m.date || m.date >= cutoffDate)) continue;
+    const p = parsePatch(m.patch);
+    if (p && (!best || comparePatch(p, best) > 0)) best = p;
+  }
+  return best;
+}
+
+/* ============================================================
+   RECENCY-WEIGHTED RATE — replaces a flat season average with an
+   exponential decay by match recency, so a hot streak or a roster
+   swap shows up faster than waiting for a whole season of games to
+   dilute it. cutoffDate=null means "use every completed match in
+   the split" (for live Future-tab projections); a real date means
+   "only matches strictly before this one" (for point-in-time Past
+   Results backtesting) — same function, same decay logic, either way.
+
+   halfLife is in MATCHES (not individual games) since that's the
+   granularity pastMatches stores — each entry is already a game-1
+   + game-2 combined total, not two separate rows. A halfLife of 20+
+   is treated as "off" (flat average) since decay is negligible over
+   a realistic split length at that point.
+
+   referencePatch + patchDiscount layer an additional weight penalty
+   on top of recency decay for any match not on the reference patch.
+   referencePatch is passed in rather than always computed as "the
+   true latest patch" because for point-in-time backtesting, the
+   relevant reference is the patch the match being predicted was
+   played on — not today's real-world patch, which would leak
+   future information into a backtest of an old match.
+   ============================================================ */
+
+function recencyWeightedRate(pastMatches, team, playerName, statKey, cutoffDate, halfLife, referencePatch, patchDiscount) {
+  const entries = [];
+  for (const m of pastMatches) {
+    if (cutoffDate !== null && (!m.date || m.date >= cutoffDate)) continue;
+    if (!m.actual || !(m.teamA === team || m.teamB === team) || !m.actual[team]) continue;
+    const val = getActualStat(m, team, playerName, statKey);
+    if (val === undefined || val === null) continue; // didn't play, or legacy data missing this stat
+    // maps carries the series' real map count so the weighted per-game
+    // rate divides by what the total actually covers. A Bo5 sums 3 maps
+    // but a fixed 2 would divide it by 2, inflating that player's rate.
+    entries.push({ date: m.date || "", val, patch: parsePatch(m.patch), maps: m.maps_counted || 2 });
+  }
+  if (entries.length === 0) return { rate: null, games: 0 };
+  entries.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0)); // oldest first
+  const n = entries.length;
+  const flat = halfLife >= 20;
+  let weightedSum = 0, weightedGames = 0, totalMaps = 0;
+  entries.forEach((e, idx) => {
+    const matchesAgo = (n - 1) - idx; // 0 = most recent match
+    let weight = flat ? 1 : Math.pow(0.5, matchesAgo / halfLife);
+    if (referencePatch && e.patch && comparePatch(e.patch, referencePatch) !== 0) {
+      weight *= (1 - patchDiscount);
+    }
+    weightedSum += e.val * weight;
+    weightedGames += e.maps * weight;
+    totalMaps += e.maps;
+  });
+  // games is the prior-map count used for cold-start detection, so it
+  // has to reflect real maps too rather than assuming 2 per match.
+  return { rate: weightedGames > 0 ? weightedSum / weightedGames : null, games: totalMaps };
+}
+
+function project(teams, pastMatches, player, team, opponentTeam, games, weights, statType) {
+  const cfg = STAT_TYPES[statType];
+  const refPatch = latestPatch(pastMatches, null);
+  const weighted = recencyWeightedRate(pastMatches, team, player.name, cfg.key, null, weights.recencyHalfLife, refPatch, weights.patchDiscount);
+  const curRate = weighted.rate !== null ? weighted.rate : player.cur[cfg.key]; // safety net if pastMatches is thin
+  const recentFormRate = player.hist ? weights.history * player.hist[cfg.key] + (1 - weights.history) * curRate : curRate;
+  const { base, careerRate } = applyCareerTier(recentFormRate, player, weights, cfg, null);
+  const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, null);
+  const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp) : 1;
+  const perGame = base * oppMult * kpMult;
+  return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult, perGame, total: perGame * games };
+}
+
+// Career tier — a prior derived from scripts/scrape_career.py, blended
+// on TOP of the existing recent-form/split-history base, using its own
+// independent weight rather than forcing a 3-way sum-to-1 average —
+// consistent with how patchDiscount/kp are already separate
+// multiplicative layers rather than folded into one blend. Shared by
+// both project() (live) and projectPointInTime() (backtesting) so they
+// never drift apart, mirroring scripts/optimize_weights.py's Python
+// version of the same logic exactly. Falls back cleanly (base
+// unchanged) when a player has no career data yet — rookies, or any
+// game/region career history hasn't been built for (Valorant/CS2 don't
+// have their own career scraper yet).
+//
+// IMPORTANT, measured finding — this is NOT genuine multi-season
+// history in practice: a real backtest (scripts/sweep_season_half_life.py)
+// found the optimal season-decay rate so aggressive (half_life=0.05)
+// that "career" ends up nearly identical to the player's CURRENT season
+// alone (confirmed via direct sample comparison, diffs ~0.00-0.03).
+// The real, honest reason this weight still measurably helps is most
+// likely that it's an independently-sourced current-season measurement
+// (gol.gg's own canonical player pages) layered on top of the app's
+// separate in-house current-season tracking — noise reduction /
+// coverage improvement, not real cross-season trend-capturing. Worth
+// knowing before assuming this reflects a player's multi-year career.
+// CS2's career data is point-in-time computed here, from raw per-game
+// history (player.career_games), not a static pre-decayed number — a
+// real, confirmed leakage bug found that a single "career" snapshot
+// computed once at scrape time ("most recent N games as of right now")
+// let a historical backtest prediction be fed a career number partly
+// built from games that hadn't happened yet as of that prediction's own
+// date, producing a misleadingly perfect-looking career:1.0 in a real
+// backtest. LoL still uses a static player.career field for now (its own
+// leakage risk is smaller in practice — a whole-season aggregate dilutes
+// any single prediction's overlap — but isn't architecturally immune to
+// the same issue; worth applying this same fix there once CS2's is
+// validated).
+const CS2_CAREER_DAY_HALF_LIFE = 60; // matches scripts/scrape_cs2_career.py's own constant
+function pointInTimeCS2CareerRate(player, statKey, cutoffDate) {
+  const games = player.career_games || [];
+  const cutoffMs = cutoffDate ? new Date(cutoffDate).getTime() : Date.now();
+  const eligible = games.filter((g) => g.date && new Date(g.date).getTime() < cutoffMs);
+  if (!eligible.length) return null;
+  let totalWeight = 0;
+  let weighted = 0;
+  for (const g of eligible) {
+    const daysAgo = Math.max(0, (cutoffMs - new Date(g.date).getTime()) / 86400000);
+    const weight = Math.pow(0.5, daysAgo / CS2_CAREER_DAY_HALF_LIFE);
+    totalWeight += weight;
+    weighted += (g[statKey] || 0) * weight;
+  }
+  return totalWeight > 0 ? weighted / totalWeight : null;
+}
+
+function applyCareerTier(base, player, weights, cfg, cutoffDate) {
+  let careerRate;
+  if (player.career_games) {
+    careerRate = pointInTimeCS2CareerRate(player, cfg.key, cutoffDate);
+  } else {
+    careerRate = player.career ? player.career[cfg.key] : null;
+  }
+  if (careerRate != null && weights.career > 0) {
+    return { base: weights.career * careerRate + (1 - weights.career) * base, careerRate };
+  }
+  return { base, careerRate };
+}
+
+/* ============================================================
+   POINT-IN-TIME MODEL — used only for Past Results, so the
+   "projection" shown for a match reflects only data that existed
+   before that match was played, not the final season averages.
+   Derived entirely from pastMatches (which already has dated,
+   per-player K/D/A for every completed match) — no extra
+   scraping needed. Uses the same recencyWeightedRate() as the
+   live model above, just with cutoffDate set to the match's own
+   date instead of null.
+
+   Known simplifications: kill-participation multiplier still uses
+   full-season KP (per-match KP isn't captured in pastMatches), and
+   the opponent-strength side (below) is a flat average rather than
+   recency-weighted — base rate is the biggest lever and the one
+   this feature targets; opponent-side recency would be a further
+   refinement, not implemented here.
+   ============================================================ */
+
+function pointInTimeTeamStat(pastMatches, team, statKey, cutoffDate) {
+  // "opponent's kills" and "opponent's deaths" are two different vantage
+  // points on the same match: a team's deaths = the *other* team's kills
+  // in that game, so statKey="d" sums the opponent's actual k values, and
+  // statKey="k" sums the team's own actual k values.
+  let total = 0, games = 0;
+  for (const m of pastMatches) {
+    if (cutoffDate !== null && (!m.date || m.date >= cutoffDate)) continue;
+    const opp = m.teamA === team ? m.teamB : m.teamB === team ? m.teamA : null;
+    if (!opp || !m.actual) continue;
+    const sourceTeam = statKey === "d" ? opp : team;
+    const sourceData = m.actual[sourceTeam];
+    if (!sourceData) continue;
+    for (const playerName in sourceData) {
+      const val = getActualStat(m, sourceTeam, playerName, "k"); // team-level kills, either own or conceded
+      if (typeof val === "number") total += val;
+    }
+    games += m.maps_counted || 2; // real map count — a Bo5 sums 3 maps, not 2
+  }
+  return games > 0 ? total / games : null;
+}
+
+function pointInTimeLeagueAvgStat(pastMatches, teams, statKey, cutoffDate) {
+  const rates = Object.keys(teams)
+    .map((t) => pointInTimeTeamStat(pastMatches, t, statKey, cutoffDate))
+    .filter((r) => r !== null);
+  if (rates.length === 0) return null;
+  return rates.reduce((s, r) => s + r, 0) / rates.length;
+}
+
+/* ============================================================
+   LANE-SPECIFIC OPPONENT ADJUSTMENT — a player's kills/deaths are
+   compared against the specific opponent in their own role (e.g.
+   your jungler vs. their jungler), not a team-wide average that
+   mixes in the enemy support's low death rate with the enemy
+   jungler's. A real diagnostic (scripts/optimize_weights.py
+   --diagnose-opponent) found the team-wide signal was real but weak
+   and didn't strengthen with more data — pointing at the comparison
+   itself being too blunt, not at opponent strength being irrelevant.
+
+   Falls back to the team-wide functions above whenever a lane-
+   specific read isn't possible: no role data at all (Valorant),
+   no opposing player currently on record for that role, or not
+   enough matches yet to compute a stable rate. STAT_TYPES.laneSpecific
+   controls which stats even attempt this — assists stay team-wide,
+   since they come from the whole team's kills, not a single lane
+   matchup (confirmed by that same diagnostic: assists had the
+   *strongest* team-wide signal of the three stats).
+   ============================================================ */
+
+function pointInTimePlayerNamesStat(pastMatches, team, playerNames, statKey, cutoffDate) {
+  let total = 0, games = 0;
+  for (const m of pastMatches) {
+    if (cutoffDate !== null && (!m.date || m.date >= cutoffDate)) continue;
+    if (!m.actual || !m.actual[team]) continue;
+    for (const name of playerNames) {
+      const val = getActualStat(m, team, name, statKey);
+      if (typeof val === "number") {
+        total += val;
+        games += m.maps_counted || 2; // real map count, as above
+      }
+    }
+  }
+  return games > 0 ? total / games : null;
+}
+
+function pointInTimeLeagueAvgForRole(pastMatches, teams, role, statKey, cutoffDate) {
+  const rates = [];
+  for (const teamName in teams) {
+    const roleNames = teams[teamName].players.filter((p) => p.role === role).map((p) => p.name);
+    if (roleNames.length === 0) continue;
+    const r = pointInTimePlayerNamesStat(pastMatches, teamName, roleNames, statKey, cutoffDate);
+    if (r !== null) rates.push(r);
+  }
+  return rates.length > 0 ? rates.reduce((a, b) => a + b, 0) / rates.length : null;
+}
+
+function laneOpponentMultiplier(pastMatches, teams, player, opponentTeam, oppStrength, oppBasisKey, cutoffDate) {
+  if (!player.role || !teams[opponentTeam]) return null; // no role data (Valorant) — signal caller to fall back
+  const opponentRoleNames = teams[opponentTeam].players.filter((p) => p.role === player.role).map((p) => p.name);
+  if (opponentRoleNames.length === 0) return null; // no current opponent on record for this role
+  const oppStat = pointInTimePlayerNamesStat(pastMatches, opponentTeam, opponentRoleNames, oppBasisKey, cutoffDate);
+  const leagueAvg = pointInTimeLeagueAvgForRole(pastMatches, teams, player.role, oppBasisKey, cutoffDate);
+  if (oppStat === null || !leagueAvg) return null; // not enough data yet — fall back to team-wide
+  return 1 + oppStrength * (oppStat / leagueAvg - 1);
+}
+
+function gameHasRoleData(teams) {
+  // True if ANY player in this dataset has role info at all — used to
+  // distinguish "this specific player is missing a role" (LoL/Valorant,
+  // where a real diagnostic found team-wide as a FALLBACK for that case
+  // specifically to be weak-to-negative — see resolveOpponentMultiplier)
+  // from "this game doesn't track roles at all" (CS2 — role is always
+  // null for every player, confirmed via direct inspection, not an edge
+  // case). The original neutral-over-team-wide-fallback finding was
+  // measured before CS2 existed in this app at all, so it was never
+  // actually validated for a game with zero role data; applying it there
+  // anyway made `opponent` completely inert for CS2 kills/deaths without
+  // that ever being a deliberate, tested decision.
+  return Object.values(teams).some((team) => team.players.some((p) => p.role));
+}
+
+function resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, oppStrength, cfg, cutoffDate) {
+  if (cfg.laneSpecific && gameHasRoleData(teams)) {
+    // Only reached for games that actually track roles (LoL, Valorant).
+    // For lane-specific stats (kills, deaths) there, a real diagnostic
+    // (scripts/optimize_weights.py --diagnose-opponent) found the
+    // team-wide fallback signal is weak-to-negative on its own — using
+    // it as a fallback for the occasional player missing a role match
+    // was silently cancelling out the real lane-specific signal, since
+    // a single opponent weight applies uniformly across both
+    // populations. Neutral (no adjustment) beats a fallback we've
+    // specifically measured to be unreliable, for THIS case
+    // specifically.
+    const laneMult = laneOpponentMultiplier(pastMatches, teams, player, opponentTeam, oppStrength, cfg.oppBasis, cutoffDate);
+    return laneMult !== null ? laneMult : 1;
+  }
+  // Team-wide path — used for assists always (laneSpecific=false), AND
+  // now for kills/deaths in any game with NO role data at all (CS2).
+  // That second case used to silently fall through to the branch above
+  // and always return neutral (1), since laneOpponentMultiplier
+  // immediately bails when player.role is falsy — which is EVERY CS2
+  // player, always, confirmed via direct inspection, not an edge case.
+  // That meant `opponent` was completely inert for CS2 kills/deaths,
+  // undocumented and unintended, not a deliberate decision the way the
+  // neutral-fallback above actually was for LoL/Valorant.
+  if (cutoffDate === null) {
+    return opponentMultiplier(teams, opponentTeam, oppStrength, cfg.oppBasis);
+  }
+  const oppStatPT = pointInTimeTeamStat(pastMatches, opponentTeam, cfg.oppBasis, cutoffDate);
+  const leagueAvgPT = pointInTimeLeagueAvgStat(pastMatches, teams, cfg.oppBasis, cutoffDate);
+  const oppStat = oppStatPT !== null ? oppStatPT : teamStatPerGame(teams, opponentTeam, cfg.oppBasis);
+  const leagueAvg = leagueAvgPT !== null ? leagueAvgPT : leagueAvgStat(teams, cfg.oppBasis);
+  return 1 + oppStrength * (oppStat / leagueAvg - 1);
+}
+
+function projectPointInTime(pastMatches, teams, player, team, opponentTeam, games, weights, cutoffDate, statType, matchPatch) {
+  const cfg = STAT_TYPES[statType];
+  const refPatch = parsePatch(matchPatch); // the patch THIS match was played on, not a later one
+  const pt = recencyWeightedRate(pastMatches, team, player.name, cfg.key, cutoffDate, weights.recencyHalfLife, refPatch, weights.patchDiscount);
+  const histRate = player.hist ? player.hist[cfg.key] : null;
+
+  // Base rate: blend point-in-time (recency-weighted) current-split rate
+  // with prior-split rate, same weighting the live model uses. Early in a
+  // split (no prior games yet) there's nothing to blend, so fall back to
+  // prior-split alone, and only to the final-season number as a last
+  // resort (true cold start, no data at all).
+  let recentFormRate;
+  if (pt.rate !== null) {
+    recentFormRate = histRate !== null ? weights.history * histRate + (1 - weights.history) * pt.rate : pt.rate;
+  } else {
+    recentFormRate = histRate !== null ? histRate : player.cur[cfg.key];
+  }
+  const { base, careerRate } = applyCareerTier(recentFormRate, player, weights, cfg, cutoffDate);
+
+  const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, cutoffDate);
+
+  // KP multiplier is the one piece still using full-season data — see note above.
+  const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp) : 1;
+
+  const perGame = base * oppMult * kpMult;
+  return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult, perGame, total: perGame * games, priorGames: pt.games };
+}
+
+// Per-stat-type defaults, tuned via a real backtest against historical
+// results (scripts/optimize_weights.py) rather than picked by feel.
+// The `opponent` weight went through a real investigative arc worth
+// knowing: a first pass found team-wide opponent comparison carried no
+// usable signal (opponent=0), which held up under a noise-vs-data-volume
+// diagnostic. Switching to a LANE-SPECIFIC comparison (a player vs. their
+// direct positional opponent, not the whole enemy roster) initially still
+// converged to opponent=0 — not because lane-specific data was uninformative
+// (a --diagnose-opponent run split by lane-specific-vs-fallback rows showed
+// real, positive signal in the lane-specific subset), but because the model
+// was falling back to the same weak/negative team-wide signal whenever
+// lane-specific data wasn't available (~63% of rows), which cancelled out
+// the real signal in the other ~37%. Changing the fallback to neutral (no
+// adjustment) instead of team-wide finally let the lane-specific signal
+// through: opponent settled at a genuine non-zero value for both kills and
+// deaths. Assists intentionally stays on team-wide comparison throughout —
+// the diagnostic found assists' signal lives at the team level, not the lane
+// level, which tracks with assists coming from the whole team's kills.
+// Assists' patchDiscount is still an interpolated placeholder (the exact
+// searched value never got captured) — replace with the real number from a
+// fresh `--stat assists` run whenever convenient; low-stakes since
+// patchDiscount only matters when cross-patch data exists at all.
+/* Per-GAME, per-stat weights, all measured via scripts/optimize_weights.py
+   backtesting against real accumulated match data — not guessed. A single
+   shared set was previously used across all three games, which was a real
+   source of inconsistency: the optimal weights differ substantially by
+   game (e.g. `opponent` wants 0.2-0.4 for LoL but 1.0 for Valorant
+   kills/deaths, and 0.0 for Valorant assists).
+
+   Measured improvements vs. the old shared defaults:
+     LoL      kills +8.3%,  deaths +17.1%, assists +12.7%
+     Valorant kills +2.1%,  deaths +3.1%,  assists +16.8%
+     CS2      kills +38.0%, deaths +29.4%, assists +20.3% (n=530, confirmed with both fixes below live)
+
+   NOTE on CS2, TWO real bugs found and fixed, both changing what CS2's
+   weights can actually do — confirmed via a real re-scrape + re-measure
+   with both fixes live (the numbers above reflect that, not the
+   original broken state):
+
+   (1) `opponent` was COMPLETELY inert for kills/deaths, silently, this
+   whole time — not a documented limitation, an actual bug.
+   resolveOpponentMultiplier's lane-specific path requires player.role,
+   which is null for EVERY CS2 player (CS2 doesn't track discrete
+   positions the way LoL does) — so it always fell through to neutral
+   (1), regardless of the opponent weight's value. Now routes CS2's
+   lane-specific stats through the team-wide path instead (same one
+   already used for assists), via gameHasRoleData() distinguishing "this
+   game has no role data at all" (CS2) from "this specific player is
+   missing a role" (the original, still-valid LoL/Valorant finding for
+   why team-wide as a FALLBACK was worse than staying neutral there).
+
+   (2) `kp` was hardcoded to 0 for every CS2 player in scrape_cs2.py,
+   despite being genuinely computable from data already fetched —
+   players_stats returns all 10 players' kills/deaths/assists per map
+   with team labels, so kill participation is just (kills+assists) /
+   team's total kills for that map, the same math LoL already uses.
+   Now computed for real.
+
+   A real, notable side-finding from the confirmed re-measurement:
+   `opponent` actually working for the first time made the DEFAULT value
+   (1.0, the naive starting point) measurably WORSE for CS2 kills/assists
+   than not adjusting at all — the search moved it all the way to 0.0 for
+   those two stats. Most likely explanation: CS2's discovered-team pool
+   is smaller and more dynamic than LoL's (many thinly-sampled backfilled
+   teams, per this project's own CS2 data-pipeline history), so
+   team-strength estimates are noisier there — a strong opponent
+   adjustment amplifies that noise rather than correcting for it. This
+   is a real, deliberate result, not a leftover default.
+
+   `history` and `patchDiscount` remain genuinely inert for CS2 (hist is
+   still null — no Spring/Summer-style split exists in its continuous
+   tournament calendar) — that part of the original finding still holds. */
+/* Per-GAME, per-stat weights, all measured via scripts/optimize_weights.py
+   backtesting against real accumulated match data — not guessed. A single
+   shared set was previously used across all three games, which was a real
+   source of inconsistency: the optimal weights differ substantially by
+   game (e.g. `opponent` wants 0.2-0.4 for LoL but 1.0 for Valorant
+   kills/deaths, and 0.0 for Valorant assists).
+
+   LoL weights include a `career` tier (see applyCareerTier's own
+   detailed note for what this signal actually turned out to measure —
+   in short, NOT genuine multi-season history at its optimal
+   configuration, more likely a cleaner independently-sourced current-
+   season number) — added and re-measured after the original per-game
+   RE-MEASURED after tournament discovery quadrupled the LoL dataset
+   (241 -> 967 series, ~7,400 backtested predictions across regular
+   season, playoffs, cups and preseason events). The previous weights
+   here were fit on roughly a quarter of the data and are superseded.
+   Three changes are worth understanding rather than just accepting:
+
+   - recencyHalfLife converged to 8 for ALL THREE stats (previously
+     20/2/20 — i.e. two stats on "flat average" and one on a very sharp
+     2-match decay). With a much longer history now available, a
+     moderate decay beats both extremes, and the fact that three
+     independent searches landed on the same value is a real signal
+     rather than noise.
+   - patchDiscount collapsed to 0.0 for kills and deaths (was 1.0). This
+     follows directly from the bigger pool: with matches now spanning
+     Lock-In through Summer Playoffs across many patches, most history
+     is off-patch relative to any given target, so a full discount threw
+     away nearly all of it. You cannot afford to discount off-patch
+     games when the pool is a year wide.
+   - career roughly halved (0.8/0.85/0.85 -> 0.4/0.5/0.3). This is the
+     optimizer's answer to a real measured problem: career's benefit
+     rises through a season and is actively NEGATIVE early on (see
+     scripts/diagnose_lol_career_leakage.py). A sample-maturity ramp was
+     built and tested as the "obvious" fix and was REJECTED by all three
+     stats in favour of simply lowering the flat weight.
+
+   That same diagnostic was originally built to test whether the career
+   tier was LEAKING future data into backtests — the static career field
+   has no cutoff filtering, and at SEASON_HALF_LIFE=0.05 it collapses to
+   roughly the current-season aggregate. The data refuted that outright:
+   career's benefit rises monotonically through the season (kills -1.1%
+   -> +6.6%, assists -1.5% -> +10.8%), the opposite of the contamination
+   signature. The structural leak is real but is not inflating the
+   numbers, so a point-in-time rewrite is cleanup-on-principle, not a
+   correctness emergency.
+
+   Improvements reported by the search (+3.7% kills, +7.1% deaths, +3.4%
+   assists) are measured against DEFAULT_WEIGHTS, which carries
+   career:0.0 — they are NOT a claim of that much gain over the weights
+   previously shipped here.
+
+   One further hypothesis was tested and REJECTED: that mixing preseason
+   and cup events (Lock-In, Kickoff, LCK/CBLOL Cup — 127 of 966 matches,
+   13%) into the same history pool as regular season and playoffs was
+   adding more noise than coverage, by analogy with the real
+   tier-mismatch problem confirmed in CS2's career data.
+   scripts/experiment_stage_filtering.py measured it properly, holding
+   the evaluation set fixed (n=6631 identical across variants) and
+   varying only the history pool. Keeping everything won for all three
+   stats, and excluding more made it monotonically worse (kills 2.6556
+   -> 2.6664, assists 4.8203 -> 4.8621). Volume beats purity here; the
+   CS2 analogy did not transfer. Do not "clean up" the pool by stage. */
+const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
+  lol: {
+    kills: { history: 0.4, opponent: 0.4, kp: 0.1, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.4 },
+    deaths: { history: 0.3, opponent: 0.2, kp: 0.3, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.5 },
+    assists: { history: 0.4, opponent: 0.4, kp: 0.2, recencyHalfLife: 8, patchDiscount: 0.3, career: 0.3 },
+  },
+  valorant: {
+    // RE-MEASURED after fixing a real bug that made the kp weight
+    // STRUCTURALLY INERT for this entire game: scrape_valorant.py wrote
+    // kp as a literal 0 for every player, and kp_multiplier()'s
+    // `if not cur_kp: return 1.0` guard then fired every single time, so
+    // no kp value the optimizer picked could ever change a prediction.
+    // The previously shipped numbers here (kp: 0.3 across all three)
+    // were therefore fitted around a dead parameter. This is the same
+    // bug already found and fixed on the CS2 side.
+    //
+    // That the fix took effect is visible in the result itself: the
+    // three stats now choose DIFFERENT kp values (0.0 / 0.3 / 0.1).
+    // While kp was inert every candidate scored identically, so ties
+    // resolved to the same value for all three — divergence is the
+    // signature of the search responding to real signal.
+    //
+    // opponent: 0.0 on all three is measured, matching the same result
+    // CS2 showed. Valorant has no per-player role data either (role is
+    // None), so the lane-specific opponent path can't engage and it
+    // falls back to a team-wide estimate built on a thin sample.
+    //
+    // career: 0.0 because Valorant is now the ONLY game without its own
+    // career-history scraper (LoL has scrape_career.py, CS2 has
+    // scrape_cs2_career.py). It is a clean no-op rather than a tuned
+    // value — applyCareerTier() falls back to the base rate whenever a
+    // player carries no career data — so this stays 0.0 until a
+    // Valorant equivalent exists, at which point it needs measuring
+    // rather than assuming.
+    // These are the SECOND measurement. The first was taken with the kp
+    // fix live but before a separate parsing bug was found, which was
+    // silently discarding rows whose stats rendered without the
+    // attack/defense split (see scrape_valorant.py). Fixing that
+    // recovered 90 predictions in VCT China (n 549 -> 639) and improved
+    // that region's MAE markedly (kills 6.4953 -> 6.1139, deaths 4.5593
+    // -> 4.1734), so the earlier weights were fit on an incomplete
+    // sample and are superseded.
+    kills: { history: 0.7, opponent: 0.0, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.0 },
+    deaths: { history: 0.7, opponent: 0.0, kp: 0.3, recencyHalfLife: 6, patchDiscount: 0.3, career: 0.0 },
+    assists: { history: 0.4, opponent: 0.0, kp: 0.1, recencyHalfLife: 6, patchDiscount: 0.8, career: 0.0 },
+  },
+  cs2: {
+    // All three stats now measured with THREE real fixes live: kp
+    // actually computed (was hardcoded to 0), opponent adjustment
+    // actually functioning for kills/deaths (was silently always
+    // neutral due to the role-data dependency bug), and — the biggest
+    // one — a genuine point-in-time-aware career tier (a real, confirmed
+    // leakage bug initially made career look artificially strong: it was
+    // a static snapshot with no cutoff-date awareness, so a historical
+    // backtest prediction could be fed a career number partly built from
+    // games that hadn't happened yet as of that prediction's own date).
+    //
+    // The leakage fix was verified two ways before trusting these
+    // numbers, not just assumed correct from logic: (1) direct
+    // inspection of real matches confirmed every included career game is
+    // genuinely before the cutoff date, every excluded one genuinely at
+    // or after it; (2) career_rate correlates only moderately (0.578)
+    // with the model's existing pt_rate signal, not near-1.0 — ruling
+    // out "it's just a cleaner copy of the same thing" and, combined
+    // with (1), ruling out residual leakage. Most likely real
+    // explanation: career_rate (60-day decay, sourced from a complete
+    // dedicated player-history query) and pt_rate (games-based decay,
+    // limited to this app's own team-discovery dataset) are measuring
+    // related but genuinely different things, and career_rate's data is
+    // simply more complete. Deaths settling at 0.95 rather than exactly
+    // 1.0 (unlike kills/assists) is a real, differentiating signal that
+    // the search isn't just blindly maxing out every dimension.
+    //
+    // Real gains vs. the pre-any-of-this-session's-CS2-fixes baseline:
+    // kills +29.5%, deaths +31.5%, assists +19.6% (n=1666). Lower than
+    // an earlier intermediate measurement (+42.7%/+40.9%/+30.6%), which
+    // is a HONEST, expected result, not a regression: that earlier
+    // number was measured while kp_mult was still silently broken (see
+    // below) and deflating BOTH the baseline and the "best" search
+    // uniformly, and while career data still had a null-stat
+    // contamination bug pulling some players' numbers down. Fixing both
+    // moved the baseline up too, shrinking the relative improvement
+    // even though the ABSOLUTE predictions got more accurate. Confirmed
+    // via a real prediction-breakdown diagnostic: the original
+    // systematic UNDER-prediction (every single miss in a live
+    // screenshot going the same direction) is gone -- diffs now show a
+    // genuine mix of over/under misses, the real signature of normal
+    // match-to-match variance rather than a fixable model bias.
+    //
+    // Two real, confirmed bugs found and fixed via that live screenshot
+    // report + breakdown diagnostic, on top of everything above:
+    //
+    // (1) kp_mult was silently ~0.9 (kills) to ~0.7 (deaths) for EVERY
+    // CS2 player regardless of their real kill participation --
+    // kp_multiplier's team_avg_kp=66.0 constant is calibrated for LoL's
+    // 0-100 percentage convention, but CS2's kp was a 0-1 fraction.
+    // Fixed by scaling CS2's kp to the same 0-100 convention at the
+    // source (scrape_cs2.py), not by adding game-aware branching here.
+    //
+    // (2) career_games could include fake zero-kill games from matches
+    // bo3.gg hadn't finished processing yet (confirmed earlier this
+    // project as a real phenomenon) -- scrape_cs2_career.py now
+    // explicitly excludes null stat rows instead of silently coalescing
+    // them to 0 via `or 0`, which had been treating "not ready yet" the
+    // same as "genuinely 0 kills".
+    //
+    // A THIRD real issue was investigated but is NOT fixed: career_games
+    // draws from EVERY match a player has played, with no tier/star
+    // filtering the way cur/pt_rate get from the main pipeline -- live
+    // reconnaissance confirmed bo3.gg's player-scoped /matches endpoint
+    // simply doesn't expose tier/star data via any tested `with=`
+    // expansion (tournament objects only carry id/image_url/
+    // last_match_date). Given the systematic bias resolved without this
+    // fix, it's a real but lower-priority remaining gap, not an active
+    // problem.
+    //
+    // opponent:0.0 across ALL THREE stats is now MEASURED, not inferred.
+    // --diagnose-opponent on real CS2 data (n=774) gives
+    // corr(opponent deviation, prediction residual) of just +0.015 for
+    // kills and +0.028 for assists — i.e. essentially no usable signal,
+    // so a zero weight is correct rather than a shrug. Deaths is the one
+    // exception at +0.113: weak but genuinely positive and pointing the
+    // right way, yet the weight search still landed on 0.0, which says
+    // the current multiplicative opponent form isn't capturing even that
+    // much. Likely root cause for all three: the average opponent-
+    // strength estimate rests on only ~8 prior games, which is thin
+    // enough that the estimate's own noise swamps a real effect that
+    // small. So the honest read is "not enough data per opponent yet",
+    // not "opponent strength doesn't matter in CS2" — worth re-checking
+    // as the tracked pool grows, with deaths the most likely first stat
+    // to turn on. One caveat on those numbers: --diagnose-opponent
+    // computes its base with DEFAULT_WEIGHTS (LoL-shaped) rather than
+    // the measured CS2 weights, which adds noise to the residual; the
+    // near-zero kills/assists results are almost certainly robust to
+    // that, deaths' +0.113 less so.
+    //
+    // A separate, real, confirmed bug was also fixed here
+    // (teamStatPerGame/team_stat_per_game summing every historical
+    // player for a team uncapped while only capping the divisor at 5)
+    // via a shared likelyStarters()/likely_starters() helper. That fix
+    // barely moved these numbers on its own.
+    kills: { history: 0.3, opponent: 0.0, kp: 0.1, recencyHalfLife: 10, patchDiscount: 0.4, career: 1.0 },
+    deaths: { history: 0.3, opponent: 0.0, kp: 0.3, recencyHalfLife: 2, patchDiscount: 0.4, career: 1.0 },
+    assists: { history: 0.3, opponent: 0.0, kp: 0.1, recencyHalfLife: 10, patchDiscount: 0.4, career: 1.0 },
+  },
+};
+
+/* ============================================================
+   SHARED UI PIECES
+   ============================================================ */
+
+function Slider({ label, value, onChange, min, max, step, format, tooltip }) {
+  const theme = useTheme();
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: theme.textDim, marginBottom: 5, fontFamily: "'Inter', sans-serif" }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+          {label}
+          {tooltip && (
+            <span
+              title={tooltip}
+              style={{
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                width: 13, height: 13, borderRadius: "50%", border: `1px solid ${theme.textFaint}`,
+                fontSize: 9, color: theme.textFaint, cursor: "help", flexShrink: 0,
+              }}
+            >
+              i
+            </span>
+          )}
+        </span>
+        <span style={{ color: theme.accent, fontFamily: "'IBM Plex Mono', monospace" }}>{format ? format(value) : value}</span>
+      </div>
+      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(parseFloat(e.target.value))} style={{ width: "100%", accentColor: theme.accent }} />
+    </div>
+  );
+}
+
+// Radar chart visualizing a projection's real components as a shape,
+// not just a final number — inspired by a reference app's per-player
+// spider chart, adapted to what THIS model actually computes rather
+// than copying its exact axes. Each axis is normalized to "% above/
+// below neutral" on a 0-100 scale (50 = no effect), so Recent Form and
+// Career (raw per-game rates, whatever units the stat/game uses) sit on
+// the SAME comparable scale as Opponent and KP (already-centered
+// multipliers) — none of these axes share native units otherwise, so
+// without this normalization the shape wouldn't mean anything.
+function projectionRadarAxes(r, seasonAvg) {
+  const toRadar = (ratio) => Math.max(0, Math.min(100, 50 + (ratio - 1) * 100));
+  const axes = [
+    { label: "Recent Form", value: toRadar(seasonAvg > 0 ? r.recentFormRate / seasonAvg : 1) },
+    { label: "Opponent", value: toRadar(r.oppMult) },
+  ];
+  if (r.careerRate != null && r.careerWeight > 0) {
+    axes.splice(1, 0, { label: "Career", value: toRadar(seasonAvg > 0 ? r.careerRate / seasonAvg : 1) });
+  }
+  if (r.kpMult !== 1) {
+    axes.push({ label: "KP", value: toRadar(r.kpMult) });
+  }
+  return axes;
+}
+
+function RadarChart({ axes, size = 140, color }) {
+  const theme = useTheme();
+  const c = size / 2;
+  const R = size / 2 - 22; // leave room for axis labels
+  const n = axes.length;
+  if (n < 3) return null; // a radar shape needs at least 3 axes to mean anything
+  const angleFor = (i) => (2 * Math.PI * i) / n - Math.PI / 2;
+  const pointFor = (i, valuePct) => {
+    const a = angleFor(i);
+    const r = (valuePct / 100) * R;
+    return [c + r * Math.cos(a), c + r * Math.sin(a)];
+  };
+  const polygonPoints = axes.map((ax, i) => pointFor(i, ax.value).join(",")).join(" ");
+  const ringLevels = [25, 50, 75, 100];
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      {ringLevels.map((level) => (
+        <polygon
+          key={level}
+          points={axes.map((_, i) => pointFor(i, level).join(",")).join(" ")}
+          fill="none"
+          stroke={theme.steel}
+          strokeWidth={level === 50 ? 1.2 : 0.6}
+          strokeDasharray={level === 50 ? "2,2" : undefined}
+        />
+      ))}
+      {axes.map((ax, i) => {
+        const [x, y] = pointFor(i, 100);
+        return <line key={ax.label} x1={c} y1={c} x2={x} y2={y} stroke={theme.steel} strokeWidth={0.6} />;
+      })}
+      <polygon points={polygonPoints} fill={`${color}33`} stroke={color} strokeWidth={1.8} />
+      {axes.map((ax, i) => {
+        const [px, py] = pointFor(i, ax.value);
+        return <circle key={`pt-${ax.label}`} cx={px} cy={py} r={2.5} fill={color} />;
+      })}
+      {axes.map((ax, i) => {
+        const [lx, ly] = pointFor(i, 118);
+        return (
+          <text key={`label-${ax.label}`} x={lx} y={ly} fill={theme.textFaint} fontSize={9}
+                fontFamily="'IBM Plex Mono', monospace" textAnchor="middle" dominantBaseline="middle">
+            {ax.label}
+          </text>
+        );
+      })}
+    </svg>
+  );
+}
+
+// Auto-generated human-readable tags from the same real components the
+// radar chart plots — same idea as a reference app's "High Volume" /
+// "Shootout Script" tags, derived from OUR actual model output rather
+// than separately-authored narrative text, so a tag can never say
+// something the number itself doesn't support.
+function projectionTags(r, theme) {
+  const tags = [];
+  if (r.careerRate != null && r.careerWeight >= 0.5) {
+    const diff = r.careerRate - r.recentFormRate;
+    if (Math.abs(diff) > 0.15 * Math.max(r.recentFormRate, 0.1)) {
+      tags.push({ text: diff > 0 ? "Career baseline pulling up" : "Career baseline pulling down", color: diff > 0 ? theme.good : theme.bad });
+    }
+  }
+  if (r.oppMult >= 1.08) tags.push({ text: "Favorable matchup", color: theme.good });
+  else if (r.oppMult <= 0.92) tags.push({ text: "Tough matchup", color: theme.bad });
+  if (r.kpMult >= 1.05) tags.push({ text: "High involvement", color: theme.good });
+  else if (r.kpMult <= 0.95) tags.push({ text: "Low involvement", color: theme.bad });
+  return tags;
+}
+
+// Labeled horizontal progress bar for one component of a projection —
+// same idea as a reference app's "Baseline"/"Opportunity" bars, showing
+// the actual value driving a number instead of hiding it inside one
+// final total.
+function ScoreBar({ label, value, max, unit, color }) {
+  const theme = useTheme();
+  const pct = max > 0 ? Math.max(0, Math.min(100, (value / max) * 100)) : 0;
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: theme.textFaint, marginBottom: 3 }}>
+        <span>{label}</span>
+        <span style={{ fontFamily: "'IBM Plex Mono', monospace", color: theme.textDim }}>{value.toFixed(1)} {unit}</span>
+      </div>
+      <div style={{ height: 5, background: theme.steelSoft, borderRadius: 3, overflow: "hidden" }}>
+        <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 3 }} />
+      </div>
+    </div>
+  );
+}
+
+// Shared detail view for an expanded player projection — radar chart,
+// score decomposition, tags, and (LoL) champion cheat code. Used by
+// BOTH PlayerRow (Matchup/Custom Match exploration tab) and
+// MatchPlayerRow (the actual Upcoming/Past match cards) so they render
+// identically and can't silently drift apart the way they did before
+// this was extracted — the two were previously separate components with
+// separate detail-rendering code, which is exactly why a UI update to
+// one didn't show up in the other.
+function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
+  const theme = useTheme();
+  const championStats = useChampionStats();
+  const consistency = championStats ? championPoolConsistency(p.name, championStats, cfg.key) : null;
+  const seasonAvg = p.cur[cfg.key];
+  const seasonTotal = seasonAvg * games;
+  const edgePct = seasonTotal > 0 ? ((r.total - seasonTotal) / seasonTotal) * 100 : null;
+  const axes = projectionRadarAxes(r, seasonAvg);
+  const tags = projectionTags(r, theme);
+  // pastMatches/team are optional so any caller that hasn't been updated
+  // still renders everything else rather than throwing.
+  const form = pastMatches && team ? recentForm(pastMatches, team, p.name, cfg.key, 8) : [];
+  const steadiness = consistencyScore(form.map((f) => f.value));
+  // Unbounded count — `form` above is capped at 8 for the chart, which
+  // would badly understate how much history actually exists.
+  const trackedCount = pastMatches && team ? recentForm(pastMatches, team, p.name, cfg.key, 500).length : 0;
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+        <RadarChart axes={axes} color={theme.accent} />
+        <div style={{ flex: 1, minWidth: 140 }}>
+          <div style={{ fontFamily: "'Fraunces', serif", fontSize: 30, fontWeight: 600, color: theme.accent }}>
+            {r.total.toFixed(1)}
+          </div>
+          {edgePct != null && Math.abs(edgePct) >= 1 && (
+            <div style={{ fontSize: 12, color: edgePct > 0 ? theme.good : theme.bad, fontFamily: "'IBM Plex Mono', monospace", marginTop: 2 }}>
+              {edgePct > 0 ? "+" : ""}{edgePct.toFixed(0)}% vs season avg
+            </div>
+          )}
+          {tags.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+              {tags.map((t) => (
+                <span key={t.text} style={{
+                  fontSize: 11, fontWeight: 500, padding: "4px 11px", borderRadius: 20,
+                  fontFamily: "'Inter', sans-serif", background: `${t.color}20`, color: t.color,
+                }}>
+                  {t.text}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div style={{ marginTop: 14 }}>
+        <ScoreBar label="Recent form" value={r.recentFormRate} max={Math.max(r.recentFormRate, r.careerRate || 0, seasonAvg) * 1.15} unit={`${cfg.key}/g`} color={theme.textDim} />
+        {r.careerRate != null && r.careerWeight > 0 && (
+          <ScoreBar label="Career baseline" value={r.careerRate} max={Math.max(r.recentFormRate, r.careerRate, seasonAvg) * 1.15} unit={`${cfg.key}/g`} color={theme.accent} />
+        )}
+        <ScoreBar label="Season average" value={seasonAvg} max={Math.max(r.recentFormRate, r.careerRate || 0, seasonAvg) * 1.15} unit={`${cfg.key}/g`} color={theme.textFaint} />
+      </div>
+
+      {form.length > 0 && (
+        <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${theme.steelSoft}` }}>
+          <RecentFormChart rows={form} line={r.total} statLabel={cfg.label.toLowerCase()} />
+          {steadiness && (
+            <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 11, color: theme.textFaint }}>Consistency</span>
+              <div style={{ flex: 1, minWidth: 90, height: 5, background: theme.steelSoft, borderRadius: 3, overflow: "hidden" }}>
+                <div style={{
+                  width: `${steadiness.score}%`, height: "100%", borderRadius: 3,
+                  background: steadiness.score >= 70 ? theme.good : steadiness.score >= 45 ? theme.accent : theme.bad,
+                }} />
+              </div>
+              <span style={{ fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", color: theme.textDim }}>
+                {steadiness.score.toFixed(0)}/100
+              </span>
+              <span style={{ fontSize: 11, color: theme.textFaint }}>
+                avg {steadiness.mean.toFixed(1)} · ±{(steadiness.cv * steadiness.mean).toFixed(1)}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div style={{ marginTop: 12, fontSize: 11, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.8, paddingTop: 10, borderTop: `1px solid ${theme.steelSoft}` }}>
+        <div>opponent ×{r.oppMult.toFixed(2)} {cfg.useKP && <>&nbsp;·&nbsp; kp ×{r.kpMult.toFixed(2)}</>} &nbsp;→&nbsp; <span style={{ color: theme.text }}>{r.perGame.toFixed(2)} {cfg.key}/game</span> × {games}g</div>
+        {/* Reports the REAL tracked match history first, because the
+            prior-split aggregate below it is a narrow one-split slice
+            and reading "no data on file" made it look as though the app
+            had no history for a player at all — when it may have dozens
+            of matches on record. That field only ever covers the single
+            immediately-preceding split, so a player who changed region,
+            was promoted mid-year, or simply didn't play that one split
+            legitimately has none, which is not the same as unknown. */}
+        <div>
+          tracked history: {trackedCount > 0
+            ? `${trackedCount} match${trackedCount === 1 ? "" : "es"} on record`
+            : "none on record yet"}
+        </div>
+        <div>
+          prior split: {p.hist
+            ? `${p.hist[cfg.key].toFixed(1)} ${cfg.key}/g (${p.hist.g}g)`
+            : "didn't play the preceding split"}
+        </div>
+      </div>
+
+      {consistency && (
+        <div style={{ marginTop: 8, paddingTop: 10, borderTop: `1px solid ${theme.steelSoft}` }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: theme.text, letterSpacing: 0.3 }}>Champion cheat code</div>
+          <div style={{ fontSize: 11, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", marginTop: 3 }}>
+            {consistency.championsConsidered} champs, {consistency.totalGames}g on file &nbsp;→&nbsp;
+            {" "}CV={consistency.coefficientOfVariation != null ? consistency.coefficientOfVariation.toFixed(2) : "n/a"}
+            {consistency.coefficientOfVariation != null && (
+              <span style={{ color: consistency.coefficientOfVariation < 0.3 ? theme.good : consistency.coefficientOfVariation > 0.6 ? theme.bad : theme.textFaint }}>
+                {" "}({consistency.coefficientOfVariation < 0.3 ? "steady regardless of pick" : consistency.coefficientOfVariation > 0.6 ? "swings a lot by champion" : "moderate variation"})
+              </span>
+            )}
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+            {consistency.entries.slice(0, 8).map((e) => {
+              const rate = e[cfg.key];
+              const diffPct = seasonAvg > 0 ? ((rate - seasonAvg) / seasonAvg) * 100 : 0;
+              const pillColor = Math.abs(diffPct) < 8 ? theme.textDim : diffPct > 0 ? theme.good : theme.bad;
+              return (
+                <span key={e.champion} title={`${rate.toFixed(1)} ${cfg.key}/g over ${e.g} games — ${diffPct >= 0 ? "+" : ""}${diffPct.toFixed(0)}% vs their own average`}
+                  style={{
+                    fontSize: 10, padding: "4px 8px", borderRadius: 4, fontFamily: "'IBM Plex Mono', monospace",
+                    background: `${pillColor}15`, border: `1px solid ${pillColor}45`, color: theme.text,
+                  }}>
+                  {e.champion} <span style={{ color: pillColor, fontWeight: 600 }}>{rate.toFixed(1)}</span>
+                  <span style={{ color: theme.textFaint }}> ({e.g}g)</span>
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   RECENT FORM & CONSISTENCY — the last N matches for a player,
+   and how reliably they produce.
+
+   Deliberately works at MATCH level rather than per-game. The LoL
+   scraper does emit a finer `per_game` field, but it is LoL-only,
+   and more importantly every projection in this app is a per-MATCH
+   number. Showing per-game history next to a per-match projection
+   would invite comparing two different units. Match level keeps the
+   history and the projection directly comparable.
+   ============================================================ */
+
+function recentForm(pastMatches, team, playerName, statKey, limit = 8) {
+  const rows = [];
+  for (const m of pastMatches) {
+    if (!m.actual) continue;
+    const onTeam = m.teamA === team || m.teamB === team;
+    if (!onTeam) continue;
+    const val = getActualStat(m, team, playerName, statKey);
+    if (val === undefined || val === null) continue;
+    rows.push({
+      date: m.date || "",
+      value: val,
+      opponent: m.teamA === team ? m.teamB : m.teamA,
+      stage: m.stage || null,
+      // Series format and the maps "value" actually covers. Carried so
+      // the UI can show that a Bo5 figure spans 3 maps while a Bo3 spans
+      // 2 — without it, bars of different map-counts sit side by side
+      // looking directly comparable when they aren't.
+      seriesFormat: m.series_format || null,
+      mapsCounted: m.maps_counted || null,
+    });
+  }
+  rows.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)); // newest first
+  return rows.slice(0, limit);
+}
+
+// Consistency as coefficient of variation (stdev / mean), inverted onto
+// a friendlier 0-100 scale. CV is the right base measure here because it
+// is scale-free: 3 assists of spread means something very different for
+// a support averaging 12 than for a top laner averaging 4, and a raw
+// standard deviation would rank every low-volume player as "consistent"
+// purely for having small numbers.
+function consistencyScore(values) {
+  const n = values.length;
+  if (n < 3) return null; // too few games for a variance figure to mean anything
+  const mean = values.reduce((s, v) => s + v, 0) / n;
+  if (mean <= 0) return null;
+  const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) / n;
+  const cv = Math.sqrt(variance) / mean;
+  // cv 0 -> 100 (perfectly steady), cv 1.0 -> 0 (spread as large as the
+  // average). Clamped because CV is unbounded above.
+  return { cv, score: Math.max(0, Math.min(100, (1 - cv) * 100)), mean, n };
+}
+
+// How often a player cleared a given line — the figure a props-style
+// view actually leads with. Ties count as a miss, matching the standard
+// "over" convention where landing exactly on the line does not win.
+function hitRate(values, line) {
+  if (!values.length || line == null) return null;
+  const hits = values.filter((v) => v > line).length;
+  return { hits, total: values.length, pct: (hits / values.length) * 100 };
+}
+
+// Props-style recent form: one bar per recent match, with the current
+// projection drawn across as the reference line so "would this have
+// cleared?" is readable at a glance. Bars are colored against that line
+// rather than against each other, since the line is the actual question.
+function RecentFormChart({ rows, line, statLabel }) {
+  const theme = useTheme();
+  if (!rows.length) return null;
+  const ordered = [...rows].reverse(); // oldest -> newest reads left to right
+  const maxVal = Math.max(...ordered.map((r) => r.value), line || 0, 1);
+  const hr = hitRate(rows.map((r) => r.value), line);
+  const H = 92;
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: theme.text, fontFamily: "'Inter', sans-serif" }}>
+          Last {ordered.length} matches
+        </span>
+        {hr && (
+          <span style={{ fontSize: 12, fontFamily: "'IBM Plex Mono', monospace", color: theme.textDim }}>
+            <span style={{ color: hr.pct >= 50 ? theme.good : theme.bad, fontWeight: 700 }}>
+              {hr.hits}/{hr.total}
+            </span>{" "}
+            over {line.toFixed(1)}
+          </span>
+        )}
+      </div>
+
+      <div style={{ position: "relative", height: H, display: "flex", alignItems: "flex-end", gap: 4 }}>
+        {line != null && maxVal > 0 && (
+          <div
+            title={`Projection: ${line.toFixed(1)} ${statLabel}`}
+            style={{
+              position: "absolute", left: 0, right: 0, bottom: (line / maxVal) * H,
+              borderTop: `1px dashed ${theme.accent}`, opacity: 0.75, pointerEvents: "none", zIndex: 1,
+            }}
+          />
+        )}
+        {ordered.map((r, i) => {
+          const h = Math.max(2, (r.value / maxVal) * H);
+          const over = line != null && r.value > line;
+          return (
+            <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+              <div
+                title={`${r.value} vs ${r.opponent}${r.date ? ` · ${r.date}` : ""}`}
+                style={{
+                  width: "100%", height: h, borderRadius: "3px 3px 0 0",
+                  background: over ? theme.good : theme.steel,
+                  border: `1px solid ${over ? theme.good : theme.steel}`,
+                  minHeight: 2,
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
+        {ordered.map((r, i) => (
+          <div key={i} style={{ flex: 1, textAlign: "center" }}>
+            <div style={{ fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", color: theme.text, fontWeight: 600 }}>
+              {r.value}
+            </div>
+            <div style={{ fontSize: 9, color: theme.textFaint, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {r.opponent}
+            </div>
+            {r.seriesFormat && (
+              <div style={{ fontSize: 8, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", opacity: 0.8 }}>
+                {r.seriesFormat}
+                {r.mapsCounted ? `·${r.mapsCounted}m` : ""}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {(() => {
+        // Mixed-format warning. A Bo5 figure covers 3 maps and a Bo3
+        // covers 2, so a bar chart mixing them is not an apples-to-apples
+        // comparison and the hit rate against a single line is only
+        // roughly meaningful. Say so rather than letting the chart imply
+        // more precision than it has.
+        const formats = [...new Set(ordered.map((r) => r.seriesFormat).filter(Boolean))];
+        if (formats.length <= 1) return null;
+        return (
+          <div style={{ marginTop: 8, fontSize: 10, color: theme.textFaint, lineHeight: 1.5 }}>
+            Mixed series lengths ({formats.join(" / ")}) — Bo5 bars cover 3 maps, Bo3 cover 2,
+            so heights aren't directly comparable.
+          </div>
+        );
+      })()}
+    </div>
+  );
+}
+
+function PlayerRow({ teams, pastMatches, p, team, opponentTeam, games, weights, teamColor, statType }) {
+  const theme = useTheme();
+  const cfg = STAT_TYPES[statType];
+  const r = project(teams, pastMatches, p, team, opponentTeam, games, weights, statType);
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="kp-clickable" onClick={() => setOpen(!open)} style={{ cursor: "pointer", borderBottom: `1px solid ${theme.steel}`, padding: "15px 18px", background: open ? theme.graphiteLight : "transparent" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
+          <span
+            style={{
+              width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: `${teamColor}22`, border: `1.5px solid ${teamColor}`,
+              color: teamColor, fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: 12,
+            }}
+          >
+            {initialsFor(p.name)}
+          </span>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontWeight: 600, color: theme.text, fontSize: 15, fontFamily: "'Fraunces', serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</div>
+            {p.role && <span className="kp-chip" style={{ background: theme.steelSoft, color: theme.textDim, marginTop: 4 }}>{p.role}</span>}
+          </div>
+        </div>
+        <div style={{ textAlign: "right", flexShrink: 0 }}>
+          <div style={{
+            fontFamily: "'Fraunces', serif", fontSize: 26, color: theme.accent, fontWeight: 600,
+          }}>
+            {r.total.toFixed(1)}
+          </div>
+          <div style={{ fontSize: 10, color: theme.textFaint, marginTop: 4 }}>proj. {cfg.label.toLowerCase()} / {games}g</div>
+        </div>
+      </div>
+      {open && (
+        <div style={{ marginTop: 12 }}>
+          <ProjectionDetail r={r} p={p} cfg={cfg} games={games} pastMatches={pastMatches} team={team} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   STANDINGS & POWER RANKINGS — both computed entirely from data
+   already loaded, same "derive it for free" pattern as head-to-head.
+
+   Regional standings: straightforward series win/loss record within
+   one region's pastMatches, plus game (map) differential as a
+   tiebreaker signal.
+
+   Power ranking: a simple in-region win% can't meaningfully compare
+   teams that have never played each other — an LCK team and an LEC
+   team have no shared opponents in the regular season. Elo solves
+   this properly: it's fed by whatever matches exist, and the same
+   rating pool naturally absorbs cross-region results the moment
+   international events (MSI, Worlds) start happening, at which point
+   it becomes a real cross-region comparison rather than a proxy for
+   in-region record. Until then it will track closely with in-region
+   standings — that's expected and correct, not a bug; the payoff is
+   specifically for when cross-region matches start flowing in.
+   ============================================================ */
+
+function computeStandings(teams, pastMatches) {
+  const standings = {};
+  for (const teamName in teams) {
+    standings[teamName] = { wins: 0, losses: 0, gameWins: 0, gameLosses: 0 };
+  }
+  for (const m of pastMatches) {
+    if (!m.teamA || !m.teamB || !m.winner) continue;
+    // Playoff results don't fold into regular-season standings — they never
+    // are on any real broadcast, and blending them would silently produce a
+    // wrong table the moment a region enters its bracket.
+    if (m.week && playoffRoundRank(m.week) !== null) continue;
+    const loser = m.winner === m.teamA ? m.teamB : m.teamA;
+    if (standings[m.winner]) standings[m.winner].wins += 1;
+    if (standings[loser]) standings[loser].losses += 1;
+    const parts = (m.score || "").split("-").map((x) => parseInt(x, 10));
+    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+      const winnerGames = Math.max(parts[0], parts[1]);
+      const loserGames = Math.min(parts[0], parts[1]);
+      if (standings[m.winner]) { standings[m.winner].gameWins += winnerGames; standings[m.winner].gameLosses += loserGames; }
+      if (standings[loser]) { standings[loser].gameWins += loserGames; standings[loser].gameLosses += winnerGames; }
+    }
+  }
+  return Object.entries(standings)
+    .map(([team, s]) => ({
+      team, ...s,
+      winPct: s.wins + s.losses > 0 ? s.wins / (s.wins + s.losses) : 0,
+      gameDiff: s.gameWins - s.gameLosses,
+    }))
+    .sort((a, b) => b.winPct - a.winPct || b.gameDiff - a.gameDiff || a.team.localeCompare(b.team));
+}
+
+function computeEloRatings(regionsData, regionList, kFactor = 32) {
+  const ratings = {};
+  const teamRegion = {};
+  const allMatches = [];
+  for (const regionKey of regionList) {
+    const rd = regionsData[regionKey];
+    if (!rd || !rd.teams) continue;
+    for (const teamName in rd.teams) {
+      ratings[teamName] = 1500;
+      teamRegion[teamName] = regionKey;
+    }
+    for (const m of rd.past_matches || []) {
+      if (m.teamA && m.teamB && m.winner) allMatches.push(m);
+    }
+  }
+  const sorted = allMatches.sort((a, b) => ((a.date || "") < (b.date || "") ? -1 : (a.date || "") > (b.date || "") ? 1 : 0));
+  for (const m of sorted) {
+    const { teamA, teamB, winner } = m;
+    if (!(teamA in ratings) || !(teamB in ratings)) continue;
+    const ra = ratings[teamA], rb = ratings[teamB];
+    const expectedA = 1 / (1 + Math.pow(10, (rb - ra) / 400));
+    const scoreA = winner === teamA ? 1 : 0;
+    ratings[teamA] = ra + kFactor * (scoreA - expectedA);
+    ratings[teamB] = rb + kFactor * ((1 - scoreA) - (1 - expectedA));
+  }
+  return Object.entries(ratings)
+    .map(([team, rating]) => ({ team, rating, region: teamRegion[team] }))
+    .sort((a, b) => b.rating - a.rating);
+}
+
+function StandingsTab({ teams, pastMatches, upcomingMatches, regionsData, regionList, regionLabels, isDesktop }) {
+  const theme = useTheme();
+  const standings = computeStandings(teams, pastMatches);
+  const power = computeEloRatings(regionsData, regionList);
+
+  // Combine completed playoff results and scheduled-but-unplayed playoff
+  // matches into one normalized list so the bracket status reads as a
+  // single coherent picture instead of being split across tabs — grouped
+  // and ordered by the same tournament-progression logic used in
+  // Future/Past Results, not naive chronological/alphabetical order.
+  const playoffPast = pastMatches
+    .filter((m) => m.week && playoffRoundRank(m.week) !== null)
+    .map((m) => ({ ...m, roundLabel: m.week, played: true }));
+  const playoffUpcoming = (upcomingMatches || [])
+    .filter((m) => (m.block || m.week) && playoffRoundRank(m.block || m.week) !== null)
+    .map((m) => ({ ...m, roundLabel: m.block || m.week, played: false }));
+  const playoffGroups = sortGroupsByProgression(groupByLabel([...playoffPast, ...playoffUpcoming], (m) => m.roundLabel));
+  const inPlayoffs = playoffGroups.length > 0;
+
+  if (standings.every((s) => s.wins === 0 && s.losses === 0) && !inPlayoffs) {
+    return (
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: "20px 16px", textAlign: "center" }}>
+        <div style={{ fontSize: 13, color: theme.textDim }}>No completed matches yet this split.</div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div style={isDesktop ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "start" } : undefined}>
+        <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), overflow: "hidden", marginBottom: isDesktop ? 0 : 20 }}>
+          <div style={{ padding: "12px 16px", borderBottom: `1px solid ${theme.steel}`, fontSize: 13, fontWeight: 600, color: theme.text, fontFamily: "'Inter', sans-serif" }}>
+            Standings{inPlayoffs ? <span style={{ color: theme.textFaint, fontWeight: 400 }}> · regular season (final)</span> : ""}
+          </div>
+          {inPlayoffs && (
+            <div style={{ padding: "8px 16px", fontSize: 11, color: theme.textDim, lineHeight: 1.5, borderBottom: `1px solid ${theme.steelSoft}` }}>
+              This region has entered playoffs — the table below reflects the completed regular season only. See the bracket below for playoff results.
+            </div>
+          )}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 40px 40px 56px", padding: "8px 16px", fontSize: 11, color: theme.textFaint, fontFamily: "'Inter', sans-serif", fontWeight: 500 }}>
+            <span>Team</span><span style={{ textAlign: "right" }}>W</span><span style={{ textAlign: "right" }}>L</span><span style={{ textAlign: "right" }}>Games</span>
+          </div>
+          {standings.map((s, i) => (
+            <div key={s.team} style={{ display: "grid", gridTemplateColumns: "1fr 40px 40px 56px", padding: "10px 16px", fontSize: 13, borderTop: `1px solid ${theme.steelSoft}`, alignItems: "center" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", width: 14 }}>{i + 1}</span>
+                <span style={{ width: 5, height: 16, borderRadius: 2, background: teams[s.team] ? teams[s.team].color : theme.textFaint }} />
+                <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 600 }}>{s.team}</span>
+              </span>
+              <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.good }}>{s.wins}</span>
+              <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.bad }}>{s.losses}</span>
+              <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.textDim, fontSize: 11 }}>{s.gameWins}-{s.gameLosses}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), overflow: "hidden" }}>
+          <div style={{ padding: "12px 16px", borderBottom: `1px solid ${theme.steel}`, fontSize: 13, fontWeight: 600, color: theme.text, fontFamily: "'Inter', sans-serif" }}>
+            Power ranking <span style={{ color: theme.textFaint, fontWeight: 400 }}>· all regions</span>
+          </div>
+          <div style={{ padding: "8px 16px", fontSize: 11, color: theme.textFaint, lineHeight: 1.5, borderBottom: `1px solid ${theme.steelSoft}` }}>
+            Elo-style rating pooled across every region — meaningful for cross-region comparison once international matches (MSI, Worlds, Champions) start feeding in. Until then it tracks closely with in-region record, which is expected.
+          </div>
+          {power.map((p, i) => (
+            <div key={p.team} style={{ display: "grid", gridTemplateColumns: "1fr 70px 60px", padding: "10px 16px", fontSize: 13, borderTop: `1px solid ${theme.steelSoft}`, alignItems: "center" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", width: 14 }}>{i + 1}</span>
+                <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 600 }}>{p.team}</span>
+              </span>
+              <span style={{ textAlign: "right", fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>{regionLabels[p.region] || p.region}</span>
+              <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.accent, fontWeight: 700 }}>{Math.round(p.rating)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {inPlayoffs && (
+        <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), overflow: "hidden", marginTop: 20 }}>
+          <div style={{ padding: "12px 16px", borderBottom: `1px solid ${theme.steel}`, fontSize: 13, fontWeight: 600, color: theme.text, fontFamily: "'Inter', sans-serif" }}>
+            Playoffs
+          </div>
+          {playoffGroups.map(([label, matches]) => (
+            <div key={label}>
+              <div style={{ padding: "8px 14px 4px", fontSize: 10, letterSpacing: 1.5, color: theme.accent, fontFamily: "'IBM Plex Mono', monospace", borderTop: `1px solid ${theme.steelSoft}`, textTransform: "uppercase" }}>
+                {label}
+              </div>
+              {matches.map((m, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 14px", fontSize: 12 }}>
+                  <span>
+                    <span style={{ color: teams[m.teamA] ? teams[m.teamA].color : theme.text, fontWeight: m.winner === m.teamA ? 700 : 400 }}>{m.teamA}</span>
+                    <span style={{ color: theme.textFaint }}> vs </span>
+                    <span style={{ color: teams[m.teamB] ? teams[m.teamB].color : theme.text, fontWeight: m.winner === m.teamB ? 700 : 400 }}>{m.teamB}</span>
+                  </span>
+                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: m.played ? theme.textDim : theme.accent }}>
+                    {m.played ? `${m.score} · ${m.winner} won` : (m.date || "TBD")}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   HEAD-TO-HEAD — computed entirely from pastMatches already in
+   memory, no extra data needed. Scoped to whatever pastMatches was
+   passed in (a single region/split), which is correct since two
+   teams only meet within the same region's round robin anyway.
+   ============================================================ */
+
+function getHeadToHead(pastMatches, teamA, teamB) {
+  const meetings = pastMatches.filter(
+    (m) => (m.teamA === teamA && m.teamB === teamB) || (m.teamA === teamB && m.teamB === teamA)
+  );
+  meetings.sort((a, b) => ((a.date || "") < (b.date || "") ? 1 : (a.date || "") > (b.date || "") ? -1 : 0)); // newest first
+  let winsA = 0, winsB = 0;
+  for (const m of meetings) {
+    if (m.winner === teamA) winsA++;
+    else if (m.winner === teamB) winsB++;
+  }
+  return { meetings, winsA, winsB };
+}
+
+// Champion-pool CONSISTENCY — a genuinely forward-usable confidence
+// signal, unlike anything that would need to guess an opponent's future
+// draft. Uses only a player's OWN past per-champion performance (always
+// knowable ahead of time) to measure how much their output swings
+// depending on what they're playing. A low coefficient of variation
+// means their numbers hold up regardless of champion; a high one means
+// their projection should be trusted less tightly, since the actual
+// draft (unknown until minutes before the game) could meaningfully move
+// the real outcome either direction.
+function championPoolConsistency(playerName, championStats, statKey, minGamesPerChampion = 2) {
+  if (!championStats || !championStats.player_champions) return null;
+  const prefix = `${playerName}|`;
+  const entries = Object.entries(championStats.player_champions)
+    .filter(([key, stats]) => key.startsWith(prefix) && stats.g >= minGamesPerChampion)
+    .map(([key, stats]) => ({ champion: key.slice(prefix.length), ...stats }));
+  if (entries.length < 2) return null; // need 2+ distinct, reasonably-sampled champions to say anything about consistency at all
+
+  const totalGames = entries.reduce((sum, e) => sum + e.g, 0);
+  const weightedMean = entries.reduce((sum, e) => sum + e[statKey] * e.g, 0) / totalGames;
+  const weightedVariance = entries.reduce((sum, e) => sum + e.g * Math.pow(e[statKey] - weightedMean, 2), 0) / totalGames;
+  const stdDev = Math.sqrt(weightedVariance);
+  const coefficientOfVariation = weightedMean > 0 ? stdDev / weightedMean : null;
+
+  return {
+    championsConsidered: entries.length,
+    totalGames,
+    weightedMean,
+    stdDev,
+    coefficientOfVariation,
+    entries: entries.sort((a, b) => b.g - a.g), // most-played first
+  };
+}
+
+function HeadToHeadCard({ teams, pastMatches, teamA, teamB, bare = false }) {
+  const theme = useTheme();
+  const { meetings, winsA, winsB } = getHeadToHead(pastMatches, teamA, teamB);
+  const colorA = teams[teamA] ? teams[teamA].color : theme.text;
+  const colorB = teams[teamB] ? teams[teamB].color : theme.text;
+
+  const content = (
+    <>
+      <div style={{ fontSize: 13, fontWeight: 600, color: theme.text, fontFamily: "'Inter', sans-serif", marginBottom: 12 }}>Head-to-head</div>
+      {meetings.length === 0 ? (
+        <div style={{ fontSize: 12, color: theme.textDim }}>No prior meetings this split.</div>
+      ) : (
+        <>
+          {/* Same colour-bar treatment as every other team reference, so
+              the record reads as the emphasis rather than the names. */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, gap: 12 }}>
+            <TeamTag name={teamA} color={colorA} dim={winsA < winsB} />
+            <span className="kp-num" style={{ fontSize: 20, fontWeight: 700, color: theme.text, flexShrink: 0 }}>{winsA} – {winsB}</span>
+            <TeamTag name={teamB} color={colorB} dim={winsB < winsA} />
+          </div>
+          {meetings.map((m, i) => (
+            <div
+              key={i}
+              style={{
+                display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11, padding: "7px 0",
+                borderTop: i > 0 ? `1px solid ${theme.steelSoft}` : "none", color: theme.textDim,
+              }}
+            >
+              <span>{m.week ? `${m.week} · ` : ""}{m.date}</span>
+              <span className="kp-num" style={{ color: theme.textDim }}>
+                <span style={{ color: theme.text, fontWeight: 600 }}>{m.winner}</span> won {m.score}
+              </span>
+            </div>
+          ))}
+        </>
+      )}
+    </>
+  );
+
+  if (bare) return <div style={{ padding: "12px 14px" }}>{content}</div>;
+  return (
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: 14, marginBottom: 12 }}>
+      {content}
+    </div>
+  );
+}
+
+function MatchupPanel({ teams, pastMatches, teamA, teamB, games, weights, statType }) {
+  const theme = useTheme();
+  if (!teams[teamA] || !teams[teamB]) {
+    return (
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: "12px 14px", fontSize: 12, color: theme.textFaint }}>
+        Roster data not loaded for one of these teams yet.
+      </div>
+    );
+  }
+  const totalsA = teams[teamA].players.reduce((s, p) => s + project(teams, pastMatches, p, teamA, teamB, games, weights, statType).total, 0);
+  const totalsB = teams[teamB].players.reduce((s, p) => s + project(teams, pastMatches, p, teamB, teamA, games, weights, statType).total, 0);
+  return (
+    <div>
+      <HeadToHeadCard teams={teams} pastMatches={pastMatches} teamA={teamA} teamB={teamB} />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        {[[teamA, teamB, totalsA], [teamB, teamA, totalsB]].map(([team, opp, total], i) => (
+          <div key={i} className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${teams[team].color}33`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme, teams[team].color), overflow: "hidden" }}>
+            <div style={{ padding: "10px 12px", background: `${teams[team].color}18`, borderBottom: `1px solid ${teams[team].color}33`, display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+              <span style={{ fontWeight: 700, fontSize: 14, fontFamily: "'Fraunces', serif" }}>{team}</span>
+              <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, color: teams[team].color }}>Σ {total.toFixed(1)}</span>
+            </div>
+            {likelyStarters(teams[team].players).map((p) => (
+              <PlayerRow key={p.name} teams={teams} pastMatches={pastMatches} p={p} team={team} opponentTeam={opp} games={games} weights={weights} teamColor={teams[team].color} statType={statType} />
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, statLabel, defaults }) {
+  const theme = useTheme();
+  /* The collapsed state used to print every weight as one long mono line
+     clipped with an ellipsis ("...defaults · Hist…"), which told you
+     nothing and looked like a rendering fault. What actually matters when
+     this panel is shut is whether the model is running as tuned or has
+     been altered — so say that, and offer the way back. */
+  const changed = defaults
+    ? Object.keys(defaults).filter((k) => weights[k] !== defaults[k])
+    : [];
+  const LABELS = { history: "History", opponent: "Opponent", kp: "KP", recencyHalfLife: "Recency", patchDiscount: "Patch", career: "Career" };
+  return (
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: 18, marginBottom: 22 }}>
+      <div
+        className="kp-clickable"
+        onClick={onToggleExpanded}
+        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: expanded ? 12 : 0 }}
+      >
+        <div style={{ fontSize: 13, color: theme.text, fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>
+          Advanced tuning <span style={{ color: theme.textFaint, fontWeight: 400 }}>· {statLabel} · optional</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 14, color: theme.textDim, transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}>▾</span>
+        </div>
+      </div>
+      {!expanded && (
+        <div style={{ fontSize: 11, color: theme.textFaint, lineHeight: 1.55, marginTop: 2 }}>
+          {changed.length === 0 ? (
+            <>Running on backtest-tuned defaults.</>
+          ) : (
+            <span style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <span className="kp-chip" style={{ background: `${theme.accent}1A`, color: theme.accent, border: `1px solid ${theme.accent}33` }}>
+                {changed.length} adjusted
+              </span>
+              <span>{changed.map((k) => LABELS[k] || k).join(", ")}</span>
+              <button
+                className="kp-btn"
+                onClick={(e) => { e.stopPropagation(); changed.forEach((k) => onChangeWeight(k, defaults[k])); }}
+                style={{
+                  background: "none", border: `1px solid ${theme.steel}`, borderRadius: 14,
+                  color: theme.textDim, fontSize: 10.5, padding: "3px 10px", cursor: "pointer",
+                  fontFamily: "'Inter', sans-serif", fontWeight: 600,
+                }}
+              >
+                Reset
+              </button>
+            </span>
+          )}
+        </div>
+      )}
+      {expanded && (
+        <>
+          <div style={{ fontSize: 11, color: theme.textFaint, lineHeight: 1.5, marginBottom: 14 }}>
+            The defaults here were already tuned against real historical results (see optimize_weights.py) — only touch these if you want to experiment.
+          </div>
+          <Slider label="Historical (prior split) weight" value={weights.history} onChange={(v) => onChangeWeight("history", v)} min={0} max={1} step={0.05} format={(v) => `${Math.round(v * 100)}% history / ${Math.round((1 - v) * 100)}% this split`}
+            tooltip="How much weight the player's PREVIOUS split gets vs. their CURRENT split. Higher means the model trusts their track record more than what they've done so far this split." />
+          <Slider label="Opponent-strength adjustment" value={weights.opponent} onChange={(v) => onChangeWeight("opponent", v)} min={0} max={2} step={0.1} format={(v) => `${v.toFixed(1)}×`}
+            tooltip="How much the opponent's own strength shifts the projection up or down. 0 means the opponent is ignored entirely; higher values react more strongly to a weak or strong matchup." />
+          <Slider label="Kill-participation influence" value={weights.kp} onChange={(v) => onChangeWeight("kp", v)} min={0} max={1} step={0.05} format={(v) => `${Math.round(v * 100)}%`}
+            tooltip="How much the player's own kill participation (their share of their team's total kills) pulls the projection above or below the base rate." />
+          <Slider
+            label="Recency half-life (this split)"
+            value={weights.recencyHalfLife}
+            onChange={(v) => onChangeWeight("recencyHalfLife", v)}
+            min={2}
+            max={20}
+            step={1}
+            format={(v) => (v >= 20 ? "flat average (no decay)" : `${v} match${v > 1 ? "es" : ""} — recent form weighted higher`)}
+            tooltip="How quickly older matches this split stop mattering. A low number means only the last few games really count; a high number treats the whole split as equally relevant."
+          />
+          <Slider
+            label="Off-patch discount"
+            value={weights.patchDiscount}
+            onChange={(v) => onChangeWeight("patchDiscount", v)}
+            min={0}
+            max={1}
+            step={0.05}
+            format={(v) => (v === 0 ? "ignore patch" : `-${Math.round(v * 100)}% weight for matches on an older patch`)}
+            tooltip="How much less a match counts if it was played on an older game patch than the one being projected for."
+          />
+          <Slider
+            label="Career (gol.gg baseline) weight"
+            value={weights.career}
+            onChange={(v) => onChangeWeight("career", v)}
+            min={0}
+            max={0.8}
+            step={0.05}
+            format={(v) => (v === 0 ? "off — recent form / split history only" : `${Math.round(v * 100)}% career baseline blended in`)}
+            tooltip="How much the player's independently-sourced career baseline (not just this app's own tracked matches) is blended into the final number."
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Games-in-series control — pulled out of the weight tuning
+   panel entirely, since this is a "what am I asking for" choice used
+   often, not a model-tuning knob touched rarely. Always visible. ---------- */
+
+function GamesControl({ theme, games, setGames }) {
+  return (
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: 14, marginBottom: 16 }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: theme.text, fontFamily: "'Inter', sans-serif", marginBottom: 12 }}>Games in series</div>
+      <div style={{ display: "flex", gap: 6 }}>
+        {[1, 2, 3].map((n) => (
+          <button
+            key={n}
+            className="kp-btn"
+            onClick={() => setGames(n)}
+            style={{
+              flex: 1, padding: "11px 0", borderRadius: 6, border: "1px solid " + (games === n ? theme.accent : theme.steel),
+              background: games === n ? theme.accentSoft : "transparent", color: games === n ? theme.accent : theme.textDim,
+              fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "'IBM Plex Mono', monospace",
+            }}
+          >
+            {n}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Future tab (card list, like Past, predicted only) ---------- */
+
+function FutureMatchCard({ teams, pastMatches, match, weights, statType, games }) {
+  const theme = useTheme();
+  const [open, setOpen] = useState(false);
+  const teamKeys = [match.teamA, match.teamB];
+
+  if (!teams[match.teamA] || !teams[match.teamB]) {
+    return (
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), marginBottom: 10, padding: "12px 14px", fontSize: 12, color: theme.textFaint }}>
+        {match.teamA} vs {match.teamB} — roster data not loaded for one of these teams yet.
+      </div>
+    );
+  }
+
+  const cfg = STAT_TYPES[statType];
+  const rows = teamKeys.flatMap((team) => {
+    const opp = team === match.teamA ? match.teamB : match.teamA;
+    return likelyStarters(teams[team].players).map((p) => {
+      const breakdown = project(teams, pastMatches, p, team, opp, games, weights, statType);
+      return { team, name: p.name, role: p.role, proj: breakdown.total, player: p, breakdown };
+    });
+  });
+  const totalProj = rows.reduce((s, row) => s + row.proj, 0);
+
+  return (
+    <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), marginBottom: 10, overflow: "hidden" }}>
+      <div
+        className="kp-clickable"
+        role="button"
+        tabIndex={0}
+        aria-expanded={open}
+        aria-label={`${match.teamA} versus ${match.teamB}, projected ${totalProj.toFixed(0)} ${cfg.label.toLowerCase()} combined. Activate for player-level detail.`}
+        onClick={() => setOpen(!open)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen(!open); }
+        }}
+        style={{ cursor: "pointer", padding: "15px 18px", display: "flex", alignItems: "center", gap: 14 }}
+      >
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
+            <TeamTag name={match.teamA} color={teams[match.teamA].color} />
+            <span style={{ color: theme.textFaint, fontSize: 10.5, fontWeight: 500 }}>vs</span>
+            <TeamTag name={match.teamB} color={teams[match.teamB].color} />
+          </div>
+          <div style={{ marginTop: 7, fontSize: 11.5, color: theme.textFaint, display: "flex", alignItems: "center", gap: 7 }}>
+            <span>{match.date}{match.time ? ` · ${match.time}` : ""}</span>
+            <span aria-hidden="true" style={{ opacity: 0.5 }}>•</span>
+            <span>{games} game{games === 1 ? "" : "s"}</span>
+          </div>
+        </div>
+        <StatReadout value={totalProj.toFixed(0)} label={`proj ${cfg.label}`} size={28} />
+        <Chevron open={open} color={theme.textFaint} />
+      </div>
+      {open && (
+        <div style={{ borderTop: `1px solid ${theme.steel}` }}>
+          <HeadToHeadCard teams={teams} pastMatches={pastMatches} teamA={match.teamA} teamB={match.teamB} bare />
+          {rows.map((row) => (
+            <MatchPlayerRow
+              key={row.team + row.name}
+              theme={theme}
+              teamColor={teams[row.team].color}
+              name={row.name}
+              role={row.role}
+              stats={[{ label: "PROJ", value: row.proj.toFixed(1), color: theme.accent, big: true }]}
+              r={row.breakdown}
+              p={row.player}
+              cfg={cfg}
+              games={games}
+              pastMatches={pastMatches}
+              team={row.team}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Grouping helper ---------- */
+
+function groupByLabel(items, labelFn) {
+  const groups = [];
+  const index = {};
+  for (const item of items) {
+    const label = labelFn(item) || "Other";
+    if (!(label in index)) {
+      index[label] = groups.length;
+      groups.push([label, []]);
+    }
+    groups[index[label]][1].push(item);
+  }
+  return groups;
+}
+
+/* ============================================================
+   PLAYOFF-AWARE ORDERING — groupByLabel above just buckets items in
+   whatever order their label was first encountered, which tracks
+   correctly with tournament progression for "Week 1, Week 2, ..."
+   labels (since match dates are already monotonic with week number)
+   but isn't reliable once playoff round names enter the picture —
+   a double-elimination bracket's lower-bracket rounds can chronologically
+   interleave with upper-bracket rounds in ways that don't read as a
+   sensible progression if you just sort by whichever round's first
+   match happened earliest. This gives playoff-style labels an explicit
+   canonical rank instead, confirmed against a real live TCL 2026 Summer
+   bracket (Upper/Lower Bracket Quarterfinals/Semifinals/Final, Grand
+   Final) rather than guessed — falls back to alphabetical for any label
+   that doesn't match a known pattern, so an unrecognized label degrades
+   gracefully instead of crashing or vanishing.
+   ============================================================ */
+
+const PLAYOFF_STAGE_PATTERNS = [
+  { test: (l) => /swiss|group stage|regular season/.test(l), rank: 0 },
+  { test: (l) => /play-?in/.test(l), rank: 1 },
+  { test: (l) => /upper.*(round\s*1|ro\s*16)/.test(l), rank: 10 },
+  { test: (l) => /lower.*(round\s*1|ro\s*16)/.test(l), rank: 11 },
+  { test: (l) => /upper.*(quarterfinal|ro\s*8)/.test(l), rank: 20 },
+  { test: (l) => /lower.*round\s*2/.test(l), rank: 21 },
+  { test: (l) => /lower.*(quarterfinal|ro\s*8)/.test(l), rank: 22 },
+  { test: (l) => /^(quarterfinal|ro\s*8)/.test(l), rank: 20 }, // unqualified — single-elimination regions
+  { test: (l) => /upper.*(semifinal|ro\s*4)/.test(l), rank: 30 },
+  { test: (l) => /lower.*(semifinal|ro\s*4)/.test(l), rank: 32 },
+  { test: (l) => /^(semifinal|ro\s*4)/.test(l), rank: 30 },
+  { test: (l) => /upper.*final/.test(l), rank: 40 },
+  { test: (l) => /lower.*final/.test(l), rank: 42 },
+  { test: (l) => /grand final|^final(s)?$/.test(l), rank: 50 },
+];
+
+function playoffRoundRank(label) {
+  const l = label.toLowerCase();
+  for (const { test, rank } of PLAYOFF_STAGE_PATTERNS) {
+    if (test(l)) return rank;
+  }
+  return null; // not a recognized playoff-stage label
+}
+
+function sortGroupsByProgression(groups) {
+  return groups.slice().sort(([labelA], [labelB]) => {
+    const weekA = /^Week (\d+)$/i.exec(labelA);
+    const weekB = /^Week (\d+)$/i.exec(labelB);
+    if (weekA && weekB) return parseInt(weekA[1], 10) - parseInt(weekB[1], 10);
+    if (weekA && !weekB) return -1; // regular-season weeks always precede playoff rounds
+    if (!weekA && weekB) return 1;
+    const rankA = playoffRoundRank(labelA);
+    const rankB = playoffRoundRank(labelB);
+    if (rankA !== null && rankB !== null) return rankA - rankB;
+    if (rankA !== null) return -1; // a recognized playoff stage precedes an unrecognized label
+    if (rankB !== null) return 1;
+    return labelA.localeCompare(labelB);
+  });
+}
+
+function WeekHeader({ label }) {
+  const theme = useTheme();
+  return (
+    <div style={{ fontSize: 12, fontWeight: 600, color: theme.textDim, fontFamily: "'Inter', sans-serif", margin: "18px 0 10px" }}>
+      {label}
+    </div>
+  );
+}
+
+// Small, consistent visual language for tournament stage across the
+// app — regular season stays quiet, playoffs/finals stand out, since
+// those are the matches someone browsing past results is most likely
+// looking for specifically.
+const STAGE_STYLE = {
+  finals: { label: "Finals", weight: 700 },
+  playoffs: { label: "Playoffs", weight: 600 },
+  "play-in": { label: "Play-in", weight: 500 },
+  cup: { label: "Cup", weight: 500 },
+  preseason: { label: "Preseason", weight: 500 },
+  regular_season: { label: "Regular season", weight: 500 },
+};
+
+function StageBadge({ stage }) {
+  const theme = useTheme();
+  const s = STAGE_STYLE[stage] || STAGE_STYLE.regular_season;
+  const isFeatured = stage === "finals" || stage === "playoffs";
+  return (
+    <span
+      style={{
+        fontSize: 11, fontWeight: s.weight, padding: "4px 11px", borderRadius: 20,
+        fontFamily: "'Inter', sans-serif",
+        color: isFeatured ? theme.accent : theme.textFaint,
+        background: isFeatured ? theme.accentSoft : theme.steelSoft,
+      }}
+    >
+      {s.label}
+    </span>
+  );
+}
+
+function TournamentHeader({ tournament, stage }) {
+  const theme = useTheme();
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "28px 0 12px", paddingBottom: 10, borderBottom: `1px solid ${theme.steel}` }}>
+      <span style={{ fontSize: 18, fontWeight: 600, color: theme.text, fontFamily: "'Fraunces', serif" }}>
+        {tournament}
+      </span>
+      <StageBadge stage={stage} />
+    </div>
+  );
+}
+
+// Horizontal scrolling day picker. Chosen over a range slider because
+// the days are discrete labelled things rather than a continuum — you
+// pick "Saturday", you don't scrub toward it — and a scroll row shows
+// each day's label and match count directly instead of hiding them
+// behind a handle position. Scrolls sideways rather than wrapping so
+// the row stays one scannable line on any width.
+function DayPicker({ dates, activeDate, onChange, counts }) {
+  const theme = useTheme();
+  if (dates.length <= 1) return null; // a picker over one day is just clutter
+
+  const label = (iso) => {
+    const d = new Date(iso + "T00:00:00");
+    if (isNaN(d)) return { top: iso, bottom: "" };
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diff = Math.round((d - today) / 86400000);
+    const md = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    if (diff === 0) return { top: "Today", bottom: md };
+    if (diff === 1) return { top: "Tomorrow", bottom: md };
+    return { top: d.toLocaleDateString(undefined, { weekday: "short" }), bottom: md };
+  };
+
+  const total = Object.values(counts).reduce((s, n) => s + n, 0);
+
+  /* Two lines, not three. The old chip stacked day name, date and count
+     separately, which made "All / days / 3" read as three unrelated
+     fragments and gave every chip the height of a card. */
+  const Chip = ({ selected, top, bottom, count, onClick }) => (
+    <button
+      onClick={onClick}
+      className="kp-btn"
+      aria-pressed={selected}
+      style={{
+        flex: "0 0 auto", minWidth: 74, padding: "8px 13px", cursor: "pointer",
+        borderRadius: 12, fontFamily: "'Inter', sans-serif", textAlign: "center",
+        border: `1px solid ${selected ? theme.accent : theme.steel}`,
+        background: selected ? theme.accentSoft : theme.graphite,
+        color: selected ? theme.accent : theme.textDim,
+        scrollSnapAlign: "start",
+      }}
+    >
+      <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>{top}</div>
+      <div style={{ fontSize: 10.5, whiteSpace: "nowrap", marginTop: 2, opacity: 0.8 }}>
+        {bottom ? <>{bottom} <span aria-hidden="true">·</span> </> : null}
+        <span className="kp-num">{count}</span>
+      </div>
+    </button>
+  );
+
+  return (
+    <div
+      className="kp-dayscroll"
+      style={{
+        display: "flex", gap: 8, overflowX: "auto", overflowY: "hidden",
+        paddingBottom: 8, marginBottom: 16, scrollSnapType: "x proximity",
+      }}
+    >
+      <Chip selected={!activeDate} top="All" bottom="" count={total} onClick={() => onChange(null)} />
+      {dates.map((iso) => {
+        const l = label(iso);
+        return (
+          <Chip
+            key={iso}
+            selected={activeDate === iso}
+            top={l.top}
+            bottom={l.bottom}
+            count={counts[iso] || 0}
+            onClick={() => onChange(activeDate === iso ? null : iso)}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+/* ---------- Consistency tab ---------- */
+
+// Ranks every tracked player by how reliably they produce, so the
+// steadiest names are browsable in one place rather than having to be
+// discovered by opening players one at a time.
+//
+// Ranking on consistency ALONE would be misleading: a player averaging
+// 1.2 kills with almost no variance would top the list while being
+// useless to act on. So volume is shown alongside, the list can be
+// sorted by either, and a minimum-games floor keeps small samples from
+// manufacturing fake steadiness.
+function ConsistencyTab({ teams, pastMatches, statType, isDesktop }) {
+  const theme = useTheme();
+  const cfg = STAT_TYPES[statType];
+  const [sortBy, setSortBy] = useState("consistency");
+  // The analysis WINDOW — how many recent matches to score consistency
+  // over — not merely a minimum. The previous control capped at 10,
+  // which was a leftover from before tournament discovery quadrupled the
+  // match pool; players now routinely have far more history than that,
+  // and capping the window threw most of it away.
+  const [windowSize, setWindowSize] = useState(15);
+
+  // How much history actually exists, so the control can be bounded by
+  // the real data rather than an arbitrary constant that goes stale the
+  // moment the pool grows again.
+  let deepest = 0;
+  for (const [teamName, teamData] of Object.entries(teams)) {
+    for (const player of teamData.players || []) {
+      deepest = Math.max(deepest, recentForm(pastMatches, teamName, player.name, cfg.key, 200).length);
+    }
+  }
+  const maxWindow = Math.max(10, Math.min(60, deepest));
+  const effectiveWindow = Math.min(windowSize, maxWindow);
+
+  const rows = [];
+  for (const [teamName, teamData] of Object.entries(teams)) {
+    for (const player of teamData.players || []) {
+      const form = recentForm(pastMatches, teamName, player.name, cfg.key, effectiveWindow);
+      if (form.length < 3) continue; // variance needs at least 3 points to mean anything
+      const values = form.map((f) => f.value);
+      const steadiness = consistencyScore(values);
+      if (!steadiness) continue;
+      rows.push({
+        name: player.name, team: teamName, role: player.role,
+        color: teamData.color, form, values,
+        score: steadiness.score, mean: steadiness.mean, cv: steadiness.cv, n: steadiness.n,
+      });
+    }
+  }
+
+  rows.sort((a, b) => (sortBy === "consistency" ? b.score - a.score : b.mean - a.mean));
+  const top = rows.slice(0, 60);
+
+  return (
+    <div>
+      <div style={{ fontSize: 11, color: theme.textFaint, marginBottom: 12, lineHeight: 1.5 }}>
+        How steady each player's {cfg.label.toLowerCase()} output has been across their recent matches.
+        Consistency is scored from the coefficient of variation (spread relative to their own average),
+        so it's comparable across high- and low-volume players. A high score means their output is
+        predictable — not that it's large, which is why the average is shown next to it.
+      </div>
+
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 16 }}>
+        {[["consistency", "Most consistent"], ["volume", "Highest average"]].map(([id, label]) => (
+          <button
+            key={id}
+            onClick={() => setSortBy(id)}
+            style={{
+              fontSize: 12, fontWeight: 600, padding: "6px 13px", borderRadius: 20,
+              fontFamily: "'Inter', sans-serif", cursor: "pointer", border: "none",
+              color: sortBy === id ? theme.accent : theme.textDim,
+              background: sortBy === id ? theme.accentSoft : theme.steelSoft,
+            }}
+          >
+            {label}
+          </button>
+        ))}
+        <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: theme.textFaint }}>
+          last {effectiveWindow} matches
+          <input
+            type="range" min={3} max={maxWindow} step={1} value={effectiveWindow}
+            onChange={(e) => setWindowSize(parseInt(e.target.value, 10))}
+            style={{ width: 110, accentColor: theme.accent }}
+          />
+          <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>max {maxWindow}</span>
+        </span>
+      </div>
+
+      {top.length === 0 ? (
+        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: 16, textAlign: "center", fontSize: 12, color: theme.textDim }}>
+          No players have 3+ recent matches on record yet — there isn't enough match history loaded to score consistency.
+        </div>
+      ) : (
+        <div style={isDesktop ? { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 10, alignItems: "start" } : {}}>
+          {top.map((row, i) => (
+            <ConsistencyCard key={row.team + row.name} row={row} rank={i + 1} cfg={cfg} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ConsistencyCard({ row, rank, cfg }) {
+  const theme = useTheme();
+  const [open, setOpen] = useState(false);
+  const barColor = row.score >= 70 ? theme.good : row.score >= 45 ? theme.accent : theme.bad;
+  return (
+    <div
+      className="kp-clickable"
+      onClick={() => setOpen(!open)}
+      style={{
+        background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+        ...elevation(), marginBottom: 10, padding: "14px 16px", cursor: "pointer",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <span style={{ fontSize: 11, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", width: 20 }}>
+          {rank}
+        </span>
+        <span style={{
+          width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: `${row.color}22`, border: `1.5px solid ${row.color}`,
+          color: row.color, fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 12,
+        }}>
+          {initialsFor(row.name)}
+        </span>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: theme.text, fontFamily: "'Fraunces', serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {row.name}
+          </div>
+          <div style={{ fontSize: 11, color: theme.textFaint }}>
+            {row.team}{row.role ? ` · ${row.role}` : ""}
+          </div>
+        </div>
+        <div style={{ textAlign: "right", flexShrink: 0 }}>
+          <div style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 600, color: barColor }}>
+            {row.score.toFixed(0)}
+          </div>
+          <div style={{ fontSize: 10, color: theme.textFaint }}>consistency</div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
+        <div style={{ flex: 1, height: 5, background: theme.steelSoft, borderRadius: 3, overflow: "hidden" }}>
+          <div style={{ width: `${row.score}%`, height: "100%", background: barColor, borderRadius: 3 }} />
+        </div>
+        <span style={{ fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", color: theme.textDim }}>
+          avg {row.mean.toFixed(1)} {cfg.key}
+        </span>
+        <span style={{ fontSize: 11, color: theme.textFaint }}>{row.n}g</span>
+      </div>
+
+      {open && (
+        <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${theme.steelSoft}` }}>
+          <RecentFormChart rows={row.form.slice(0, 8)} line={row.mean} statLabel={cfg.label.toLowerCase()} />
+          <div style={{ marginTop: 8, fontSize: 11, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
+            spread ±{(row.cv * row.mean).toFixed(1)} around a {row.mean.toFixed(1)} average
+            {" "}(CV {row.cv.toFixed(2)}) — line shown is their own average, not a projection.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   ACCURACY SUMMARY — the product's actual claim, stated up front.
+
+   Every projection in this app is checkable: the Past Results tab
+   already re-projects each completed match using only the data that
+   existed before it was played, then compares against what happened.
+   That backtest was previously buried one sentence at a time inside
+   individual result cards ("model missed by avg 3.3 kills/player"),
+   so the one thing that tells a visitor whether any of this is worth
+   trusting was never actually stated.
+
+   Aggregated here over the most recent matches. Deliberately capped:
+   this re-runs the point-in-time projection for every player in every
+   match counted, which is the same work the Past Results tab does per
+   card, and the headline does not get more honest by being slower.
+   ============================================================ */
+const ACCURACY_SAMPLE = 25;
+
+function AccuracySummary({ teams, pastMatches, weights, statType, isDesktop }) {
+  const theme = useTheme();
+  const cfg = STAT_TYPES[statType];
+
+  const summary = useMemo(() => {
+    const recent = [...pastMatches]
+      .sort((a, b) => ((a.date || "") < (b.date || "") ? 1 : (a.date || "") > (b.date || "") ? -1 : 0))
+      .slice(0, ACCURACY_SAMPLE);
+
+    const errors = [];
+    for (const match of recent) {
+      // BOTH teams must be in the current roster, not just the one being
+      // iterated. CS2's past_matches reference 125 teams while the roster
+      // carries 60 — the rest are opponents from other regions and older
+      // events — and the model reaches into the opponent's roster to build
+      // its opponent-strength term. Passing a team it does not have throws.
+      // The match cards already guard both sides before projecting; this
+      // aggregate has to do the same.
+      if (!teams[match.teamA] || !teams[match.teamB]) continue;
+      for (const team of [match.teamA, match.teamB]) {
+        const opp = team === match.teamA ? match.teamB : match.teamA;
+        const mapsCounted = match.maps_counted || 2;
+        for (const player of teams[team].players || []) {
+          const actual = getActualStat(match, team, player.name, cfg.key);
+          if (actual === undefined || actual === null) continue;
+          const breakdown = projectPointInTime(
+            pastMatches, teams, player, team, opp, mapsCounted, weights, match.date, statType, match.patch
+          );
+          errors.push(Math.abs(actual - breakdown.total));
+        }
+      }
+    }
+    if (errors.length === 0) return null;
+    const mae = errors.reduce((s, e) => s + e, 0) / errors.length;
+    const within3 = errors.filter((e) => e <= 3).length / errors.length;
+    return { mae, within3, players: errors.length, matches: recent.length };
+  }, [teams, pastMatches, weights, statType, cfg.key]);
+
+  if (!summary) return null;
+
+  const cells = [
+    { value: summary.mae.toFixed(1), label: `avg miss / player`, tone: theme.accent },
+    { value: `${Math.round(summary.within3 * 100)}%`, label: `within 3 ${cfg.label.toLowerCase()}`, tone: theme.good },
+    { value: summary.matches, label: `matches tested`, tone: theme.text },
+  ];
+
+  return (
+    <div className={bracketClass(theme)} style={{
+      background: theme.graphite, border: `1px solid ${theme.steel}`,
+      ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme),
+      padding: isDesktop ? "16px 20px" : "14px 16px", marginBottom: 16,
+      display: "flex", alignItems: "center", gap: isDesktop ? 28 : 16, flexWrap: "wrap",
+    }}>
+      <div style={{ display: "flex", gap: isDesktop ? 28 : 18 }}>
+        {cells.map((c) => (
+          <StatReadout key={c.label} value={c.value} label={c.label} size={isDesktop ? 26 : 22} color={c.tone} align="left" />
+        ))}
+      </div>
+      <div style={{ flex: 1, minWidth: 190, fontSize: 11.5, color: theme.textFaint, lineHeight: 1.55 }}>
+        Measured against the last {summary.matches} completed {cfg.label.toLowerCase() === "kills" ? "matches" : "matches"} in this
+        region — {summary.players.toLocaleString()} player projections, each made using only the data
+        that existed before that match was played.
+      </div>
+    </div>
+  );
+}
+
+function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isDesktop, games }) {
+  const theme = useTheme();
+  const [customMode, setCustomMode] = useState(false);
+  const teamNames = Object.keys(teams);
+  const [customA, setCustomA] = useState(teamNames[0]);
+  const [customB, setCustomB] = useState(teamNames[1]);
+  const canCustomMatchup = teamNames.length >= 2;
+
+  // Sort by actual scheduled time (soonest first) before grouping — don't
+  // rely on whatever order the source data happened to arrive in.
+  const sorted = [...upcomingMatches].sort((a, b) => {
+    const ta = a._sortKey || a.date || "";
+    const tb = b._sortKey || b.date || "";
+    return ta < tb ? -1 : ta > tb ? 1 : 0;
+  });
+
+  // Day filtering. dayIndex 0 is the "all days" position; 1..n map onto
+  // the distinct scheduled dates in order.
+  const dates = [...new Set(sorted.map((m) => m.date).filter(Boolean))].sort();
+  const dateCounts = sorted.reduce((acc, m) => {
+    if (m.date) acc[m.date] = (acc[m.date] || 0) + 1;
+    return acc;
+  }, {});
+  // Keyed on the DATE itself rather than a position index. An index is
+  // only meaningful relative to a particular list, and the schedule
+  // reshapes on every refresh — a stored index silently points at a
+  // different day (or off the end) once the list changes. A date either
+  // still exists or it doesn't, and the guard below handles that
+  // explicitly instead of quietly showing the wrong day.
+  const [selectedDate, setSelectedDate] = useState(null);
+  const activeDate = selectedDate && dates.includes(selectedDate) ? selectedDate : null;
+  const visible = activeDate ? sorted.filter((m) => m.date === activeDate) : sorted;
+
+  const grouped = sortGroupsByProgression(groupByLabel(visible, (m) => m.block || m.week || null));
+  // On wide screens, let cards flow into as many columns as fit rather than
+  // a single stacked column — auto-fill means this scales smoothly with
+  // whatever width is actually available instead of a hard 2-vs-1 rule.
+  // alignItems: "start" keeps each card its own natural height rather than
+  // stretching to match a taller expanded neighbor in the same row.
+  const gridStyle = isDesktop
+    ? { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(420px, 1fr))", gap: 14, alignItems: "start" }
+    : {};
+
+  return (
+    <div>
+      <div style={{ fontSize: 11, color: theme.textFaint, marginBottom: 12, lineHeight: 1.5 }}>
+        Projected {STAT_TYPES[statType].label.toLowerCase()} ({games} game{games > 1 ? "s" : ""} combined) for each
+        upcoming matchup, using current model weights.
+      </div>
+      <DayPicker dates={dates} activeDate={activeDate} onChange={setSelectedDate} counts={dateCounts} />
+      {activeDate && visible.length === 0 && (
+        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: "16px", textAlign: "center", fontSize: 12, color: theme.textDim, marginBottom: 10 }}>
+          No matches on this day.
+        </div>
+      )}
+      {/* An empty schedule is a normal state between splits, not an error.
+          It previously pointed the reader at a control further down the
+          page ("use the tool below") instead of just offering it. */}
+      {upcomingMatches.length === 0 && (
+        <div style={{
+          background: theme.graphite, border: `1px solid ${theme.steel}`,
+          ...cardShape(theme.cornerStyle), ...elevation(),
+          padding: "34px 20px", textAlign: "center", marginBottom: 10,
+        }}>
+          <div style={{ opacity: 0.45, display: "flex", justifyContent: "center", marginBottom: 12 }}>
+            <Reticle size={26} color={theme.textDim} />
+          </div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: theme.text, fontFamily: "'Fraunces', serif" }}>
+            No upcoming matches scheduled
+          </div>
+          <div style={{ fontSize: 12, color: theme.textFaint, marginTop: 6, lineHeight: 1.55, maxWidth: 380, marginLeft: "auto", marginRight: "auto" }}>
+            Nothing is on the schedule for this region yet. You can still project any
+            two teams against each other from this split's data.
+          </div>
+          {canCustomMatchup && !customMode && (
+            <button
+              className="kp-btn"
+              onClick={() => setCustomMode(true)}
+              style={{
+                marginTop: 16, padding: "9px 18px", background: theme.accentSoft,
+                border: `1px solid ${theme.accentBorder}`, borderRadius: 10,
+                color: theme.accent, fontSize: 12.5, fontWeight: 600, cursor: "pointer",
+                fontFamily: "'Inter', sans-serif",
+              }}
+            >
+              Build a custom matchup
+            </button>
+          )}
+        </div>
+      )}
+      {grouped.map(([label, matches]) => (
+        <div key={label}>
+          <WeekHeader label={label} />
+          <div style={gridStyle}>
+            {matches.map((m, i) => <FutureMatchCard key={i} teams={teams} pastMatches={pastMatches} match={m} weights={weights} statType={statType} games={games} />)}
+          </div>
+        </div>
+      ))}
+
+      {/* A secondary action, sized like one. Full-bleed it read as a banner
+          with more weight than the projections above it. Suppressed when the
+          schedule is empty, since the empty state above already offers it —
+          otherwise the same action appears twice on the same screen. */}
+      {upcomingMatches.length > 0 && canCustomMatchup ? (
+        <button
+          className="kp-btn"
+          onClick={() => setCustomMode(!customMode)}
+          aria-expanded={customMode}
+          style={{
+            marginTop: 14, padding: "9px 16px", background: "transparent",
+            border: `1px solid ${theme.steel}`, borderRadius: 10,
+            color: theme.textDim, fontSize: 12.5, fontWeight: 600, cursor: "pointer",
+            fontFamily: "'Inter', sans-serif", display: "inline-flex", alignItems: "center", gap: 7,
+          }}
+        >
+          {customMode ? "Hide custom matchup" : "Build a custom matchup"}
+          <Chevron open={customMode} color={theme.textFaint} size={12} />
+        </button>
+      ) : !canCustomMatchup ? (
+        <div style={{ marginTop: 8, padding: "10px 14px", fontSize: 11, color: theme.textFaint, textAlign: "center" }}>
+          Custom matchup needs at least 2 teams with data loaded for this region — only {teamNames.length} currently available.
+        </div>
+      ) : null}
+
+      {customMode && canCustomMatchup && (
+        <div style={{ marginTop: 16 }}>
+          <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+            {[[customA, setCustomA], [customB, setCustomB]].map(([val, setter], i) => (
+              <select key={i} value={val} onChange={(e) => setter(e.target.value)} style={{ flex: 1, background: theme.graphiteLight, color: theme.text, border: `1px solid ${teams[val] ? teams[val].color : theme.steel}55`, ...cardShape(theme.cornerStyle), padding: "10px 8px", fontSize: 14, fontWeight: 600 }}>
+                {teamNames.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            ))}
+          </div>
+          <MatchupPanel teams={teams} pastMatches={pastMatches} teamA={customA} teamB={customB} games={games} weights={weights} statType={statType} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Past Results tab ---------- */
+
+// The "games in series" slider intentionally does NOT apply here — every
+// past match's "actual" data represents exactly 2 real games (maps 1+2,
+// the app's established convention), so projecting for a different game
+// count would compare against actual data that doesn't match, silently
+// biasing the backtest. Fixed at 2 on purpose, not an oversight.
+function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
+  const theme = useTheme();
+  const [open, setOpen] = useState(false);
+  const cfg = STAT_TYPES[statType];
+  const teamKeys = [match.teamA, match.teamB];
+
+  if (!teams[match.teamA] || !teams[match.teamB]) {
+    return (
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), marginBottom: 10, padding: "12px 14px", fontSize: 12, color: theme.textFaint }}>
+        {match.teamA} vs {match.teamB} — roster data not loaded for one of these teams yet.
+      </div>
+    );
+  }
+
+  const rows = teamKeys.flatMap((team) => {
+    const opp = team === match.teamA ? match.teamB : match.teamA;
+    return teams[team].players
+      .map((p) => ({ p, actual: getActualStat(match, team, p.name, cfg.key) }))
+      .filter(({ actual }) => actual !== undefined && actual !== null) // undefined = didn't play; null = legacy data without this stat
+      .map(({ p, actual }) => {
+        // maps_counted, not 2 — "actual" sums the series' real prop
+        // window (maps 1-2 for a Bo3, 1-3 for a Bo5), so a fixed 2 here
+        // would under-predict every Bo5 and make the PROJ/ACT/DIFF
+        // columns disagree with the model's own backtest.
+        const mapsCounted = match.maps_counted || 2;
+        const breakdown = projectPointInTime(pastMatches, teams, p, team, opp, mapsCounted, weights, match.date, statType, match.patch);
+        return { team, name: p.name, role: p.role, proj: breakdown.total, priorGames: breakdown.priorGames, actual, diff: actual - breakdown.total, player: p, breakdown, mapsCounted };
+      });
+  });
+
+  if (rows.length === 0) {
+    // Legacy fallback data only ever tracked kills — nothing to show for
+    // deaths/assists on those matches.
+    return (
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), marginBottom: 10, padding: "12px 14px", fontSize: 12, color: theme.textFaint }}>
+        {match.teamA} vs {match.teamB} — {cfg.label.toLowerCase()} data not available for this match.
+      </div>
+    );
+  }
+
+  const totalProj = rows.reduce((s, r) => s + r.proj, 0);
+  const totalActual = rows.reduce((s, r) => s + r.actual, 0);
+  const avgAbsDiff = rows.reduce((s, r) => s + Math.abs(r.diff), 0) / rows.length;
+  // How many rows had zero prior current-split games to draw on (very early
+  // in a split) — worth flagging since those projections lean entirely on
+  // prior-split history rather than this season's form.
+  const coldStartCount = rows.filter((r) => r.priorGames === 0).length;
+
+  return (
+    <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), marginBottom: 10, overflow: "hidden" }}>
+      <div
+        className="kp-clickable"
+        role="button"
+        tabIndex={0}
+        aria-expanded={open}
+        aria-label={`${match.teamA} versus ${match.teamB}, ${match.date}. ${match.winner} won ${match.score}. Projected ${totalProj.toFixed(0)}, actual ${totalActual}. Activate for player-level detail.`}
+        onClick={() => setOpen(!open)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen(!open); }
+        }}
+        style={{ cursor: "pointer", padding: "15px 18px", display: "flex", alignItems: "center", gap: 14 }}
+      >
+        {/* Result facts on the left, model performance on the right. These
+            used to run together in one sentence that wrapped mid-number
+            ("missed by avg 3.4 / kills/player"), so neither the result nor
+            the model's error could be read at a glance. */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
+            <TeamTag name={match.teamA} color={teams[match.teamA].color} dim={match.winner !== match.teamA} />
+            <span style={{ color: theme.textFaint, fontSize: 10.5, fontWeight: 500 }}>vs</span>
+            <TeamTag name={match.teamB} color={teams[match.teamB].color} dim={match.winner !== match.teamB} />
+          </div>
+          <div style={{ marginTop: 7, fontSize: 11.5, color: theme.textFaint, display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
+            <span><span style={{ color: theme.textDim, fontWeight: 600 }}>{match.winner}</span> won {match.score}</span>
+            {match.series_format && (
+              <>
+                <span aria-hidden="true" style={{ opacity: 0.5 }}>•</span>
+                <span className="kp-num">{match.series_format}, maps 1-{match.maps_counted || 2}</span>
+              </>
+            )}
+            <span aria-hidden="true" style={{ opacity: 0.5 }}>•</span>
+            <span className="kp-num">{match.date}</span>
+            {coldStartCount > 0 && (
+              <span className="kp-chip" style={{ background: `${theme.bad}1A`, color: theme.bad, border: `1px solid ${theme.bad}33` }}>
+                {coldStartCount} no prior form
+              </span>
+            )}
+          </div>
+        </div>
+        <StatReadout value={`${totalProj.toFixed(0)}/${totalActual}`} label="proj / actual" size={19} />
+        <div style={{ textAlign: "right", flexShrink: 0, minWidth: 62 }}>
+          <DeltaBadge value={avgAbsDiff} />
+          <div style={{ fontSize: 9.5, letterSpacing: 0.9, textTransform: "uppercase", color: theme.textFaint, marginTop: 6, fontWeight: 600 }}>avg miss</div>
+        </div>
+        <Chevron open={open} color={theme.textFaint} />
+      </div>
+      {open && (
+        <div style={{ borderTop: `1px solid ${theme.steel}` }}>
+          {rows.map((row) => (
+            <MatchPlayerRow
+              key={row.team + row.name}
+              theme={theme}
+              teamColor={teams[row.team].color}
+              name={row.name}
+              role={row.role}
+              extraChip={row.priorGames === 0 && (
+                <span className="kp-chip" style={{ background: `${theme.bad}20`, color: theme.bad }}>No prior form</span>
+              )}
+              stats={[
+                { label: "PROJ", value: row.proj.toFixed(1), color: theme.textDim },
+                { label: "ACT", value: row.actual, color: theme.text },
+                { label: "DIFF", value: `${row.diff > 0 ? "+" : ""}${row.diff.toFixed(1)}`, color: row.diff > 0 ? theme.good : row.diff < 0 ? theme.bad : theme.textFaint },
+              ]}
+              r={row.breakdown}
+              p={row.player}
+              cfg={cfg}
+              games={row.mapsCounted}
+              pastMatches={pastMatches}
+              team={row.team}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PastResultsTab({ teams, pastMatches, weights, statType, isDesktop }) {
+  const theme = useTheme();
+  const [stageFilter, setStageFilter] = useState("all");
+
+  // Sort by actual date (newest first) rather than trusting array order —
+  // the live scraper and the offline fallback snapshot store matches in
+  // opposite orders, so relying on array position was fragile.
+  const sorted = [...pastMatches].sort((a, b) => {
+    const da = a.date || "";
+    const db = b.date || "";
+    return da < db ? 1 : da > db ? -1 : 0;
+  });
+
+  const availableStages = [...new Set(sorted.map((m) => m.stage).filter(Boolean))];
+  const filtered = stageFilter === "all" ? sorted : sorted.filter((m) => m.stage === stageFilter);
+
+  // Grouped by tournament first (older data without a "tournament" field
+  // falls back to a single "Other Matches" bucket rather than vanishing),
+  // then by week/round within each tournament using the existing
+  // playoff-aware ordering. Since `sorted` is already newest-first,
+  // grouping preserves that as most-recent-tournament-first too — each
+  // tournament's group naturally starts at its own latest match.
+  const byTournament = groupByLabel(filtered, (m) => m.tournament || null);
+  const gridStyle = isDesktop
+    ? { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(420px, 1fr))", gap: 14, alignItems: "start" }
+    : {};
+
+  return (
+    <div>
+      <div style={{ fontSize: 11, color: theme.textFaint, marginBottom: 12, lineHeight: 1.5 }}>
+        Point-in-time projections: each match uses only the {STAT_TYPES[statType].label.toLowerCase()} data
+        that existed before it was played (plus the current slider weights), so this
+        is a real backtest of the model, not hindsight. Rows marked "no prior form" had
+        zero current-split games to draw on yet and lean on prior-split history alone.
+      </div>
+      {availableStages.length > 1 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>
+          {["all", ...availableStages].map((s) => {
+            const active = stageFilter === s;
+            const styleInfo = s === "all" ? { label: "All" } : STAGE_STYLE[s] || { label: s[0].toUpperCase() + s.slice(1) };
+            return (
+              <button
+                key={s}
+                onClick={() => setStageFilter(s)}
+                style={{
+                  fontSize: 12, fontWeight: 600, padding: "6px 13px", borderRadius: 20,
+                  fontFamily: "'Inter', sans-serif", cursor: "pointer", border: "none",
+                  color: active ? theme.accent : theme.textDim,
+                  background: active ? theme.accentSoft : theme.steelSoft,
+                }}
+              >
+                {styleInfo.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {byTournament.map(([tournament, tMatches]) => {
+        const stage = tMatches[0]?.stage || "regular_season";
+        const weekGroups = sortGroupsByProgression(groupByLabel(tMatches, (m) => m.week || null));
+        return (
+          <div key={tournament}>
+            {tournament !== "Other" && <TournamentHeader tournament={tournament} stage={stage} />}
+            {weekGroups.map(([label, matches]) => (
+              <div key={label}>
+                <WeekHeader label={label} />
+                <div style={gridStyle}>
+                  {matches.map((m, i) => <PastMatchCard key={i} teams={teams} pastMatches={pastMatches} match={m} weights={weights} statType={statType} />)}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ---------- Data status banner ---------- */
+
+/* "updated 9/18/2026, 1:47:37 PM" makes the reader do arithmetic to answer
+   the only question they actually have, which is whether this is current.
+   The scrapers run twice a day, so elapsed time is the useful form — the
+   exact timestamp stays available on hover. Seconds were never meaningful
+   here and are dropped. */
+function relativeTime(iso) {
+  if (!iso) return null;
+  const then = new Date(iso);
+  if (isNaN(then)) return null;
+  const mins = Math.round((Date.now() - then.getTime()) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.round(hours / 24);
+  return days === 1 ? "yesterday" : `${days}d ago`;
+}
+
+function DataStatus({ status, lastUpdated, errorDetail, onRetry }) {
+  const theme = useTheme();
+  const color = status === "live" ? theme.good : status === "loading" ? theme.textDim : theme.accent;
+  const relative = relativeTime(lastUpdated);
+  // Data older than a day usually means the scrape has been failing, which
+  // is worth a visible change of tone rather than a quietly stale number.
+  const stale = lastUpdated && (Date.now() - new Date(lastUpdated).getTime()) > 36 * 3600 * 1000;
+  const label =
+    status === "live" ? `Live data · updated ${relative || "recently"}` :
+    status === "loading" ? "Loading live data…" :
+    status === "no-url" ? "Using bundled snapshot (no live source configured)" :
+    "Live fetch failed — using bundled snapshot";
+  return (
+    <div style={{ marginBottom: 16, padding: "8px 12px", background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation() }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div
+          style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: stale ? theme.accent : theme.textDim }}
+          title={lastUpdated ? new Date(lastUpdated).toLocaleString() : undefined}
+        >
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: stale ? theme.accent : color, flexShrink: 0 }} />
+          {label}
+        </div>
+        {status !== "loading" && (
+          <button onClick={onRetry} style={{ background: "none", border: "none", color: theme.textFaint, fontSize: 11, cursor: "pointer", textDecoration: "underline" }}>
+            refresh
+          </button>
+        )}
+      </div>
+      {status === "error" && errorDetail && (
+        <div style={{ marginTop: 6, fontSize: 10, color: theme.bad, fontFamily: "'IBM Plex Mono', monospace", wordBreak: "break-word" }}>
+          {errorDetail}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   ROOT
+   ============================================================ */
+
+function formatUpcoming(rawList) {
+  // Normalizes either the live API's ISO timestamps or fallback {date,time}.
+  // Keeps the original value as _sortKey so grouping/sorting isn't affected
+  // by the display-formatted string.
+  return rawList.map((m) => {
+    if (m.date && m.date.includes("T")) {
+      const d = new Date(m.date);
+      return {
+        ...m,
+        _sortKey: m.date,
+        date: d.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+        time: d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }),
+      };
+    }
+    return { ...m, _sortKey: m.date };
+  });
+}
+
+/* ---------- Game switcher — a deliberate menu action instead of a plain
+   button row, so choosing a game feels like a real mode switch rather than
+   just another selector competing for space with region/view/stat. ---------- */
+
+function GameSwitcher({ game, selectGame, statusByGame, theme }) {
+  const [open, setOpen] = useState(false);
+  const current = GAMES[game];
+  const currentAccent = GAME_ACCENTS[game].accent;
+
+  return (
+    <div style={{ position: "relative", marginBottom: 16 }}>
+      <button
+        className="kp-btn"
+        onClick={() => setOpen(!open)}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "12px 16px", background: theme.graphite, border: `1px solid ${currentAccent}55`,
+          ...cardShape(theme.cornerStyle), ...elevation(), cursor: "pointer",
+        }}
+      >
+        <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ width: 10, height: 10, borderRadius: "50%", background: currentAccent, boxShadow: `0 0 8px ${currentAccent}` }} />
+          <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: 15, color: theme.text }}>{current.label}</span>
+        </span>
+        <span style={{ fontSize: 11, color: theme.textFaint, transform: open ? "rotate(180deg)" : "none", transition: "transform 0.15s ease" }}>▾</span>
+      </button>
+
+      {open && (
+        <>
+          <div
+            className="kp-backdrop-anim"
+            onClick={() => setOpen(false)}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 40 }}
+          />
+          <div
+            className="kp-menu-anim"
+            style={{
+              position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0, zIndex: 41,
+              background: theme.graphiteLight, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+              boxShadow: "0 12px 32px rgba(0,0,0,0.5)", overflow: "hidden",
+            }}
+          >
+            {GAME_LIST.map((id) => {
+              const accent = GAME_ACCENTS[id].accent;
+              const isCurrent = id === game;
+              const status = statusByGame[id];
+              return (
+                <button
+                  key={id}
+                  className="kp-clickable"
+                  onClick={() => { selectGame(id); setOpen(false); }}
+                  style={{
+                    width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                    padding: "14px 16px", background: isCurrent ? `${accent}14` : "transparent",
+                    border: "none", borderLeft: `3px solid ${isCurrent ? accent : "transparent"}`,
+                    textAlign: "left", cursor: "pointer",
+                  }}
+                >
+                  <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ width: 10, height: 10, borderRadius: "50%", background: accent }} />
+                    <span>
+                      <div style={{ fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: 14, color: isCurrent ? accent : theme.text }}>
+                        {GAMES[id].label}
+                      </div>
+                      <div style={{ fontSize: 10, color: theme.textFaint, marginTop: 1 }}>{GAMES[id].regionList.length} regions tracked</div>
+                    </span>
+                  </span>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: status === "live" ? theme.good : status === "loading" ? theme.textFaint : theme.bad }} />
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Top navigation: Region / View / Stat, redesigned with real
+   visual presence — big pill buttons for region, underlined tabs for view,
+   a segmented control for stat — instead of three cramped, near-identical
+   button rows squeezed into a narrow column. Placed at the top of the main
+   content area on desktop (full width to work with) and in the mobile
+   stack on small screens (still bigger/clearer than the old treatment). ---------- */
+
+function TopNav({ theme, gameCfg, region, setRegion, tab, setTab, statType, setStatType, isDesktop }) {
+  const TABS = [["future", "Future"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
+  return (
+    <div style={{ marginBottom: isDesktop ? 22 : 14 }}>
+      {/* Region picker. Seven regions wrapped onto two rows on a phone,
+          which cost ~90px of the first screen before any content. One
+          scrolling row instead — the same pattern the day picker uses. */}
+      <div
+        className={isDesktop ? "" : "kp-dayscroll"}
+        role="group"
+        aria-label="Region"
+        style={{
+          display: "flex", gap: 8, marginBottom: isDesktop ? 16 : 12,
+          flexWrap: isDesktop ? "wrap" : "nowrap",
+          overflowX: isDesktop ? "visible" : "auto",
+          paddingBottom: isDesktop ? 0 : 6,
+          scrollSnapType: isDesktop ? "none" : "x proximity",
+        }}
+      >
+        {gameCfg.regionList.map((key) => (
+          <button
+            key={key}
+            className="kp-btn"
+            onClick={() => setRegion(key)}
+            aria-pressed={region === key}
+            style={{
+              padding: isDesktop ? "11px 22px" : "9px 15px", borderRadius: 24,
+              border: "1px solid " + (region === key ? theme.accent : theme.steel),
+              background: region === key ? theme.accentSoft : theme.graphite,
+              color: region === key ? theme.accent : theme.textDim,
+              fontSize: isDesktop ? 15 : 13, fontWeight: 600, cursor: "pointer",
+              fontFamily: "'Fraunces', serif", flexShrink: 0, scrollSnapAlign: "start",
+              ...elevation(),
+            }}
+          >
+            {gameCfg.regionLabels[key]}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12, borderBottom: `1px solid ${theme.steel}` }}>
+        {/* Real tab semantics: these look and behave like tabs, so screen
+            readers should be told that rather than hearing four buttons. */}
+        <div
+          role="tablist"
+          aria-label="View"
+          className={isDesktop ? "" : "kp-dayscroll"}
+          style={{
+            display: "flex", gap: isDesktop ? 24 : 15,
+            overflowX: isDesktop ? "visible" : "auto", maxWidth: "100%",
+          }}
+        >
+          {TABS.map(([id, label]) => (
+            <button
+              key={id}
+              className="kp-btn"
+              role="tab"
+              aria-selected={tab === id}
+              onClick={() => setTab(id)}
+              style={{
+                padding: "10px 2px 12px", background: "none", border: "none",
+                borderBottom: `2px solid ${tab === id ? theme.accent : "transparent"}`,
+                color: tab === id ? theme.accent : theme.textDim,
+                fontSize: isDesktop ? 15 : 13.5, fontWeight: 600, cursor: "pointer",
+                fontFamily: "'Fraunces', serif", whiteSpace: "nowrap", flexShrink: 0,
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div role="group" aria-label="Stat" style={{ display: "flex", gap: 4, marginBottom: 8 }}>
+          {Object.entries(STAT_TYPES).map(([key, cfg]) => (
+            <button
+              key={key}
+              className="kp-btn"
+              onClick={() => setStatType(key)}
+              aria-pressed={statType === key}
+              style={{
+                padding: "7px 14px", borderRadius: 20, border: "1px solid " + (statType === key ? theme.accent : theme.steel),
+                background: statType === key ? theme.accentSoft : "transparent",
+                color: statType === key ? theme.accent : theme.textDim,
+                fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Inter', sans-serif",
+              }}
+            >
+              {cfg.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SettingsPanel({ theme, accentOverride, setAccentOverride, cornerStyle, setCornerStyle, open, setOpen }) {
+  const [customHex, setCustomHex] = useState(accentOverride || "");
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          display: "flex", alignItems: "center", gap: 6, background: "none", border: "none",
+          color: theme.textDim, fontSize: 12, cursor: "pointer", padding: 0, fontFamily: "'Inter', sans-serif", fontWeight: 500,
+        }}
+      >
+        <span style={{ fontSize: 13 }}>⚙</span> Customize {open ? "▴" : "▾"}
+      </button>
+      {open && (
+        <div style={{ marginTop: 12, background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: 16 }}>
+          <div style={{ fontSize: 12, color: theme.textDim, marginBottom: 10, fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>Accent color</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+            <button
+              onClick={() => { setAccentOverride(null); setCustomHex(""); }}
+              title="Automatic (follows selected game)"
+              style={{
+                width: 28, height: 28, borderRadius: "50%", cursor: "pointer",
+                border: !accentOverride ? `2px solid ${theme.text}` : `1px solid ${theme.steel}`,
+                background: "conic-gradient(#C9A86A, #FF4655, #4FD8E8, #7FE07A, #B07FE0, #E08A4F, #C9A86A)",
+              }}
+            />
+            {ACCENT_SWATCHES.map((s) => (
+              <button
+                key={s.hex}
+                onClick={() => { setAccentOverride(s.hex); setCustomHex(s.hex); }}
+                title={s.name}
+                style={{
+                  width: 28, height: 28, borderRadius: "50%", cursor: "pointer", background: s.hex,
+                  border: accentOverride === s.hex ? `2px solid ${theme.text}` : "1px solid rgba(255,255,255,0.15)",
+                }}
+              />
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 16 }}>
+            <input
+              type="text"
+              value={customHex}
+              onChange={(e) => setCustomHex(e.target.value)}
+              placeholder="#RRGGBB"
+              style={{ flex: 1, background: theme.graphiteLight, border: `1px solid ${theme.steel}`, borderRadius: 8, color: theme.text, padding: "7px 10px", fontSize: 12, fontFamily: "'IBM Plex Mono', monospace" }}
+            />
+            <button
+              onClick={() => { if (/^#[0-9a-fA-F]{6}$/.test(customHex)) setAccentOverride(customHex); }}
+              style={{ background: theme.steel, border: "none", borderRadius: 8, color: theme.text, padding: "7px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Inter', sans-serif" }}
+            >
+              Use
+            </button>
+          </div>
+          <div style={{ fontSize: 12, color: theme.textDim, marginBottom: 10, fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>Card corners</div>
+          <div style={{ display: "flex", gap: 8 }}>
+            {[["angular", "Angular"], ["rounded", "Rounded"]].map(([id, label]) => (
+              <button
+                key={id}
+                onClick={() => setCornerStyle(id)}
+                style={{
+                  flex: 1, padding: "9px 0", border: "1px solid " + (cornerStyle === id ? theme.accent : theme.steel),
+                  background: cornerStyle === id ? theme.accentSoft : theme.graphiteLight,
+                  color: cornerStyle === id ? theme.accent : theme.textDim,
+                  fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Inter', sans-serif",
+                  ...(id === "angular" ? { clipPath: `polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))` } : { borderRadius: 8 }),
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function KillProjector() {
+  const isDesktop = useIsDesktop();
+  const [game, setGame] = useState("lol");
+  const [region, setRegion] = useState("LCS");
+  const [tab, setTab] = useState("future");
+  const [statType, setStatType] = useState("kills");
+  const [games, setGames] = useState(2);
+
+  // Per-GAME, per-stat weights persist across visits, across switching
+  // between Kills/Deaths/Assists, AND across switching games — custom
+  // CS2 tuning doesn't get clobbered by looking at LoL, and each game
+  // starts from its own measured defaults rather than one shared set
+  // (which was a real source of prediction inconsistency, since the
+  // measured optima differ substantially per game).
+  const [weightsByGameAndStat, setWeightsByGameAndStat] = useState(() => {
+    const stored = loadStored("kp.weightsByGameAndStat", DEFAULT_WEIGHTS_BY_GAME_AND_STAT);
+    // Migration: a blob saved before a new weight key existed (e.g.
+    // "career", added after this was first shipped) would otherwise
+    // leave that key undefined for anyone with existing saved state —
+    // safe for the projection math itself (undefined > 0 is false) but
+    // not for a <Slider value={undefined}>. Backfill any missing key
+    // from the current defaults, per game and stat, without touching
+    // anything the person already customized.
+    const migrated = {};
+    for (const g of Object.keys(DEFAULT_WEIGHTS_BY_GAME_AND_STAT)) {
+      migrated[g] = {};
+      for (const s of Object.keys(DEFAULT_WEIGHTS_BY_GAME_AND_STAT[g])) {
+        migrated[g][s] = { ...DEFAULT_WEIGHTS_BY_GAME_AND_STAT[g][s], ...(stored[g] && stored[g][s] ? stored[g][s] : {}) };
+      }
+    }
+    return migrated;
+  });
+  useEffect(() => saveStored("kp.weightsByGameAndStat", weightsByGameAndStat), [weightsByGameAndStat]);
+  // Fall back through game defaults then LoL, so a stored blob written by
+  // an older build (or a newly-added game) can't leave weights undefined.
+  const weights =
+    (weightsByGameAndStat[game] && weightsByGameAndStat[game][statType]) ||
+    (DEFAULT_WEIGHTS_BY_GAME_AND_STAT[game] && DEFAULT_WEIGHTS_BY_GAME_AND_STAT[game][statType]) ||
+    DEFAULT_WEIGHTS_BY_GAME_AND_STAT.lol[statType];
+  const setWeight = (key, value) =>
+    setWeightsByGameAndStat((prev) => {
+      const gameWeights = prev[game] || DEFAULT_WEIGHTS_BY_GAME_AND_STAT[game] || DEFAULT_WEIGHTS_BY_GAME_AND_STAT.lol;
+      return {
+        ...prev,
+        [game]: { ...gameWeights, [statType]: { ...gameWeights[statType], [key]: value } },
+      };
+    });
+
+  const [slidersExpanded, setSlidersExpanded] = useState(() => loadStored("kp.slidersExpanded", false));
+  useEffect(() => saveStored("kp.slidersExpanded", slidersExpanded), [slidersExpanded]);
+
+  const [accentOverride, setAccentOverride] = useState(() => loadStored("kp.accentOverride", null));
+  useEffect(() => saveStored("kp.accentOverride", accentOverride), [accentOverride]);
+  const [cornerStyle, setCornerStyle] = useState(() => loadStored("kp.cornerStyle", "rounded"));
+  useEffect(() => saveStored("kp.cornerStyle", cornerStyle), [cornerStyle]);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const gameAccent = GAME_ACCENTS[game];
+  const accent = accentOverride || gameAccent.accent;
+  const theme = {
+    ...BASE_TOKENS,
+    accent,
+    accentSoft: accentOverride ? `${accentOverride}18` : gameAccent.accentSoft,
+    accentBorder: accentOverride ? `${accentOverride}55` : gameAccent.accentBorder,
+    cornerStyle,
+  };
+
+  // Data, load status, and error detail are all keyed by game — switching
+  // games doesn't lose or re-fetch the other game's already-loaded data.
+  const [dataByGame, setDataByGame] = useState({
+    lol: GAMES.lol.fallbackRegions,
+    valorant: GAMES.valorant.fallbackRegions,
+  });
+  const [statusByGame, setStatusByGame] = useState({
+    lol: GAMES.lol.dataUrl ? "loading" : "no-url",
+    valorant: GAMES.valorant.dataUrl ? "loading" : "no-url",
+  });
+  const [lastUpdatedByGame, setLastUpdatedByGame] = useState({});
+  const [errorByGame, setErrorByGame] = useState({});
+
+  const fetchGameData = (gameId) => {
+    const cfg = GAMES[gameId];
+    if (!cfg.dataUrl) {
+      setStatusByGame((prev) => ({ ...prev, [gameId]: "no-url" }));
+      return;
+    }
+    setStatusByGame((prev) => ({ ...prev, [gameId]: "loading" }));
+    setErrorByGame((prev) => ({ ...prev, [gameId]: null }));
+
+    // One retry, after a short delay, on ANY failure (network error, bad
+    // HTTP status, or invalid JSON) — a fresh scraper commit can very
+    // briefly serve a truncated/mid-write response from
+    // raw.githubusercontent.com's CDN before the push fully propagates,
+    // which throws immediately on JSON.parse with no way to distinguish
+    // it from a genuinely bad file. A short delay + one retry is enough
+    // for that propagation race to resolve without meaningfully
+    // delaying the common case where the fetch just works the first time.
+    const attemptFetch = (attemptsLeft) =>
+      fetch(cfg.dataUrl, { cache: "no-store" })
+        .then((res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+          return res.json();
+        })
+        .catch((err) => {
+          if (attemptsLeft > 0) {
+            console.warn(`Fetch/parse failed for ${gameId}, retrying once in 1.5s:`, err);
+            return new Promise((resolve) => setTimeout(resolve, 1500)).then(() => attemptFetch(attemptsLeft - 1));
+          }
+          throw err;
+        });
+
+    attemptFetch(1)
+      .then((data) => {
+        const fetchedRegions = data.regions || {};
+        const anyTeams = Object.values(fetchedRegions).some(
+          (r) => r.teams && Object.keys(r.teams).length > 0
+        );
+        if (!anyTeams) {
+          throw new Error(`Fetched ${gameId} data but every region had empty 'teams'`);
+        }
+        // Merge per-region: a region missing or empty in the fetch keeps its
+        // fallback rather than the whole game losing all regions over one
+        // partial failure.
+        setDataByGame((prev) => {
+          const merged = { ...prev[gameId] };
+          for (const key of cfg.regionList) {
+            const fetched = fetchedRegions[key];
+            if (fetched && fetched.teams && Object.keys(fetched.teams).length > 0) {
+              merged[key] = fetched;
+            }
+          }
+          return { ...prev, [gameId]: merged };
+        });
+        setLastUpdatedByGame((prev) => ({
+          ...prev,
+          [gameId]: data.generated_at || null,
+        }));
+        setStatusByGame((prev) => ({ ...prev, [gameId]: "live" }));
+      })
+      .catch((err) => {
+        console.warn(`Live data fetch failed for ${gameId}, using bundled snapshot:`, err);
+        setErrorByGame((prev) => ({ ...prev, [gameId]: err && err.message ? err.message : String(err) }));
+        setStatusByGame((prev) => ({ ...prev, [gameId]: "error" }));
+      });
+  };
+
+  useEffect(() => {
+    GAME_LIST.forEach(fetchGameData);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Separate, simple fetch for champion_stats.json — a standalone
+  // reference table, not tied to any one game's live snapshot, so it
+  // doesn't need the same per-game merge/fallback machinery above. Same
+  // one-retry-on-failure treatment as the main data fetches, for the
+  // same CDN-propagation-race reason.
+  //
+  // NOTE on scope: an earlier design here tried to use Fearless Draft
+  // ban-pool carryover from a team's PRIOR series to inform an UPCOMING
+  // one. That doesn't actually hold up on reflection, for two
+  // independent reasons: (1) this app's data model only ever captures
+  // FULLY COMPLETED series as single past_matches entries — there's no
+  // "game 1 done, game 2 pending" state the scrape cadence would ever
+  // observe: and (2) Fearless ban-pool carryover is scoped to a single
+  // series anyway, not across separate series on different days, so
+  // even with finer-grained data it wouldn't be the right signal for a
+  // genuinely new, upcoming series. What's actually usable here instead
+  // is champion-pool CONSISTENCY as a confidence signal (see
+  // championPoolConsistency below) — it only needs a player's own past
+  // performance, which is always known ahead of time, unlike an
+  // opponent's future draft.
+  const [championStats, setChampionStats] = useState(null);
+  useEffect(() => {
+    const attemptFetch = (attemptsLeft) =>
+      fetch(DATA_URL_CHAMPION_STATS, { cache: "no-store" })
+        .then((res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+          return res.json();
+        })
+        .catch((err) => {
+          if (attemptsLeft > 0) {
+            return new Promise((resolve) => setTimeout(resolve, 1500)).then(() => attemptFetch(attemptsLeft - 1));
+          }
+          throw err;
+        });
+    attemptFetch(1)
+      .then((data) => setChampionStats(data))
+      .catch((err) => console.warn("Champion stats fetch failed (champion-pool consistency insight will be unavailable):", err));
+  }, []);
+
+  const gameCfg = GAMES[game];
+  const regionsData = dataByGame[game] || gameCfg.fallbackRegions;
+  const current = regionsData[region] || { teams: {}, past_matches: [], upcoming_matches: [] };
+  const hasData = Object.keys(current.teams || {}).length > 0;
+  const normalizedUpcoming = formatUpcoming(current.upcoming_matches || []);
+
+  const selectGame = (id) => {
+    setGame(id);
+    setRegion(GAMES[id].regionList[0]); // reset to that game's first region
+  };
+
+  return (
+    <ThemeContext.Provider value={theme}>
+    <ChampionStatsContext.Provider value={championStats}>
+      <div style={{
+        minHeight: "100vh", color: theme.text, fontFamily: "'Inter', -apple-system, sans-serif", padding: isDesktop ? "32px 32px 60px" : "20px 16px 56px",
+        // Exposed to CSS so the stylesheet's focus rings track the live
+        // accent without a rule per game.
+        "--kp-accent-live": theme.accent,
+        background: `radial-gradient(ellipse 1200px 800px at 50% -10%, ${theme.accent}0d, transparent 60%), `
+          + `linear-gradient(${theme.steelSoft}33 1px, transparent 1px), linear-gradient(90deg, ${theme.steelSoft}33 1px, transparent 1px), `
+          + theme.void,
+        backgroundSize: "auto, 48px 48px, 48px 48px, auto",
+      }}>
+        <style>{`
+          /* Everything else in this app is inline styles, which can't do
+             :hover or animation — this is the one shared stylesheet, kept
+             small and general-purpose rather than styling every element
+             individually. Buttons/clickable cards opt in via className. */
+          .kp-btn { transition: filter 0.15s ease, transform 0.1s ease, border-color 0.15s ease, background-color 0.15s ease; }
+          .kp-btn:hover { filter: brightness(1.18); }
+          .kp-btn:active { transform: scale(0.97); }
+          .kp-clickable { transition: border-color 0.15s ease, filter 0.15s ease; cursor: pointer; }
+          .kp-clickable:hover { filter: brightness(1.08); border-color: rgba(255,255,255,0.16) !important; }
+          input[type="range"] { cursor: pointer; }
+          input[type="range"]::-webkit-slider-thumb { transition: transform 0.15s ease; }
+          input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.25); }
+          @keyframes kp-fade-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+          @keyframes kp-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+          .kp-menu-anim { animation: kp-fade-in 0.16s ease; }
+          .kp-backdrop-anim { animation: kp-backdrop-in 0.16s ease; }
+          /* Targeting-bracket corner marks — the two sharp corners the
+             angular clip-path doesn't cut (top-left, bottom-right) get
+             small viewfinder-style accent marks. A deliberate nod to the
+             "kill projector / reticle" identity rather than generic corner
+             decoration — only makes sense paired with the angular corner
+             style, so it's applied conditionally in JS, not always-on. */
+          .kp-bracket { position: relative; }
+          .kp-bracket::before, .kp-bracket::after {
+            content: ""; position: absolute; width: 11px; height: 11px; pointer-events: none; opacity: 0.85;
+          }
+          .kp-bracket::before { top: 2px; left: 2px; border-top: 1.5px solid var(--kp-bracket-color); border-left: 1.5px solid var(--kp-bracket-color); }
+          .kp-bracket::after { bottom: 2px; right: 2px; border-bottom: 1.5px solid var(--kp-bracket-color); border-right: 1.5px solid var(--kp-bracket-color); }
+          .kp-chip {
+            display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px;
+            font-size: 10px; font-weight: 600; letter-spacing: 0.3px; font-family: 'Inter', sans-serif;
+          }
+          /* Day picker scroll row — a thin, quiet scrollbar rather than
+             the OS default, which is heavy enough to dominate a row of
+             small chips. Still visible (not hidden) so it stays obvious
+             that the row scrolls when it overflows. */
+          .kp-dayscroll { scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
+          .kp-dayscroll::-webkit-scrollbar { height: 6px; }
+          .kp-dayscroll::-webkit-scrollbar-track { background: transparent; }
+          .kp-dayscroll::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.14); border-radius: 3px;
+          }
+          .kp-dayscroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.24); }
+          .kp-divider { border: none; height: 1px; }
+          /* ---- Numerals -------------------------------------------------
+             Every figure in this app sits in a column that is compared
+             against the figure above it. Proportional digits make those
+             columns ragged and make a changing number jitter, so all
+             numeric readouts use tabular figures. */
+          .kp-num { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+          table, .kp-tabular { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+          /* ---- Focus ----------------------------------------------------
+             Cards and chips are divs with onClick, which gave keyboard
+             users no way in and no visible focus. Anything interactive now
+             takes focus and shows it, without adding a ring for mouse
+             users. */
+          .kp-btn:focus-visible, .kp-clickable:focus-visible, .kp-focus:focus-visible,
+          button:focus-visible, [role="button"]:focus-visible, input:focus-visible, select:focus-visible {
+            outline: 2px solid var(--kp-accent-live, #C9A86A);
+            outline-offset: 2px;
+          }
+          .kp-btn:focus:not(:focus-visible), .kp-clickable:focus:not(:focus-visible) { outline: none; }
+
+          /* Hairline separators that read as structure rather than as lines. */
+          .kp-row + .kp-row { border-top: 1px solid rgba(255,255,255,0.045); }
+
+          /* ---- Motion ---------------------------------------------------
+             Respect the OS setting. Animation here is decoration; nothing
+             depends on it. */
+          @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+              animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+              transition-duration: 0.01ms !important; scroll-behavior: auto !important;
+            }
+          }
+
+          /* Content appears as data resolves; a 1-frame fade stops tabs
+             from feeling like a hard cut. */
+          @keyframes kp-rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+          .kp-rise { animation: kp-rise 0.22s ease both; }
+        `}</style>
+        <div style={{
+          maxWidth: isDesktop ? 1400 : 640, margin: "0 auto",
+          display: isDesktop ? "flex" : "block", alignItems: "flex-start", gap: isDesktop ? 32 : 0,
+        }}>
+          {/* ---------- Sidebar on desktop / top stack on mobile: header +
+              game/status/games-count/advanced controls. Region/View/Stat
+              live in TopNav now, not here — see below. ---------- */}
+          <div style={{ width: isDesktop ? 260 : "100%", flexShrink: 0, position: isDesktop ? "sticky" : "static", top: isDesktop ? 32 : "auto" }}>
+            {/* The full masthead is a desktop luxury — on a phone the title
+                and its explanation were ~180px of the first screen before
+                anything actionable. The phone keeps the wordmark and drops
+                the rest to a single line. */}
+            <div style={{ marginBottom: isDesktop ? 18 : 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: isDesktop ? 11 : 10.5, letterSpacing: 2, color: theme.accent, fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>
+                <Reticle size={13} color={theme.accent} active />
+                KILL PROJECTOR
+              </div>
+              <h1 style={{
+                fontSize: isDesktop ? 26 : 19, fontWeight: 600, margin: isDesktop ? "6px 0 0" : "5px 0 0",
+                fontFamily: "'Fraunces', serif", letterSpacing: -0.2, lineHeight: 1.2,
+              }}>
+                Weighted {STAT_TYPES[statType].singular} projections
+              </h1>
+              {isDesktop && (
+                <div style={{ fontSize: 13, color: theme.textDim, marginTop: 4, lineHeight: 1.5 }}>
+                  Blends this split's rates with prior-split history, opponent strength and kill participation.
+                </div>
+              )}
+            </div>
+
+            <GameSwitcher game={game} selectGame={selectGame} statusByGame={statusByGame} theme={theme} />
+
+            <DataStatus
+              status={statusByGame[game]}
+              lastUpdated={lastUpdatedByGame[game]}
+              errorDetail={errorByGame[game]}
+              onRetry={() => fetchGameData(game)}
+            />
+
+            {!isDesktop && (
+              <TopNav
+                theme={theme} gameCfg={gameCfg}
+                region={region} setRegion={setRegion}
+                tab={tab} setTab={setTab}
+                statType={statType} setStatType={setStatType}
+                isDesktop={isDesktop}
+              />
+            )}
+
+            {/* On desktop the sidebar has room for the tuning controls beside
+                the content. On a phone they stack ON TOP of it: every control
+                in this column came before the first projection, so the thing
+                the app is for started roughly a screen and a half down. They
+                render below the content instead — see the main column. */}
+            {isDesktop && (
+              <>
+                <GamesControl theme={theme} games={games} setGames={setGames} />
+
+                {/* ---------- Advanced/optional model tuning, collapsed by default ---------- */}
+                <WeightControls
+                  weights={weights} onChangeWeight={setWeight}
+                  expanded={slidersExpanded} onToggleExpanded={() => setSlidersExpanded(!slidersExpanded)}
+                  statLabel={STAT_TYPES[statType].label}
+                  defaults={(DEFAULT_WEIGHTS_BY_GAME_AND_STAT[game] || {})[statType]}
+                />
+
+                <SettingsPanel
+                  theme={theme}
+                  accentOverride={accentOverride} setAccentOverride={setAccentOverride}
+                  cornerStyle={cornerStyle} setCornerStyle={setCornerStyle}
+                  open={settingsOpen} setOpen={setSettingsOpen}
+                />
+              </>
+            )}
+          </div>
+
+          {/* ---------- Main content: TopNav (desktop only — full width here
+              instead of squeezed into the sidebar) + whichever tab is selected ---------- */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {isDesktop && (
+              <TopNav
+                theme={theme} gameCfg={gameCfg}
+                region={region} setRegion={setRegion}
+                tab={tab} setTab={setTab}
+                statType={statType} setStatType={setStatType}
+                isDesktop={isDesktop}
+              />
+            )}
+
+            {!hasData ? (
+              <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: "20px 16px", textAlign: "center" }}>
+                <div style={{ fontSize: 13, color: theme.textDim }}>No {gameCfg.regionLabels[region]} data available yet.</div>
+                <div style={{ fontSize: 12, color: theme.textFaint, marginTop: 4 }}>
+                  {statusByGame[game] === "live" || statusByGame[game] === "loading"
+                    ? "This region may not have loaded from the live source — try refresh above."
+                    : "The live source hasn't loaded, and there's no offline snapshot for this region yet."}
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* The backtest headline applies to the projection-bearing
+                    tabs; standings and consistency are descriptive, not
+                    predictive, so it would be claiming something there
+                    that those views do not show. */}
+                {(tab === "future" || tab === "past") && (
+                  <AccuracySummary
+                    teams={current.teams} pastMatches={current.past_matches || []}
+                    weights={weights} statType={statType} isDesktop={isDesktop}
+                  />
+                )}
+                {tab === "future" ? (
+              <FutureTab teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} isDesktop={isDesktop} games={games} />
+            ) : tab === "past" ? (
+              <PastResultsTab teams={current.teams} pastMatches={current.past_matches || []} weights={weights} statType={statType} isDesktop={isDesktop} />
+            ) : tab === "consistency" ? (
+              <ConsistencyTab teams={current.teams} pastMatches={current.past_matches || []} statType={statType} isDesktop={isDesktop} />
+            ) : (
+              <StandingsTab
+                teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming}
+                regionsData={regionsData} regionList={gameCfg.regionList} regionLabels={gameCfg.regionLabels}
+                isDesktop={isDesktop}
+              />
+                )}
+              </>
+            )}
+
+            {!isDesktop && (
+              <div style={{ marginTop: 24 }}>
+                <GamesControl theme={theme} games={games} setGames={setGames} />
+                <WeightControls
+                  weights={weights} onChangeWeight={setWeight}
+                  expanded={slidersExpanded} onToggleExpanded={() => setSlidersExpanded(!slidersExpanded)}
+                  statLabel={STAT_TYPES[statType].label}
+                  defaults={(DEFAULT_WEIGHTS_BY_GAME_AND_STAT[game] || {})[statType]}
+                />
+                <SettingsPanel
+                  theme={theme}
+                  accentOverride={accentOverride} setAccentOverride={setAccentOverride}
+                  cornerStyle={cornerStyle} setCornerStyle={setCornerStyle}
+                  open={settingsOpen} setOpen={setSettingsOpen}
+                />
+              </div>
+            )}
+
+            <div style={{ marginTop: 20, fontSize: 11, color: theme.textFaint, lineHeight: 1.6 }}>
+              Data: {game === "lol" ? "regular-season box scores (gol.gg) and schedule (LoL Esports API)" : "match stats (VLR.gg)"}.
+            </div>
+          </div>
+        </div>
+      </div>
+    </ChampionStatsContext.Provider>
+    </ThemeContext.Provider>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<KillProjector />);
+
+} catch (err) {
+  document.getElementById('root').innerHTML =
+    '<div id="error-box">Render error: ' + err.message + '\n\n' + (err.stack || '') + '</div>';
+}

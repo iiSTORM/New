@@ -1,3 +1,7 @@
+# Node — build tooling only. The app ships as a single index.html and has
+# no runtime dependencies beyond React from a CDN.
+node_modules/
+
 # Python
 __pycache__/
 *.py[cod]

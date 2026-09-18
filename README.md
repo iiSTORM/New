@@ -11,15 +11,48 @@ falls back to a snapshot bundled inside the page if a fetch fails.
 ## Layout
 
 ```
-index.html                     the entire frontend
+src/app.jsx                    the frontend source — edit this
+src/index.template.html        the HTML shell around it
+build/build-frontend.js        compiles src/ into index.html
+index.html                     GENERATED — do not edit by hand
 .github/workflows/scrape.yml   the twice-daily (09:00 / 21:00 UTC) update job
-.github/workflows/tests.yml    pytest, on pull requests and pushes to main
+.github/workflows/tests.yml    pytest + the index.html staleness check
 scripts/                       production scrapers — run by the workflow
 scripts/check_data.py          pre-commit validation of a scraped file
 scripts/dev/                   investigation tooling — never run by the workflow
 tests/                         unit tests (no network, stdlib only)
 playoffs_and_international_roadmap.md  design notes
 ```
+
+## The frontend
+
+`index.html` is a single self-contained page: React from a CDN, everything
+else inline. There is no server and no framework beyond React.
+
+It is **generated**. Edit `src/app.jsx` (and `src/index.template.html` for
+the surrounding shell), then:
+
+```bash
+npm install     # once
+npm run build   # regenerates index.html
+npm run check   # verifies index.html matches src/ — this is what CI runs
+```
+
+The JSX used to ship uncompiled, with `@babel/standalone` compiling it in
+the browser on every visit. That was a 3MB download plus a parse of ~3,800
+lines before anything could render — about 3.4MB and ~900ms to first
+content, against ~310KB and ~400ms now. Babel runs at build time instead.
+
+The compiled output is inlined into `index.html` rather than emitted as a
+separate `app.js` on purpose: `raw.githubusercontent.com` serves everything
+as `text/plain` with `X-Content-Type-Options: nosniff`, so a sibling script
+file would be refused by the browser. Keeping the page self-contained means
+it works however it is opened. The compiled JS is about the same size as
+the JSX it replaces, so inlining costs nothing.
+
+CI fails if `index.html` does not match `src/`. A stale `index.html` would
+ship an app that disagrees with its own source, and the diff would be
+invisible in review because it would simply be missing.
 
 ## Data flow
 
@@ -125,11 +158,13 @@ python scripts/dev/optimize_weights.py
 
 ## Working on this repo
 
-Run the tests before pushing:
+Run the tests before pushing — and rebuild the frontend if you touched
+`src/`:
 
 ```bash
 pip install pytest
 python -m pytest tests/ -v
+npm run build          # only if src/ changed
 ```
 
 They cover the merge step, the data check and the shape of the committed
