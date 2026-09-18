@@ -51,9 +51,12 @@ VCT Americas / EMEA / Pacific / China; CS2 (single pool).
 `cs2_data.json` and `cs2_career_data.json` are committed by the workflow and
 served to the frontend — they are generated artifacts that must stay in git.
 
-`schedule.json` is an intermediate: `merge.py` folds it into `data.json`, so
-the workflow doesn't commit updates to it. The copy in git is a fallback that
-`merge.py` reads if `scrape_schedule.py` fails.
+`schedule.json` is an intermediate — `merge.py` folds it into `data.json` —
+but it is also the fallback `merge.py` reads when `scrape_schedule.py` fails,
+so the workflow commits it too. `merge.py` ignores it once it is more than
+`MAX_SCHEDULE_AGE_DAYS` (3) old and publishes no upcoming matches instead:
+every fixture in an old schedule has already been played, and listing those
+as upcoming is worse than listing none.
 
 All generated files are written minified (`separators=(",", ":")`), which
 is purely a serialization choice — `indent=2` was about two thirds of the

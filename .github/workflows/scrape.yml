@@ -90,6 +90,13 @@ jobs:
           # pattern already used for valorant_data.json below.
           [ -f career_data.json ] && git add career_data.json
           [ -f champion_stats.json ] && git add champion_stats.json
+          # schedule.json is an intermediate (merge.py folds it into
+          # data.json), but it is also the fallback merge.py reads when the
+          # schedule scrape fails. It went uncommitted, so that fallback was
+          # whatever was last committed by hand — three weeks stale, i.e.
+          # fixtures that had already been played. Committing it each run
+          # keeps the fallback at most one cycle old.
+          [ -f schedule.json ] && git add schedule.json
           if git diff --quiet --cached; then
             echo "No changes to commit"
             exit 0
@@ -115,6 +122,7 @@ jobs:
             cp data.json /tmp/data.json.new
             [ -f career_data.json ] && cp career_data.json /tmp/career_data.json.new
             [ -f champion_stats.json ] && cp champion_stats.json /tmp/champion_stats.json.new
+            [ -f schedule.json ] && cp schedule.json /tmp/schedule.json.new
             git fetch origin main
             git reset --hard origin/main
             cp /tmp/data.json.new data.json
@@ -126,6 +134,10 @@ jobs:
             if [ -f /tmp/champion_stats.json.new ]; then
               cp /tmp/champion_stats.json.new champion_stats.json
               git add champion_stats.json
+            fi
+            if [ -f /tmp/schedule.json.new ]; then
+              cp /tmp/schedule.json.new schedule.json
+              git add schedule.json
             fi
             if git diff --quiet --cached; then
               echo "Remote already has this exact snapshot — nothing left to push"
