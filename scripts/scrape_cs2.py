@@ -58,6 +58,27 @@ HEADERS = {
 # reliably-populated signal, so it's the primary filter below; tier is
 # kept as a secondary OR condition for whenever it happens to be present.
 ACCEPTED_TIERS = {"s", "a"}
+
+# How far ahead to pull upcoming matches.
+#
+# Upcoming fixtures used to come from exactly two places: cs2api's
+# get_todays_matches(), whose filter is start_date within TODAY, and
+# per-team schedules for the teams discovered in this run's finished
+# matches. Anything tomorrow involving a team outside that discovered set
+# was therefore invisible. On run 116 that left 11 upcoming matches with a
+# two-day hole in front of them — the next fixture shown was three days
+# out while matches existed the following day — and because the run
+# happened at 22:47 UTC, the "today" feed itself returned a single match.
+#
+# bo3.gg's /matches endpoint takes an arbitrary start_date range (this is
+# exactly what get_todays_matches() does, with both bounds set to today),
+# so the same confirmed-working query is used here over a window instead.
+UPCOMING_WINDOW_DAYS = 7
+UPCOMING_PAGE_LIMIT = 100  # the API's own page size in cs2api's queries
+
+# Upper bound on opponents whose rosters get backfilled in one run. Each
+# costs a team search plus several match fetches, and the API rate-limits.
+MAX_BACKFILL_OPPONENTS = 25
 # 1-5 scale inferred from real data (a minor qualifier showed stars=1; the
 # match above showed stars=5). 3 is a starting midpoint, not a confirmed
 # cutoff — build_region_payload prints the real star distribution across
@@ -86,6 +107,65 @@ async def bo3_get(session, path, params=None):
             print(f"  ! {url} attempt {attempt + 1}/3 failed: {e}", file=sys.stderr)
         await asyncio.sleep(1 + attempt)
     return None
+
+
+# Matches that started more than this long ago are dropped from the
+# upcoming list. Not zero, because a match already under way is still worth
+# showing, and bo3.gg's "current" status covers exactly that. But run 116
+# published a fixture from the previous day as upcoming, because nothing
+# compared start_date against the clock at all.
+UPCOMING_MAX_AGE_HOURS = 12
+
+
+def parse_match_start(m):
+    """The match's start time as an aware datetime, or None if unparseable.
+
+    bo3.gg returns ISO-8601 with an offset ("2026-09-21T10:00:00.000+00:00")
+    but has also been seen using a space separator, so both are accepted
+    rather than assuming one.
+    """
+    raw = m.get("start_date") or m.get("date")
+    if not raw or not isinstance(raw, str):
+        return None
+    try:
+        parsed = datetime.fromisoformat(raw.replace(" ", "T"))
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+
+
+async def fetch_upcoming_window(session, days=UPCOMING_WINDOW_DAYS):
+    """Every upcoming CS2 match between now and `days` ahead.
+
+    Same endpoint, scope and filters cs2api's get_todays_matches() uses —
+    only the start_date bounds differ, so this relies on nothing new about
+    the API. Paged, because a week of fixtures exceeds one page.
+
+    Returns [] on failure rather than raising: this is an enrichment over
+    the per-team schedules that were already being fetched, and a bad day
+    at bo3.gg should degrade coverage, not fail the run.
+    """
+    start = datetime.now(timezone.utc)
+    end = start + timedelta(days=days)
+    collected = []
+    for offset in range(0, 1000, UPCOMING_PAGE_LIMIT):
+        params = {
+            "scope": "widget-matches",
+            "page[offset]": str(offset),
+            "page[limit]": str(UPCOMING_PAGE_LIMIT),
+            "sort": "start_date",
+            "filter[matches.status][in]": "upcoming,current",
+            "filter[matches.start_date][gt]": start.strftime("%Y-%m-%d 00:00"),
+            "filter[matches.start_date][lt]": end.strftime("%Y-%m-%d 23:59"),
+            "filter[matches.discipline_id][eq]": "1",
+            "with": "teams,tournament,ai_predictions,games,streams",
+        }
+        batch = await bo3_get(session, "/matches", params)
+        rows = (batch.get("results", batch) if isinstance(batch, dict) else batch) or []
+        collected.extend(rows)
+        if len(rows) < UPCOMING_PAGE_LIMIT:
+            break
+    return collected
 
 
 async def fetch_team_recent_matches(session, team_id, limit=10):
@@ -449,7 +529,7 @@ async def build_region_payload(cs2, session):
     # disagree (e.g. "Team Falcons" vs "Falcons"). ----
     short_name_by_team_id = {}
     seen_upcoming_ids = set()
-    upcoming_stats = {"raw": 0, "duplicate": 0, "tbd_excluded": 0, "added": 0}
+    upcoming_stats = {"raw": 0, "duplicate": 0, "tbd_excluded": 0, "already_played": 0, "added": 0}
 
     def add_upcoming(m):
         mid = m.get("id")
@@ -465,6 +545,10 @@ async def build_region_payload(cs2, session):
             short_name_by_team_id[t2id] = team2
         if not team1 or not team2 or "TBD" in (team1, team2):
             upcoming_stats["tbd_excluded"] += 1
+            return
+        start = parse_match_start(m)
+        if start is not None and start < datetime.now(timezone.utc) - timedelta(hours=UPCOMING_MAX_AGE_HOURS):
+            upcoming_stats["already_played"] += 1
             return
         seen_upcoming_ids.add(mid)
         upcoming_stats["added"] += 1
@@ -490,6 +574,24 @@ async def build_region_payload(cs2, session):
     print(f"  {len(upcoming_matches)} from today's global feed "
           f"(of {len(today_matches)} raw matches today, before filtering)\n")
 
+    # The global window. This is the source that actually covers tomorrow:
+    # the feed above is today-only, and the per-team schedules below reach
+    # only the teams this run happened to discover from finished matches.
+    print(f"Fetching the next {UPCOMING_WINDOW_DAYS} days of global upcoming matches...")
+    try:
+        window_matches = await fetch_upcoming_window(session)
+    except Exception as e:
+        print(f"  ! upcoming-window fetch failed, falling back to team schedules only: {e}",
+              file=sys.stderr)
+        window_matches = []
+    window_relevant = 0
+    for m in window_matches:
+        if is_relevant_upcoming_match(m, discovered_team_ids, notable_tournament_ids):
+            window_relevant += 1
+            add_upcoming(m)
+    print(f"  {len(window_matches)} matches in the window, {window_relevant} relevant "
+          f"after filtering\n")
+
     print(f"Fetching multi-day schedules for {len(discovered_team_ids)} discovered teams...")
     schedule_fetch_failures = 0
     schedule_raw_total = 0
@@ -508,6 +610,7 @@ async def build_region_payload(cs2, session):
           f"({schedule_fetch_failures} team(s) failed to fetch)")
     print(f"  [debug] upcoming funnel: {upcoming_stats['raw']} raw seen -> "
           f"{upcoming_stats['duplicate']} duplicate, {upcoming_stats['tbd_excluded']} TBD-excluded, "
+          f"{upcoming_stats['already_played']} already played, "
           f"{upcoming_stats['added']} added")
     print(f"  {len(upcoming_matches)} total upcoming matches (today's global feed + discovered teams' schedules)\n")
 
@@ -616,10 +719,32 @@ async def build_region_payload(cs2, session):
     # Reuses the SAME global finished() results already fetched (via
     # `results`, still in scope) — no extra scanning needed. ----
     covered_names = set(teams_payload.keys())
-    unresolved_opponents = sorted({
-        name for m in upcoming_matches for name in (m["teamA"], m["teamB"])
-        if name not in covered_names
-    })
+    # Soonest match first. Backfill costs a team search plus several match
+    # fetches per opponent, and the upcoming list now spans a week rather
+    # than the handful of fixtures the discovered teams happened to have,
+    # so this is no longer a naturally small set. bo3.gg already returns
+    # HTTP 429 during a normal run, so it is bounded — and bounded by what
+    # matters, which is who plays next.
+    #
+    # A fixture whose opponent misses the cut is still published; the app
+    # renders it without player projections rather than hiding it, which is
+    # the right trade. Missing a projection is a worse match card. Missing
+    # the match entirely is the bug this whole change exists to fix.
+    soonest_by_name = {}
+    for m in upcoming_matches:
+        for name in (m["teamA"], m["teamB"]):
+            if name in covered_names:
+                continue
+            when = m.get("date") or ""
+            if name not in soonest_by_name or when < soonest_by_name[name]:
+                soonest_by_name[name] = when
+    ranked_opponents = sorted(soonest_by_name, key=lambda n: (soonest_by_name[n], n))
+    unresolved_opponents = ranked_opponents[:MAX_BACKFILL_OPPONENTS]
+    skipped_backfill = ranked_opponents[MAX_BACKFILL_OPPONENTS:]
+    if skipped_backfill:
+        print(f"  [debug] {len(skipped_backfill)} opponent(s) beyond the backfill cap of "
+              f"{MAX_BACKFILL_OPPONENTS} — their fixtures still appear, without player "
+              f"projections: {skipped_backfill}")
     if unresolved_opponents:
         print(f"Backfilling roster data for {len(unresolved_opponents)} opponent(s) with no roster yet: "
               f"{unresolved_opponents}")
