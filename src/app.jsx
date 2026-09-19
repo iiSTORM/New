@@ -1096,6 +1096,11 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     deaths: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6 },
     assists: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6 },
   },
+  // Valorant: validated out-of-sample and deliberately UNCHANGED. Every
+  // candidate was rejected (higher history +0.61% winning 0/6 folds, flat
+  // recency +0.00%, zeroing kp/patchDiscount +0.02%). history carries this
+  // game — removing it costs +4.0% on kills and deaths — and is already
+  // weighted for that. A null result is still a result.
   valorant: {
     // RE-MEASURED after fixing a real bug that made the kp weight
     // STRUCTURALLY INERT for this entire game: scrape_valorant.py wrote
@@ -1231,9 +1236,35 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // player for a team uncapped while only capping the divisor at 5)
     // via a shared likelyStarters()/likely_starters() helper. That fix
     // barely moved these numbers on its own.
-    kills: { history: 0.3, opponent: 0.0, kp: 0.1, recencyHalfLife: 10, patchDiscount: 0.4, career: 1.0 },
-    deaths: { history: 0.3, opponent: 0.0, kp: 0.3, recencyHalfLife: 2, patchDiscount: 0.4, career: 1.0 },
-    assists: { history: 0.3, opponent: 0.0, kp: 0.1, recencyHalfLife: 10, patchDiscount: 0.4, career: 1.0 },
+    //
+    // RE-DERIVED OUT-OF-SAMPLE (walk-forward; see the LoL note above).
+    //
+    // recencyHalfLife was the big one. Deaths shipped at 2 — decay sharp
+    // enough that a player's last couple of maps dominated everything else
+    // — and turning it off is worth -3.52%, winning every fold. It helps
+    // kills and assists too. CS2 plays in dense tournament blocks rather
+    // than a weekly season, so "recent" and "a fortnight ago" are often the
+    // same event; heavy decay threw away sample for no gain.
+    //
+    // career for KILLS was actively harmful at its shipped maximum of 1.0:
+    // removing it entirely measured -0.95%. It sits at 0.5 rather than 0
+    // because 0 measured only marginally better (-1.43% vs -1.28% combined
+    // with the recency change, inside noise at this sample size) and CS2
+    // career coverage is still partial (148/285 players matched on the last
+    // run). Re-validate as that coverage improves.
+    //
+    // history and patchDiscount are pinned at 0 because they are
+    // STRUCTURALLY inert here, as the note above already explains: CS2
+    // players carry hist=None. Zeroing them changes no prediction —
+    // measured at exactly +0.00% across every fold — and stops the shipped
+    // values implying they were tuned.
+    //
+    // Caveat: CS2's validation window is short (1123 rows, folds from
+    // 2026-09-12) because its history only recently deepened. Lower
+    // confidence than the LoL numbers.
+    kills: { history: 0.0, opponent: 0.0, kp: 0.1, recencyHalfLife: 20, patchDiscount: 0.0, career: 0.5 },
+    deaths: { history: 0.0, opponent: 0.0, kp: 0.3, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0 },
+    assists: { history: 0.0, opponent: 0.0, kp: 0.1, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0 },
   },
 };
 

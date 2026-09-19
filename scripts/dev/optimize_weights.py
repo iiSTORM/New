@@ -49,6 +49,16 @@ SHIPPED_WEIGHTS = {
         "deaths":   {"history": 0.8, "opponent": 0.4, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0.0, "career": 0.6},
         "assists":  {"history": 0.8, "opponent": 0.4, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0.0, "career": 0.6},
     },
+    "valorant": {
+        "kills":    {"history": 0.7, "opponent": 0, "kp": 0, "recencyHalfLife": 8, "patchDiscount": 0, "career": 0},
+        "deaths":   {"history": 0.7, "opponent": 0, "kp": 0.3, "recencyHalfLife": 6, "patchDiscount": 0.3, "career": 0},
+        "assists":  {"history": 0.4, "opponent": 0, "kp": 0.1, "recencyHalfLife": 6, "patchDiscount": 0.8, "career": 0},
+    },
+    "cs2": {
+        "kills":    {"history": 0.0, "opponent": 0.0, "kp": 0.1, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 0.5},
+        "deaths":   {"history": 0.0, "opponent": 0.0, "kp": 0.3, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0},
+        "assists":  {"history": 0.0, "opponent": 0.0, "kp": 0.1, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0},
+    },
 }
 
 DEFAULT_WEIGHTS = {
@@ -771,8 +781,18 @@ def knockout_report(region_data, stat_type, weights, folds):
         vals = [x for x in per_fold_mae(region_data, stat_type, trial, folds) if x]
         mean = sum(vals) / len(vals)
         change = 100.0 * (mean - base_mean) / base_mean
-        verdict = "carries the model" if change > 1.0 else (
-            "contributes" if change > 0.25 else "INERT - noise risk")
+        # A NEGATIVE change means the model got BETTER without the
+        # parameter — it is not inert, it is doing harm, and that is the
+        # most valuable thing this table can find. CS2 ships career at its
+        # maximum of 1.0 while removing it improves out-of-sample MAE.
+        if change > 1.0:
+            verdict = "carries the model"
+        elif change > 0.25:
+            verdict = "contributes"
+        elif change < -0.25:
+            verdict = "HARMFUL - model is better without it"
+        else:
+            verdict = "inert - noise risk"
         rows.append((param, mean, change, verdict))
     for param, mean, change, verdict in sorted(rows, key=lambda r: -r[2]):
         print(f"  {param:26s} {mean:9.4f} {change:+8.2f}%  {verdict}")
@@ -1104,8 +1124,18 @@ def main():
                   f"from {folds[0][0]}")
             vals = [x for x in per_fold_mae(region_data, stat_type, base, folds) if x]
             print(f"  shipped weights, out-of-sample MAE: {sum(vals)/len(vals):.4f}")
-            print(f"  in-sample MAE (what the search reports): "
-                  f"{evaluate(region_data, stat_type, base):.4f}  <- optimistic\n")
+            oos = sum(vals) / len(vals)
+            in_sample = evaluate(region_data, stat_type, base)
+            # Only call it optimistic when it actually is. In-sample error is
+            # usually the flattering number, but not always: if the fold
+            # window happens to cover an easier stretch of the season the
+            # comparison inverts, and labelling that "optimistic" would be
+            # simply wrong.
+            gap = 100.0 * (oos - in_sample) / in_sample
+            note = ("optimistic by {:.1f}%".format(gap) if gap > 0.5
+                    else "folds are an easier stretch than the season as a whole"
+                    if gap < -0.5 else "close to the out-of-sample number")
+            print(f"  in-sample MAE (what the search reports): {in_sample:.4f}  <- {note}\n")
             knockout_report(region_data, stat_type, base, folds)
             if override:
                 cand = dict(base)
