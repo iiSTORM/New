@@ -1,0 +1,48 @@
+name: Prop provider smoke check
+
+# Does the provider still return what the parser expects?
+#
+# The props fetch cannot be exercised from every development environment —
+# the provider is frequently unreachable behind corporate or sandboxed
+# network policies — so this runs the real request on a GitHub runner and
+# prints the funnel: how many props came back, how many matched, and the
+# reason for every one that did not.
+#
+# Scoped to pull requests that touch the props code, so it does not hit
+# someone else's server on unrelated changes, and informational rather than
+# blocking: this is a check on an external service's shape, and a bad
+# afternoon at the provider is not a reason to block a merge.
+on:
+  pull_request:
+    paths:
+      - "scripts/scrape_props.py"
+      - "scripts/props_match.py"
+      - ".github/workflows/props-smoke.yml"
+  workflow_dispatch: {}
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Fetch live props (dry run — writes nothing)
+        continue-on-error: true
+        run: python scripts/scrape_props.py --dry-run
+
+      - name: What this proves
+        if: always()
+        run: |
+          echo "A healthy run shows raw props > 0 and most of them matched."
+          echo "raw = 0 means the provider returned nothing the parser"
+          echo "  recognised: either the response shape changed, or there is"
+          echo "  genuinely nothing posted right now."
+          echo "raw > 0 but 0 matched means player-name matching is failing,"
+          echo "  which the per-reason counts above will name."
