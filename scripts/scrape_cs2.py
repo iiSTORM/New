@@ -585,12 +585,25 @@ async def build_region_payload(cs2, session):
               file=sys.stderr)
         window_matches = []
     window_relevant = 0
+    # Per-day counts before and after filtering. A day that is empty in the
+    # published data is either empty at the source or being filtered out,
+    # and those need completely different fixes — this says which.
+    by_day_raw, by_day_kept = {}, {}
     for m in window_matches:
+        start = parse_match_start(m)
+        day = start.date().isoformat() if start else "unknown"
+        by_day_raw[day] = by_day_raw.get(day, 0) + 1
         if is_relevant_upcoming_match(m, discovered_team_ids, notable_tournament_ids):
             window_relevant += 1
+            by_day_kept[day] = by_day_kept.get(day, 0) + 1
             add_upcoming(m)
     print(f"  {len(window_matches)} matches in the window, {window_relevant} relevant "
-          f"after filtering\n")
+          f"after filtering")
+    for day in sorted(by_day_raw):
+        kept = by_day_kept.get(day, 0)
+        flag = "   <-- ALL FILTERED OUT" if kept == 0 and by_day_raw[day] else ""
+        print(f"    [debug] {day}: {by_day_raw[day]:3d} at source -> {kept:3d} kept{flag}")
+    print()
 
     print(f"Fetching multi-day schedules for {len(discovered_team_ids)} discovered teams...")
     schedule_fetch_failures = 0
