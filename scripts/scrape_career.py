@@ -62,6 +62,9 @@ from bs4 import BeautifulSoup
 BASE = "https://gol.gg"
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"}
 OUTPUT_PATH = "career_data.json"
+# A run resolving fewer than this share of the cached players is treated as
+# a source outage rather than a real change, and will not overwrite the cache.
+MIN_RETAINED_FRACTION = 0.5
 MATCHLIST_CAP = 200  # confirmed real cap on the season-ALL match list view
 CURRENT_SEASON = "S16"  # confirmed current season from live nav — update each split if gol.gg's own season counter advances
 CONCURRENCY = 6  # matches scrape_lcs.py's proven-safe concurrency level against this same site
@@ -406,6 +409,36 @@ def main():
         sys.exit(1)
 
     data = build_career_data()
+
+    # Never overwrite a good cache with a collapsed one.
+    #
+    # When gol.gg is unreachable, every bulk player-list request times out,
+    # 0 of the tracked players resolve to IDs, and build_career_data()
+    # returns {} — which this then wrote over a working 359KB cache and
+    # exited 0, so the step counted as a success and nothing warned. That
+    # is exactly what happened on run 116: 320 players to 0, committed.
+    #
+    # Career data is expensive to rebuild (it walks every past season for
+    # every player) and the model degrades gracefully when it is stale, so
+    # keeping yesterday's copy is strictly better than replacing it with
+    # nothing. Exiting non-zero lets the workflow's continue-on-error carry
+    # on while still marking the step degraded.
+    existing = {}
+    if Path(OUTPUT_PATH).exists():
+        try:
+            with open(OUTPUT_PATH) as f:
+                existing = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            existing = {}  # unreadable cache is no reason to refuse to write
+
+    if existing and len(data) < len(existing) * MIN_RETAINED_FRACTION:
+        print(f"\n! REFUSING TO WRITE {OUTPUT_PATH}: this run resolved {len(data)} player(s) "
+              f"but the existing file holds {len(existing)}. That is a collapse, not an update "
+              f"— almost always gol.gg being unreachable rather than players genuinely "
+              f"disappearing. Keeping the existing file; the career tier will be one run "
+              f"stale, which the model already handles.", file=sys.stderr)
+        sys.exit(1)
+
     with open(OUTPUT_PATH, "w") as f:
         # Written minified: these files are machine-generated and never read
         # by hand, and indent=2 was about two thirds of the bytes

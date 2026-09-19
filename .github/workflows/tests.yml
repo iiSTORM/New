@@ -19,12 +19,15 @@ jobs:
         with:
           python-version: "3.12"
 
-      # The modules under test import nothing outside the standard library,
-      # so the scrapers' own dependencies (requests, beautifulsoup4, cs2api,
-      # aiohttp) are deliberately not installed here — the tests do not hit
-      # the network and should not need them.
-      - name: Install pytest
-        run: pip install pytest
+      # The scrapers' dependencies are installed because the guards under
+      # test live in modules that import them at module level:
+      # scrape_career.py (requests, beautifulsoup4) for its cache-collapse
+      # guard, scrape_cs2.py (aiohttp, cs2api) for the upcoming-match
+      # window. Without them those tests would skip rather than run, which
+      # is worse than not having written them. Nothing here touches the
+      # network.
+      - name: Install test dependencies
+        run: pip install pytest requests beautifulsoup4 aiohttp cs2api
 
       - name: Run tests
         run: python -m pytest tests/ -v

@@ -54,6 +54,67 @@ DEFAULT_MAX_AGE_HOURS = 6.0
 DEFAULT_MAX_DROP_PCT = 50.0
 WARN_DROP_PCT = 20.0
 
+# Auxiliary files are allowed to be STALE — the model falls back cleanly when
+# they are — but they are not allowed to be EMPTIED. Those are different
+# failures and only the first one is handled by design.
+#
+# On run 116 gol.gg was unreachable, scrape_career.py resolved 0 of 320
+# players, wrote {} over a 359KB cache and exited 0. Nothing caught it: the
+# step counted as a success, and this script only looked at the game's
+# primary file. The scraper itself now refuses to make that write, and this
+# is the second line of defence, so no future path can commit a gutted
+# auxiliary file either.
+AUX_FILES = {
+    "lol": ["career_data.json", "champion_stats.json"],
+    "cs2": ["cs2_career_data.json"],
+    "valorant": [],
+}
+
+
+def aux_entry_count(name, data):
+    """A meaningful 'how much is in here' number for an auxiliary file.
+
+    Most are a flat map of player -> record, where the key count is the
+    answer. champion_stats.json instead has two fixed top-level keys, so
+    counting those would always return 2 no matter how empty it was.
+    """
+    if not isinstance(data, dict):
+        return 0
+    if name == "champion_stats.json":
+        return len(data.get("champions") or {}) + len(data.get("player_champions") or {})
+    return len(data)
+
+
+def check_aux_files(game, max_drop_pct, baseline_ref, errors):
+    for name in AUX_FILES.get(game, []):
+        try:
+            with open(name) as f:
+                current = json.load(f)
+        except FileNotFoundError:
+            # A continue-on-error step may legitimately not have produced it.
+            print(f"  {name}: not present — skipped")
+            continue
+        except json.JSONDecodeError as exc:
+            errors.append(f"{name} is not valid JSON: {exc}")
+            continue
+
+        now = aux_entry_count(name, current)
+        baseline = load_baseline(name, baseline_ref)
+        if baseline is None:
+            print(f"  {name}: {now} entries (no baseline to compare)")
+            continue
+        before = aux_entry_count(name, baseline)
+        print(f"  {name}: {now} entries (was {before})")
+        if before == 0:
+            continue
+        drop_pct = 100.0 * (before - now) / before
+        if drop_pct > max_drop_pct:
+            errors.append(
+                f"{name} fell {drop_pct:.0f}% ({before} -> {now} entries), over the "
+                f"{max_drop_pct:.0f}% limit — the source was probably unreachable; "
+                f"committing this would replace good data with nothing"
+            )
+
 
 def counts(data):
     """Total teams, players and past matches across every region."""
@@ -183,6 +244,8 @@ def main():
 
     now = counts(current)
     print("  contents     : " + ", ".join(f"{v} {k}" for k, v in now.items()))
+
+    check_aux_files(args.game, args.max_drop_pct, args.baseline_ref, errors)
 
     baseline = load_baseline(path, args.baseline_ref)
     if baseline is None:
