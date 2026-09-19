@@ -44,21 +44,34 @@ impersonating a browser to defeat a control that exists deliberately, so the
 code does not attempt it, and `.github/workflows/props.yml` ships with its
 schedule commented out rather than failing every hour.
 
-Two routes work:
+**"Locally" means a machine on an ordinary connection.** A Codespace, a cloud
+shell or any other hosted terminal is a datacenter too, and gets the same 403
+as CI does. Three routes work:
+
+**1. From a browser, pasted in.** Nothing to install, works immediately. Open
+the provider's projections endpoint in a normal browser tab on your home
+connection, save the JSON, and pipe it in:
 
 ```bash
-# 1. Locally, from your own connection, where you are an ordinary customer.
+python scripts/scrape_props.py --fixture saved.json --out props.json
+# or straight from a pipe
+pbpaste | python scripts/scrape_props.py --fixture - --out props.json
+git add props.json && git commit -m "Update prop lines" && git push
+```
+
+**2. From your own computer, automated.** Clone the repo on a machine at home
+and run it on a timer — cron, a systemd timer, or Task Scheduler — every
+15-30 minutes to stay inside the 90-minute freshness window:
+
+```bash
 python scripts/scrape_props.py --out props.json
 git add props.json && git commit -m "Update prop lines" && git push
 ```
 
-Repeat that on whatever cadence you want — a cron entry or a scheduled task
-every 15-30 minutes keeps lines inside the 90-minute freshness window.
-
-2. Point `PROVIDERS` at a source with a real server-side API (a keyed odds
-   provider that covers esports player props). That is the only route that
-   makes the hosted hourly workflow viable, and it is why the fetch is a single
-   swappable function. Restore the cron in `props.yml` once one is configured.
+**3. A provider with a real server-side API** — a keyed odds service that
+permits datacenter traffic. This is the only route that makes the hosted
+workflow viable, and it is why the fetch is a single swappable function in
+`PROVIDERS`. Restore the cron in `props.yml` once one is configured.
 
 Three things must line up before a line can be compared with a projection, and
 `scripts/props_match.py` refuses rather than guesses on any of them:

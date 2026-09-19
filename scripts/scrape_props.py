@@ -156,7 +156,10 @@ def main():
     ap.add_argument("--dry-run", action="store_true",
                      help="fetch and report, but do not write props.json")
     ap.add_argument("--fixture",
-                     help="parse a saved provider payload instead of fetching")
+                     help="parse a saved provider payload instead of fetching. "
+                          "Use '-' to read it from stdin, which lets you pipe a "
+                          "payload saved from a browser on a connection the "
+                          "provider does not block.")
     ap.add_argument("--out", default=OUTPUT_PATH,
                      help=f"where to write (default {OUTPUT_PATH})")
     args = ap.parse_args()
@@ -171,8 +174,16 @@ def main():
     total_matched = total_unmatched = 0
 
     if args.fixture:
-        with open(args.fixture) as f:
-            payload = json.load(f)
+        # "-" means stdin. The provider refuses datacenter IPs, and that
+        # includes Codespaces and any other cloud shell — "run it locally"
+        # means a machine on an ordinary connection, or a browser on one.
+        # Piping in a payload saved from that browser is the shortest route
+        # that works without asking anyone to defeat a bot check.
+        if args.fixture == "-":
+            payload = json.load(sys.stdin)
+        else:
+            with open(args.fixture) as f:
+                payload = json.load(f)
     else:
         payload = PROVIDERS[args.provider](session)
         time.sleep(REQUEST_PAUSE_SECONDS)
