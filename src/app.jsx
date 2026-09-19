@@ -1072,10 +1072,29 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
    -> 2.6664, assists 4.8203 -> 4.8621). Volume beats purity here; the
    CS2 analogy did not transfer. Do not "clean up" the pool by stage. */
 const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
+  // LoL: re-derived with walk-forward validation rather than by minimising
+  // error over the whole season at once. The previous per-stat values were
+  // chosen in-sample, which on this data is measurably optimistic — the
+  // search reported 2.7176 MAE for kills where the same weights score
+  // 2.7730 on folds they were not fitted to.
+  //
+  // Three parameters carry the model out-of-sample (turning each off, in
+  // MAE terms): career +1.8/+2.7/+1.7%, opponent +1.5/+1.3/+3.1%, history
+  // +0.5/+0.6/+1.4%. kp and patchDiscount move it by under 0.1% in either
+  // direction on every stat, so they are pinned at 0 rather than left
+  // holding a value the search fitted to noise.
+  //
+  // One shared set now beats the three separately tuned ones, which is
+  // what per-stat overfitting looks like from the outside. Measured
+  // out-of-sample over 6 walk-forward folds: kills -0.40% (4/6 folds),
+  // deaths -1.00% (5/6), assists -0.64% (5/6); it also improves 6/7, 5/7
+  // and 7/7 regions respectively, and holds on the earliest quarter of the
+  // season, which no fold selection touched. Reproduce with:
+  //   python scripts/dev/optimize_weights.py --game lol --validate
   lol: {
-    kills: { history: 0.4, opponent: 0.4, kp: 0.1, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.4 },
-    deaths: { history: 0.3, opponent: 0.2, kp: 0.3, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.5 },
-    assists: { history: 0.4, opponent: 0.4, kp: 0.2, recencyHalfLife: 8, patchDiscount: 0.3, career: 0.3 },
+    kills: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6 },
+    deaths: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6 },
+    assists: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6 },
   },
   valorant: {
     // RE-MEASURED after fixing a real bug that made the kp weight
