@@ -24,6 +24,70 @@ tests/                         unit tests (no network, stdlib only)
 playoffs_and_international_roadmap.md  design notes
 ```
 
+## Prop lines
+
+`scripts/scrape_props.py` fetches live player prop lines and matches them onto
+rostered players, writing `props.json`. The app shows each player's line beside
+the projection, with the difference as an edge.
+
+Lines move continuously and get pulled when news breaks, so an old line is not
+merely stale — it is misleading in the expensive direction, because it still
+looks actionable. The frontend refuses to compute an edge against a line older
+than `PROPS_MAX_AGE_MINUTES` (90) and shows its age instead.
+
+### Where it can run
+
+**Not from CI, with the PrizePicks adapter.** That endpoint answers HTTP 403 to
+a GitHub runner — datacenter IP plus a non-browser client, i.e. bot protection.
+This was measured on a runner, not assumed. Getting past it would mean
+impersonating a browser to defeat a control that exists deliberately, so the
+code does not attempt it, and `.github/workflows/props.yml` ships with its
+schedule commented out rather than failing every hour.
+
+Two routes work:
+
+```bash
+# 1. Locally, from your own connection, where you are an ordinary customer.
+python scripts/scrape_props.py --out props.json
+git add props.json && git commit -m "Update prop lines" && git push
+```
+
+Repeat that on whatever cadence you want — a cron entry or a scheduled task
+every 15-30 minutes keeps lines inside the 90-minute freshness window.
+
+2. Point `PROVIDERS` at a source with a real server-side API (a keyed odds
+   provider that covers esports player props). That is the only route that
+   makes the hosted hourly workflow viable, and it is why the fetch is a single
+   swappable function. Restore the cron in `props.yml` once one is configured.
+
+Three things must line up before a line can be compared with a projection, and
+`scripts/props_match.py` refuses rather than guesses on any of them:
+
+- **player** — handles differ between the stats source and the sportsbook.
+  Names are folded for case, accents and punctuation, but digits are kept:
+  `sh1ro` and `shiro` are not assumed to be the same person.
+- **stat** — `MAPS 1-2 Kills` is this app's `kills`. Unrecognised stats are
+  reported, not mapped to the nearest guess.
+- **map window** — the one that silently ruins everything. A line for maps 1-2
+  is only comparable with a projection over maps 1-2, so a prop is shown
+  against a projection only when the windows match; `Kills (Combo)`, which
+  doesn't state a window, is refused outright.
+
+Nothing is dropped quietly — every unmatched prop is counted by reason, because
+a rising unmatched count is how a provider renaming its labels shows up, and it
+would otherwise look identical to a quiet slate.
+
+```bash
+python scripts/scrape_props.py --dry-run          # fetch and report, write nothing
+python scripts/scrape_props.py --fixture f.json   # parse a saved payload offline
+```
+
+The provider is one function returning raw dicts, so swapping source is an
+adapter rather than a rewrite. PrizePicks is implemented because it covers LoL,
+CS2 and Valorant, which licensed odds APIs largely do not. Its projections
+endpoint is undocumented and carries no stability guarantee, which is what
+`PROVIDERS` exists to make replaceable.
+
 ## The frontend
 
 `index.html` is a single self-contained page: React from a CDN, everything

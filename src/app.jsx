@@ -127,6 +127,44 @@ function Chevron({ open, color, size = 13 }) {
    are deliberately far apart: the old cards set the projection at 11px,
    the same size as the hint text beside it, so the one figure a visitor
    comes for had no more weight than "tap to expand". */
+/* The posted line and the model's disagreement with it.
+
+   Edge is projection minus line: positive means the model is above the
+   line. It is deliberately shown only when the prop's map window matches
+   the projection on screen and the line is fresh — a stale or
+   wrong-window edge is worse than none, because it reads as actionable. */
+function PropReadout({ prop, projection, fresh, ageMinutes }) {
+  const theme = useTheme();
+  if (!prop) return null;
+
+  if (!prop.windowMatches) {
+    return (
+      <div style={{ textAlign: "right", flexShrink: 0, minWidth: 74 }}>
+        <div className="kp-num" style={{ fontSize: 13, color: theme.textFaint }}>{prop.line}</div>
+        <div style={{ fontSize: 9, letterSpacing: 0.6, textTransform: "uppercase", color: theme.textFaint, marginTop: 4 }}>
+          maps 1-{prop.maps} line
+        </div>
+      </div>
+    );
+  }
+
+  const edge = projection - prop.line;
+  const tone = !fresh ? theme.textFaint : edge > 0 ? theme.good : edge < 0 ? theme.bad : theme.textDim;
+  return (
+    <div style={{ textAlign: "right", flexShrink: 0, minWidth: 74 }}>
+      <div className="kp-num" style={{ fontSize: 15, fontWeight: 600, color: fresh ? theme.text : theme.textFaint }}>
+        {prop.line}
+      </div>
+      <div className="kp-num" style={{ fontSize: 11, fontWeight: 700, color: tone, marginTop: 2 }}>
+        {fresh ? `${edge > 0 ? "+" : ""}${edge.toFixed(1)}` : `${Math.round(ageMinutes)}m old`}
+      </div>
+      <div style={{ fontSize: 9, letterSpacing: 0.6, textTransform: "uppercase", color: theme.textFaint, marginTop: 3 }}>
+        {fresh ? "line / edge" : "line (stale)"}
+      </div>
+    </div>
+  );
+}
+
 function StatReadout({ value, label, size = 30, color, align = "right" }) {
   const theme = useTheme();
   return (
@@ -158,7 +196,7 @@ function DeltaBadge({ value, digits = 1, goodBelow = 2.5 }) {
    flexible stats array so it works for both the single-number "PROJ"
    case (future matches) and the three-number "PROJ / ACT / DIFF" case
    (past matches) without duplicating markup. */
-function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, cfg, games, pastMatches, team }) {
+function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, cfg, games, pastMatches, team, prop, propProjection, propsFresh, propsAge }) {
   const [open, setOpen] = useState(false);
   const canExpand = !!(r && p && cfg); // callers that don't pass the full breakdown just get the plain row, same as before
   return (
@@ -201,6 +239,7 @@ function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, 
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "flex-end", gap: 16, flexShrink: 0 }}>
+          <PropReadout prop={prop} projection={propProjection} fresh={propsFresh} ageMinutes={propsAge} />
           {stats.map((s, i) => (
             <div key={i} style={{ textAlign: "right", minWidth: s.big ? 52 : 38 }}>
               <div style={{ fontSize: 9, letterSpacing: 0.6, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>{s.label}</div>
@@ -231,6 +270,45 @@ function useTheme() {
   return useContext(ThemeContext);
 }
 const ChampionStatsContext = createContext(null);
+const PropsContext = createContext(null);
+function useProps() {
+  return useContext(PropsContext);
+}
+
+/* Find the posted line for this player and stat.
+
+   The map window is the whole game here. A line posted for maps 1-2 is only
+   comparable with a projection computed over maps 1-2, and this app's
+   projection scales with the "games in series" selector — so a prop is
+   returned ONLY when its window matches the projection currently on screen.
+   Comparing a 2-map line against a 3-map projection would produce a
+   confident edge that is simply arithmetic nonsense, and it is the exact
+   mistake this codebase already made once with maps_counted. */
+function propFor(propsData, game, playerName, statType, games) {
+  if (!propsData || !propsData.props) return null;
+  const forGame = propsData.props[game];
+  if (!forGame) return null;
+  const list = forGame[playerName];
+  if (!list) return null;
+  const exact = list.find((p) => p.stat === statType && p.maps === games);
+  if (exact) return { ...exact, windowMatches: true };
+  // A line exists for this player but over a different number of maps —
+  // worth surfacing as a hint rather than silently showing nothing.
+  const other = list.find((p) => p.stat === statType);
+  return other ? { ...other, windowMatches: false } : null;
+}
+
+function propsAgeMinutes(propsData) {
+  if (!propsData || !propsData.fetched_at) return null;
+  const then = new Date(propsData.fetched_at);
+  if (isNaN(then)) return null;
+  return (Date.now() - then.getTime()) / 60000;
+}
+
+function propsAreFresh(propsData) {
+  const age = propsAgeMinutes(propsData);
+  return age !== null && age <= PROPS_MAX_AGE_MINUTES;
+}
 function useChampionStats() {
   return useContext(ChampionStatsContext);
 }
@@ -297,6 +375,13 @@ const DATA_URL_CS2 = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/m
 // LoL-only for now, and not tied to the per-game GAMES fetch loop below
 // since it's a standalone reference table, not one game's live snapshot.
 const DATA_URL_CHAMPION_STATS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/champion_stats.json";
+const DATA_URL_PROPS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props.json";
+
+// Lines move continuously and get pulled when news breaks, so an old one is
+// not merely stale — it is misleading in the expensive direction, because it
+// still looks actionable. Past this age the line is shown greyed with its
+// age, and no edge is calculated against it.
+const PROPS_MAX_AGE_MINUTES = 90;
 
 /* ============================================================
    FALLBACK DATA — used if a game's DATA_URL is blank or the fetch
@@ -1072,11 +1157,35 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
    -> 2.6664, assists 4.8203 -> 4.8621). Volume beats purity here; the
    CS2 analogy did not transfer. Do not "clean up" the pool by stage. */
 const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
+  // LoL: re-derived with walk-forward validation rather than by minimising
+  // error over the whole season at once. The previous per-stat values were
+  // chosen in-sample, which on this data is measurably optimistic — the
+  // search reported 2.7176 MAE for kills where the same weights score
+  // 2.7730 on folds they were not fitted to.
+  //
+  // Three parameters carry the model out-of-sample (turning each off, in
+  // MAE terms): career +1.8/+2.7/+1.7%, opponent +1.5/+1.3/+3.1%, history
+  // +0.5/+0.6/+1.4%. kp and patchDiscount move it by under 0.1% in either
+  // direction on every stat, so they are pinned at 0 rather than left
+  // holding a value the search fitted to noise.
+  //
+  // One shared set now beats the three separately tuned ones, which is
+  // what per-stat overfitting looks like from the outside. Measured
+  // out-of-sample over 6 walk-forward folds: kills -0.40% (4/6 folds),
+  // deaths -1.00% (5/6), assists -0.64% (5/6); it also improves 6/7, 5/7
+  // and 7/7 regions respectively, and holds on the earliest quarter of the
+  // season, which no fold selection touched. Reproduce with:
+  //   python scripts/dev/optimize_weights.py --game lol --validate
   lol: {
-    kills: { history: 0.4, opponent: 0.4, kp: 0.1, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.4 },
-    deaths: { history: 0.3, opponent: 0.2, kp: 0.3, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.5 },
-    assists: { history: 0.4, opponent: 0.4, kp: 0.2, recencyHalfLife: 8, patchDiscount: 0.3, career: 0.3 },
+    kills: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6 },
+    deaths: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6 },
+    assists: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6 },
   },
+  // Valorant: validated out-of-sample and deliberately UNCHANGED. Every
+  // candidate was rejected (higher history +0.61% winning 0/6 folds, flat
+  // recency +0.00%, zeroing kp/patchDiscount +0.02%). history carries this
+  // game — removing it costs +4.0% on kills and deaths — and is already
+  // weighted for that. A null result is still a result.
   valorant: {
     // RE-MEASURED after fixing a real bug that made the kp weight
     // STRUCTURALLY INERT for this entire game: scrape_valorant.py wrote
@@ -1212,9 +1321,35 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // player for a team uncapped while only capping the divisor at 5)
     // via a shared likelyStarters()/likely_starters() helper. That fix
     // barely moved these numbers on its own.
-    kills: { history: 0.3, opponent: 0.0, kp: 0.1, recencyHalfLife: 10, patchDiscount: 0.4, career: 1.0 },
-    deaths: { history: 0.3, opponent: 0.0, kp: 0.3, recencyHalfLife: 2, patchDiscount: 0.4, career: 1.0 },
-    assists: { history: 0.3, opponent: 0.0, kp: 0.1, recencyHalfLife: 10, patchDiscount: 0.4, career: 1.0 },
+    //
+    // RE-DERIVED OUT-OF-SAMPLE (walk-forward; see the LoL note above).
+    //
+    // recencyHalfLife was the big one. Deaths shipped at 2 — decay sharp
+    // enough that a player's last couple of maps dominated everything else
+    // — and turning it off is worth -3.52%, winning every fold. It helps
+    // kills and assists too. CS2 plays in dense tournament blocks rather
+    // than a weekly season, so "recent" and "a fortnight ago" are often the
+    // same event; heavy decay threw away sample for no gain.
+    //
+    // career for KILLS was actively harmful at its shipped maximum of 1.0:
+    // removing it entirely measured -0.95%. It sits at 0.5 rather than 0
+    // because 0 measured only marginally better (-1.43% vs -1.28% combined
+    // with the recency change, inside noise at this sample size) and CS2
+    // career coverage is still partial (148/285 players matched on the last
+    // run). Re-validate as that coverage improves.
+    //
+    // history and patchDiscount are pinned at 0 because they are
+    // STRUCTURALLY inert here, as the note above already explains: CS2
+    // players carry hist=None. Zeroing them changes no prediction —
+    // measured at exactly +0.00% across every fold — and stops the shipped
+    // values implying they were tuned.
+    //
+    // Caveat: CS2's validation window is short (1123 rows, folds from
+    // 2026-09-12) because its history only recently deepened. Lower
+    // confidence than the LoL numbers.
+    kills: { history: 0.0, opponent: 0.0, kp: 0.1, recencyHalfLife: 20, patchDiscount: 0.0, career: 0.5 },
+    deaths: { history: 0.0, opponent: 0.0, kp: 0.3, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0 },
+    assists: { history: 0.0, opponent: 0.0, kp: 0.1, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0 },
   },
 };
 
@@ -2148,8 +2283,11 @@ function GamesControl({ theme, games, setGames }) {
 
 /* ---------- Future tab (card list, like Past, predicted only) ---------- */
 
-function FutureMatchCard({ teams, pastMatches, match, weights, statType, games }) {
+function FutureMatchCard({ teams, pastMatches, match, weights, statType, games, game }) {
   const theme = useTheme();
+  const propsData = useProps();
+  const propsFresh = propsAreFresh(propsData);
+  const propsAge = propsAgeMinutes(propsData);
   const [open, setOpen] = useState(false);
   const teamKeys = [match.teamA, match.teamB];
 
@@ -2211,6 +2349,10 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games }
               name={row.name}
               role={row.role}
               stats={[{ label: "PROJ", value: row.proj.toFixed(1), color: theme.accent, big: true }]}
+              prop={propFor(propsData, game, row.name, statType, games)}
+              propProjection={row.proj}
+              propsFresh={propsFresh}
+              propsAge={propsAge}
               r={row.breakdown}
               p={row.player}
               cfg={cfg}
@@ -2678,7 +2820,7 @@ function AccuracySummary({ teams, pastMatches, weights, statType, isDesktop }) {
   );
 }
 
-function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isDesktop, games }) {
+function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isDesktop, games, game }) {
   const theme = useTheme();
   const [customMode, setCustomMode] = useState(false);
   const teamNames = Object.keys(teams);
@@ -2772,7 +2914,7 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isD
         <div key={label}>
           <WeekHeader label={label} />
           <div style={gridStyle}>
-            {matches.map((m, i) => <FutureMatchCard key={i} teams={teams} pastMatches={pastMatches} match={m} weights={weights} statType={statType} games={games} />)}
+            {matches.map((m, i) => <FutureMatchCard key={i} teams={teams} pastMatches={pastMatches} match={m} weights={weights} statType={statType} games={games} game={game} />)}
           </div>
         </div>
       ))}
@@ -3537,6 +3679,7 @@ function KillProjector() {
   // performance, which is always known ahead of time, unlike an
   // opponent's future draft.
   const [championStats, setChampionStats] = useState(null);
+  const [propsData, setPropsData] = useState(null);
   useEffect(() => {
     const attemptFetch = (attemptsLeft) =>
       fetch(DATA_URL_CHAMPION_STATS, { cache: "no-store" })
@@ -3550,6 +3693,15 @@ function KillProjector() {
           }
           throw err;
         });
+    // Props are optional: the file may not exist yet, or the provider may
+    // have had nothing posted. A miss is silent by design — the app is
+    // fully usable without lines, and an error banner for "no bets posted
+    // right now" would be noise.
+    fetch(DATA_URL_PROPS, { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setPropsData(data))
+      .catch(() => setPropsData(null));
+
     attemptFetch(1)
       .then((data) => setChampionStats(data))
       .catch((err) => console.warn("Champion stats fetch failed (champion-pool consistency insight will be unavailable):", err));
@@ -3569,6 +3721,7 @@ function KillProjector() {
   return (
     <ThemeContext.Provider value={theme}>
     <ChampionStatsContext.Provider value={championStats}>
+    <PropsContext.Provider value={propsData}>
       <div style={{
         minHeight: "100vh", color: theme.text, fontFamily: "'Inter', -apple-system, sans-serif", padding: isDesktop ? "32px 32px 60px" : "20px 16px 56px",
         // Exposed to CSS so the stylesheet's focus rings track the live
@@ -3773,7 +3926,7 @@ function KillProjector() {
                   />
                 )}
                 {tab === "future" ? (
-              <FutureTab teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} isDesktop={isDesktop} games={games} />
+              <FutureTab teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} isDesktop={isDesktop} games={games} game={game} />
             ) : tab === "past" ? (
               <PastResultsTab teams={current.teams} pastMatches={current.past_matches || []} weights={weights} statType={statType} isDesktop={isDesktop} />
             ) : tab === "consistency" ? (
@@ -3812,6 +3965,7 @@ function KillProjector() {
           </div>
         </div>
       </div>
+    </PropsContext.Provider>
     </ChampionStatsContext.Provider>
     </ThemeContext.Provider>
   );

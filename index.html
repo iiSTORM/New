@@ -263,6 +263,70 @@ try {
       strokeLinejoin: "round"
     }));
   }
+  function PropReadout({
+    prop,
+    projection,
+    fresh,
+    ageMinutes
+  }) {
+    const theme = useTheme();
+    if (!prop) return null;
+    if (!prop.windowMatches) {
+      return React.createElement("div", {
+        style: {
+          textAlign: "right",
+          flexShrink: 0,
+          minWidth: 74
+        }
+      }, React.createElement("div", {
+        className: "kp-num",
+        style: {
+          fontSize: 13,
+          color: theme.textFaint
+        }
+      }, prop.line), React.createElement("div", {
+        style: {
+          fontSize: 9,
+          letterSpacing: 0.6,
+          textTransform: "uppercase",
+          color: theme.textFaint,
+          marginTop: 4
+        }
+      }, "maps 1-", prop.maps, " line"));
+    }
+    const edge = projection - prop.line;
+    const tone = !fresh ? theme.textFaint : edge > 0 ? theme.good : edge < 0 ? theme.bad : theme.textDim;
+    return React.createElement("div", {
+      style: {
+        textAlign: "right",
+        flexShrink: 0,
+        minWidth: 74
+      }
+    }, React.createElement("div", {
+      className: "kp-num",
+      style: {
+        fontSize: 15,
+        fontWeight: 600,
+        color: fresh ? theme.text : theme.textFaint
+      }
+    }, prop.line), React.createElement("div", {
+      className: "kp-num",
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: tone,
+        marginTop: 2
+      }
+    }, fresh ? `${edge > 0 ? "+" : ""}${edge.toFixed(1)}` : `${Math.round(ageMinutes)}m old`), React.createElement("div", {
+      style: {
+        fontSize: 9,
+        letterSpacing: 0.6,
+        textTransform: "uppercase",
+        color: theme.textFaint,
+        marginTop: 3
+      }
+    }, fresh ? "line / edge" : "line (stale)"));
+  }
   function StatReadout({
     value,
     label,
@@ -324,7 +388,11 @@ try {
     cfg,
     games,
     pastMatches,
-    team
+    team,
+    prop,
+    propProjection,
+    propsFresh,
+    propsAge
   }) {
     const [open, setOpen] = useState(false);
     const canExpand = !!(r && p && cfg);
@@ -401,7 +469,12 @@ try {
         gap: 16,
         flexShrink: 0
       }
-    }, stats.map((s, i) => React.createElement("div", {
+    }, React.createElement(PropReadout, {
+      prop: prop,
+      projection: propProjection,
+      fresh: propsFresh,
+      ageMinutes: propsAge
+    }), stats.map((s, i) => React.createElement("div", {
       key: i,
       style: {
         textAlign: "right",
@@ -440,6 +513,37 @@ try {
     return useContext(ThemeContext);
   }
   const ChampionStatsContext = createContext(null);
+  const PropsContext = createContext(null);
+  function useProps() {
+    return useContext(PropsContext);
+  }
+  function propFor(propsData, game, playerName, statType, games) {
+    if (!propsData || !propsData.props) return null;
+    const forGame = propsData.props[game];
+    if (!forGame) return null;
+    const list = forGame[playerName];
+    if (!list) return null;
+    const exact = list.find(p => p.stat === statType && p.maps === games);
+    if (exact) return {
+      ...exact,
+      windowMatches: true
+    };
+    const other = list.find(p => p.stat === statType);
+    return other ? {
+      ...other,
+      windowMatches: false
+    } : null;
+  }
+  function propsAgeMinutes(propsData) {
+    if (!propsData || !propsData.fetched_at) return null;
+    const then = new Date(propsData.fetched_at);
+    if (isNaN(then)) return null;
+    return (Date.now() - then.getTime()) / 60000;
+  }
+  function propsAreFresh(propsData) {
+    const age = propsAgeMinutes(propsData);
+    return age !== null && age <= PROPS_MAX_AGE_MINUTES;
+  }
   function useChampionStats() {
     return useContext(ChampionStatsContext);
   }
@@ -526,6 +630,8 @@ try {
   const DATA_URL_VALORANT = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/valorant_data.json";
   const DATA_URL_CS2 = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/cs2_data.json";
   const DATA_URL_CHAMPION_STATS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/champion_stats.json";
+  const DATA_URL_PROPS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props.json";
+  const PROPS_MAX_AGE_MINUTES = 90;
   const FALLBACK_TEAMS = {
     LYON: {
       color: "#e0c341",
@@ -1961,28 +2067,28 @@ try {
   const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     lol: {
       kills: {
-        history: 0.4,
+        history: 0.8,
         opponent: 0.4,
-        kp: 0.1,
+        kp: 0.0,
         recencyHalfLife: 8,
         patchDiscount: 0.0,
-        career: 0.4
+        career: 0.6
       },
       deaths: {
-        history: 0.3,
-        opponent: 0.2,
-        kp: 0.3,
+        history: 0.8,
+        opponent: 0.4,
+        kp: 0.0,
         recencyHalfLife: 8,
         patchDiscount: 0.0,
-        career: 0.5
+        career: 0.6
       },
       assists: {
-        history: 0.4,
+        history: 0.8,
         opponent: 0.4,
-        kp: 0.2,
+        kp: 0.0,
         recencyHalfLife: 8,
-        patchDiscount: 0.3,
-        career: 0.3
+        patchDiscount: 0.0,
+        career: 0.6
       }
     },
     valorant: {
@@ -2013,27 +2119,27 @@ try {
     },
     cs2: {
       kills: {
-        history: 0.3,
+        history: 0.0,
         opponent: 0.0,
         kp: 0.1,
-        recencyHalfLife: 10,
-        patchDiscount: 0.4,
-        career: 1.0
+        recencyHalfLife: 20,
+        patchDiscount: 0.0,
+        career: 0.5
       },
       deaths: {
-        history: 0.3,
+        history: 0.0,
         opponent: 0.0,
         kp: 0.3,
-        recencyHalfLife: 2,
-        patchDiscount: 0.4,
+        recencyHalfLife: 20,
+        patchDiscount: 0.0,
         career: 1.0
       },
       assists: {
-        history: 0.3,
+        history: 0.0,
         opponent: 0.0,
         kp: 0.1,
-        recencyHalfLife: 10,
-        patchDiscount: 0.4,
+        recencyHalfLife: 20,
+        patchDiscount: 0.0,
         career: 1.0
       }
     }
@@ -3534,9 +3640,13 @@ try {
     match,
     weights,
     statType,
-    games
+    games,
+    game
   }) {
     const theme = useTheme();
+    const propsData = useProps();
+    const propsFresh = propsAreFresh(propsData);
+    const propsAge = propsAgeMinutes(propsData);
     const [open, setOpen] = useState(false);
     const teamKeys = [match.teamA, match.teamB];
     if (!teams[match.teamA] || !teams[match.teamB]) {
@@ -3667,6 +3777,10 @@ try {
         color: theme.accent,
         big: true
       }],
+      prop: propFor(propsData, game, row.name, statType, games),
+      propProjection: row.proj,
+      propsFresh: propsFresh,
+      propsAge: propsAge,
       r: row.breakdown,
       p: row.player,
       cfg: cfg,
@@ -4297,7 +4411,8 @@ try {
     weights,
     statType,
     isDesktop,
-    games
+    games,
+    game
   }) {
     const theme = useTheme();
     const [customMode, setCustomMode] = useState(false);
@@ -4413,7 +4528,8 @@ try {
       match: m,
       weights: weights,
       statType: statType,
-      games: games
+      games: games,
+      game: game
     }))))), upcomingMatches.length > 0 && canCustomMatchup ? React.createElement("button", {
       className: "kp-btn",
       onClick: () => setCustomMode(!customMode),
@@ -5432,6 +5548,7 @@ try {
       GAME_LIST.forEach(fetchGameData);
     }, []);
     const [championStats, setChampionStats] = useState(null);
+    const [propsData, setPropsData] = useState(null);
     useEffect(() => {
       const attemptFetch = attemptsLeft => fetch(DATA_URL_CHAMPION_STATS, {
         cache: "no-store"
@@ -5444,6 +5561,9 @@ try {
         }
         throw err;
       });
+      fetch(DATA_URL_PROPS, {
+        cache: "no-store"
+      }).then(res => res.ok ? res.json() : null).then(data => setPropsData(data)).catch(() => setPropsData(null));
       attemptFetch(1).then(data => setChampionStats(data)).catch(err => console.warn("Champion stats fetch failed (champion-pool consistency insight will be unavailable):", err));
     }, []);
     const gameCfg = GAMES[game];
@@ -5463,6 +5583,8 @@ try {
       value: theme
     }, React.createElement(ChampionStatsContext.Provider, {
       value: championStats
+    }, React.createElement(PropsContext.Provider, {
+      value: propsData
     }, React.createElement("div", {
       style: {
         minHeight: "100vh",
@@ -5692,7 +5814,8 @@ try {
       weights: weights,
       statType: statType,
       isDesktop: isDesktop,
-      games: games
+      games: games,
+      game: game
     }) : tab === "past" ? React.createElement(PastResultsTab, {
       teams: current.teams,
       pastMatches: current.past_matches || [],
@@ -5742,7 +5865,7 @@ try {
         color: theme.textFaint,
         lineHeight: 1.6
       }
-    }, "Data: ", game === "lol" ? "regular-season box scores (gol.gg) and schedule (LoL Esports API)" : "match stats (VLR.gg)", "."))))));
+    }, "Data: ", game === "lol" ? "regular-season box scores (gol.gg) and schedule (LoL Esports API)" : "match stats (VLR.gg)", ".")))))));
   }
   const root = ReactDOM.createRoot(document.getElementById('root'));
   root.render(React.createElement(KillProjector, null));
