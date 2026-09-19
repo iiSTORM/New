@@ -1,0 +1,76 @@
+name: Update prop lines
+
+# Hourly, not twice daily like the stats scrape.
+#
+# Lines are not season statistics. They move continuously and get pulled
+# when news breaks, so a twelve-hour-old line is not merely stale — it is
+# misleading in the expensive direction, because it still looks actionable.
+# The frontend refuses to compute an edge against a line older than 90
+# minutes, so this has to run considerably more often than that.
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+# A run still in flight when the next hour starts should be abandoned
+# rather than queued — the newer one is fetching fresher lines anyway.
+concurrency:
+  group: props
+  cancel-in-progress: true
+
+jobs:
+  props:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Fetch prop lines
+        # Deliberately NOT continue-on-error. The script already declines to
+        # overwrite a good props.json with an empty one, so a failure here
+        # means something worth seeing rather than something to swallow.
+        run: python scripts/scrape_props.py
+
+      - name: Commit props.json
+        run: |
+          git config user.name "esports-data-bot"
+          git config user.email "actions@github.com"
+          if [ ! -f props.json ]; then
+            echo "props.json wasn't produced this run, nothing to commit"
+            exit 0
+          fi
+          git add props.json
+          if git diff --quiet --cached; then
+            echo "Lines unchanged since the last run"
+            exit 0
+          fi
+          git commit -m "Update prop lines $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          # Same reset-and-reapply as the other jobs: props.json is
+          # wholesale-regenerated, so on a push rejection the freshest
+          # snapshot simply wins rather than attempting a line-level merge
+          # of a file that was rewritten end to end.
+          for i in 1 2 3; do
+            git push && exit 0
+            echo "Push rejected ($i/3) — resetting to latest remote and reapplying..."
+            cp props.json /tmp/props.json.new
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/props.json.new props.json
+            git add props.json
+            if git diff --quiet --cached; then
+              echo "Remote already has this snapshot"
+              exit 0
+            fi
+            git commit -m "Update prop lines $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            sleep $((RANDOM % 5 + 1))
+          done
+          git push

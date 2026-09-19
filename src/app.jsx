@@ -127,6 +127,44 @@ function Chevron({ open, color, size = 13 }) {
    are deliberately far apart: the old cards set the projection at 11px,
    the same size as the hint text beside it, so the one figure a visitor
    comes for had no more weight than "tap to expand". */
+/* The posted line and the model's disagreement with it.
+
+   Edge is projection minus line: positive means the model is above the
+   line. It is deliberately shown only when the prop's map window matches
+   the projection on screen and the line is fresh — a stale or
+   wrong-window edge is worse than none, because it reads as actionable. */
+function PropReadout({ prop, projection, fresh, ageMinutes }) {
+  const theme = useTheme();
+  if (!prop) return null;
+
+  if (!prop.windowMatches) {
+    return (
+      <div style={{ textAlign: "right", flexShrink: 0, minWidth: 74 }}>
+        <div className="kp-num" style={{ fontSize: 13, color: theme.textFaint }}>{prop.line}</div>
+        <div style={{ fontSize: 9, letterSpacing: 0.6, textTransform: "uppercase", color: theme.textFaint, marginTop: 4 }}>
+          maps 1-{prop.maps} line
+        </div>
+      </div>
+    );
+  }
+
+  const edge = projection - prop.line;
+  const tone = !fresh ? theme.textFaint : edge > 0 ? theme.good : edge < 0 ? theme.bad : theme.textDim;
+  return (
+    <div style={{ textAlign: "right", flexShrink: 0, minWidth: 74 }}>
+      <div className="kp-num" style={{ fontSize: 15, fontWeight: 600, color: fresh ? theme.text : theme.textFaint }}>
+        {prop.line}
+      </div>
+      <div className="kp-num" style={{ fontSize: 11, fontWeight: 700, color: tone, marginTop: 2 }}>
+        {fresh ? `${edge > 0 ? "+" : ""}${edge.toFixed(1)}` : `${Math.round(ageMinutes)}m old`}
+      </div>
+      <div style={{ fontSize: 9, letterSpacing: 0.6, textTransform: "uppercase", color: theme.textFaint, marginTop: 3 }}>
+        {fresh ? "line / edge" : "line (stale)"}
+      </div>
+    </div>
+  );
+}
+
 function StatReadout({ value, label, size = 30, color, align = "right" }) {
   const theme = useTheme();
   return (
@@ -158,7 +196,7 @@ function DeltaBadge({ value, digits = 1, goodBelow = 2.5 }) {
    flexible stats array so it works for both the single-number "PROJ"
    case (future matches) and the three-number "PROJ / ACT / DIFF" case
    (past matches) without duplicating markup. */
-function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, cfg, games, pastMatches, team }) {
+function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, cfg, games, pastMatches, team, prop, propProjection, propsFresh, propsAge }) {
   const [open, setOpen] = useState(false);
   const canExpand = !!(r && p && cfg); // callers that don't pass the full breakdown just get the plain row, same as before
   return (
@@ -201,6 +239,7 @@ function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, 
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "flex-end", gap: 16, flexShrink: 0 }}>
+          <PropReadout prop={prop} projection={propProjection} fresh={propsFresh} ageMinutes={propsAge} />
           {stats.map((s, i) => (
             <div key={i} style={{ textAlign: "right", minWidth: s.big ? 52 : 38 }}>
               <div style={{ fontSize: 9, letterSpacing: 0.6, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>{s.label}</div>
@@ -231,6 +270,45 @@ function useTheme() {
   return useContext(ThemeContext);
 }
 const ChampionStatsContext = createContext(null);
+const PropsContext = createContext(null);
+function useProps() {
+  return useContext(PropsContext);
+}
+
+/* Find the posted line for this player and stat.
+
+   The map window is the whole game here. A line posted for maps 1-2 is only
+   comparable with a projection computed over maps 1-2, and this app's
+   projection scales with the "games in series" selector — so a prop is
+   returned ONLY when its window matches the projection currently on screen.
+   Comparing a 2-map line against a 3-map projection would produce a
+   confident edge that is simply arithmetic nonsense, and it is the exact
+   mistake this codebase already made once with maps_counted. */
+function propFor(propsData, game, playerName, statType, games) {
+  if (!propsData || !propsData.props) return null;
+  const forGame = propsData.props[game];
+  if (!forGame) return null;
+  const list = forGame[playerName];
+  if (!list) return null;
+  const exact = list.find((p) => p.stat === statType && p.maps === games);
+  if (exact) return { ...exact, windowMatches: true };
+  // A line exists for this player but over a different number of maps —
+  // worth surfacing as a hint rather than silently showing nothing.
+  const other = list.find((p) => p.stat === statType);
+  return other ? { ...other, windowMatches: false } : null;
+}
+
+function propsAgeMinutes(propsData) {
+  if (!propsData || !propsData.fetched_at) return null;
+  const then = new Date(propsData.fetched_at);
+  if (isNaN(then)) return null;
+  return (Date.now() - then.getTime()) / 60000;
+}
+
+function propsAreFresh(propsData) {
+  const age = propsAgeMinutes(propsData);
+  return age !== null && age <= PROPS_MAX_AGE_MINUTES;
+}
 function useChampionStats() {
   return useContext(ChampionStatsContext);
 }
@@ -297,6 +375,13 @@ const DATA_URL_CS2 = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/m
 // LoL-only for now, and not tied to the per-game GAMES fetch loop below
 // since it's a standalone reference table, not one game's live snapshot.
 const DATA_URL_CHAMPION_STATS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/champion_stats.json";
+const DATA_URL_PROPS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props.json";
+
+// Lines move continuously and get pulled when news breaks, so an old one is
+// not merely stale — it is misleading in the expensive direction, because it
+// still looks actionable. Past this age the line is shown greyed with its
+// age, and no edge is calculated against it.
+const PROPS_MAX_AGE_MINUTES = 90;
 
 /* ============================================================
    FALLBACK DATA — used if a game's DATA_URL is blank or the fetch
@@ -2198,8 +2283,11 @@ function GamesControl({ theme, games, setGames }) {
 
 /* ---------- Future tab (card list, like Past, predicted only) ---------- */
 
-function FutureMatchCard({ teams, pastMatches, match, weights, statType, games }) {
+function FutureMatchCard({ teams, pastMatches, match, weights, statType, games, game }) {
   const theme = useTheme();
+  const propsData = useProps();
+  const propsFresh = propsAreFresh(propsData);
+  const propsAge = propsAgeMinutes(propsData);
   const [open, setOpen] = useState(false);
   const teamKeys = [match.teamA, match.teamB];
 
@@ -2261,6 +2349,10 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games }
               name={row.name}
               role={row.role}
               stats={[{ label: "PROJ", value: row.proj.toFixed(1), color: theme.accent, big: true }]}
+              prop={propFor(propsData, game, row.name, statType, games)}
+              propProjection={row.proj}
+              propsFresh={propsFresh}
+              propsAge={propsAge}
               r={row.breakdown}
               p={row.player}
               cfg={cfg}
@@ -2728,7 +2820,7 @@ function AccuracySummary({ teams, pastMatches, weights, statType, isDesktop }) {
   );
 }
 
-function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isDesktop, games }) {
+function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isDesktop, games, game }) {
   const theme = useTheme();
   const [customMode, setCustomMode] = useState(false);
   const teamNames = Object.keys(teams);
@@ -2822,7 +2914,7 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isD
         <div key={label}>
           <WeekHeader label={label} />
           <div style={gridStyle}>
-            {matches.map((m, i) => <FutureMatchCard key={i} teams={teams} pastMatches={pastMatches} match={m} weights={weights} statType={statType} games={games} />)}
+            {matches.map((m, i) => <FutureMatchCard key={i} teams={teams} pastMatches={pastMatches} match={m} weights={weights} statType={statType} games={games} game={game} />)}
           </div>
         </div>
       ))}
@@ -3587,6 +3679,7 @@ function KillProjector() {
   // performance, which is always known ahead of time, unlike an
   // opponent's future draft.
   const [championStats, setChampionStats] = useState(null);
+  const [propsData, setPropsData] = useState(null);
   useEffect(() => {
     const attemptFetch = (attemptsLeft) =>
       fetch(DATA_URL_CHAMPION_STATS, { cache: "no-store" })
@@ -3600,6 +3693,15 @@ function KillProjector() {
           }
           throw err;
         });
+    // Props are optional: the file may not exist yet, or the provider may
+    // have had nothing posted. A miss is silent by design — the app is
+    // fully usable without lines, and an error banner for "no bets posted
+    // right now" would be noise.
+    fetch(DATA_URL_PROPS, { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setPropsData(data))
+      .catch(() => setPropsData(null));
+
     attemptFetch(1)
       .then((data) => setChampionStats(data))
       .catch((err) => console.warn("Champion stats fetch failed (champion-pool consistency insight will be unavailable):", err));
@@ -3619,6 +3721,7 @@ function KillProjector() {
   return (
     <ThemeContext.Provider value={theme}>
     <ChampionStatsContext.Provider value={championStats}>
+    <PropsContext.Provider value={propsData}>
       <div style={{
         minHeight: "100vh", color: theme.text, fontFamily: "'Inter', -apple-system, sans-serif", padding: isDesktop ? "32px 32px 60px" : "20px 16px 56px",
         // Exposed to CSS so the stylesheet's focus rings track the live
@@ -3823,7 +3926,7 @@ function KillProjector() {
                   />
                 )}
                 {tab === "future" ? (
-              <FutureTab teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} isDesktop={isDesktop} games={games} />
+              <FutureTab teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} isDesktop={isDesktop} games={games} game={game} />
             ) : tab === "past" ? (
               <PastResultsTab teams={current.teams} pastMatches={current.past_matches || []} weights={weights} statType={statType} isDesktop={isDesktop} />
             ) : tab === "consistency" ? (
@@ -3862,6 +3965,7 @@ function KillProjector() {
           </div>
         </div>
       </div>
+    </PropsContext.Provider>
     </ChampionStatsContext.Provider>
     </ThemeContext.Provider>
   );
