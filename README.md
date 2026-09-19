@@ -30,12 +30,35 @@ playoffs_and_international_roadmap.md  design notes
 rostered players, writing `props.json`. The app shows each player's line beside
 the projection, with the difference as an edge.
 
-It runs **hourly** (`.github/workflows/props.yml`), not on the twice-daily
-stats schedule. Lines move continuously and get pulled when news breaks, so an
-old line is not merely stale — it is misleading in the expensive direction,
-because it still looks actionable. The frontend refuses to compute an edge
-against a line older than `PROPS_MAX_AGE_MINUTES` (90) and shows its age
-instead.
+Lines move continuously and get pulled when news breaks, so an old line is not
+merely stale — it is misleading in the expensive direction, because it still
+looks actionable. The frontend refuses to compute an edge against a line older
+than `PROPS_MAX_AGE_MINUTES` (90) and shows its age instead.
+
+### Where it can run
+
+**Not from CI, with the PrizePicks adapter.** That endpoint answers HTTP 403 to
+a GitHub runner — datacenter IP plus a non-browser client, i.e. bot protection.
+This was measured on a runner, not assumed. Getting past it would mean
+impersonating a browser to defeat a control that exists deliberately, so the
+code does not attempt it, and `.github/workflows/props.yml` ships with its
+schedule commented out rather than failing every hour.
+
+Two routes work:
+
+```bash
+# 1. Locally, from your own connection, where you are an ordinary customer.
+python scripts/scrape_props.py --out props.json
+git add props.json && git commit -m "Update prop lines" && git push
+```
+
+Repeat that on whatever cadence you want — a cron entry or a scheduled task
+every 15-30 minutes keeps lines inside the 90-minute freshness window.
+
+2. Point `PROVIDERS` at a source with a real server-side API (a keyed odds
+   provider that covers esports player props). That is the only route that
+   makes the hosted hourly workflow viable, and it is why the fetch is a single
+   swappable function. Restore the cron in `props.yml` once one is configured.
 
 Three things must line up before a line can be compared with a projection, and
 `scripts/props_match.py` refuses rather than guesses on any of them:

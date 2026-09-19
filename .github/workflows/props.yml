@@ -7,10 +7,27 @@ name: Update prop lines
 # misleading in the expensive direction, because it still looks actionable.
 # The frontend refuses to compute an edge against a line older than 90
 # minutes, so this has to run considerably more often than that.
+# NO SCHEDULE, deliberately.
+#
+# The PrizePicks adapter answers HTTP 403 from a GitHub runner — datacenter
+# IP plus a non-browser client, i.e. bot protection. Verified, not assumed:
+# see the props smoke check on PR #3. Getting around that would mean
+# impersonating a browser to defeat a control they put there on purpose,
+# which is a different thing from using an undocumented endpoint, so this
+# does not attempt it.
+#
+# That leaves two routes that do work, and both make this workflow useful
+# again the moment either is in place:
+#   - run scripts/scrape_props.py from your own machine, where you are an
+#     ordinary logged-in customer, and commit props.json (see the README);
+#   - configure a provider with a server-side API, whose adapter slots into
+#     PROVIDERS, and restore the hourly cron below.
+#
+# Until then this stays dispatch-only rather than failing every hour.
 on:
-  schedule:
-    - cron: "0 * * * *"
   workflow_dispatch: {}
+  # schedule:
+  #   - cron: "0 * * * *"   # restore once a server-fetchable provider exists
 
 permissions:
   contents: write

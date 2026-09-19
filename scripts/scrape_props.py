@@ -20,12 +20,22 @@ source is an adapter rather than a rewrite. PrizePicks is implemented
 because it covers LoL, CS2 and Valorant, which licensed odds APIs largely
 do not — The Odds API, for instance, has no esports player props at all.
 
-Its projections endpoint is not a documented public API. It is widely used
-for personal tooling and this fetches it politely and infrequently, but it
-carries no stability guarantee and could change or refuse traffic without
-notice, so PROVIDERS is where a replacement goes. If this app is ever
-served to other people rather than used personally, that distinction is
-worth taking seriously.
+Its projections endpoint is not a documented public API, and it REFUSES
+requests from a GitHub runner: HTTP 403, datacenter IP plus a non-browser
+client. That was measured, not assumed. Defeating it would mean
+impersonating a browser to get past a control that exists on purpose, so
+this does not try.
+
+What does work:
+
+  - Run this locally, from your own connection, where you are an ordinary
+    logged-in customer, and commit props.json. See the README.
+  - Point PROVIDERS at a source with a real server-side API. That is the
+    only route that makes the hourly workflow viable, and it is why the
+    fetch is a single swappable function.
+
+If this app is ever served to other people rather than used personally,
+which source the lines come from is worth more thought than it needs now.
 
     python scripts/scrape_props.py                  # all configured leagues
     python scripts/scrape_props.py --dry-run        # fetch and report, write nothing
@@ -77,7 +87,14 @@ def fetch_prizepicks_payload(session):
         print(f"  ! prizepicks request failed: {exc}", file=sys.stderr)
         return None
     if resp.status_code != 200:
-        print(f"  ! prizepicks returned HTTP {resp.status_code}", file=sys.stderr)
+        if resp.status_code == 403:
+            print("  ! prizepicks returned HTTP 403. This is what bot protection "
+                  "looks like from a datacenter IP: the same request from a "
+                  "normal home connection generally succeeds. Run this script "
+                  "locally and commit props.json, or configure a provider that "
+                  "permits server-side access (see PROVIDERS).", file=sys.stderr)
+        else:
+            print(f"  ! prizepicks returned HTTP {resp.status_code}", file=sys.stderr)
         return None
     try:
         return resp.json()
@@ -140,6 +157,8 @@ def main():
                      help="fetch and report, but do not write props.json")
     ap.add_argument("--fixture",
                      help="parse a saved provider payload instead of fetching")
+    ap.add_argument("--out", default=OUTPUT_PATH,
+                     help=f"where to write (default {OUTPUT_PATH})")
     args = ap.parse_args()
 
     games = sorted(GAMES) if args.game == "all" else [args.game]
@@ -207,9 +226,9 @@ def main():
         print("\n--dry-run: not writing props.json")
         return 0
 
-    with open(OUTPUT_PATH, "w") as f:
+    with open(args.out, "w") as f:
         json.dump(result, f, separators=(",", ":"))
-    print(f"\nWrote {OUTPUT_PATH}: {total_matched} prop(s), "
+    print(f"\nWrote {args.out}: {total_matched} prop(s), "
           f"{total_unmatched} unmatched, fetched_at {result['fetched_at']}")
     return 0
 
