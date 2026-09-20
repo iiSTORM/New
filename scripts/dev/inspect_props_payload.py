@@ -72,6 +72,49 @@ def main():
         note = f"-> {', '.join(hits)}" if hits else ""
         print(f"  {count:5d}  {str(league)[:30]:30s}  {note}")
 
+    # League ids, because the endpoint takes league_id and a filtered
+    # response is a few hundred KB instead of forty-odd megabytes. The ids
+    # are provider-side and not documented anywhere, but every payload
+    # carries them: projections point at a league, and the league objects
+    # sit in `included`.
+    league_ids = {}
+    for item in payload.get("included") or []:
+        if item.get("type") == "league":
+            name = (item.get("attributes") or {}).get("name")
+            if name:
+                league_ids[str(name)] = str(item.get("id"))
+    if not league_ids:
+        # Older payloads put the league only on the projection's
+        # relationships, so fall back to reading it from there.
+        for item in projections:
+            rel = ((item.get("relationships") or {}).get("league") or {}).get("data") or {}
+            attrs = item.get("attributes") or {}
+            rel_id, name = rel.get("id"), attrs.get("league")
+            if rel_id and name:
+                league_ids.setdefault(str(name), str(rel_id))
+
+    if league_ids:
+        print("\n  LEAGUE IDS — the endpoint takes league_id, and one league is a")
+        print("  few hundred KB where the unfiltered board is tens of megabytes:")
+        for name, lid in sorted(league_ids.items()):
+            wanted_here = any(str(name).strip().lower() in {n.lower() for n in names}
+                              for names in (cfg["leagues"] for cfg in GAMES.values()))
+            mark = "  <-- this app" if wanted_here else ""
+            print(f"    {lid:>6}  {name}{mark}")
+        print("\n  URLs to save from a browser, one per game this app tracks:")
+        for game, cfg in sorted(GAMES.items()):
+            lowered = {n.lower() for n in cfg["leagues"]}
+            hit = next((lid for nm, lid in league_ids.items()
+                        if str(nm).strip().lower() in lowered), None)
+            if hit:
+                print(f"    {game:9s} https://api.prizepicks.com/projections"
+                      f"?league_id={hit}&per_page=250&single_stat=true")
+            else:
+                print(f"    {game:9s} (no league id found for {sorted(cfg['leagues'])})")
+    else:
+        print("\n  No league ids in this payload — it may predate them, or be a "
+              "filtered response that dropped the league objects.")
+
     print("\n  configured, and whether the payload has it:")
     for game, names in sorted(wanted.items()):
         lowered = {n.lower() for n in names}

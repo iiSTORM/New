@@ -19,6 +19,10 @@
     "meaningless one.",
     "",
     "The real endpoint returns ~35,000 of these across every sport. Six",
+    "",
+    "The league ids in `included` are ILLUSTRATIVE, not real. Real ones are",
+    "provider-side; scripts/dev/inspect_props_payload.py reads them out of a",
+    "real payload. They are here so the league-id path in that tool runs.",
     "matching props is enough to prove the shape."
   ],
   "data": [
@@ -339,6 +343,34 @@
         "display_name": "Berserker",
         "team": "LYON",
         "league": "LoLSZN"
+      }
+    },
+    {
+      "type": "league",
+      "id": "1001",
+      "attributes": {
+        "name": "LoL"
+      }
+    },
+    {
+      "type": "league",
+      "id": "1002",
+      "attributes": {
+        "name": "CS2"
+      }
+    },
+    {
+      "type": "league",
+      "id": "1003",
+      "attributes": {
+        "name": "VAL"
+      }
+    },
+    {
+      "type": "league",
+      "id": "1004",
+      "attributes": {
+        "name": "NBA"
       }
     }
   ]
