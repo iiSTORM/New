@@ -55,6 +55,15 @@ jobs:
         # Deliberately NOT continue-on-error. The script already declines to
         # overwrite a good props.json with an empty one, so a failure here
         # means something worth seeing rather than something to swallow.
+        #
+        # That refusal also exits non-zero, which is right for the hand-run
+        # routes this currently ships with: there, a wipe is not recoverable
+        # until someone notices and pastes a payload again. On an hourly
+        # schedule it is a closer call, because a genuinely quiet slate would
+        # redden the run every night and the next run an hour later would
+        # heal it anyway. If you restore the cron above, decide then whether
+        # to add --allow-empty here; do not add it before, or the protection
+        # is gone from the only routes that are actually in use.
         run: python scripts/scrape_props.py
 
       - name: Commit props.json

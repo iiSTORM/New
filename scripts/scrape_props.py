@@ -26,10 +26,14 @@ client. That was measured, not assumed. Defeating it would mean
 impersonating a browser to get past a control that exists on purpose, so
 this does not try.
 
-What does work:
+A Codespace or any other hosted shell is a datacenter too, and gets the
+same 403. What does work:
 
-  - Run this locally, from your own connection, where you are an ordinary
-    logged-in customer, and commit props.json. See the README.
+  - Save the payload from a browser on an ordinary connection and pipe it
+    in with --fixture -, then commit props.json. No install, nothing to
+    defeat, and it runs through the parser and matching below.
+  - Run this from a machine at home, where you are an ordinary logged-in
+    customer, on a timer. See the README.
   - Point PROVIDERS at a source with a real server-side API. That is the
     only route that makes the hourly workflow viable, and it is why the
     fetch is a single swappable function.
@@ -40,6 +44,10 @@ which source the lines come from is worth more thought than it needs now.
     python scripts/scrape_props.py                  # all configured leagues
     python scripts/scrape_props.py --dry-run        # fetch and report, write nothing
     python scripts/scrape_props.py --fixture f.json # parse a saved payload offline
+    cat f.json | python scripts/scrape_props.py --fixture -
+
+To check the whole pipeline without a provider, run it against the saved
+payload in tests/fixtures/ — see "Checking it worked" in the README.
 """
 import argparse
 import json
@@ -149,6 +157,25 @@ def load_regions(path):
         return json.load(f).get("regions", {})
 
 
+def existing_prop_count(path):
+    """How many props the file we are about to replace already holds.
+
+    Used to tell "nothing is posted right now" apart from "we are about to
+    wipe good lines", which are the same zero at the point of writing and
+    very different afterwards.
+    """
+    try:
+        with open(path) as f:
+            existing = json.load(f)
+        return sum(len(props) for game in (existing.get("props") or {}).values()
+                   for props in game.values())
+    except (OSError, ValueError, AttributeError, TypeError):
+        # Unreadable or not the shape we write is the same answer as absent:
+        # there is nothing here worth protecting, because the frontend cannot
+        # read it either. Refusing to write over it would strand the file.
+        return 0
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--provider", choices=sorted(PROVIDERS), default="prizepicks")
@@ -162,6 +189,9 @@ def main():
                           "provider does not block.")
     ap.add_argument("--out", default=OUTPUT_PATH,
                      help=f"where to write (default {OUTPUT_PATH})")
+    ap.add_argument("--allow-empty", action="store_true",
+                     help="write a props file with nothing in it even when one "
+                          "with lines already exists (see the refusal below)")
     args = ap.parse_args()
 
     games = sorted(GAMES) if args.game == "all" else [args.game]
@@ -227,6 +257,9 @@ def main():
         for reason, count in sorted(reasons.items(), key=lambda kv: -kv[1]):
             print(f"    {count:4d}  {reason}")
 
+    # Printed before the --dry-run exit below, because reporting this is
+    # most of what a dry run is for: the smoke check in CI runs one, and a
+    # silent zero there would read as a clean bill of health.
     if total_matched == 0:
         print("\n! No props matched for any game. Either there is genuinely "
               "nothing posted right now, or the provider changed shape — "
@@ -236,6 +269,23 @@ def main():
     if args.dry_run:
         print("\n--dry-run: not writing props.json")
         return 0
+
+    if total_matched == 0:
+        # The payload-was-unusable path above already declines to overwrite a
+        # good file. This is the same failure arriving one step later: a
+        # payload that parses fine but matches nothing is what a renamed stat
+        # label or a restructured response looks like, and writing it out
+        # would delete real lines on the strength of a guess that tonight is
+        # simply quiet. Keeping them costs nothing — the frontend stops
+        # computing an edge against a line older than 90 minutes and shows
+        # its age instead — so the stale file is a visibly stale file, not a
+        # confident wrong number.
+        already = existing_prop_count(args.out)
+        if already and not args.allow_empty:
+            print(f"Refusing to overwrite {args.out} ({already} prop(s)) with "
+                  f"an empty one. Pass --allow-empty if the slate really is "
+                  f"bare.", file=sys.stderr)
+            return 1
 
     with open(args.out, "w") as f:
         json.dump(result, f, separators=(",", ":"))

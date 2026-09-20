@@ -1,0 +1,295 @@
+"""The props pipeline end to end: provider payload -> props.json.
+
+tests/test_props_match.py covers the matching logic in isolation. What was
+left untested is everything either side of it: pulling (player, stat, line)
+out of the provider's JSON:API shape, and the writing decisions main() makes
+afterwards. Both are where a live run actually breaks -- the provider is
+unreachable from CI and from any datacenter, so a fixture is the only way
+these run at all, and an untested parser between two tested halves is where
+a shape change would land silently.
+
+The fixture is a trimmed copy of the real payload; every projection in it
+exercises one branch, keyed by id so the assertions below can name them.
+"""
+import io
+import json
+import sys
+from datetime import datetime
+from pathlib import Path
+
+import pytest
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
+
+import props_match as pm
+import scrape_props as sp
+
+FIXTURE = Path(__file__).parent / "fixtures" / "prizepicks_projections.json"
+
+# Which included-player id stands in for which game, so the end-to-end test
+# can swap in handles that are actually on today's rosters. The other ids in
+# the fixture (a retired player, an NBA player, a dangling reference) are
+# there to NOT match and are left alone.
+MATCHABLE = {"201": "lol", "202": "lol",
+             "203": "cs2", "204": "cs2",
+             "205": "valorant", "206": "valorant"}
+
+
+@pytest.fixture
+def payload():
+    with open(FIXTURE) as f:
+        return json.load(f)
+
+
+def by_id(props, payload, projection_id):
+    """The parsed prop that came from a given fixture projection."""
+    wanted = next(p for p in payload["data"] if p["id"] == projection_id)
+    label = wanted["attributes"]["stat_type"]
+    line = wanted["attributes"]["line_score"]
+    return next(p for p in props
+                if p["stat_label"] == label and p["line"] == line)
+
+
+class TestParsePrizepicks:
+    """Payload -> raw props. Pure shape work, no rosters involved."""
+
+    def test_joins_projections_to_their_player(self, payload):
+        props = sp.parse_prizepicks(payload, "League of Legends")
+        prop = by_id(props, payload, "1001")
+        assert prop["player_name"] == "Berserker"
+        assert prop["team"] == "LYON"
+        assert prop["stat_label"] == "MAPS 1-2 Kills"
+        assert prop["line"] == 4.5
+        assert prop["provider"] == "prizepicks"
+        assert prop["start_time"] == "2026-09-20T18:00:00-04:00"
+
+    def test_accepts_both_player_types(self, payload):
+        """The endpoint has returned the roster under both `new_player` and
+        `player`. Reading only one of them would drop a whole game's lines
+        the day it changed, and look exactly like a quiet slate."""
+        included = {item["id"]: item["type"] for item in payload["included"]}
+        assert included["205"] == "player" and included["206"] == "new_player"
+        names = {p["player_name"] for p in sp.parse_prizepicks(payload, "VALORANT")}
+        assert {"Neon", "eeiu"} <= names
+
+    def test_filters_to_the_requested_league(self, payload):
+        """One request covers every sport the provider posts. Matching is by
+        handle, and handles are short -- an NBA player reaching the LoL
+        roster index is a real way to invent a line for the wrong person."""
+        for league in ("League of Legends", "CS2", "VALORANT"):
+            names = {p["player_name"] for p in sp.parse_prizepicks(payload, league)}
+            assert "LeBron James" not in names
+
+    def test_each_league_gets_only_its_own(self, payload):
+        lol = {p["player_name"] for p in sp.parse_prizepicks(payload, "League of Legends")}
+        cs2 = {p["player_name"] for p in sp.parse_prizepicks(payload, "CS2")}
+        assert "Berserker" in lol and "Berserker" not in cs2
+        assert "FalleN" in cs2 and "FalleN" not in lol
+
+    def test_ignores_non_projection_entries(self, payload):
+        """`data` carries scores and other types alongside projections."""
+        assert any(item["type"] != "projection" for item in payload["data"])
+        props = sp.parse_prizepicks(payload, "League of Legends")
+        assert not any(p["line"] == 99.5 for p in props)
+
+    def test_a_dangling_player_reference_survives_parsing(self, payload):
+        """Projection 1012 points at a player id that is not in `included`.
+        It must come back nameless for the matcher to reject by reason,
+        rather than raising and taking the whole run down with it."""
+        props = sp.parse_prizepicks(payload, "League of Legends")
+        nameless = [p for p in props if p["player_name"] is None]
+        assert len(nameless) == 1
+        _, unmatched = pm.match_props(nameless, {})
+        assert unmatched[0]["reason"] == "player not on any roster"
+
+    def test_keeps_lines_it_cannot_read_for_the_matcher_to_refuse(self, payload):
+        """Parsing does not judge values -- "n/a" is passed along so the
+        refusal is counted and printed in one place."""
+        props = sp.parse_prizepicks(payload, "League of Legends")
+        assert any(p["line"] == "n/a" for p in props)
+
+    @pytest.mark.parametrize("junk", [{}, {"data": None, "included": None},
+                                      {"data": [], "included": []}])
+    def test_an_empty_payload_is_not_an_exception(self, junk):
+        assert sp.parse_prizepicks(junk, "CS2") == []
+
+
+def current_handles(game, count):
+    """Real, unambiguous handles off the committed roster for a game."""
+    data_file = REPO_ROOT / sp.GAMES[game]["data"]
+    if not data_file.exists():
+        pytest.skip(f"{data_file.name} not present")
+    with open(data_file) as f:
+        index, _ = pm.build_roster_index(json.load(f).get("regions", {}))
+    names = sorted({entry[2] for entry in index.values()})
+    if len(names) < count:
+        pytest.skip(f"{data_file.name} has too few players to test against")
+    return names[:count]
+
+
+@pytest.fixture
+def live_payload(payload):
+    """The fixture with its matchable handles swapped for rostered ones.
+
+    Rosters churn every split. Hardcoding a player here would mean this test
+    starts failing the day he is benched, for a reason that has nothing to do
+    with the pipeline -- so the names come off the roster files at run time
+    and the fixture keeps its structure.
+    """
+    per_game = {}
+    for item in payload["included"]:
+        game = MATCHABLE.get(item["id"])
+        if game is None:
+            continue
+        pool = per_game.setdefault(game, current_handles(game, 2))
+        item["attributes"]["display_name"] = pool.pop(0)
+    return payload
+
+
+def run(monkeypatch, argv, stdin=None):
+    monkeypatch.chdir(REPO_ROOT)
+    monkeypatch.setattr(sys, "argv", ["scrape_props.py"] + argv)
+    if stdin is not None:
+        monkeypatch.setattr(sys, "stdin", io.StringIO(stdin))
+    return sp.main()
+
+
+class TestEndToEnd:
+    """Payload in, props.json out, through the real main()."""
+
+    def test_writes_the_shape_the_frontend_reads(self, tmp_path, monkeypatch, live_payload):
+        saved = tmp_path / "payload.json"
+        saved.write_text(json.dumps(live_payload))
+        out = tmp_path / "props.json"
+
+        assert run(monkeypatch, ["--fixture", str(saved), "--out", str(out)]) == 0
+
+        written = json.loads(out.read_text())
+        datetime.fromisoformat(written["fetched_at"])  # raises if malformed
+        assert written["source"] == "prizepicks"
+        # All three games, because a payload covering three and a props.json
+        # covering one is the shape of a silently half-broken run.
+        assert set(written["props"]) == {"lol", "cs2", "valorant"}
+
+        total = 0
+        for game, players in written["props"].items():
+            for name, props in players.items():
+                assert props, f"{game}/{name} has an empty list"
+                for prop in props:
+                    # propFor() in src/app.jsx looks up props[game][name] and
+                    # then filters on these three fields. maps must stay an
+                    # int: it is compared with === against the games-in-series
+                    # selector, and "2" would never equal 2.
+                    assert prop["player"] == name
+                    assert prop["stat"] in ("kills", "deaths", "assists")
+                    assert isinstance(prop["maps"], int)
+                    assert isinstance(prop["line"], float)
+                    total += 1
+        assert total == 6
+
+    def test_stdin_is_the_same_route_as_a_file(self, tmp_path, monkeypatch, live_payload):
+        """The paste-from-a-browser route has to land on the identical
+        parser and matcher, or the only usable route is the untested one."""
+        saved = tmp_path / "payload.json"
+        saved.write_text(json.dumps(live_payload))
+        from_file, from_stdin = tmp_path / "a.json", tmp_path / "b.json"
+
+        run(monkeypatch, ["--fixture", str(saved), "--out", str(from_file)])
+        run(monkeypatch, ["--fixture", "-", "--out", str(from_stdin)],
+            stdin=json.dumps(live_payload))
+
+        a, b = json.loads(from_file.read_text()), json.loads(from_stdin.read_text())
+        assert a["props"] == b["props"]
+
+    def test_dry_run_writes_nothing(self, tmp_path, monkeypatch, live_payload):
+        saved = tmp_path / "payload.json"
+        saved.write_text(json.dumps(live_payload))
+        out = tmp_path / "props.json"
+        assert run(monkeypatch, ["--fixture", str(saved), "--out", str(out),
+                                 "--dry-run"]) == 0
+        assert not out.exists()
+
+
+class TestRefusesToWipeGoodLines:
+    """A payload that parses but matches nothing is what a renamed stat
+    label looks like. Writing it out deletes real lines on the strength of
+    a guess that tonight is quiet."""
+
+    EMPTY = {"data": [], "included": []}
+
+    def _empty_payload(self, tmp_path):
+        path = tmp_path / "empty.json"
+        path.write_text(json.dumps(self.EMPTY))
+        return path
+
+    def test_a_first_run_with_nothing_posted_is_fine(self, tmp_path, monkeypatch):
+        out = tmp_path / "props.json"
+        assert run(monkeypatch, ["--fixture", str(self._empty_payload(tmp_path)),
+                                 "--out", str(out)]) == 0
+        assert json.loads(out.read_text())["props"] == {
+            "cs2": {}, "lol": {}, "valorant": {}}
+
+    def test_wiping_an_existing_file_fails_the_run(self, tmp_path, monkeypatch, live_payload):
+        saved = tmp_path / "payload.json"
+        saved.write_text(json.dumps(live_payload))
+        out = tmp_path / "props.json"
+        run(monkeypatch, ["--fixture", str(saved), "--out", str(out)])
+        before = out.read_text()
+
+        assert run(monkeypatch, ["--fixture", str(self._empty_payload(tmp_path)),
+                                 "--out", str(out)]) == 1
+        assert out.read_text() == before, "the good file was overwritten anyway"
+
+    def test_allow_empty_is_the_way_to_say_the_slate_is_bare(self, tmp_path, monkeypatch, live_payload):
+        saved = tmp_path / "payload.json"
+        saved.write_text(json.dumps(live_payload))
+        out = tmp_path / "props.json"
+        run(monkeypatch, ["--fixture", str(saved), "--out", str(out)])
+
+        assert run(monkeypatch, ["--fixture", str(self._empty_payload(tmp_path)),
+                                 "--out", str(out), "--allow-empty"]) == 0
+        assert json.loads(out.read_text())["props"]["lol"] == {}
+
+    def test_a_dry_run_still_says_nothing_matched(self, tmp_path, monkeypatch, capsys):
+        """The smoke check in CI is a dry run, and it is the only place the
+        provider is reached at all. A dry run that exits quietly on zero
+        matches reads there as a clean bill of health, which is the exact
+        opposite of what it means."""
+        assert run(monkeypatch, ["--fixture", str(self._empty_payload(tmp_path)),
+                                 "--out", str(tmp_path / "props.json"),
+                                 "--dry-run"]) == 0
+        assert "No props matched" in capsys.readouterr().err
+
+    def test_an_unusable_payload_never_reaches_the_file(self, tmp_path, monkeypatch):
+        """The provider refusing outright (403, or a non-JSON body) is the
+        other route to the same wipe, and it already returns before writing."""
+        out = tmp_path / "props.json"
+        out.write_text(json.dumps({"props": {"lol": {"X": [{"line": 1.0}]}}}))
+        monkeypatch.setattr(sp, "PROVIDERS", {"prizepicks": lambda session: None})
+        assert run(monkeypatch, ["--out", str(out)]) == 1
+        assert json.loads(out.read_text())["props"]["lol"]["X"]
+
+
+class TestExistingPropCount:
+    def test_counts_every_prop_across_games(self, tmp_path):
+        path = tmp_path / "props.json"
+        path.write_text(json.dumps({"props": {
+            "lol": {"A": [{}, {}], "B": [{}]}, "cs2": {"C": [{}]}}}))
+        assert sp.existing_prop_count(str(path)) == 4
+
+    @pytest.mark.parametrize("content", [
+        "", "not json", "{}", '{"props": {}}',
+        # Shapes a hand-edited or half-written file can take. None of these
+        # may crash the run: an unreadable file is one the frontend cannot
+        # read either, so there is nothing in it worth refusing to replace.
+        "[1, 2, 3]", '{"props": "garbage"}', '{"props": {"lol": "garbage"}}',
+        '{"props": {"lol": {"A": 7}}}', "null",
+    ])
+    def test_nothing_to_lose_reads_as_zero(self, tmp_path, content):
+        path = tmp_path / "props.json"
+        path.write_text(content)
+        assert sp.existing_prop_count(str(path)) == 0
+
+    def test_a_missing_file_reads_as_zero(self, tmp_path):
+        assert sp.existing_prop_count(str(tmp_path / "nope.json")) == 0

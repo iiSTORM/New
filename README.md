@@ -93,7 +93,56 @@ would otherwise look identical to a quiet slate.
 ```bash
 python scripts/scrape_props.py --dry-run          # fetch and report, write nothing
 python scripts/scrape_props.py --fixture f.json   # parse a saved payload offline
+python scripts/scrape_props.py --fixture -        # ...or piped in from stdin
 ```
+
+### Checking it worked
+
+The provider is unreachable from CI and from any hosted shell, so the pipeline
+is verified against a saved payload instead. `tests/fixtures/` holds a trimmed
+one shaped exactly like the real response, and running it needs no network:
+
+```bash
+python scripts/scrape_props.py --fixture tests/fixtures/prizepicks_projections.json --dry-run
+```
+
+A healthy run prints a funnel per game — raw props in, matched out, and a
+counted reason for every one that did not match:
+
+```
+cs2: 3 raw prop(s) -> 2 matched across 2 player(s), 1 unmatched
+       1  player not on any roster
+```
+
+That is the same output to read after pasting in a real payload, and the three
+numbers fail in distinguishable ways:
+
+| What you see | What it means |
+| --- | --- |
+| `0 raw` for every game | The response is not the shape the parser knows — a changed payload, or the wrong page saved. |
+| `raw > 0`, `0 matched` | Parsing works, matching does not. The reasons underneath name which of the three — player, stat, map window — is off. |
+| `player not on any roster`, a handful | Normal. The provider posts players from leagues this app does not track. |
+| `player not on any roster`, nearly all | The handles stopped lining up, usually a roster file that failed to scrape. |
+| `map window not stated` | Lines posted as `Kills (Combo)`. Refused on purpose — see the map window note above. |
+
+Once `props.json` is written, the committed file is checked by the test suite
+like every other served file, so `pytest` catches a hand-made one with the
+wrong shape before the page quietly shows no lines:
+
+```bash
+python -m pytest tests/test_scrape_props.py tests/test_data_contract.py -q
+```
+
+In the app itself, a working line shows up beside the projection with the edge
+under it. If the line renders greyed out with `Nm old` instead, the pipeline
+worked and the file is simply older than the 90-minute window — fetch again.
+
+**An empty result never overwrites a good `props.json`.** If a run matches
+nothing while the existing file holds lines, it refuses and exits non-zero
+rather than deleting them, because a payload that parses but matches nothing is
+what a renamed stat label looks like, and it is indistinguishable at that
+moment from a genuinely quiet evening. Stale lines are visibly stale in the UI;
+deleted ones are just gone. Pass `--allow-empty` when the slate really is bare.
 
 The provider is one function returning raw dicts, so swapping source is an
 adapter rather than a rewrite. PrizePicks is implemented because it covers LoL,
