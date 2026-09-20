@@ -61,6 +61,14 @@ Save it (⌘S / Ctrl-S) or select all and copy, then pipe it in. Do not paste
 that JSON anywhere else — it is hundreds of kilobytes, and it only ever needs
 to travel from the browser to this script:
 
+> **Working in a Codespace or a remote VS Code window?** This route still
+> works there — parsing a saved payload touches no network, so the 403 above
+> does not apply. But the browser saved that file to *your* disk, and the
+> Codespace has its own filesystem in the cloud, so `--fixture saved.json`
+> will report `FileNotFoundError` until the file is in the Codespace. Drag it
+> into the VS Code file explorer, or make a new file there and paste into it.
+
+
 ```bash
 # from a saved file, on any OS
 python scripts/scrape_props.py --fixture saved.json --out props.json
