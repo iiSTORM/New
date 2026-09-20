@@ -238,10 +238,16 @@ def read_payload(source):
     try:
         return json.loads(raw)
     except ValueError as exc:
+        # Showing the tail as well as the head is the whole diagnosis for
+        # the common case: a payload this size is copied, not typed, and a
+        # copy that dropped its end stops mid-token rather than at "}".
         print(f"! {shown} is not valid JSON ({len(raw)} bytes): {exc}\n"
               f"    It starts with {raw[:60]!r}\n"
-              "    A partial paste truncates the payload; check the end of "
-              "the file is the close of the JSON and not a cut-off line.",
+              f"    It ends with   {raw[-60:]!r}\n"
+              "    Ending mid-token rather than on a closing brace means the "
+              "copy was cut short. Selecting a rendered JSON view often "
+              "copies only what is drawn — save the response to a file and "
+              "move the file across instead of pasting it.",
               file=sys.stderr)
         return None
 

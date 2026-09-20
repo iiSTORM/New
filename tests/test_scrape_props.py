@@ -402,6 +402,10 @@ class TestReadPayload:
         assert sp.read_payload(str(path)) is None
         err = capsys.readouterr().err
         assert "not valid JSON" in err and "starts with" in err
+        # The tail is the diagnosis: a cut-off copy stops mid-token instead
+        # of on a closing brace, and seeing that is what tells them the copy
+        # was short rather than the payload malformed.
+        assert "ends with" in err and "stat_ty" in err
 
     def test_stdin_is_read_the_same_way(self, monkeypatch):
         monkeypatch.setattr(sys, "stdin", io.StringIO('{"data": []}'))
