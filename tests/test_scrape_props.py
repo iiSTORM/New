@@ -51,6 +51,68 @@ def by_id(props, payload, projection_id):
                 if p["stat_label"] == label and p["line"] == line)
 
 
+class TestFetch:
+    """The request wrapper. It cannot be pointed at the real endpoint from
+    here, but every way that endpoint says no is a branch that decides
+    whether props.json gets overwritten, so each one is worth pinning.
+
+    The 403 in particular is not an edge case: it is what CI gets on every
+    single run, which makes its message the most-read line in this file.
+    """
+
+    class Resp:
+        def __init__(self, status=200, payload=None, bad_json=False):
+            self.status_code, self._payload, self._bad = status, payload, bad_json
+
+        def json(self):
+            if self._bad:
+                raise ValueError("not JSON")
+            return self._payload
+
+    def session(self, resp=None, raises=None):
+        class S:
+            def get(inner, *a, **kw):
+                if raises is not None:
+                    raise raises
+                return resp
+        return S()
+
+    def test_a_good_response_comes_back_whole(self):
+        payload = {"data": [], "included": []}
+        assert sp.fetch_prizepicks_payload(
+            self.session(self.Resp(200, payload))) == payload
+
+    def test_403_returns_nothing_rather_than_a_half_answer(self, capsys):
+        assert sp.fetch_prizepicks_payload(self.session(self.Resp(403))) is None
+        assert "403" in capsys.readouterr().err
+
+    def test_the_403_message_does_not_just_say_run_it_locally(self, capsys):
+        """A Codespace is local-feeling and is a datacenter, so it gets this
+        same 403. Advice to "run it locally" sends someone straight back
+        here, which is the confusion this message exists to end."""
+        sp.fetch_prizepicks_payload(self.session(self.Resp(403)))
+        err = capsys.readouterr().err
+        assert "--fixture -" in err, "the working route is not in the message"
+        assert "Codespace" in err
+
+    def test_an_unexpected_status_is_reported(self, capsys):
+        assert sp.fetch_prizepicks_payload(self.session(self.Resp(500))) is None
+        assert "500" in capsys.readouterr().err
+
+    def test_a_body_that_is_not_json_is_not_an_exception(self, capsys):
+        assert sp.fetch_prizepicks_payload(
+            self.session(self.Resp(200, bad_json=True))) is None
+        assert "not JSON" in capsys.readouterr().err
+
+    def test_a_dead_connection_is_not_an_exception(self, capsys):
+        """Returning None puts this down the same path as a 403 — no write,
+        non-zero exit — instead of a traceback mid-run."""
+        import requests
+        assert sp.fetch_prizepicks_payload(
+            self.session(raises=requests.RequestException("boom"))) is None
+        assert "request failed" in capsys.readouterr().err
+
+
 class TestParsePrizepicks:
     """Payload -> raw props. Pure shape work, no rosters involved."""
 

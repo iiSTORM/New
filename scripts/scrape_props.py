@@ -96,11 +96,20 @@ def fetch_prizepicks_payload(session):
         return None
     if resp.status_code != 200:
         if resp.status_code == 403:
+            # Says "a machine at home" rather than "locally" on purpose:
+            # a Codespace or cloud shell feels local and is a datacenter,
+            # so it gets this same 403 and the advice reads as wrong.
             print("  ! prizepicks returned HTTP 403. This is what bot protection "
                   "looks like from a datacenter IP: the same request from a "
-                  "normal home connection generally succeeds. Run this script "
-                  "locally and commit props.json, or configure a provider that "
-                  "permits server-side access (see PROVIDERS).", file=sys.stderr)
+                  "normal home connection generally succeeds. A Codespace or "
+                  "cloud shell is a datacenter too and will land right back "
+                  "here.\n"
+                  "    Shortest way through: open the endpoint in a browser on "
+                  "a home connection, save the JSON, and pipe it in —\n"
+                  "      python scripts/scrape_props.py --fixture - --out props.json\n"
+                  "    Or run this from a machine at home, or configure a "
+                  "provider that permits server-side access (see PROVIDERS).",
+                  file=sys.stderr)
         else:
             print(f"  ! prizepicks returned HTTP {resp.status_code}", file=sys.stderr)
         return None
