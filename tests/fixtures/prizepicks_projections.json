@@ -23,6 +23,11 @@
     "The league ids in `included` are ILLUSTRATIVE, not real. Real ones are",
     "provider-side; scripts/dev/inspect_props_payload.py reads them out of a",
     "real payload. They are here so the league-id path in that tool runs.",
+    "",
+    "Projection 1014 is the second trap: a Combo, which is two PLAYERS added",
+    "together, carrying a stated map window. The window used to satisfy the",
+    "window check before the combo marker was looked at, so it passed as an",
+    "ordinary kills line at roughly double a single player's number.",
     "matching props is enough to prove the shape."
   ],
   "data": [
@@ -254,6 +259,23 @@
           }
         }
       }
+    },
+    {
+      "type": "projection",
+      "id": "1014",
+      "attributes": {
+        "stat_type": "MAPS 1-3 Kills (Combo)",
+        "line_score": 19.5,
+        "start_time": "2026-09-20T18:00:00-04:00"
+      },
+      "relationships": {
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "210"
+          }
+        }
+      }
     }
   ],
   "included": [
@@ -371,6 +393,15 @@
       "id": "1004",
       "attributes": {
         "name": "NBA"
+      }
+    },
+    {
+      "type": "new_player",
+      "id": "210",
+      "attributes": {
+        "display_name": "Berserker + Blaber",
+        "team": "LYON",
+        "league": "LoL"
       }
     }
   ]

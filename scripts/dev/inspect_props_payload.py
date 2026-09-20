@@ -28,7 +28,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from props_match import STAT_ALIASES, parse_stat  # noqa: E402
+from props_match import COMBO_PATTERN, STAT_ALIASES, parse_stat  # noqa: E402
 from scrape_props import GAMES  # noqa: E402
 
 
@@ -133,13 +133,19 @@ def main():
         buckets = collections.defaultdict(list)
         for label, n in per_league_stats[league].most_common():
             stat, window = parse_stat(label)
-            if stat is None:
+            if COMBO_PATTERN.search(str(label or "")):
+                # Counted apart from unmodelled stats: a combo is two or
+                # more PLAYERS in one line, so it is refused for a reason
+                # that has nothing to do with which stats this app knows.
+                buckets["COMBO -- more than one player, refused"].append((n, label))
+            elif stat is None:
                 buckets["not modelled by this app"].append((n, label))
             elif window is None:
                 buckets["MODELLED STAT, no map window stated"].append((n, label))
             else:
                 buckets["matched"].append((n, label))
         for bucket in ("matched", "MODELLED STAT, no map window stated",
+                       "COMBO -- more than one player, refused",
                        "not modelled by this app"):
             rows = buckets.get(bucket)
             if not rows:

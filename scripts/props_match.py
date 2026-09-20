@@ -10,7 +10,8 @@ Three things have to line up before a prop can be compared with a
 projection, and getting any of them wrong produces a confident, wrong edge:
 
   player  — names differ between the stats source and the sportsbook.
-  stat    — "Kills", "Kills (Combo)", "MAPS 1-2 Kills" all mean kills here.
+  stat    — "Kills" and "MAPS 1-2 Kills" are kills; "Kills (Combo)" is
+            NOT, it is two players added together.
   window  — and this is the one that silently ruins everything: a line for
             maps 1-2 must be compared against a projection over maps 1-2.
             This repo already learned that lesson once, when predicting two
@@ -28,6 +29,19 @@ STAT_ALIASES = {
     "assists": {"assists", "assist", "a"},
 }
 
+# A "Combo" projection is two or more PLAYERS added together into one line,
+# not a variant of a single player's stat. Comparing it against one player's
+# projection is not slightly wrong: a two-player line sits at roughly double
+# a single player's, so a 9.5 projection against a 19.5 combo reads as a
+# ten-kill edge on the under, which is the most confident wrong number this
+# code can produce.
+#
+# It has to be checked BEFORE the window patterns. "MAPS 1-2 Kills (Combo)"
+# matches the maps 1-2 pattern first, and the loop below breaks on the first
+# hit, so the combo marker would never be reached -- which is exactly how 18
+# of these passed as ordinary kills lines in a real payload.
+COMBO_PATTERN = re.compile(r"\bcombo\b", re.I)
+
 # Map-window phrasing -> how many maps the line covers. Providers write this
 # into the stat label rather than a separate field.
 WINDOW_PATTERNS = [
@@ -37,7 +51,6 @@ WINDOW_PATTERNS = [
     (re.compile(r"\bmap\s*1\b", re.I), 1),
     (re.compile(r"\bmap\s*2\b", re.I), 1),
     (re.compile(r"\bmap\s*3\b", re.I), 1),
-    (re.compile(r"\bcombo\b", re.I), None),   # ambiguous — refuse to guess
 ]
 
 
@@ -64,6 +77,11 @@ def parse_stat(label):
     — an unstated window is not an assumption worth making.
     """
     if not label or not isinstance(label, str):
+        return None, None
+    # Refused here as well as in match_props, so the function is safe to
+    # call on its own: a combo is not a stat this app models, whatever
+    # window it states.
+    if COMBO_PATTERN.search(label):
         return None, None
     window = None
     for pattern, maps in WINDOW_PATTERNS:
@@ -109,7 +127,14 @@ def match_props(raw_props, roster_index):
     """
     matched, unmatched = [], []
     for prop in raw_props or []:
-        stat, window = parse_stat(prop.get("stat_label"))
+        label = prop.get("stat_label")
+        # Before anything else, and reported by its own name rather than as
+        # an unrecognised stat: a combo is perfectly recognisable, it just
+        # belongs to more than one player.
+        if isinstance(label, str) and COMBO_PATTERN.search(label):
+            unmatched.append({**prop, "reason": "combo line covers more than one player"})
+            continue
+        stat, window = parse_stat(label)
         key = normalize_name(prop.get("player_name"))
         target = roster_index.get(key)
         if stat is None:

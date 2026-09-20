@@ -43,11 +43,21 @@ class TestParseStat:
     def test_reads_stat_and_window(self, label, stat, maps):
         assert pm.parse_stat(label) == (stat, maps)
 
-    def test_ambiguous_combo_window_is_refused(self):
-        """'Kills (Combo)' does not say how many maps. Guessing 2 would
-        silently mis-scale every comparison on a Bo5."""
-        stat, maps = pm.parse_stat("Kills (Combo)")
-        assert stat == "kills" and maps is None
+    @pytest.mark.parametrize("label", [
+        "Kills (Combo)",
+        # The dangerous one. This states a window, and the window patterns
+        # are checked in order and break on the first hit, so "maps 1-2"
+        # matched and the combo marker was never reached. 18 of these
+        # passed as ordinary single-player kills lines in a real payload.
+        "MAPS 1-2 Kills (Combo)",
+        "MAPS 1-3 Kills (Combo)",
+    ])
+    def test_a_combo_is_not_a_stat_this_app_models(self, label):
+        """A Combo projection is two or more PLAYERS added together, not a
+        variant of one player's kills. A two-player line sits at roughly
+        double a single player's, so comparing it against one player's
+        projection reads as an enormous edge on the under."""
+        assert pm.parse_stat(label) == (None, None)
 
     def test_unstated_window_is_none(self):
         assert pm.parse_stat("Kills") == ("kills", None)
@@ -105,8 +115,24 @@ class TestMatchProps:
         assert matched == []
         assert unmatched[0]["reason"] == "player not on any roster"
 
-    def test_ambiguous_window_is_refused(self):
+    def test_a_combo_is_refused_and_named(self):
+        """Reported as a combo rather than as an unrecognised stat: it is
+        perfectly recognisable, it just belongs to more than one player,
+        and a rising count of these means something different."""
         _, unmatched = pm.match_props([self._prop(stat_label="Kills (Combo)")], self.INDEX)
+        assert unmatched[0]["reason"] == "combo line covers more than one player"
+
+    def test_a_combo_with_a_stated_window_is_still_refused(self):
+        """The regression that mattered: a stated window used to satisfy the
+        window check before the combo marker was ever looked at."""
+        _, unmatched = pm.match_props(
+            [self._prop(stat_label="MAPS 1-2 Kills (Combo)", line=19.5)], self.INDEX)
+        assert unmatched[0]["reason"] == "combo line covers more than one player"
+
+    def test_an_unstated_window_is_still_refused(self):
+        """Separately from combos: a plain "Kills" does not say how many
+        maps, and guessing 2 would mis-scale every comparison on a Bo5."""
+        _, unmatched = pm.match_props([self._prop(stat_label="Kills")], self.INDEX)
         assert unmatched[0]["reason"] == "map window not stated"
 
     def test_unknown_stat_is_refused(self):
@@ -121,7 +147,9 @@ class TestMatchProps:
         """Matched + unmatched must equal what went in — a silent drop rate
         is indistinguishable from the provider going down."""
         props = [self._prop(), self._prop(player_name="Nobody"),
-                 self._prop(stat_label="Kills (Combo)"), self._prop(line=None)]
+                 self._prop(stat_label="Kills (Combo)"),
+                 self._prop(stat_label="MAPS 1-2 Kills (Combo)"),
+                 self._prop(stat_label="Kills"), self._prop(line=None)]
         matched, unmatched = pm.match_props(props, self.INDEX)
         assert len(matched) + len(unmatched) == len(props)
 
