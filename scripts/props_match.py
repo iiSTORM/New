@@ -134,6 +134,10 @@ def match_props(raw_props, roster_index):
             "stat": stat,
             "maps": window,
             "line": line,
+            # Kept so the frontend can tell the market line from the
+            # alternate-payout lines posted beside it, and tell one match's
+            # line from another's when a player appears in two on one day.
+            "odds_type": prop.get("odds_type"),
             "provider": prop.get("provider"),
             "start_time": prop.get("start_time"),
         })

@@ -133,16 +133,30 @@ function Chevron({ open, color, size = 13 }) {
    line. It is deliberately shown only when the prop's map window matches
    the projection on screen and the line is fresh — a stale or
    wrong-window edge is worse than none, because it reads as actionable. */
+function mapWindowLabel(maps) {
+  return maps === 1 ? "map 1" : `maps 1-${maps}`;
+}
+
 function PropReadout({ prop, projection, fresh, ageMinutes }) {
   const theme = useTheme();
   if (!prop) return null;
+  const mapWindow = mapWindowLabel(prop.maps);
 
-  if (!prop.windowMatches) {
+  /* Several lines posted for the same player, stat and fixture, with
+     nothing naming which is the market one. They are alternate payouts,
+     and an edge against the wrong one is not a rounding error: 10.5, 8.5
+     and 6.5 against a projection of 9 point in opposite directions. The
+     line is still worth showing; the edge is not. */
+  if (prop.lineCount > 1) {
     return (
-      <div style={{ textAlign: "right", flexShrink: 0, minWidth: 74 }}>
-        <div className="kp-num" style={{ fontSize: 13, color: theme.textFaint }}>{prop.line}</div>
-        <div style={{ fontSize: 9, letterSpacing: 0.6, textTransform: "uppercase", color: theme.textFaint, marginTop: 4 }}>
-          maps 1-{prop.maps} line
+      <div style={{ textAlign: "right", flexShrink: 0, minWidth: 74 }}
+           title={`${prop.lineCount} lines are posted for this player over ${mapWindow}, and which is the market line is not stated. No edge is shown rather than guessing one.`}>
+        <div className="kp-num" style={{ fontSize: 15, fontWeight: 600, color: theme.textFaint }}>{prop.line}</div>
+        <div className="kp-num" style={{ fontSize: 11, fontWeight: 700, color: theme.textFaint, marginTop: 2 }}>
+          {prop.lineCount} lines
+        </div>
+        <div style={{ fontSize: 9, letterSpacing: 0.6, textTransform: "uppercase", color: theme.textFaint, marginTop: 3 }}>
+          {mapWindow}
         </div>
       </div>
     );
@@ -151,15 +165,21 @@ function PropReadout({ prop, projection, fresh, ageMinutes }) {
   const edge = projection - prop.line;
   const tone = !fresh ? theme.textFaint : edge > 0 ? theme.good : edge < 0 ? theme.bad : theme.textDim;
   return (
-    <div style={{ textAlign: "right", flexShrink: 0, minWidth: 74 }}>
+    <div style={{ textAlign: "right", flexShrink: 0, minWidth: 74 }}
+         title={`Line ${prop.line} over ${mapWindow}. Projection over the same ${prop.maps} map${prop.maps === 1 ? "" : "s"}: ${projection.toFixed(1)}.`}>
       <div className="kp-num" style={{ fontSize: 15, fontWeight: 600, color: fresh ? theme.text : theme.textFaint }}>
         {prop.line}
       </div>
       <div className="kp-num" style={{ fontSize: 11, fontWeight: 700, color: tone, marginTop: 2 }}>
         {fresh ? `${edge > 0 ? "+" : ""}${edge.toFixed(1)}` : `${Math.round(ageMinutes)}m old`}
       </div>
+      {/* The window is named rather than left implicit. The edge above is
+          computed over it, and it is not necessarily the number of games
+          the selector shows: a Bo5 line can sit directly beneath a Bo3 one
+          in the same list, and the reader has to know which they are
+          reading. */}
       <div style={{ fontSize: 9, letterSpacing: 0.6, textTransform: "uppercase", color: theme.textFaint, marginTop: 3 }}>
-        {fresh ? "line / edge" : "line (stale)"}
+        {fresh ? mapWindow : `${mapWindow} · stale`}
       </div>
     </div>
   );
@@ -275,27 +295,77 @@ function useProps() {
   return useContext(PropsContext);
 }
 
-/* Find the posted line for this player and stat.
+/* How far a posted line's start time may sit from a match's own before it
+   is taken to be a different match. Providers round start times and this
+   app's schedule carries its own, so they rarely agree to the minute; six
+   hours is wide enough to absorb that and narrow enough to separate two
+   matches on the same day, which a real payload has (one CS2 player with
+   lines in a 04:00 match and a 10:00 one). */
+const PROP_MATCH_WINDOW_HOURS = 6;
 
-   The map window is the whole game here. A line posted for maps 1-2 is only
-   comparable with a projection computed over maps 1-2, and this app's
-   projection scales with the "games in series" selector — so a prop is
-   returned ONLY when its window matches the projection currently on screen.
-   Comparing a 2-map line against a 3-map projection would produce a
-   confident edge that is simply arithmetic nonsense, and it is the exact
-   mistake this codebase already made once with maps_counted. */
-function propFor(propsData, game, playerName, statType, games) {
+/* Find the posted line for this player, in THIS match.
+
+   The map window is not a setting to be matched — it is a fact about the
+   fixture. A Bo1 is posted as "Map 1", a Bo3 as "Maps 1-2", a Bo5 as
+   "Maps 1-3", and which one a given match is varies by game, by split and
+   by round. So the line states the window and the projection is computed
+   over that same window, rather than the line being hidden whenever it
+   disagrees with a control the reader has to set by hand.
+
+   Two things still have to be resolved, and getting either wrong produces
+   a confident, wrong edge rather than a missing one:
+
+   the match  — a player can hold lines in two matches on the same day, so
+                the nearest start time wins and anything outside the window
+                above is a different match, not this one.
+   the line   — the provider posts alternate lines at other payouts beside
+                the market line. A real payload has three kills lines for
+                one LoL player in one match: 10.5, 8.5 and 6.5. Against a
+                projection of 9 those give opposite verdicts, so picking
+                one arbitrarily invents an edge out of a payout structure.
+                `odds_type` names the market line where the provider sends
+                it; where it does not, the ambiguity is reported rather
+                than resolved, and no edge is drawn. */
+function propFor(propsData, game, playerName, statType, matchDate) {
   if (!propsData || !propsData.props) return null;
   const forGame = propsData.props[game];
   if (!forGame) return null;
-  const list = forGame[playerName];
-  if (!list) return null;
-  const exact = list.find((p) => p.stat === statType && p.maps === games);
-  if (exact) return { ...exact, windowMatches: true };
-  // A line exists for this player but over a different number of maps —
-  // worth surfacing as a hint rather than silently showing nothing.
-  const other = list.find((p) => p.stat === statType);
-  return other ? { ...other, windowMatches: false } : null;
+  const list = (forGame[playerName] || []).filter((p) => p.stat === statType);
+  if (!list.length) return null;
+
+  let candidates = list;
+  const matchMs = matchDate ? new Date(matchDate).getTime() : NaN;
+  if (!isNaN(matchMs)) {
+    const timed = list
+      .map((p) => ({ p, delta: Math.abs(new Date(p.start_time).getTime() - matchMs) }))
+      .filter((x) => !isNaN(x.delta) && x.delta <= PROP_MATCH_WINDOW_HOURS * 3600000);
+    // Lines exist for this player, but none for this fixture. Showing
+    // another match's line here would be worse than showing none.
+    if (!timed.length) return null;
+    const nearest = Math.min(...timed.map((x) => x.delta));
+    candidates = timed.filter((x) => x.delta === nearest).map((x) => x.p);
+  }
+
+  const market = candidates.filter(
+    (p) => String(p.odds_type || "").toLowerCase() === "standard"
+  );
+  if (market.length) candidates = market;
+
+  const distinct = [...new Set(candidates.map((p) => p.line))];
+  return { ...candidates[0], lineCount: distinct.length };
+}
+
+/* The projection to put beside a posted line.
+
+   Not the one the selector is showing: the line covers a stated number of
+   maps, so the projection has to cover the same ones. breakdown.perGame is
+   a per-map rate, which makes the conversion a multiplication — the reason
+   this is a function at all is that doing it at the call site left it
+   untestable, and it is the step that decides whether an edge is real. */
+function projectionOverWindow(breakdown, prop) {
+  if (!breakdown || !prop || typeof breakdown.perGame !== "number") return null;
+  if (typeof prop.maps !== "number" || prop.maps <= 0) return null;
+  return breakdown.perGame * prop.maps;
 }
 
 function propsAgeMinutes(propsData) {
@@ -2304,7 +2374,16 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games, 
     const opp = team === match.teamA ? match.teamB : match.teamA;
     return likelyStarters(teams[team].players).map((p) => {
       const breakdown = project(teams, pastMatches, p, team, opp, games, weights, statType);
-      return { team, name: p.name, role: p.role, proj: breakdown.total, player: p, breakdown };
+      // A posted line names the map window of the fixture it belongs to,
+      // and the projection compared against it has to cover the same maps
+      // — which is not necessarily the number the selector is showing,
+      // since a Bo5 and a Bo3 can be on screen together. breakdown.perGame
+      // is a per-map rate, so scaling it by the line's own window is the
+      // whole of the conversion.
+      const prop = propFor(propsData, game, p.name, statType, match.date);
+      const propProjection = projectionOverWindow(breakdown, prop);
+      return { team, name: p.name, role: p.role, proj: breakdown.total,
+               prop, propProjection, player: p, breakdown };
     });
   });
   const totalProj = rows.reduce((s, row) => s + row.proj, 0);
@@ -2349,8 +2428,8 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games, 
               name={row.name}
               role={row.role}
               stats={[{ label: "PROJ", value: row.proj.toFixed(1), color: theme.accent, big: true }]}
-              prop={propFor(propsData, game, row.name, statType, games)}
-              propProjection={row.proj}
+              prop={row.prop}
+              propProjection={row.propProjection}
               propsFresh={propsFresh}
               propsAge={propsAge}
               r={row.breakdown}

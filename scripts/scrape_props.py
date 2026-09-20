@@ -183,6 +183,15 @@ def parse_prizepicks(payload, leagues):
             "line": attrs.get("line_score"),
             "team": player.get("team"),
             "start_time": attrs.get("start_time"),
+            # Which of several lines on the same player this is. The
+            # provider posts alternate lines at different payouts beside the
+            # real one, and a real payload has three kills lines for one LoL
+            # player in one match -- 10.5, 8.5 and 6.5. Against a projection
+            # of 9 those give opposite verdicts, so which one is the market
+            # line is not a detail. Carried through rather than resolved
+            # here: the matcher does not know, and guessing would invent an
+            # edge out of a payout structure.
+            "odds_type": attrs.get("odds_type"),
             "provider": "prizepicks",
         })
     return out

@@ -159,13 +159,26 @@ numbers fail in distinguishable ways:
 | `player not on any roster`, nearly all | The handles stopped lining up, usually a roster file that failed to scrape. |
 | `map window not stated` | Lines posted as `Kills (Combo)`. Refused on purpose — see the map window note above. |
 
-**The map window has to match the selector.** A real payload posts LoL as
-*Maps 1-3* and CS2 and Valorant as *Maps 1-2*, and the games-in-series
-control defaults to 2. So LoL lines show as a greyed "maps 1-3 line" hint
-until that control is set to 3, while CS2 and Valorant show edges straight
-away. That is the refusal doing its job, not a missing line: a 3-map line
-against a 2-map projection is not a slightly wrong edge, it is a
-meaningless one.
+**The map window comes off the line itself.** A fixture is a Bo1, Bo3 or
+Bo5 and the provider posts `Map 1`, `Maps 1-2` or `Maps 1-3` to match — a
+real payload has LoL at Maps 1-3 while CS2 and Valorant are at Maps 1-2, on
+the same day. So the projection compared with a line is computed over that
+line's own maps rather than over the games-in-series control, and each
+readout names the window it used. The control still sets the standalone
+projection for players with no line posted.
+
+Two other things are resolved per line, because each one silently produces a
+wrong edge rather than a missing one:
+
+- **which match** — a player can hold lines in two fixtures on one day, so
+  the line nearest that fixture's start time wins and anything more than six
+  hours away is treated as a different match, not this one.
+- **which line** — the provider posts alternate lines at other payouts
+  beside the market one. A real payload has three kills lines for one LoL
+  player in one match: 10.5, 8.5 and 6.5. Against a projection of 9 those
+  disagree about the sign of the edge, so `odds_type` picks the market line
+  where the provider states it, and where it does not the readout shows the
+  line with a count and no edge rather than guessing.
 
 Once `props.json` is written, the committed file is checked by the test suite
 like every other served file, so `pytest` catches a hand-made one with the
