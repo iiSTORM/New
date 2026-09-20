@@ -99,6 +99,75 @@ python scripts/scrape_props.py --out props.json
 git add props.json && git commit -m "Update prop lines" && git push
 ```
 
+### Automatic refresh
+
+Lines age out of the 90-minute window whether or not anyone is watching, so
+doing this by hand is only viable for one slate. `scripts/refresh_props.sh`
+runs the fetch on a timer from a machine the provider will answer, commits
+`props.json` only when the lines have actually moved, and pushes.
+
+It cannot run anywhere else. CI and a Codespace are datacenters and get the
+403 above, and **the page cannot fetch the provider either** — that endpoint
+sends no CORS headers, so a browser blocks it even though the browser is on
+an ordinary connection. Measured, not assumed. A machine at home is what is
+left.
+
+```bash
+pip3 install requests            # the live fetch needs it; parsing does not
+./scripts/refresh_props.sh --dry-run    # confirm it works before scheduling
+```
+
+**macOS.** Save as `~/Library/LaunchAgents/com.esports.props-refresh.plist`,
+replacing the path, then `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.esports.props-refresh.plist`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.esports.props-refresh</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/YOU/New/scripts/refresh_props.sh</string>
+  </array>
+  <key>StartInterval</key><integer>1800</integer>
+  <key>RunAtLoad</key><true/>
+  <key>StandardOutPath</key><string>/tmp/props-refresh.log</string>
+  <key>StandardErrorPath</key><string>/tmp/props-refresh.log</string>
+</dict></plist>
+```
+
+**Linux.** `crontab -e`:
+
+```
+*/30 * * * * /home/YOU/New/scripts/refresh_props.sh >> /tmp/props-refresh.log 2>&1
+```
+
+**Windows.** Task Scheduler, repeating every 30 minutes, running
+`bash scripts/refresh_props.sh` under Git Bash or WSL.
+
+Half-hourly leaves two misses of margin inside the 90-minute window. It also
+means up to 48 commits a day; `StartInterval`/the cron field is the dial, and
+anything under an hour keeps lines inside the window.
+
+Three things decide whether it works unattended:
+
+- **`git push` must not prompt.** An SSH key, or a credential helper with the
+  token already stored. Run the script by hand once and watch it push.
+- **The machine has to be awake.** A sleeping laptop runs nothing; launchd
+  fires once on wake, cron skips the missed ticks entirely.
+- **Use a clone you do not also work in.** The script only ever stages
+  `props.json` and refuses to run off `$PROPS_BRANCH` (default `main`), so it
+  cannot sweep up your edits — but a rebase landing under your editor is
+  still unpleasant.
+
+It logs a line per run, and the quiet ones say `lines unchanged since the
+last run`. A failed fetch leaves the existing `props.json` alone and says so
+rather than replacing good lines with nothing.
+
+`.github/workflows/props.yml` stays dispatch-only regardless: it runs on a
+GitHub runner, which is the one place this cannot work.
+
 **3. A provider with a real server-side API** — a keyed odds service that
 permits datacenter traffic. This is the only route that makes the hosted
 workflow viable, and it is why the fetch is a single swappable function in
