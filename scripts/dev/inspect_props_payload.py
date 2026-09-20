@@ -22,6 +22,7 @@ couple of dozen lines that are safe to share.
 import argparse
 import collections
 import json
+import signal
 import sys
 from pathlib import Path
 
@@ -110,4 +111,9 @@ def main():
 
 
 if __name__ == "__main__":
+    # Piping this into head or less is the obvious thing to do with it, and
+    # the default Python handling of that turns a closed pipe into a
+    # traceback that looks like the tool failed.
+    if hasattr(signal, "SIGPIPE"):
+        signal.signal(signal.SIGPIPE, signal.SIG_DFL)
     sys.exit(main())
