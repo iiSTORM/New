@@ -193,6 +193,59 @@ def existing_prop_count(path):
         return 0
 
 
+def read_payload(source):
+    """Load a saved provider payload, or explain what arrived instead.
+
+    This is the route the README sends people to, and the two ways it goes
+    wrong both used to surface as a raw traceback: a paste that did not land
+    (an empty file) and a browser that saved the rendered page instead of the
+    raw response (HTML). A JSONDecodeError names a line and column in a file
+    the reader cannot see, which tells them nothing about either.
+    """
+    try:
+        if source == "-":
+            raw, shown = sys.stdin.read(), "stdin"
+        else:
+            with open(source) as f:
+                raw, shown = f.read(), source
+    except FileNotFoundError:
+        print(f"! No such file: {source}\n"
+              "    If you are in a Codespace or a remote VS Code window, the "
+              "browser saved that file to your own disk, not to this one. "
+              "Drag it into the file explorer, or paste it into a new file "
+              "there.", file=sys.stderr)
+        return None
+    except OSError as exc:
+        print(f"! Could not read {source}: {exc}", file=sys.stderr)
+        return None
+
+    if not raw.strip():
+        print(f"! {shown} is empty ({len(raw)} byte(s)) — nothing arrived.\n"
+              "    A terminal paste that large often does not register. "
+              "Paste into a new file in your editor and save it, then point "
+              "--fixture at that.", file=sys.stderr)
+        return None
+
+    if raw.lstrip()[:1] == "<":
+        print(f"! {shown} looks like HTML, not JSON ({len(raw)} bytes, starts "
+              f"with {raw.lstrip()[:40]!r}).\n"
+              "    Saving the page from a browser can store the rendered view "
+              "rather than the response. Select the raw JSON and copy it, or "
+              "save from the raw view. A block or login page also lands here.",
+              file=sys.stderr)
+        return None
+
+    try:
+        return json.loads(raw)
+    except ValueError as exc:
+        print(f"! {shown} is not valid JSON ({len(raw)} bytes): {exc}\n"
+              f"    It starts with {raw[:60]!r}\n"
+              "    A partial paste truncates the payload; check the end of "
+              "the file is the close of the JSON and not a cut-off line.",
+              file=sys.stderr)
+        return None
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--provider", choices=sorted(PROVIDERS), default="prizepicks")
@@ -225,11 +278,9 @@ def main():
         # means a machine on an ordinary connection, or a browser on one.
         # Piping in a payload saved from that browser is the shortest route
         # that works without asking anyone to defeat a bot check.
-        if args.fixture == "-":
-            payload = json.load(sys.stdin)
-        else:
-            with open(args.fixture) as f:
-                payload = json.load(f)
+        payload = read_payload(args.fixture)
+        if payload is None:
+            return 1
     else:
         if requests is None:
             print("Fetching needs the requests package (pip install requests). "

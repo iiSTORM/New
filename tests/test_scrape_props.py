@@ -359,6 +359,60 @@ class TestRequestsIsOnlyNeededToFetch:
         assert "--fixture" in err, "it should point at the route that does work"
 
 
+class TestReadPayload:
+    """What arrives instead of a payload, and whether the message says so.
+
+    These are not hypotheticals: the empty-file case and the
+    file-is-on-the-other-machine case both happened while following the
+    README, and each surfaced as a traceback naming a line and column in a
+    file the reader could not see.
+    """
+
+    def test_a_good_payload_comes_back_parsed(self, tmp_path):
+        path = tmp_path / "p.json"
+        path.write_text('{"data": [], "included": []}')
+        assert sp.read_payload(str(path)) == {"data": [], "included": []}
+
+    def test_a_missing_file_points_at_the_other_filesystem(self, tmp_path, capsys):
+        assert sp.read_payload(str(tmp_path / "nope.json")) is None
+        assert "Codespace" in capsys.readouterr().err
+
+    @pytest.mark.parametrize("content", ["", "\n", "   \n\n  "])
+    def test_a_paste_that_did_not_land_says_empty(self, tmp_path, capsys, content):
+        """A file holding one newline is what a terminal paste leaves when it
+        does not register, and json.loads calls that 'Expecting value: line 2
+        column 1', which explains nothing."""
+        path = tmp_path / "p.json"
+        path.write_text(content)
+        assert sp.read_payload(str(path)) is None
+        assert "empty" in capsys.readouterr().err
+
+    def test_html_is_named_as_html(self, tmp_path, capsys):
+        """Saving from a browser can store the rendered page, and a block or
+        login page lands here too — both are HTML, neither is a JSON error
+        worth reading as one."""
+        path = tmp_path / "p.json"
+        path.write_text("<!DOCTYPE html>\n<html>blocked</html>")
+        assert sp.read_payload(str(path)) is None
+        assert "HTML" in capsys.readouterr().err
+
+    def test_a_truncated_paste_shows_where_it_stops(self, tmp_path, capsys):
+        path = tmp_path / "p.json"
+        path.write_text('{"data": [{"id": "1", "attributes": {"stat_ty')
+        assert sp.read_payload(str(path)) is None
+        err = capsys.readouterr().err
+        assert "not valid JSON" in err and "starts with" in err
+
+    def test_stdin_is_read_the_same_way(self, monkeypatch):
+        monkeypatch.setattr(sys, "stdin", io.StringIO('{"data": []}'))
+        assert sp.read_payload("-") == {"data": []}
+
+    def test_an_empty_stdin_is_reported_as_stdin(self, monkeypatch, capsys):
+        monkeypatch.setattr(sys, "stdin", io.StringIO(""))
+        assert sp.read_payload("-") is None
+        assert "stdin is empty" in capsys.readouterr().err
+
+
 class TestExistingPropCount:
     def test_counts_every_prop_across_games(self, tmp_path):
         path = tmp_path / "props.json"
