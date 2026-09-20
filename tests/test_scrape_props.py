@@ -333,6 +333,32 @@ class TestRefusesToWipeGoodLines:
         assert json.loads(out.read_text())["props"]["lol"]["X"]
 
 
+class TestRequestsIsOnlyNeededToFetch:
+    """The paste-a-payload route is documented as needing no install, and it
+    is the only route that works on a machine the provider does not block.
+    A module-level import of requests broke it with a traceback before it
+    read the file — on exactly the machine where it is the only option.
+    """
+
+    def test_parsing_a_payload_works_without_requests(self, tmp_path, monkeypatch, live_payload):
+        saved = tmp_path / "payload.json"
+        saved.write_text(json.dumps(live_payload))
+        out = tmp_path / "props.json"
+        monkeypatch.setattr(sp, "requests", None)
+
+        assert run(monkeypatch, ["--fixture", str(saved), "--out", str(out)]) == 0
+        assert json.loads(out.read_text())["props"]["lol"]
+
+    def test_fetching_without_requests_says_so_plainly(self, tmp_path, monkeypatch, capsys):
+        """A name error out of the middle of a run is a worse answer than a
+        sentence naming the package."""
+        monkeypatch.setattr(sp, "requests", None)
+        assert run(monkeypatch, ["--out", str(tmp_path / "props.json")]) == 1
+        err = capsys.readouterr().err
+        assert "pip install requests" in err
+        assert "--fixture" in err, "it should point at the route that does work"
+
+
 class TestExistingPropCount:
     def test_counts_every_prop_across_games(self, tmp_path):
         path = tmp_path / "props.json"

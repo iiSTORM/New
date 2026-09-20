@@ -48,22 +48,38 @@ schedule commented out rather than failing every hour.
 shell or any other hosted terminal is a datacenter too, and gets the same 403
 as CI does. Three routes work:
 
-**1. From a browser, pasted in.** Nothing to install, works immediately. Open
-the provider's projections endpoint in a normal browser tab on your home
-connection, save the JSON, and pipe it in:
+**1. From a browser, pasted in.** Works immediately, and needs nothing
+installed — parsing a payload does not import `requests`, so a stock system
+python is enough. Open the projections endpoint in a normal browser tab on
+your home connection:
+
+```
+https://api.prizepicks.com/projections?per_page=250&single_stat=true
+```
+
+Save it (⌘S / Ctrl-S) or select all and copy, then pipe it in. Do not paste
+that JSON anywhere else — it is hundreds of kilobytes, and it only ever needs
+to travel from the browser to this script:
 
 ```bash
+# from a saved file, on any OS
 python scripts/scrape_props.py --fixture saved.json --out props.json
-# or straight from a pipe
-pbpaste | python scripts/scrape_props.py --fixture - --out props.json
+
+# or straight off the clipboard
+pbpaste | python scripts/scrape_props.py --fixture - --out props.json        # macOS
+Get-Clipboard | python scripts/scrape_props.py --fixture - --out props.json  # Windows
+xclip -o -sel clip | python scripts/scrape_props.py --fixture - --out props.json  # Linux
+
 git add props.json && git commit -m "Update prop lines" && git push
 ```
 
 **2. From your own computer, automated.** Clone the repo on a machine at home
 and run it on a timer — cron, a systemd timer, or Task Scheduler — every
-15-30 minutes to stay inside the 90-minute freshness window:
+15-30 minutes to stay inside the 90-minute freshness window. Fetching does
+need `requests`:
 
 ```bash
+pip install requests
 python scripts/scrape_props.py --out props.json
 git add props.json && git commit -m "Update prop lines" && git push
 ```

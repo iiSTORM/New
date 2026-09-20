@@ -56,7 +56,15 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-import requests
+try:
+    import requests
+except ImportError:
+    # Only the fetching needs it. The paste-a-payload route is advertised as
+    # needing no install, and a stock system python does not ship requests,
+    # so importing it at the top would break that route with a traceback
+    # before it ever looked at the file -- on exactly the machine where it
+    # is the only route that works.
+    requests = None
 
 from props_match import build_roster_index, match_props
 
@@ -204,7 +212,6 @@ def main():
     args = ap.parse_args()
 
     games = sorted(GAMES) if args.game == "all" else [args.game]
-    session = requests.Session()
     result = {
         "fetched_at": datetime.now(timezone.utc).isoformat(),
         "source": args.provider,
@@ -224,7 +231,12 @@ def main():
             with open(args.fixture) as f:
                 payload = json.load(f)
     else:
-        payload = PROVIDERS[args.provider](session)
+        if requests is None:
+            print("Fetching needs the requests package (pip install requests). "
+                  "Parsing a saved payload does not — see --fixture.",
+                  file=sys.stderr)
+            return 1
+        payload = PROVIDERS[args.provider](requests.Session())
         time.sleep(REQUEST_PAUSE_SECONDS)
     if payload is None:
         print("Provider returned nothing usable — leaving the existing "
