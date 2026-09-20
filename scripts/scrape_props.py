@@ -74,10 +74,21 @@ OUTPUT_PATH = "props.json"
 # against. League ids are configurable rather than hardcoded guesses: they
 # are provider-side identifiers that change, and a wrong one fails silently
 # as "no props today", which is indistinguishable from a quiet evening.
+# Matched EXACTLY, not as a substring. The provider posts season-long and
+# part-period variants of a league under suffixed names -- NBASZN, NFL1H,
+# WNBA1Q all appear in a real payload -- and those are different products:
+# a season total or a first-half line compared against this app's
+# per-series projection is not a slightly-off edge, it is a meaningless
+# one. A substring rule would swallow a future LoLSZN without a word, so
+# an unrecognised spelling is left to report itself as "0 raw" instead,
+# which scripts/dev/inspect_props_payload.py then names.
+#
+# Both spellings of each are accepted because the provider has used the
+# long form and currently uses the short one.
 GAMES = {
-    "lol": {"data": "data.json", "prizepicks_league": "League of Legends"},
-    "cs2": {"data": "cs2_data.json", "prizepicks_league": "CS2"},
-    "valorant": {"data": "valorant_data.json", "prizepicks_league": "VALORANT"},
+    "lol": {"data": "data.json", "leagues": {"LoL", "League of Legends"}},
+    "cs2": {"data": "cs2_data.json", "leagues": {"CS2"}},
+    "valorant": {"data": "valorant_data.json", "leagues": {"VAL", "VALORANT"}},
 }
 
 PRIZEPICKS_URL = "https://api.prizepicks.com/projections"
@@ -128,12 +139,20 @@ def fetch_prizepicks_payload(session):
         return None
 
 
-def parse_prizepicks(payload, league_name):
+def parse_prizepicks(payload, leagues):
     """Pull (player, stat label, line) out of a JSON:API payload.
+
+    `leagues` is the set of provider league names that feed one game, and
+    a projection is kept only when its league is one of them exactly. See
+    GAMES for why exactly rather than loosely. Pass a falsy value to keep
+    everything, which is only useful for inspecting a payload.
 
     Separate from the request so it can be run against a saved fixture,
     which is the only way to check the parser without hitting the provider.
     """
+    if isinstance(leagues, str):
+        leagues = {leagues}
+    wanted = {str(name).strip().lower() for name in (leagues or ())}
     players = {}
     for item in payload.get("included") or []:
         if item.get("type") in ("new_player", "player"):
@@ -151,7 +170,7 @@ def parse_prizepicks(payload, league_name):
         rel = ((item.get("relationships") or {}).get("new_player") or {}).get("data") or {}
         player = players.get(str(rel.get("id"))) or {}
         league = player.get("league") or attrs.get("league")
-        if league_name and league and league_name.lower() not in str(league).lower():
+        if wanted and str(league or "").strip().lower() not in wanted:
             continue
         out.append({
             "player_name": player.get("name"),
@@ -313,7 +332,7 @@ def main():
             print(f"{game}: {len(ambiguous)} handle(s) on more than one roster, "
                   f"excluded from matching: {ambiguous}", file=sys.stderr)
 
-        raw = parse_prizepicks(payload, cfg["prizepicks_league"]) if payload else []
+        raw = parse_prizepicks(payload, cfg["leagues"]) if payload else []
 
         matched, unmatched = match_props(raw, index)
         total_matched += len(matched)

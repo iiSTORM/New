@@ -2,7 +2,8 @@
   "_comment": [
     "A trimmed PrizePicks /projections payload, shaped exactly like the real",
     "one: JSON:API, with projections in `data` pointing at players in",
-    "`included` through a `new_player` relationship.",
+    "`included` through a `new_player` relationship. The league names are the",
+    "ones a real payload actually uses -- LoL and VAL, not the long forms.",
     "",
     "The player handles are real handles from the committed roster files, so",
     "running the pipeline against this fixture matches them for real rather",
@@ -12,8 +13,13 @@
     "matching; the end-to-end test rewrites these names from the roster files",
     "at run time and does not depend on any particular player still playing.",
     "",
-    "The real endpoint returns a few hundred of these. Six matching props is",
-    "enough to prove the shape."
+    "Projection 1013 is the trap: a season-long LoLSZN line on a player who",
+    "IS on the roster. It must not match, because a season total compared",
+    "against a per-series projection is not a slightly wrong edge but a",
+    "meaningless one.",
+    "",
+    "The real endpoint returns ~35,000 of these across every sport. Six",
+    "matching props is enough to prove the shape."
   ],
   "data": [
     {
@@ -25,7 +31,12 @@
         "start_time": "2026-09-20T18:00:00-04:00"
       },
       "relationships": {
-        "new_player": { "data": { "type": "new_player", "id": "201" } }
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "201"
+          }
+        }
       }
     },
     {
@@ -37,7 +48,12 @@
         "start_time": "2026-09-20T18:00:00-04:00"
       },
       "relationships": {
-        "new_player": { "data": { "type": "new_player", "id": "202" } }
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "202"
+          }
+        }
       }
     },
     {
@@ -49,7 +65,12 @@
         "start_time": "2026-09-20T13:30:00-04:00"
       },
       "relationships": {
-        "new_player": { "data": { "type": "new_player", "id": "203" } }
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "203"
+          }
+        }
       }
     },
     {
@@ -61,7 +82,12 @@
         "start_time": "2026-09-20T13:30:00-04:00"
       },
       "relationships": {
-        "new_player": { "data": { "type": "new_player", "id": "204" } }
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "204"
+          }
+        }
       }
     },
     {
@@ -73,7 +99,12 @@
         "start_time": "2026-09-20T15:00:00-04:00"
       },
       "relationships": {
-        "new_player": { "data": { "type": "new_player", "id": "205" } }
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "205"
+          }
+        }
       }
     },
     {
@@ -85,7 +116,12 @@
         "start_time": "2026-09-20T15:00:00-04:00"
       },
       "relationships": {
-        "new_player": { "data": { "type": "new_player", "id": "206" } }
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "206"
+          }
+        }
       }
     },
     {
@@ -97,7 +133,12 @@
         "start_time": "2026-09-20T15:00:00-04:00"
       },
       "relationships": {
-        "new_player": { "data": { "type": "new_player", "id": "206" } }
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "206"
+          }
+        }
       }
     },
     {
@@ -109,7 +150,12 @@
         "start_time": "2026-09-20T18:00:00-04:00"
       },
       "relationships": {
-        "new_player": { "data": { "type": "new_player", "id": "202" } }
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "202"
+          }
+        }
       }
     },
     {
@@ -121,7 +167,12 @@
         "start_time": "2026-09-20T18:00:00-04:00"
       },
       "relationships": {
-        "new_player": { "data": { "type": "new_player", "id": "207" } }
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "207"
+          }
+        }
       }
     },
     {
@@ -133,7 +184,12 @@
         "start_time": "2026-09-20T18:00:00-04:00"
       },
       "relationships": {
-        "new_player": { "data": { "type": "new_player", "id": "201" } }
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "201"
+          }
+        }
       }
     },
     {
@@ -145,7 +201,12 @@
         "start_time": "2026-09-20T19:30:00-04:00"
       },
       "relationships": {
-        "new_player": { "data": { "type": "new_player", "id": "208" } }
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "208"
+          }
+        }
       }
     },
     {
@@ -157,13 +218,38 @@
         "start_time": "2026-09-20T18:00:00-04:00"
       },
       "relationships": {
-        "new_player": { "data": { "type": "new_player", "id": "999" } }
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "999"
+          }
+        }
       }
     },
     {
       "type": "score",
       "id": "5001",
-      "attributes": { "stat_type": "MAPS 1-2 Kills", "line_score": 99.5 }
+      "attributes": {
+        "stat_type": "MAPS 1-2 Kills",
+        "line_score": 99.5
+      }
+    },
+    {
+      "type": "projection",
+      "id": "1013",
+      "attributes": {
+        "stat_type": "MAPS 1-2 Kills",
+        "line_score": 320.5,
+        "start_time": "2026-09-20T18:00:00-04:00"
+      },
+      "relationships": {
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "209"
+          }
+        }
+      }
     }
   ],
   "included": [
@@ -173,7 +259,7 @@
       "attributes": {
         "display_name": "Berserker",
         "team": "LYON",
-        "league": "League of Legends"
+        "league": "LoL"
       }
     },
     {
@@ -182,7 +268,7 @@
       "attributes": {
         "display_name": "Blaber",
         "team": "C9",
-        "league": "League of Legends"
+        "league": "LoL"
       }
     },
     {
@@ -209,7 +295,7 @@
       "attributes": {
         "display_name": "Neon",
         "team": "LEV",
-        "league": "VALORANT"
+        "league": "VAL"
       }
     },
     {
@@ -218,7 +304,7 @@
       "attributes": {
         "display_name": "eeiu",
         "team": "FUR",
-        "league": "VALORANT"
+        "league": "VAL"
       }
     },
     {
@@ -227,7 +313,7 @@
       "attributes": {
         "display_name": "Some Retired Guy",
         "team": "FA",
-        "league": "League of Legends"
+        "league": "LoL"
       }
     },
     {
@@ -242,7 +328,18 @@
     {
       "type": "team",
       "id": "301",
-      "attributes": { "name": "LYON" }
+      "attributes": {
+        "name": "LYON"
+      }
+    },
+    {
+      "type": "new_player",
+      "id": "209",
+      "attributes": {
+        "display_name": "Berserker",
+        "team": "LYON",
+        "league": "LoLSZN"
+      }
     }
   ]
 }

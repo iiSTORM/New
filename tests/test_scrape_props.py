@@ -117,7 +117,7 @@ class TestParsePrizepicks:
     """Payload -> raw props. Pure shape work, no rosters involved."""
 
     def test_joins_projections_to_their_player(self, payload):
-        props = sp.parse_prizepicks(payload, "League of Legends")
+        props = sp.parse_prizepicks(payload, sp.GAMES["lol"]["leagues"])
         prop = by_id(props, payload, "1001")
         assert prop["player_name"] == "Berserker"
         assert prop["team"] == "LYON"
@@ -132,35 +132,48 @@ class TestParsePrizepicks:
         the day it changed, and look exactly like a quiet slate."""
         included = {item["id"]: item["type"] for item in payload["included"]}
         assert included["205"] == "player" and included["206"] == "new_player"
-        names = {p["player_name"] for p in sp.parse_prizepicks(payload, "VALORANT")}
+        names = {p["player_name"] for p in sp.parse_prizepicks(payload, sp.GAMES["valorant"]["leagues"])}
         assert {"Neon", "eeiu"} <= names
 
     def test_filters_to_the_requested_league(self, payload):
         """One request covers every sport the provider posts. Matching is by
         handle, and handles are short -- an NBA player reaching the LoL
         roster index is a real way to invent a line for the wrong person."""
-        for league in ("League of Legends", "CS2", "VALORANT"):
-            names = {p["player_name"] for p in sp.parse_prizepicks(payload, league)}
+        for game in sp.GAMES:
+            names = {p["player_name"]
+                     for p in sp.parse_prizepicks(payload, sp.GAMES[game]["leagues"])}
             assert "LeBron James" not in names
 
     def test_each_league_gets_only_its_own(self, payload):
-        lol = {p["player_name"] for p in sp.parse_prizepicks(payload, "League of Legends")}
-        cs2 = {p["player_name"] for p in sp.parse_prizepicks(payload, "CS2")}
+        lol = {p["player_name"] for p in sp.parse_prizepicks(payload, sp.GAMES["lol"]["leagues"])}
+        cs2 = {p["player_name"] for p in sp.parse_prizepicks(payload, sp.GAMES["cs2"]["leagues"])}
         assert "Berserker" in lol and "Berserker" not in cs2
         assert "FalleN" in cs2 and "FalleN" not in lol
 
     def test_ignores_non_projection_entries(self, payload):
         """`data` carries scores and other types alongside projections."""
         assert any(item["type"] != "projection" for item in payload["data"])
-        props = sp.parse_prizepicks(payload, "League of Legends")
+        props = sp.parse_prizepicks(payload, sp.GAMES["lol"]["leagues"])
         assert not any(p["line"] == 99.5 for p in props)
 
-    def test_a_dangling_player_reference_survives_parsing(self, payload):
+    def test_a_dangling_player_reference_does_not_raise(self, payload):
         """Projection 1012 points at a player id that is not in `included`.
-        It must come back nameless for the matcher to reject by reason,
-        rather than raising and taking the whole run down with it."""
-        props = sp.parse_prizepicks(payload, "League of Legends")
-        nameless = [p for p in props if p["player_name"] is None]
+
+        With no player there is no league either, so it cannot be attributed
+        to a game and is excluded from every one of them. That is a change
+        for the better: under a loose league rule it fell through the filter
+        and was counted as "player not on any roster" once per game, turning
+        one unattributable row into three complaints. What has to hold
+        either way is that looking it up does not raise mid-payload.
+        """
+        for game in sp.GAMES:
+            props = sp.parse_prizepicks(payload, sp.GAMES[game]["leagues"])
+            assert not any(p["player_name"] is None for p in props), game
+
+        # With no league filter it still comes through nameless, which is
+        # how the inspector sees it and how the matcher reports it.
+        nameless = [p for p in sp.parse_prizepicks(payload, None)
+                    if p["player_name"] is None]
         assert len(nameless) == 1
         _, unmatched = pm.match_props(nameless, {})
         assert unmatched[0]["reason"] == "player not on any roster"
@@ -168,13 +181,49 @@ class TestParsePrizepicks:
     def test_keeps_lines_it_cannot_read_for_the_matcher_to_refuse(self, payload):
         """Parsing does not judge values -- "n/a" is passed along so the
         refusal is counted and printed in one place."""
-        props = sp.parse_prizepicks(payload, "League of Legends")
+        props = sp.parse_prizepicks(payload, sp.GAMES["lol"]["leagues"])
         assert any(p["line"] == "n/a" for p in props)
+
+    def test_a_season_long_variant_is_not_swallowed(self, payload):
+        """The provider posts season-long and part-period products under
+        suffixed names -- NBASZN, NFL1H, WNBA1Q are all in a real payload.
+        Projection 1013 is a LoLSZN line on a player who IS on the roster,
+        so nothing downstream would reject it: a season kills total would
+        be compared against a per-series projection and read as a colossal
+        edge. Matching the league loosely is what lets that through."""
+        props = sp.parse_prizepicks(payload, sp.GAMES["lol"]["leagues"])
+        assert not any(p["line"] == 320.5 for p in props), \
+            "a LoLSZN line reached the LoL props"
+
+    def test_both_spellings_of_a_league_are_accepted(self):
+        """The provider has used the long form and currently uses the short
+        one, and which you get should not decide whether the game works."""
+        def payload_in(league):
+            return {"data": [{"type": "projection", "id": "1", "attributes":
+                              {"stat_type": "MAPS 1-2 Kills", "line_score": 4.5},
+                              "relationships": {"new_player": {"data": {"id": "9"}}}}],
+                    "included": [{"type": "new_player", "id": "9", "attributes":
+                                  {"display_name": "X", "league": league}}]}
+        for league in ("LoL", "League of Legends"):
+            assert sp.parse_prizepicks(payload_in(league),
+                                       sp.GAMES["lol"]["leagues"]), league
+        for league in ("VAL", "VALORANT"):
+            assert sp.parse_prizepicks(payload_in(league),
+                                       sp.GAMES["valorant"]["leagues"]), league
+
+    def test_league_matching_ignores_case_and_padding(self):
+        """Exact does not mean brittle about whitespace or capitalisation."""
+        payload = {"data": [{"type": "projection", "id": "1", "attributes":
+                             {"stat_type": "MAPS 1-2 Kills", "line_score": 4.5},
+                             "relationships": {"new_player": {"data": {"id": "9"}}}}],
+                   "included": [{"type": "new_player", "id": "9", "attributes":
+                                 {"display_name": "X", "league": "  lol  "}}]}
+        assert sp.parse_prizepicks(payload, sp.GAMES["lol"]["leagues"])
 
     @pytest.mark.parametrize("junk", [{}, {"data": None, "included": None},
                                       {"data": [], "included": []}])
     def test_an_empty_payload_is_not_an_exception(self, junk):
-        assert sp.parse_prizepicks(junk, "CS2") == []
+        assert sp.parse_prizepicks(junk, sp.GAMES["cs2"]["leagues"]) == []
 
 
 def current_handles(game, count):

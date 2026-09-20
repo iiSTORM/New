@@ -141,8 +141,10 @@ A healthy run prints a funnel per game — raw props in, matched out, and a
 counted reason for every one that did not match:
 
 ```
-cs2: 3 raw prop(s) -> 2 matched across 2 player(s), 1 unmatched
+lol: 5 raw prop(s) -> 2 matched across 2 player(s), 3 unmatched
+       1  unrecognised stat
        1  player not on any roster
+       1  line is not a number
 ```
 
 That is the same output to read after pasting in a real payload, and the three
@@ -151,6 +153,7 @@ numbers fail in distinguishable ways:
 | What you see | What it means |
 | --- | --- |
 | `0 raw` for every game | The response is not the shape the parser knows — a changed payload, or the wrong page saved. |
+| `0 raw` for *one* game | That game's league is posted under a name `GAMES` does not accept. League names are matched exactly, on purpose, so a season-long `LoLSZN` cannot be mistaken for `LoL`. Run `scripts/dev/inspect_props_payload.py` on the payload: it lists every league present and names the configured one that found nothing. |
 | `raw > 0`, `0 matched` | Parsing works, matching does not. The reasons underneath name which of the three — player, stat, map window — is off. |
 | `player not on any roster`, a handful | Normal. The provider posts players from leagues this app does not track. |
 | `player not on any roster`, nearly all | The handles stopped lining up, usually a roster file that failed to scrape. |

@@ -65,24 +65,26 @@ def main():
     # What this repo asks for, and whether anything answers to that name.
     print("LEAGUES IN THE PAYLOAD")
     print("  count  league                          this repo asks for")
-    wanted = {g: cfg["prizepicks_league"] for g, cfg in GAMES.items()}
+    wanted = {g: cfg["leagues"] for g, cfg in GAMES.items()}
     for league, count in leagues.most_common():
-        hits = [g for g, name in wanted.items()
-                if name and name.lower() in str(league).lower()]
+        hits = [g for g, names in wanted.items()
+                if str(league).strip().lower() in {n.lower() for n in names}]
         note = f"-> {', '.join(hits)}" if hits else ""
         print(f"  {count:5d}  {str(league)[:30]:30s}  {note}")
 
     print("\n  configured, and whether the payload has it:")
-    for game, name in sorted(wanted.items()):
-        found = [l for l in leagues if name and name.lower() in str(l).lower()]
+    for game, names in sorted(wanted.items()):
+        lowered = {n.lower() for n in names}
+        found = [l for l in leagues if str(l).strip().lower() in lowered]
         state = f"found in {found}" if found else "NOT FOUND -- this is why it reports 0 raw"
-        print(f"    {game:9s} wants {name!r}: {state}")
+        print(f"    {game:9s} accepts {sorted(names)}: {state}")
 
     # Stat labels only matter for leagues this app actually consumes.
     print("\nSTAT LABELS, for leagues this repo matched above")
     modelled = sorted(STAT_ALIASES)
     for league, count in leagues.most_common():
-        if not any(n and n.lower() in str(league).lower() for n in wanted.values()):
+        if not any(str(league).strip().lower() in {n.lower() for n in names}
+                   for names in wanted.values()):
             continue
         print(f"\n  {league} ({count} projections)")
         buckets = collections.defaultdict(list)
