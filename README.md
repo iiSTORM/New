@@ -61,6 +61,13 @@ Save it (⌘S / Ctrl-S) or select all and copy, then pipe it in. Do not paste
 that JSON anywhere else — it is hundreds of kilobytes, and it only ever needs
 to travel from the browser to this script:
 
+> **The saved payload does not belong in git.** It is ~2MB, it is an input
+> rather than an output, and reloading one URL regenerates it — only the
+> `props.json` built from it is committed. Common names for it are in
+> `.gitignore`, so a warning about adding a large file means the drop
+> worked; the file is on disk and `--fixture` will read it. It can live
+> anywhere, including outside the repo.
+>
 > **Working in a Codespace or a remote VS Code window?** This route still
 > works there — parsing a saved payload touches no network, so the 403 above
 > does not apply. But the browser saved that file to *your* disk, and the
