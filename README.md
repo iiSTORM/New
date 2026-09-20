@@ -106,11 +106,20 @@ doing this by hand is only viable for one slate. `scripts/refresh_props.sh`
 runs the fetch on a timer from a machine the provider will answer, commits
 `props.json` only when the lines have actually moved, and pushes.
 
-It cannot run anywhere else. CI and a Codespace are datacenters and get the
-403 above, and **the page cannot fetch the provider either** — that endpoint
-sends no CORS headers, so a browser blocks it even though the browser is on
-an ordinary connection. Measured, not assumed. A machine at home is what is
-left.
+**This runs on your own computer and nowhere else.** Not in a Codespace, not
+in a cloud shell, not in CI — those are datacenters and get the 403 above,
+so scheduling it there produces a job that fails every half hour forever.
+The page cannot do it either: that endpoint sends no CORS headers, so a
+browser blocks the request even though the browser is on an ordinary
+connection. Measured, not assumed. A machine at home is what is left, which
+means the commands below are typed into a terminal on that machine — a
+PowerShell window on Windows, Terminal on a Mac — and the repo needs a clone
+there:
+
+```
+git clone https://github.com/iiSTORM/New.git
+cd New
+```
 
 There are two copies of the same job, because the two platforms schedule
 differently: `scripts/refresh_props.ps1` for Windows Task Scheduler, and
