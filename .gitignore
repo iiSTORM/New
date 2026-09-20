@@ -28,6 +28,17 @@ Thumbs.db
 .idea/
 .vscode/
 
+# Raw provider payloads saved from a browser for the props pipeline.
+# These are ~2MB each, they are an INPUT to scrape_props.py --fixture, and
+# they are regenerable by reloading one URL. Only the small props.json the
+# script produces from them belongs in git, so git stops offering to commit
+# the payload every time one is dropped in the folder.
+saved.json
+payload.json
+projections.json
+*_payload.json
+props_raw*.json
+
 # NOTE: the generated data files are deliberately NOT ignored.
 # data.json, cs2_data.json, valorant_data.json, career_data.json,
 # cs2_career_data.json, champion_stats.json and schedule.json are

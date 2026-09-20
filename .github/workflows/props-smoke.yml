@@ -33,6 +33,14 @@ jobs:
       - name: Install dependencies
         run: pip install requests
 
+      # The parser and matcher, proven against a saved payload shaped like
+      # the real response. This one is NOT continue-on-error: it needs no
+      # network, so a failure here is this PR's code, not someone's server.
+      - name: Parse a saved payload (no network)
+        run: |
+          python scripts/scrape_props.py \
+            --fixture tests/fixtures/prizepicks_projections.json --dry-run
+
       - name: Fetch live props (dry run — writes nothing)
         continue-on-error: true
         run: python scripts/scrape_props.py --dry-run
@@ -40,9 +48,18 @@ jobs:
       - name: What this proves
         if: always()
         run: |
-          echo "A healthy run shows raw props > 0 and most of them matched."
-          echo "raw = 0 means the provider returned nothing the parser"
-          echo "  recognised: either the response shape changed, or there is"
-          echo "  genuinely nothing posted right now."
-          echo "raw > 0 but 0 matched means player-name matching is failing,"
-          echo "  which the per-reason counts above will name."
+          echo "EXPECT THE LIVE STEP TO FAIL WITH HTTP 403 while PrizePicks"
+          echo "  is the configured provider. A runner is a datacenter, and"
+          echo "  that is what its bot protection does. It is informational"
+          echo "  so the 403 does not block the merge -- a green job here is"
+          echo "  NOT evidence that the live fetch worked. Read its output."
+          echo
+          echo "The step above it is the one that proves something: it runs"
+          echo "  the same parser and matcher over a saved payload, so a"
+          echo "  shape change in this PR's code fails it with no network."
+          echo
+          echo "Once a server-fetchable provider is configured, the live step"
+          echo "  becomes readable: a healthy run shows raw props > 0 and"
+          echo "  most of them matched. raw = 0 means the response shape"
+          echo "  changed or nothing is posted; raw > 0 with 0 matched means"
+          echo "  matching is failing, and the per-reason counts name which."

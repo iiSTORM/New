@@ -86,3 +86,42 @@ class TestAuxiliaryFiles:
 
     def test_schedule_shape(self):
         assert isinstance(load("schedule.json").get("regions"), dict)
+
+
+class TestPropsFile:
+    """props.json, when there is one.
+
+    It is not produced by the twice-daily workflow — the provider refuses
+    datacenter traffic, so this file arrives by hand or from a machine at
+    home (see the README). That makes it the one served file that can be
+    written by someone running a command locally, which is exactly why it
+    is worth checking in CI once committed: a hand-made file with the wrong
+    field names does not break the page, it just quietly shows no lines.
+    """
+
+    def props(self):
+        return load("props.json")
+
+    def test_top_level_shape(self):
+        data = self.props()
+        datetime.fromisoformat(data["fetched_at"])  # raises if malformed
+        assert isinstance(data.get("source"), str) and data["source"]
+        assert isinstance(data.get("props"), dict)
+
+    def test_games_are_ones_the_app_knows(self):
+        assert set(self.props()["props"]) <= {"lol", "cs2", "valorant"}
+
+    def test_prop_shape(self):
+        """The fields propFor() in src/app.jsx filters on. `maps` is
+        compared with === against the games-in-series selector, so a string
+        there matches nothing and shows no line at all."""
+        for game, players in self.props()["props"].items():
+            for name, props in players.items():
+                assert isinstance(props, list), f"{game}:{name}"
+                for prop in props:
+                    where = f"{game}:{name}"
+                    assert prop.get("player") == name, where
+                    assert prop.get("stat") in ("kills", "deaths", "assists"), where
+                    assert isinstance(prop.get("maps"), int), where
+                    assert isinstance(prop.get("line"), (int, float)), where
+                    assert not isinstance(prop["line"], bool), where

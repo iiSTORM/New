@@ -1,0 +1,345 @@
+{
+  "_comment": [
+    "A trimmed PrizePicks /projections payload, shaped exactly like the real",
+    "one: JSON:API, with projections in `data` pointing at players in",
+    "`included` through a `new_player` relationship. The league names are the",
+    "ones a real payload actually uses -- LoL and VAL, not the long forms.",
+    "",
+    "The player handles are real handles from the committed roster files, so",
+    "running the pipeline against this fixture matches them for real rather",
+    "than only proving the parser runs. Every projection below is here to",
+    "exercise one branch -- see tests/test_scrape_props.py, which asserts on",
+    "each by id. Rosters churn, so a handle here may eventually stop",
+    "matching; the end-to-end test rewrites these names from the roster files",
+    "at run time and does not depend on any particular player still playing.",
+    "",
+    "Projection 1013 is the trap: a season-long LoLSZN line on a player who",
+    "IS on the roster. It must not match, because a season total compared",
+    "against a per-series projection is not a slightly wrong edge but a",
+    "meaningless one.",
+    "",
+    "The real endpoint returns ~35,000 of these across every sport. Six",
+    "matching props is enough to prove the shape."
+  ],
+  "data": [
+    {
+      "type": "projection",
+      "id": "1001",
+      "attributes": {
+        "stat_type": "MAPS 1-2 Kills",
+        "line_score": 4.5,
+        "start_time": "2026-09-20T18:00:00-04:00"
+      },
+      "relationships": {
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "201"
+          }
+        }
+      }
+    },
+    {
+      "type": "projection",
+      "id": "1002",
+      "attributes": {
+        "stat_type": "MAPS 1-3 Assists",
+        "line_score": 12.5,
+        "start_time": "2026-09-20T18:00:00-04:00"
+      },
+      "relationships": {
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "202"
+          }
+        }
+      }
+    },
+    {
+      "type": "projection",
+      "id": "1003",
+      "attributes": {
+        "stat_type": "MAPS 1-2 Kills",
+        "line_score": 30.5,
+        "start_time": "2026-09-20T13:30:00-04:00"
+      },
+      "relationships": {
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "203"
+          }
+        }
+      }
+    },
+    {
+      "type": "projection",
+      "id": "1004",
+      "attributes": {
+        "stat_type": "MAP 1 Kills",
+        "line_score": 17.5,
+        "start_time": "2026-09-20T13:30:00-04:00"
+      },
+      "relationships": {
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "204"
+          }
+        }
+      }
+    },
+    {
+      "type": "projection",
+      "id": "1005",
+      "attributes": {
+        "stat_type": "MAPS 1-2 Kills",
+        "line_score": 33.0,
+        "start_time": "2026-09-20T15:00:00-04:00"
+      },
+      "relationships": {
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "205"
+          }
+        }
+      }
+    },
+    {
+      "type": "projection",
+      "id": "1006",
+      "attributes": {
+        "stat_type": "Maps 1-2 Deaths",
+        "line_score": 8.5,
+        "start_time": "2026-09-20T15:00:00-04:00"
+      },
+      "relationships": {
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "206"
+          }
+        }
+      }
+    },
+    {
+      "type": "projection",
+      "id": "1007",
+      "attributes": {
+        "stat_type": "Kills (Combo)",
+        "line_score": 40.5,
+        "start_time": "2026-09-20T15:00:00-04:00"
+      },
+      "relationships": {
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "206"
+          }
+        }
+      }
+    },
+    {
+      "type": "projection",
+      "id": "1008",
+      "attributes": {
+        "stat_type": "MAPS 1-2 Headshots",
+        "line_score": 5.5,
+        "start_time": "2026-09-20T18:00:00-04:00"
+      },
+      "relationships": {
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "202"
+          }
+        }
+      }
+    },
+    {
+      "type": "projection",
+      "id": "1009",
+      "attributes": {
+        "stat_type": "MAPS 1-2 Kills",
+        "line_score": 3.5,
+        "start_time": "2026-09-20T18:00:00-04:00"
+      },
+      "relationships": {
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "207"
+          }
+        }
+      }
+    },
+    {
+      "type": "projection",
+      "id": "1010",
+      "attributes": {
+        "stat_type": "MAPS 1-2 Kills",
+        "line_score": "n/a",
+        "start_time": "2026-09-20T18:00:00-04:00"
+      },
+      "relationships": {
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "201"
+          }
+        }
+      }
+    },
+    {
+      "type": "projection",
+      "id": "1011",
+      "attributes": {
+        "stat_type": "Points",
+        "line_score": 27.5,
+        "start_time": "2026-09-20T19:30:00-04:00"
+      },
+      "relationships": {
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "208"
+          }
+        }
+      }
+    },
+    {
+      "type": "projection",
+      "id": "1012",
+      "attributes": {
+        "stat_type": "MAPS 1-2 Kills",
+        "line_score": 6.5,
+        "start_time": "2026-09-20T18:00:00-04:00"
+      },
+      "relationships": {
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "999"
+          }
+        }
+      }
+    },
+    {
+      "type": "score",
+      "id": "5001",
+      "attributes": {
+        "stat_type": "MAPS 1-2 Kills",
+        "line_score": 99.5
+      }
+    },
+    {
+      "type": "projection",
+      "id": "1013",
+      "attributes": {
+        "stat_type": "MAPS 1-2 Kills",
+        "line_score": 320.5,
+        "start_time": "2026-09-20T18:00:00-04:00"
+      },
+      "relationships": {
+        "new_player": {
+          "data": {
+            "type": "new_player",
+            "id": "209"
+          }
+        }
+      }
+    }
+  ],
+  "included": [
+    {
+      "type": "new_player",
+      "id": "201",
+      "attributes": {
+        "display_name": "Berserker",
+        "team": "LYON",
+        "league": "LoL"
+      }
+    },
+    {
+      "type": "new_player",
+      "id": "202",
+      "attributes": {
+        "display_name": "Blaber",
+        "team": "C9",
+        "league": "LoL"
+      }
+    },
+    {
+      "type": "new_player",
+      "id": "203",
+      "attributes": {
+        "display_name": "FalleN",
+        "team": "FURIA",
+        "league": "CS2"
+      }
+    },
+    {
+      "type": "new_player",
+      "id": "204",
+      "attributes": {
+        "display_name": "insani",
+        "team": "MIBR",
+        "league": "CS2"
+      }
+    },
+    {
+      "type": "player",
+      "id": "205",
+      "attributes": {
+        "display_name": "Neon",
+        "team": "LEV",
+        "league": "VAL"
+      }
+    },
+    {
+      "type": "new_player",
+      "id": "206",
+      "attributes": {
+        "display_name": "eeiu",
+        "team": "FUR",
+        "league": "VAL"
+      }
+    },
+    {
+      "type": "new_player",
+      "id": "207",
+      "attributes": {
+        "display_name": "Some Retired Guy",
+        "team": "FA",
+        "league": "LoL"
+      }
+    },
+    {
+      "type": "new_player",
+      "id": "208",
+      "attributes": {
+        "display_name": "LeBron James",
+        "team": "LAL",
+        "league": "NBA"
+      }
+    },
+    {
+      "type": "team",
+      "id": "301",
+      "attributes": {
+        "name": "LYON"
+      }
+    },
+    {
+      "type": "new_player",
+      "id": "209",
+      "attributes": {
+        "display_name": "Berserker",
+        "team": "LYON",
+        "league": "LoLSZN"
+      }
+    }
+  ]
+}

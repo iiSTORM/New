@@ -263,6 +263,9 @@ try {
       strokeLinejoin: "round"
     }));
   }
+  function mapWindowLabel(maps) {
+    return maps === 1 ? "map 1" : `maps 1-${maps}`;
+  }
   function PropReadout({
     prop,
     projection,
@@ -271,28 +274,39 @@ try {
   }) {
     const theme = useTheme();
     if (!prop) return null;
-    if (!prop.windowMatches) {
+    const mapWindow = mapWindowLabel(prop.maps);
+    if (prop.lineCount > 1) {
       return React.createElement("div", {
         style: {
           textAlign: "right",
           flexShrink: 0,
           minWidth: 74
-        }
+        },
+        title: `${prop.lineCount} lines are posted for this player over ${mapWindow}, and which is the market line is not stated. No edge is shown rather than guessing one.`
       }, React.createElement("div", {
         className: "kp-num",
         style: {
-          fontSize: 13,
+          fontSize: 15,
+          fontWeight: 600,
           color: theme.textFaint
         }
       }, prop.line), React.createElement("div", {
+        className: "kp-num",
+        style: {
+          fontSize: 11,
+          fontWeight: 700,
+          color: theme.textFaint,
+          marginTop: 2
+        }
+      }, prop.lineCount, " lines"), React.createElement("div", {
         style: {
           fontSize: 9,
           letterSpacing: 0.6,
           textTransform: "uppercase",
           color: theme.textFaint,
-          marginTop: 4
+          marginTop: 3
         }
-      }, "maps 1-", prop.maps, " line"));
+      }, mapWindow));
     }
     const edge = projection - prop.line;
     const tone = !fresh ? theme.textFaint : edge > 0 ? theme.good : edge < 0 ? theme.bad : theme.textDim;
@@ -301,7 +315,8 @@ try {
         textAlign: "right",
         flexShrink: 0,
         minWidth: 74
-      }
+      },
+      title: `Line ${prop.line} over ${mapWindow}. Projection over the same ${prop.maps} map${prop.maps === 1 ? "" : "s"}: ${projection.toFixed(1)}.`
     }, React.createElement("div", {
       className: "kp-num",
       style: {
@@ -325,7 +340,7 @@ try {
         color: theme.textFaint,
         marginTop: 3
       }
-    }, fresh ? "line / edge" : "line (stale)"));
+    }, fresh ? mapWindow : `${mapWindow} · stale`));
   }
   function StatReadout({
     value,
@@ -517,22 +532,36 @@ try {
   function useProps() {
     return useContext(PropsContext);
   }
-  function propFor(propsData, game, playerName, statType, games) {
+  const PROP_MATCH_WINDOW_HOURS = 6;
+  function propFor(propsData, game, playerName, statType, matchDate) {
     if (!propsData || !propsData.props) return null;
     const forGame = propsData.props[game];
     if (!forGame) return null;
-    const list = forGame[playerName];
-    if (!list) return null;
-    const exact = list.find(p => p.stat === statType && p.maps === games);
-    if (exact) return {
-      ...exact,
-      windowMatches: true
+    const list = (forGame[playerName] || []).filter(p => p.stat === statType);
+    if (!list.length) return null;
+    let candidates = list;
+    const matchMs = matchDate ? new Date(matchDate).getTime() : NaN;
+    if (!isNaN(matchMs)) {
+      const timed = list.map(p => ({
+        p,
+        delta: Math.abs(new Date(p.start_time).getTime() - matchMs)
+      })).filter(x => !isNaN(x.delta) && x.delta <= PROP_MATCH_WINDOW_HOURS * 3600000);
+      if (!timed.length) return null;
+      const nearest = Math.min(...timed.map(x => x.delta));
+      candidates = timed.filter(x => x.delta === nearest).map(x => x.p);
+    }
+    const market = candidates.filter(p => String(p.odds_type || "").toLowerCase() === "standard");
+    if (market.length) candidates = market;
+    const distinct = [...new Set(candidates.map(p => p.line))];
+    return {
+      ...candidates[0],
+      lineCount: distinct.length
     };
-    const other = list.find(p => p.stat === statType);
-    return other ? {
-      ...other,
-      windowMatches: false
-    } : null;
+  }
+  function projectionOverWindow(breakdown, prop) {
+    if (!breakdown || !prop || typeof breakdown.perGame !== "number") return null;
+    if (typeof prop.maps !== "number" || prop.maps <= 0) return null;
+    return breakdown.perGame * prop.maps;
   }
   function propsAgeMinutes(propsData) {
     if (!propsData || !propsData.fetched_at) return null;
@@ -3668,11 +3697,15 @@ try {
       const opp = team === match.teamA ? match.teamB : match.teamA;
       return likelyStarters(teams[team].players).map(p => {
         const breakdown = project(teams, pastMatches, p, team, opp, games, weights, statType);
+        const prop = propFor(propsData, game, p.name, statType, match.date);
+        const propProjection = projectionOverWindow(breakdown, prop);
         return {
           team,
           name: p.name,
           role: p.role,
           proj: breakdown.total,
+          prop,
+          propProjection,
           player: p,
           breakdown
         };
@@ -3777,8 +3810,8 @@ try {
         color: theme.accent,
         big: true
       }],
-      prop: propFor(propsData, game, row.name, statType, games),
-      propProjection: row.proj,
+      prop: row.prop,
+      propProjection: row.propProjection,
       propsFresh: propsFresh,
       propsAge: propsAge,
       r: row.breakdown,

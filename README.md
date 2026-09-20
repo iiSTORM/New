@@ -44,21 +44,65 @@ impersonating a browser to defeat a control that exists deliberately, so the
 code does not attempt it, and `.github/workflows/props.yml` ships with its
 schedule commented out rather than failing every hour.
 
-Two routes work:
+**"Locally" means a machine on an ordinary connection.** A Codespace, a cloud
+shell or any other hosted terminal is a datacenter too, and gets the same 403
+as CI does. Three routes work:
+
+**1. From a browser, pasted in.** Works immediately, and needs nothing
+installed — parsing a payload does not import `requests`, so a stock system
+python is enough. Open the projections endpoint in a normal browser tab on
+your home connection:
+
+```
+https://api.prizepicks.com/projections?per_page=250&single_stat=true
+```
+
+Save it (⌘S / Ctrl-S) or select all and copy, then pipe it in. Do not paste
+that JSON anywhere else — it is hundreds of kilobytes, and it only ever needs
+to travel from the browser to this script:
+
+> **The saved payload does not belong in git.** It is ~2MB, it is an input
+> rather than an output, and reloading one URL regenerates it — only the
+> `props.json` built from it is committed. Common names for it are in
+> `.gitignore`, so a warning about adding a large file means the drop
+> worked; the file is on disk and `--fixture` will read it. It can live
+> anywhere, including outside the repo.
+>
+> **Working in a Codespace or a remote VS Code window?** This route still
+> works there — parsing a saved payload touches no network, so the 403 above
+> does not apply. But the browser saved that file to *your* disk, and the
+> Codespace has its own filesystem in the cloud, so `--fixture saved.json`
+> will report `FileNotFoundError` until the file is in the Codespace. Drag it
+> into the VS Code file explorer, or make a new file there and paste into it.
+
 
 ```bash
-# 1. Locally, from your own connection, where you are an ordinary customer.
+# from a saved file, on any OS
+python scripts/scrape_props.py --fixture saved.json --out props.json
+
+# or straight off the clipboard
+pbpaste | python scripts/scrape_props.py --fixture - --out props.json        # macOS
+Get-Clipboard | python scripts/scrape_props.py --fixture - --out props.json  # Windows
+xclip -o -sel clip | python scripts/scrape_props.py --fixture - --out props.json  # Linux
+
+git add props.json && git commit -m "Update prop lines" && git push
+```
+
+**2. From your own computer, automated.** Clone the repo on a machine at home
+and run it on a timer — cron, a systemd timer, or Task Scheduler — every
+15-30 minutes to stay inside the 90-minute freshness window. Fetching does
+need `requests`:
+
+```bash
+pip install requests
 python scripts/scrape_props.py --out props.json
 git add props.json && git commit -m "Update prop lines" && git push
 ```
 
-Repeat that on whatever cadence you want — a cron entry or a scheduled task
-every 15-30 minutes keeps lines inside the 90-minute freshness window.
-
-2. Point `PROVIDERS` at a source with a real server-side API (a keyed odds
-   provider that covers esports player props). That is the only route that
-   makes the hosted hourly workflow viable, and it is why the fetch is a single
-   swappable function. Restore the cron in `props.yml` once one is configured.
+**3. A provider with a real server-side API** — a keyed odds service that
+permits datacenter traffic. This is the only route that makes the hosted
+workflow viable, and it is why the fetch is a single swappable function in
+`PROVIDERS`. Restore the cron in `props.yml` once one is configured.
 
 Three things must line up before a line can be compared with a projection, and
 `scripts/props_match.py` refuses rather than guesses on any of them:
@@ -80,7 +124,80 @@ would otherwise look identical to a quiet slate.
 ```bash
 python scripts/scrape_props.py --dry-run          # fetch and report, write nothing
 python scripts/scrape_props.py --fixture f.json   # parse a saved payload offline
+python scripts/scrape_props.py --fixture -        # ...or piped in from stdin
 ```
+
+### Checking it worked
+
+The provider is unreachable from CI and from any hosted shell, so the pipeline
+is verified against a saved payload instead. `tests/fixtures/` holds a trimmed
+one shaped exactly like the real response, and running it needs no network:
+
+```bash
+python scripts/scrape_props.py --fixture tests/fixtures/prizepicks_projections.json --dry-run
+```
+
+A healthy run prints a funnel per game — raw props in, matched out, and a
+counted reason for every one that did not match:
+
+```
+lol: 5 raw prop(s) -> 2 matched across 2 player(s), 3 unmatched
+       1  unrecognised stat
+       1  player not on any roster
+       1  line is not a number
+```
+
+That is the same output to read after pasting in a real payload, and the three
+numbers fail in distinguishable ways:
+
+| What you see | What it means |
+| --- | --- |
+| `0 raw` for every game | The response is not the shape the parser knows — a changed payload, or the wrong page saved. |
+| `0 raw` for *one* game | That game's league is posted under a name `GAMES` does not accept. League names are matched exactly, on purpose, so a season-long `LoLSZN` cannot be mistaken for `LoL`. Run `scripts/dev/inspect_props_payload.py` on the payload: it lists every league present and names the configured one that found nothing. |
+| `raw > 0`, `0 matched` | Parsing works, matching does not. The reasons underneath name which of the three — player, stat, map window — is off. |
+| `player not on any roster`, a handful | Normal. The provider posts players from leagues this app does not track. |
+| `player not on any roster`, nearly all | The handles stopped lining up, usually a roster file that failed to scrape. |
+| `map window not stated` | Lines posted as `Kills (Combo)`. Refused on purpose — see the map window note above. |
+
+**The map window comes off the line itself.** A fixture is a Bo1, Bo3 or
+Bo5 and the provider posts `Map 1`, `Maps 1-2` or `Maps 1-3` to match — a
+real payload has LoL at Maps 1-3 while CS2 and Valorant are at Maps 1-2, on
+the same day. So the projection compared with a line is computed over that
+line's own maps rather than over the games-in-series control, and each
+readout names the window it used. The control still sets the standalone
+projection for players with no line posted.
+
+Two other things are resolved per line, because each one silently produces a
+wrong edge rather than a missing one:
+
+- **which match** — a player can hold lines in two fixtures on one day, so
+  the line nearest that fixture's start time wins and anything more than six
+  hours away is treated as a different match, not this one.
+- **which line** — the provider posts alternate lines at other payouts
+  beside the market one. A real payload has three kills lines for one LoL
+  player in one match: 10.5, 8.5 and 6.5. Against a projection of 9 those
+  disagree about the sign of the edge, so `odds_type` picks the market line
+  where the provider states it, and where it does not the readout shows the
+  line with a count and no edge rather than guessing.
+
+Once `props.json` is written, the committed file is checked by the test suite
+like every other served file, so `pytest` catches a hand-made one with the
+wrong shape before the page quietly shows no lines:
+
+```bash
+python -m pytest tests/test_scrape_props.py tests/test_data_contract.py -q
+```
+
+In the app itself, a working line shows up beside the projection with the edge
+under it. If the line renders greyed out with `Nm old` instead, the pipeline
+worked and the file is simply older than the 90-minute window — fetch again.
+
+**An empty result never overwrites a good `props.json`.** If a run matches
+nothing while the existing file holds lines, it refuses and exits non-zero
+rather than deleting them, because a payload that parses but matches nothing is
+what a renamed stat label looks like, and it is indistinguishable at that
+moment from a genuinely quiet evening. Stale lines are visibly stale in the UI;
+deleted ones are just gone. Pass `--allow-empty` when the slate really is bare.
 
 The provider is one function returning raw dicts, so swapping source is an
 adapter rather than a rewrite. PrizePicks is implemented because it covers LoL,

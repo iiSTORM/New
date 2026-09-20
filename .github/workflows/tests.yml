@@ -52,3 +52,10 @@ jobs:
 
       - name: Check index.html matches src/
         run: npm run check
+
+      # Which posted line gets compared with which projection is the one
+      # piece of money-relevant logic that lives in the frontend, so it is
+      # tested rather than left to review. Needs no packages -- it reads
+      # the function out of src/app.jsx and runs it.
+      - name: Check prop selection
+        run: node tests/prop_selection.test.mjs
