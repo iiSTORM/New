@@ -44,3 +44,7 @@ props_raw*.json
 # cs2_career_data.json, champion_stats.json and schedule.json are
 # committed by .github/workflows/scrape.yml and served to the frontend
 # from raw.githubusercontent.com — ignoring them would break the site.
+
+# The scheduled prop refresh takes this as a lock so two runs cannot
+# overlap. It is removed when the run finishes.
+.props-refresh.lock/

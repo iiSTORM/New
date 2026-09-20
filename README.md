@@ -112,10 +112,42 @@ sends no CORS headers, so a browser blocks it even though the browser is on
 an ordinary connection. Measured, not assumed. A machine at home is what is
 left.
 
+There are two copies of the same job, because the two platforms schedule
+differently: `scripts/refresh_props.ps1` for Windows Task Scheduler, and
+`scripts/refresh_props.sh` for launchd and cron. They make the same
+guarantees and either is fine under WSL or Git Bash.
+
 ```bash
 pip3 install requests            # the live fetch needs it; parsing does not
 ./scripts/refresh_props.sh --dry-run    # confirm it works before scheduling
 ```
+
+**Windows.** Check the machine has what the job needs — an unattended push
+that prompts for a password does not fail loudly, it just silently stops
+pushing, so this looks for that specifically:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\check_windows_setup.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\refresh_props.ps1 -DryRun
+```
+
+If `python` is not on PATH but `py` is, pass `-Python py`. Once the dry run
+prints the funnel, register the task (one line, from the repo folder):
+
+```powershell
+$repo = (Get-Location).Path
+$action  = New-ScheduledTaskAction -Execute "powershell.exe" `
+  -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$repo\scripts\refresh_props.ps1`""
+$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) `
+  -RepetitionInterval (New-TimeSpan -Minutes 30)
+Register-ScheduledTask -TaskName "Refresh prop lines" -Action $action -Trigger $trigger `
+  -Description "Fetches player prop lines every 30 minutes and pushes props.json"
+```
+
+Check on it with `Get-ScheduledTaskInfo "Refresh prop lines"`, run it now with
+`Start-ScheduledTask "Refresh prop lines"`, and remove it with
+`Unregister-ScheduledTask "Refresh prop lines"`. The task runs only while
+you are logged in, which is usually what you want on a personal machine.
 
 **macOS.** Save as `~/Library/LaunchAgents/com.esports.props-refresh.plist`,
 replacing the path, then `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.esports.props-refresh.plist`:
@@ -142,9 +174,6 @@ replacing the path, then `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgent
 ```
 */30 * * * * /home/YOU/New/scripts/refresh_props.sh >> /tmp/props-refresh.log 2>&1
 ```
-
-**Windows.** Task Scheduler, repeating every 30 minutes, running
-`bash scripts/refresh_props.sh` under Git Bash or WSL.
 
 Half-hourly leaves two misses of margin inside the 90-minute window. It also
 means up to 48 commits a day; `StartInterval`/the cron field is the dial, and
