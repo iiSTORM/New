@@ -11,10 +11,8 @@
     server-side API and it starts working unchanged.
 
 .DESCRIPTION
-    The provider refuses datacenter IPs, which rules out CI and a Codespace,
-    and it sends no CORS headers, so the page cannot fetch it either. What is
-    left is a machine on an ordinary connection running this on a timer. See
-    "Automatic refresh" in the README for the Task Scheduler registration.
+    See "Automatic refresh" in the README for the Task Scheduler
+    registration, and refresh_props.sh for the launchd and cron equivalent.
 
     Safe to leave running every half hour:
       - stages props.json by path, so an editor left open in the same clone

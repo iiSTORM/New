@@ -9,11 +9,8 @@
 # is provider-specific: point PROVIDERS at a source with a real server-side
 # API and this starts working unchanged.
 #
-# The provider refuses datacenter IPs, which rules out CI, a Codespace and
-# the browser alike (it sends no CORS headers, so the page cannot fetch it
-# either -- measured, not assumed). What is left is a machine on an
-# ordinary connection, running this on a timer. See "Automatic refresh" in
-# the README for the launchd, cron and Task Scheduler entries.
+# See "Automatic refresh" in the README for the launchd and cron entries,
+# and refresh_props.ps1 for the Windows equivalent.
 #
 # Designed to be safe to run unattended every half hour:
 #
