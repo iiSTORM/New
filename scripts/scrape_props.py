@@ -21,22 +21,28 @@ because it covers LoL, CS2 and Valorant, which licensed odds APIs largely
 do not — The Odds API, for instance, has no esports player props at all.
 
 Its projections endpoint is not a documented public API, and it REFUSES
-requests from a GitHub runner: HTTP 403, datacenter IP plus a non-browser
-client. That was measured, not assumed. Defeating it would mean
-impersonating a browser to get past a control that exists on purpose, so
-this does not try.
+this script: HTTP 403.
 
-A Codespace or any other hosted shell is a datacenter too, and gets the
-same 403. What does work:
+The refusal is about the CLIENT, not the network. That took two
+measurements to establish and the first one was misread: a GitHub runner
+gets 403, and the obvious reading -- datacenter IP -- was wrong, or at
+least incomplete. A Windows machine on a home connection gets the same 403
+from this script while its own browser, on that same machine, minutes
+apart, pulls the full 42MB payload. What differs is the client: a
+non-browser User-Agent, a non-browser TLS fingerprint, and none of the
+session cookies a browser picks up from visiting the site.
+
+So "run it from home" is not the answer, and never was. Getting this to
+pass would mean dressing a script up as a browser to defeat a control that
+exists on purpose, which this does not try. What works:
 
   - Save the payload from a browser on an ordinary connection and pipe it
     in with --fixture -, then commit props.json. No install, nothing to
-    defeat, and it runs through the parser and matching below.
-  - Run this from a machine at home, where you are an ordinary logged-in
-    customer, on a timer. See the README.
+    defeat, and it runs through the parser and matching below. This is the
+    route that works today.
   - Point PROVIDERS at a source with a real server-side API. That is the
-    only route that makes the hourly workflow viable, and it is why the
-    fetch is a single swappable function.
+    only route that makes an unattended schedule viable anywhere, and it is
+    why the fetch is a single swappable function.
 
 If this app is ever served to other people rather than used personally,
 which source the lines come from is worth more thought than it needs now.
@@ -120,19 +126,23 @@ def fetch_prizepicks_payload(session):
         return None
     if resp.status_code != 200:
         if resp.status_code == 403:
-            # Says "a machine at home" rather than "locally" on purpose:
-            # a Codespace or cloud shell feels local and is a datacenter,
-            # so it gets this same 403 and the advice reads as wrong.
-            print("  ! prizepicks returned HTTP 403. This is what bot protection "
-                  "looks like from a datacenter IP: the same request from a "
-                  "normal home connection generally succeeds. A Codespace or "
-                  "cloud shell is a datacenter too and will land right back "
-                  "here.\n"
-                  "    Shortest way through: open the endpoint in a browser on "
-                  "a home connection, save the JSON, and pipe it in —\n"
+            # Does NOT say "run it from home". That was the advice here
+            # until a home machine produced this exact message while its
+            # own browser fetched the payload fine. The block is on the
+            # client, so moving the script to a different network does
+            # nothing, and sending someone to do it wastes their evening.
+            print("  ! prizepicks returned HTTP 403: it refused this client.\n"
+                  "    A different network will not help. This is measured — a "
+                  "home machine gets this same 403 while its own browser gets "
+                  "the full payload — because the check is on the client "
+                  "(User-Agent, TLS fingerprint, session cookies), not on where "
+                  "the request comes from.\n"
+                  "    What works: open the endpoint in an ordinary browser, "
+                  "save the JSON, and pipe it in —\n"
                   "      python scripts/scrape_props.py --fixture - --out props.json\n"
-                  "    Or run this from a machine at home, or configure a "
-                  "provider that permits server-side access (see PROVIDERS).",
+                  "    Or configure a provider with a real server-side API "
+                  "(see PROVIDERS), which is the only route that can run "
+                  "unattended.",
                   file=sys.stderr)
         else:
             print(f"  ! prizepicks returned HTTP {resp.status_code}", file=sys.stderr)
@@ -337,11 +347,9 @@ def main():
     total_matched = total_unmatched = 0
 
     if args.fixture:
-        # "-" means stdin. The provider refuses datacenter IPs, and that
-        # includes Codespaces and any other cloud shell — "run it locally"
-        # means a machine on an ordinary connection, or a browser on one.
-        # Piping in a payload saved from that browser is the shortest route
-        # that works without asking anyone to defeat a bot check.
+        # "-" means stdin. The provider refuses this script from any
+        # network, so a payload saved from a browser and piped in is not a
+        # fallback for awkward environments — it is the route that works.
         payload = read_payload(args.fixture)
         if payload is None:
             return 1

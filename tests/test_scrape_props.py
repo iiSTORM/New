@@ -88,14 +88,18 @@ class TestFetch:
         assert sp.fetch_prizepicks_payload(self.session(self.Resp(403))) is None
         assert "403" in capsys.readouterr().err
 
-    def test_the_403_message_does_not_just_say_run_it_locally(self, capsys):
-        """A Codespace is local-feeling and is a datacenter, so it gets this
-        same 403. Advice to "run it locally" sends someone straight back
-        here, which is the confusion this message exists to end."""
+    def test_the_403_message_does_not_send_anyone_to_another_network(self, capsys):
+        """This message told people to run it from a machine at home until
+        a machine at home produced this exact 403 while its own browser
+        fetched the payload fine. The block is on the client, so a different
+        network changes nothing, and saying otherwise costs someone an
+        evening. It has to name the route that does work instead."""
         sp.fetch_prizepicks_payload(self.session(self.Resp(403)))
         err = capsys.readouterr().err
         assert "--fixture -" in err, "the working route is not in the message"
-        assert "Codespace" in err
+        assert "network will not help" in err
+        for misleading in ("machine at home", "datacenter IP", "run this locally"):
+            assert misleading not in err, f"still advising {misleading!r}"
 
     def test_an_unexpected_status_is_reported(self, capsys):
         assert sp.fetch_prizepicks_payload(self.session(self.Resp(500))) is None

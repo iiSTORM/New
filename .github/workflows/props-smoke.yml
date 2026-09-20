@@ -49,8 +49,8 @@ jobs:
         if: always()
         run: |
           echo "EXPECT THE LIVE STEP TO FAIL WITH HTTP 403 while PrizePicks"
-          echo "  is the configured provider. A runner is a datacenter, and"
-          echo "  that is what its bot protection does. It is informational"
+          echo "  is the configured provider. It refuses this client from"
+          echo "  any network, home included. It is informational"
           echo "  so the 403 does not block the merge -- a green job here is"
           echo "  NOT evidence that the live fetch worked. Read its output."
           echo

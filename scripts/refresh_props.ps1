@@ -1,6 +1,14 @@
 <#
 .SYNOPSIS
-    Keeps props.json fresh from a machine the provider will actually answer.
+    Keeps props.json fresh on a timer, for a provider that permits it.
+
+.NOTES
+    THIS CANNOT WORK WITH THE PRIZEPICKS ADAPTER. The provider refuses this
+    script from every network, home connections included -- measured on a
+    Windows machine whose own browser fetched the payload fine minutes
+    later. Every run will end in that 403. It is kept because nothing in it
+    is provider-specific: point PROVIDERS at a source with a real
+    server-side API and it starts working unchanged.
 
 .DESCRIPTION
     The provider refuses datacenter IPs, which rules out CI and a Codespace,

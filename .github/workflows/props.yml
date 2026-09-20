@@ -9,12 +9,13 @@ name: Update prop lines
 # minutes, so this has to run considerably more often than that.
 # NO SCHEDULE, deliberately.
 #
-# The PrizePicks adapter answers HTTP 403 from a GitHub runner — datacenter
-# IP plus a non-browser client, i.e. bot protection. Verified, not assumed:
-# see the props smoke check on PR #3. Getting around that would mean
-# impersonating a browser to defeat a control they put there on purpose,
-# which is a different thing from using an undocumented endpoint, so this
-# does not attempt it.
+# The PrizePicks adapter answers HTTP 403 to this script, and the block is
+# on the client rather than the network: a home machine gets the same 403
+# while its own browser fetches the payload fine. So this is not a runner
+# problem and running it elsewhere does not fix it. Getting around it would
+# mean dressing a script up as a browser to defeat a control they put there
+# on purpose, which is a different thing from using an undocumented
+# endpoint, so this does not attempt it.
 #
 # That leaves two routes that do work, and both make this workflow useful
 # again the moment either is in place:

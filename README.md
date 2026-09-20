@@ -37,18 +37,26 @@ than `PROPS_MAX_AGE_MINUTES` (90) and shows its age instead.
 
 ### Where it can run
 
-**Not from CI, with the PrizePicks adapter.** That endpoint answers HTTP 403 to
-a GitHub runner — datacenter IP plus a non-browser client, i.e. bot protection.
-This was measured on a runner, not assumed. Getting past it would mean
-impersonating a browser to defeat a control that exists deliberately, so the
-code does not attempt it, and `.github/workflows/props.yml` ships with its
-schedule commented out rather than failing every hour.
+**The endpoint refuses this script from anywhere.** It answers HTTP 403, and
+the reason is the client rather than the network. That took two measurements
+and the first was misread: a GitHub runner gets 403, which looked like a
+datacenter-IP block. A Windows machine on a home connection gets the same 403
+from the script while its own browser, same machine, minutes apart, pulls the
+full 42MB payload. What differs is the client — a non-browser User-Agent, a
+non-browser TLS fingerprint, and none of the session cookies a browser picks
+up from the site.
 
-**"Locally" means a machine on an ordinary connection.** A Codespace, a cloud
-shell or any other hosted terminal is a datacenter too, and gets the same 403
-as CI does. Three routes work:
+So moving the script to a different network does not help, and this README
+said otherwise for a while. Getting it to pass would mean dressing a script up
+as a browser to defeat a control that exists deliberately, so the code does
+not attempt it, and `.github/workflows/props.yml` ships with its schedule
+commented out rather than failing every hour.
 
-**1. From a browser, pasted in.** Works immediately, and needs nothing
+That leaves one route that works today, and one that would also work
+unattended if it were ever configured:
+
+**1. From a browser, pasted in.** The only route that works today, and it
+needs nothing
 installed — parsing a payload does not import `requests`, so a stock system
 python is enough. Open the projections endpoint in a normal browser tab on
 your home connection:
@@ -88,125 +96,27 @@ xclip -o -sel clip | python scripts/scrape_props.py --fixture - --out props.json
 git add props.json && git commit -m "Update prop lines" && git push
 ```
 
-**2. From your own computer, automated.** Clone the repo on a machine at home
-and run it on a timer — cron, a systemd timer, or Task Scheduler — every
-15-30 minutes to stay inside the 90-minute freshness window. Fetching does
-need `requests`:
-
-```bash
-pip install requests
-python scripts/scrape_props.py --out props.json
-git add props.json && git commit -m "Update prop lines" && git push
-```
-
 ### Automatic refresh
 
-Lines age out of the 90-minute window whether or not anyone is watching, so
-doing this by hand is only viable for one slate. `scripts/refresh_props.sh`
-runs the fetch on a timer from a machine the provider will answer, commits
-`props.json` only when the lines have actually moved, and pushes.
+**Not possible with the PrizePicks adapter.** The scheduled job exists —
+`scripts/refresh_props.ps1` for Windows Task Scheduler and
+`scripts/refresh_props.sh` for launchd and cron: they run the fetch on a
+timer, commit `props.json` only when the lines have moved, and push. Against
+this provider every run ends in the 403 above, on any machine, because the
+block follows the client rather than the network. They are kept because
+nothing in them is provider-specific: point `PROVIDERS` at a source with a
+real server-side API and they work unchanged, as does the hourly workflow.
 
-**This runs on your own computer and nowhere else.** Not in a Codespace, not
-in a cloud shell, not in CI — those are datacenters and get the 403 above,
-so scheduling it there produces a job that fails every half hour forever.
-The page cannot do it either: that endpoint sends no CORS headers, so a
-browser blocks the request even though the browser is on an ordinary
-connection. Measured, not assumed. A machine at home is what is left, which
-means the commands below are typed into a terminal on that machine — a
-PowerShell window on Windows, Terminal on a Mac — and the repo needs a clone
-there:
+Until then the refresh is the paste route above, by hand, and a set of lines
+is good for 90 minutes.
 
-```
-git clone https://github.com/iiSTORM/New.git
-cd New
-```
+`scripts/check_windows_setup.ps1` reports whether a Windows machine has what
+the scheduled job needs — git, python, `requests`, and a `git push` that will
+not prompt. That last one is the failure that hides: it works when you run it
+by hand and silently never pushes again under Task Scheduler, which has no
+console to type a password into.
 
-There are two copies of the same job, because the two platforms schedule
-differently: `scripts/refresh_props.ps1` for Windows Task Scheduler, and
-`scripts/refresh_props.sh` for launchd and cron. They make the same
-guarantees and either is fine under WSL or Git Bash.
-
-```bash
-pip3 install requests            # the live fetch needs it; parsing does not
-./scripts/refresh_props.sh --dry-run    # confirm it works before scheduling
-```
-
-**Windows.** Check the machine has what the job needs — an unattended push
-that prompts for a password does not fail loudly, it just silently stops
-pushing, so this looks for that specifically:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\check_windows_setup.ps1
-powershell -ExecutionPolicy Bypass -File .\scripts\refresh_props.ps1 -DryRun
-```
-
-If `python` is not on PATH but `py` is, pass `-Python py`. Once the dry run
-prints the funnel, register the task (one line, from the repo folder):
-
-```powershell
-$repo = (Get-Location).Path
-$action  = New-ScheduledTaskAction -Execute "powershell.exe" `
-  -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$repo\scripts\refresh_props.ps1`""
-$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) `
-  -RepetitionInterval (New-TimeSpan -Minutes 30)
-Register-ScheduledTask -TaskName "Refresh prop lines" -Action $action -Trigger $trigger `
-  -Description "Fetches player prop lines every 30 minutes and pushes props.json"
-```
-
-Check on it with `Get-ScheduledTaskInfo "Refresh prop lines"`, run it now with
-`Start-ScheduledTask "Refresh prop lines"`, and remove it with
-`Unregister-ScheduledTask "Refresh prop lines"`. The task runs only while
-you are logged in, which is usually what you want on a personal machine.
-
-**macOS.** Save as `~/Library/LaunchAgents/com.esports.props-refresh.plist`,
-replacing the path, then `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.esports.props-refresh.plist`:
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict>
-  <key>Label</key><string>com.esports.props-refresh</string>
-  <key>ProgramArguments</key>
-  <array>
-    <string>/bin/bash</string>
-    <string>/Users/YOU/New/scripts/refresh_props.sh</string>
-  </array>
-  <key>StartInterval</key><integer>1800</integer>
-  <key>RunAtLoad</key><true/>
-  <key>StandardOutPath</key><string>/tmp/props-refresh.log</string>
-  <key>StandardErrorPath</key><string>/tmp/props-refresh.log</string>
-</dict></plist>
-```
-
-**Linux.** `crontab -e`:
-
-```
-*/30 * * * * /home/YOU/New/scripts/refresh_props.sh >> /tmp/props-refresh.log 2>&1
-```
-
-Half-hourly leaves two misses of margin inside the 90-minute window. It also
-means up to 48 commits a day; `StartInterval`/the cron field is the dial, and
-anything under an hour keeps lines inside the window.
-
-Three things decide whether it works unattended:
-
-- **`git push` must not prompt.** An SSH key, or a credential helper with the
-  token already stored. Run the script by hand once and watch it push.
-- **The machine has to be awake.** A sleeping laptop runs nothing; launchd
-  fires once on wake, cron skips the missed ticks entirely.
-- **Use a clone you do not also work in.** The script only ever stages
-  `props.json` and refuses to run off `$PROPS_BRANCH` (default `main`), so it
-  cannot sweep up your edits — but a rebase landing under your editor is
-  still unpleasant.
-
-It logs a line per run, and the quiet ones say `lines unchanged since the
-last run`. A failed fetch leaves the existing `props.json` alone and says so
-rather than replacing good lines with nothing.
-
-`.github/workflows/props.yml` stays dispatch-only regardless: it runs on a
-GitHub runner, which is the one place this cannot work.
-
-**3. A provider with a real server-side API** — a keyed odds service that
+**2. A provider with a real server-side API** — a keyed odds service that
 permits datacenter traffic. This is the only route that makes the hosted
 workflow viable, and it is why the fetch is a single swappable function in
 `PROVIDERS`. Restore the cron in `props.yml` once one is configured.
