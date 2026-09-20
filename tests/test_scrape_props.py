@@ -13,8 +13,10 @@ exercises one branch, keyed by id so the assertions below can name them.
 """
 import io
 import json
+import os
 import sys
-from datetime import datetime
+import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -320,6 +322,56 @@ class TestEndToEnd:
         assert run(monkeypatch, ["--fixture", str(saved), "--out", str(out),
                                  "--dry-run"]) == 0
         assert not out.exists()
+
+
+class TestFetchedAt:
+    """When the lines came off the provider, which is not when this ran.
+
+    The frontend refuses to compute an edge against a line older than 90
+    minutes. That protection is only as good as the timestamp: stamping the
+    run time on a payload saved two hours ago tells it a stale line is
+    seconds old, and it draws an edge instead of greying it out. That is
+    the precise failure the window exists to prevent, so it is worth a test
+    rather than a comment.
+    """
+
+    def test_a_saved_payload_is_stamped_when_it_was_saved(self, tmp_path, monkeypatch, live_payload):
+        saved = tmp_path / "payload.json"
+        saved.write_text(json.dumps(live_payload))
+        two_hours_ago = time.time() - 2 * 3600
+        os.utime(saved, (two_hours_ago, two_hours_ago))
+        out = tmp_path / "props.json"
+
+        run(monkeypatch, ["--fixture", str(saved), "--out", str(out)])
+
+        stamped = datetime.fromisoformat(json.loads(out.read_text())["fetched_at"])
+        age = (datetime.now(timezone.utc) - stamped).total_seconds() / 60
+        assert 110 < age < 130, f"stamped {age:.0f} minutes old, expected ~120"
+
+    def test_an_old_payload_says_so(self, tmp_path, monkeypatch, capsys, live_payload):
+        saved = tmp_path / "payload.json"
+        saved.write_text(json.dumps(live_payload))
+        old = time.time() - 3 * 3600
+        os.utime(saved, (old, old))
+
+        run(monkeypatch, ["--fixture", str(saved), "--out", str(tmp_path / "p.json")])
+        err = capsys.readouterr().err
+        assert "180 minutes old" in err and "90-minute window" in err
+
+    def test_a_fresh_payload_does_not_warn(self, tmp_path, monkeypatch, capsys, live_payload):
+        saved = tmp_path / "payload.json"
+        saved.write_text(json.dumps(live_payload))
+        run(monkeypatch, ["--fixture", str(saved), "--out", str(tmp_path / "p.json")])
+        assert "minutes old" not in capsys.readouterr().err
+
+    def test_stdin_falls_back_to_now(self, monkeypatch, live_payload, tmp_path):
+        """A pipe has no mtime to read, so now is the only answer available."""
+        before = datetime.now(timezone.utc)
+        run(monkeypatch, ["--fixture", "-", "--out", str(tmp_path / "p.json")],
+            stdin=json.dumps(live_payload))
+        stamped = datetime.fromisoformat(
+            json.loads((tmp_path / "p.json").read_text())["fetched_at"])
+        assert stamped >= before.replace(microsecond=0)
 
 
 class TestRefusesToWipeGoodLines:

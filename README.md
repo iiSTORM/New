@@ -159,6 +159,14 @@ numbers fail in distinguishable ways:
 | `player not on any roster`, nearly all | The handles stopped lining up, usually a roster file that failed to scrape. |
 | `map window not stated` | Lines posted as `Kills (Combo)`. Refused on purpose — see the map window note above. |
 
+**The map window has to match the selector.** A real payload posts LoL as
+*Maps 1-3* and CS2 and Valorant as *Maps 1-2*, and the games-in-series
+control defaults to 2. So LoL lines show as a greyed "maps 1-3 line" hint
+until that control is set to 3, while CS2 and Valorant show edges straight
+away. That is the refusal doing its job, not a missing line: a 3-map line
+against a 2-map projection is not a slightly wrong edge, it is a
+meaningless one.
+
 Once `props.json` is written, the committed file is checked by the test suite
 like every other served file, so `pytest` catches a hand-made one with the
 wrong shape before the page quietly shows no lines:

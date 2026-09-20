@@ -51,6 +51,7 @@ payload in tests/fixtures/ — see "Checking it worked" in the README.
 """
 import argparse
 import json
+import os
 import sys
 import time
 from datetime import datetime, timezone
@@ -97,6 +98,10 @@ HEADERS = {
     "Accept": "application/json",
 }
 REQUEST_PAUSE_SECONDS = 2.0  # polite; this runs unattended on a schedule
+
+# Mirrors PROPS_MAX_AGE_MINUTES in src/app.jsx, which is where it is
+# enforced. Only used here to warn that lines are already past it.
+MAX_AGE_MINUTES = 90
 
 
 def fetch_prizepicks_payload(session):
@@ -271,6 +276,29 @@ def read_payload(source):
         return None
 
 
+def payload_fetched_at(source):
+    """When these lines actually came off the provider, as best as known.
+
+    For a live fetch that is now. For a saved payload it is NOT: the
+    browser pulled those lines, then the file was saved, moved between
+    machines, and run some time later. Stamping "now" on it would tell the
+    frontend a two-hour-old line is seconds old, and the frontend would
+    then compute an edge against it rather than greying it out -- which is
+    the one failure this whole design is arranged to prevent.
+
+    A saved file's mtime is close to when it was written, i.e. when it was
+    fetched. Where it is wrong it is usually too OLD (a copy preserving the
+    original timestamp), and old is the safe direction: the line shows as
+    stale rather than falsely fresh.
+    """
+    if source and source != "-":
+        try:
+            return datetime.fromtimestamp(os.path.getmtime(source), timezone.utc)
+        except OSError:
+            pass
+    return datetime.now(timezone.utc)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--provider", choices=sorted(PROVIDERS), default="prizepicks")
@@ -290,8 +318,10 @@ def main():
     args = ap.parse_args()
 
     games = sorted(GAMES) if args.game == "all" else [args.game]
+    fetched_at = payload_fetched_at(args.fixture)
+    age_minutes = (datetime.now(timezone.utc) - fetched_at).total_seconds() / 60
     result = {
-        "fetched_at": datetime.now(timezone.utc).isoformat(),
+        "fetched_at": fetched_at.isoformat(),
         "source": args.provider,
         "props": {},
     }
@@ -353,6 +383,15 @@ def main():
             reasons[prop["reason"]] = reasons.get(prop["reason"], 0) + 1
         for reason, count in sorted(reasons.items(), key=lambda kv: -kv[1]):
             print(f"    {count:4d}  {reason}")
+
+    if age_minutes > MAX_AGE_MINUTES:
+        print(f"\n! These lines are already {age_minutes:.0f} minutes old, past "
+              f"the {MAX_AGE_MINUTES}-minute window the app computes an edge "
+              f"inside.\n"
+              "    The timestamp comes from when the payload was saved, not "
+              "when this ran, so the app will show them greyed out with their "
+              "age rather than as an edge. Fetch a fresh payload.",
+              file=sys.stderr)
 
     # Printed before the --dry-run exit below, because reporting this is
     # most of what a dry run is for: the smoke check in CI runs one, and a
