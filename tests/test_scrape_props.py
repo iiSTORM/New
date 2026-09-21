@@ -38,6 +38,41 @@ MATCHABLE = {"201": "lol", "202": "lol",
              "205": "valorant", "206": "valorant"}
 
 
+@pytest.fixture(autouse=True)
+def never_touch_the_committed_history(tmp_path, monkeypatch):
+    """No test may append to the real props history.
+
+    That file is the record every accuracy claim will rest on, and a test
+    fixture's invented lines sitting in it are indistinguishable from a
+    real board afterwards -- same shape, same fields, plausible names,
+    because the end-to-end fixture deliberately uses real roster handles.
+    It already happened once: the suite runs main() from the repo root, so
+    any test not passing --history wrote straight into the committed file.
+
+    Autouse, because remembering to opt in is exactly the thing that failed.
+    """
+    monkeypatch.setattr(sp, "HISTORY_PATH", str(tmp_path / "history.jsonl"))
+
+
+def test_the_committed_history_holds_only_real_boards():
+    """Guards the file itself, not the code that writes it.
+
+    The fixture's lines are recognisable: its players come from the top of
+    each roster alphabetically and its line values are invented. If those
+    appear on file, a test has leaked into the record again.
+    """
+    path = REPO_ROOT / "props_history.jsonl"
+    if not path.exists():
+        pytest.skip("no history recorded yet")
+    fixture_lines = {4.5, 12.5, 17.5, 30.5, 33.0, 8.5}
+    rows = [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
+    suspicious = [r for r in rows if r.get("line") in fixture_lines
+                  and r.get("odds_type") is None]
+    assert not suspicious or len(suspicious) < len(rows), (
+        f"{len(suspicious)} of {len(rows)} rows look like the test fixture's "
+        f"invented lines — a test has written into the committed history")
+
+
 @pytest.fixture
 def payload():
     with open(FIXTURE) as f:

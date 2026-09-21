@@ -201,6 +201,34 @@ the result", which the app already backtests, but **"when the projection
 disagreed with the line, which one was right"**. Every refresh taken before
 this file existed is evidence that cannot be recovered.
 
+### Grading the lines
+
+```bash
+python scripts/score_props.py                    # report
+python scripts/score_props.py --json graded.json # and the rows
+```
+
+Reads `props_history.jsonl`, finds the completed match each posted line
+belonged to, and resolves what the player actually did over **exactly that
+line's map window** — summing LoL's `per_game` for the maps the line names,
+and using CS2's and Valorant's series total, which covers precisely maps 1-2
+because their scrapers collect two maps and no more. A line over any other
+window in those two games is refused rather than graded against the wrong
+maps, which would manufacture a losing record out of nothing.
+
+Refusals are counted by reason, and early on almost all of them will be *no
+completed match on that date* — the matches simply have not been played yet.
+Rates are withheld below 30 graded lines, where a rate is noise wearing a
+decimal point.
+
+**What this measures, and what it does not.** It measures the market: how
+often a posted line landed over, and by how much. A mean margin near zero is
+a market doing its job. It says nothing yet about whether these projections
+*beat* that market, which needs the projection as it stood when the line was
+posted — the next piece of work. The app's existing accuracy figures measure
+the projection against the result, which is a different and much easier
+question than measuring it against a price.
+
 ### Checking it worked
 
 The provider is unreachable from CI and from any hosted shell, so the pipeline
