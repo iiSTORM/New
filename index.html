@@ -2093,6 +2093,116 @@ try {
       games: totalMaps
     };
   }
+  const SHARE_HALF_LIFE = 6;
+  function teamTotal(match, team, statKey) {
+    const side = (match.actual || {})[team];
+    if (!side) return null;
+    let total = 0,
+      seen = 0;
+    for (const raw of Object.values(side)) {
+      if (raw && typeof raw === "object") {
+        if (raw[statKey] !== undefined && raw[statKey] !== null) {
+          total += raw[statKey];
+          seen++;
+        }
+      } else if (typeof raw === "number" && statKey === "k") {
+        total += raw;
+        seen++;
+      }
+    }
+    return seen >= 5 ? total : null;
+  }
+  function priorMatches(pastMatches, team, cutoffDate) {
+    const out = [];
+    for (const m of pastMatches) {
+      if (!m.actual) continue;
+      if (m.teamA !== team && m.teamB !== team) continue;
+      if (cutoffDate !== null && cutoffDate !== undefined && (!m.date || m.date >= cutoffDate)) continue;
+      out.push(m);
+    }
+    out.sort((a, b) => (a.date || "") < (b.date || "") ? -1 : (a.date || "") > (b.date || "") ? 1 : 0);
+    return out;
+  }
+  function decayedMean(values) {
+    const n = values.length;
+    if (!n) return null;
+    let sum = 0,
+      weight = 0;
+    values.forEach((v, i) => {
+      const w = Math.pow(0.5, (n - 1 - i) / SHARE_HALF_LIFE);
+      sum += v * w;
+      weight += w;
+    });
+    return weight > 0 ? sum / weight : null;
+  }
+  const shareTierCache = new WeakMap();
+  function tierCache(pastMatches, bucket) {
+    let byBucket = shareTierCache.get(pastMatches);
+    if (!byBucket) {
+      byBucket = {};
+      shareTierCache.set(pastMatches, byBucket);
+    }
+    if (!byBucket[bucket]) byBucket[bucket] = new Map();
+    return byBucket[bucket];
+  }
+  function shareRate(pastMatches, team, playerName, statKey, cutoffDate) {
+    const cache = tierCache(pastMatches, "share");
+    const key = `${team}|${playerName}|${statKey}|${cutoffDate || ""}`;
+    if (cache.has(key)) return cache.get(key);
+    const values = [];
+    for (const m of priorMatches(pastMatches, team, cutoffDate)) {
+      const got = getActualStat(m, team, playerName, statKey);
+      if (got === undefined || got === null) continue;
+      const total = teamTotal(m, team, statKey);
+      if (!total) continue;
+      values.push(got / total);
+    }
+    const rate = decayedMean(values);
+    cache.set(key, rate);
+    return rate;
+  }
+  function leaguePacePerMap(pastMatches, teams, statKey, cutoffDate) {
+    const cache = tierCache(pastMatches, "pace");
+    const key = `${statKey}|${cutoffDate || ""}`;
+    if (cache.has(key)) return cache.get(key);
+    const perTeam = [];
+    for (const team of Object.keys(teams || {})) {
+      const values = [];
+      for (const m of priorMatches(pastMatches, team, cutoffDate)) {
+        const total = teamTotal(m, team, statKey);
+        if (!total) continue;
+        values.push(total / (m.maps_counted || 2));
+      }
+      const rate = decayedMean(values);
+      if (rate !== null) perTeam.push(rate);
+    }
+    const avg = perTeam.length ? perTeam.reduce((s, v) => s + v, 0) / perTeam.length : null;
+    cache.set(key, avg);
+    return avg;
+  }
+  function blendShareTier(perGame, weights, pastMatches, teams, team, playerName, statKey, cutoffDate) {
+    const weight = weights.share || 0;
+    if (!weight) return {
+      perGame,
+      shareTier: null
+    };
+    const share = shareRate(pastMatches, team, playerName, statKey, cutoffDate);
+    if (share === null) return {
+      perGame,
+      shareTier: null
+    };
+    const pace = leaguePacePerMap(pastMatches, teams, statKey, cutoffDate);
+    if (!pace) return {
+      perGame,
+      shareTier: null
+    };
+    const shareTier = share * pace;
+    return {
+      perGame: (1 - weight) * perGame + weight * shareTier,
+      shareTier,
+      sharePct: share
+    };
+  }
   function project(teams, pastMatches, player, team, opponentTeam, games, weights, statType) {
     const cfg = STAT_TYPES[statType];
     const refPatch = latestPatch(pastMatches, null);
@@ -2105,7 +2215,8 @@ try {
     } = applyCareerTier(recentFormRate, player, weights, cfg, null);
     const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, null);
     const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams) : 1;
-    const perGame = base * oppMult * kpMult;
+    const blended = blendShareTier(base * oppMult * kpMult, weights, pastMatches, teams, team, player.name, cfg.key, null);
+    const perGame = blended.perGame;
     return {
       base,
       recentFormRate,
@@ -2113,11 +2224,14 @@ try {
       careerWeight: weights.career,
       oppMult,
       kpMult,
+      shareTier: blended.shareTier,
+      sharePct: blended.sharePct,
+      shareWeight: weights.share || 0,
       perGame,
       total: perGame * games
     };
   }
-  const CS2_CAREER_DAY_HALF_LIFE = 60;
+  const CS2_CAREER_DAY_HALF_LIFE = 180;
   function pointInTimeCS2CareerRate(player, statKey, cutoffDate) {
     const games = player.career_games || [];
     const cutoffMs = cutoffDate ? new Date(cutoffDate).getTime() : Date.now();
@@ -2126,7 +2240,7 @@ try {
     let totalWeight = 0;
     let weighted = 0;
     for (const g of eligible) {
-      const daysAgo = Math.max(0, (cutoffMs - new Date(g.date).getTime()) / 86400000);
+      const daysAgo = Math.max(0, Math.floor((cutoffMs - new Date(g.date).getTime()) / 86400000));
       const weight = Math.pow(0.5, daysAgo / CS2_CAREER_DAY_HALF_LIFE);
       totalWeight += weight;
       weighted += (g[statKey] || 0) * weight;
@@ -2244,7 +2358,8 @@ try {
     } = applyCareerTier(recentFormRate, player, weights, cfg, cutoffDate);
     const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, cutoffDate);
     const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams) : 1;
-    const perGame = base * oppMult * kpMult;
+    const blendedPT = blendShareTier(base * oppMult * kpMult, weights, pastMatches, teams, team, player.name, cfg.key, cutoffDate);
+    const perGame = blendedPT.perGame;
     return {
       base,
       recentFormRate,
@@ -2252,6 +2367,9 @@ try {
       careerWeight: weights.career,
       oppMult,
       kpMult,
+      shareTier: blendedPT.shareTier,
+      sharePct: blendedPT.sharePct,
+      shareWeight: weights.share || 0,
       perGame,
       total: perGame * games,
       priorGames: pt.games
@@ -2265,7 +2383,8 @@ try {
         kp: 0.0,
         recencyHalfLife: 8,
         patchDiscount: 0.0,
-        career: 0.6
+        career: 0.6,
+        share: 0.0
       },
       deaths: {
         history: 0.8,
@@ -2273,7 +2392,8 @@ try {
         kp: 0.0,
         recencyHalfLife: 8,
         patchDiscount: 0.0,
-        career: 0.6
+        career: 0.6,
+        share: 0.0
       },
       assists: {
         history: 0.8,
@@ -2281,7 +2401,8 @@ try {
         kp: 0.0,
         recencyHalfLife: 8,
         patchDiscount: 0.0,
-        career: 0.6
+        career: 0.6,
+        share: 0.0
       }
     },
     valorant: {
@@ -2291,7 +2412,8 @@ try {
         kp: 0.0,
         recencyHalfLife: 8,
         patchDiscount: 0.0,
-        career: 0.0
+        career: 0.0,
+        share: 0.4
       },
       deaths: {
         history: 0.7,
@@ -2299,7 +2421,8 @@ try {
         kp: 0.0,
         recencyHalfLife: 6,
         patchDiscount: 0.3,
-        career: 0.0
+        career: 0.0,
+        share: 0.7
       },
       assists: {
         history: 0.4,
@@ -2307,7 +2430,8 @@ try {
         kp: 0.1,
         recencyHalfLife: 6,
         patchDiscount: 0.8,
-        career: 0.0
+        career: 0.0,
+        share: 0.4
       }
     },
     cs2: {
@@ -2317,7 +2441,8 @@ try {
         kp: 0.3,
         recencyHalfLife: 6,
         patchDiscount: 0.0,
-        career: 1.0
+        career: 1.0,
+        share: 0.0
       },
       deaths: {
         history: 0.0,
@@ -2325,7 +2450,8 @@ try {
         kp: 0.0,
         recencyHalfLife: 20,
         patchDiscount: 0.0,
-        career: 1.0
+        career: 1.0,
+        share: 0.6
       },
       assists: {
         history: 0.0,
@@ -2333,7 +2459,8 @@ try {
         kp: 0.1,
         recencyHalfLife: 20,
         patchDiscount: 0.0,
-        career: 1.0
+        career: 1.0,
+        share: 0.0
       }
     }
   };
@@ -2712,7 +2839,7 @@ try {
       style: {
         color: theme.text
       }
-    }, r.perGame.toFixed(2), " ", cfg.key, "/game"), " \xD7 ", games, "g"), React.createElement("div", null, "tracked history: ", trackedCount > 0 ? `${trackedCount} match${trackedCount === 1 ? "" : "es"} on record` : "none on record yet"), React.createElement("div", null, "prior split: ", p.hist ? `${p.hist[cfg.key].toFixed(1)} ${cfg.key}/g (${p.hist.g}g)` : "didn't play the preceding split")), consistency && React.createElement("div", {
+    }, r.perGame.toFixed(2), " ", cfg.key, "/game"), " \xD7 ", games, "g"), r.shareTier != null && r.shareWeight > 0 && React.createElement("div", null, Math.round(r.shareWeight * 100), "% from team share", r.sharePct != null && React.createElement(React.Fragment, null, " (", (r.sharePct * 100).toFixed(1), "% of team ", cfg.key, ")"), "\xA0\xB7\xA0 that estimate alone: ", r.shareTier.toFixed(2), " ", cfg.key, "/game"), React.createElement("div", null, "tracked history: ", trackedCount > 0 ? `${trackedCount} match${trackedCount === 1 ? "" : "es"} on record` : "none on record yet"), React.createElement("div", null, "prior split: ", p.hist ? `${p.hist[cfg.key].toFixed(1)} ${cfg.key}/g (${p.hist.g}g)` : "didn't play the preceding split")), consistency && React.createElement("div", {
       style: {
         marginTop: 8,
         paddingTop: 10,
@@ -3980,7 +4107,8 @@ try {
       kp: "KP",
       recencyHalfLife: "Recency",
       patchDiscount: "Patch",
-      career: "Career"
+      career: "Career",
+      share: "Team share"
     };
     return React.createElement("div", {
       style: {
@@ -4115,6 +4243,15 @@ try {
       step: 0.05,
       format: v => v === 0 ? "ignore patch" : `-${Math.round(v * 100)}% weight for matches on an older patch`,
       tooltip: "How much less a match counts if it was played on an older game patch than the one being projected for."
+    }), React.createElement(Slider, {
+      label: "Team-share weight",
+      value: weights.share || 0,
+      onChange: v => onChangeWeight("share", v),
+      min: 0,
+      max: 1,
+      step: 0.05,
+      format: v => v === 0 ? "off — player's own rate only" : `${Math.round(v * 100)}% from share of team total`,
+      tooltip: "Blends in a second estimate built the other way round: the player's share of their team's total, times how much a map in this league usually produces. It helps most on deaths, and is off for LoL, where the opponent adjustment already does this job."
     }), React.createElement(Slider, {
       label: "Career (gol.gg baseline) weight",
       value: weights.career,
