@@ -3010,6 +3010,17 @@ function ConsistencyCard({ row, rank, cfg }) {
    ============================================================ */
 const ACCURACY_SAMPLE = 25;
 
+/* The backtest headline: how far the projections landed from what players
+   actually did, over the most recent completed matches, each projection
+   built only from data that predated its own match.
+
+   The caption's second half is load-bearing rather than decorative. "Within
+   3 kills, 82%" reads like a claim about betting and is not one: a line is
+   usually within 3 too, and it carries a margin. Distance from the result
+   and performance against a price are different measurements, and only the
+   first is on this screen. props_history.jsonl and scripts/score_props.py
+   exist to make the second one sayable, and until they have a season behind
+   them this component must not imply it. */
 function AccuracySummary({ teams, pastMatches, weights, statType, isDesktop }) {
   const theme = useTheme();
   const cfg = STAT_TYPES[statType];
@@ -3069,9 +3080,16 @@ function AccuracySummary({ teams, pastMatches, weights, statType, isDesktop }) {
         ))}
       </div>
       <div style={{ flex: 1, minWidth: 190, fontSize: 11.5, color: theme.textFaint, lineHeight: 1.55 }}>
-        Measured against the last {summary.matches} completed {cfg.label.toLowerCase() === "kills" ? "matches" : "matches"} in this
+        Measured against the last {summary.matches} completed matches in this
         region — {summary.players.toLocaleString()} player projections, each made using only the data
         that existed before that match was played.
+        {" "}
+        <span style={{ opacity: 0.85 }}>
+          This is distance from the <em>result</em>, not performance against a <em>line</em>. A
+          projection can sit closer to the truth than the posted line and still lose money, because
+          the line is close too and is priced with a margin. Nothing here is a measured record
+          against the market.
+        </span>
       </div>
     </div>
   );

@@ -4690,7 +4690,11 @@ try {
         color: theme.textFaint,
         lineHeight: 1.55
       }
-    }, "Measured against the last ", summary.matches, " completed ", cfg.label.toLowerCase() === "kills" ? "matches" : "matches", " in this region \u2014 ", summary.players.toLocaleString(), " player projections, each made using only the data that existed before that match was played."));
+    }, "Measured against the last ", summary.matches, " completed matches in this region \u2014 ", summary.players.toLocaleString(), " player projections, each made using only the data that existed before that match was played.", " ", React.createElement("span", {
+      style: {
+        opacity: 0.85
+      }
+    }, "This is distance from the ", React.createElement("em", null, "result"), ", not performance against a ", React.createElement("em", null, "line"), ". A projection can sit closer to the truth than the posted line and still lose money, because the line is close too and is priced with a margin. Nothing here is a measured record against the market.")));
   }
   function FutureTab({
     teams,
