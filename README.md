@@ -195,7 +195,7 @@ numbers fail in distinguishable ways:
 | `0 raw` for *one* game | That game's league is posted under a name `GAMES` does not accept. League names are matched exactly, on purpose, so a season-long `LoLSZN` cannot be mistaken for `LoL`. Run `scripts/dev/inspect_props_payload.py` on the payload: it lists every league present and names the configured one that found nothing. |
 | `raw > 0`, `0 matched` | Parsing works, matching does not. The reasons underneath name which of the three — player, stat, map window — is off. |
 | `player not on any roster`, a handful | Normal. The provider posts players from leagues this app does not track. |
-| `player not on any roster`, nearly all | The handles stopped lining up, usually a roster file that failed to scrape. |
+| `player not on any roster`, nearly all | Two very different things, and the funnel cannot tell them apart. Either a roster file scraped badly, or the slate is a league this repo does not track — LoL covers LCS, LEC, LCK, LPL, LCP, CBLOL and TCL, so a board of European regional teams (LFL, Superliga, Prime League) matches nothing and correctly shows no lines. Run the inspector with `--names`: you will either recognise the players immediately or not. |
 | `map window not stated` | Lines posted as `Kills (Combo)`. Refused on purpose — see the map window note above. |
 
 **The map window comes off the line itself.** A fixture is a Bo1, Bo3 or
@@ -218,6 +218,15 @@ wrong edge rather than a missing one:
   disagree about the sign of the edge, so `odds_type` picks the market line
   where the provider states it, and where it does not the readout shows the
   line with a count and no edge rather than guessing.
+
+When a game reports nothing, `--names` is the fastest way to find out why:
+
+```bash
+python scripts/dev/inspect_props_payload.py lol.json cs2.json val.json --names 12
+```
+
+It prints the leagues present, the stat labels bucketed by where each lands
+in the funnel, the provider's league ids, and who is actually on the board.
 
 Once `props.json` is written, the committed file is checked by the test suite
 like every other served file, so `pytest` catches a hand-made one with the
