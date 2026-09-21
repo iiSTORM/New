@@ -563,6 +563,48 @@ try {
     if (typeof prop.maps !== "number" || prop.maps <= 0) return null;
     return breakdown.perGame * prop.maps;
   }
+  function collectEdges(regionsData, regionList, propsData, weights, statType, game) {
+    const rows = [];
+    for (const regionKey of regionList || []) {
+      const rd = regionsData && regionsData[regionKey];
+      if (!rd || !rd.teams) continue;
+      const pastMatches = rd.past_matches || [];
+      for (const match of rd.upcoming_matches || []) {
+        if (!rd.teams[match.teamA] || !rd.teams[match.teamB]) continue;
+        const when = match._sortKey || match.date;
+        for (const team of [match.teamA, match.teamB]) {
+          const opponent = team === match.teamA ? match.teamB : match.teamA;
+          for (const player of likelyStarters(rd.teams[team].players || [])) {
+            const prop = propFor(propsData, game, player.name, statType, when);
+            if (!prop) continue;
+            const breakdown = project(rd.teams, pastMatches, player, team, opponent, prop.maps, weights, statType);
+            const projection = projectionOverWindow(breakdown, prop);
+            if (projection === null) continue;
+            rows.push({
+              region: regionKey,
+              name: player.name,
+              role: player.role,
+              team,
+              opponent,
+              when,
+              prop,
+              projection,
+              breakdown,
+              edge: prop.lineCount > 1 ? null : projection - prop.line
+            });
+          }
+        }
+      }
+    }
+    return rankEdges(rows);
+  }
+  function rankEdges(rows) {
+    return [...rows].sort((a, b) => {
+      if (a.edge === null !== (b.edge === null)) return a.edge === null ? 1 : -1;
+      if (a.edge === null) return 0;
+      return Math.abs(b.edge) - Math.abs(a.edge);
+    });
+  }
   function propsAgeMinutes(propsData) {
     if (!propsData || !propsData.fetched_at) return null;
     const then = new Date(propsData.fetched_at);
@@ -2955,6 +2997,218 @@ try {
       region: teamRegion[team]
     })).sort((a, b) => b.rating - a.rating);
   }
+  function EdgeRow({
+    row,
+    theme,
+    cfg,
+    fresh,
+    ageMinutes,
+    isDesktop
+  }) {
+    const {
+      prop,
+      projection,
+      edge
+    } = row;
+    const mapWindow = mapWindowLabel(prop.maps);
+    const ambiguous = edge === null;
+    const tone = ambiguous || !fresh ? theme.textFaint : edge > 0 ? theme.good : edge < 0 ? theme.bad : theme.textDim;
+    const when = row.when ? new Date(row.when) : null;
+    const clock = when && !isNaN(when) ? when.toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit"
+    }) : "";
+    return React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: "11px 14px",
+        borderBottom: `1px solid ${theme.steel}`
+      }
+    }, React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "baseline",
+        gap: 8,
+        flexWrap: "wrap"
+      }
+    }, React.createElement("span", {
+      style: {
+        fontWeight: 600,
+        fontSize: 14,
+        color: theme.text
+      }
+    }, row.name), row.role && React.createElement("span", {
+      style: {
+        fontSize: 10,
+        color: theme.textFaint,
+        textTransform: "uppercase",
+        letterSpacing: 0.5
+      }
+    }, row.role)), React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: theme.textFaint,
+        marginTop: 3,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap"
+      }
+    }, row.team, " vs ", row.opponent, clock ? ` · ${clock}` : "")), isDesktop && React.createElement("div", {
+      style: {
+        textAlign: "right",
+        minWidth: 58
+      }
+    }, React.createElement("div", {
+      className: "kp-num",
+      style: {
+        fontSize: 13,
+        color: theme.textDim
+      }
+    }, projection.toFixed(1)), React.createElement("div", {
+      style: {
+        fontSize: 9,
+        letterSpacing: 0.6,
+        textTransform: "uppercase",
+        color: theme.textFaint,
+        marginTop: 2
+      }
+    }, "proj")), React.createElement("div", {
+      style: {
+        textAlign: "right",
+        minWidth: 52
+      }
+    }, React.createElement("div", {
+      className: "kp-num",
+      style: {
+        fontSize: 14,
+        fontWeight: 600,
+        color: theme.text
+      }
+    }, prop.line), React.createElement("div", {
+      style: {
+        fontSize: 9,
+        letterSpacing: 0.6,
+        textTransform: "uppercase",
+        color: theme.textFaint,
+        marginTop: 2
+      }
+    }, "line")), React.createElement("div", {
+      style: {
+        textAlign: "right",
+        minWidth: 72
+      }
+    }, React.createElement("div", {
+      className: "kp-num",
+      style: {
+        fontSize: 15,
+        fontWeight: 700,
+        color: tone
+      }
+    }, ambiguous ? `${prop.lineCount} lines` : !fresh ? `${Math.round(ageMinutes)}m old` : `${edge > 0 ? "OVER +" : edge < 0 ? "UNDER " : ""}${edge === 0 ? "0.0" : Math.abs(edge).toFixed(1)}`), React.createElement("div", {
+      style: {
+        fontSize: 9,
+        letterSpacing: 0.6,
+        textTransform: "uppercase",
+        color: theme.textFaint,
+        marginTop: 2
+      }
+    }, mapWindow)));
+  }
+  function EdgesTab({
+    regionsData,
+    regionList,
+    regionLabels,
+    weights,
+    statType,
+    game,
+    isDesktop
+  }) {
+    const theme = useTheme();
+    const propsData = useProps();
+    const fresh = propsAreFresh(propsData);
+    const ageMinutes = propsAgeMinutes(propsData);
+    const cfg = STAT_TYPES[statType];
+    const rows = collectEdges(regionsData, regionList, propsData, weights, statType, game);
+    const note = text => React.createElement("div", {
+      style: {
+        background: theme.graphite,
+        border: `1px solid ${theme.steel}`,
+        ...cardShape(theme.cornerStyle),
+        ...elevation(),
+        padding: "18px 20px",
+        fontSize: 12.5,
+        color: theme.textFaint,
+        lineHeight: 1.6
+      }
+    }, text);
+    if (!propsData) {
+      return note(React.createElement(React.Fragment, null, "No lines loaded. ", React.createElement("code", null, "props.json"), " is produced by ", React.createElement("code", null, "scripts/scrape_props.py"), " from a payload saved out of a browser \u2014 see \u201CProp lines\u201D in the README. The projections on the other tabs do not depend on it."));
+    }
+    if (!rows.length) {
+      return note(React.createElement(React.Fragment, null, "Lines are loaded, but none of them belong to a player in an upcoming ", cfg.label.toLowerCase(), " fixture this app tracks. That is usually the board being a league outside the tracked regions rather than anything broken \u2014 ", React.createElement("code", null, "scripts/dev/inspect_props_payload.py --names"), " says which."));
+    }
+    const withEdge = rows.filter(r => r.edge !== null);
+    const best = withEdge.length ? Math.abs(withEdge[0].edge) : 0;
+    return React.createElement("div", null, React.createElement("div", {
+      style: {
+        background: theme.graphite,
+        border: `1px solid ${theme.steel}`,
+        ...cardShape(theme.cornerStyle),
+        ...elevation(),
+        overflow: "hidden"
+      }
+    }, React.createElement("div", {
+      style: {
+        padding: "13px 16px",
+        borderBottom: `1px solid ${theme.steel}`,
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        flexWrap: "wrap"
+      }
+    }, React.createElement("span", {
+      style: {
+        fontSize: 13,
+        fontWeight: 600,
+        color: theme.text
+      }
+    }, rows.length, " posted ", rows.length === 1 ? "line" : "lines"), React.createElement("span", {
+      style: {
+        fontSize: 11.5,
+        color: theme.textFaint
+      }
+    }, "ranked by edge size \xB7 biggest ", best.toFixed(1)), !fresh && React.createElement("span", {
+      style: {
+        fontSize: 11,
+        color: theme.bad,
+        marginLeft: "auto"
+      }
+    }, Math.round(ageMinutes), " min old \u2014 past the ", PROPS_MAX_AGE_MINUTES, "-minute window, so no edges are drawn")), rows.map((row, i) => React.createElement(EdgeRow, {
+      key: `${row.game}-${row.name}-${row.team}-${i}`,
+      row: row,
+      theme: theme,
+      cfg: cfg,
+      fresh: fresh,
+      ageMinutes: ageMinutes,
+      isDesktop: isDesktop
+    }))), React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: theme.textFaint,
+        marginTop: 10,
+        lineHeight: 1.6
+      }
+    }, "Edge is the projection minus the line, over the line\u2019s own map window. It is a model disagreeing with a market, not a prediction of the result \u2014 and the model is the same one the accuracy figures on the Future tab describe."));
+  }
   function StandingsTab({
     teams,
     pastMatches,
@@ -5187,7 +5441,7 @@ try {
     setStatType,
     isDesktop
   }) {
-    const TABS = [["future", "Future"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
+    const TABS = [["future", "Future"], ["edges", "Edges"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
     return React.createElement("div", {
       style: {
         marginBottom: isDesktop ? 22 : 14
@@ -5849,6 +6103,14 @@ try {
       isDesktop: isDesktop,
       games: games,
       game: game
+    }) : tab === "edges" ? React.createElement(EdgesTab, {
+      regionsData: regionsData,
+      regionList: gameCfg.regionList,
+      regionLabels: gameCfg.regionLabels,
+      weights: weights,
+      statType: statType,
+      game: game,
+      isDesktop: isDesktop
     }) : tab === "past" ? React.createElement(PastResultsTab, {
       teams: current.teams,
       pastMatches: current.past_matches || [],

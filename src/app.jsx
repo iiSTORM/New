@@ -370,6 +370,63 @@ function projectionOverWindow(breakdown, prop) {
   return breakdown.perGame * prop.maps;
 }
 
+/* Every posted line for this game, with the projection that belongs beside
+   it, across every region at once.
+
+   The match cards are the wrong shape for the question this app exists to
+   answer. A real board had 48 CS2 fixtures of which 12 rendered and 5 held
+   a line, so finding the bets meant opening cards one at a time and mostly
+   finding nothing. The lines are the scarce thing, not the fixtures, so
+   this lists those instead and lets the fixtures follow from them.
+
+   Ranked by the SIZE of the edge, not its sign: a line four kills below the
+   projection and one four above are equally interesting, they just point in
+   opposite directions, and burying the unders at the bottom of a list would
+   hide half the board. */
+function collectEdges(regionsData, regionList, propsData, weights, statType, game) {
+  const rows = [];
+  for (const regionKey of regionList || []) {
+    const rd = regionsData && regionsData[regionKey];
+    if (!rd || !rd.teams) continue;
+    const pastMatches = rd.past_matches || [];
+    for (const match of rd.upcoming_matches || []) {
+      if (!rd.teams[match.teamA] || !rd.teams[match.teamB]) continue;
+      // _sortKey first, for the same reason the match card needs it: `date`
+      // may already have been replaced by a display string.
+      const when = match._sortKey || match.date;
+      for (const team of [match.teamA, match.teamB]) {
+        const opponent = team === match.teamA ? match.teamB : match.teamA;
+        for (const player of likelyStarters(rd.teams[team].players || [])) {
+          const prop = propFor(propsData, game, player.name, statType, when);
+          if (!prop) continue;
+          // Projected over the LINE's window, which is the fixture's, and
+          // not over whatever the games-in-series control happens to show.
+          const breakdown = project(rd.teams, pastMatches, player, team,
+                                    opponent, prop.maps, weights, statType);
+          const projection = projectionOverWindow(breakdown, prop);
+          if (projection === null) continue;
+          rows.push({
+            region: regionKey, name: player.name, role: player.role,
+            team, opponent, when, prop, projection, breakdown,
+            // No edge where the provider posted several lines and named
+            // none of them the market one — same refusal as the readout.
+            edge: prop.lineCount > 1 ? null : projection - prop.line,
+          });
+        }
+      }
+    }
+  }
+  return rankEdges(rows);
+}
+
+function rankEdges(rows) {
+  return [...rows].sort((a, b) => {
+    if ((a.edge === null) !== (b.edge === null)) return a.edge === null ? 1 : -1;
+    if (a.edge === null) return 0;
+    return Math.abs(b.edge) - Math.abs(a.edge);
+  });
+}
+
 function propsAgeMinutes(propsData) {
   if (!propsData || !propsData.fetched_at) return null;
   const then = new Date(propsData.fetched_at);
@@ -1991,6 +2048,116 @@ function computeEloRatings(regionsData, regionList, kFactor = 32) {
     .sort((a, b) => b.rating - a.rating);
 }
 
+function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop }) {
+  const { prop, projection, edge } = row;
+  const mapWindow = mapWindowLabel(prop.maps);
+  const ambiguous = edge === null;
+  const tone = ambiguous || !fresh ? theme.textFaint
+    : edge > 0 ? theme.good : edge < 0 ? theme.bad : theme.textDim;
+  const when = row.when ? new Date(row.when) : null;
+  const clock = when && !isNaN(when)
+    ? when.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })
+    : "";
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 14px",
+                  borderBottom: `1px solid ${theme.steel}` }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+          <span style={{ fontWeight: 600, fontSize: 14, color: theme.text }}>{row.name}</span>
+          {row.role && <span style={{ fontSize: 10, color: theme.textFaint, textTransform: "uppercase", letterSpacing: 0.5 }}>{row.role}</span>}
+        </div>
+        <div style={{ fontSize: 11, color: theme.textFaint, marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {row.team} vs {row.opponent}{clock ? ` · ${clock}` : ""}
+        </div>
+      </div>
+
+      {isDesktop && (
+        <div style={{ textAlign: "right", minWidth: 58 }}>
+          <div className="kp-num" style={{ fontSize: 13, color: theme.textDim }}>{projection.toFixed(1)}</div>
+          <div style={{ fontSize: 9, letterSpacing: 0.6, textTransform: "uppercase", color: theme.textFaint, marginTop: 2 }}>proj</div>
+        </div>
+      )}
+      <div style={{ textAlign: "right", minWidth: 52 }}>
+        <div className="kp-num" style={{ fontSize: 14, fontWeight: 600, color: theme.text }}>{prop.line}</div>
+        <div style={{ fontSize: 9, letterSpacing: 0.6, textTransform: "uppercase", color: theme.textFaint, marginTop: 2 }}>line</div>
+      </div>
+      <div style={{ textAlign: "right", minWidth: 72 }}>
+        <div className="kp-num" style={{ fontSize: 15, fontWeight: 700, color: tone }}>
+          {ambiguous ? `${prop.lineCount} lines`
+            : !fresh ? `${Math.round(ageMinutes)}m old`
+            : `${edge > 0 ? "OVER +" : edge < 0 ? "UNDER " : ""}${edge === 0 ? "0.0" : Math.abs(edge).toFixed(1)}`}
+        </div>
+        <div style={{ fontSize: 9, letterSpacing: 0.6, textTransform: "uppercase", color: theme.textFaint, marginTop: 2 }}>
+          {mapWindow}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* The board, ranked. See collectEdges for why this view exists at all. */
+function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, game, isDesktop }) {
+  const theme = useTheme();
+  const propsData = useProps();
+  const fresh = propsAreFresh(propsData);
+  const ageMinutes = propsAgeMinutes(propsData);
+  const cfg = STAT_TYPES[statType];
+  const rows = collectEdges(regionsData, regionList, propsData, weights, statType, game);
+
+  const note = (text) => (
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+                  ...elevation(), padding: "18px 20px", fontSize: 12.5, color: theme.textFaint, lineHeight: 1.6 }}>
+      {text}
+    </div>
+  );
+
+  if (!propsData) {
+    return note(<>No lines loaded. <code>props.json</code> is produced by <code>scripts/scrape_props.py</code> from a
+      payload saved out of a browser — see “Prop lines” in the README. The projections on the other tabs do not
+      depend on it.</>);
+  }
+  if (!rows.length) {
+    return note(<>Lines are loaded, but none of them belong to a player in an upcoming {cfg.label.toLowerCase()} fixture
+      this app tracks. That is usually the board being a league outside the tracked regions rather than anything
+      broken — <code>scripts/dev/inspect_props_payload.py --names</code> says which.</>);
+  }
+
+  const withEdge = rows.filter((r) => r.edge !== null);
+  const best = withEdge.length ? Math.abs(withEdge[0].edge) : 0;
+
+  return (
+    <div>
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+                    ...elevation(), overflow: "hidden" }}>
+        <div style={{ padding: "13px 16px", borderBottom: `1px solid ${theme.steel}`,
+                      display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>
+            {rows.length} posted {rows.length === 1 ? "line" : "lines"}
+          </span>
+          <span style={{ fontSize: 11.5, color: theme.textFaint }}>
+            ranked by edge size · biggest {best.toFixed(1)}
+          </span>
+          {!fresh && (
+            <span style={{ fontSize: 11, color: theme.bad, marginLeft: "auto" }}>
+              {Math.round(ageMinutes)} min old — past the {PROPS_MAX_AGE_MINUTES}-minute window, so no edges are drawn
+            </span>
+          )}
+        </div>
+        {rows.map((row, i) => (
+          <EdgeRow key={`${row.game}-${row.name}-${row.team}-${i}`} row={row} theme={theme} cfg={cfg}
+                   fresh={fresh} ageMinutes={ageMinutes} isDesktop={isDesktop} />
+        ))}
+      </div>
+      <div style={{ fontSize: 11, color: theme.textFaint, marginTop: 10, lineHeight: 1.6 }}>
+        Edge is the projection minus the line, over the line’s own map window. It is a model disagreeing with a
+        market, not a prediction of the result — and the model is the same one the accuracy figures on the Future
+        tab describe.
+      </div>
+    </div>
+  );
+}
+
 function StandingsTab({ teams, pastMatches, upcomingMatches, regionsData, regionList, regionLabels, isDesktop }) {
   const theme = useTheme();
   const standings = computeStandings(teams, pastMatches);
@@ -3424,7 +3591,7 @@ function GameSwitcher({ game, selectGame, statusByGame, theme }) {
    stack on small screens (still bigger/clearer than the old treatment). ---------- */
 
 function TopNav({ theme, gameCfg, region, setRegion, tab, setTab, statType, setStatType, isDesktop }) {
-  const TABS = [["future", "Future"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
+  const TABS = [["future", "Future"], ["edges", "Edges"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
   return (
     <div style={{ marginBottom: isDesktop ? 22 : 14 }}>
       {/* Region picker. Seven regions wrapped onto two rows on a phone,
@@ -4014,6 +4181,9 @@ function KillProjector() {
                 )}
                 {tab === "future" ? (
               <FutureTab teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} isDesktop={isDesktop} games={games} game={game} />
+            ) : tab === "edges" ? (
+              <EdgesTab regionsData={regionsData} regionList={gameCfg.regionList} regionLabels={gameCfg.regionLabels}
+                        weights={weights} statType={statType} game={game} isDesktop={isDesktop} />
             ) : tab === "past" ? (
               <PastResultsTab teams={current.teams} pastMatches={current.past_matches || []} weights={weights} statType={statType} isDesktop={isDesktop} />
             ) : tab === "consistency" ? (

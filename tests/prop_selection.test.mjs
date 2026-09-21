@@ -141,6 +141,56 @@ check("the display string matches nothing — this is the bug",
 check("_sortKey is what the card must pass",
       propFor(atTen, "lol", "Faker", "kills", shaped._sortKey).line, 30.5);
 
+// The Edges view: every posted line for a game, ranked. The component is
+// JSX and cannot be rendered here, but everything that decides WHAT it shows
+// and IN WHAT ORDER is pure, so that part is tested against the real data
+// files with a stubbed projection.
+function extract(name) {
+  // Brace-matched rather than "up to the next function", because top-level
+  // consts sit between some of these and would come along for the ride.
+  const start = src.indexOf(`function ${name}(`);
+  if (start < 0) throw new Error(`no function ${name} in src/app.jsx`);
+  let depth = 0, seen = false;
+  for (let i = src.indexOf("{", start); i < src.length; i++) {
+    if (src[i] === "{") { depth++; seen = true; }
+    else if (src[i] === "}") { depth--; if (seen && depth === 0) return src.slice(start, i + 1); }
+  }
+  throw new Error(`unbalanced braces reading ${name}`);
+}
+const PER_MAP = 12;   // a flat per-map rate, so edges are arithmetic we control
+const collectEdges = new Function(`
+  ${extract("likelyStarters")}
+  function project() { return { perGame: ${PER_MAP} }; }
+  ${slice}
+  return collectEdges;
+`)();
+const rankEdges = new Function(slice + "\nreturn rankEdges;")();
+
+check("ranked by edge SIZE, so a big under outranks a small over",
+      rankEdges([{ edge: 0.4 }, { edge: -7.1 }, { edge: 2.2 }]).map((r) => r.edge),
+      [-7.1, 2.2, 0.4]);
+check("lines with no usable edge sort to the bottom",
+      rankEdges([{ edge: null }, { edge: 0.1 }, { edge: null }, { edge: -5 }])
+        .map((r) => r.edge), [-5, 0.1, null, null]);
+check("an empty board is not an error", rankEdges([]).length, 0);
+
+const cs2 = JSON.parse(fs.readFileSync(path.join(root, "cs2_data.json"), "utf8"));
+const realProps = fs.existsSync(realPathEarly()) ? JSON.parse(fs.readFileSync(realPathEarly(), "utf8")) : null;
+function realPathEarly() { return path.join(root, "props.json"); }
+if (realProps) {
+  const edges = collectEdges(cs2.regions, Object.keys(cs2.regions), realProps, {}, "kills", "cs2");
+  check("finds the real board's lines", edges.length > 0, true);
+  const sizes = edges.filter((e) => e.edge !== null).map((e) => Math.abs(e.edge));
+  check("and returns them largest-edge first",
+        sizes.every((v, i) => i === 0 || sizes[i - 1] >= v), true);
+  check("every row is projected over its own line's window",
+        edges.every((e) => Math.abs(e.projection - PER_MAP * e.prop.maps) < 1e-9), true);
+  check("every row carries the fixture it belongs to",
+        edges.every((e) => e.team && e.opponent && e.team !== e.opponent), true);
+  check("no row is a combo", edges.every((e) => e.prop.maps > 0), true);
+  console.log(`(Edges view would list ${edges.length} lines from the committed props.json)`);
+}
+
 // The committed props.json, when there is one: the same rules against a
 // real payload rather than a constructed one.
 const realPath = path.join(root, "props.json");
