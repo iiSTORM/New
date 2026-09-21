@@ -1,0 +1,81 @@
+name: Grade posted lines
+
+# Grades props_history.jsonl against completed matches and commits the
+# result, so the record builds itself.
+#
+# This runs the SAME grader the command line uses rather than a second
+# implementation in the frontend. The app needs one thing this cannot give
+# it -- the projection as it stood before the match, which only the model
+# can produce -- but everything else (which match a line belonged to, what
+# the player did over exactly that line's maps, whether it landed over)
+# is one piece of logic with one set of tests, and it stays that way.
+#
+# Triggered by the data landing rather than on a clock: a line becomes
+# gradeable the moment its match appears in a scraped file, and that is
+# exactly when those files are pushed.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "props_history.jsonl"
+      - "data.json"
+      - "cs2_data.json"
+      - "valorant_data.json"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+# A grading run pushes a commit, and that commit must not start another.
+# props_results.json is deliberately absent from the paths above, but the
+# concurrency group is the belt to that's braces.
+concurrency:
+  group: grade
+  cancel-in-progress: true
+
+jobs:
+  grade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Grade
+        run: |
+          python scripts/score_props.py --json props_results.json | tee grade.log
+
+      - name: Commit the record
+        run: |
+          git config user.name "esports-data-bot"
+          git config user.email "actions@github.com"
+          if [ ! -f props_results.json ]; then
+            echo "Nothing graded this run — no history yet, or no matches completed."
+            exit 0
+          fi
+          git add props_results.json
+          if git diff --quiet --cached; then
+            echo "No change in the graded record since the last run"
+            exit 0
+          fi
+          git commit -m "Grade prop lines $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          # Same reset-and-reapply the other jobs use: this file is
+          # regenerated end to end, so on a push rejection the freshest
+          # version simply wins rather than attempting a line-level merge.
+          for i in 1 2 3; do
+            git push && exit 0
+            echo "Push rejected ($i/3) — resetting to latest remote and regrading..."
+            git fetch origin main
+            git reset --hard origin/main
+            python scripts/score_props.py --json props_results.json
+            git add props_results.json
+            if git diff --quiet --cached; then
+              echo "Remote already has this record"
+              exit 0
+            fi
+            git commit -m "Grade prop lines $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            sleep $((RANDOM % 5 + 1))
+          done
+          git push
