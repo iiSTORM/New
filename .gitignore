@@ -38,6 +38,14 @@ payload.json
 projections.json
 *_payload.json
 props_raw*.json
+# The per-league filenames the README's three bookmarks lead to. Named
+# individually rather than by a glob, so the committed data files next to
+# them (data.json, cs2_data.json, valorant_data.json, props.json) cannot
+# be caught by accident.
+lol.json
+cs2.json
+val.json
+valorant.json
 
 # NOTE: the generated data files are deliberately NOT ignored.
 # data.json, cs2_data.json, valorant_data.json, career_data.json,

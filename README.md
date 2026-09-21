@@ -166,6 +166,31 @@ python scripts/scrape_props.py --fixture f.json   # parse a saved payload offlin
 python scripts/scrape_props.py --fixture -        # ...or piped in from stdin
 ```
 
+### The refresh, start to finish
+
+Lines are good for 90 minutes. To replace them:
+
+1. Open the three bookmarks above and save each one (Ctrl-S) as `lol.json`,
+   `cs2.json`, `val.json`.
+2. Get them next to the repo. In a Codespace or a remote VS Code window that
+   means dragging them into the file explorer — the browser saved them to
+   your own disk, which is not the one the command runs on.
+3. From the repo, on `main`:
+
+```bash
+git pull
+python scripts/scrape_props.py --fixture lol.json cs2.json val.json --out props.json
+git add props.json && git commit -m "Update prop lines" && git push
+```
+
+4. Hard-refresh the app (Ctrl-Shift-R). Lines appear on the **Edges** tab,
+   ranked, and beside each player on an expanded match card.
+
+Read the funnel before step 3's commit — it is printed whether or not you
+asked for a dry run, and `0 matched` for a game is worth understanding
+before pushing rather than after. The payload filenames are in
+`.gitignore`, so only `props.json` is ever committed.
+
 ### Checking it worked
 
 The provider is unreachable from CI and from any hosted shell, so the pipeline
