@@ -573,12 +573,44 @@ try {
     if (typeof prop.maps !== "number" || prop.maps <= 0) return null;
     return breakdown.perGame * prop.maps;
   }
+  function historyPoolFor(regionsData, regionKey) {
+    const rd = regionsData && regionsData[regionKey];
+    if (!rd) return [];
+    const own = rd.past_matches || [];
+    if (own.length > 0 || !rd.rosters_from_home_regions) return own;
+    const wanted = new Set(Object.keys(rd.teams || {}));
+    if (wanted.size === 0) return own;
+    const seen = new Set();
+    const pool = [];
+    for (const [key, other] of Object.entries(regionsData)) {
+      if (key === regionKey) continue;
+      for (const m of other && other.past_matches || []) {
+        if (!wanted.has(m.teamA) && !wanted.has(m.teamB)) continue;
+        const id = `${m.date || ""}|${m.teamA}|${m.teamB}`;
+        if (seen.has(id)) continue;
+        seen.add(id);
+        pool.push(m);
+      }
+    }
+    return pool;
+  }
+  const historyPoolCache = new WeakMap();
+  function historyPool(regionsData, regionKey) {
+    if (!regionsData || typeof regionsData !== "object") return [];
+    let byRegion = historyPoolCache.get(regionsData);
+    if (!byRegion) {
+      byRegion = new Map();
+      historyPoolCache.set(regionsData, byRegion);
+    }
+    if (!byRegion.has(regionKey)) byRegion.set(regionKey, historyPoolFor(regionsData, regionKey));
+    return byRegion.get(regionKey);
+  }
   function collectEdges(regionsData, regionList, propsData, weights, statType, game) {
     const rows = [];
     for (const regionKey of regionList || []) {
       const rd = regionsData && regionsData[regionKey];
       if (!rd || !rd.teams) continue;
-      const pastMatches = rd.past_matches || [];
+      const pastMatches = historyPool(regionsData, regionKey);
       for (const match of rd.upcoming_matches || []) {
         if (!rd.teams[match.teamA] && !rd.teams[match.teamB]) continue;
         const when = match._sortKey || match.date;
@@ -628,7 +660,7 @@ try {
         const rd = regionsData && regionsData[key];
         if (rd && rd.teams && rd.teams[row.team]) {
           teams = rd.teams;
-          pastMatches = rd.past_matches || [];
+          pastMatches = historyPool(regionsData, key);
           break;
         }
       }
@@ -4845,7 +4877,8 @@ try {
     pastMatches,
     weights,
     statType,
-    isDesktop
+    isDesktop,
+    borrowedHistory = false
   }) {
     const theme = useTheme();
     const cfg = STAT_TYPES[statType];
@@ -4924,7 +4957,7 @@ try {
         color: theme.textFaint,
         lineHeight: 1.55
       }
-    }, "Measured against the last ", summary.matches, " completed matches in this region \u2014 ", summary.players.toLocaleString(), " player projections, each made using only the data that existed before that match was played.", " ", React.createElement("span", {
+    }, "Measured against the last ", summary.matches, " completed matches", borrowedHistory ? " these teams played in their home regions" : " in this region", " \u2014 ", summary.players.toLocaleString(), " player projections, each made using only the data that existed before that match was played.", " ", React.createElement("span", {
       style: {
         opacity: 0.85
       }
@@ -6099,6 +6132,8 @@ try {
       past_matches: [],
       upcoming_matches: []
     };
+    const history = historyPool(regionsData, region);
+    const historyIsBorrowed = history.length > 0 && (current.past_matches || []).length === 0;
     const hasData = Object.keys(current.teams || {}).length > 0;
     const normalizedUpcoming = formatUpcoming(current.upcoming_matches || []);
     const selectGame = id => {
@@ -6329,13 +6364,14 @@ try {
       }
     }, statusByGame[game] === "live" || statusByGame[game] === "loading" ? "This region may not have loaded from the live source — try refresh above." : "The live source hasn't loaded, and there's no offline snapshot for this region yet.")) : React.createElement(React.Fragment, null, (tab === "future" || tab === "past") && React.createElement(AccuracySummary, {
       teams: current.teams,
-      pastMatches: current.past_matches || [],
+      pastMatches: history,
+      borrowedHistory: historyIsBorrowed,
       weights: weights,
       statType: statType,
       isDesktop: isDesktop
     }), tab === "future" ? React.createElement(FutureTab, {
       teams: current.teams,
-      pastMatches: current.past_matches || [],
+      pastMatches: history,
       upcomingMatches: normalizedUpcoming,
       weights: weights,
       statType: statType,
@@ -6364,7 +6400,7 @@ try {
       isDesktop: isDesktop
     }) : tab === "consistency" ? React.createElement(ConsistencyTab, {
       teams: current.teams,
-      pastMatches: current.past_matches || [],
+      pastMatches: history,
       statType: statType,
       isDesktop: isDesktop
     }) : React.createElement(StandingsTab, {

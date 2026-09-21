@@ -399,12 +399,79 @@ function projectionOverWindow(breakdown, prop) {
    projection and one four above are equally interesting, they just point in
    opposite directions, and burying the unders at the bottom of a list would
    hide half the board. */
+/* The matches a region's players actually have on record, which is not
+   always the same list as the matches that region has played.
+
+   An event like VCT Champions arrives before it starts: fixtures and
+   rosters, zero completed matches. The rosters are already borrowed from
+   the teams' home regions (scrape_valorant.py's
+   lend_rosters_to_eventless_regions, which sets rosters_from_home_regions),
+   so the players are real and their history is real — it is just filed
+   one region over. Without it every Champions player rendered with no
+   form chart, no consistency score, and a projection that fell back to a
+   flat season average because recencyWeightedRate found nothing to weight.
+
+   Borrowing is deliberately narrow, because the failure mode on the other
+   side is silently double-counting a league:
+
+     - only when the region declares rosters_from_home_regions, and
+     - only when it has no completed matches of its own. The moment the
+       event plays its first match this returns the region's own list and
+       the borrowed history drops out, rather than the two being mixed.
+
+   Matches are keyed on date + teams so a meeting between two teams that
+   share a home region cannot arrive twice.
+
+   This is history, not results. Standings and the Past Results tab keep
+   reading the region's own past_matches, because "what has happened at
+   Champions" is genuinely nothing yet and showing four other leagues
+   under that heading would be a lie rather than a gap. */
+function historyPoolFor(regionsData, regionKey) {
+  const rd = regionsData && regionsData[regionKey];
+  if (!rd) return [];
+  const own = rd.past_matches || [];
+  if (own.length > 0 || !rd.rosters_from_home_regions) return own;
+
+  const wanted = new Set(Object.keys(rd.teams || {}));
+  if (wanted.size === 0) return own;
+  const seen = new Set();
+  const pool = [];
+  for (const [key, other] of Object.entries(regionsData)) {
+    if (key === regionKey) continue;
+    for (const m of (other && other.past_matches) || []) {
+      if (!wanted.has(m.teamA) && !wanted.has(m.teamB)) continue;
+      const id = `${m.date || ""}|${m.teamA}|${m.teamB}`;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      pool.push(m);
+    }
+  }
+  return pool;
+}
+
+/* Recomputing the pool per player per render would rescan every region's
+   whole season each time. Keyed on the regionsData object, which is
+   replaced wholesale when a fetch lands, so a stale entry cannot outlive
+   the data it was built from. */
+const historyPoolCache = new WeakMap();
+function historyPool(regionsData, regionKey) {
+  if (!regionsData || typeof regionsData !== "object") return [];
+  let byRegion = historyPoolCache.get(regionsData);
+  if (!byRegion) { byRegion = new Map(); historyPoolCache.set(regionsData, byRegion); }
+  if (!byRegion.has(regionKey)) byRegion.set(regionKey, historyPoolFor(regionsData, regionKey));
+  return byRegion.get(regionKey);
+}
+
 function collectEdges(regionsData, regionList, propsData, weights, statType, game) {
   const rows = [];
   for (const regionKey of regionList || []) {
     const rd = regionsData && regionsData[regionKey];
     if (!rd || !rd.teams) continue;
-    const pastMatches = rd.past_matches || [];
+    // The pool, not rd.past_matches: a borrowed-roster region would
+    // otherwise project every player off a flat season average here while
+    // the match card beside it used their real history, and two different
+    // numbers for one player is worse than either number alone.
+    const pastMatches = historyPool(regionsData, regionKey);
     for (const match of rd.upcoming_matches || []) {
       // Only the player's OWN team has to be rostered. The opponent is
       // needed for one term, which now falls back to neutral, and a line
@@ -473,7 +540,7 @@ function modelRecord(regionsData, regionList, results, weights, statType) {
       const rd = regionsData && regionsData[key];
       if (rd && rd.teams && rd.teams[row.team]) {
         teams = rd.teams;
-        pastMatches = rd.past_matches || [];
+        pastMatches = historyPool(regionsData, key);  // same pool the Edges tab projects from
         break;
       }
     }
@@ -3355,7 +3422,7 @@ const ACCURACY_SAMPLE = 25;
    first is on this screen. props_history.jsonl and scripts/score_props.py
    exist to make the second one sayable, and until they have a season behind
    them this component must not imply it. */
-function AccuracySummary({ teams, pastMatches, weights, statType, isDesktop }) {
+function AccuracySummary({ teams, pastMatches, weights, statType, isDesktop, borrowedHistory = false }) {
   const theme = useTheme();
   const cfg = STAT_TYPES[statType];
 
@@ -3414,8 +3481,8 @@ function AccuracySummary({ teams, pastMatches, weights, statType, isDesktop }) {
         ))}
       </div>
       <div style={{ flex: 1, minWidth: 190, fontSize: 11.5, color: theme.textFaint, lineHeight: 1.55 }}>
-        Measured against the last {summary.matches} completed matches in this
-        region — {summary.players.toLocaleString()} player projections, each made using only the data
+        Measured against the last {summary.matches} completed matches
+        {borrowedHistory ? " these teams played in their home regions" : " in this region"} — {summary.players.toLocaleString()} player projections, each made using only the data
         that existed before that match was played.
         {" "}
         <span style={{ opacity: 0.85 }}>
@@ -4319,6 +4386,13 @@ function KillProjector() {
   const gameCfg = GAMES[game];
   const regionsData = dataByGame[game] || gameCfg.fallbackRegions;
   const current = regionsData[region] || { teams: {}, past_matches: [], upcoming_matches: [] };
+  /* Split deliberately. `history` is what a player has on record and feeds
+     every projection, form chart and consistency score; `current.past_matches`
+     is what THIS region has played and feeds standings and past results.
+     They are the same list everywhere except a borrowed-roster event that
+     has not started yet — see historyPoolFor. */
+  const history = historyPool(regionsData, region);
+  const historyIsBorrowed = history.length > 0 && (current.past_matches || []).length === 0;
   const hasData = Object.keys(current.teams || {}).length > 0;
   const normalizedUpcoming = formatUpcoming(current.upcoming_matches || []);
 
@@ -4530,12 +4604,12 @@ function KillProjector() {
                     that those views do not show. */}
                 {(tab === "future" || tab === "past") && (
                   <AccuracySummary
-                    teams={current.teams} pastMatches={current.past_matches || []}
+                    teams={current.teams} pastMatches={history} borrowedHistory={historyIsBorrowed}
                     weights={weights} statType={statType} isDesktop={isDesktop}
                   />
                 )}
                 {tab === "future" ? (
-              <FutureTab teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} isDesktop={isDesktop} games={games} game={game} />
+              <FutureTab teams={current.teams} pastMatches={history} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} isDesktop={isDesktop} games={games} game={game} />
             ) : tab === "edges" ? (
               <EdgesTab regionsData={regionsData} regionList={gameCfg.regionList} regionLabels={gameCfg.regionLabels}
                         weights={weights} statType={statType} game={game} isDesktop={isDesktop} />
@@ -4545,7 +4619,7 @@ function KillProjector() {
             ) : tab === "past" ? (
               <PastResultsTab teams={current.teams} pastMatches={current.past_matches || []} weights={weights} statType={statType} isDesktop={isDesktop} />
             ) : tab === "consistency" ? (
-              <ConsistencyTab teams={current.teams} pastMatches={current.past_matches || []} statType={statType} isDesktop={isDesktop} />
+              <ConsistencyTab teams={current.teams} pastMatches={history} statType={statType} isDesktop={isDesktop} />
             ) : (
               <StandingsTab
                 teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming}

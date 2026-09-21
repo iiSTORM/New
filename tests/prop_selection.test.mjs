@@ -309,6 +309,150 @@ check("and counts wins within each", bucketed.map((b) => b.won), [1, 1, 1, 0]);
 check("an empty bucket reports no rate rather than zero",
       recordByEdge([]).every((b) => b.rate === null), true);
 
+/* Does the Edges tab project from the same history the match card does?
+ *
+ * The stub above discards its arguments, so it cannot tell. This one
+ * records which list it was handed. Without the check, collectEdges can
+ * quietly go back to the region's own past_matches and every borrowed
+ * event projects off a flat season average in one view and real history
+ * in the other — one player, two numbers, and nothing red.
+ */
+const seenPools = [];
+const collectEdgesSpy = new Function(`
+  ${extract("likelyStarters")}
+  const seenPools = arguments[0];
+  function project(teams, pastMatches) { seenPools.push(pastMatches); return { perGame: 10 }; }
+  ${slice}
+  return collectEdges;
+`)(seenPools);
+
+{
+  const lined = (date, teamA, teamB) => ({ date, teamA, teamB, actual: { [teamA]: {}, [teamB]: {} } });
+  const player = { name: "Faker", role: null, cur: { k: 20, g: 10 } };
+  const world = {
+    Home: { teams: { T1: { players: [player] } },
+            past_matches: [lined("2026-01-01", "T1", "Rival"), lined("2026-01-02", "T1", "Rival")],
+            upcoming_matches: [] },
+    Event: { teams: { T1: { players: [player] } }, past_matches: [],
+             rosters_from_home_regions: true,
+             upcoming_matches: [{ teamA: "T1", teamB: "Paper Rex",
+                                  date: "2026-09-21T10:00:00+00:00" }] },
+  };
+  const eventProps = { fetched_at: "2026-09-21T10:00:00+00:00", source: "t", props: { valorant: {
+    Faker: [{ player: "Faker", stat: "kills", maps: 2, line: 25.5, odds_type: "standard",
+              team: "T1", start_time: "2026-09-21T10:00:00+00:00" }] } } };
+  seenPools.length = 0;
+  collectEdgesSpy(world, ["Event"], eventProps, {}, "kills", "valorant");
+  check("the Edges tab projects a borrowed event off its borrowed history",
+        seenPools.length && seenPools[0].length, 2);
+}
+
+/* ---- whose history counts as a player's history ----
+ *
+ * An event that has not started yet has rosters and fixtures and zero
+ * completed matches. VCT Champions arrived exactly that way, and every
+ * player on it rendered with no form chart, no consistency score, and a
+ * projection that quietly fell back to a flat season average because
+ * recencyWeightedRate found nothing to weight. Their history existed the
+ * whole time, filed under their home region.
+ *
+ * Borrowing it is the fix, and the danger is entirely on the other side:
+ * borrow too eagerly and a league gets counted twice.
+ */
+const historyPoolFor = new Function(slice + "\nreturn historyPoolFor;")();
+const historyPool = new Function(slice + "\nreturn historyPool;")();
+
+const played = (date, teamA, teamB) => ({ date, teamA, teamB, actual: { [teamA]: {}, [teamB]: {} } });
+const world = () => ({
+  Home: { teams: { Alpha: { players: [] }, Beta: { players: [] } },
+          past_matches: [played("2026-01-01", "Alpha", "Outsider"),
+                         played("2026-01-02", "Alpha", "Beta"),
+                         played("2026-01-03", "Nobody", "Stranger")],
+          upcoming_matches: [] },
+  Other: { teams: { Gamma: { players: [] } },
+           past_matches: [played("2026-01-04", "Gamma", "Alpha")], upcoming_matches: [] },
+  Event: { teams: { Alpha: { players: [] }, Gamma: { players: [] } },
+           past_matches: [], upcoming_matches: [], rosters_from_home_regions: true },
+});
+
+check("a region that has played its own matches uses them and borrows nothing",
+      historyPoolFor(world(), "Home").length, 3);
+check("and hands back the very same array, not a copy",
+      historyPoolFor(world(), "Home") === world().Home.past_matches, false); // different world() calls
+{
+  const w = world();
+  check("the same array, so nothing downstream sees a new identity each render",
+        historyPoolFor(w, "Home"), w.Home.past_matches);
+}
+check("an empty event with borrowed rosters picks up its teams' matches",
+      historyPoolFor(world(), "Event").length, 3);
+check("and only matches involving its own teams",
+      historyPoolFor(world(), "Event").some((m) => m.teamA === "Nobody"), false);
+
+/* The two guards that keep this from double-counting a league. */
+{
+  const w = world();
+  w.Event.rosters_from_home_regions = false;
+  check("a region that never borrowed its rosters does not borrow history",
+        historyPoolFor(w, "Event").length, 0);
+}
+{
+  const w = world();
+  w.Event.past_matches = [played("2026-02-01", "Alpha", "Gamma")];
+  check("once the event plays its first match the borrowed history drops out entirely",
+        historyPoolFor(w, "Event").length, 1);
+}
+{
+  // A meeting between two teams that both belong to the event, reachable
+  // from either side of the scan.
+  const w = world();
+  w.Other.past_matches.push(played("2026-01-04", "Gamma", "Alpha"));
+  check("a match reachable through two of the event's own teams is counted once",
+        historyPoolFor(w, "Event").filter((m) => m.date === "2026-01-04").length, 1);
+}
+{
+  const w = world();
+  w.Event.teams = {};
+  check("an event with no roster yet borrows nothing", historyPoolFor(w, "Event").length, 0);
+}
+check("an unknown region is empty rather than a crash",
+      lazily(() => historyPoolFor(world(), "Nowhere").length), 0);
+
+{
+  const w = world();
+  check("the pool is cached per region, so a render does not rescan every league",
+        historyPool(w, "Event") === historyPool(w, "Event"), true);
+  check("and keyed per region rather than shared between them",
+        historyPool(w, "Event") === historyPool(w, "Home"), false);
+}
+
+/* The committed Valorant data, which is where this was actually found. */
+const valorantPath = path.join(root, "valorant_data.json");
+if (fs.existsSync(valorantPath)) {
+  const { regions } = JSON.parse(fs.readFileSync(valorantPath, "utf8"));
+  const borrowed = Object.keys(regions).filter(
+    (k) => regions[k].rosters_from_home_regions && (regions[k].past_matches || []).length === 0);
+  for (const key of borrowed) {
+    const pool = historyPoolFor(regions, key);
+    check(`${key} finds real history for its borrowed rosters`, pool.length > 0, true);
+    const names = new Set(Object.keys(regions[key].teams || {}));
+    check(`${key} pool is scoped to its own teams`,
+          pool.every((m) => names.has(m.teamA) || names.has(m.teamB)), true);
+    const seen = new Set(pool.map((m) => `${m.date}|${m.teamA}|${m.teamB}`));
+    check(`${key} pool holds no duplicate meetings`, seen.size, pool.length);
+    // Every team it fields must actually be represented, or some players
+    // still render blank and the bug is only half fixed.
+    const missing = [...names].filter(
+      (t) => !pool.some((m) => m.teamA === t || m.teamB === t));
+    check(`${key} leaves no team without history`, missing, []);
+  }
+  for (const key of Object.keys(regions)) {
+    if (borrowed.includes(key)) continue;
+    check(`${key} is untouched by borrowing`,
+          historyPoolFor(regions, key), regions[key].past_matches || []);
+  }
+}
+
 // The committed props.json, when there is one: the same rules against a
 // real payload rather than a constructed one.
 const realPath = path.join(root, "props.json");
