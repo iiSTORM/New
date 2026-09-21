@@ -229,6 +229,30 @@ posted — the next piece of work. The app's existing accuracy figures measure
 the projection against the result, which is a different and much easier
 question than measuring it against a price.
 
+### The record
+
+`.github/workflows/grade.yml` runs the grader whenever a scrape lands, so
+`props_results.json` builds itself — a line becomes gradeable the moment its
+match appears in a data file, which is exactly when that file is pushed.
+
+The app's **Record** tab reads it and adds the one thing the grader cannot:
+the projection as it stood *before* the match, rebuilt by
+`projectPointInTime` from data that predated the fixture. That turns "the
+market went over 51% of the time" into **"when the projection disagreed with
+the line, it was right N% of the time"**, which is the only accuracy claim
+worth selling.
+
+It is broken out by how far the projection disagreed. If the model is worth
+anything that column climbs with the size of the disagreement; if it does
+not, a confident edge is worth no more than a marginal one — and that is the
+most useful thing the record can tell anyone, including the answer "this
+does not work".
+
+Rates are withheld below 30 decided bets, per row and overall. Pushes and
+projections landing exactly on the line are excluded; neither is a bet. And
+nothing in it accounts for the price paid, so a win rate over 50% is not by
+itself a profit.
+
 ### Checking it worked
 
 The provider is unreachable from CI and from any hosted shell, so the pipeline
