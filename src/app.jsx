@@ -2382,7 +2382,13 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games, 
       // since a Bo5 and a Bo3 can be on screen together. breakdown.perGame
       // is a per-map rate, so scaling it by the line's own window is the
       // whole of the conversion.
-      const prop = propFor(propsData, game, p.name, statType, match.date);
+      // _sortKey, not date: formatUpcoming() replaces `date` with a display
+      // string ("Sep 21") and keeps the ISO timestamp here. Passing the
+      // display string is not a parse error that announces itself --
+      // new Date("Sep 21") is a valid date in 2001 -- so every line falls
+      // outside the window and the app shows nothing, with no complaint.
+      const prop = propFor(propsData, game, p.name, statType,
+                           match._sortKey || match.date);
       const propProjection = projectionOverWindow(breakdown, prop);
       return { team, name: p.name, role: p.role, proj: breakdown.total,
                prop, propProjection, player: p, breakdown };

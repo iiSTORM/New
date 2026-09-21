@@ -3697,7 +3697,7 @@ try {
       const opp = team === match.teamA ? match.teamB : match.teamA;
       return likelyStarters(teams[team].players).map(p => {
         const breakdown = project(teams, pastMatches, p, team, opp, games, weights, statType);
-        const prop = propFor(propsData, game, p.name, statType, match.date);
+        const prop = propFor(propsData, game, p.name, statType, match._sortKey || match.date);
         const propProjection = projectionOverWindow(breakdown, prop);
         return {
           team,

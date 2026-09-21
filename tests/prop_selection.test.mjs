@@ -122,6 +122,25 @@ check("a nonsense window is refused rather than multiplied",
       projectionOverWindow(breakdown, { maps: 0 }), null);
 check("a string window is refused", projectionOverWindow(breakdown, { maps: "2" }), null);
 
+// The trap that took an evening to find: the card's `date` field is a
+// display string by the time it reaches propFor, and the ISO value lives on
+// _sortKey. "Sep 21" is not a parse failure that announces itself -- V8
+// reads it as Sep 21 2001 -- so every line falls outside the window and the
+// app shows nothing at all, silently.
+const formatUpcoming = new Function(
+  src.slice(src.indexOf("function formatUpcoming"),
+            src.indexOf("/* ---------- Game switcher")) + "\nreturn formatUpcoming;")();
+const iso = "2026-09-21T10:00:00.000+00:00";
+const shaped = formatUpcoming([{ teamA: "A", teamB: "B", date: iso }])[0];
+check("formatUpcoming turns date into a display string", shaped.date.includes("T"), false);
+check("and keeps the real timestamp on _sortKey", shaped._sortKey, iso);
+
+const atTen = props([line(2, { line: 30.5, at: iso })]);
+check("the display string matches nothing — this is the bug",
+      propFor(atTen, "lol", "Faker", "kills", shaped.date), null);
+check("_sortKey is what the card must pass",
+      propFor(atTen, "lol", "Faker", "kills", shaped._sortKey).line, 30.5);
+
 // The committed props.json, when there is one: the same rules against a
 // real payload rather than a constructed one.
 const realPath = path.join(root, "props.json");
