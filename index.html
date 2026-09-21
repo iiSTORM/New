@@ -1963,13 +1963,32 @@ try {
       laneSpecific: false
     }
   };
-  function kpMultiplier(player, historyWeight, kpStrength) {
+  const LEAGUE_AVG_KP_FALLBACK = 66;
+  const leagueAvgKPCache = new WeakMap();
+  function leagueAvgKP(teams) {
+    if (!teams || typeof teams !== "object") return LEAGUE_AVG_KP_FALLBACK;
+    if (leagueAvgKPCache.has(teams)) return leagueAvgKPCache.get(teams);
+    let sum = 0,
+      n = 0;
+    for (const entry of Object.values(teams)) {
+      for (const p of entry && entry.players || []) {
+        const kp = p && p.cur && p.cur.kp;
+        if (typeof kp === "number" && kp > 0) {
+          sum += kp;
+          n++;
+        }
+      }
+    }
+    const avg = n > 0 ? sum / n : LEAGUE_AVG_KP_FALLBACK;
+    leagueAvgKPCache.set(teams, avg);
+    return avg;
+  }
+  function kpMultiplier(player, historyWeight, kpStrength, teams) {
     const curKP = player.cur.kp;
     if (!curKP) return 1;
     const histKP = player.hist ? player.hist.kp : curKP;
     const blendedKP = historyWeight * histKP + (1 - historyWeight) * curKP;
-    const teamAvgKP = 66;
-    const relative = blendedKP / teamAvgKP;
+    const relative = blendedKP / leagueAvgKP(teams);
     return 1 + kpStrength * (relative - 1);
   }
   function opponentMultiplier(teams, opponentTeam, oppStrength, oppBasisKey) {
@@ -2053,7 +2072,7 @@ try {
       careerRate
     } = applyCareerTier(recentFormRate, player, weights, cfg, null);
     const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, null);
-    const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp) : 1;
+    const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams) : 1;
     const perGame = base * oppMult * kpMult;
     return {
       base,
@@ -2192,7 +2211,7 @@ try {
       careerRate
     } = applyCareerTier(recentFormRate, player, weights, cfg, cutoffDate);
     const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, cutoffDate);
-    const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp) : 1;
+    const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams) : 1;
     const perGame = base * oppMult * kpMult;
     return {
       base,
@@ -2245,7 +2264,7 @@ try {
       deaths: {
         history: 0.7,
         opponent: 0.0,
-        kp: 0.3,
+        kp: 0.0,
         recencyHalfLife: 6,
         patchDiscount: 0.3,
         career: 0.0
@@ -2263,15 +2282,15 @@ try {
       kills: {
         history: 0.0,
         opponent: 0.0,
-        kp: 0.1,
-        recencyHalfLife: 20,
+        kp: 0.3,
+        recencyHalfLife: 6,
         patchDiscount: 0.0,
-        career: 0.5
+        career: 1.0
       },
       deaths: {
         history: 0.0,
         opponent: 0.0,
-        kp: 0.3,
+        kp: 0.0,
         recencyHalfLife: 20,
         patchDiscount: 0.0,
         career: 1.0

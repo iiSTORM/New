@@ -888,17 +888,69 @@ const STAT_TYPES = {
    come from a live fetch instead of the module-level fallback.
    ============================================================ */
 
-function kpMultiplier(player, historyWeight, kpStrength) {
+/* The kill-participation baseline this multiplier measures a player
+   against, derived from the players actually in the data rather than
+   hardcoded.
+
+   It used to be the literal 66, which is a LEAGUE OF LEGENDS number: LoL
+   kill participation runs ~66% because assists are plentiful and most
+   kills involve two or three players. CS2 and Valorant score the same
+   field on a completely different scale — their rostered medians are
+   26.4% and 27.7%, and their HIGHEST players reach 39.7% and 35.1%.
+   Against a baseline of 66, therefore, no CS2 or Valorant player could
+   ever score above 1.0: `relative` topped out around 0.6, and what was
+   meant as a two-sided "is this player above or below typical" became a
+   one-sided haircut applied to literally every projection in both games.
+
+   That is not a rounding error. Measured on the point-in-time backtest
+   (scripts/dev/diagnose_calibration.py), CS2 kills predicted 0.939x the
+   actual and CS2/Valorant assists 0.944x/0.953x, while LoL — the game
+   the constant was right for — sat at 0.999x. A flat ~6% under-prediction
+   on one game is invisible in MAE, which is what every weight here was
+   tuned against, and it does not stay invisible once a projection is
+   placed next to a posted line: it recommends the under on every single
+   player, which looks like a signal and is really a ruler with the wrong
+   zero. That is exactly how it was found.
+
+   Deriving it from the roster fixes all three games at once and cannot
+   go stale the way a literal does. Using the MEAN (not the median) is
+   the deliberate choice: it is what makes the average player's
+   multiplier land on 1.0, which is precisely the property that keeps the
+   layer calibration-neutral.
+
+   Note on leakage, stated rather than hidden: cur.kp is a whole-season
+   snapshot with no point-in-time filtering, so a league average over it
+   is a season-wide figure too. That is not a NEW leak — kpMultiplier
+   already read the same unfiltered field for the player's own rate — and
+   a league-wide aggregate is far more dilute than a per-player one. It
+   should still be rebuilt point-in-time when cur.kp is. */
+const LEAGUE_AVG_KP_FALLBACK = 66; // only reached when no player carries a kp at all
+const leagueAvgKPCache = new WeakMap();
+function leagueAvgKP(teams) {
+  if (!teams || typeof teams !== "object") return LEAGUE_AVG_KP_FALLBACK;
+  if (leagueAvgKPCache.has(teams)) return leagueAvgKPCache.get(teams);
+  let sum = 0, n = 0;
+  for (const entry of Object.values(teams)) {
+    for (const p of (entry && entry.players) || []) {
+      const kp = p && p.cur && p.cur.kp;
+      if (typeof kp === "number" && kp > 0) { sum += kp; n++; }  // 0 is the not-computed sentinel, same as below
+    }
+  }
+  const avg = n > 0 ? sum / n : LEAGUE_AVG_KP_FALLBACK;
+  leagueAvgKPCache.set(teams, avg);
+  return avg;
+}
+
+function kpMultiplier(player, historyWeight, kpStrength, teams) {
   const curKP = player.cur.kp;
-  // 0 is used as a sentinel for "not computed yet" (currently true for
-  // Valorant, where KP% isn't scraped) — a real player's kill participation
-  // is never actually 0, so this can't misfire on genuine data. Treat it as
-  // neutral rather than applying a bogus flat penalty across every player.
+  // 0 is used as a sentinel for "not computed yet" — a real player's kill
+  // participation is never actually 0, so this can't misfire on genuine
+  // data. Treat it as neutral rather than applying a bogus flat penalty
+  // across every player.
   if (!curKP) return 1;
   const histKP = player.hist ? player.hist.kp : curKP;
   const blendedKP = historyWeight * histKP + (1 - historyWeight) * curKP;
-  const teamAvgKP = 66;
-  const relative = blendedKP / teamAvgKP;
+  const relative = blendedKP / leagueAvgKP(teams);
   return 1 + kpStrength * (relative - 1);
 }
 
@@ -1015,7 +1067,7 @@ function project(teams, pastMatches, player, team, opponentTeam, games, weights,
   const recentFormRate = player.hist ? weights.history * player.hist[cfg.key] + (1 - weights.history) * curRate : curRate;
   const { base, careerRate } = applyCareerTier(recentFormRate, player, weights, cfg, null);
   const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, null);
-  const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp) : 1;
+  const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams) : 1;
   const perGame = base * oppMult * kpMult;
   return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult, perGame, total: perGame * games };
 }
@@ -1262,7 +1314,7 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
   const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, cutoffDate);
 
   // KP multiplier is the one piece still using full-season data — see note above.
-  const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp) : 1;
+  const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams) : 1;
 
   const perGame = base * oppMult * kpMult;
   return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult, perGame, total: perGame * games, priorGames: pt.games };
@@ -1470,7 +1522,7 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // -> 4.1734), so the earlier weights were fit on an incomplete
     // sample and are superseded.
     kills: { history: 0.7, opponent: 0.0, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.0 },
-    deaths: { history: 0.7, opponent: 0.0, kp: 0.3, recencyHalfLife: 6, patchDiscount: 0.3, career: 0.0 },
+    deaths: { history: 0.7, opponent: 0.0, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.3, career: 0.0 },  // kp is dead weight for deaths (useKP: false) — see the cs2 note below
     assists: { history: 0.4, opponent: 0.0, kp: 0.1, recencyHalfLife: 6, patchDiscount: 0.8, career: 0.0 },
   },
   cs2: {
@@ -1591,11 +1643,46 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // measured at exactly +0.00% across every fold — and stops the shipped
     // values implying they were tuned.
     //
-    // Caveat: CS2's validation window is short (1123 rows, folds from
-    // 2026-09-12) because its history only recently deepened. Lower
+    // Caveat: CS2's validation window is short (795 rows, folds from
+    // 2026-09-10) because its history only recently deepened. Lower
     // confidence than the LoL numbers.
-    kills: { history: 0.0, opponent: 0.0, kp: 0.1, recencyHalfLife: 20, patchDiscount: 0.0, career: 0.5 },
-    deaths: { history: 0.0, opponent: 0.0, kp: 0.3, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0 },
+    //
+    // KILLS RE-DERIVED AGAIN after the kp baseline was fixed — see the
+    // long note on leagueAvgKP. Every number in the paragraphs above was
+    // measured while `kp` could only ever SUBTRACT in this game (the
+    // baseline was LoL's 66 against a CS2 scale of ~26), so the search
+    // was tuning the rest of the model around a dent it could not name.
+    // Two of those conclusions do not survive the fix:
+    //
+    //   kp 0.1 -> 0.3. It was small because a bigger value meant a bigger
+    //     across-the-board haircut. Two-sided, it earns its keep.
+    //   career 0.5 -> 1.0. The note above records career:1.0 as "actively
+    //     harmful" for kills. It was not: at 1.0 it pulled predictions
+    //     UP, straight into the kp layer's flat ~6% cut, and the search
+    //     read the resulting overshoot as career's fault.
+    //
+    // recencyHalfLife also drops 20 -> 6, reversing the "decay threw away
+    // sample" finding for kills only (deaths and assists keep it).
+    // Measured out-of-sample over 6 walk-forward folds: -4.44% MAE,
+    // winning 6/6 folds, with calibration at 1.011x. Reproduce with:
+    //   python scripts/dev/optimize_weights.py --game cs2 --stat kills --validate \
+    //     --candidate '{"history":0.0,"opponent":0.0,"kp":0.3,"recencyHalfLife":6,"patchDiscount":0.0,"career":1.0}'
+    // (the search returned history 0.3 / patchDiscount 0.4; both are
+    // structurally inert here, so they stay pinned at 0 per the note
+    // above — verified to produce bit-identical predictions.)
+    //
+    // ASSISTS was offered the same candidate and REJECTED it out-of-sample
+    // (-0.37%, winning 3/6 folds), so it is deliberately unchanged. The kp
+    // fix already moved its calibration from 0.944x to 1.004x, which was
+    // the actual defect; a coin-flip MAE change is not a reason to churn.
+    //
+    // DEATHS carries kp: 0.0 because STAT_TYPES.deaths sets useKP: false.
+    // kpMultiplier is never called for this stat, so the 0.3 that sat
+    // here was a dead number the search "fitted" against a parameter it
+    // could not move. Zeroing it changes no prediction; it stops the
+    // table claiming a tuning that never happened. (Same for Valorant.)
+    kills: { history: 0.0, opponent: 0.0, kp: 0.3, recencyHalfLife: 6, patchDiscount: 0.0, career: 1.0 },
+    deaths: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0 },
     assists: { history: 0.0, opponent: 0.0, kp: 0.1, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0 },
   },
 };

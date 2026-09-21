@@ -51,12 +51,12 @@ SHIPPED_WEIGHTS = {
     },
     "valorant": {
         "kills":    {"history": 0.7, "opponent": 0, "kp": 0, "recencyHalfLife": 8, "patchDiscount": 0, "career": 0},
-        "deaths":   {"history": 0.7, "opponent": 0, "kp": 0.3, "recencyHalfLife": 6, "patchDiscount": 0.3, "career": 0},
+        "deaths":   {"history": 0.7, "opponent": 0, "kp": 0.0, "recencyHalfLife": 6, "patchDiscount": 0.3, "career": 0},
         "assists":  {"history": 0.4, "opponent": 0, "kp": 0.1, "recencyHalfLife": 6, "patchDiscount": 0.8, "career": 0},
     },
     "cs2": {
-        "kills":    {"history": 0.0, "opponent": 0.0, "kp": 0.1, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 0.5},
-        "deaths":   {"history": 0.0, "opponent": 0.0, "kp": 0.3, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0},
+        "kills":    {"history": 0.0, "opponent": 0.0, "kp": 0.3, "recencyHalfLife": 6, "patchDiscount": 0.0, "career": 1.0},
+        "deaths":   {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0},
         "assists":  {"history": 0.0, "opponent": 0.0, "kp": 0.1, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0},
     },
 }
@@ -154,6 +154,7 @@ def clear_point_in_time_caches():
     _league_avg_for_role_cache.clear()
     _point_in_time_team_stat_cache.clear()
     _point_in_time_league_avg_stat_cache.clear()
+    _league_avg_kp_cache.clear()
     _cache_keepalive.clear()
 
 
@@ -483,14 +484,39 @@ def resolve_opponent_multiplier(teams, past_matches, player, opponent_team, opp_
     return 1 + opp_strength * (opp_stat / league_avg - 1)
 
 
-def kp_multiplier(player, history_weight, kp_strength):
+# The kill-participation baseline, derived from the roster instead of
+# hardcoded. See the long note on leagueAvgKP in src/app.jsx: the literal
+# 66.0 that lived here is a League of Legends figure, and against it no
+# CS2 or Valorant player (medians 26.4 / 27.7, maxima 39.7 / 35.1) could
+# ever score above 1.0, turning a two-sided adjustment into a flat ~6%
+# haircut on every projection in both games. MAE -- the only thing every
+# weight in this file was ever tuned against -- cannot see a constant
+# offset, so it survived every search run here.
+LEAGUE_AVG_KP_FALLBACK = 66.0  # only reached when no player carries a kp at all
+_league_avg_kp_cache = {}  # keyed by id(teams) -- same stable-reference reasoning as the caches above
+
+
+def league_avg_kp(teams):
+    if not teams:
+        return LEAGUE_AVG_KP_FALLBACK
+    key = _pin(teams)
+    if key in _league_avg_kp_cache:
+        return _league_avg_kp_cache[key]
+    values = [p["cur"]["kp"] for entry in teams.values()
+              for p in (entry or {}).get("players") or []
+              if isinstance((p.get("cur") or {}).get("kp"), (int, float)) and p["cur"]["kp"] > 0]
+    avg = sum(values) / len(values) if values else LEAGUE_AVG_KP_FALLBACK
+    _league_avg_kp_cache[key] = avg
+    return avg
+
+
+def kp_multiplier(player, history_weight, kp_strength, teams):
     cur_kp = player["cur"]["kp"]
     if not cur_kp:
         return 1.0
     hist_kp = player["hist"]["kp"] if player.get("hist") else cur_kp
     blended_kp = history_weight * hist_kp + (1 - history_weight) * cur_kp
-    team_avg_kp = 66.0
-    relative = blended_kp / team_avg_kp
+    relative = blended_kp / league_avg_kp(teams)
     return 1 + kp_strength * (relative - 1)
 
 
@@ -604,7 +630,7 @@ def project_point_in_time(past_matches, teams, player, team, opponent_team, game
 
     opp_mult = resolve_opponent_multiplier(teams, past_matches, player, opponent_team, weights["opponent"], cfg, cutoff_date)
 
-    kp_mult = kp_multiplier(player, weights["history"], weights["kp"]) if cfg["useKP"] else 1.0
+    kp_mult = kp_multiplier(player, weights["history"], weights["kp"], teams) if cfg["useKP"] else 1.0
 
     per_game = base * opp_mult * kp_mult
     return per_game * games, pt_games
