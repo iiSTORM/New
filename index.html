@@ -657,6 +657,10 @@ try {
       };
     });
   }
+  function teamColorOf(teams, name, fallback) {
+    const team = teams && teams[name];
+    return team && team.color || fallback;
+  }
   function propsAgeMinutes(propsData) {
     if (!propsData || !propsData.fetched_at) return null;
     const then = new Date(propsData.fetched_at);
@@ -4202,7 +4206,7 @@ try {
       }
     }, React.createElement(TeamTag, {
       name: match.teamA,
-      color: teams[match.teamA].color
+      color: teamColorOf(teams, match.teamA, theme.textDim)
     }), React.createElement("span", {
       style: {
         color: theme.textFaint,
@@ -4211,7 +4215,7 @@ try {
       }
     }, "vs"), React.createElement(TeamTag, {
       name: match.teamB,
-      color: teams[match.teamB].color
+      color: teamColorOf(teams, match.teamB, theme.textDim)
     })), React.createElement("div", {
       style: {
         marginTop: 7,

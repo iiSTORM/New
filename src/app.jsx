@@ -500,6 +500,18 @@ function recordByEdge(rows) {
   });
 }
 
+/* A team's colour, for teams that may not be rostered.
+
+   Fixtures can name a side this app has never scraped — CS2 rosters about
+   fifty teams against a hundred in its fixture list — and a card that
+   renders such a fixture still has to print both names. Reaching straight
+   into `.color` on the missing one throws inside render, which React
+   turns into a blank page rather than a missing colour. */
+function teamColorOf(teams, name, fallback) {
+  const team = teams && teams[name];
+  return (team && team.color) || fallback;
+}
+
 function propsAgeMinutes(propsData) {
   if (!propsData || !propsData.fetched_at) return null;
   const then = new Date(propsData.fetched_at);
@@ -2787,9 +2799,9 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games, 
       >
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
-            <TeamTag name={match.teamA} color={teams[match.teamA].color} />
+            <TeamTag name={match.teamA} color={teamColorOf(teams, match.teamA, theme.textDim)} />
             <span style={{ color: theme.textFaint, fontSize: 10.5, fontWeight: 500 }}>vs</span>
-            <TeamTag name={match.teamB} color={teams[match.teamB].color} />
+            <TeamTag name={match.teamB} color={teamColorOf(teams, match.teamB, theme.textDim)} />
           </div>
           <div style={{ marginTop: 7, fontSize: 11.5, color: theme.textFaint, display: "flex", alignItems: "center", gap: 7 }}>
             <span>{match.date}{match.time ? ` · ${match.time}` : ""}</span>

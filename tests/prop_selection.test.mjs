@@ -215,6 +215,19 @@ if (realProps) {
   console.log(`(Edges view would list ${edges.length} lines from the committed props.json)`);
 }
 
+// Rendering a fixture whose opponent was never scraped. This crashed the
+// live app: the card relaxed its guard to project the side it knows, but
+// the header still reached into `.color` on the side it does not, and a
+// throw inside render blanks the whole page rather than dropping a colour.
+const teamColorOf = new Function(slice + "\nreturn teamColorOf;")();
+check("a rostered team keeps its colour",
+      teamColorOf({ T1: { color: "#e0c341" } }, "T1", "#fallback"), "#e0c341");
+check("an unrostered team falls back instead of throwing",
+      teamColorOf({ T1: { color: "#e0c341" } }, "Never Scraped", "#fallback"), "#fallback");
+check("a team present but without a colour falls back",
+      teamColorOf({ T1: {} }, "T1", "#fallback"), "#fallback");
+check("no teams object at all", teamColorOf(undefined, "T1", "#fallback"), "#fallback");
+
 // The record: when the projection disagreed with the line, which was right.
 // projectPointInTime is stubbed to a controlled per-map rate so the
 // win/loss arithmetic is checkable; what is under test is which rows count
