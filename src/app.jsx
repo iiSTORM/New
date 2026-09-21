@@ -1275,6 +1275,54 @@ function blendShareTier(perGame, weights, pastMatches, teams, team, playerName, 
   return { perGame: (1 - weight) * perGame + weight * shareTier, shareTier, sharePct: share };
 }
 
+/* ============================================================
+   THIN-SAMPLE SHRINKAGE
+   ============================================================
+   A player with three maps on record got a rate computed from three
+   maps, trusted exactly as much as one built from sixty. Bucketing every
+   backtest prediction by how many prior maps the player had says what
+   that costs:
+
+       Valorant kills   0-5 maps: MAE 6.77   5-15: 5.89   15-30: 5.95
+       CS2 kills        0-5 maps: MAE 6.67   5-15: 5.89   15-30: 5.34
+
+   and those thin buckets are not a fringe — 34% of Valorant rows and 50%
+   of CS2's. LoL never shows it, because a LoL player arrives with a
+   career baseline and a previous split behind them. Valorant has
+   neither: no career scraper exists for it and hist is null, so a new
+   player's rate there is three maps and nothing else.
+
+   So the estimate is pulled toward the league's average player by
+   n / (n + k) — the standard empirical-Bayes weight. No pull once a
+   player has a real sample; most of the way to the prior when they have
+   none. k is per game and stat because it is the sample size at which a
+   player's own rate becomes worth as much as the league's, and that is
+   not the same number in a game that has career data as in one that does
+   not. Measured out-of-sample; HARMFUL in LoL at every k tried (+0.45%
+   to +11.22% on kills), which is why LoL ships 0. */
+const ROSTER_SIZE = 5; // players per side, in all three games. Asserted
+                       // against every recorded side in every dataset by
+                       // tests/model_tiers.test.mjs, rather than assumed
+                       // to stay true.
+
+function leaguePlayerRate(pastMatches, teams, statKey, cutoffDate) {
+  const pace = leaguePacePerMap(pastMatches, teams, statKey, cutoffDate);
+  return pace ? pace / ROSTER_SIZE : null;
+}
+
+/* Applied to the FINAL per-map figure, after the opponent, kp and share
+   layers, because that is the number actually being trusted and where
+   this was measured. Falls through unchanged when there is no league to
+   compare against. */
+function shrinkToPrior(perGame, weights, priorGames, pastMatches, teams, statKey, cutoffDate) {
+  const k = weights.shrink || 0;
+  if (!k) return { perGame, shrunkTo: null };
+  const prior = leaguePlayerRate(pastMatches, teams, statKey, cutoffDate);
+  if (!prior) return { perGame, shrunkTo: null };
+  const w = priorGames / (priorGames + k);
+  return { perGame: w * perGame + (1 - w) * prior, shrunkTo: prior, shrinkPull: 1 - w };
+}
+
 function project(teams, pastMatches, player, team, opponentTeam, games, weights, statType) {
   const cfg = STAT_TYPES[statType];
   const refPatch = latestPatch(pastMatches, null);
@@ -1286,9 +1334,12 @@ function project(teams, pastMatches, player, team, opponentTeam, games, weights,
   const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams) : 1;
   const blended = blendShareTier(base * oppMult * kpMult, weights, pastMatches, teams,
                                  team, player.name, cfg.key, null);
-  const perGame = blended.perGame;
+  const shrunk = shrinkToPrior(blended.perGame, weights, weighted.games || 0, pastMatches,
+                               teams, cfg.key, null);
+  const perGame = shrunk.perGame;
   return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult,
            shareTier: blended.shareTier, sharePct: blended.sharePct, shareWeight: weights.share || 0,
+           shrunkTo: shrunk.shrunkTo, shrinkPull: shrunk.shrinkPull, priorGames: weighted.games || 0,
            perGame, total: perGame * games };
 }
 
@@ -1560,9 +1611,12 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
 
   const blendedPT = blendShareTier(base * oppMult * kpMult, weights, pastMatches, teams,
                                    team, player.name, cfg.key, cutoffDate);
-  const perGame = blendedPT.perGame;
+  const shrunkPT = shrinkToPrior(blendedPT.perGame, weights, pt.games || 0, pastMatches,
+                                 teams, cfg.key, cutoffDate);
+  const perGame = shrunkPT.perGame;
   return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult,
            shareTier: blendedPT.shareTier, sharePct: blendedPT.sharePct, shareWeight: weights.share || 0,
+           shrunkTo: shrunkPT.shrunkTo, shrinkPull: shrunkPT.shrinkPull,
            perGame, total: perGame * games, priorGames: pt.games };
 }
 
@@ -1722,9 +1776,9 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
   // season, which no fold selection touched. Reproduce with:
   //   python scripts/dev/optimize_weights.py --game lol --validate
   lol: {
-    kills: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6, share: 0.0 },
-    deaths: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6, share: 0.0 },
-    assists: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6, share: 0.0 },
+    kills: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6, share: 0.0, shrink: 0.0 },
+    deaths: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6, share: 0.0, shrink: 0.0 },
+    assists: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6, share: 0.0, shrink: 0.0 },
   },
   // Valorant: validated out-of-sample and deliberately UNCHANGED. Every
   // candidate was rejected (higher history +0.61% winning 0/6 folds, flat
@@ -1779,9 +1833,9 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // that region's MAE markedly (kills 6.4953 -> 6.1139, deaths 4.5593
     // -> 4.1734), so the earlier weights were fit on an incomplete
     // sample and are superseded.
-    kills: { history: 0.7, opponent: 0.0, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.0, share: 0.4 },
-    deaths: { history: 0.7, opponent: 0.0, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.3, career: 0.0, share: 0.7 },  // kp is dead weight for deaths (useKP: false) — see the cs2 note below
-    assists: { history: 0.4, opponent: 0.0, kp: 0.1, recencyHalfLife: 6, patchDiscount: 0.8, career: 0.0, share: 0.4 },
+    kills: { history: 0.7, opponent: 0.0, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.0, share: 0.4, shrink: 4.0 },
+    deaths: { history: 0.7, opponent: 0.0, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.3, career: 0.0, share: 0.7, shrink: 0.0 },  // kp is dead weight for deaths (useKP: false) — see the cs2 note below
+    assists: { history: 0.4, opponent: 0.0, kp: 0.1, recencyHalfLife: 6, patchDiscount: 0.8, career: 0.0, share: 0.4, shrink: 1.0 },
   },
   cs2: {
     // All three stats now measured with THREE real fixes live: kp
@@ -1939,9 +1993,9 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // here was a dead number the search "fitted" against a parameter it
     // could not move. Zeroing it changes no prediction; it stops the
     // table claiming a tuning that never happened. (Same for Valorant.)
-    kills: { history: 0.0, opponent: 0.0, kp: 0.3, recencyHalfLife: 6, patchDiscount: 0.0, career: 1.0, share: 0.0 },
-    deaths: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0, share: 0.6 },
-    assists: { history: 0.0, opponent: 0.0, kp: 0.1, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0, share: 0.0 },
+    kills: { history: 0.0, opponent: 0.0, kp: 0.3, recencyHalfLife: 6, patchDiscount: 0.0, career: 1.0, share: 0.0, shrink: 0.0 },
+    deaths: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0, share: 0.6, shrink: 0.0 },
+    assists: { history: 0.0, opponent: 0.0, kp: 0.1, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0, share: 0.0, shrink: 1.0 },
   },
 };
 
@@ -2177,6 +2231,12 @@ function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
         {/* Only shown where the tier actually applied. A line reading
             "0% of ..." on every LoL card would be noise, and one shown
             when the tier silently fell back would be a lie. */}
+        {r.shrinkPull != null && r.shrinkPull > 0.02 && (
+          <div>
+            thin sample ({r.priorGames}g) &nbsp;·&nbsp; pulled {Math.round(r.shrinkPull * 100)}% toward
+            the league average of {r.shrunkTo.toFixed(2)} {cfg.key}/game
+          </div>
+        )}
         {r.shareTier != null && r.shareWeight > 0 && (
           <div>
             {Math.round(r.shareWeight * 100)}% from team share
@@ -2989,7 +3049,7 @@ function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, s
   const changed = defaults
     ? Object.keys(defaults).filter((k) => weights[k] !== defaults[k])
     : [];
-  const LABELS = { history: "History", opponent: "Opponent", kp: "KP", recencyHalfLife: "Recency", patchDiscount: "Patch", career: "Career", share: "Team share" };
+  const LABELS = { history: "History", opponent: "Opponent", kp: "KP", recencyHalfLife: "Recency", patchDiscount: "Patch", career: "Career", share: "Team share", shrink: "Shrinkage" };
   return (
     <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: 18, marginBottom: 22 }}>
       <div
@@ -3059,6 +3119,16 @@ function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, s
             step={0.05}
             format={(v) => (v === 0 ? "ignore patch" : `-${Math.round(v * 100)}% weight for matches on an older patch`)}
             tooltip="How much less a match counts if it was played on an older game patch than the one being projected for."
+          />
+          <Slider
+            label="Thin-sample shrinkage"
+            value={weights.shrink || 0}
+            onChange={(v) => onChangeWeight("shrink", v)}
+            min={0}
+            max={16}
+            step={1}
+            format={(v) => (v === 0 ? "off — trust the sample however small" : `half-trust at ${v} map${v > 1 ? "s" : ""} on record`)}
+            tooltip="How hard a player with little history is pulled toward the league's average player. A player with this many maps on record is trusted half as much as the league; with far more, not at all. Off for LoL, which already has career data to ground a newcomer."
           />
           <Slider
             label="Team-share weight"

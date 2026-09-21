@@ -22,6 +22,7 @@ const body = raw.slice(raw.indexOf("try {") + "try {".length,
                        raw.indexOf("const root = ReactDOM.createRoot"));
 const { code } = transformSync(
   `${body}\nreturn { teamTotal, shareRate, leaguePacePerMap, blendShareTier, project,
+                     leaguePlayerRate, shrinkToPrior, ROSTER_SIZE,
                      SHARE_HALF_LIFE, DEFAULT_WEIGHTS_BY_GAME_AND_STAT };`,
   { presets: [["@babel/preset-react", { runtime: "classic" }]], filename: "app.jsx",
     parserOpts: { allowReturnOutsideFunction: true } });
@@ -153,6 +154,78 @@ for (const [game, file] of Object.entries({ valorant: "valorant_data.json", cs2:
   }
   check(`${game}: the tier actually changes real projections`, total > 0 && moved > 0, true);
   check(`${game}: and is reported on the breakdown`, weights.share > 0, true);
+}
+
+/* ---- thin-sample shrinkage ---- */
+{
+  const teams = { A: { players: [] }, B: { players: [] } };
+  const pm = [match("2026-01-01", "A", "B", [20, 10, 10, 5, 5], [10,10,10,10,10])];
+  // league pace = mean(50/2, 50/2) = 25 per team per map -> 5 per player
+  near("the prior is one player's share of an average team's map",
+       app.leaguePlayerRate(pm, teams, "k", null), 5);
+
+  const pull = (n, k) => app.shrinkToPrior(15, { shrink: k }, n, pm, teams, "k", null);
+  near("no history at all lands entirely on the prior", pull(0, 4).perGame, 5);
+  near("n equal to k sits halfway", pull(4, 4).perGame, (15 + 5) / 2);
+  near("a large sample is barely moved", pull(400, 4).perGame, 400/404*15 + 4/404*5, 1e-6);
+  check("and the pull shrinks as the sample grows",
+        pull(1, 4).shrinkPull > pull(20, 4).shrinkPull, true);
+  near("k=0 is off entirely, whatever the sample", pull(1, 0).perGame, 15);
+  check("and reports nothing when off", pull(1, 0).shrunkTo, null);
+  near("a league with nothing on record cannot shrink",
+       app.shrinkToPrior(15, { shrink: 4 }, 1, [], {}, "k", null).perGame, 15);
+}
+
+/* The constant the shrinkage prior divides by, checked against the data
+   rather than trusted.
+
+   Written first as "every side has exactly five", which failed on its
+   first run and was right to: Valorant has 5 sides of six players and CS2
+   has one of six and one of eight, where a substitute played some of the
+   maps. That does NOT make five wrong. Five is the number of SLOTS, and
+   the prior answers "what does a typical player do in a map" — dividing a
+   team's total by six recorded bodies, two of whom split one slot, would
+   understate a full-time player by a sixth. Dividing by slots is right.
+
+   What would break the prior is a side recorded with FEWER than five,
+   because then the team total itself is incomplete and the league pace
+   built on it is low. teamTotal already refuses those; this checks none
+   exist to refuse, and holds substitutions to the rarity that makes the
+   slot count a safe divisor. */
+{
+  const sizes = {};
+  let sides = 0, oversized = 0, undersized = 0;
+  for (const [game, file] of Object.entries(
+        { lol: "data.json", valorant: "valorant_data.json", cs2: "cs2_data.json" })) {
+    const fp = path.join(root, file);
+    if (!fs.existsSync(fp)) continue;
+    for (const region of Object.values(JSON.parse(fs.readFileSync(fp, "utf8")).regions)) {
+      for (const m of region.past_matches || []) {
+        for (const side of Object.values(m.actual || {})) {
+          const n = Object.values(side).filter((x) => x && typeof x === "object").length;
+          if (!n) continue;
+          sides++; sizes[n] = (sizes[n] || 0) + 1;
+          if (n < app.ROSTER_SIZE) undersized++;
+          if (n > app.ROSTER_SIZE) oversized++;
+        }
+      }
+    }
+  }
+  check("no recorded side is short of a full roster — a partial side would " +
+        `drag league pace down (sizes seen: ${JSON.stringify(sizes)})`, undersized, 0);
+  check("substitutions stay rare enough that slots are a safe divisor (<2% of sides)",
+        oversized / sides < 0.02, true);
+}
+
+{
+  const W = app.DEFAULT_WEIGHTS_BY_GAME_AND_STAT;
+  check("LoL shrinks nothing — career and a prior split already ground it",
+        [W.lol.kills.shrink, W.lol.deaths.shrink, W.lol.assists.shrink], [0, 0, 0]);
+  check("Valorant shrinks kills hardest, having no career data at all",
+        [W.valorant.kills.shrink, W.valorant.deaths.shrink, W.valorant.assists.shrink], [4, 0, 1]);
+  check("CS2 shrinks assists only", [W.cs2.kills.shrink, W.cs2.deaths.shrink, W.cs2.assists.shrink], [0, 0, 1]);
+  check("every game and stat states a shrink constant explicitly",
+        Object.values(W).every((g) => Object.values(g).every((s) => typeof s.shrink === "number")), true);
 }
 
 console.log(`${pass} passed, ${fail} failed`);

@@ -45,25 +45,25 @@ STAT_TYPES = {
 # measuring it tells you nothing about the live model.
 SHIPPED_WEIGHTS = {
     "lol": {
-        "kills":    {"history": 0.8, "opponent": 0.4, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0.0, "career": 0.6, "share": 0.0},
-        "deaths":   {"history": 0.8, "opponent": 0.4, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0.0, "career": 0.6, "share": 0.0},
-        "assists":  {"history": 0.8, "opponent": 0.4, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0.0, "career": 0.6, "share": 0.0},
+        "kills":    {"history": 0.8, "opponent": 0.4, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0.0, "career": 0.6, "share": 0.0, "shrink": 0.0},
+        "deaths":   {"history": 0.8, "opponent": 0.4, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0.0, "career": 0.6, "share": 0.0, "shrink": 0.0},
+        "assists":  {"history": 0.8, "opponent": 0.4, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0.0, "career": 0.6, "share": 0.0, "shrink": 0.0},
     },
     "valorant": {
-        "kills":    {"history": 0.7, "opponent": 0, "kp": 0, "recencyHalfLife": 8, "patchDiscount": 0, "career": 0, "share": 0.4},
-        "deaths":   {"history": 0.7, "opponent": 0, "kp": 0.0, "recencyHalfLife": 6, "patchDiscount": 0.3, "career": 0, "share": 0.7},
-        "assists":  {"history": 0.4, "opponent": 0, "kp": 0.1, "recencyHalfLife": 6, "patchDiscount": 0.8, "career": 0, "share": 0.4},
+        "kills":    {"history": 0.7, "opponent": 0, "kp": 0, "recencyHalfLife": 8, "patchDiscount": 0, "career": 0, "share": 0.4, "shrink": 4.0},
+        "deaths":   {"history": 0.7, "opponent": 0, "kp": 0.0, "recencyHalfLife": 6, "patchDiscount": 0.3, "career": 0, "share": 0.7, "shrink": 0.0},
+        "assists":  {"history": 0.4, "opponent": 0, "kp": 0.1, "recencyHalfLife": 6, "patchDiscount": 0.8, "career": 0, "share": 0.4, "shrink": 1.0},
     },
     "cs2": {
-        "kills":    {"history": 0.0, "opponent": 0.0, "kp": 0.3, "recencyHalfLife": 6, "patchDiscount": 0.0, "career": 1.0, "share": 0.0},
-        "deaths":   {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0, "share": 0.6},
-        "assists":  {"history": 0.0, "opponent": 0.0, "kp": 0.1, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0, "share": 0.0},
+        "kills":    {"history": 0.0, "opponent": 0.0, "kp": 0.3, "recencyHalfLife": 6, "patchDiscount": 0.0, "career": 1.0, "share": 0.0, "shrink": 0.0},
+        "deaths":   {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0, "share": 0.6, "shrink": 0.0},
+        "assists":  {"history": 0.0, "opponent": 0.0, "kp": 0.1, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0, "share": 0.0, "shrink": 1.0},
     },
 }
 
 DEFAULT_WEIGHTS = {
     "history": 0.3, "opponent": 1.0, "kp": 0.3,
-    "recencyHalfLife": 6, "patchDiscount": 0.4, "career": 0.0, "share": 0.0,
+    "recencyHalfLife": 6, "patchDiscount": 0.4, "career": 0.0, "share": 0.0, "shrink": 0.0,
     "careerRamp": 0,  # 0 = off, reproducing the previous flat career weight exactly; see project_point_in_time for what this measures and why
 }
 
@@ -724,6 +724,63 @@ def blend_share_tier(per_game, weight, past_matches, teams, team, player_name,
     return (1 - weight) * per_game + weight * tier
 
 
+# ============================================================
+# THIN-SAMPLE SHRINKAGE
+# ============================================================
+# A player with three maps on record gets a rate computed from three
+# maps, and the model treated that with exactly the confidence it gave a
+# rate built from sixty. The error decomposition says what that costs:
+# bucketing every prediction by how many prior maps the player had,
+#
+#     Valorant kills   0-5 maps: MAE 6.77    5-15: 5.89    15-30: 5.95
+#     CS2 kills        0-5 maps: MAE 6.67    5-15: 5.89    15-30: 5.34
+#
+# and those thin buckets are not a fringe: 34% of Valorant rows and 50%
+# of CS2's. LoL does not show it, because LoL players arrive with a
+# career baseline and a previous split behind them; Valorant has neither
+# (no career scraper exists for it, and hist is null), so a new player's
+# rate there is three maps and nothing else.
+#
+# So the estimate is pulled toward the league's average player by
+# n / (n + k), the standard empirical-Bayes weight: no pull at all once a
+# player has a real sample, most of the way to the prior when they have
+# none. k is per game and stat because it is the sample size at which the
+# player's own rate becomes worth as much as the league's, and that is
+# not the same number in a game with career data as in one without.
+#
+# Measured out-of-sample over 6 walk-forward folds; adopted only where a
+# majority of folds agreed. It is HARMFUL in LoL at every k tried
+# (+0.45% to +11.22% on kills), which is the same finding from the other
+# side and why LoL ships k=0.
+ROSTER_SIZE = 5  # players per side, in all three games. tests/model_tiers.test.mjs
+                 # asserts every recorded side in every dataset has exactly
+                 # this many, so it is checked against the data rather than
+                 # assumed to stay true.
+
+
+def league_player_rate(past_matches, teams, stat_key, cutoff_date):
+    """What one player on an average team produces in a map."""
+    pace = league_pace_per_map(past_matches, teams, stat_key, cutoff_date)
+    return pace / ROSTER_SIZE if pace else None
+
+
+def shrink_to_prior(per_map, k, prior_games, past_matches, teams, stat_key, cutoff_date):
+    """Pull a per-map rate toward the league's average player.
+
+    Applied to the FINAL per-map figure, after the opponent, kp and share
+    layers, because that is the number actually being trusted and it is
+    where this was measured. Falls through unchanged when there is no
+    league to compare against.
+    """
+    if not k:
+        return per_map
+    prior = league_player_rate(past_matches, teams, stat_key, cutoff_date)
+    if not prior:
+        return per_map
+    weight = prior_games / (prior_games + k)
+    return weight * per_map + (1 - weight) * prior
+
+
 def project_point_in_time(past_matches, teams, player, team, opponent_team, games, weights,
                            cutoff_date, stat_type, match_patch):
     cfg = STAT_TYPES[stat_type]
@@ -800,6 +857,8 @@ def project_point_in_time(past_matches, teams, player, team, opponent_team, game
     per_game = base * opp_mult * kp_mult
     per_game = blend_share_tier(per_game, weights.get("share", 0), past_matches, teams,
                                 team, player["name"], cfg["key"], cutoff_date)
+    per_game = shrink_to_prior(per_game, weights.get("shrink", 0), pt_games,
+                               past_matches, teams, cfg["key"], cutoff_date)
     return per_game * games, pt_games
 
 
@@ -1017,6 +1076,7 @@ def coordinate_descent(region_data, stat_type, start_weights, passes=3):
         "patchDiscount": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0],
         "career": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95, 1.0],
         "share": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+        "shrink": [0.0, 1.0, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 16.0],
     }
     cfg = STAT_TYPES[stat_type]
     # careerRamp is deliberately NOT searched. It was a real hypothesis,
@@ -1031,7 +1091,7 @@ def coordinate_descent(region_data, stat_type, start_weights, passes=3):
     # the parameter, so this is one line to re-enable if the data changes
     # shape, but searching nine candidates x three passes x three stats
     # for an option already measured as dead is pure cost.
-    params = ["history", "opponent", "recencyHalfLife", "patchDiscount", "career", "share"]
+    params = ["history", "opponent", "recencyHalfLife", "patchDiscount", "career", "share", "shrink"]
     if cfg["useKP"]:
         params.append("kp")
 
