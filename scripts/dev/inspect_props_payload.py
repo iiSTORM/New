@@ -34,19 +34,41 @@ from scrape_props import GAMES  # noqa: E402
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("payload", help="a saved provider payload")
+    ap.add_argument("payload", nargs="+",
+                    help="saved provider payloads, one per league is normal")
     ap.add_argument("--show", type=int, default=30,
                     help="how many distinct labels to list (default 30)")
+    ap.add_argument("--names", type=int, default=0, metavar="N",
+                    help="also list N player names per league. The fastest way "
+                         "to tell 'the roster file is broken' from 'this slate "
+                         "is teams this app does not track', which look "
+                         "identical in the funnel.")
     args = ap.parse_args()
 
-    with open(args.payload) as f:
-        payload = json.load(f)
+    if len(args.payload) > 1:
+        for path in args.payload:
+            print("=" * 72)
+            inspect(path, args)
+            print()
+        return 0
+    return inspect(args.payload[0], args)
 
-    players = {}
+
+def inspect(path, args):
+    with open(path) as f:
+        payload = json.load(f)
+    args = argparse.Namespace(payload=path, show=args.show, names=args.names)
+
+    players, player_info = {}, {}
     for item in payload.get("included") or []:
         if item.get("type") in ("new_player", "player"):
             attrs = item.get("attributes") or {}
             players[str(item.get("id"))] = attrs.get("league")
+            player_info[str(item.get("id"))] = {
+                "name": attrs.get("display_name") or attrs.get("name"),
+                "team": attrs.get("team"),
+                "league": attrs.get("league"),
+            }
 
     projections = [i for i in (payload.get("data") or [])
                    if i.get("type") == "projection"]
@@ -156,6 +178,27 @@ def main():
                 print(f"      {n:5d}  {label}")
             if len(rows) > args.show:
                 print(f"      ... and {len(rows) - args.show} more labels")
+
+    if args.names:
+        print("\n  WHO IS ON THE BOARD — compare these against the roster files.")
+        print("  All of them unmatched means either a broken roster file or a")
+        print("  slate of teams this app does not track, and the names say which.")
+        by_league = collections.defaultdict(set)
+        for item in projections:
+            rel = ((item.get("relationships") or {}).get("new_player") or {}).get("data") or {}
+            info = player_info.get(str(rel.get("id"))) or {}
+            if info.get("league"):
+                by_league[info["league"]].add((info.get("name"), info.get("team")))
+        for league, count in leagues.most_common():
+            if not any(str(league).strip().lower() in {n.lower() for n in names}
+                       for names in wanted.values()):
+                continue
+            rows = sorted(x for x in by_league.get(league, ()) if x[0])
+            print(f"\n    {league}: {len(rows)} players")
+            for name, team in rows[:args.names]:
+                print(f"      {str(name)[:24]:24s}  {team}")
+            if len(rows) > args.names:
+                print(f"      ... and {len(rows) - args.names} more")
 
     print(f"\n  (this app models: {', '.join(modelled)})")
     return 0
