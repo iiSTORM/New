@@ -26,6 +26,7 @@ script was written without live code execution against the target site.
 If diagnostics show 0 players extracted from a match, that's the first
 thing to check.
 """
+import copy
 import json
 import re
 import sys
@@ -524,6 +525,56 @@ def build_region_payload(region_key, current_event, historical_event):
     return {"teams": teams, "past_matches": past_matches, "upcoming_matches": upcoming_matches}
 
 
+def lend_rosters_to_eventless_regions(regions):
+    """Give a not-yet-started event the rosters of the regions it drew from.
+
+    Rosters here are built by aggregating player stats out of PLAYED
+    matches, so an event whose fixtures exist but whose first map has not
+    been played arrives as a schedule with nobody in it -- confirmed on a
+    real run: Champions returned 34 fixtures and 0 teams. Every posted line
+    on that event then has no player to attach to, which is the whole
+    reason for tracking it.
+
+    The players are not missing, they are in their home regions with a
+    season of form behind them, and that form is also the RIGHT baseline
+    here: playoffs_and_international_roadmap.md 2a settles that a team's
+    own regional season is the comparable history for an international
+    event, not last year's edition of it. So the entry is copied across
+    rather than recomputed from nothing.
+
+    Only ever for a region with fixtures and NO teams at all. A region that
+    scraped some teams is mid-event, not missing a roster, and overwriting
+    it with regional form would discard the event's own -- which is the
+    better data the moment a single map has been played.
+
+    Returns a list of (region, borrowed, missing) for reporting.
+    """
+    donors = {}
+    for region in regions.values():
+        for team_name, team in (region.get("teams") or {}).items():
+            donors.setdefault(team_name, team)
+
+    report = []
+    for key, region in regions.items():
+        if region.get("teams"):
+            continue
+        fixtures = region.get("upcoming_matches") or []
+        if not fixtures:
+            continue
+        wanted = sorted({name for m in fixtures
+                         for name in (m.get("teamA"), m.get("teamB"))
+                         if name and name != "TBD"})
+        borrowed = {n: copy.deepcopy(donors[n]) for n in wanted if n in donors}
+        missing = [n for n in wanted if n not in donors]
+        if borrowed:
+            region["teams"] = borrowed
+            # Flagged rather than silent: these players' numbers come from
+            # their regional season, not from this event.
+            region["rosters_from_home_regions"] = True
+        report.append((key, borrowed, missing))
+    return report
+
+
 def main():
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -536,6 +587,13 @@ def main():
             )
         except Exception as e:
             print(f"! region {region_key} failed entirely: {e}", file=sys.stderr)
+
+    for key, borrowed, missing in lend_rosters_to_eventless_regions(payload["regions"]):
+        print(f"\n{key}: no played matches yet, so rosters come from the teams' "
+              f"home regions — {len(borrowed)} team(s) resolved")
+        if missing:
+            print(f"  {len(missing)} team(s) not found in any region, so their "
+                  f"fixtures stay unprojected: {missing}")
 
     with open("valorant_data.json", "w") as f:
         # Written minified: these files are machine-generated and never read
