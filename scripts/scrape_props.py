@@ -77,6 +77,21 @@ from props_match import build_roster_index, match_props
 
 OUTPUT_PATH = "props.json"
 
+# Every board that has ever been posted, appended one JSON object per line.
+#
+# props.json holds only what is live right now, and a refresh overwrites it,
+# so without this the evidence of what was offered is destroyed every ninety
+# minutes. That evidence is the only way to answer the question that decides
+# whether this model is worth anything: not "how close is the projection to
+# the result" -- which the app already backtests -- but "when the projection
+# disagreed with the line, which one was right".
+#
+# A line that MOVES is recorded as a new observation rather than replacing
+# the old one. Where a line opened and where it closed is signal in itself,
+# and an edge that vanishes as the market moves toward it is a different
+# thing from one that survives.
+HISTORY_PATH = "props_history.jsonl"
+
 # Which app game each configured league feeds, and the roster file to match
 # against. League ids are configurable rather than hardcoded guesses: they
 # are provider-side identifiers that change, and a wrong one fails silently
@@ -355,6 +370,54 @@ def payload_fetched_at(sources):
     return min(stamps) if stamps else datetime.now(timezone.utc)
 
 
+def history_key(record):
+    """What makes two observations the same posting rather than a move."""
+    return (record.get("game"), record.get("player"), record.get("stat"),
+            record.get("maps"), record.get("start_time"), record.get("line"))
+
+
+def archive_props(result, path=HISTORY_PATH):
+    """Append anything in this board that is not already on file.
+
+    Returns how many observations were added. Refreshing an unchanged board
+    adds nothing; a line that has moved adds one row per moved line.
+    """
+    seen = set()
+    try:
+        with open(path) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    seen.add(history_key(json.loads(line)))
+                except ValueError:
+                    # A truncated final line from an interrupted append. Skip
+                    # it rather than refusing to record anything further --
+                    # the cost of a duplicate row is nil next to the cost of
+                    # silently keeping no history at all.
+                    continue
+    except OSError:
+        pass
+
+    fresh = []
+    for game, players in (result.get("props") or {}).items():
+        for props in players.values():
+            for prop in props:
+                record = {"observed_at": result.get("fetched_at"), "game": game, **prop}
+                key = history_key(record)
+                if key in seen:
+                    continue
+                seen.add(key)
+                fresh.append(record)
+
+    if fresh:
+        with open(path, "a") as f:
+            for record in fresh:
+                f.write(json.dumps(record, separators=(",", ":"), sort_keys=True) + "\n")
+    return len(fresh)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--provider", choices=sorted(PROVIDERS), default="prizepicks")
@@ -369,6 +432,9 @@ def main():
                           "read a single payload from stdin.")
     ap.add_argument("--out", default=OUTPUT_PATH,
                      help=f"where to write (default {OUTPUT_PATH})")
+    ap.add_argument("--history", default=HISTORY_PATH,
+                     help=f"append-only record of every board seen "
+                          f"(default {HISTORY_PATH}; empty string disables)")
     ap.add_argument("--allow-empty", action="store_true",
                      help="write a props file with nothing in it even when one "
                           "with lines already exists (see the refusal below)")
@@ -486,6 +552,11 @@ def main():
         json.dump(result, f, separators=(",", ":"))
     print(f"\nWrote {args.out}: {total_matched} prop(s), "
           f"{total_unmatched} unmatched, fetched_at {result['fetched_at']}")
+
+    if args.history:
+        added = archive_props(result, args.history)
+        print(f"Recorded {added} new observation(s) in {args.history} "
+              f"({'first board on file' if added == total_matched else 'the rest were already there'})")
     return 0
 
 

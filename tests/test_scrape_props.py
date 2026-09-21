@@ -454,6 +454,85 @@ class TestSeveralPayloads:
                                  "--out", str(tmp_path / "props.json")]) == 1
 
 
+class TestPropsHistory:
+    """The append-only record of every board that has been posted.
+
+    props.json holds only what is live, and a refresh overwrites it. Without
+    this file there is no way to ever answer the question that decides
+    whether the model is worth paying for: when the projection disagreed
+    with the line, which one was right. Every refresh that happens before
+    this exists is evidence destroyed.
+    """
+
+    def board(self, line=30.5, at="2026-09-21T01:00:00+00:00"):
+        return {"fetched_at": at, "source": "test", "props": {"cs2": {"acoR": [
+            {"player": "acoR", "region": "CS2", "team": "Sashi", "stat": "kills",
+             "maps": 2, "line": line, "odds_type": "standard",
+             "provider": "prizepicks", "start_time": "2026-09-21T06:00:00-04:00"}]}}}
+
+    def test_the_first_board_is_recorded(self, tmp_path):
+        h = tmp_path / "history.jsonl"
+        assert sp.archive_props(self.board(), str(h)) == 1
+        rec = json.loads(h.read_text().strip())
+        assert rec["player"] == "acoR" and rec["line"] == 30.5
+        assert rec["game"] == "cs2"
+        assert rec["observed_at"] == "2026-09-21T01:00:00+00:00"
+
+    def test_refreshing_an_unchanged_board_records_nothing(self, tmp_path):
+        h = tmp_path / "history.jsonl"
+        sp.archive_props(self.board(), str(h))
+        # A later refresh of the same slate: same line, new observation time.
+        assert sp.archive_props(self.board(at="2026-09-21T02:30:00+00:00"), str(h)) == 0
+        assert len(h.read_text().strip().splitlines()) == 1
+
+    def test_a_line_that_moves_is_a_new_observation(self, tmp_path):
+        """Where a line opened and where it closed is signal in itself: an
+        edge that survives the market moving toward it is a different thing
+        from one that evaporates."""
+        h = tmp_path / "history.jsonl"
+        sp.archive_props(self.board(line=30.5), str(h))
+        assert sp.archive_props(self.board(line=29.5), str(h)) == 1
+        lines = [json.loads(l) for l in h.read_text().strip().splitlines()]
+        assert [r["line"] for r in lines] == [30.5, 29.5]
+
+    def test_a_truncated_last_line_does_not_stop_the_record(self, tmp_path):
+        """An interrupted append leaves half a row. Refusing to record
+        anything further because of it would turn a cosmetic problem into
+        permanent data loss."""
+        h = tmp_path / "history.jsonl"
+        sp.archive_props(self.board(), str(h))
+        with open(h, "a") as f:
+            f.write('{"game":"cs2","player":"trunc')
+        assert sp.archive_props(self.board(line=28.5), str(h)) == 1
+
+    def test_a_missing_file_is_simply_created(self, tmp_path):
+        assert sp.archive_props(self.board(), str(tmp_path / "nope.jsonl")) == 1
+
+    def test_an_empty_board_records_nothing(self, tmp_path):
+        h = tmp_path / "history.jsonl"
+        assert sp.archive_props({"fetched_at": "x", "props": {}}, str(h)) == 0
+
+    def test_a_dry_run_records_nothing(self, tmp_path, monkeypatch, live_payload):
+        """--dry-run means change nothing, and the history is a file like
+        any other."""
+        saved = tmp_path / "payload.json"
+        saved.write_text(json.dumps(live_payload))
+        h = tmp_path / "history.jsonl"
+        run(monkeypatch, ["--fixture", str(saved), "--out", str(tmp_path / "p.json"),
+                          "--history", str(h), "--dry-run"])
+        assert not h.exists()
+
+    def test_a_real_run_records_the_whole_board(self, tmp_path, monkeypatch, live_payload):
+        saved = tmp_path / "payload.json"
+        saved.write_text(json.dumps(live_payload))
+        h = tmp_path / "history.jsonl"
+        out = tmp_path / "p.json"
+        run(monkeypatch, ["--fixture", str(saved), "--out", str(out), "--history", str(h)])
+        written = json.loads(out.read_text())
+        total = sum(len(v) for game in written["props"].values() for v in game.values())
+        assert len(h.read_text().strip().splitlines()) == total
+
+
 class TestLeagueIds:
     def test_every_game_carries_one(self):
         """Without it the request is the whole board across every sport."""

@@ -180,7 +180,7 @@ Lines are good for 90 minutes. To replace them:
 ```bash
 git pull
 python scripts/scrape_props.py --fixture lol.json cs2.json val.json --out props.json
-git add props.json && git commit -m "Update prop lines" && git push
+git add props.json props_history.jsonl && git commit -m "Update prop lines" && git push
 ```
 
 4. Hard-refresh the app (Ctrl-Shift-R). Lines appear on the **Edges** tab,
@@ -189,7 +189,17 @@ git add props.json && git commit -m "Update prop lines" && git push
 Read the funnel before step 3's commit — it is printed whether or not you
 asked for a dry run, and `0 matched` for a game is worth understanding
 before pushing rather than after. The payload filenames are in
-`.gitignore`, so only `props.json` is ever committed.
+`.gitignore`, so only the two files below are ever committed.
+
+**Commit `props_history.jsonl` too.** `props.json` holds only what is live,
+and each refresh overwrites it. The history is append-only: every board ever
+posted, one JSON object per line, with a line that *moved* recorded as a new
+observation rather than replacing the old one. It is the only record of what
+was offered, and it is the input to the one question that decides whether
+these projections are worth anything — not "how close is the projection to
+the result", which the app already backtests, but **"when the projection
+disagreed with the line, which one was right"**. Every refresh taken before
+this file existed is evidence that cannot be recovered.
 
 ### Checking it worked
 
