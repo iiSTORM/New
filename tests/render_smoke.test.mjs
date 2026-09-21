@@ -36,6 +36,7 @@ const EXPORTS = [
   "KillProjector", "FutureMatchCard", "EdgesTab", "RecordTab", "PropReadout",
   "MatchPlayerRow", "HeadToHeadCard", "AccuracySummary", "ThemeContext",
   "PropsContext", "BASE_TOKENS", "GAME_ACCENTS",
+  "FutureTab", "PastResultsTab", "ConsistencyTab", "StandingsTab",
 ];
 const available = EXPORTS.filter((name) =>
   new RegExp(`(function|const)\\s+${name}\\b`).test(body));
@@ -161,6 +162,62 @@ if (app.EdgesTab) {
   renders("edges with an empty region", wrap(React.createElement(app.EdgesTab, {
     regionsData: {}, regionList: ["R"], regionLabels: {}, weights, statType: "kills",
     game: "lol", isDesktop: true }), propsData));
+}
+
+/* A not-yet-started international event: rosters lent from the teams' home
+   regions, and no past matches at all. Champions arrives in exactly this
+   shape, and it is one no region has ever had before — every other region
+   carries a season of results behind it. Anything that assumes at least one
+   completed match blanks the page the day that event goes live. */
+const eventShaped = { Champions: {
+  teams: { T1: rostered, "Paper Rex": rostered },
+  past_matches: [],
+  upcoming_matches: [fixture("T1", "Paper Rex")],
+  rosters_from_home_regions: true,
+} };
+
+if (app.EdgesTab) {
+  renders("a not-yet-started event, no past matches", wrap(React.createElement(app.EdgesTab, {
+    regionsData: eventShaped, regionList: ["Champions"], regionLabels: {},
+    weights, statType: "kills", game: "valorant", isDesktop: true }), propsData));
+}
+renders("a card in an event with no completed matches",
+  wrap(React.createElement(app.FutureMatchCard, {
+    teams: eventShaped.Champions.teams, pastMatches: [],
+    match: fixture("T1", "Paper Rex"), weights, statType: "kills",
+    isDesktop: true, games: 2, game: "valorant" }), propsData));
+
+if (app.AccuracySummary) {
+  renders("the accuracy headline with nothing to backtest against",
+    wrap(React.createElement(app.AccuracySummary, {
+      teams: eventShaped.Champions.teams, pastMatches: [], weights,
+      statType: "kills", isDesktop: true }), propsData));
+}
+
+if (app.HeadToHeadCard) {
+  renders("head-to-head between two teams that have never met",
+    wrap(React.createElement(app.HeadToHeadCard, {
+      teams: eventShaped.Champions.teams, pastMatches: [],
+      teamA: "T1", teamB: "Paper Rex", bare: true }), propsData));
+}
+
+/* Every tab, against the event shape. A region with rosters and no results
+   is selectable in all of them the day Champions goes live, and a throw in
+   any one takes the page down just as completely as a throw in the card. */
+const tabProps = {
+  teams: eventShaped.Champions.teams,
+  pastMatches: [],
+  upcomingMatches: eventShaped.Champions.upcoming_matches,
+  regionsData: eventShaped, regionList: ["Champions"],
+  regionLabels: { Champions: "Champions" },
+  weights, statType: "kills", isDesktop: true, games: 2, game: "valorant",
+};
+for (const name of ["FutureTab", "PastResultsTab", "ConsistencyTab", "StandingsTab"]) {
+  if (app[name]) renders(`${name} with rosters but no results`,
+    wrap(React.createElement(app[name], tabProps), propsData));
+  if (app[name]) renders(`${name} with nothing at all`,
+    wrap(React.createElement(app[name], {
+      ...tabProps, teams: {}, upcomingMatches: [], regionsData: {} }), null));
 }
 
 if (app.RecordTab) {
