@@ -174,6 +174,30 @@ check("lines with no usable edge sort to the bottom",
         .map((r) => r.edge), [-5, 0.1, null, null]);
 check("an empty board is not an error", rankEdges([]).length, 0);
 
+// A fixture whose OPPONENT this app has no roster for. CS2 tracks ~50
+// teams against ~100 in its fixture list, so most boards contain these,
+// and every line posted on one used to be dropped entirely.
+const halfKnown = {
+  CS2: {
+    past_matches: [],
+    teams: { Sashi: { players: [{ name: "acoR", role: null, cur: { k: 20, g: 10 } }] } },
+    upcoming_matches: [{ teamA: "Sashi", teamB: "SomeTeamWeNeverScraped",
+                         date: "2026-09-21T10:00:00+00:00" }],
+  },
+};
+const halfProps = { fetched_at: "2026-09-21T10:00:00+00:00", source: "t", props: { cs2: {
+  acoR: [{ player: "acoR", stat: "kills", maps: 2, line: 25.5, odds_type: "standard",
+           team: "Sashi", start_time: "2026-09-21T10:00:00+00:00" }] } } };
+const halfRows = collectEdges(halfKnown, ["CS2"], halfProps, {}, "kills", "cs2");
+check("a line shows even when the opponent is unrostered", halfRows.length, 1);
+check("and is flagged as having no opponent adjustment",
+      halfRows[0] && halfRows[0].oppKnown, false);
+
+const bothUnknown = { CS2: { past_matches: [], teams: {},
+  upcoming_matches: [{ teamA: "A", teamB: "B", date: "2026-09-21T10:00:00+00:00" }] } };
+check("a fixture with neither side rostered still yields nothing",
+      collectEdges(bothUnknown, ["CS2"], halfProps, {}, "kills", "cs2").length, 0);
+
 const cs2 = JSON.parse(fs.readFileSync(path.join(root, "cs2_data.json"), "utf8"));
 const realProps = fs.existsSync(realPathEarly()) ? JSON.parse(fs.readFileSync(realPathEarly(), "utf8")) : null;
 function realPathEarly() { return path.join(root, "props.json"); }

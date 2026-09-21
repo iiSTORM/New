@@ -390,12 +390,19 @@ function collectEdges(regionsData, regionList, propsData, weights, statType, gam
     if (!rd || !rd.teams) continue;
     const pastMatches = rd.past_matches || [];
     for (const match of rd.upcoming_matches || []) {
-      if (!rd.teams[match.teamA] || !rd.teams[match.teamB]) continue;
+      // Only the player's OWN team has to be rostered. The opponent is
+      // needed for one term, which now falls back to neutral, and a line
+      // is worth showing with that caveat rather than being dropped: a
+      // real CS2 board stranded five of them this way, because its roster
+      // tracks fifty teams against a hundred in the fixture list.
+      if (!rd.teams[match.teamA] && !rd.teams[match.teamB]) continue;
       // _sortKey first, for the same reason the match card needs it: `date`
       // may already have been replaced by a display string.
       const when = match._sortKey || match.date;
       for (const team of [match.teamA, match.teamB]) {
+        if (!rd.teams[team]) continue;
         const opponent = team === match.teamA ? match.teamB : match.teamA;
+        const oppKnown = !!rd.teams[opponent];
         for (const player of likelyStarters(rd.teams[team].players || [])) {
           const prop = propFor(propsData, game, player.name, statType, when);
           if (!prop) continue;
@@ -407,7 +414,7 @@ function collectEdges(regionsData, regionList, propsData, weights, statType, gam
           if (projection === null) continue;
           rows.push({
             region: regionKey, name: player.name, role: player.role,
-            team, opponent, when, prop, projection, breakdown,
+            team, opponent, when, prop, projection, breakdown, oppKnown,
             // No edge where the provider posted several lines and named
             // none of them the market one — same refusal as the readout.
             edge: prop.lineCount > 1 ? null : projection - prop.line,
@@ -625,6 +632,13 @@ function likelyStarters(players) {
 }
 
 const teamStatPerGame = (teams, teamName, statKey) => {
+  // An unrostered team is a real and common case, not a bug: CS2's roster
+  // tracks ~50 teams while its upcoming fixtures reference ~100, so most
+  // boards contain matches whose opponent this app has never scraped.
+  // Returning null lets the caller fall back to a neutral adjustment;
+  // reaching into `.players` threw, which is why those fixtures used to be
+  // refused outright along with any line posted on them.
+  if (!teams[teamName] || !Array.isArray(teams[teamName].players)) return null;
   const allPlayers = teams[teamName].players;
   // Distinct-role count handles LoL roster swaps correctly (e.g. two
   // players sharing "JNG" after a mid-split change still count as one
@@ -795,6 +809,11 @@ function kpMultiplier(player, historyWeight, kpStrength) {
 
 function opponentMultiplier(teams, opponentTeam, oppStrength, oppBasisKey) {
   const oppStat = teamStatPerGame(teams, opponentTeam, oppBasisKey);
+  // Neutral when the opponent is unknown, on the same reasoning the
+  // lane-specific path already uses above: no adjustment beats an invented
+  // one. The projection is then a neutral-opponent estimate, and anything
+  // showing it says so rather than passing it off as fully adjusted.
+  if (oppStat === null) return 1;
   const ratio = oppStat / leagueAvgStat(teams, oppBasisKey);
   return 1 + oppStrength * (ratio - 1);
 }
@@ -1122,6 +1141,7 @@ function resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, opp
   const leagueAvgPT = pointInTimeLeagueAvgStat(pastMatches, teams, cfg.oppBasis, cutoffDate);
   const oppStat = oppStatPT !== null ? oppStatPT : teamStatPerGame(teams, opponentTeam, cfg.oppBasis);
   const leagueAvg = leagueAvgPT !== null ? leagueAvgPT : leagueAvgStat(teams, cfg.oppBasis);
+  if (oppStat === null || !leagueAvg) return 1;   // unknown opponent — neutral, as above
   return 1 + oppStrength * (oppStat / leagueAvg - 1);
 }
 
@@ -2072,6 +2092,16 @@ function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop }) {
         </div>
         <div style={{ fontSize: 11, color: theme.textFaint, marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {row.team} vs {row.opponent}{clock ? ` · ${clock}` : ""}
+          {row.oppKnown === false && (
+            /* Said out loud rather than silently folded in. The projection
+               is a neutral-opponent estimate: this app has no roster for
+               the other side, so the opponent-strength term is 1 and the
+               number is less adjusted than the rest of the list. */
+            <span title={`No roster for ${row.opponent}, so opponent strength was not applied. The projection is a neutral-opponent estimate.`}
+                  style={{ marginLeft: 6, color: theme.accent, opacity: 0.85 }}>
+              · no opp adj
+            </span>
+          )}
         </div>
       </div>
 
@@ -2533,16 +2563,23 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games, 
   const [open, setOpen] = useState(false);
   const teamKeys = [match.teamA, match.teamB];
 
-  if (!teams[match.teamA] || !teams[match.teamB]) {
+  // Only refused when NEITHER side is rostered, which leaves nothing to
+  // project. One unknown side used to refuse the whole fixture, and CS2
+  // tracks about fifty teams against a hundred in its fixture list, so
+  // three quarters of a real board rendered as this message — including
+  // cards that carried posted lines.
+  const knownTeams = teamKeys.filter((t) => teams[t]);
+  if (knownTeams.length === 0) {
     return (
       <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), marginBottom: 10, padding: "12px 14px", fontSize: 12, color: theme.textFaint }}>
-        {match.teamA} vs {match.teamB} — roster data not loaded for one of these teams yet.
+        {match.teamA} vs {match.teamB} — no roster data for either team yet.
       </div>
     );
   }
+  const halfKnown = knownTeams.length === 1;
 
   const cfg = STAT_TYPES[statType];
-  const rows = teamKeys.flatMap((team) => {
+  const rows = knownTeams.flatMap((team) => {
     const opp = team === match.teamA ? match.teamB : match.teamA;
     return likelyStarters(teams[team].players).map((p) => {
       const breakdown = project(teams, pastMatches, p, team, opp, games, weights, statType);
@@ -2588,11 +2625,25 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games, 
           </div>
           <div style={{ marginTop: 7, fontSize: 11.5, color: theme.textFaint, display: "flex", alignItems: "center", gap: 7 }}>
             <span>{match.date}{match.time ? ` · ${match.time}` : ""}</span>
+            {halfKnown && (
+              <>
+                <span aria-hidden="true" style={{ opacity: 0.5 }}>•</span>
+                <span title={`No roster for ${teamKeys.find((t) => !teams[t])}, so only ${knownTeams[0]} is projected and opponent strength is not applied.`}
+                      style={{ color: theme.accent, opacity: 0.85 }}>
+                  {knownTeams[0]} only
+                </span>
+              </>
+            )}
             <span aria-hidden="true" style={{ opacity: 0.5 }}>•</span>
             <span>{games} game{games === 1 ? "" : "s"}</span>
           </div>
         </div>
-        <StatReadout value={totalProj.toFixed(0)} label={`proj ${cfg.label}`} size={28} />
+        {/* Labelled for the side it actually covers. A half-known fixture's
+            total is one team's, and calling it the match total would make
+            it look like the two teams were projected to score the same. */}
+        <StatReadout value={totalProj.toFixed(0)}
+                     label={halfKnown ? `proj ${cfg.label} · ${knownTeams[0]}` : `proj ${cfg.label}`}
+                     size={28} />
         <Chevron open={open} color={theme.textFaint} />
       </div>
       {open && (

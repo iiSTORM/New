@@ -570,10 +570,12 @@ try {
       if (!rd || !rd.teams) continue;
       const pastMatches = rd.past_matches || [];
       for (const match of rd.upcoming_matches || []) {
-        if (!rd.teams[match.teamA] || !rd.teams[match.teamB]) continue;
+        if (!rd.teams[match.teamA] && !rd.teams[match.teamB]) continue;
         const when = match._sortKey || match.date;
         for (const team of [match.teamA, match.teamB]) {
+          if (!rd.teams[team]) continue;
           const opponent = team === match.teamA ? match.teamB : match.teamA;
+          const oppKnown = !!rd.teams[opponent];
           for (const player of likelyStarters(rd.teams[team].players || [])) {
             const prop = propFor(propsData, game, player.name, statType, when);
             if (!prop) continue;
@@ -590,6 +592,7 @@ try {
               prop,
               projection,
               breakdown,
+              oppKnown,
               edge: prop.lineCount > 1 ? null : projection - prop.line
             });
           }
@@ -1403,6 +1406,7 @@ try {
     return [...players].sort((a, b) => (b.cur?.g || 0) - (a.cur?.g || 0)).slice(0, 5);
   }
   const teamStatPerGame = (teams, teamName, statKey) => {
+    if (!teams[teamName] || !Array.isArray(teams[teamName].players)) return null;
     const allPlayers = teams[teamName].players;
     const distinctRoles = new Set(allPlayers.map(p => p.role)).size;
     if (distinctRoles > 1) {
@@ -1906,6 +1910,7 @@ try {
   }
   function opponentMultiplier(teams, opponentTeam, oppStrength, oppBasisKey) {
     const oppStat = teamStatPerGame(teams, opponentTeam, oppBasisKey);
+    if (oppStat === null) return 1;
     const ratio = oppStat / leagueAvgStat(teams, oppBasisKey);
     return 1 + oppStrength * (ratio - 1);
   }
@@ -2104,6 +2109,7 @@ try {
     const leagueAvgPT = pointInTimeLeagueAvgStat(pastMatches, teams, cfg.oppBasis, cutoffDate);
     const oppStat = oppStatPT !== null ? oppStatPT : teamStatPerGame(teams, opponentTeam, cfg.oppBasis);
     const leagueAvg = leagueAvgPT !== null ? leagueAvgPT : leagueAvgStat(teams, cfg.oppBasis);
+    if (oppStat === null || !leagueAvg) return 1;
     return 1 + oppStrength * (oppStat / leagueAvg - 1);
   }
   function projectPointInTime(pastMatches, teams, player, team, opponentTeam, games, weights, cutoffDate, statType, matchPatch) {
@@ -3063,7 +3069,14 @@ try {
         textOverflow: "ellipsis",
         whiteSpace: "nowrap"
       }
-    }, row.team, " vs ", row.opponent, clock ? ` · ${clock}` : "")), isDesktop && React.createElement("div", {
+    }, row.team, " vs ", row.opponent, clock ? ` · ${clock}` : "", row.oppKnown === false && React.createElement("span", {
+      title: `No roster for ${row.opponent}, so opponent strength was not applied. The projection is a neutral-opponent estimate.`,
+      style: {
+        marginLeft: 6,
+        color: theme.accent,
+        opacity: 0.85
+      }
+    }, "\xB7 no opp adj"))), isDesktop && React.createElement("div", {
       style: {
         textAlign: "right",
         minWidth: 58
@@ -3933,7 +3946,8 @@ try {
     const propsAge = propsAgeMinutes(propsData);
     const [open, setOpen] = useState(false);
     const teamKeys = [match.teamA, match.teamB];
-    if (!teams[match.teamA] || !teams[match.teamB]) {
+    const knownTeams = teamKeys.filter(t => teams[t]);
+    if (knownTeams.length === 0) {
       return React.createElement("div", {
         style: {
           background: theme.graphite,
@@ -3945,10 +3959,11 @@ try {
           fontSize: 12,
           color: theme.textFaint
         }
-      }, match.teamA, " vs ", match.teamB, " \u2014 roster data not loaded for one of these teams yet.");
+      }, match.teamA, " vs ", match.teamB, " \u2014 no roster data for either team yet.");
     }
+    const halfKnown = knownTeams.length === 1;
     const cfg = STAT_TYPES[statType];
-    const rows = teamKeys.flatMap(team => {
+    const rows = knownTeams.flatMap(team => {
       const opp = team === match.teamA ? match.teamB : match.teamA;
       return likelyStarters(teams[team].players).map(p => {
         const breakdown = project(teams, pastMatches, p, team, opp, games, weights, statType);
@@ -4031,14 +4046,25 @@ try {
         alignItems: "center",
         gap: 7
       }
-    }, React.createElement("span", null, match.date, match.time ? ` · ${match.time}` : ""), React.createElement("span", {
+    }, React.createElement("span", null, match.date, match.time ? ` · ${match.time}` : ""), halfKnown && React.createElement(React.Fragment, null, React.createElement("span", {
+      "aria-hidden": "true",
+      style: {
+        opacity: 0.5
+      }
+    }, "\u2022"), React.createElement("span", {
+      title: `No roster for ${teamKeys.find(t => !teams[t])}, so only ${knownTeams[0]} is projected and opponent strength is not applied.`,
+      style: {
+        color: theme.accent,
+        opacity: 0.85
+      }
+    }, knownTeams[0], " only")), React.createElement("span", {
       "aria-hidden": "true",
       style: {
         opacity: 0.5
       }
     }, "\u2022"), React.createElement("span", null, games, " game", games === 1 ? "" : "s"))), React.createElement(StatReadout, {
       value: totalProj.toFixed(0),
-      label: `proj ${cfg.label}`,
+      label: halfKnown ? `proj ${cfg.label} · ${knownTeams[0]}` : `proj ${cfg.label}`,
       size: 28
     }), React.createElement(Chevron, {
       open: open,
