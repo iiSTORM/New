@@ -65,9 +65,31 @@ your home connection:
 https://api.prizepicks.com/projections?per_page=250&single_stat=true
 ```
 
-Save it (⌘S / Ctrl-S) or select all and copy, then pipe it in. Do not paste
-that JSON anywhere else — it is hundreds of kilobytes, and it only ever needs
-to travel from the browser to this script:
+**Use the filtered URLs.** Unfiltered, that endpoint returns every sport it
+posts — 42MB, of which these three games are about 350 rows, roughly one
+percent. `league_id` cuts each game to a few hundred KB: quick to save, small
+enough that copy-paste stops silently truncating, and far less to ask of
+someone else's server. Bookmark these three:
+
+```
+LoL       https://api.prizepicks.com/projections?league_id=121&per_page=250&single_stat=true
+CS2       https://api.prizepicks.com/projections?league_id=265&per_page=250&single_stat=true
+Valorant  https://api.prizepicks.com/projections?league_id=159&per_page=250&single_stat=true
+```
+
+The ids are the provider's own and can change; if one goes stale that game
+simply stops appearing, and `scripts/dev/inspect_props_payload.py` prints the
+current ids out of any saved payload.
+
+Save each (⌘S / Ctrl-S), then hand all three to one run — the freshness stamp
+takes the oldest of them, so a set is only as fresh as its stalest file:
+
+```bash
+python scripts/scrape_props.py --fixture lol.json cs2.json val.json --out props.json
+```
+
+Do not paste that JSON anywhere else — it only ever needs to travel from the
+browser to this script:
 
 > **The saved payload does not belong in git.** It is ~2MB, it is an input
 > rather than an output, and reloading one URL regenerates it — only the
@@ -85,12 +107,12 @@ to travel from the browser to this script:
 
 
 ```bash
-# from a saved file, on any OS
-python scripts/scrape_props.py --fixture saved.json --out props.json
+# one file, or several — several is the normal case with the URLs above
+python scripts/scrape_props.py --fixture lol.json cs2.json val.json --out props.json
 
-# or straight off the clipboard
-pbpaste | python scripts/scrape_props.py --fixture - --out props.json        # macOS
+# or a single payload straight off the clipboard
 Get-Clipboard | python scripts/scrape_props.py --fixture - --out props.json  # Windows
+pbpaste | python scripts/scrape_props.py --fixture - --out props.json        # macOS
 xclip -o -sel clip | python scripts/scrape_props.py --fixture - --out props.json  # Linux
 
 git add props.json && git commit -m "Update prop lines" && git push

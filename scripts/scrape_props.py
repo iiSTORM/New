@@ -92,10 +92,23 @@ OUTPUT_PATH = "props.json"
 #
 # Both spellings of each are accepted because the provider has used the
 # long form and currently uses the short one.
+# league_id is the provider's own id for a league, read out of a real
+# payload by scripts/dev/inspect_props_payload.py. It matters because the
+# unfiltered board is every sport at once -- 42MB, of which these three
+# games are about 350 rows, roughly one percent. Filtered, each is a few
+# hundred KB: quick to save from a browser, small enough that a copy-paste
+# does not silently truncate, and a great deal less to ask of someone
+# else's server than pulling the whole board to discard 99% of it.
+#
+# The ids are provider-side and can change. If one goes stale the league
+# simply stops appearing, which the inspector will name.
 GAMES = {
-    "lol": {"data": "data.json", "leagues": {"LoL", "League of Legends"}},
-    "cs2": {"data": "cs2_data.json", "leagues": {"CS2"}},
-    "valorant": {"data": "valorant_data.json", "leagues": {"VAL", "VALORANT"}},
+    "lol": {"data": "data.json", "leagues": {"LoL", "League of Legends"},
+            "league_id": 121},
+    "cs2": {"data": "cs2_data.json", "leagues": {"CS2"},
+            "league_id": 265},
+    "valorant": {"data": "valorant_data.json", "leagues": {"VAL", "VALORANT"},
+                 "league_id": 159},
 }
 
 PRIZEPICKS_URL = "https://api.prizepicks.com/projections"
@@ -236,6 +249,24 @@ def existing_prop_count(path):
         return 0
 
 
+def read_payloads(sources):
+    """Read one or more saved payloads and merge them into one.
+
+    Filtering by league_id means a separate small file per game rather than
+    one enormous one, so the ordinary case is now three files. They merge
+    cleanly: the payload is two flat lists, and player ids are global to
+    the provider rather than scoped to a league.
+    """
+    merged = {"data": [], "included": []}
+    for source in sources:
+        payload = read_payload(source)
+        if payload is None:
+            return None
+        merged["data"].extend(payload.get("data") or [])
+        merged["included"].extend(payload.get("included") or [])
+    return merged
+
+
 def read_payload(source):
     """Load a saved provider payload, or explain what arrived instead.
 
@@ -295,10 +326,10 @@ def read_payload(source):
         return None
 
 
-def payload_fetched_at(source):
+def payload_fetched_at(sources):
     """When these lines actually came off the provider, as best as known.
 
-    For a live fetch that is now. For a saved payload it is NOT: the
+    For a live fetch that is now. For saved payloads it is NOT: the
     browser pulled those lines, then the file was saved, moved between
     machines, and run some time later. Stamping "now" on it would tell the
     frontend a two-hour-old line is seconds old, and the frontend would
@@ -310,12 +341,18 @@ def payload_fetched_at(source):
     original timestamp), and old is the safe direction: the line shows as
     stale rather than falsely fresh.
     """
-    if source and source != "-":
+    stamps = []
+    for source in (sources or []):
+        if not source or source == "-":
+            continue
         try:
-            return datetime.fromtimestamp(os.path.getmtime(source), timezone.utc)
+            stamps.append(datetime.fromtimestamp(os.path.getmtime(source), timezone.utc))
         except OSError:
             pass
-    return datetime.now(timezone.utc)
+    # The oldest, not the newest: a set of files is only as fresh as its
+    # stalest member, and erring old shows the lines as stale rather than
+    # presenting an hour-old line as current.
+    return min(stamps) if stamps else datetime.now(timezone.utc)
 
 
 def main():
@@ -324,11 +361,12 @@ def main():
     ap.add_argument("--game", choices=sorted(GAMES) + ["all"], default="all")
     ap.add_argument("--dry-run", action="store_true",
                      help="fetch and report, but do not write props.json")
-    ap.add_argument("--fixture",
-                     help="parse a saved provider payload instead of fetching. "
-                          "Use '-' to read it from stdin, which lets you pipe a "
-                          "payload saved from a browser on a connection the "
-                          "provider does not block.")
+    ap.add_argument("--fixture", nargs="+", metavar="FILE",
+                     help="parse saved provider payloads instead of fetching. "
+                          "Takes several, because filtering by league_id means "
+                          "one small file per game rather than one huge one: "
+                          "--fixture lol.json cs2.json val.json. Use '-' to "
+                          "read a single payload from stdin.")
     ap.add_argument("--out", default=OUTPUT_PATH,
                      help=f"where to write (default {OUTPUT_PATH})")
     ap.add_argument("--allow-empty", action="store_true",
@@ -350,7 +388,7 @@ def main():
         # "-" means stdin. The provider refuses this script from any
         # network, so a payload saved from a browser and piped in is not a
         # fallback for awkward environments — it is the route that works.
-        payload = read_payload(args.fixture)
+        payload = read_payloads(args.fixture)
         if payload is None:
             return 1
     else:

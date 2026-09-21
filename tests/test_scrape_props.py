@@ -378,6 +378,93 @@ class TestFetchedAt:
         assert stamped >= before.replace(microsecond=0)
 
 
+class TestSeveralPayloads:
+    """One file per league is the ordinary case now.
+
+    Filtering by league_id turns a 42MB board covering every sport into a
+    few hundred KB per game, so the payload arrives as three small files
+    rather than one huge one.
+    """
+
+    def split(self, payload):
+        """The fixture cut into one payload per league, as saving three
+        filtered URLs from a browser would produce."""
+        leagues = {i["id"]: (i.get("attributes") or {}).get("league")
+                   for i in payload["included"]
+                   if i.get("type") in ("new_player", "player")}
+        out = {}
+        for item in payload["data"]:
+            if item.get("type") != "projection":
+                continue
+            rel = ((item.get("relationships") or {}).get("new_player") or {}).get("data") or {}
+            league = leagues.get(str(rel.get("id")))
+            if league:
+                out.setdefault(league, {"data": [], "included": []})["data"].append(item)
+        for item in payload["included"]:
+            league = (item.get("attributes") or {}).get("league")
+            if league in out:
+                out[league]["included"].append(item)
+        return out
+
+    def test_several_files_give_the_same_result_as_one(self, tmp_path, monkeypatch, live_payload):
+        whole = tmp_path / "whole.json"
+        whole.write_text(json.dumps(live_payload))
+        one_out = tmp_path / "one.json"
+        run(monkeypatch, ["--fixture", str(whole), "--out", str(one_out)])
+
+        parts = []
+        for league, payload in self.split(json.loads(whole.read_text())).items():
+            path = tmp_path / f"{league}.json"
+            path.write_text(json.dumps(payload))
+            parts.append(str(path))
+        many_out = tmp_path / "many.json"
+
+        assert run(monkeypatch, ["--fixture"] + parts + ["--out", str(many_out)]) == 0
+        assert json.loads(many_out.read_text())["props"] == json.loads(one_out.read_text())["props"]
+
+    def test_the_stalest_file_sets_the_age(self, tmp_path, monkeypatch, live_payload):
+        """A set of files is only as fresh as its oldest member. Taking the
+        newest would let one freshly-saved league present two-hour-old lines
+        from another as current, which is the whole failure the window
+        exists to prevent."""
+        parts = []
+        for i, (league, payload) in enumerate(self.split(live_payload).items()):
+            path = tmp_path / f"{league}.json"
+            path.write_text(json.dumps(payload))
+            # One file three hours old, the rest saved just now.
+            if i == 0:
+                old = time.time() - 3 * 3600
+                os.utime(path, (old, old))
+            parts.append(str(path))
+        out = tmp_path / "props.json"
+
+        run(monkeypatch, ["--fixture"] + parts + ["--out", str(out)])
+        stamped = datetime.fromisoformat(json.loads(out.read_text())["fetched_at"])
+        age = (datetime.now(timezone.utc) - stamped).total_seconds() / 60
+        assert age > 170, f"stamped {age:.0f} minutes old, expected ~180"
+
+    def test_one_unreadable_file_fails_the_whole_set(self, tmp_path, monkeypatch, live_payload):
+        """Half a slate is worse than none: the games that did load would
+        look like a quiet evening for the ones that did not."""
+        good = tmp_path / "good.json"
+        good.write_text(json.dumps(live_payload))
+        bad = tmp_path / "bad.json"
+        bad.write_text("")
+        assert run(monkeypatch, ["--fixture", str(good), str(bad),
+                                 "--out", str(tmp_path / "props.json")]) == 1
+
+
+class TestLeagueIds:
+    def test_every_game_carries_one(self):
+        """Without it the request is the whole board across every sport."""
+        for game, cfg in sp.GAMES.items():
+            assert isinstance(cfg.get("league_id"), int), game
+
+    def test_they_are_distinct(self):
+        ids = [cfg["league_id"] for cfg in sp.GAMES.values()]
+        assert len(set(ids)) == len(ids)
+
+
 class TestRefusesToWipeGoodLines:
     """A payload that parses but matches nothing is what a renamed stat
     label looks like. Writing it out deletes real lines on the strength of
