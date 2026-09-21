@@ -570,10 +570,12 @@ try {
       if (!rd || !rd.teams) continue;
       const pastMatches = rd.past_matches || [];
       for (const match of rd.upcoming_matches || []) {
-        if (!rd.teams[match.teamA] || !rd.teams[match.teamB]) continue;
+        if (!rd.teams[match.teamA] && !rd.teams[match.teamB]) continue;
         const when = match._sortKey || match.date;
         for (const team of [match.teamA, match.teamB]) {
+          if (!rd.teams[team]) continue;
           const opponent = team === match.teamA ? match.teamB : match.teamA;
+          const oppKnown = !!rd.teams[opponent];
           for (const player of likelyStarters(rd.teams[team].players || [])) {
             const prop = propFor(propsData, game, player.name, statType, when);
             if (!prop) continue;
@@ -590,6 +592,7 @@ try {
               prop,
               projection,
               breakdown,
+              oppKnown,
               edge: prop.lineCount > 1 ? null : projection - prop.line
             });
           }
@@ -604,6 +607,59 @@ try {
       if (a.edge === null) return 0;
       return Math.abs(b.edge) - Math.abs(a.edge);
     });
+  }
+  function modelRecord(regionsData, regionList, results, weights, statType) {
+    const rows = [];
+    for (const row of results && results.graded || []) {
+      if (row.stat !== statType) continue;
+      let teams = null,
+        pastMatches = null;
+      for (const key of regionList || []) {
+        const rd = regionsData && regionsData[key];
+        if (rd && rd.teams && rd.teams[row.team]) {
+          teams = rd.teams;
+          pastMatches = rd.past_matches || [];
+          break;
+        }
+      }
+      if (!teams) continue;
+      const player = (teams[row.team].players || []).find(p => p.name === row.player);
+      if (!player) continue;
+      const breakdown = projectPointInTime(pastMatches, teams, player, row.team, row.opponent, row.maps, weights, row.match_date, statType, null);
+      if (!breakdown || typeof breakdown.perGame !== "number") continue;
+      const projection = breakdown.perGame * row.maps;
+      const side = projection > row.line ? "over" : projection < row.line ? "under" : null;
+      if (side === null || row.result === "push") continue;
+      rows.push({
+        ...row,
+        projection,
+        side,
+        won: side === row.result,
+        edge: Math.round((projection - row.line) * 100) / 100
+      });
+    }
+    return rows;
+  }
+  const EDGE_BUCKETS = [[0, 1], [1, 2], [2, 3], [3, Infinity]];
+  function recordByEdge(rows) {
+    return EDGE_BUCKETS.map(([lo, hi]) => {
+      const inBucket = rows.filter(r => {
+        const size = Math.abs(r.edge);
+        return size >= lo && size < hi;
+      });
+      const won = inBucket.filter(r => r.won).length;
+      return {
+        lo,
+        hi,
+        n: inBucket.length,
+        won,
+        rate: inBucket.length ? won / inBucket.length : null
+      };
+    });
+  }
+  function teamColorOf(teams, name, fallback) {
+    const team = teams && teams[name];
+    return team && team.color || fallback;
   }
   function propsAgeMinutes(propsData) {
     if (!propsData || !propsData.fetched_at) return null;
@@ -702,6 +758,7 @@ try {
   const DATA_URL_CS2 = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/cs2_data.json";
   const DATA_URL_CHAMPION_STATS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/champion_stats.json";
   const DATA_URL_PROPS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props.json";
+  const DATA_URL_RESULTS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props_results.json";
   const PROPS_MAX_AGE_MINUTES = 90;
   const FALLBACK_TEAMS = {
     LYON: {
@@ -1403,6 +1460,7 @@ try {
     return [...players].sort((a, b) => (b.cur?.g || 0) - (a.cur?.g || 0)).slice(0, 5);
   }
   const teamStatPerGame = (teams, teamName, statKey) => {
+    if (!teams[teamName] || !Array.isArray(teams[teamName].players)) return null;
     const allPlayers = teams[teamName].players;
     const distinctRoles = new Set(allPlayers.map(p => p.role)).size;
     if (distinctRoles > 1) {
@@ -1906,6 +1964,7 @@ try {
   }
   function opponentMultiplier(teams, opponentTeam, oppStrength, oppBasisKey) {
     const oppStat = teamStatPerGame(teams, opponentTeam, oppBasisKey);
+    if (oppStat === null) return 1;
     const ratio = oppStat / leagueAvgStat(teams, oppBasisKey);
     return 1 + oppStrength * (ratio - 1);
   }
@@ -2104,6 +2163,7 @@ try {
     const leagueAvgPT = pointInTimeLeagueAvgStat(pastMatches, teams, cfg.oppBasis, cutoffDate);
     const oppStat = oppStatPT !== null ? oppStatPT : teamStatPerGame(teams, opponentTeam, cfg.oppBasis);
     const leagueAvg = leagueAvgPT !== null ? leagueAvgPT : leagueAvgStat(teams, cfg.oppBasis);
+    if (oppStat === null || !leagueAvg) return 1;
     return 1 + oppStrength * (oppStat / leagueAvg - 1);
   }
   function projectPointInTime(pastMatches, teams, player, team, opponentTeam, games, weights, cutoffDate, statType, matchPatch) {
@@ -3063,7 +3123,14 @@ try {
         textOverflow: "ellipsis",
         whiteSpace: "nowrap"
       }
-    }, row.team, " vs ", row.opponent, clock ? ` · ${clock}` : "")), isDesktop && React.createElement("div", {
+    }, row.team, " vs ", row.opponent, clock ? ` · ${clock}` : "", row.oppKnown === false && React.createElement("span", {
+      title: `No roster for ${row.opponent}, so opponent strength was not applied. The projection is a neutral-opponent estimate.`,
+      style: {
+        marginLeft: 6,
+        color: theme.accent,
+        opacity: 0.85
+      }
+    }, "\xB7 no opp adj"))), isDesktop && React.createElement("div", {
       style: {
         textAlign: "right",
         minWidth: 58
@@ -3209,6 +3276,131 @@ try {
         lineHeight: 1.6
       }
     }, "Edge is the projection minus the line, over the line\u2019s own map window. It is a model disagreeing with a market, not a prediction of the result \u2014 and the model is the same one the accuracy figures on the Future tab describe."));
+  }
+  const RECORD_MIN_SAMPLE = 30;
+  function RecordTab({
+    regionsData,
+    regionList,
+    weights,
+    statType,
+    isDesktop
+  }) {
+    const theme = useTheme();
+    const cfg = STAT_TYPES[statType];
+    const [results, setResults] = useState(undefined);
+    useEffect(() => {
+      let live = true;
+      fetch(DATA_URL_RESULTS, {
+        cache: "no-store"
+      }).then(res => res.ok ? res.json() : null).then(data => {
+        if (live) setResults(data);
+      }).catch(() => {
+        if (live) setResults(null);
+      });
+      return () => {
+        live = false;
+      };
+    }, []);
+    const rows = useMemo(() => results ? modelRecord(regionsData, regionList, results, weights, statType) : [], [results, regionsData, regionList, weights, statType]);
+    const shell = children => React.createElement("div", {
+      style: {
+        background: theme.graphite,
+        border: `1px solid ${theme.steel}`,
+        ...cardShape(theme.cornerStyle),
+        ...elevation(),
+        padding: "18px 20px",
+        fontSize: 12.5,
+        color: theme.textFaint,
+        lineHeight: 1.65
+      }
+    }, children);
+    if (results === undefined) return shell("Loading the graded record…");
+    if (!results || !(results.graded || []).length) {
+      return shell(React.createElement(React.Fragment, null, React.createElement("strong", {
+        style: {
+          color: theme.text
+        }
+      }, "No graded lines yet."), " The record builds itself: every refresh appends the board to ", React.createElement("code", null, "props_history.jsonl"), ", and a line becomes gradeable once its match has been played and scraped. Nothing to do but keep refreshing \u2014 and nothing here should be claimed until this screen says otherwise."));
+    }
+    const decided = rows.length;
+    const won = rows.filter(r => r.won).length;
+    const buckets = recordByEdge(rows);
+    const graded = results.graded.length;
+    return React.createElement("div", null, shell(React.createElement(React.Fragment, null, React.createElement("div", {
+      style: {
+        color: theme.text,
+        fontSize: 13,
+        fontWeight: 600,
+        marginBottom: 6
+      }
+    }, graded, " line", graded === 1 ? "" : "s", " graded \xB7 ", decided, " where the projection disagreed with the line"), decided < RECORD_MIN_SAMPLE ? React.createElement(React.Fragment, null, "Too few to report a rate. Below ", RECORD_MIN_SAMPLE, " decided bets a win rate is noise wearing a decimal point, and the whole reason for keeping this record is to avoid claiming things the evidence does not support. It will fill on its own.") : React.createElement(React.Fragment, null, "The projection's side won ", React.createElement("strong", {
+      style: {
+        color: theme.text
+      }
+    }, won), " of", " ", React.createElement("strong", {
+      style: {
+        color: theme.text
+      }
+    }, decided), " (", (100 * won / decided).toFixed(1), "%). Each projection was rebuilt from data that predated its own match, so this is not the model grading its own homework \u2014 but it is a small sample, and a sample this size moves several points on a handful of results."))), React.createElement("div", {
+      style: {
+        background: theme.graphite,
+        border: `1px solid ${theme.steel}`,
+        ...cardShape(theme.cornerStyle),
+        ...elevation(),
+        marginTop: 12,
+        overflow: "hidden"
+      }
+    }, React.createElement("div", {
+      style: {
+        padding: "12px 16px",
+        borderBottom: `1px solid ${theme.steel}`,
+        fontSize: 12.5,
+        color: theme.text
+      }
+    }, "By how far the projection disagreed"), buckets.map(b => {
+      const label = b.hi === Infinity ? `${b.lo}+ ${cfg.label.toLowerCase()}` : `${b.lo}–${b.hi} ${cfg.label.toLowerCase()}`;
+      const enough = b.n >= RECORD_MIN_SAMPLE;
+      return React.createElement("div", {
+        key: b.lo,
+        style: {
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          padding: "10px 16px",
+          borderBottom: `1px solid ${theme.steel}`
+        }
+      }, React.createElement("div", {
+        style: {
+          flex: 1,
+          fontSize: 12.5,
+          color: theme.textDim
+        }
+      }, label), React.createElement("div", {
+        className: "kp-num",
+        style: {
+          fontSize: 12,
+          color: theme.textFaint,
+          minWidth: 70,
+          textAlign: "right"
+        }
+      }, b.won, "/", b.n), React.createElement("div", {
+        className: "kp-num",
+        style: {
+          fontSize: 14,
+          fontWeight: 700,
+          minWidth: 64,
+          textAlign: "right",
+          color: enough ? b.rate > 0.5 ? theme.good : b.rate < 0.5 ? theme.bad : theme.textDim : theme.textFaint
+        }
+      }, enough ? `${(100 * b.rate).toFixed(0)}%` : "—"));
+    })), React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: theme.textFaint,
+        marginTop: 10,
+        lineHeight: 1.65
+      }
+    }, "If the model is worth anything, that column climbs as the disagreement grows. If it does not, a confident edge is worth no more than a marginal one. Rates are withheld below ", RECORD_MIN_SAMPLE, " ", "bets per row. Pushes and projections landing exactly on the line are excluded \u2014 neither is a bet.", isDesktop && " Nothing here accounts for the price paid, so a win rate above 50% is not by itself a profit."));
   }
   function StandingsTab({
     teams,
@@ -3933,7 +4125,8 @@ try {
     const propsAge = propsAgeMinutes(propsData);
     const [open, setOpen] = useState(false);
     const teamKeys = [match.teamA, match.teamB];
-    if (!teams[match.teamA] || !teams[match.teamB]) {
+    const knownTeams = teamKeys.filter(t => teams[t]);
+    if (knownTeams.length === 0) {
       return React.createElement("div", {
         style: {
           background: theme.graphite,
@@ -3945,10 +4138,11 @@ try {
           fontSize: 12,
           color: theme.textFaint
         }
-      }, match.teamA, " vs ", match.teamB, " \u2014 roster data not loaded for one of these teams yet.");
+      }, match.teamA, " vs ", match.teamB, " \u2014 no roster data for either team yet.");
     }
+    const halfKnown = knownTeams.length === 1;
     const cfg = STAT_TYPES[statType];
-    const rows = teamKeys.flatMap(team => {
+    const rows = knownTeams.flatMap(team => {
       const opp = team === match.teamA ? match.teamB : match.teamA;
       return likelyStarters(teams[team].players).map(p => {
         const breakdown = project(teams, pastMatches, p, team, opp, games, weights, statType);
@@ -4012,7 +4206,7 @@ try {
       }
     }, React.createElement(TeamTag, {
       name: match.teamA,
-      color: teams[match.teamA].color
+      color: teamColorOf(teams, match.teamA, theme.textDim)
     }), React.createElement("span", {
       style: {
         color: theme.textFaint,
@@ -4021,7 +4215,7 @@ try {
       }
     }, "vs"), React.createElement(TeamTag, {
       name: match.teamB,
-      color: teams[match.teamB].color
+      color: teamColorOf(teams, match.teamB, theme.textDim)
     })), React.createElement("div", {
       style: {
         marginTop: 7,
@@ -4031,14 +4225,25 @@ try {
         alignItems: "center",
         gap: 7
       }
-    }, React.createElement("span", null, match.date, match.time ? ` · ${match.time}` : ""), React.createElement("span", {
+    }, React.createElement("span", null, match.date, match.time ? ` · ${match.time}` : ""), halfKnown && React.createElement(React.Fragment, null, React.createElement("span", {
+      "aria-hidden": "true",
+      style: {
+        opacity: 0.5
+      }
+    }, "\u2022"), React.createElement("span", {
+      title: `No roster for ${teamKeys.find(t => !teams[t])}, so only ${knownTeams[0]} is projected and opponent strength is not applied.`,
+      style: {
+        color: theme.accent,
+        opacity: 0.85
+      }
+    }, knownTeams[0], " only")), React.createElement("span", {
       "aria-hidden": "true",
       style: {
         opacity: 0.5
       }
     }, "\u2022"), React.createElement("span", null, games, " game", games === 1 ? "" : "s"))), React.createElement(StatReadout, {
       value: totalProj.toFixed(0),
-      label: `proj ${cfg.label}`,
+      label: halfKnown ? `proj ${cfg.label} · ${knownTeams[0]}` : `proj ${cfg.label}`,
       size: 28
     }), React.createElement(Chevron, {
       open: open,
@@ -4690,7 +4895,11 @@ try {
         color: theme.textFaint,
         lineHeight: 1.55
       }
-    }, "Measured against the last ", summary.matches, " completed ", cfg.label.toLowerCase() === "kills" ? "matches" : "matches", " in this region \u2014 ", summary.players.toLocaleString(), " player projections, each made using only the data that existed before that match was played."));
+    }, "Measured against the last ", summary.matches, " completed matches in this region \u2014 ", summary.players.toLocaleString(), " player projections, each made using only the data that existed before that match was played.", " ", React.createElement("span", {
+      style: {
+        opacity: 0.85
+      }
+    }, "This is distance from the ", React.createElement("em", null, "result"), ", not performance against a ", React.createElement("em", null, "line"), ". A projection can sit closer to the truth than the posted line and still lose money, because the line is close too and is priced with a margin. Nothing here is a measured record against the market.")));
   }
   function FutureTab({
     teams,
@@ -5442,7 +5651,7 @@ try {
     setStatType,
     isDesktop
   }) {
-    const TABS = [["future", "Future"], ["edges", "Edges"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
+    const TABS = [["future", "Future"], ["edges", "Edges"], ["record", "Record"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
     return React.createElement("div", {
       style: {
         marginBottom: isDesktop ? 22 : 14
@@ -6111,6 +6320,12 @@ try {
       weights: weights,
       statType: statType,
       game: game,
+      isDesktop: isDesktop
+    }) : tab === "record" ? React.createElement(RecordTab, {
+      regionsData: regionsData,
+      regionList: gameCfg.regionList,
+      weights: weights,
+      statType: statType,
       isDesktop: isDesktop
     }) : tab === "past" ? React.createElement(PastResultsTab, {
       teams: current.teams,

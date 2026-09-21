@@ -390,12 +390,19 @@ function collectEdges(regionsData, regionList, propsData, weights, statType, gam
     if (!rd || !rd.teams) continue;
     const pastMatches = rd.past_matches || [];
     for (const match of rd.upcoming_matches || []) {
-      if (!rd.teams[match.teamA] || !rd.teams[match.teamB]) continue;
+      // Only the player's OWN team has to be rostered. The opponent is
+      // needed for one term, which now falls back to neutral, and a line
+      // is worth showing with that caveat rather than being dropped: a
+      // real CS2 board stranded five of them this way, because its roster
+      // tracks fifty teams against a hundred in the fixture list.
+      if (!rd.teams[match.teamA] && !rd.teams[match.teamB]) continue;
       // _sortKey first, for the same reason the match card needs it: `date`
       // may already have been replaced by a display string.
       const when = match._sortKey || match.date;
       for (const team of [match.teamA, match.teamB]) {
+        if (!rd.teams[team]) continue;
         const opponent = team === match.teamA ? match.teamB : match.teamA;
+        const oppKnown = !!rd.teams[opponent];
         for (const player of likelyStarters(rd.teams[team].players || [])) {
           const prop = propFor(propsData, game, player.name, statType, when);
           if (!prop) continue;
@@ -407,7 +414,7 @@ function collectEdges(regionsData, regionList, propsData, weights, statType, gam
           if (projection === null) continue;
           rows.push({
             region: regionKey, name: player.name, role: player.role,
-            team, opponent, when, prop, projection, breakdown,
+            team, opponent, when, prop, projection, breakdown, oppKnown,
             // No edge where the provider posted several lines and named
             // none of them the market one — same refusal as the readout.
             edge: prop.lineCount > 1 ? null : projection - prop.line,
@@ -425,6 +432,84 @@ function rankEdges(rows) {
     if (a.edge === null) return 0;
     return Math.abs(b.edge) - Math.abs(a.edge);
   });
+}
+
+/* The only claim that matters commercially: when the projection disagreed
+   with the line, which one was right.
+
+   The grading — which match a line belonged to, what the player did over
+   exactly its maps, whether it landed over — is done once, in Python, and
+   arrives already decided in props_results.json. What only this side can
+   supply is the projection as it stood BEFORE the match, which is why this
+   lives here: projectPointInTime rebuilds it from data that predated the
+   fixture, exactly as the backtest headline does.
+
+   A projection sitting exactly on the line is not a disagreement and is
+   dropped, as is a push. Neither is a bet, and counting either would pad
+   the sample with outcomes nobody could have acted on. */
+function modelRecord(regionsData, regionList, results, weights, statType) {
+  const rows = [];
+  for (const row of (results && results.graded) || []) {
+    if (row.stat !== statType) continue;
+
+    let teams = null, pastMatches = null;
+    for (const key of regionList || []) {
+      const rd = regionsData && regionsData[key];
+      if (rd && rd.teams && rd.teams[row.team]) {
+        teams = rd.teams;
+        pastMatches = rd.past_matches || [];
+        break;
+      }
+    }
+    if (!teams) continue;
+    const player = (teams[row.team].players || []).find((p) => p.name === row.player);
+    if (!player) continue;   // rosters move; a departed player cannot be re-projected
+
+    const breakdown = projectPointInTime(pastMatches, teams, player, row.team,
+                                         row.opponent, row.maps, weights,
+                                         row.match_date, statType, null);
+    if (!breakdown || typeof breakdown.perGame !== "number") continue;
+    const projection = breakdown.perGame * row.maps;
+    const side = projection > row.line ? "over" : projection < row.line ? "under" : null;
+    if (side === null || row.result === "push") continue;
+
+    rows.push({
+      ...row, projection, side,
+      won: side === row.result,
+      edge: Math.round((projection - row.line) * 100) / 100,
+    });
+  }
+  return rows;
+}
+
+/* Does a bigger disagreement win more often? If the model is worth
+   anything that curve slopes upward, and if it does not, a confident edge
+   is worth no more than a marginal one — which is the single most useful
+   thing this whole record can tell anyone. */
+const EDGE_BUCKETS = [[0, 1], [1, 2], [2, 3], [3, Infinity]];
+
+function recordByEdge(rows) {
+  return EDGE_BUCKETS.map(([lo, hi]) => {
+    const inBucket = rows.filter((r) => {
+      const size = Math.abs(r.edge);
+      return size >= lo && size < hi;
+    });
+    const won = inBucket.filter((r) => r.won).length;
+    return { lo, hi, n: inBucket.length, won,
+             rate: inBucket.length ? won / inBucket.length : null };
+  });
+}
+
+/* A team's colour, for teams that may not be rostered.
+
+   Fixtures can name a side this app has never scraped — CS2 rosters about
+   fifty teams against a hundred in its fixture list — and a card that
+   renders such a fixture still has to print both names. Reaching straight
+   into `.color` on the missing one throws inside render, which React
+   turns into a blank page rather than a missing colour. */
+function teamColorOf(teams, name, fallback) {
+  const team = teams && teams[name];
+  return (team && team.color) || fallback;
 }
 
 function propsAgeMinutes(propsData) {
@@ -505,6 +590,7 @@ const DATA_URL_CS2 = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/m
 // since it's a standalone reference table, not one game's live snapshot.
 const DATA_URL_CHAMPION_STATS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/champion_stats.json";
 const DATA_URL_PROPS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props.json";
+const DATA_URL_RESULTS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props_results.json";
 
 // Lines move continuously and get pulled when news breaks, so an old one is
 // not merely stale — it is misleading in the expensive direction, because it
@@ -625,6 +711,13 @@ function likelyStarters(players) {
 }
 
 const teamStatPerGame = (teams, teamName, statKey) => {
+  // An unrostered team is a real and common case, not a bug: CS2's roster
+  // tracks ~50 teams while its upcoming fixtures reference ~100, so most
+  // boards contain matches whose opponent this app has never scraped.
+  // Returning null lets the caller fall back to a neutral adjustment;
+  // reaching into `.players` threw, which is why those fixtures used to be
+  // refused outright along with any line posted on them.
+  if (!teams[teamName] || !Array.isArray(teams[teamName].players)) return null;
   const allPlayers = teams[teamName].players;
   // Distinct-role count handles LoL roster swaps correctly (e.g. two
   // players sharing "JNG" after a mid-split change still count as one
@@ -795,6 +888,11 @@ function kpMultiplier(player, historyWeight, kpStrength) {
 
 function opponentMultiplier(teams, opponentTeam, oppStrength, oppBasisKey) {
   const oppStat = teamStatPerGame(teams, opponentTeam, oppBasisKey);
+  // Neutral when the opponent is unknown, on the same reasoning the
+  // lane-specific path already uses above: no adjustment beats an invented
+  // one. The projection is then a neutral-opponent estimate, and anything
+  // showing it says so rather than passing it off as fully adjusted.
+  if (oppStat === null) return 1;
   const ratio = oppStat / leagueAvgStat(teams, oppBasisKey);
   return 1 + oppStrength * (ratio - 1);
 }
@@ -1122,6 +1220,7 @@ function resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, opp
   const leagueAvgPT = pointInTimeLeagueAvgStat(pastMatches, teams, cfg.oppBasis, cutoffDate);
   const oppStat = oppStatPT !== null ? oppStatPT : teamStatPerGame(teams, opponentTeam, cfg.oppBasis);
   const leagueAvg = leagueAvgPT !== null ? leagueAvgPT : leagueAvgStat(teams, cfg.oppBasis);
+  if (oppStat === null || !leagueAvg) return 1;   // unknown opponent — neutral, as above
   return 1 + oppStrength * (oppStat / leagueAvg - 1);
 }
 
@@ -2072,6 +2171,16 @@ function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop }) {
         </div>
         <div style={{ fontSize: 11, color: theme.textFaint, marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {row.team} vs {row.opponent}{clock ? ` · ${clock}` : ""}
+          {row.oppKnown === false && (
+            /* Said out loud rather than silently folded in. The projection
+               is a neutral-opponent estimate: this app has no roster for
+               the other side, so the opponent-strength term is 1 and the
+               number is less adjusted than the rest of the list. */
+            <span title={`No roster for ${row.opponent}, so opponent strength was not applied. The projection is a neutral-opponent estimate.`}
+                  style={{ marginLeft: 6, color: theme.accent, opacity: 0.85 }}>
+              · no opp adj
+            </span>
+          )}
         </div>
       </div>
 
@@ -2156,6 +2265,107 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
         Edge is the projection minus the line, over the line’s own map window. It is a model disagreeing with a
         market, not a prediction of the result — and the model is the same one the accuracy figures on the Future
         tab describe.
+      </div>
+    </div>
+  );
+}
+
+/* The record. Deliberately austere: this screen either has enough evidence
+   to say something or it says it does not, and it never splits the
+   difference with an encouraging number off a handful of bets. */
+const RECORD_MIN_SAMPLE = 30;
+
+function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
+  const theme = useTheme();
+  const cfg = STAT_TYPES[statType];
+  const [results, setResults] = useState(undefined);   // undefined = still loading
+
+  useEffect(() => {
+    let live = true;
+    fetch(DATA_URL_RESULTS, { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (live) setResults(data); })
+      .catch(() => { if (live) setResults(null); });
+    return () => { live = false; };
+  }, []);
+
+  const rows = useMemo(
+    () => (results ? modelRecord(regionsData, regionList, results, weights, statType) : []),
+    [results, regionsData, regionList, weights, statType]
+  );
+
+  const shell = (children) => (
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+                  ...elevation(), padding: "18px 20px", fontSize: 12.5, color: theme.textFaint, lineHeight: 1.65 }}>
+      {children}
+    </div>
+  );
+
+  if (results === undefined) return shell("Loading the graded record…");
+  if (!results || !(results.graded || []).length) {
+    return shell(<>
+      <strong style={{ color: theme.text }}>No graded lines yet.</strong> The record builds itself: every
+      refresh appends the board to <code>props_history.jsonl</code>, and a line becomes gradeable once its
+      match has been played and scraped. Nothing to do but keep refreshing — and nothing here should be
+      claimed until this screen says otherwise.
+    </>);
+  }
+
+  const decided = rows.length;
+  const won = rows.filter((r) => r.won).length;
+  const buckets = recordByEdge(rows);
+  const graded = results.graded.length;
+
+  return (
+    <div>
+      {shell(<>
+        <div style={{ color: theme.text, fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
+          {graded} line{graded === 1 ? "" : "s"} graded · {decided} where the projection disagreed with the line
+        </div>
+        {decided < RECORD_MIN_SAMPLE ? (
+          <>Too few to report a rate. Below {RECORD_MIN_SAMPLE} decided bets a win rate is noise wearing a
+          decimal point, and the whole reason for keeping this record is to avoid claiming things the
+          evidence does not support. It will fill on its own.</>
+        ) : (
+          <>The projection's side won <strong style={{ color: theme.text }}>{won}</strong> of{" "}
+          <strong style={{ color: theme.text }}>{decided}</strong> ({(100 * won / decided).toFixed(1)}%).
+          Each projection was rebuilt from data that predated its own match, so this is not the model
+          grading its own homework — but it is a small sample, and a sample this size moves several points
+          on a handful of results.</>
+        )}
+      </>)}
+
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+                    ...elevation(), marginTop: 12, overflow: "hidden" }}>
+        <div style={{ padding: "12px 16px", borderBottom: `1px solid ${theme.steel}`, fontSize: 12.5, color: theme.text }}>
+          By how far the projection disagreed
+        </div>
+        {buckets.map((b) => {
+          const label = b.hi === Infinity ? `${b.lo}+ ${cfg.label.toLowerCase()}`
+            : `${b.lo}–${b.hi} ${cfg.label.toLowerCase()}`;
+          const enough = b.n >= RECORD_MIN_SAMPLE;
+          return (
+            <div key={b.lo} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 16px",
+                                     borderBottom: `1px solid ${theme.steel}` }}>
+              <div style={{ flex: 1, fontSize: 12.5, color: theme.textDim }}>{label}</div>
+              <div className="kp-num" style={{ fontSize: 12, color: theme.textFaint, minWidth: 70, textAlign: "right" }}>
+                {b.won}/{b.n}
+              </div>
+              <div className="kp-num" style={{ fontSize: 14, fontWeight: 700, minWidth: 64, textAlign: "right",
+                                               color: enough ? (b.rate > 0.5 ? theme.good : b.rate < 0.5 ? theme.bad : theme.textDim)
+                                                             : theme.textFaint }}>
+                {enough ? `${(100 * b.rate).toFixed(0)}%` : "—"}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ fontSize: 11, color: theme.textFaint, marginTop: 10, lineHeight: 1.65 }}>
+        If the model is worth anything, that column climbs as the disagreement grows. If it does not, a
+        confident edge is worth no more than a marginal one. Rates are withheld below {RECORD_MIN_SAMPLE}
+        {" "}bets per row. Pushes and projections landing exactly on the line are excluded — neither is a bet.
+        {isDesktop && " Nothing here accounts for the price paid, so a win rate above 50% is not by itself a profit."}
       </div>
     </div>
   );
@@ -2533,16 +2743,23 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games, 
   const [open, setOpen] = useState(false);
   const teamKeys = [match.teamA, match.teamB];
 
-  if (!teams[match.teamA] || !teams[match.teamB]) {
+  // Only refused when NEITHER side is rostered, which leaves nothing to
+  // project. One unknown side used to refuse the whole fixture, and CS2
+  // tracks about fifty teams against a hundred in its fixture list, so
+  // three quarters of a real board rendered as this message — including
+  // cards that carried posted lines.
+  const knownTeams = teamKeys.filter((t) => teams[t]);
+  if (knownTeams.length === 0) {
     return (
       <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), marginBottom: 10, padding: "12px 14px", fontSize: 12, color: theme.textFaint }}>
-        {match.teamA} vs {match.teamB} — roster data not loaded for one of these teams yet.
+        {match.teamA} vs {match.teamB} — no roster data for either team yet.
       </div>
     );
   }
+  const halfKnown = knownTeams.length === 1;
 
   const cfg = STAT_TYPES[statType];
-  const rows = teamKeys.flatMap((team) => {
+  const rows = knownTeams.flatMap((team) => {
     const opp = team === match.teamA ? match.teamB : match.teamA;
     return likelyStarters(teams[team].players).map((p) => {
       const breakdown = project(teams, pastMatches, p, team, opp, games, weights, statType);
@@ -2582,17 +2799,31 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games, 
       >
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
-            <TeamTag name={match.teamA} color={teams[match.teamA].color} />
+            <TeamTag name={match.teamA} color={teamColorOf(teams, match.teamA, theme.textDim)} />
             <span style={{ color: theme.textFaint, fontSize: 10.5, fontWeight: 500 }}>vs</span>
-            <TeamTag name={match.teamB} color={teams[match.teamB].color} />
+            <TeamTag name={match.teamB} color={teamColorOf(teams, match.teamB, theme.textDim)} />
           </div>
           <div style={{ marginTop: 7, fontSize: 11.5, color: theme.textFaint, display: "flex", alignItems: "center", gap: 7 }}>
             <span>{match.date}{match.time ? ` · ${match.time}` : ""}</span>
+            {halfKnown && (
+              <>
+                <span aria-hidden="true" style={{ opacity: 0.5 }}>•</span>
+                <span title={`No roster for ${teamKeys.find((t) => !teams[t])}, so only ${knownTeams[0]} is projected and opponent strength is not applied.`}
+                      style={{ color: theme.accent, opacity: 0.85 }}>
+                  {knownTeams[0]} only
+                </span>
+              </>
+            )}
             <span aria-hidden="true" style={{ opacity: 0.5 }}>•</span>
             <span>{games} game{games === 1 ? "" : "s"}</span>
           </div>
         </div>
-        <StatReadout value={totalProj.toFixed(0)} label={`proj ${cfg.label}`} size={28} />
+        {/* Labelled for the side it actually covers. A half-known fixture's
+            total is one team's, and calling it the match total would make
+            it look like the two teams were projected to score the same. */}
+        <StatReadout value={totalProj.toFixed(0)}
+                     label={halfKnown ? `proj ${cfg.label} · ${knownTeams[0]}` : `proj ${cfg.label}`}
+                     size={28} />
         <Chevron open={open} color={theme.textFaint} />
       </div>
       {open && (
@@ -3010,6 +3241,17 @@ function ConsistencyCard({ row, rank, cfg }) {
    ============================================================ */
 const ACCURACY_SAMPLE = 25;
 
+/* The backtest headline: how far the projections landed from what players
+   actually did, over the most recent completed matches, each projection
+   built only from data that predated its own match.
+
+   The caption's second half is load-bearing rather than decorative. "Within
+   3 kills, 82%" reads like a claim about betting and is not one: a line is
+   usually within 3 too, and it carries a margin. Distance from the result
+   and performance against a price are different measurements, and only the
+   first is on this screen. props_history.jsonl and scripts/score_props.py
+   exist to make the second one sayable, and until they have a season behind
+   them this component must not imply it. */
 function AccuracySummary({ teams, pastMatches, weights, statType, isDesktop }) {
   const theme = useTheme();
   const cfg = STAT_TYPES[statType];
@@ -3069,9 +3311,16 @@ function AccuracySummary({ teams, pastMatches, weights, statType, isDesktop }) {
         ))}
       </div>
       <div style={{ flex: 1, minWidth: 190, fontSize: 11.5, color: theme.textFaint, lineHeight: 1.55 }}>
-        Measured against the last {summary.matches} completed {cfg.label.toLowerCase() === "kills" ? "matches" : "matches"} in this
+        Measured against the last {summary.matches} completed matches in this
         region — {summary.players.toLocaleString()} player projections, each made using only the data
         that existed before that match was played.
+        {" "}
+        <span style={{ opacity: 0.85 }}>
+          This is distance from the <em>result</em>, not performance against a <em>line</em>. A
+          projection can sit closer to the truth than the posted line and still lose money, because
+          the line is close too and is priced with a margin. Nothing here is a measured record
+          against the market.
+        </span>
       </div>
     </div>
   );
@@ -3594,7 +3843,7 @@ function GameSwitcher({ game, selectGame, statusByGame, theme }) {
    stack on small screens (still bigger/clearer than the old treatment). ---------- */
 
 function TopNav({ theme, gameCfg, region, setRegion, tab, setTab, statType, setStatType, isDesktop }) {
-  const TABS = [["future", "Future"], ["edges", "Edges"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
+  const TABS = [["future", "Future"], ["edges", "Edges"], ["record", "Record"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
   return (
     <div style={{ marginBottom: isDesktop ? 22 : 14 }}>
       {/* Region picker. Seven regions wrapped onto two rows on a phone,
@@ -4187,6 +4436,9 @@ function KillProjector() {
             ) : tab === "edges" ? (
               <EdgesTab regionsData={regionsData} regionList={gameCfg.regionList} regionLabels={gameCfg.regionLabels}
                         weights={weights} statType={statType} game={game} isDesktop={isDesktop} />
+            ) : tab === "record" ? (
+              <RecordTab regionsData={regionsData} regionList={gameCfg.regionList}
+                         weights={weights} statType={statType} isDesktop={isDesktop} />
             ) : tab === "past" ? (
               <PastResultsTab teams={current.teams} pastMatches={current.past_matches || []} weights={weights} statType={statType} isDesktop={isDesktop} />
             ) : tab === "consistency" ? (

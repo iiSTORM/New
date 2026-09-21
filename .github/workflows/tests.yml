@@ -59,3 +59,12 @@ jobs:
       # the function out of src/app.jsx and runs it.
       - name: Check prop selection
         run: node tests/prop_selection.test.mjs
+
+      # Mounts the real components against deliberately awkward data. Every
+      # other frontend test here checks pure functions, which leaves the
+      # worst failure class uncovered: a throw inside JSX unmounts the whole
+      # tree, so the page goes blank rather than one number going missing.
+      # A real crash shipped that way -- a card printing a team name the
+      # scraper had never seen -- with the pure suite fully green.
+      - name: Check the page still renders
+        run: node tests/render_smoke.test.mjs

@@ -201,6 +201,58 @@ the result", which the app already backtests, but **"when the projection
 disagreed with the line, which one was right"**. Every refresh taken before
 this file existed is evidence that cannot be recovered.
 
+### Grading the lines
+
+```bash
+python scripts/score_props.py                    # report
+python scripts/score_props.py --json graded.json # and the rows
+```
+
+Reads `props_history.jsonl`, finds the completed match each posted line
+belonged to, and resolves what the player actually did over **exactly that
+line's map window** — summing LoL's `per_game` for the maps the line names,
+and using CS2's and Valorant's series total, which covers precisely maps 1-2
+because their scrapers collect two maps and no more. A line over any other
+window in those two games is refused rather than graded against the wrong
+maps, which would manufacture a losing record out of nothing.
+
+Refusals are counted by reason, and early on almost all of them will be *no
+completed match on that date* — the matches simply have not been played yet.
+Rates are withheld below 30 graded lines, where a rate is noise wearing a
+decimal point.
+
+**What this measures, and what it does not.** It measures the market: how
+often a posted line landed over, and by how much. A mean margin near zero is
+a market doing its job. It says nothing yet about whether these projections
+*beat* that market, which needs the projection as it stood when the line was
+posted — the next piece of work. The app's existing accuracy figures measure
+the projection against the result, which is a different and much easier
+question than measuring it against a price.
+
+### The record
+
+`.github/workflows/grade.yml` runs the grader whenever a scrape lands, so
+`props_results.json` builds itself — a line becomes gradeable the moment its
+match appears in a data file, which is exactly when that file is pushed.
+
+The app's **Record** tab reads it and adds the one thing the grader cannot:
+the projection as it stood *before* the match, rebuilt by
+`projectPointInTime` from data that predated the fixture. That turns "the
+market went over 51% of the time" into **"when the projection disagreed with
+the line, it was right N% of the time"**, which is the only accuracy claim
+worth selling.
+
+It is broken out by how far the projection disagreed. If the model is worth
+anything that column climbs with the size of the disagreement; if it does
+not, a confident edge is worth no more than a marginal one — and that is the
+most useful thing the record can tell anyone, including the answer "this
+does not work".
+
+Rates are withheld below 30 decided bets, per row and overall. Pushes and
+projections landing exactly on the line are excluded; neither is a bet. And
+nothing in it accounts for the price paid, so a win rate over 50% is not by
+itself a profit.
+
 ### Checking it worked
 
 The provider is unreachable from CI and from any hosted shell, so the pipeline

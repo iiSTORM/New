@@ -174,6 +174,30 @@ check("lines with no usable edge sort to the bottom",
         .map((r) => r.edge), [-5, 0.1, null, null]);
 check("an empty board is not an error", rankEdges([]).length, 0);
 
+// A fixture whose OPPONENT this app has no roster for. CS2 tracks ~50
+// teams against ~100 in its fixture list, so most boards contain these,
+// and every line posted on one used to be dropped entirely.
+const halfKnown = {
+  CS2: {
+    past_matches: [],
+    teams: { Sashi: { players: [{ name: "acoR", role: null, cur: { k: 20, g: 10 } }] } },
+    upcoming_matches: [{ teamA: "Sashi", teamB: "SomeTeamWeNeverScraped",
+                         date: "2026-09-21T10:00:00+00:00" }],
+  },
+};
+const halfProps = { fetched_at: "2026-09-21T10:00:00+00:00", source: "t", props: { cs2: {
+  acoR: [{ player: "acoR", stat: "kills", maps: 2, line: 25.5, odds_type: "standard",
+           team: "Sashi", start_time: "2026-09-21T10:00:00+00:00" }] } } };
+const halfRows = collectEdges(halfKnown, ["CS2"], halfProps, {}, "kills", "cs2");
+check("a line shows even when the opponent is unrostered", halfRows.length, 1);
+check("and is flagged as having no opponent adjustment",
+      halfRows[0] && halfRows[0].oppKnown, false);
+
+const bothUnknown = { CS2: { past_matches: [], teams: {},
+  upcoming_matches: [{ teamA: "A", teamB: "B", date: "2026-09-21T10:00:00+00:00" }] } };
+check("a fixture with neither side rostered still yields nothing",
+      collectEdges(bothUnknown, ["CS2"], halfProps, {}, "kills", "cs2").length, 0);
+
 const cs2 = JSON.parse(fs.readFileSync(path.join(root, "cs2_data.json"), "utf8"));
 const realProps = fs.existsSync(realPathEarly()) ? JSON.parse(fs.readFileSync(realPathEarly(), "utf8")) : null;
 function realPathEarly() { return path.join(root, "props.json"); }
@@ -190,6 +214,66 @@ if (realProps) {
   check("no row is a combo", edges.every((e) => e.prop.maps > 0), true);
   console.log(`(Edges view would list ${edges.length} lines from the committed props.json)`);
 }
+
+// Rendering a fixture whose opponent was never scraped. This crashed the
+// live app: the card relaxed its guard to project the side it knows, but
+// the header still reached into `.color` on the side it does not, and a
+// throw inside render blanks the whole page rather than dropping a colour.
+const teamColorOf = new Function(slice + "\nreturn teamColorOf;")();
+check("a rostered team keeps its colour",
+      teamColorOf({ T1: { color: "#e0c341" } }, "T1", "#fallback"), "#e0c341");
+check("an unrostered team falls back instead of throwing",
+      teamColorOf({ T1: { color: "#e0c341" } }, "Never Scraped", "#fallback"), "#fallback");
+check("a team present but without a colour falls back",
+      teamColorOf({ T1: {} }, "T1", "#fallback"), "#fallback");
+check("no teams object at all", teamColorOf(undefined, "T1", "#fallback"), "#fallback");
+
+// The record: when the projection disagreed with the line, which was right.
+// projectPointInTime is stubbed to a controlled per-map rate so the
+// win/loss arithmetic is checkable; what is under test is which rows count
+// as a bet at all, and how they bucket.
+const RATE = 5;   // per map, so a 2-map projection is 10.0
+const modelRecord = new Function(`
+  function projectPointInTime() { return { perGame: ${RATE} }; }
+  ${slice}
+  return modelRecord;
+`)();
+const recordByEdge = new Function(slice + "\nreturn recordByEdge;")();
+
+const regions = { R: { past_matches: [], teams: {
+  T1: { players: [{ name: "Faker", role: "MID", cur: { k: 4, g: 10 } }] } } } };
+function graded(rows) { return { graded: rows.map((r) => ({
+  game: "lol", player: "Faker", team: "T1", opponent: "GEN", stat: "kills",
+  maps: 2, match_date: "2026-09-21", ...r })) }; }
+
+check("a projection above the line that went over is a win",
+      modelRecord(regions, ["R"], graded([{ line: 8.5, result: "over" }]), {}, "kills")[0].won, true);
+check("a projection above the line that went under is a loss",
+      modelRecord(regions, ["R"], graded([{ line: 8.5, result: "under" }]), {}, "kills")[0].won, false);
+check("a projection below the line that went under is a win",
+      modelRecord(regions, ["R"], graded([{ line: 11.5, result: "under" }]), {}, "kills")[0].won, true);
+check("a push is not a bet",
+      modelRecord(regions, ["R"], graded([{ line: 8.5, result: "push" }]), {}, "kills").length, 0);
+check("a projection exactly on the line is not a disagreement",
+      modelRecord(regions, ["R"], graded([{ line: 10.0, result: "over" }]), {}, "kills").length, 0);
+check("another stat is not counted",
+      modelRecord(regions, ["R"], graded([{ line: 8.5, result: "over", stat: "deaths" }]), {}, "kills").length, 0);
+check("a player who has since left the roster is skipped, not crashed on",
+      modelRecord(regions, ["R"], graded([{ line: 8.5, result: "over", player: "Gone" }]), {}, "kills").length, 0);
+check("an unknown team is skipped",
+      modelRecord(regions, ["R"], graded([{ line: 8.5, result: "over", team: "Nobody" }]), {}, "kills").length, 0);
+check("no results at all is not an error",
+      modelRecord(regions, ["R"], null, {}, "kills").length, 0);
+
+const bucketed = recordByEdge([
+  { edge: 0.5, won: true }, { edge: -0.75, won: false },
+  { edge: 1.5, won: true }, { edge: 2.5, won: true }, { edge: 9.0, won: false },
+]);
+check("buckets on the SIZE of the disagreement, not its direction",
+      bucketed.map((b) => b.n), [2, 1, 1, 1]);
+check("and counts wins within each", bucketed.map((b) => b.won), [1, 1, 1, 0]);
+check("an empty bucket reports no rate rather than zero",
+      recordByEdge([]).every((b) => b.rate === null), true);
 
 // The committed props.json, when there is one: the same rules against a
 // real payload rather than a constructed one.
