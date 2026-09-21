@@ -58,6 +58,28 @@ REGIONS = {
     "VCT EMEA": {"current": 2976, "historical": 2863},
     "VCT Pacific": {"current": 2776, "historical": 2775},
     "VCT China": {"current": 2978, "historical": 2864},
+
+    # Champions is not a region. It is one event that draws qualifying teams
+    # out of all four, which does not fit the region-per-league shape -- see
+    # playoffs_and_international_roadmap.md section 2a, which laid out this
+    # exact choice. Treating it as another region is the option that reuses
+    # the whole scraper unchanged, and its cost is that a team appears both
+    # here and under its home region. That is harmless: they are separate
+    # entries with the same team name, and the props matcher keys on the
+    # team, not the region.
+    #
+    # historical is None on purpose. The prior events above are each one
+    # region's previous split, and there is no equivalent for a one-off
+    # international event: last year's Champions is a different roster list,
+    # and the genuinely comparable form -- each team's own regional season --
+    # lives under the four entries above rather than in any single event id.
+    # Rather than point this at something that merely looks like a prior,
+    # the fetch is skipped and "hist" is left empty, which the app already
+    # handles by falling back to current-event form.
+    #
+    # Event ids are not discoverable programmatically; they come off the
+    # vlr.gg URL. Champions 2026 runs Sep 24 - Oct 18 as event 2766.
+    "VCT Champions": {"current": 2766, "historical": None},
 }
 
 COLOR_PALETTE = [
@@ -405,7 +427,16 @@ def build_region_payload(region_key, current_event, historical_event):
         return played, upcoming
 
     cur_played, cur_upcoming = collect(current_event, "current event")
-    hist_played, _ = collect(historical_event, "historical event")
+    if historical_event:
+        hist_played, _ = collect(historical_event, "historical event")
+    else:
+        # A one-off international event has no prior split. Fetching a
+        # stand-in would put a number in "hist" that looks like prior form
+        # and is not, so this leaves it empty and the app falls back to
+        # current-event form on its own.
+        print("  no prior event configured — 'hist' stays empty and the app "
+              "falls back to current-event form (see REGIONS)")
+        hist_played = []
 
     # Build teams payload by aggregating each player's stats across all
     # matches in the CURRENT event (for "cur") and the HISTORICAL event

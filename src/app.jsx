@@ -732,8 +732,11 @@ const GAMES = {
   valorant: {
     label: "Valorant",
     dataUrl: DATA_URL_VALORANT,
-    regionList: ["VCT Americas", "VCT EMEA", "VCT Pacific", "VCT China"],
-    regionLabels: { "VCT Americas": "Americas", "VCT EMEA": "EMEA", "VCT Pacific": "Pacific", "VCT China": "China" },
+    // Champions is last deliberately: switching game selects regionList[0],
+    // and that entry is empty until the scraper has run against the event,
+    // so leading with it would land people on a blank view.
+    regionList: ["VCT Americas", "VCT EMEA", "VCT Pacific", "VCT China", "VCT Champions"],
+    regionLabels: { "VCT Champions": "Champions", "VCT Americas": "Americas", "VCT EMEA": "EMEA", "VCT Pacific": "Pacific", "VCT China": "China" },
     fallbackRegions: FALLBACK_REGIONS_VALORANT,
   },
   cs2: {
