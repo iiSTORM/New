@@ -34,6 +34,20 @@ const propFor = new Function(slice + "\nreturn propFor;")();
 const projectionOverWindow = new Function(slice + "\nreturn projectionOverWindow;")();
 
 let pass = 0, fail = 0;
+
+/* Assertions that reach into a result — `propFor(...).line` — throw when
+   the function correctly returns null, and an uncaught throw aborts the
+   whole run: every later check silently never happens, and the summary
+   line is the one from a previous run still on screen. A regression that
+   crashes must read as a failure, not as an absence. */
+function lazily(fn) {
+  try {
+    return fn();
+  } catch (err) {
+    return `threw: ${err.message}`;
+  }
+}
+
 function check(label, got, want) {
   const ok = JSON.stringify(got) === JSON.stringify(want);
   if (ok) { pass++; } else {
@@ -63,9 +77,9 @@ const twoMatches = props([
   line(2, { line: 24.5, at: "2026-09-20T14:00:00Z" }),
 ]);
 check("the early match gets the early line",
-      propFor(twoMatches, "lol", "Faker", "kills", "2026-09-20T08:00:00Z").line, 25.5);
+      lazily(() => propFor(twoMatches, "lol", "Faker", "kills", "2026-09-20T08:00:00Z").line), 25.5);
 check("the late match gets the late line",
-      propFor(twoMatches, "lol", "Faker", "kills", "2026-09-20T14:00:00Z").line, 24.5);
+      lazily(() => propFor(twoMatches, "lol", "Faker", "kills", "2026-09-20T14:00:00Z").line), 24.5);
 check("a fixture with no line of its own gets none, not someone else's",
       propFor(twoMatches, "lol", "Faker", "kills", "2026-09-24T08:00:00Z"), null);
 // The window is 2 hours, measured: across a real board 24 of 25 legitimate
@@ -80,6 +94,26 @@ check("a fixture an hour off is still this one",
       propFor(props([line(2, { line: 25.5, at: "2026-09-20T08:00:00Z" })]),
               "lol", "Faker", "kills", "2026-09-20T09:00:00Z").line, 25.5);
 
+// Not every source states a kickoff time. gol.gg and bo3.gg give a full
+// timestamp; vlr.gg gives a bare date. Champions fixtures arrived as
+// "2026-09-25", which reads as midnight UTC, and every line posted for
+// 09:00 sat nine hours out — so a two-hour window rejected all 78 of them.
+const dayOnly = props([line(2, { line: 33.0, at: "2026-09-25T05:00:00.000-04:00" })]);
+check("a dated fixture matches a line posted that day",
+      lazily(() => propFor(dayOnly, "lol", "Faker", "kills", "2026-09-25").line), 33.0);
+check("nine hours apart is fine when the fixture states no time",
+      propFor(dayOnly, "lol", "Faker", "kills", "2026-09-25") !== null, true);
+check("but a different day is still a different match",
+      propFor(dayOnly, "lol", "Faker", "kills", "2026-09-26"), null);
+check("a line late in the evening lands on its UTC day",
+      propFor(props([line(2, { at: "2026-09-25T20:00:00.000+00:00" })]),
+              "lol", "Faker", "kills", "2026-09-25") !== null, true);
+// A timestamped fixture keeps the tight window: the information is there,
+// so the day would be needlessly loose.
+check("a fixture that states a time still uses the window",
+      propFor(props([line(2, { at: "2026-09-25T20:00:00.000+00:00" })]),
+              "lol", "Faker", "kills", "2026-09-25T09:00:00+00:00"), null);
+
 // Alternate payout lines.
 const withOdds = props([
   line(2, { line: 10.5, odds: "demon" }),
@@ -92,7 +126,7 @@ check("and is not reported as ambiguous", market.lineCount, 1);
 
 const noOdds = props([line(2, { line: 10.5 }), line(2, { line: 8.5 }), line(2, { line: 6.5 })]);
 check("without odds_type the ambiguity is reported, not resolved",
-      propFor(noOdds, "lol", "Faker", "kills", AT).lineCount, 3);
+      lazily(() => propFor(noOdds, "lol", "Faker", "kills", AT).lineCount), 3);
 check("identical lines are not ambiguous",
       propFor(props([line(2, { line: 8.5 }), line(2, { line: 8.5 })]),
               "lol", "Faker", "kills", AT).lineCount, 1);
@@ -103,7 +137,7 @@ check("unknown stat", propFor(props([line(2)]), "lol", "Faker", "deaths", AT), n
 check("unknown game", propFor(props([line(2)]), "cs2", "Faker", "kills", AT), null);
 check("no props at all", propFor(null, "lol", "Faker", "kills", AT), null);
 check("no match date still resolves a line",
-      propFor(props([line(2)]), "lol", "Faker", "kills", null).maps, 2);
+      lazily(() => propFor(props([line(2)]), "lol", "Faker", "kills", null).maps), 2);
 
 // The projection put beside a line has to cover the line's maps, not the
 // selector's. This is the step that decides whether an edge is real: the
@@ -139,7 +173,7 @@ const atTen = props([line(2, { line: 30.5, at: iso })]);
 check("the display string matches nothing — this is the bug",
       propFor(atTen, "lol", "Faker", "kills", shaped.date), null);
 check("_sortKey is what the card must pass",
-      propFor(atTen, "lol", "Faker", "kills", shaped._sortKey).line, 30.5);
+      lazily(() => propFor(atTen, "lol", "Faker", "kills", shaped._sortKey).line), 30.5);
 
 // The Edges view: every posted line for a game, ranked. The component is
 // JSX and cannot be rendered here, but everything that decides WHAT it shows

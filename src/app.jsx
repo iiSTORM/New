@@ -336,8 +336,16 @@ function propFor(propsData, game, playerName, statType, matchDate) {
   if (!list.length) return null;
 
   let candidates = list;
-  const matchMs = matchDate ? new Date(matchDate).getTime() : NaN;
-  if (!isNaN(matchMs)) {
+  const when = String(matchDate || "");
+  // Not every source states a kickoff time. gol.gg and bo3.gg give a full
+  // timestamp; vlr.gg gives a bare date, and comparing a line posted for
+  // 09:00 against a fixture read as midnight puts every one of them nine
+  // hours out and rejects the lot. A date carries no time, so it gets
+  // matched at the resolution it actually has: the day.
+  const hasClock = /\d{1,2}:\d{2}/.test(when);
+  const matchMs = when ? new Date(when).getTime() : NaN;
+
+  if (!isNaN(matchMs) && hasClock) {
     const timed = list
       .map((p) => ({ p, delta: Math.abs(new Date(p.start_time).getTime() - matchMs) }))
       .filter((x) => !isNaN(x.delta) && x.delta <= PROP_MATCH_WINDOW_HOURS * 3600000);
@@ -346,6 +354,14 @@ function propFor(propsData, game, playerName, statType, matchDate) {
     if (!timed.length) return null;
     const nearest = Math.min(...timed.map((x) => x.delta));
     candidates = timed.filter((x) => x.delta === nearest).map((x) => x.p);
+  } else if (!isNaN(matchMs)) {
+    const day = when.slice(0, 10);
+    const sameDay = list.filter((p) => {
+      const at = new Date(p.start_time);
+      return !isNaN(at) && at.toISOString().slice(0, 10) === day;
+    });
+    if (!sameDay.length) return null;
+    candidates = sameDay;
   }
 
   const market = candidates.filter(
