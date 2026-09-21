@@ -532,7 +532,7 @@ try {
   function useProps() {
     return useContext(PropsContext);
   }
-  const PROP_MATCH_WINDOW_HOURS = 6;
+  const PROP_MATCH_WINDOW_HOURS = 2;
   function propFor(propsData, game, playerName, statType, matchDate) {
     if (!propsData || !propsData.props) return null;
     const forGame = propsData.props[game];

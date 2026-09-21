@@ -414,8 +414,12 @@ def main():
             continue
         index, ambiguous = build_roster_index(regions)
         if ambiguous:
-            print(f"{game}: {len(ambiguous)} handle(s) on more than one roster, "
-                  f"excluded from matching: {ambiguous}", file=sys.stderr)
+            # Not excluded any more: the provider names a team on each prop
+            # and that settles most of them. Only what it cannot settle is
+            # refused, and the funnel counts those by their own reason.
+            print(f"{game}: {len(ambiguous)} handle(s) on more than one team, "
+                  f"resolved per prop by the team the provider states: "
+                  f"{ambiguous}", file=sys.stderr)
 
         raw = parse_prizepicks(payload, cfg["leagues"]) if payload else []
 

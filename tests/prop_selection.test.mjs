@@ -68,6 +68,17 @@ check("the late match gets the late line",
       propFor(twoMatches, "lol", "Faker", "kills", "2026-09-20T14:00:00Z").line, 24.5);
 check("a fixture with no line of its own gets none, not someone else's",
       propFor(twoMatches, "lol", "Faker", "kills", "2026-09-24T08:00:00Z"), null);
+// The window is 2 hours, measured: across a real board 24 of 25 legitimate
+// pairings were under an hour apart, and the one thing a 6-hour window added
+// was a 10:00 line attaching to a 16:00 fixture six hours away.
+// 11:00 sits three hours from both the 08:00 and the 14:00 line. (12:00
+// would be two hours from the 14:00 one and should still match — which is
+// what this test asserted on its first draft, wrongly.)
+check("a fixture three hours from every line of its own gets none",
+      propFor(twoMatches, "lol", "Faker", "kills", "2026-09-20T11:00:00Z"), null);
+check("a fixture an hour off is still this one",
+      propFor(props([line(2, { line: 25.5, at: "2026-09-20T08:00:00Z" })]),
+              "lol", "Faker", "kills", "2026-09-20T09:00:00Z").line, 25.5);
 
 // Alternate payout lines.
 const withOdds = props([

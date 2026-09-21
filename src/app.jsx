@@ -298,10 +298,12 @@ function useProps() {
 /* How far a posted line's start time may sit from a match's own before it
    is taken to be a different match. Providers round start times and this
    app's schedule carries its own, so they rarely agree to the minute; six
-   hours is wide enough to absorb that and narrow enough to separate two
-   matches on the same day, which a real payload has (one CS2 player with
-   lines in a 04:00 match and a 10:00 one). */
-const PROP_MATCH_WINDOW_HOURS = 6;
+   hours is measured rather than chosen: across a real board, 24 of the 25
+   legitimate pairings were under an hour apart, and the only thing a wider
+   window added was a 10:00 line attaching itself to a 16:00 match six
+   hours away. CS2 runs fixtures every couple of hours, so anything looser
+   separates nothing. */
+const PROP_MATCH_WINDOW_HOURS = 2;
 
 /* Find the posted line for this player, in THIS match.
 

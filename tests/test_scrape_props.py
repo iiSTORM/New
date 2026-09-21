@@ -239,7 +239,7 @@ def current_handles(game, count):
         pytest.skip(f"{data_file.name} not present")
     with open(data_file) as f:
         index, _ = pm.build_roster_index(json.load(f).get("regions", {}))
-    names = sorted({entry[2] for entry in index.values()})
+    names = sorted({e[2] for entries in index.values() for e in entries})
     if len(names) < count:
         pytest.skip(f"{data_file.name} has too few players to test against")
     return names[:count]

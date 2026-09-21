@@ -77,17 +77,27 @@ def roster(*players):
 class TestRosterIndex:
     def test_indexes_by_normalized_handle(self):
         index, dupes = pm.build_roster_index(roster("Berserker", "Impact"))
-        assert index[pm.normalize_name("berserker")][2] == "Berserker"
+        assert index[pm.normalize_name("berserker")][0][2] == "Berserker"
         assert dupes == []
 
-    def test_a_handle_on_two_rosters_is_dropped_not_guessed(self):
+    def test_a_handle_on_two_teams_keeps_both_and_says_so(self):
+        """Kept rather than dropped, because the provider states a team on
+        each prop and that usually settles it exactly. A real CS2 board had
+        two of these and both named a team that appears verbatim in the
+        roster file — dropping them would have thrown away attributable
+        lines."""
         regions = {
             "LCS": {"teams": {"A": {"players": [{"name": "Zeus"}]}}},
             "LCK": {"teams": {"B": {"players": [{"name": "zeus"}]}}},
         }
         index, dupes = pm.build_roster_index(regions)
-        assert pm.normalize_name("zeus") not in index
+        assert len(index[pm.normalize_name("zeus")]) == 2
         assert dupes == [pm.normalize_name("zeus")]
+
+    def test_the_same_player_listed_twice_on_one_team_is_not_ambiguous(self):
+        regions = {"LCS": {"teams": {"A": {"players": [{"name": "Zeus"}, {"name": "Zeus"}]}}}}
+        index, dupes = pm.build_roster_index(regions)
+        assert dupes == [] and len(index[pm.normalize_name("zeus")]) == 1
 
     def test_empty_input(self):
         assert pm.build_roster_index({}) == ({}, [])
@@ -152,6 +162,39 @@ class TestMatchProps:
                  self._prop(stat_label="Kills"), self._prop(line=None)]
         matched, unmatched = pm.match_props(props, self.INDEX)
         assert len(matched) + len(unmatched) == len(props)
+
+    def test_a_handle_on_two_teams_is_resolved_by_the_provider_team(self):
+        """Without this the line lands on whichever match is nearest in
+        time, which is the wrong team's opponent half the time."""
+        regions = {
+            "CS2": {"teams": {
+                "ECSTATIC": {"players": [{"name": "Anlelele"}]},
+                "Sashi": {"players": [{"name": "Anlelele"}]},
+            }},
+        }
+        index, dupes = pm.build_roster_index(regions)
+        assert dupes  # the handle is genuinely on two teams
+        matched, unmatched = pm.match_props([{
+            "player_name": "Anlelele", "stat_label": "MAPS 1-2 Kills",
+            "line": 26.5, "team": "ECSTATIC", "provider": "t",
+            "start_time": "2026-09-21T06:00:00-04:00"}], index)
+        assert unmatched == []
+        assert matched[0]["team"] == "ECSTATIC"
+
+    def test_a_handle_on_two_teams_the_provider_does_not_settle_is_refused(self):
+        regions = {
+            "CS2": {"teams": {
+                "ECSTATIC": {"players": [{"name": "Anlelele"}]},
+                "Sashi": {"players": [{"name": "Anlelele"}]},
+            }},
+        }
+        index, _ = pm.build_roster_index(regions)
+        for team in (None, "", "Some Third Team"):
+            _, unmatched = pm.match_props([{
+                "player_name": "Anlelele", "stat_label": "MAPS 1-2 Kills",
+                "line": 26.5, "team": team, "provider": "t",
+                "start_time": "2026-09-21T06:00:00-04:00"}], index)
+            assert unmatched[0]["reason"] == "handle is on more than one roster", team
 
     def test_no_props_is_not_an_error(self):
         assert pm.match_props([], self.INDEX) == ([], [])

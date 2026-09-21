@@ -98,24 +98,32 @@ def parse_stat(label):
 
 
 def build_roster_index(regions):
-    """{normalized name: (region, team, real name)} for every rostered player.
+    """{normalized handle: [(region, team, real name), ...]} for every player.
 
-    A handle appearing on two rosters is dropped rather than resolved: an
-    ambiguous match attached to the wrong player is worse than no line.
+    A handle can sit on two teams -- a stand-in, a transfer a roster file
+    has not caught up with, or two players who picked the same name. A real
+    CS2 board had two of them, both with lines posted.
+
+    Every entry is kept rather than the handle being dropped, because the
+    provider states the team on each prop and that resolves most of them
+    exactly: both of those two named a team that appears verbatim in the
+    roster file. match_props does the resolving and refuses what it cannot
+    settle -- dropping here would throw away a line that is perfectly
+    attributable, and guessing would put it on the wrong team's match.
     """
-    index, seen_twice = {}, set()
+    index = {}
     for region_key, region in (regions or {}).items():
         for team_name, team in (region.get("teams") or {}).items():
             for player in (team.get("players") or []):
                 key = normalize_name(player.get("name"))
                 if not key:
                     continue
-                if key in index and index[key][2] != player.get("name"):
-                    seen_twice.add(key)
-                index[key] = (region_key, team_name, player.get("name"))
-    for key in seen_twice:
-        index.pop(key, None)
-    return index, sorted(seen_twice)
+                entry = (region_key, team_name, player.get("name"))
+                if entry not in index.setdefault(key, []):
+                    index[key].append(entry)
+    ambiguous = sorted(k for k, entries in index.items()
+                       if len({e[1] for e in entries}) > 1)
+    return index, ambiguous
 
 
 def match_props(raw_props, roster_index):
@@ -143,15 +151,27 @@ def match_props(raw_props, roster_index):
         if window is None:
             unmatched.append({**prop, "reason": "map window not stated"})
             continue
-        if target is None:
+        if not target:
             unmatched.append({**prop, "reason": "player not on any roster"})
             continue
+        if len({entry[1] for entry in target}) > 1:
+            # The handle is on more than one team. The provider names the
+            # team on the prop, so use it: without that the line would land
+            # on whichever match happened to be nearest in time, which is
+            # the wrong team's opponent half the time.
+            team_key = normalize_name(prop.get("team"))
+            narrowed = [e for e in target if team_key and normalize_name(e[1]) == team_key]
+            if len(narrowed) != 1:
+                unmatched.append({**prop, "reason": "handle is on more than one roster"})
+                continue
+            target = narrowed
+        entry = target[0]
         try:
             line = float(prop.get("line"))
         except (TypeError, ValueError):
             unmatched.append({**prop, "reason": "line is not a number"})
             continue
-        region, team, real_name = target
+        region, team, real_name = entry
         matched.append({
             "player": real_name,
             "region": region,
