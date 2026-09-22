@@ -60,22 +60,6 @@ jobs:
       # The steps above marked continue-on-error are allowed to fail, but
       # a failure that nobody ever sees is how the career tier silently
       # decayed before. Surface them as annotations on the run instead.
-      # The scrapers count their own requests, which is the only honest
-      # measure of a change to them -- wall clock against these sites
-      # varied 67% across runs of identical code. The counts go to
-      # GITHUB_STEP_SUMMARY, which is a plain file, so echoing it here
-      # puts them in the job log too. Without this they were written and
-      # unreadable: the log API returns a job's TAIL, and the tail is
-      # always the git push.
-      - name: Request counts
-        if: always()
-        run: |
-          echo "--- requests made this run ---"
-          # request_counts.txt, not GITHUB_STEP_SUMMARY: every step gets
-          # its OWN summary file, so reading it from a later step returns
-          # an empty one. That printed a header with nothing under it.
-          cat request_counts.txt 2>/dev/null || echo "(no counts recorded)"
-
       - name: Report degraded steps
         if: always()
         run: |
@@ -163,6 +147,16 @@ jobs:
             sleep $((RANDOM % 5 + 1))
           done
           git push
+      # Deliberately the LAST step in the job. GitHub's job-log API returns
+      # a job's TAIL, and the commit/push step above echoes ~90 lines of
+      # its own script, so anything before it is unreachable from an API
+      # client. Printed here, the counts are the first thing in the tail.
+      - name: Request counts
+        if: always()
+        run: |
+          echo "--- requests made this run ---"
+          cat request_counts.txt 2>/dev/null || echo "(no counts recorded)"
+
 
   scrape-valorant:
     runs-on: ubuntu-latest
@@ -276,22 +270,6 @@ jobs:
       - name: Check cs2_data.json is fresh and complete
         run: python scripts/check_data.py cs2
 
-      # The scrapers count their own requests, which is the only honest
-      # measure of a change to them -- wall clock against these sites
-      # varied 67% across runs of identical code. The counts go to
-      # GITHUB_STEP_SUMMARY, which is a plain file, so echoing it here
-      # puts them in the job log too. Without this they were written and
-      # unreadable: the log API returns a job's TAIL, and the tail is
-      # always the git push.
-      - name: Request counts
-        if: always()
-        run: |
-          echo "--- requests made this run ---"
-          # request_counts.txt, not GITHUB_STEP_SUMMARY: every step gets
-          # its OWN summary file, so reading it from a later step returns
-          # an empty one. That printed a header with nothing under it.
-          cat request_counts.txt 2>/dev/null || echo "(no counts recorded)"
-
       - name: Report degraded steps
         if: always()
         run: |
@@ -354,3 +332,12 @@ jobs:
             sleep $((RANDOM % 5 + 1))
           done
           git push
+      # Deliberately the LAST step in the job. GitHub's job-log API returns
+      # a job's TAIL, and the commit/push step above echoes ~90 lines of
+      # its own script, so anything before it is unreachable from an API
+      # client. Printed here, the counts are the first thing in the tail.
+      - name: Request counts
+        if: always()
+        run: |
+          echo "--- requests made this run ---"
+          cat request_counts.txt 2>/dev/null || echo "(no counts recorded)"
