@@ -60,6 +60,19 @@ jobs:
       # The steps above marked continue-on-error are allowed to fail, but
       # a failure that nobody ever sees is how the career tier silently
       # decayed before. Surface them as annotations on the run instead.
+      # The scrapers count their own requests, which is the only honest
+      # measure of a change to them -- wall clock against these sites
+      # varied 67% across runs of identical code. The counts go to
+      # GITHUB_STEP_SUMMARY, which is a plain file, so echoing it here
+      # puts them in the job log too. Without this they were written and
+      # unreadable: the log API returns a job's TAIL, and the tail is
+      # always the git push.
+      - name: Request counts
+        if: always()
+        run: |
+          echo "--- requests made this run ---"
+          cat "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "(no counts recorded)"
+
       - name: Report degraded steps
         if: always()
         run: |
@@ -259,6 +272,19 @@ jobs:
 
       - name: Check cs2_data.json is fresh and complete
         run: python scripts/check_data.py cs2
+
+      # The scrapers count their own requests, which is the only honest
+      # measure of a change to them -- wall clock against these sites
+      # varied 67% across runs of identical code. The counts go to
+      # GITHUB_STEP_SUMMARY, which is a plain file, so echoing it here
+      # puts them in the job log too. Without this they were written and
+      # unreadable: the log API returns a job's TAIL, and the tail is
+      # always the git push.
+      - name: Request counts
+        if: always()
+        run: |
+          echo "--- requests made this run ---"
+          cat "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "(no counts recorded)"
 
       - name: Report degraded steps
         if: always()
