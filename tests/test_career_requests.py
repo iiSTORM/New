@@ -51,50 +51,90 @@ def spy(monkeypatch):
     return calls
 
 
-def cached_all_seasons():
-    """A player whose every past season is already in the cache."""
-    return {"1": {"name": "Faker", "season_aggregates": {
+def cached(count=None, seasons=None):
+    """A previous run's record for one player."""
+    record = {"name": "Faker", "season_aggregates": {
         s: {"g": 10, "k": 4, "d": 2, "a": 6, "kp": 60}
-        for s in sc.all_seasons_back_to(sc.CURRENT_SEASON)}}}
+        for s in (seasons if seasons is not None else [sc.CURRENT_SEASON])}}
+    if count is not None:
+        record["career_game_count"] = count
+    return {"1": record}
 
 
-class TestFullyCachedPlayer:
-    def test_no_game_count_request_is_made(self, spy):
-        sc.process_one_player("Faker", 1, cached_all_seasons(), {"done": 0}, 1)
-        assert spy["game_count"] == 0, (
-            "the game count only decides whether to refetch seasons already cached")
+def all_seasons():
+    return sc.all_seasons_back_to(sc.CURRENT_SEASON)
 
-    def test_only_the_current_season_is_fetched(self, spy):
-        sc.process_one_player("Faker", 1, cached_all_seasons(), {"done": 0}, 1)
+
+class TestTheCountIsRemembered:
+    """The game count only decides one thing -- whether this player needs
+    every season fetched individually -- and the answer barely changes.
+
+    An earlier version skipped the request only when every past season was
+    already cached. Correct, and nearly useless: 14 of 320 players
+    qualified, because a player only ACCUMULATES old seasons after
+    crossing the cap once, so most have a single cached season and never
+    match. A full run measured no improvement at all. Caching the count
+    is what answers the question for the other 306.
+    """
+
+    def test_a_player_well_under_the_cap_costs_no_request(self, spy):
+        sc.process_one_player("Faker", 1, cached(count=40), {"done": 0}, 1)
+        assert spy["game_count"] == 0
         assert spy["seasons"] == [sc.CURRENT_SEASON]
 
-    def test_nothing_is_slept_for_a_single_season(self, spy):
-        sc.process_one_player("Faker", 1, cached_all_seasons(), {"done": 0}, 1)
+    def test_a_player_already_over_the_cap_costs_no_request_either(self, spy):
+        """More games cannot bring a total back under the cap, so the
+        answer is already known -- it is 'yes, fetch every season'."""
+        sc.process_one_player("Faker", 1, cached(count=500, seasons=all_seasons()),
+                              {"done": 0}, 1)
+        assert spy["game_count"] == 0
+        assert spy["seasons"] == [sc.CURRENT_SEASON], "all past seasons were cached"
+
+    def test_over_the_cap_with_seasons_missing_still_fetches_them(self, spy):
+        sc.process_one_player("Faker", 1, cached(count=500, seasons=all_seasons()[:3]),
+                              {"done": 0}, 1)
+        assert spy["game_count"] == 0
+        assert set(spy["seasons"]) == set(all_seasons()[3:]) | {sc.CURRENT_SEASON}
+
+    def test_a_count_near_the_cap_is_re_asked(self, spy):
+        """Close enough that a run's worth of games could have crossed it.
+        Guessing here would silently stop fetching a veteran's history."""
+        sc.process_one_player("Faker", 1, cached(count=sc.MATCHLIST_CAP - 1), {"done": 0}, 1)
+        assert spy["game_count"] == 1
+
+    def test_the_margin_edge_is_where_it_says_it_is(self, spy):
+        sc.process_one_player("Faker", 1,
+                              cached(count=sc.MATCHLIST_CAP - sc.COUNT_STALENESS_MARGIN),
+                              {"done": 0}, 1)
+        assert spy["game_count"] == 0
+
+    def test_a_player_with_no_remembered_count_is_asked(self, spy):
+        sc.process_one_player("Faker", 1, cached(count=None), {"done": 0}, 1)
+        assert spy["game_count"] == 1
+
+    def test_the_count_is_written_back_for_next_time(self, spy):
+        _, record = sc.process_one_player("Faker", 1, cached(count=None), {"done": 0}, 1)
+        assert record["career_game_count"] == 500, "the fetched count must persist"
+
+    def test_a_remembered_count_survives_a_run_that_did_not_re_ask(self, spy):
+        _, record = sc.process_one_player("Faker", 1, cached(count=40), {"done": 0}, 1)
+        assert record["career_game_count"] == 40, (
+            "dropping it would make the next run ask again, undoing the saving")
+
+    def test_the_margin_is_big_enough_to_matter(self):
+        assert sc.COUNT_STALENESS_MARGIN >= 10, (
+            "a margin this small stops covering a run's worth of games")
+        assert sc.COUNT_STALENESS_MARGIN < sc.MATCHLIST_CAP
+
+
+class TestSleeping:
+    def test_a_single_season_sleeps_not_at_all(self, spy):
+        sc.process_one_player("Faker", 1, cached(count=40), {"done": 0}, 1)
         assert spy.get("slept", 0) == 0, "the sleep belongs between fetches, not after the last"
 
-    def test_the_cached_seasons_survive(self, spy):
-        _, record = sc.process_one_player("Faker", 1, cached_all_seasons(), {"done": 0}, 1)
-        assert set(record["season_aggregates"]) == set(sc.all_seasons_back_to(sc.CURRENT_SEASON))
-        assert record["career"] is not None
-
-
-class TestPartiallyCachedPlayer:
-    def partial(self):
-        seasons = sc.all_seasons_back_to(sc.CURRENT_SEASON)
-        return {"1": {"name": "Faker", "season_aggregates": {
-            s: {"g": 10, "k": 4, "d": 2, "a": 6, "kp": 60} for s in seasons[:3]}}}
-
-    def test_the_game_count_is_still_consulted(self, spy):
-        sc.process_one_player("Faker", 1, self.partial(), {"done": 0}, 1)
-        assert spy["game_count"] == 1, "with seasons missing, the decision is real again"
-
-    def test_the_missing_seasons_are_fetched(self, spy):
-        sc.process_one_player("Faker", 1, self.partial(), {"done": 0}, 1)
-        seasons = sc.all_seasons_back_to(sc.CURRENT_SEASON)
-        assert set(spy["seasons"]) == set(seasons[3:]) | {sc.CURRENT_SEASON}
-
-    def test_it_sleeps_between_them_but_not_after_the_last(self, spy):
-        sc.process_one_player("Faker", 1, self.partial(), {"done": 0}, 1)
+    def test_several_seasons_sleep_between_them_only(self, spy):
+        sc.process_one_player("Faker", 1, cached(count=500, seasons=all_seasons()[:3]),
+                              {"done": 0}, 1)
         assert spy.get("slept", 0) == len(spy["seasons"]) - 1
 
 
@@ -117,20 +157,64 @@ class TestOutputIsUnchanged:
     """
 
     def test_every_cached_season_survives_and_current_is_refreshed(self, spy):
-        previous = cached_all_seasons()
+        previous = cached(count=500, seasons=all_seasons())
         _, record = sc.process_one_player("Faker", 1, previous, {"done": 0}, 1)
-        cached = previous["1"]["season_aggregates"]
-        for season, agg in cached.items():
+        before = previous["1"]["season_aggregates"]
+        for season, agg in before.items():
             if season == sc.CURRENT_SEASON:
                 continue
             assert record["season_aggregates"][season] == agg, f"{season} was not preserved"
         assert spy["seasons"] == [sc.CURRENT_SEASON]
 
     def test_the_career_baseline_matches_the_seasons_it_was_built_from(self, spy):
-        _, record = sc.process_one_player("Faker", 1, cached_all_seasons(), {"done": 0}, 1)
+        _, record = sc.process_one_player("Faker", 1, cached(count=500, seasons=all_seasons()), {"done": 0}, 1)
         expected = sc.decayed_career_baseline(record["season_aggregates"], sc.CURRENT_SEASON)
         assert record["career"] == expected
 
     def test_the_name_is_carried_through(self, spy):
-        _, record = sc.process_one_player("Faker", 1, cached_all_seasons(), {"done": 0}, 1)
+        _, record = sc.process_one_player("Faker", 1, cached(count=500, seasons=all_seasons()), {"done": 0}, 1)
         assert record["name"] == "Faker"
+
+
+class TestRequestCounting:
+    """The measurement that made the first attempt look like a regression.
+
+    Across three runs of identical code the gol.gg stats step took 4.6,
+    6.0 and 7.7 minutes. A 67% spread on unchanged code swamps any change
+    worth making, and it is why a no-op optimisation read as a 30%
+    slowdown. Requests are what this code controls; wall clock is what
+    the site controls.
+    """
+
+    def test_the_counter_starts_at_zero_and_is_reported(self, capsys):
+        sc.REQUEST_TOTAL["n"] = 0
+        sc.report_requests("career scrape")
+        out = capsys.readouterr().out
+        assert "0 requests" in out and "career scrape" in out
+
+    def test_every_fetch_is_counted(self, monkeypatch):
+        sc.REQUEST_TOTAL["n"] = 0
+
+        class Resp:
+            status_code = 200
+            text = "<html></html>"
+
+        monkeypatch.setattr(sc.requests, "get", lambda *a, **k: Resp())
+        for _ in range(3):
+            sc.fetch("https://example.invalid/x")
+        assert sc.REQUEST_TOTAL["n"] == 3
+
+    def test_retries_are_counted_too(self, monkeypatch):
+        """A run that spent its time being retried should say so, rather
+        than reporting the number of pages it wanted."""
+        sc.REQUEST_TOTAL["n"] = 0
+        calls = {"n": 0}
+
+        def flaky(*a, **k):
+            calls["n"] += 1
+            raise sc.requests.RequestException("boom")
+
+        monkeypatch.setattr(sc.requests, "get", flaky)
+        monkeypatch.setattr(sc.time, "sleep", lambda *_: None)
+        sc.fetch("https://example.invalid/x", retries=3)
+        assert sc.REQUEST_TOTAL["n"] == calls["n"] > 1

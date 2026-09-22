@@ -55,6 +55,20 @@ COLOR_PALETTE = [
 ROLE_ORDER = {"Top": "TOP", "Jungle": "JNG", "Mid": "MID", "ADC": "BOT", "Support": "SUP"}
 
 
+# Wall clock is not a usable measure of a change to this scraper. Across
+# three runs of IDENTICAL code this step took 4.6, 6.0 and 7.7 minutes --
+# a 67% spread that swamps any change worth making, and exactly what made
+# a first attempt at speeding things up look like a regression when it
+# was really a no-op. Requests are what this code controls, so they are
+# what it reports: one number per run, comparable regardless of how the
+# site is feeling.
+REQUEST_TOTAL = {"n": 0}
+
+
+def report_requests(label):
+    print(f"\n  {label}: {REQUEST_TOTAL['n']} requests made this run")
+
+
 def get(url, retries=4):
     """Fetch with retries that actually cover the failure modes this
     project has really hit.
@@ -85,6 +99,7 @@ def get(url, retries=4):
     for attempt in range(retries):
         attempts_made = attempt + 1
         try:
+            REQUEST_TOTAL["n"] += 1
             r = requests.get(url, headers=HEADERS, timeout=20)
             last_status = r.status_code
             if r.status_code == 200:
@@ -968,6 +983,8 @@ def main():
             sys.exit(1)
         print(f"  ! No committed data.json to fall back to either — writing what little there "
               f"is so the file exists at all.", file=sys.stderr)
+
+    report_requests("stats scrape")
 
     with open("data.json", "w") as f:
         # Written minified: these files are machine-generated and never read

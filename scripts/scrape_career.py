@@ -66,6 +66,11 @@ OUTPUT_PATH = "career_data.json"
 # a source outage rather than a real change, and will not overwrite the cache.
 MIN_RETAINED_FRACTION = 0.5
 MATCHLIST_CAP = 200  # confirmed real cap on the season-ALL match list view
+# How close to the cap a cached game count has to be before it is worth
+# re-asking. Runs are 12 hours apart and no player plays 30 competitive
+# games in a day, so a count this far below the cap cannot have crossed
+# it since -- and one already above it cannot come back down.
+COUNT_STALENESS_MARGIN = 30
 CURRENT_SEASON = "S16"  # confirmed current season from live nav — update each split if gol.gg's own season counter advances
 CONCURRENCY = 6  # matches scrape_lcs.py's proven-safe concurrency level against this same site
 _debug_sample_printed = {"done": False}  # shared across threads — see parse_matchlist_html's note on why this is printed only once
@@ -163,8 +168,29 @@ def resolve_all_tracked_player_ids():
     return resolved
 
 
+# Wall clock is not a usable measure of a change to these scrapers.
+# Across three runs of IDENTICAL code, the gol.gg stats step took 4.6,
+# 6.0 and 7.7 minutes -- a 67% spread that swamps any change worth
+# making, and it is exactly what made the first attempt at speeding this
+# up look like a regression when it was really a no-op.
+#
+# Requests are the thing this code controls, so they are what it reports.
+# One number at the end of a run, comparable between runs regardless of
+# how the site is feeling.
+REQUEST_TOTAL = {"n": 0}
+
+
+def _count_request():
+    REQUEST_TOTAL["n"] += 1
+
+
+def report_requests(label):
+    print(f"\n  {label}: {REQUEST_TOTAL['n']} requests made this run")
+
+
 def fetch(url, retries=3):
     for attempt in range(retries):
+        _count_request()
         try:
             resp = requests.get(url, headers=HEADERS, timeout=20)
             if resp.status_code == 200:
@@ -357,23 +383,33 @@ def process_one_player(player_name, player_id, previous, progress, total):
     prev_seasons = prev_player.get("season_aggregates", {})
 
     # The game-count request exists ONLY to decide needs_full_history, and
-    # that decision is moot once every season is already cached: the
-    # full-history branch filters to seasons not in prev_seasons, which
-    # leaves exactly [CURRENT_SEASON] -- the same list the other branch
-    # uses. So for a fully-cached player the request is bought and thrown
-    # away, and it was being bought for all ~320 of them on every run,
-    # doubling this scraper's request count for no change in output.
+    # it was being made for every one of ~320 players on every run --
+    # doubling this scraper's traffic to answer a question whose answer
+    # was already known.
+    #
+    # A first attempt skipped it when every past season was cached. That
+    # was correct and nearly useless: only 14 of 320 players qualified,
+    # because a player only ACCUMULATES old seasons after crossing the cap
+    # once, so the majority have just one cached season and never match.
+    # Measured, it changed nothing. Caching the count itself is what
+    # actually answers the question for everyone.
     seasons_needed = all_seasons_back_to(CURRENT_SEASON)
-    fully_cached = all(s in prev_seasons for s in seasons_needed if s != CURRENT_SEASON)
+    known_count = prev_player.get("career_game_count")
+    total_games = known_count
 
-    if fully_cached:
-        seasons_to_fetch = [CURRENT_SEASON]
+    if known_count is not None and known_count <= MATCHLIST_CAP - COUNT_STALENESS_MARGIN:
+        pass  # comfortably under the cap, and cannot have crossed it since
+    elif known_count is not None and known_count > MATCHLIST_CAP:
+        pass  # already over it; more games cannot bring it back under
     else:
+        # Either unknown, or close enough to the cap that a run's worth of
+        # games could have crossed it. Ask.
         total_games = get_career_game_count(player_id)
-        needs_full_history = total_games is not None and total_games > MATCHLIST_CAP
-        seasons_to_fetch = [CURRENT_SEASON]
-        if needs_full_history:
-            seasons_to_fetch = [s for s in seasons_needed if s not in prev_seasons or s == CURRENT_SEASON]
+
+    needs_full_history = total_games is not None and total_games > MATCHLIST_CAP
+    seasons_to_fetch = [CURRENT_SEASON]
+    if needs_full_history:
+        seasons_to_fetch = [s for s in seasons_needed if s not in prev_seasons or s == CURRENT_SEASON]
 
     season_aggregates = dict(prev_seasons)  # reuse cached, immutable past seasons
     for i, season in enumerate(seasons_to_fetch):
@@ -392,7 +428,8 @@ def process_one_player(player_name, player_id, previous, progress, total):
     progress["done"] += 1
     if progress["done"] % 10 == 0 or progress["done"] == total:
         print(f"  ...{progress['done']}/{total} players processed")
-    return str(player_id), {"name": player_name, "season_aggregates": season_aggregates, "career": career}
+    return str(player_id), {"name": player_name, "season_aggregates": season_aggregates,
+                            "career": career, "career_game_count": total_games}
 
 
 def build_career_data():
@@ -426,6 +463,7 @@ def main():
         sys.exit(1)
 
     data = build_career_data()
+    report_requests("career scrape")
 
     # Never overwrite a good cache with a collapsed one.
     #
