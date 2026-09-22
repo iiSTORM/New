@@ -56,6 +56,10 @@ EXISTING_CS2_DATA_PATH = "cs2_data.json"
 # in this project, appropriate since it now bounds real concurrent
 # connections directly rather than a looser, less effective limit.
 REQUEST_CONCURRENCY = 12
+# Wall clock cannot measure a change to a scraper: across three runs of
+# identical code the sibling gol.gg step varied by 67%. Requests are what
+# this code controls, so they are what it reports.
+REQUEST_TOTAL = {"n": 0}
 MATCHES_PER_PLAYER = 20  # capped meaningfully below the main scraper's own reach -- each match is ~2-3 games, each needing its own players_stats fetch, so this is already 40-60 requests per player; the LoL half-life finding suggests old history contributes little anyway, so there's little value in going deeper at high request cost
 DAY_HALF_LIFE = 180  # days -- MEASURED (scripts/sweep_cs2_day_half_life.py), but the honest headline is that this parameter barely matters. Across 3/7/14/.../365/36500-day candidates, MAE moved <0.3% for every stat, and the basin is flat from ~45 days out: kills best at 90 (+0.05% vs the old 60 guess), deaths at 180 (+0.19%), assists at 365 (+0.28%). 180 is at or near optimal for all three, so it's taken as a free marginal gain -- NOT as a finding. The real result is structural: MATCHES_PER_PLAYER caps history at 13-53 games (median 44), so over a window that short a 90-365 day half-life is nearly indistinguishable from a flat average -- note "no decay at all" (36500) scored only marginally worse than optimum everywhere. This decay parameter is largely REDUNDANT with the window cap. Contrast LoL's SEASON_HALF_LIFE, where sweeping genuinely changed the answer; do not assume an unmeasured constant matters just because a sibling one did.
 
@@ -84,6 +88,7 @@ async def bo3_get(session, path, params=None, retries=3):
         url = f"{BASE}{path}"
         for attempt in range(retries):
             try:
+                REQUEST_TOTAL["n"] += 1
                 async with session.get(url, headers=HEADERS, params=params or {},
                                         timeout=aiohttp.ClientTimeout(total=20)) as resp:
                     if resp.status == 200:
@@ -255,8 +260,44 @@ def decayed_baseline(games, half_life_days=DAY_HALF_LIFE, now=None):
     return {"g": len(games), **{key: weighted[key] / total_weight for key in ("k", "d", "a")}}
 
 
-async def process_one_player(session, name, progress, total):
-    player_id = await resolve_player_id(session, name)
+def load_previous_output():
+    """Last run's cs2_career_data.json, or {} if there isn't one.
+
+    This scraper had no cache at all. Every run re-resolved all ~263
+    player ids and re-fetched every one of their last 20 matches
+    game-by-game -- 40-60 requests per player, 10,000+ per run, for
+    per-game box scores that cannot change once played. It was the single
+    largest step in the whole pipeline at over six minutes.
+    """
+    try:
+        with open(OUTPUT_PATH) as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def cached_games_by_id(previous_record):
+    """{game_id: stored game} for games already on record.
+
+    Keyed on bo3.gg's own game id. Records written before ids were stored
+    simply do not match, so the first run after this re-fetches as before
+    and every run after is cheap -- the same migration the LoL match
+    cache makes, for the same reason: a weaker key risks attaching one
+    game's box score to another, which is silent and wrong.
+    """
+    out = {}
+    for game in (previous_record or {}).get("games") or []:
+        game_id = game.get("game_id")
+        if game_id is not None:
+            out[game_id] = game
+    return out
+
+async def process_one_player(session, name, progress, total, previous=None):
+    prev = (previous or {}).get(name) or {}
+    # A player's bo3.gg id does not change, and it is already stored. The
+    # search request that finds it was being made for every player on
+    # every run to rediscover a number we had written down.
+    player_id = prev.get("player_id") or await resolve_player_id(session, name)
     if not player_id:
         progress["done"] += 1
         print(f"  ! {name!r}: no CS2 player found at all (name may not exist on bo3.gg, or every "
@@ -278,22 +319,33 @@ async def process_one_player(session, name, progress, total):
         if game.get("id") and game.get("begin_at")
     ]
 
-    # All of this player's game-stat fetches fired concurrently, bounded
-    # by the shared global semaphore in bo3_get — not sequential with an
-    # extra sleep between each, which was the real bottleneck before.
+    # Only the games not already on record. MATCHES_PER_PLAYER is a
+    # rolling window of the most recent 20 matches, so between two runs
+    # twelve hours apart the overlap is nearly total -- typically a
+    # handful of new games against forty-odd already known.
+    cached = cached_games_by_id(prev)
+    missing = [(gid, begin) for gid, begin in game_refs if gid not in cached]
+
+    # The ones that are new, fired concurrently and bounded by the shared
+    # global semaphore in bo3_get.
     results = await asyncio.gather(*[
-        fetch_game_stats_for_player(session, game_id, player_id) for game_id, _ in game_refs
+        fetch_game_stats_for_player(session, game_id, player_id) for game_id, _ in missing
     ])
 
     games = []
-    for (game_id, begin_at), stats in zip(game_refs, results):
+    fetched = dict(zip([gid for gid, _ in missing], results))
+    for game_id, begin_at in game_refs:
+        if game_id in cached:
+            games.append(cached[game_id])
+            continue
+        stats = fetched.get(game_id)
         if not stats:
             continue
         try:
             date = datetime.fromisoformat(begin_at.replace("Z", "+00:00"))
         except ValueError:
             continue
-        games.append({**stats, "date": date})
+        games.append({**stats, "game_id": game_id, "date": date})
 
     # Store the RAW per-game history (date + k/d/a), not just a single
     # pre-decayed number — a real, confirmed leakage issue found this
@@ -335,10 +387,14 @@ async def build_career_data():
     # additional player-level gate, so work from many players' game
     # fetches can interleave and keep the request pool continuously
     # full instead of processing player-by-player in sequential batches.
+    previous = load_previous_output()
+    known_ids = sum(1 for r in previous.values() if (r or {}).get("player_id"))
+    known_games = sum(len(cached_games_by_id(r)) for r in previous.values())
     print(f"Processing {len(tracked_names)} players (up to {REQUEST_CONCURRENCY} concurrent requests total)...")
+    print(f"  cache: {known_ids} player ids and {known_games} games already on record")
     async with aiohttp.ClientSession() as session:
         results = await asyncio.gather(*[
-            process_one_player(session, name, progress, len(tracked_names))
+            process_one_player(session, name, progress, len(tracked_names), previous)
             for name in tracked_names
         ])
     for name, record in results:
@@ -349,6 +405,7 @@ async def build_career_data():
 
 def main():
     data = asyncio.run(build_career_data())
+    print(f"\n  cs2 career scrape: {REQUEST_TOTAL['n']} requests made this run")
     with open(OUTPUT_PATH, "w") as f:
         # Written minified: these files are machine-generated and never read
         # by hand, and indent=2 was about two thirds of the bytes
