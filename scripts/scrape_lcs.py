@@ -748,7 +748,54 @@ def classify_tournament_stage(tournament_name):
     return "regular_season"
 
 
-def scrape_region(region_key, current_tournament, historical_tournament):
+# A completed LoL series' box score does not change, and this scraper was
+# re-fetching every one of them, twice a day, forever. 970 matches at two
+# page loads each is roughly 1,940 requests to gol.gg per run to rebuild
+# data that was already sitting in data.json -- and by the scraper's own
+# comment, that fetch is "the dominant cost of the whole scrape".
+#
+# Two things make reuse safe rather than merely faster:
+#
+#   base_game_id, not (date, teams). Two teams can meet twice on one day
+#   in a round robin, and reusing the wrong box score would be silent and
+#   wrong -- far worse than being slow.
+#
+#   A grace window. gol.gg finalises a page some time after the series
+#   ends, and this repo has already been bitten by a source reporting a
+#   finished match with fields still null. Anything inside the window is
+#   re-fetched regardless, so a result that was incomplete when first
+#   seen gets corrected rather than frozen.
+REUSE_GRACE_DAYS = 3
+
+
+def reusable_past_matches(existing_region, today=None):
+    """{base_game_id: entry} for series worth trusting from a previous run.
+
+    Excludes anything without an id (records written before this existed),
+    anything inside the grace window, and anything whose box score is not
+    actually populated -- a half-scraped entry must be re-fetched, not
+    kept forever because it happens to be old.
+    """
+    today = today or datetime.now(timezone.utc).date()
+    out = {}
+    for entry in (existing_region or {}).get("past_matches") or []:
+        game_id = entry.get("base_game_id")
+        if game_id is None:
+            continue
+        actual = entry.get("actual")
+        if not isinstance(actual, dict) or not any(
+                isinstance(side, dict) and side for side in actual.values()):
+            continue  # no real player stats in it
+        try:
+            played = datetime.fromisoformat(str(entry.get("date"))).date()
+        except (TypeError, ValueError):
+            continue  # undateable, so the grace window cannot be applied
+        if (today - played).days < REUSE_GRACE_DAYS:
+            continue
+        out[game_id] = entry
+    return out
+
+def scrape_region(region_key, current_tournament, historical_tournament, known=None):
     print(f"\n=== {region_key} ({current_tournament}) ===")
 
     print(f"Fetching team rosters (for team/role assignment)...")
@@ -800,6 +847,11 @@ def scrape_region(region_key, current_tournament, historical_tournament):
         left_score, right_score = (int(x) for x in m["score"].split("-"))
         winner = m["team_left"] if left_score > right_score else m["team_right"]
         entry = {
+            # Stored so the next run can tell it already has this series.
+            # gol.gg's own game id, and the only genuinely unique key here
+            # -- two teams can play twice on one day in a round robin, so
+            # (date, teamA, teamB) is not safe to reuse a box score on.
+            "base_game_id": m["base_game_id"],
             "week": m["week"], "date": m["date"], "patch": m.get("patch"),
             "teamA": m["team_left"], "teamB": m["team_right"],
             "winner": winner, "score": m["score"],
@@ -838,8 +890,15 @@ def scrape_region(region_key, current_tournament, historical_tournament):
             entry["per_game"] = per_game
         return entry
 
+    known = known or {}
+    to_fetch = [m for m in matches if m["base_game_id"] not in known]
+    reused = [known[m["base_game_id"]] for m in matches if m["base_game_id"] in known]
+    past_matches.extend(reused)
+    print(f"  {len(reused)} reused from the last run, {len(to_fetch)} to fetch"
+          f"{' (first run since ids were stored — all of them)' if reused == [] and known == {} else ''}")
+
     with ThreadPoolExecutor(max_workers=6) as pool:
-        futures = {pool.submit(fetch_one, m): m for m in matches}
+        futures = {pool.submit(fetch_one, m): m for m in to_fetch}
         for future in as_completed(futures):
             m = futures[future]
             try:
@@ -876,7 +935,8 @@ def main():
     for region_key, cfg in REGIONS.items():
         try:
             payload["regions"][region_key] = scrape_region(
-                region_key, cfg["current"], cfg["historical"]
+                region_key, cfg["current"], cfg["historical"],
+                known=reusable_past_matches(existing_regions.get(region_key)),
             )
         except Exception as e:
             print(f"! region {region_key} failed entirely: {e}", file=sys.stderr)
