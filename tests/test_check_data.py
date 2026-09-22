@@ -214,3 +214,69 @@ class TestAuxFileCollapse:
     def test_no_baseline_is_skipped(self, tmp_path, monkeypatch):
         errors = self._run(tmp_path, monkeypatch, {"1": {}}, None)
         assert errors == []
+
+
+class TestCareerMerged:
+    """That career data actually REACHED the players.
+
+    career_data.json can be perfectly healthy, pass the auxiliary check,
+    and still never reach a single player, because merge.py failed or was
+    skipped. data.json then commits with career=None on all 320 players
+    and the run goes green, since every other number in it is fine. The
+    career tier is worth 2.5% of LoL's accuracy and 7-14% of CS2's, so
+    that is a real degradation with no visible symptom.
+    """
+
+    def payload(self, with_career, total):
+        players = [{"name": f"p{i}", "cur": {"g": 10, "k": 4, "d": 2, "a": 6},
+                    **({"career": {"g": 50, "k": 4, "d": 2, "a": 6}} if i < with_career else {})}
+                   for i in range(total)]
+        return {"regions": {"LCS": {"teams": {"T": {"players": players}},
+                                    "past_matches": [], "upcoming_matches": []}}}
+
+    def test_full_coverage_passes(self):
+        errors = []
+        check_data.check_career_merged("lol", self.payload(320, 320), self.payload(320, 320), 20.0, errors)
+        assert errors == []
+
+    def test_a_collapse_is_caught(self):
+        errors = []
+        check_data.check_career_merged("lol", self.payload(0, 320), self.payload(320, 320), 20.0, errors)
+        assert len(errors) == 1
+        assert "merge" in errors[0].lower()
+
+    def test_a_small_dip_is_tolerated(self):
+        """Rosters move; a handful of new players with no career history yet
+        is normal and must not fail a run."""
+        errors = []
+        check_data.check_career_merged("lol", self.payload(300, 320), self.payload(320, 320), 20.0, errors)
+        assert errors == []
+
+    def test_a_game_that_never_had_career_does_not_start_failing(self):
+        errors = []
+        check_data.check_career_merged("lol", self.payload(0, 320), self.payload(0, 320), 20.0, errors)
+        assert errors == []
+
+    def test_valorant_is_exempt_because_it_has_no_career_scraper(self):
+        errors = []
+        check_data.check_career_merged("valorant", self.payload(0, 320), self.payload(320, 320), 20.0, errors)
+        assert errors == []
+
+    def test_cs2_counts_its_own_career_shape(self):
+        """CS2 players carry career_games, not career — a different field
+        for the same tier, and counting only `career` would report 0% for
+        a perfectly healthy CS2 file."""
+        cs2 = {"regions": {"CS2": {"teams": {"T": {"players": [
+            {"name": "p", "cur": {}, "career_games": [{"k": 20, "date": "2026-01-01"}]}]}},
+            "past_matches": [], "upcoming_matches": []}}}
+        assert check_data.career_coverage(cs2) == (1, 1)
+
+    def test_no_baseline_is_not_an_error(self):
+        errors = []
+        check_data.check_career_merged("lol", self.payload(320, 320), None, 20.0, errors)
+        assert errors == []
+
+    def test_an_empty_payload_is_left_to_the_structure_check(self):
+        errors = []
+        check_data.check_career_merged("lol", {"regions": {}}, self.payload(320, 320), 20.0, errors)
+        assert errors == []

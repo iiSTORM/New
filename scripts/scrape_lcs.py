@@ -942,10 +942,19 @@ def main():
         for p in team.get("players", [])
     )
     if had_career and not now_has_career:
-        print("\n! data.json previously carried merged career data and this fresh write does not.\n"
-              "  Run `python scripts/merge.py` (and scrape_career.py first if career_data.json is\n"
-              "  stale) before committing, or the app will run with the career tier pointed at\n"
-              "  nothing.", file=sys.stderr)
+        # Expected, not alarming: this script writes the raw stats and
+        # merge.py folds career in afterwards, so a fresh write never
+        # carries it. Worded as a reminder rather than a warning because
+        # it fires on EVERY workflow run, and a message that cries wolf
+        # twice a day is one nobody reads on the day it matters.
+        #
+        # The real protection is check_data.py, which runs AFTER merge.py
+        # and fails the run if career stopped reaching players. That is
+        # the failure this text used to be standing in for, and it was
+        # standing in the wrong place: here, the merge has not happened
+        # yet, so there is nothing to detect.
+        print("\n  (career not in this write yet — merge.py folds it in next; "
+              "check_data.py fails the run if it does not)", file=sys.stderr)
 
 
 if __name__ == "__main__":
