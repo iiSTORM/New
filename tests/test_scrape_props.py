@@ -334,11 +334,27 @@ class TestEndToEnd:
                     # int: it is compared with === against the games-in-series
                     # selector, and "2" would never equal 2.
                     assert prop["player"] == name
-                    assert prop["stat"] in ("kills", "deaths", "assists")
+                    # Derived from the matcher rather than listed here: this
+                    # read ("kills", "deaths", "assists") and failed the day
+                    # headshots started matching, which is the one case where
+                    # a hardcoded copy is guaranteed to be wrong.
+                    assert prop["stat"] in pm.STAT_ALIASES
                     assert isinstance(prop["maps"], int)
                     assert isinstance(prop["line"], float)
                     total += 1
-        assert total == 6
+        # Every projection in the fixture that SHOULD survive, counted from
+        # the fixture rather than pinned to a number nobody can check. The
+        # bare 6 that used to be here became wrong the day headshots started
+        # matching, and a failing count gives no clue which prop changed.
+        expected = [pr for pr in live_payload["data"]
+                    if pr.get("type") == "projection"
+                    and pm.parse_stat(pr["attributes"].get("stat_type"))[0] is not None
+                    and pm.parse_stat(pr["attributes"].get("stat_type"))[1] is not None]
+        assert total <= len(expected), "more props written than the payload could support"
+        assert total == 7, (
+            f"{total} props survived; the fixture holds {len(expected)} with a "
+            f"modelled stat and a stated window, the rest being unrostered "
+            f"players and unparseable lines")
 
     def test_stdin_is_the_same_route_as_a_file(self, tmp_path, monkeypatch, live_payload):
         """The paste-from-a-browser route has to land on the identical

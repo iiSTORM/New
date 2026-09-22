@@ -54,7 +54,11 @@ GAME_DATA = {
 #   cs2/val  — one series total covering exactly maps 1-2, and nothing finer.
 GRADEABLE_WINDOWS = {"lol": None, "cs2": {2}, "valorant": {2}}
 
-STAT_KEY = {"kills": "k", "deaths": "d", "assists": "a"}
+# CS2 records headshots; LoL and Valorant do not. A headshots line on
+# those games therefore finds no value in the box score and is refused by
+# the same path any missing player is -- there is no separate per-game
+# gate here because the data's absence is the gate.
+STAT_KEY = {"kills": "k", "deaths": "d", "assists": "a", "headshots": "hs"}
 
 
 def utc_date(timestamp):
@@ -127,7 +131,9 @@ def actual_over_window(match, team, player, stat, maps, game):
         total = 0
         for game_stats in per_game[:maps]:
             entry = ((game_stats or {}).get(team) or {}).get(player)
-            if not isinstance(entry, dict) or not isinstance(entry.get(key), int):
+            if isinstance(entry, dict) and not isinstance(entry.get(key), int):
+                return None, f"{stat} not recorded for this game"
+            if not isinstance(entry, dict):
                 return None, "player missing from a map's box score"
             total += entry[key]
         return total, None
@@ -135,6 +141,13 @@ def actual_over_window(match, team, player, stat, maps, game):
     entry = ((match.get("actual") or {}).get(team) or {}).get(player)
     if isinstance(entry, dict) and isinstance(entry.get(key), int):
         return entry[key], None
+    # A player who is present but has no value for THIS stat is a
+    # different problem from one who is absent, and lumping them together
+    # sends whoever reads the refusal counts looking for a scraping gap
+    # that is not there. A headshots line on a LoL match is the ordinary
+    # case: nothing records headshots there.
+    if isinstance(entry, dict):
+        return None, f"{stat} not recorded for this game"
     return None, "player missing from the box score"
 
 

@@ -37,6 +37,9 @@ STAT_TYPES = {
     "kills": {"key": "k", "oppBasis": "d", "useKP": True, "laneSpecific": True},
     "deaths": {"key": "d", "oppBasis": "k", "useKP": False, "laneSpecific": True},
     "assists": {"key": "a", "oppBasis": "d", "useKP": True, "laneSpecific": False},
+    # CS2 only -- LoL and Valorant record no such thing, and asking for it
+    # there yields no rows rather than a wrong answer.
+    "headshots": {"key": "hs", "oppBasis": "d", "useKP": False, "laneSpecific": False},
 }
 
 # The weights the app actually ships, mirrored from
@@ -48,16 +51,19 @@ SHIPPED_WEIGHTS = {
         "kills":    {"history": 0.8, "opponent": 0.4, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0.0, "career": 0.6, "share": 0.0, "shrink": 0.0},
         "deaths":   {"history": 0.8, "opponent": 0.4, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0.0, "career": 0.6, "share": 0.0, "shrink": 0.0},
         "assists":  {"history": 0.8, "opponent": 0.4, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0.0, "career": 0.6, "share": 0.0, "shrink": 0.0},
+        "headshots": {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 0.0, "share": 0.0, "shrink": 0.0},
     },
     "valorant": {
-        "kills":    {"history": 0.7, "opponent": 0, "kp": 0, "recencyHalfLife": 8, "patchDiscount": 0, "career": 0, "share": 0.4, "shrink": 4.0},
+        "kills":    {"history": 0.7, "opponent": 0, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0, "career": 0, "share": 0.4, "shrink": 4.0},
         "deaths":   {"history": 0.7, "opponent": 0, "kp": 0.0, "recencyHalfLife": 6, "patchDiscount": 0.3, "career": 0, "share": 0.7, "shrink": 0.0},
-        "assists":  {"history": 0.4, "opponent": 0, "kp": 0.1, "recencyHalfLife": 6, "patchDiscount": 0.8, "career": 0, "share": 0.4, "shrink": 1.0},
+        "assists":  {"history": 0.4, "opponent": 0, "kp": 0.0, "recencyHalfLife": 6, "patchDiscount": 0.8, "career": 0, "share": 0.4, "shrink": 1.0},
+        "headshots": {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 0.0, "share": 0.0, "shrink": 0.0},
     },
     "cs2": {
-        "kills":    {"history": 0.0, "opponent": 0.0, "kp": 0.3, "recencyHalfLife": 6, "patchDiscount": 0.0, "career": 1.0, "share": 0.0, "shrink": 0.0},
+        "kills":    {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 6, "patchDiscount": 0.0, "career": 1.0, "share": 0.0, "shrink": 0.0},
         "deaths":   {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0, "share": 0.6, "shrink": 0.0},
-        "assists":  {"history": 0.0, "opponent": 0.0, "kp": 0.1, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0, "share": 0.0, "shrink": 1.0},
+        "assists":  {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0, "share": 0.0, "shrink": 1.0},
+        "headshots": {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 0.0, "share": 0.0, "shrink": 3.0},
     },
 }
 
@@ -513,14 +519,75 @@ def league_avg_kp(teams):
     return avg
 
 
-def kp_multiplier(player, history_weight, kp_strength, teams):
-    cur_kp = player["cur"]["kp"]
-    if not cur_kp:
+KP_SHRINK = 4  # prior matches at which a player's own KP is worth as much
+               # as the league's. Their per-match sample is thin (median 2
+               # in CS2), and unshrunk it errs by 3.86pp against 3.32pp
+               # shrunk.
+
+
+def match_kp(match, team, player_name):
+    """One match's kill participation, as a percentage.
+
+    kp_numerator is exactly k + a on all 1414 CS2 rows that carry it, so
+    the same figure is derivable for LoL and Valorant, which do not.
+    kp_denominator is preferred where present because it is the team's
+    kills WHILE THAT PLAYER PLAYED -- it differs between players on a side
+    that used a substitute -- and falls back to the side's total.
+    """
+    raw = (match.get("actual") or {}).get(team, {}).get(player_name)
+    if not isinstance(raw, dict):
+        return None
+    den = raw.get("kp_denominator") or team_total(match, team, "k")
+    if not den:
+        return None
+    num = raw.get("kp_numerator")
+    if num is None:
+        if raw.get("k") is None or raw.get("a") is None:
+            return None
+        num = raw["k"] + raw["a"]
+    return 100.0 * num / den
+
+
+def point_in_time_kp(past_matches, teams, team, player_name, cutoff_date):
+    """Recency-weighted KP from matches before the cutoff, shrunk to league.
+
+    Replaces reading player["cur"]["kp"], which is a WHOLE-SEASON figure
+    with no cutoff awareness -- so a backtest of a match in May was fed a
+    kill participation partly built from games played in August. That leak
+    was worth 0.66pp of apparent accuracy, measured by comparing the
+    season figure against its own leave-one-out version.
+    """
+    values = [v for v in (match_kp(m, team, player_name)
+                          for m in _prior(past_matches, team, cutoff_date))
+              if v is not None]
+    if not values:
+        return None
+    rate = _weighted_mean(_decayed(values))
+    league = league_avg_kp(teams)
+    if league:
+        w = len(values) / (len(values) + KP_SHRINK)
+        rate = w * rate + (1 - w) * league
+    return rate
+
+
+def kp_multiplier(player, history_weight, kp_strength, teams,
+                  past_matches=None, team=None, cutoff_date=None):
+    if not kp_strength:
         return 1.0
-    hist_kp = player["hist"]["kp"] if player.get("hist") else cur_kp
-    blended_kp = history_weight * hist_kp + (1 - history_weight) * cur_kp
-    relative = blended_kp / league_avg_kp(teams)
-    return 1 + kp_strength * (relative - 1)
+    league = league_avg_kp(teams)
+    kp = None
+    if past_matches is not None and team is not None:
+        kp = point_in_time_kp(past_matches, teams, team, player["name"], cutoff_date)
+    if kp is None:
+        # No prior appearances to build one from. The season figure is the
+        # only thing left, and in the live path (cutoff_date None) it is
+        # legitimately everything-so-far rather than a leak.
+        cur_kp = player["cur"]["kp"]
+        if not cur_kp:
+            return 1.0
+        hist_kp = player["hist"]["kp"] if player.get("hist") else cur_kp
+        kp = history_weight * hist_kp + (1 - history_weight) * cur_kp
+    return 1 + kp_strength * (kp / league - 1)
 
 
 CS2_CAREER_DAY_HALF_LIFE = 180  # matches scrape_cs2_career.py's own constant -- measured via scripts/sweep_cs2_day_half_life.py; see that constant's comment for why the honest read is "this parameter barely matters" rather than "180 is the answer"
@@ -794,7 +861,16 @@ def project_point_in_time(past_matches, teams, player, team, opponent_team, game
     if pt_rate is not None:
         base = weights["history"] * hist_rate + (1 - weights["history"]) * pt_rate if hist_rate is not None else pt_rate
     else:
-        base = hist_rate if hist_rate is not None else player["cur"][cfg["key"]]
+        # A player can have no rate for this stat at all -- headshots are
+        # recorded only for CS2, and only from the run that started
+        # capturing them. Returning None beats both alternatives: the
+        # KeyError this used to raise, and the silent NaN the JS side
+        # produced from the same expression, which renders as an empty
+        # projection rather than an absent one.
+        cur_rate = (player.get("cur") or {}).get(cfg["key"])
+        base = hist_rate if hist_rate is not None else cur_rate
+        if base is None:
+            return None, pt_games
 
     # Career tier — a prior blended on TOP of the existing recent-form/
     # split-history base, using its own independent weight rather than
@@ -852,7 +928,8 @@ def project_point_in_time(past_matches, teams, player, team, opponent_team, game
 
     opp_mult = resolve_opponent_multiplier(teams, past_matches, player, opponent_team, weights["opponent"], cfg, cutoff_date)
 
-    kp_mult = kp_multiplier(player, weights["history"], weights["kp"], teams) if cfg["useKP"] else 1.0
+    kp_mult = kp_multiplier(player, weights["history"], weights["kp"], teams,
+                              past_matches, team, cutoff_date) if cfg["useKP"] else 1.0
 
     per_game = base * opp_mult * kp_mult
     per_game = blend_share_tier(per_game, weights.get("share", 0), past_matches, teams,
@@ -929,6 +1006,8 @@ def _collect(region_data, stat_type, weights, with_dates):
                         match.get("maps_counted", 2), weights,
                         match["date"], stat_type, match.get("patch")
                     )
+                    if predicted is None:
+                        continue  # no rate for this stat -- not a prediction to score
                     if prior_games == 0 and not player.get("hist"):
                         continue  # true cold start with zero grounding — not a fair test of the model
                     if with_dates:
@@ -1023,8 +1102,14 @@ def knockout_report(region_data, stat_type, weights, folds):
     print(f"  {'parameter off':26s} {'OOS MAE':>9s} {'change':>9s}  verdict")
     print(f"  {'(none - baseline)':26s} {base_mean:9.4f} {'':>9s}")
     rows = []
+    # share and shrink belong here as much as the rest. Left out, the
+    # report for a stat that leans on them -- cs2 headshots leans on both
+    # and on nothing else -- printed a baseline and no rows at all, which
+    # reads as "nothing carries this model" rather than "this report does
+    # not look at what does".
     for param, neutral in (("history", 0.0), ("opponent", 0.0), ("kp", 0.0),
                             ("patchDiscount", 0.0), ("career", 0.0),
+                            ("share", 0.0), ("shrink", 0.0),
                             ("recencyHalfLife", 20)):
         if weights.get(param) == neutral:
             continue
@@ -1281,7 +1366,10 @@ def diagnose_opponent_signal(region_data, stat_type, weights, threshold=8):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stat", choices=["kills", "deaths", "assists", "all"], default="all")
+    ap.add_argument("--stat", choices=list(STAT_TYPES) + ["all"], default="all")
+    # Derived, not listed: a stat added to STAT_TYPES is immediately
+    # available here rather than failing on an "invalid choice" from a
+    # copy of the list that nobody remembered to update.
     ap.add_argument("--game", choices=["lol", "valorant", "cs2", "all"], default="all")
     ap.add_argument("--data", default="data.json")
     ap.add_argument("--valorant-data", default="valorant_data.json")
@@ -1355,7 +1443,7 @@ def main():
               f"includes CS2, that's unexpected after the kp computation fix — worth checking "
               f"whether data.json was actually re-scraped with the fix, or is still stale.\n")
 
-    stat_types = ["kills", "deaths", "assists"] if args.stat == "all" else [args.stat]
+    stat_types = list(STAT_TYPES) if args.stat == "all" else [args.stat]
 
     if args.diagnose_opponent:
         for stat_type in stat_types:
