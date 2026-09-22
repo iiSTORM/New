@@ -45,25 +45,25 @@ STAT_TYPES = {
 # measuring it tells you nothing about the live model.
 SHIPPED_WEIGHTS = {
     "lol": {
-        "kills":    {"history": 0.8, "opponent": 0.4, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0.0, "career": 0.6},
-        "deaths":   {"history": 0.8, "opponent": 0.4, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0.0, "career": 0.6},
-        "assists":  {"history": 0.8, "opponent": 0.4, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0.0, "career": 0.6},
+        "kills":    {"history": 0.8, "opponent": 0.4, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0.0, "career": 0.6, "share": 0.0, "shrink": 0.0},
+        "deaths":   {"history": 0.8, "opponent": 0.4, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0.0, "career": 0.6, "share": 0.0, "shrink": 0.0},
+        "assists":  {"history": 0.8, "opponent": 0.4, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0.0, "career": 0.6, "share": 0.0, "shrink": 0.0},
     },
     "valorant": {
-        "kills":    {"history": 0.7, "opponent": 0, "kp": 0, "recencyHalfLife": 8, "patchDiscount": 0, "career": 0},
-        "deaths":   {"history": 0.7, "opponent": 0, "kp": 0.3, "recencyHalfLife": 6, "patchDiscount": 0.3, "career": 0},
-        "assists":  {"history": 0.4, "opponent": 0, "kp": 0.1, "recencyHalfLife": 6, "patchDiscount": 0.8, "career": 0},
+        "kills":    {"history": 0.7, "opponent": 0, "kp": 0, "recencyHalfLife": 8, "patchDiscount": 0, "career": 0, "share": 0.4, "shrink": 4.0},
+        "deaths":   {"history": 0.7, "opponent": 0, "kp": 0.0, "recencyHalfLife": 6, "patchDiscount": 0.3, "career": 0, "share": 0.7, "shrink": 0.0},
+        "assists":  {"history": 0.4, "opponent": 0, "kp": 0.1, "recencyHalfLife": 6, "patchDiscount": 0.8, "career": 0, "share": 0.4, "shrink": 1.0},
     },
     "cs2": {
-        "kills":    {"history": 0.0, "opponent": 0.0, "kp": 0.1, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 0.5},
-        "deaths":   {"history": 0.0, "opponent": 0.0, "kp": 0.3, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0},
-        "assists":  {"history": 0.0, "opponent": 0.0, "kp": 0.1, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0},
+        "kills":    {"history": 0.0, "opponent": 0.0, "kp": 0.3, "recencyHalfLife": 6, "patchDiscount": 0.0, "career": 1.0, "share": 0.0, "shrink": 0.0},
+        "deaths":   {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0, "share": 0.6, "shrink": 0.0},
+        "assists":  {"history": 0.0, "opponent": 0.0, "kp": 0.1, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0, "share": 0.0, "shrink": 1.0},
     },
 }
 
 DEFAULT_WEIGHTS = {
     "history": 0.3, "opponent": 1.0, "kp": 0.3,
-    "recencyHalfLife": 6, "patchDiscount": 0.4, "career": 0.0,
+    "recencyHalfLife": 6, "patchDiscount": 0.4, "career": 0.0, "share": 0.0, "shrink": 0.0,
     "careerRamp": 0,  # 0 = off, reproducing the previous flat career weight exactly; see project_point_in_time for what this measures and why
 }
 
@@ -154,6 +154,10 @@ def clear_point_in_time_caches():
     _league_avg_for_role_cache.clear()
     _point_in_time_team_stat_cache.clear()
     _point_in_time_league_avg_stat_cache.clear()
+    _league_avg_kp_cache.clear()
+    _team_total_cache.clear()
+    _share_rate_cache.clear()
+    _league_pace_cache.clear()
     _cache_keepalive.clear()
 
 
@@ -483,14 +487,39 @@ def resolve_opponent_multiplier(teams, past_matches, player, opponent_team, opp_
     return 1 + opp_strength * (opp_stat / league_avg - 1)
 
 
-def kp_multiplier(player, history_weight, kp_strength):
+# The kill-participation baseline, derived from the roster instead of
+# hardcoded. See the long note on leagueAvgKP in src/app.jsx: the literal
+# 66.0 that lived here is a League of Legends figure, and against it no
+# CS2 or Valorant player (medians 26.4 / 27.7, maxima 39.7 / 35.1) could
+# ever score above 1.0, turning a two-sided adjustment into a flat ~6%
+# haircut on every projection in both games. MAE -- the only thing every
+# weight in this file was ever tuned against -- cannot see a constant
+# offset, so it survived every search run here.
+LEAGUE_AVG_KP_FALLBACK = 66.0  # only reached when no player carries a kp at all
+_league_avg_kp_cache = {}  # keyed by id(teams) -- same stable-reference reasoning as the caches above
+
+
+def league_avg_kp(teams):
+    if not teams:
+        return LEAGUE_AVG_KP_FALLBACK
+    key = _pin(teams)
+    if key in _league_avg_kp_cache:
+        return _league_avg_kp_cache[key]
+    values = [p["cur"]["kp"] for entry in teams.values()
+              for p in (entry or {}).get("players") or []
+              if isinstance((p.get("cur") or {}).get("kp"), (int, float)) and p["cur"]["kp"] > 0]
+    avg = sum(values) / len(values) if values else LEAGUE_AVG_KP_FALLBACK
+    _league_avg_kp_cache[key] = avg
+    return avg
+
+
+def kp_multiplier(player, history_weight, kp_strength, teams):
     cur_kp = player["cur"]["kp"]
     if not cur_kp:
         return 1.0
     hist_kp = player["hist"]["kp"] if player.get("hist") else cur_kp
     blended_kp = history_weight * hist_kp + (1 - history_weight) * cur_kp
-    team_avg_kp = 66.0
-    relative = blended_kp / team_avg_kp
+    relative = blended_kp / league_avg_kp(teams)
     return 1 + kp_strength * (relative - 1)
 
 
@@ -531,6 +560,225 @@ def point_in_time_cs2_career_rate(player, stat_key, cutoff_date):
         total_weight += weight
         weighted += g.get(stat_key, 0) * weight
     return weighted / total_weight if total_weight > 0 else None
+
+
+# ============================================================
+# TEAM-SHARE TIER -- a second opinion built from a different quantity
+# ============================================================
+# The rest of the model predicts a player's kills per map directly. This
+# tier predicts their SHARE of their own team's kills, and multiplies it
+# by how many kills a map in this league tends to produce. The two are
+# blended by the `share` weight, exactly as `career` is blended.
+#
+# It exists because those are measurably two different quantities. In
+# CS2, the coefficient of variation of a player's raw series kills
+# averages 0.235; of their share of the team total, 0.160 -- 32% steadier,
+# and steadier for 111 of the 131 players with enough series to measure.
+#
+# The pace half is where the surprise is, and it decides the design.
+# Correlation between a team's own recency-weighted history and its next
+# match's per-map total (scripts/dev/experiment_kill_share.py):
+#
+#     CS2      r = -0.037      Valorant  r = +0.016      LoL  r = +0.208
+#
+# CS2 and Valorant team pace is NOISE. A team's own history predicts its
+# next pace no better than a coin. The likely mechanism in CS2 is that
+# being better shortens the map rather than raising the kill count -- a
+# 13-4 has fewer rounds, so fewer kills to share -- and the two effects
+# cancel. That is why the pace term here is the LEAGUE average and not
+# the team's own: using the team's realised history imports that noise
+# into the multiplier, and measured as a replacement it was 16-26% WORSE
+# than the shipped model while the league version was better.
+#
+# An oracle variant, fed the real team total it is predicting, scores
+# -19% on CS2 kills and -51% on CS2 deaths. That headroom is NOT
+# reachable -- it is the value of knowing the noise -- but it does say
+# where the remaining error lives, and that deaths are the most
+# pace-driven stat of the three. The adopted weights match: deaths take
+# much more of this tier than kills, and LoL takes none of it at all
+# because its opponent term (r = +0.208, a real signal there) already
+# does this job.
+SHARE_HALF_LIFE = 6  # matches. Swept 2..999: moves OOS MAE by under 0.4pp
+                     # on every adopted combination and never changes a
+                     # fold count, so it is pinned rather than tuned.
+_team_total_cache = {}
+_share_rate_cache = {}
+_league_pace_cache = {}
+
+
+def team_total(match, team, stat_key):
+    """Every recorded player's stat on one side of one match, summed.
+
+    Reproduces CS2's own kp_denominator field exactly on all 282
+    team-sides that carry one. Returns None below five players so a
+    partially-recorded side cannot masquerade as a low-scoring team;
+    every side in all three datasets currently records five.
+    """
+    key = (_pin(match), team, stat_key)
+    if key in _team_total_cache:
+        return _team_total_cache[key]
+    side = (match.get("actual") or {}).get(team)
+    total, seen = 0, 0
+    for raw in (side or {}).values():
+        if isinstance(raw, dict):
+            if raw.get(stat_key) is not None:
+                total += raw[stat_key]
+                seen += 1
+        elif isinstance(raw, (int, float)) and stat_key == "k":
+            total += raw
+            seen += 1
+    result = total if seen >= 5 else None
+    _team_total_cache[key] = result
+    return result
+
+
+def _decayed(values):
+    n = len(values)
+    return [(v, 0.5 ** ((n - 1 - i) / SHARE_HALF_LIFE)) for i, v in enumerate(values)]
+
+
+def _weighted_mean(pairs):
+    total_weight = sum(w for _, w in pairs)
+    return sum(v * w for v, w in pairs) / total_weight if total_weight > 0 else None
+
+
+def _prior(past_matches, team, cutoff_date):
+    out = [m for m in past_matches
+           if m.get("actual") and (m.get("teamA") == team or m.get("teamB") == team)
+           and (cutoff_date is None or (m.get("date") and m["date"] < cutoff_date))]
+    out.sort(key=lambda m: m.get("date") or "")
+    return out
+
+
+def share_rate(past_matches, team, player_name, stat_key, cutoff_date):
+    """The player's recency-weighted share of their team's own total."""
+    key = (_pin(past_matches), team, player_name, stat_key, cutoff_date)
+    if key in _share_rate_cache:
+        return _share_rate_cache[key]
+    values = []
+    for m in _prior(past_matches, team, cutoff_date):
+        got = get_actual_stat(m, team, player_name, stat_key)
+        if got is None or got == "unavailable":
+            continue
+        total = team_total(m, team, stat_key)
+        if not total:
+            continue
+        values.append(got / total)
+    result = _weighted_mean(_decayed(values)) if values else None
+    _share_rate_cache[key] = result
+    return result
+
+
+def league_pace_per_map(past_matches, teams, stat_key, cutoff_date):
+    """What one map in this league tends to produce for one team.
+
+    Averaged over teams rather than over match-sides so a team that plays
+    more often does not drag the league figure toward its own pace.
+    """
+    key = (_pin(past_matches), _pin(teams), stat_key, cutoff_date)
+    if key in _league_pace_cache:
+        return _league_pace_cache[key]
+    per_team = []
+    for team in teams:
+        values = []
+        for m in _prior(past_matches, team, cutoff_date):
+            total = team_total(m, team, stat_key)
+            if not total:
+                continue
+            values.append(total / (m.get("maps_counted") or 2))
+        rate = _weighted_mean(_decayed(values)) if values else None
+        if rate is not None:
+            per_team.append(rate)
+    result = sum(per_team) / len(per_team) if per_team else None
+    _league_pace_cache[key] = result
+    return result
+
+
+def share_tier_rate(past_matches, teams, team, player_name, stat_key, cutoff_date):
+    """share x league pace, per map -- or None when either half is missing."""
+    share = share_rate(past_matches, team, player_name, stat_key, cutoff_date)
+    if share is None:
+        return None
+    pace = league_pace_per_map(past_matches, teams, stat_key, cutoff_date)
+    if not pace:
+        return None
+    return share * pace
+
+
+def blend_share_tier(per_game, weight, past_matches, teams, team, player_name,
+                     stat_key, cutoff_date):
+    """Blend at the FINAL per-map figure, not into `base`.
+
+    This is where it was measured: the tier is a second opinion on the
+    whole prediction, opponent and kp multipliers included, rather than
+    another input to one of them. Falls back to the unblended figure when
+    the tier cannot be computed -- a player with no prior appearances, or
+    a league with no completed matches -- so a thin region degrades to
+    today's behaviour instead of losing its projection.
+    """
+    if not weight:
+        return per_game
+    tier = share_tier_rate(past_matches, teams, team, player_name, stat_key, cutoff_date)
+    if tier is None:
+        return per_game
+    return (1 - weight) * per_game + weight * tier
+
+
+# ============================================================
+# THIN-SAMPLE SHRINKAGE
+# ============================================================
+# A player with three maps on record gets a rate computed from three
+# maps, and the model treated that with exactly the confidence it gave a
+# rate built from sixty. The error decomposition says what that costs:
+# bucketing every prediction by how many prior maps the player had,
+#
+#     Valorant kills   0-5 maps: MAE 6.77    5-15: 5.89    15-30: 5.95
+#     CS2 kills        0-5 maps: MAE 6.67    5-15: 5.89    15-30: 5.34
+#
+# and those thin buckets are not a fringe: 34% of Valorant rows and 50%
+# of CS2's. LoL does not show it, because LoL players arrive with a
+# career baseline and a previous split behind them; Valorant has neither
+# (no career scraper exists for it, and hist is null), so a new player's
+# rate there is three maps and nothing else.
+#
+# So the estimate is pulled toward the league's average player by
+# n / (n + k), the standard empirical-Bayes weight: no pull at all once a
+# player has a real sample, most of the way to the prior when they have
+# none. k is per game and stat because it is the sample size at which the
+# player's own rate becomes worth as much as the league's, and that is
+# not the same number in a game with career data as in one without.
+#
+# Measured out-of-sample over 6 walk-forward folds; adopted only where a
+# majority of folds agreed. It is HARMFUL in LoL at every k tried
+# (+0.45% to +11.22% on kills), which is the same finding from the other
+# side and why LoL ships k=0.
+ROSTER_SIZE = 5  # players per side, in all three games. tests/model_tiers.test.mjs
+                 # asserts every recorded side in every dataset has exactly
+                 # this many, so it is checked against the data rather than
+                 # assumed to stay true.
+
+
+def league_player_rate(past_matches, teams, stat_key, cutoff_date):
+    """What one player on an average team produces in a map."""
+    pace = league_pace_per_map(past_matches, teams, stat_key, cutoff_date)
+    return pace / ROSTER_SIZE if pace else None
+
+
+def shrink_to_prior(per_map, k, prior_games, past_matches, teams, stat_key, cutoff_date):
+    """Pull a per-map rate toward the league's average player.
+
+    Applied to the FINAL per-map figure, after the opponent, kp and share
+    layers, because that is the number actually being trusted and it is
+    where this was measured. Falls through unchanged when there is no
+    league to compare against.
+    """
+    if not k:
+        return per_map
+    prior = league_player_rate(past_matches, teams, stat_key, cutoff_date)
+    if not prior:
+        return per_map
+    weight = prior_games / (prior_games + k)
+    return weight * per_map + (1 - weight) * prior
 
 
 def project_point_in_time(past_matches, teams, player, team, opponent_team, games, weights,
@@ -604,9 +852,13 @@ def project_point_in_time(past_matches, teams, player, team, opponent_team, game
 
     opp_mult = resolve_opponent_multiplier(teams, past_matches, player, opponent_team, weights["opponent"], cfg, cutoff_date)
 
-    kp_mult = kp_multiplier(player, weights["history"], weights["kp"]) if cfg["useKP"] else 1.0
+    kp_mult = kp_multiplier(player, weights["history"], weights["kp"], teams) if cfg["useKP"] else 1.0
 
     per_game = base * opp_mult * kp_mult
+    per_game = blend_share_tier(per_game, weights.get("share", 0), past_matches, teams,
+                                team, player["name"], cfg["key"], cutoff_date)
+    per_game = shrink_to_prior(per_game, weights.get("shrink", 0), pt_games,
+                               past_matches, teams, cfg["key"], cutoff_date)
     return per_game * games, pt_games
 
 
@@ -823,6 +1075,8 @@ def coordinate_descent(region_data, stat_type, start_weights, passes=3):
         "recencyHalfLife": [2, 3, 4, 5, 6, 8, 10, 14, 20],
         "patchDiscount": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0],
         "career": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95, 1.0],
+        "share": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+        "shrink": [0.0, 1.0, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 16.0],
     }
     cfg = STAT_TYPES[stat_type]
     # careerRamp is deliberately NOT searched. It was a real hypothesis,
@@ -837,7 +1091,7 @@ def coordinate_descent(region_data, stat_type, start_weights, passes=3):
     # the parameter, so this is one line to re-enable if the data changes
     # shape, but searching nine candidates x three passes x three stats
     # for an option already measured as dead is pure cost.
-    params = ["history", "opponent", "recencyHalfLife", "patchDiscount", "career"]
+    params = ["history", "opponent", "recencyHalfLife", "patchDiscount", "career", "share", "shrink"]
     if cfg["useKP"]:
         params.append("kp")
 

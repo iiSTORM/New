@@ -60,6 +60,22 @@ jobs:
       - name: Check prop selection
         run: node tests/prop_selection.test.mjs
 
+      # The whole measurement apparatus here rests on optimize_weights.py
+      # being a faithful port of the model in src/app.jsx. Nothing enforced
+      # that, and they had drifted in two places at once -- a constant left
+      # at its pre-measurement value in one copy, and elapsed days floored
+      # on one side and fractional on the other. While they disagree, every
+      # weight "measured" in Python describes a model nobody runs.
+      - name: Check the JS model and its Python port agree
+        run: node tests/model_parity.test.mjs
+
+      # The team-share tier: mechanics underneath a weight that was chosen
+      # by measurement. A tier that silently fails to compute does not
+      # throw -- it quietly returns the old number and the measured gain
+      # disappears with nothing going red.
+      - name: Check the model tiers
+        run: node tests/model_tiers.test.mjs
+
       # Mounts the real components against deliberately awkward data. Every
       # other frontend test here checks pure functions, which leaves the
       # worst failure class uncovered: a throw inside JSX unmounts the whole

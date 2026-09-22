@@ -37,6 +37,7 @@ const EXPORTS = [
   "MatchPlayerRow", "HeadToHeadCard", "AccuracySummary", "ThemeContext",
   "PropsContext", "BASE_TOKENS", "GAME_ACCENTS",
   "FutureTab", "PastResultsTab", "ConsistencyTab", "StandingsTab",
+  "ProjectionDetail", "historyPool", "project",
 ];
 const available = EXPORTS.filter((name) =>
   new RegExp(`(function|const)\\s+${name}\\b`).test(body));
@@ -224,6 +225,58 @@ if (app.RecordTab) {
   renders("record before anything is graded", wrap(React.createElement(app.RecordTab, {
     regionsData: { R: { teams: { T1: rostered }, past_matches: [] } },
     regionList: ["R"], weights, statType: "kills", isDesktop: true }), propsData));
+}
+
+/* ---- the expanded card in a borrowed-roster event ----
+ *
+ * Everything above asks only "does it throw". That is the right question
+ * for a blank page and the wrong one here: before the history pool
+ * existed, the Champions card rendered perfectly and simply had no form
+ * chart in it, which no mount test would ever have noticed. So this one
+ * asserts on the markup.
+ */
+function containsText(label, element, needle, shouldContain = true) {
+  try {
+    const html = renderToStaticMarkup(element);
+    const has = html.includes(needle);
+    if (has !== shouldContain) throw new Error(
+      `expected markup ${shouldContain ? "to contain" : "not to contain"} ${JSON.stringify(needle)}`);
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  ${label}\n        ${err.message}`);
+  }
+}
+
+if (app.ProjectionDetail && app.historyPool && app.project) {
+  const series = (date, teamA, teamB, kills) => ({
+    date, teamA, teamB, maps_counted: 2,
+    actual: { [teamA]: { Faker: { k: kills, d: 2, a: 5 } }, [teamB]: {} },
+  });
+  const home = Array.from({ length: 8 }, (_, i) =>
+    series(`2026-0${i + 1}-01`, "T1", "Rival", 20 + i));
+  const world = {
+    Pacific: { teams: { T1: rostered }, past_matches: home, upcoming_matches: [] },
+    Champions: { teams: { T1: rostered, "Paper Rex": rostered },
+                 past_matches: [], upcoming_matches: [],
+                 rosters_from_home_regions: true },
+  };
+  const pool = app.historyPool(world, "Champions");
+  const detail = (pastMatches) => {
+    const player = rostered.players[0];
+    const r = app.project(world.Champions.teams, pastMatches, player, "T1",
+                          "Paper Rex", 2, weights, "kills");
+    return wrap(React.createElement(app.ProjectionDetail, {
+      r, p: player, cfg: { key: "k", label: "Kills", singular: "kill", useKP: true },
+      games: 2, pastMatches, team: "T1" }), propsData);
+  };
+
+  containsText("the expanded card shows the last 8 matches from the home region",
+               detail(pool), "Last 8 matches");
+  containsText("which is exactly what the region's own empty list cannot do",
+               detail(world.Champions.past_matches), "Last 8 matches", false);
+  containsText("and a region with its own history is unaffected",
+               detail(app.historyPool(world, "Pacific")), "Last 8 matches");
 }
 
 console.log(`${pass} rendered, ${fail} failed`);

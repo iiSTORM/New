@@ -34,6 +34,20 @@ const propFor = new Function(slice + "\nreturn propFor;")();
 const projectionOverWindow = new Function(slice + "\nreturn projectionOverWindow;")();
 
 let pass = 0, fail = 0;
+
+/* Assertions that reach into a result — `propFor(...).line` — throw when
+   the function correctly returns null, and an uncaught throw aborts the
+   whole run: every later check silently never happens, and the summary
+   line is the one from a previous run still on screen. A regression that
+   crashes must read as a failure, not as an absence. */
+function lazily(fn) {
+  try {
+    return fn();
+  } catch (err) {
+    return `threw: ${err.message}`;
+  }
+}
+
 function check(label, got, want) {
   const ok = JSON.stringify(got) === JSON.stringify(want);
   if (ok) { pass++; } else {
@@ -63,9 +77,9 @@ const twoMatches = props([
   line(2, { line: 24.5, at: "2026-09-20T14:00:00Z" }),
 ]);
 check("the early match gets the early line",
-      propFor(twoMatches, "lol", "Faker", "kills", "2026-09-20T08:00:00Z").line, 25.5);
+      lazily(() => propFor(twoMatches, "lol", "Faker", "kills", "2026-09-20T08:00:00Z").line), 25.5);
 check("the late match gets the late line",
-      propFor(twoMatches, "lol", "Faker", "kills", "2026-09-20T14:00:00Z").line, 24.5);
+      lazily(() => propFor(twoMatches, "lol", "Faker", "kills", "2026-09-20T14:00:00Z").line), 24.5);
 check("a fixture with no line of its own gets none, not someone else's",
       propFor(twoMatches, "lol", "Faker", "kills", "2026-09-24T08:00:00Z"), null);
 // The window is 2 hours, measured: across a real board 24 of 25 legitimate
@@ -80,6 +94,26 @@ check("a fixture an hour off is still this one",
       propFor(props([line(2, { line: 25.5, at: "2026-09-20T08:00:00Z" })]),
               "lol", "Faker", "kills", "2026-09-20T09:00:00Z").line, 25.5);
 
+// Not every source states a kickoff time. gol.gg and bo3.gg give a full
+// timestamp; vlr.gg gives a bare date. Champions fixtures arrived as
+// "2026-09-25", which reads as midnight UTC, and every line posted for
+// 09:00 sat nine hours out — so a two-hour window rejected all 78 of them.
+const dayOnly = props([line(2, { line: 33.0, at: "2026-09-25T05:00:00.000-04:00" })]);
+check("a dated fixture matches a line posted that day",
+      lazily(() => propFor(dayOnly, "lol", "Faker", "kills", "2026-09-25").line), 33.0);
+check("nine hours apart is fine when the fixture states no time",
+      propFor(dayOnly, "lol", "Faker", "kills", "2026-09-25") !== null, true);
+check("but a different day is still a different match",
+      propFor(dayOnly, "lol", "Faker", "kills", "2026-09-26"), null);
+check("a line late in the evening lands on its UTC day",
+      propFor(props([line(2, { at: "2026-09-25T20:00:00.000+00:00" })]),
+              "lol", "Faker", "kills", "2026-09-25") !== null, true);
+// A timestamped fixture keeps the tight window: the information is there,
+// so the day would be needlessly loose.
+check("a fixture that states a time still uses the window",
+      propFor(props([line(2, { at: "2026-09-25T20:00:00.000+00:00" })]),
+              "lol", "Faker", "kills", "2026-09-25T09:00:00+00:00"), null);
+
 // Alternate payout lines.
 const withOdds = props([
   line(2, { line: 10.5, odds: "demon" }),
@@ -92,7 +126,7 @@ check("and is not reported as ambiguous", market.lineCount, 1);
 
 const noOdds = props([line(2, { line: 10.5 }), line(2, { line: 8.5 }), line(2, { line: 6.5 })]);
 check("without odds_type the ambiguity is reported, not resolved",
-      propFor(noOdds, "lol", "Faker", "kills", AT).lineCount, 3);
+      lazily(() => propFor(noOdds, "lol", "Faker", "kills", AT).lineCount), 3);
 check("identical lines are not ambiguous",
       propFor(props([line(2, { line: 8.5 }), line(2, { line: 8.5 })]),
               "lol", "Faker", "kills", AT).lineCount, 1);
@@ -103,7 +137,7 @@ check("unknown stat", propFor(props([line(2)]), "lol", "Faker", "deaths", AT), n
 check("unknown game", propFor(props([line(2)]), "cs2", "Faker", "kills", AT), null);
 check("no props at all", propFor(null, "lol", "Faker", "kills", AT), null);
 check("no match date still resolves a line",
-      propFor(props([line(2)]), "lol", "Faker", "kills", null).maps, 2);
+      lazily(() => propFor(props([line(2)]), "lol", "Faker", "kills", null).maps), 2);
 
 // The projection put beside a line has to cover the line's maps, not the
 // selector's. This is the step that decides whether an edge is real: the
@@ -139,7 +173,7 @@ const atTen = props([line(2, { line: 30.5, at: iso })]);
 check("the display string matches nothing — this is the bug",
       propFor(atTen, "lol", "Faker", "kills", shaped.date), null);
 check("_sortKey is what the card must pass",
-      propFor(atTen, "lol", "Faker", "kills", shaped._sortKey).line, 30.5);
+      lazily(() => propFor(atTen, "lol", "Faker", "kills", shaped._sortKey).line), 30.5);
 
 // The Edges view: every posted line for a game, ranked. The component is
 // JSX and cannot be rendered here, but everything that decides WHAT it shows
@@ -274,6 +308,150 @@ check("buckets on the SIZE of the disagreement, not its direction",
 check("and counts wins within each", bucketed.map((b) => b.won), [1, 1, 1, 0]);
 check("an empty bucket reports no rate rather than zero",
       recordByEdge([]).every((b) => b.rate === null), true);
+
+/* Does the Edges tab project from the same history the match card does?
+ *
+ * The stub above discards its arguments, so it cannot tell. This one
+ * records which list it was handed. Without the check, collectEdges can
+ * quietly go back to the region's own past_matches and every borrowed
+ * event projects off a flat season average in one view and real history
+ * in the other — one player, two numbers, and nothing red.
+ */
+const seenPools = [];
+const collectEdgesSpy = new Function(`
+  ${extract("likelyStarters")}
+  const seenPools = arguments[0];
+  function project(teams, pastMatches) { seenPools.push(pastMatches); return { perGame: 10 }; }
+  ${slice}
+  return collectEdges;
+`)(seenPools);
+
+{
+  const lined = (date, teamA, teamB) => ({ date, teamA, teamB, actual: { [teamA]: {}, [teamB]: {} } });
+  const player = { name: "Faker", role: null, cur: { k: 20, g: 10 } };
+  const world = {
+    Home: { teams: { T1: { players: [player] } },
+            past_matches: [lined("2026-01-01", "T1", "Rival"), lined("2026-01-02", "T1", "Rival")],
+            upcoming_matches: [] },
+    Event: { teams: { T1: { players: [player] } }, past_matches: [],
+             rosters_from_home_regions: true,
+             upcoming_matches: [{ teamA: "T1", teamB: "Paper Rex",
+                                  date: "2026-09-21T10:00:00+00:00" }] },
+  };
+  const eventProps = { fetched_at: "2026-09-21T10:00:00+00:00", source: "t", props: { valorant: {
+    Faker: [{ player: "Faker", stat: "kills", maps: 2, line: 25.5, odds_type: "standard",
+              team: "T1", start_time: "2026-09-21T10:00:00+00:00" }] } } };
+  seenPools.length = 0;
+  collectEdgesSpy(world, ["Event"], eventProps, {}, "kills", "valorant");
+  check("the Edges tab projects a borrowed event off its borrowed history",
+        seenPools.length && seenPools[0].length, 2);
+}
+
+/* ---- whose history counts as a player's history ----
+ *
+ * An event that has not started yet has rosters and fixtures and zero
+ * completed matches. VCT Champions arrived exactly that way, and every
+ * player on it rendered with no form chart, no consistency score, and a
+ * projection that quietly fell back to a flat season average because
+ * recencyWeightedRate found nothing to weight. Their history existed the
+ * whole time, filed under their home region.
+ *
+ * Borrowing it is the fix, and the danger is entirely on the other side:
+ * borrow too eagerly and a league gets counted twice.
+ */
+const historyPoolFor = new Function(slice + "\nreturn historyPoolFor;")();
+const historyPool = new Function(slice + "\nreturn historyPool;")();
+
+const played = (date, teamA, teamB) => ({ date, teamA, teamB, actual: { [teamA]: {}, [teamB]: {} } });
+const world = () => ({
+  Home: { teams: { Alpha: { players: [] }, Beta: { players: [] } },
+          past_matches: [played("2026-01-01", "Alpha", "Outsider"),
+                         played("2026-01-02", "Alpha", "Beta"),
+                         played("2026-01-03", "Nobody", "Stranger")],
+          upcoming_matches: [] },
+  Other: { teams: { Gamma: { players: [] } },
+           past_matches: [played("2026-01-04", "Gamma", "Alpha")], upcoming_matches: [] },
+  Event: { teams: { Alpha: { players: [] }, Gamma: { players: [] } },
+           past_matches: [], upcoming_matches: [], rosters_from_home_regions: true },
+});
+
+check("a region that has played its own matches uses them and borrows nothing",
+      historyPoolFor(world(), "Home").length, 3);
+check("and hands back the very same array, not a copy",
+      historyPoolFor(world(), "Home") === world().Home.past_matches, false); // different world() calls
+{
+  const w = world();
+  check("the same array, so nothing downstream sees a new identity each render",
+        historyPoolFor(w, "Home"), w.Home.past_matches);
+}
+check("an empty event with borrowed rosters picks up its teams' matches",
+      historyPoolFor(world(), "Event").length, 3);
+check("and only matches involving its own teams",
+      historyPoolFor(world(), "Event").some((m) => m.teamA === "Nobody"), false);
+
+/* The two guards that keep this from double-counting a league. */
+{
+  const w = world();
+  w.Event.rosters_from_home_regions = false;
+  check("a region that never borrowed its rosters does not borrow history",
+        historyPoolFor(w, "Event").length, 0);
+}
+{
+  const w = world();
+  w.Event.past_matches = [played("2026-02-01", "Alpha", "Gamma")];
+  check("once the event plays its first match the borrowed history drops out entirely",
+        historyPoolFor(w, "Event").length, 1);
+}
+{
+  // A meeting between two teams that both belong to the event, reachable
+  // from either side of the scan.
+  const w = world();
+  w.Other.past_matches.push(played("2026-01-04", "Gamma", "Alpha"));
+  check("a match reachable through two of the event's own teams is counted once",
+        historyPoolFor(w, "Event").filter((m) => m.date === "2026-01-04").length, 1);
+}
+{
+  const w = world();
+  w.Event.teams = {};
+  check("an event with no roster yet borrows nothing", historyPoolFor(w, "Event").length, 0);
+}
+check("an unknown region is empty rather than a crash",
+      lazily(() => historyPoolFor(world(), "Nowhere").length), 0);
+
+{
+  const w = world();
+  check("the pool is cached per region, so a render does not rescan every league",
+        historyPool(w, "Event") === historyPool(w, "Event"), true);
+  check("and keyed per region rather than shared between them",
+        historyPool(w, "Event") === historyPool(w, "Home"), false);
+}
+
+/* The committed Valorant data, which is where this was actually found. */
+const valorantPath = path.join(root, "valorant_data.json");
+if (fs.existsSync(valorantPath)) {
+  const { regions } = JSON.parse(fs.readFileSync(valorantPath, "utf8"));
+  const borrowed = Object.keys(regions).filter(
+    (k) => regions[k].rosters_from_home_regions && (regions[k].past_matches || []).length === 0);
+  for (const key of borrowed) {
+    const pool = historyPoolFor(regions, key);
+    check(`${key} finds real history for its borrowed rosters`, pool.length > 0, true);
+    const names = new Set(Object.keys(regions[key].teams || {}));
+    check(`${key} pool is scoped to its own teams`,
+          pool.every((m) => names.has(m.teamA) || names.has(m.teamB)), true);
+    const seen = new Set(pool.map((m) => `${m.date}|${m.teamA}|${m.teamB}`));
+    check(`${key} pool holds no duplicate meetings`, seen.size, pool.length);
+    // Every team it fields must actually be represented, or some players
+    // still render blank and the bug is only half fixed.
+    const missing = [...names].filter(
+      (t) => !pool.some((m) => m.teamA === t || m.teamB === t));
+    check(`${key} leaves no team without history`, missing, []);
+  }
+  for (const key of Object.keys(regions)) {
+    if (borrowed.includes(key)) continue;
+    check(`${key} is untouched by borrowing`,
+          historyPoolFor(regions, key), regions[key].past_matches || []);
+  }
+}
 
 // The committed props.json, when there is one: the same rules against a
 // real payload rather than a constructed one.

@@ -336,8 +336,16 @@ function propFor(propsData, game, playerName, statType, matchDate) {
   if (!list.length) return null;
 
   let candidates = list;
-  const matchMs = matchDate ? new Date(matchDate).getTime() : NaN;
-  if (!isNaN(matchMs)) {
+  const when = String(matchDate || "");
+  // Not every source states a kickoff time. gol.gg and bo3.gg give a full
+  // timestamp; vlr.gg gives a bare date, and comparing a line posted for
+  // 09:00 against a fixture read as midnight puts every one of them nine
+  // hours out and rejects the lot. A date carries no time, so it gets
+  // matched at the resolution it actually has: the day.
+  const hasClock = /\d{1,2}:\d{2}/.test(when);
+  const matchMs = when ? new Date(when).getTime() : NaN;
+
+  if (!isNaN(matchMs) && hasClock) {
     const timed = list
       .map((p) => ({ p, delta: Math.abs(new Date(p.start_time).getTime() - matchMs) }))
       .filter((x) => !isNaN(x.delta) && x.delta <= PROP_MATCH_WINDOW_HOURS * 3600000);
@@ -346,6 +354,14 @@ function propFor(propsData, game, playerName, statType, matchDate) {
     if (!timed.length) return null;
     const nearest = Math.min(...timed.map((x) => x.delta));
     candidates = timed.filter((x) => x.delta === nearest).map((x) => x.p);
+  } else if (!isNaN(matchMs)) {
+    const day = when.slice(0, 10);
+    const sameDay = list.filter((p) => {
+      const at = new Date(p.start_time);
+      return !isNaN(at) && at.toISOString().slice(0, 10) === day;
+    });
+    if (!sameDay.length) return null;
+    candidates = sameDay;
   }
 
   const market = candidates.filter(
@@ -383,12 +399,79 @@ function projectionOverWindow(breakdown, prop) {
    projection and one four above are equally interesting, they just point in
    opposite directions, and burying the unders at the bottom of a list would
    hide half the board. */
+/* The matches a region's players actually have on record, which is not
+   always the same list as the matches that region has played.
+
+   An event like VCT Champions arrives before it starts: fixtures and
+   rosters, zero completed matches. The rosters are already borrowed from
+   the teams' home regions (scrape_valorant.py's
+   lend_rosters_to_eventless_regions, which sets rosters_from_home_regions),
+   so the players are real and their history is real — it is just filed
+   one region over. Without it every Champions player rendered with no
+   form chart, no consistency score, and a projection that fell back to a
+   flat season average because recencyWeightedRate found nothing to weight.
+
+   Borrowing is deliberately narrow, because the failure mode on the other
+   side is silently double-counting a league:
+
+     - only when the region declares rosters_from_home_regions, and
+     - only when it has no completed matches of its own. The moment the
+       event plays its first match this returns the region's own list and
+       the borrowed history drops out, rather than the two being mixed.
+
+   Matches are keyed on date + teams so a meeting between two teams that
+   share a home region cannot arrive twice.
+
+   This is history, not results. Standings and the Past Results tab keep
+   reading the region's own past_matches, because "what has happened at
+   Champions" is genuinely nothing yet and showing four other leagues
+   under that heading would be a lie rather than a gap. */
+function historyPoolFor(regionsData, regionKey) {
+  const rd = regionsData && regionsData[regionKey];
+  if (!rd) return [];
+  const own = rd.past_matches || [];
+  if (own.length > 0 || !rd.rosters_from_home_regions) return own;
+
+  const wanted = new Set(Object.keys(rd.teams || {}));
+  if (wanted.size === 0) return own;
+  const seen = new Set();
+  const pool = [];
+  for (const [key, other] of Object.entries(regionsData)) {
+    if (key === regionKey) continue;
+    for (const m of (other && other.past_matches) || []) {
+      if (!wanted.has(m.teamA) && !wanted.has(m.teamB)) continue;
+      const id = `${m.date || ""}|${m.teamA}|${m.teamB}`;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      pool.push(m);
+    }
+  }
+  return pool;
+}
+
+/* Recomputing the pool per player per render would rescan every region's
+   whole season each time. Keyed on the regionsData object, which is
+   replaced wholesale when a fetch lands, so a stale entry cannot outlive
+   the data it was built from. */
+const historyPoolCache = new WeakMap();
+function historyPool(regionsData, regionKey) {
+  if (!regionsData || typeof regionsData !== "object") return [];
+  let byRegion = historyPoolCache.get(regionsData);
+  if (!byRegion) { byRegion = new Map(); historyPoolCache.set(regionsData, byRegion); }
+  if (!byRegion.has(regionKey)) byRegion.set(regionKey, historyPoolFor(regionsData, regionKey));
+  return byRegion.get(regionKey);
+}
+
 function collectEdges(regionsData, regionList, propsData, weights, statType, game) {
   const rows = [];
   for (const regionKey of regionList || []) {
     const rd = regionsData && regionsData[regionKey];
     if (!rd || !rd.teams) continue;
-    const pastMatches = rd.past_matches || [];
+    // The pool, not rd.past_matches: a borrowed-roster region would
+    // otherwise project every player off a flat season average here while
+    // the match card beside it used their real history, and two different
+    // numbers for one player is worse than either number alone.
+    const pastMatches = historyPool(regionsData, regionKey);
     for (const match of rd.upcoming_matches || []) {
       // Only the player's OWN team has to be rostered. The opponent is
       // needed for one term, which now falls back to neutral, and a line
@@ -457,7 +540,7 @@ function modelRecord(regionsData, regionList, results, weights, statType) {
       const rd = regionsData && regionsData[key];
       if (rd && rd.teams && rd.teams[row.team]) {
         teams = rd.teams;
-        pastMatches = rd.past_matches || [];
+        pastMatches = historyPool(regionsData, key);  // same pool the Edges tab projects from
         break;
       }
     }
@@ -872,17 +955,69 @@ const STAT_TYPES = {
    come from a live fetch instead of the module-level fallback.
    ============================================================ */
 
-function kpMultiplier(player, historyWeight, kpStrength) {
+/* The kill-participation baseline this multiplier measures a player
+   against, derived from the players actually in the data rather than
+   hardcoded.
+
+   It used to be the literal 66, which is a LEAGUE OF LEGENDS number: LoL
+   kill participation runs ~66% because assists are plentiful and most
+   kills involve two or three players. CS2 and Valorant score the same
+   field on a completely different scale — their rostered medians are
+   26.4% and 27.7%, and their HIGHEST players reach 39.7% and 35.1%.
+   Against a baseline of 66, therefore, no CS2 or Valorant player could
+   ever score above 1.0: `relative` topped out around 0.6, and what was
+   meant as a two-sided "is this player above or below typical" became a
+   one-sided haircut applied to literally every projection in both games.
+
+   That is not a rounding error. Measured on the point-in-time backtest
+   (scripts/dev/diagnose_calibration.py), CS2 kills predicted 0.939x the
+   actual and CS2/Valorant assists 0.944x/0.953x, while LoL — the game
+   the constant was right for — sat at 0.999x. A flat ~6% under-prediction
+   on one game is invisible in MAE, which is what every weight here was
+   tuned against, and it does not stay invisible once a projection is
+   placed next to a posted line: it recommends the under on every single
+   player, which looks like a signal and is really a ruler with the wrong
+   zero. That is exactly how it was found.
+
+   Deriving it from the roster fixes all three games at once and cannot
+   go stale the way a literal does. Using the MEAN (not the median) is
+   the deliberate choice: it is what makes the average player's
+   multiplier land on 1.0, which is precisely the property that keeps the
+   layer calibration-neutral.
+
+   Note on leakage, stated rather than hidden: cur.kp is a whole-season
+   snapshot with no point-in-time filtering, so a league average over it
+   is a season-wide figure too. That is not a NEW leak — kpMultiplier
+   already read the same unfiltered field for the player's own rate — and
+   a league-wide aggregate is far more dilute than a per-player one. It
+   should still be rebuilt point-in-time when cur.kp is. */
+const LEAGUE_AVG_KP_FALLBACK = 66; // only reached when no player carries a kp at all
+const leagueAvgKPCache = new WeakMap();
+function leagueAvgKP(teams) {
+  if (!teams || typeof teams !== "object") return LEAGUE_AVG_KP_FALLBACK;
+  if (leagueAvgKPCache.has(teams)) return leagueAvgKPCache.get(teams);
+  let sum = 0, n = 0;
+  for (const entry of Object.values(teams)) {
+    for (const p of (entry && entry.players) || []) {
+      const kp = p && p.cur && p.cur.kp;
+      if (typeof kp === "number" && kp > 0) { sum += kp; n++; }  // 0 is the not-computed sentinel, same as below
+    }
+  }
+  const avg = n > 0 ? sum / n : LEAGUE_AVG_KP_FALLBACK;
+  leagueAvgKPCache.set(teams, avg);
+  return avg;
+}
+
+function kpMultiplier(player, historyWeight, kpStrength, teams) {
   const curKP = player.cur.kp;
-  // 0 is used as a sentinel for "not computed yet" (currently true for
-  // Valorant, where KP% isn't scraped) — a real player's kill participation
-  // is never actually 0, so this can't misfire on genuine data. Treat it as
-  // neutral rather than applying a bogus flat penalty across every player.
+  // 0 is used as a sentinel for "not computed yet" — a real player's kill
+  // participation is never actually 0, so this can't misfire on genuine
+  // data. Treat it as neutral rather than applying a bogus flat penalty
+  // across every player.
   if (!curKP) return 1;
   const histKP = player.hist ? player.hist.kp : curKP;
   const blendedKP = historyWeight * histKP + (1 - historyWeight) * curKP;
-  const teamAvgKP = 66;
-  const relative = blendedKP / teamAvgKP;
+  const relative = blendedKP / leagueAvgKP(teams);
   return 1 + kpStrength * (relative - 1);
 }
 
@@ -991,6 +1126,203 @@ function recencyWeightedRate(pastMatches, team, playerName, statKey, cutoffDate,
   return { rate: weightedGames > 0 ? weightedSum / weightedGames : null, games: totalMaps };
 }
 
+/* ============================================================
+   TEAM-SHARE TIER — a second opinion built from a different quantity
+   ============================================================
+   Everything above predicts a player's kills per map directly. This
+   predicts their SHARE of their own team's kills, and multiplies it by
+   how many kills a map in this league tends to produce. The two are
+   blended by the `share` weight, exactly as `career` is blended.
+
+   They really are two quantities. In CS2 the coefficient of variation of
+   a player's raw series kills averages 0.235; of their share of the team
+   total, 0.160 — 32% steadier, and steadier for 111 of the 131 players
+   with enough series to measure.
+
+   The pace half is where the surprise is, and it decides the design.
+   Correlation between a team's own recency-weighted history and its next
+   match's per-map total (scripts/dev/experiment_kill_share.py):
+
+       CS2  r = -0.037      Valorant  r = +0.016      LoL  r = +0.208
+
+   CS2 and Valorant team pace is NOISE — a team's own history predicts its
+   next pace no better than a coin. The likely mechanism in CS2 is that
+   being better shortens the map rather than raising the kill count: a
+   13-4 has fewer rounds, so fewer kills to go round, and the two effects
+   cancel. Hence the pace term here is the LEAGUE average and not the
+   team's own; measured as a replacement, using the team's own realised
+   history was 16-26% WORSE than the shipped model where the league
+   version was better. It is also why LoL takes none of this tier — at
+   r = +0.208 its pace is a real signal, and its opponent weight already
+   captures it.
+
+   An oracle variant fed the real team total it is predicting scores -19%
+   on CS2 kills and -51% on CS2 deaths. That headroom is NOT reachable —
+   it is the value of knowing the noise — but it does say where the
+   remaining error lives, and that deaths are much the most pace-driven
+   of the three stats. The adopted weights follow exactly that shape. */
+const SHARE_HALF_LIFE = 6; // matches. Swept 2..999: moves OOS MAE by under
+                           // 0.4pp on every adopted combination and never
+                           // changes a fold count, so it is pinned rather
+                           // than tuned — one more slider would be inviting
+                           // an overfit to nothing.
+
+function teamTotal(match, team, statKey) {
+  // Returns null below five players so a partially-recorded side cannot
+  // masquerade as a low-scoring team. Reproduces CS2's own
+  // kp_denominator exactly on all 282 team-sides that carry one.
+  const side = (match.actual || {})[team];
+  if (!side) return null;
+  let total = 0, seen = 0;
+  for (const raw of Object.values(side)) {
+    if (raw && typeof raw === "object") {
+      if (raw[statKey] !== undefined && raw[statKey] !== null) { total += raw[statKey]; seen++; }
+    } else if (typeof raw === "number" && statKey === "k") { total += raw; seen++; }
+  }
+  return seen >= 5 ? total : null;
+}
+
+function priorMatches(pastMatches, team, cutoffDate) {
+  const out = [];
+  for (const m of pastMatches) {
+    if (!m.actual) continue;
+    if (m.teamA !== team && m.teamB !== team) continue;
+    if (cutoffDate !== null && cutoffDate !== undefined && (!m.date || m.date >= cutoffDate)) continue;
+    out.push(m);
+  }
+  out.sort((a, b) => ((a.date || "") < (b.date || "") ? -1 : (a.date || "") > (b.date || "") ? 1 : 0));
+  return out;
+}
+
+function decayedMean(values) {
+  const n = values.length;
+  if (!n) return null;
+  let sum = 0, weight = 0;
+  values.forEach((v, i) => {
+    const w = Math.pow(0.5, (n - 1 - i) / SHARE_HALF_LIFE);
+    sum += v * w; weight += w;
+  });
+  return weight > 0 ? sum / weight : null;
+}
+
+/* Scanning every region team's whole season, per player, per render is
+   the one genuinely expensive thing here, so both halves are cached on
+   the pastMatches object — replaced wholesale when a fetch lands, so a
+   stale entry cannot outlive the data it came from. */
+const shareTierCache = new WeakMap();
+function tierCache(pastMatches, bucket) {
+  let byBucket = shareTierCache.get(pastMatches);
+  if (!byBucket) { byBucket = {}; shareTierCache.set(pastMatches, byBucket); }
+  if (!byBucket[bucket]) byBucket[bucket] = new Map();
+  return byBucket[bucket];
+}
+
+function shareRate(pastMatches, team, playerName, statKey, cutoffDate) {
+  const cache = tierCache(pastMatches, "share");
+  const key = `${team}|${playerName}|${statKey}|${cutoffDate || ""}`;
+  if (cache.has(key)) return cache.get(key);
+  const values = [];
+  for (const m of priorMatches(pastMatches, team, cutoffDate)) {
+    const got = getActualStat(m, team, playerName, statKey);
+    if (got === undefined || got === null) continue;
+    const total = teamTotal(m, team, statKey);
+    if (!total) continue;
+    values.push(got / total);
+  }
+  const rate = decayedMean(values);
+  cache.set(key, rate);
+  return rate;
+}
+
+// Averaged over TEAMS rather than over match-sides, so a team that plays
+// more often does not drag the league figure toward its own pace.
+function leaguePacePerMap(pastMatches, teams, statKey, cutoffDate) {
+  const cache = tierCache(pastMatches, "pace");
+  const key = `${statKey}|${cutoffDate || ""}`;
+  if (cache.has(key)) return cache.get(key);
+  const perTeam = [];
+  for (const team of Object.keys(teams || {})) {
+    const values = [];
+    for (const m of priorMatches(pastMatches, team, cutoffDate)) {
+      const total = teamTotal(m, team, statKey);
+      if (!total) continue;
+      values.push(total / (m.maps_counted || 2));
+    }
+    const rate = decayedMean(values);
+    if (rate !== null) perTeam.push(rate);
+  }
+  const avg = perTeam.length ? perTeam.reduce((s, v) => s + v, 0) / perTeam.length : null;
+  cache.set(key, avg);
+  return avg;
+}
+
+/* Blends at the FINAL per-map figure, not into `base`. That is where it
+   was measured: the tier is a second opinion on the whole prediction,
+   opponent and kp multipliers included, rather than another input to one
+   of them. Falls back to the unblended figure whenever the tier cannot be
+   computed — a player with no prior appearances, a league with no
+   completed matches — so a thin region degrades to today's behaviour
+   instead of losing its projection. That fallback is not rare: it covers
+   13% of Valorant rows and 24% of CS2's. */
+function blendShareTier(perGame, weights, pastMatches, teams, team, playerName, statKey, cutoffDate) {
+  const weight = weights.share || 0;
+  if (!weight) return { perGame, shareTier: null };
+  const share = shareRate(pastMatches, team, playerName, statKey, cutoffDate);
+  if (share === null) return { perGame, shareTier: null };
+  const pace = leaguePacePerMap(pastMatches, teams, statKey, cutoffDate);
+  if (!pace) return { perGame, shareTier: null };
+  const shareTier = share * pace;
+  return { perGame: (1 - weight) * perGame + weight * shareTier, shareTier, sharePct: share };
+}
+
+/* ============================================================
+   THIN-SAMPLE SHRINKAGE
+   ============================================================
+   A player with three maps on record got a rate computed from three
+   maps, trusted exactly as much as one built from sixty. Bucketing every
+   backtest prediction by how many prior maps the player had says what
+   that costs:
+
+       Valorant kills   0-5 maps: MAE 6.77   5-15: 5.89   15-30: 5.95
+       CS2 kills        0-5 maps: MAE 6.67   5-15: 5.89   15-30: 5.34
+
+   and those thin buckets are not a fringe — 34% of Valorant rows and 50%
+   of CS2's. LoL never shows it, because a LoL player arrives with a
+   career baseline and a previous split behind them. Valorant has
+   neither: no career scraper exists for it and hist is null, so a new
+   player's rate there is three maps and nothing else.
+
+   So the estimate is pulled toward the league's average player by
+   n / (n + k) — the standard empirical-Bayes weight. No pull once a
+   player has a real sample; most of the way to the prior when they have
+   none. k is per game and stat because it is the sample size at which a
+   player's own rate becomes worth as much as the league's, and that is
+   not the same number in a game that has career data as in one that does
+   not. Measured out-of-sample; HARMFUL in LoL at every k tried (+0.45%
+   to +11.22% on kills), which is why LoL ships 0. */
+const ROSTER_SIZE = 5; // players per side, in all three games. Asserted
+                       // against every recorded side in every dataset by
+                       // tests/model_tiers.test.mjs, rather than assumed
+                       // to stay true.
+
+function leaguePlayerRate(pastMatches, teams, statKey, cutoffDate) {
+  const pace = leaguePacePerMap(pastMatches, teams, statKey, cutoffDate);
+  return pace ? pace / ROSTER_SIZE : null;
+}
+
+/* Applied to the FINAL per-map figure, after the opponent, kp and share
+   layers, because that is the number actually being trusted and where
+   this was measured. Falls through unchanged when there is no league to
+   compare against. */
+function shrinkToPrior(perGame, weights, priorGames, pastMatches, teams, statKey, cutoffDate) {
+  const k = weights.shrink || 0;
+  if (!k) return { perGame, shrunkTo: null };
+  const prior = leaguePlayerRate(pastMatches, teams, statKey, cutoffDate);
+  if (!prior) return { perGame, shrunkTo: null };
+  const w = priorGames / (priorGames + k);
+  return { perGame: w * perGame + (1 - w) * prior, shrunkTo: prior, shrinkPull: 1 - w };
+}
+
 function project(teams, pastMatches, player, team, opponentTeam, games, weights, statType) {
   const cfg = STAT_TYPES[statType];
   const refPatch = latestPatch(pastMatches, null);
@@ -999,9 +1331,16 @@ function project(teams, pastMatches, player, team, opponentTeam, games, weights,
   const recentFormRate = player.hist ? weights.history * player.hist[cfg.key] + (1 - weights.history) * curRate : curRate;
   const { base, careerRate } = applyCareerTier(recentFormRate, player, weights, cfg, null);
   const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, null);
-  const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp) : 1;
-  const perGame = base * oppMult * kpMult;
-  return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult, perGame, total: perGame * games };
+  const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams) : 1;
+  const blended = blendShareTier(base * oppMult * kpMult, weights, pastMatches, teams,
+                                 team, player.name, cfg.key, null);
+  const shrunk = shrinkToPrior(blended.perGame, weights, weighted.games || 0, pastMatches,
+                               teams, cfg.key, null);
+  const perGame = shrunk.perGame;
+  return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult,
+           shareTier: blended.shareTier, sharePct: blended.sharePct, shareWeight: weights.share || 0,
+           shrunkTo: shrunk.shrunkTo, shrinkPull: shrunk.shrinkPull, priorGames: weighted.games || 0,
+           perGame, total: perGame * games };
 }
 
 // Career tier — a prior derived from scripts/scrape_career.py, blended
@@ -1039,7 +1378,22 @@ function project(teams, pastMatches, player, team, opponentTeam, games, weights,
 // any single prediction's overlap — but isn't architecturally immune to
 // the same issue; worth applying this same fix there once CS2's is
 // validated).
-const CS2_CAREER_DAY_HALF_LIFE = 60; // matches scripts/scrape_cs2_career.py's own constant
+/* 180, matching scrape_cs2_career.py's DAY_HALF_LIFE and the Python port
+   in optimize_weights.py. This read 60 — the value that constant held
+   BEFORE scripts/sweep_cs2_day_half_life.py measured it — while both of
+   the others moved to 180 and this one did not, each carrying a comment
+   claiming it matched the scraper. Only two of the three did.
+
+   The accuracy cost was small, as the sweep predicted it would be: that
+   note records MAE moving under 0.3% across every candidate from 3 days
+   to 36500, because MATCHES_PER_PLAYER already caps career history at a
+   median of 44 games and over a window that short any half-life past ~45
+   days is nearly a flat average. The parity cost was not small. Career
+   carries 15-25% of CS2's accuracy, so for as long as these disagreed,
+   every CS2 weight tuned in Python was tuned against a decay curve the
+   app did not use. Found by diffing the two ports row by row, which is
+   the only way this kind of drift ever shows up. */
+const CS2_CAREER_DAY_HALF_LIFE = 180;
 function pointInTimeCS2CareerRate(player, statKey, cutoffDate) {
   const games = player.career_games || [];
   const cutoffMs = cutoffDate ? new Date(cutoffDate).getTime() : Date.now();
@@ -1048,7 +1402,14 @@ function pointInTimeCS2CareerRate(player, statKey, cutoffDate) {
   let totalWeight = 0;
   let weighted = 0;
   for (const g of eligible) {
-    const daysAgo = Math.max(0, (cutoffMs - new Date(g.date).getTime()) / 86400000);
+    // Whole days, floored. career_games carry a full timestamp
+    // (2026-09-20T17:09:20+00:00) while match dates are bare days, so
+    // this difference is real rather than theoretical — and both
+    // scrape_cs2_career.py's decayed_baseline() and the Python port use
+    // timedelta.days, which truncates. Fractional days here made this
+    // the only remaining disagreement between the two ports once the
+    // half-life was fixed.
+    const daysAgo = Math.max(0, Math.floor((cutoffMs - new Date(g.date).getTime()) / 86400000));
     const weight = Math.pow(0.5, daysAgo / CS2_CAREER_DAY_HALF_LIFE);
     totalWeight += weight;
     weighted += (g[statKey] || 0) * weight;
@@ -1246,10 +1607,17 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
   const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, cutoffDate);
 
   // KP multiplier is the one piece still using full-season data — see note above.
-  const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp) : 1;
+  const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams) : 1;
 
-  const perGame = base * oppMult * kpMult;
-  return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult, perGame, total: perGame * games, priorGames: pt.games };
+  const blendedPT = blendShareTier(base * oppMult * kpMult, weights, pastMatches, teams,
+                                   team, player.name, cfg.key, cutoffDate);
+  const shrunkPT = shrinkToPrior(blendedPT.perGame, weights, pt.games || 0, pastMatches,
+                                 teams, cfg.key, cutoffDate);
+  const perGame = shrunkPT.perGame;
+  return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult,
+           shareTier: blendedPT.shareTier, sharePct: blendedPT.sharePct, shareWeight: weights.share || 0,
+           shrunkTo: shrunkPT.shrunkTo, shrinkPull: shrunkPT.shrinkPull,
+           perGame, total: perGame * games, priorGames: pt.games };
 }
 
 // Per-stat-type defaults, tuned via a real backtest against historical
@@ -1408,9 +1776,9 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
   // season, which no fold selection touched. Reproduce with:
   //   python scripts/dev/optimize_weights.py --game lol --validate
   lol: {
-    kills: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6 },
-    deaths: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6 },
-    assists: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6 },
+    kills: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6, share: 0.0, shrink: 0.0 },
+    deaths: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6, share: 0.0, shrink: 0.0 },
+    assists: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6, share: 0.0, shrink: 0.0 },
   },
   // Valorant: validated out-of-sample and deliberately UNCHANGED. Every
   // candidate was rejected (higher history +0.61% winning 0/6 folds, flat
@@ -1418,6 +1786,18 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
   // game — removing it costs +4.0% on kills and deaths — and is already
   // weighted for that. A null result is still a result.
   valorant: {
+    // THE SHARE TIER IS THIS GAME'S FIRST REAL SECOND SIGNAL. Before it,
+    // the knockout report said history carried Valorant alone: opponent
+    // 0.0, career 0.0 (no scraper exists for it), kp inert, recency inert.
+    // Turning history off cost +4.0% and turning anything else off cost
+    // nothing, which is another way of saying the model was a recency-
+    // weighted average with decoration. Measured out-of-sample over 6
+    // walk-forward folds, the tier is worth -4.10% on deaths (6/6 folds),
+    // -1.41% on kills (5/6) and -1.60% on assists (5/6), and it moves
+    // deaths' calibration from 0.996x to exactly 1.000x. See the long
+    // note on SHARE_HALF_LIFE for why the pace term is the league's and
+    // not the team's.
+    //
     // RE-MEASURED after fixing a real bug that made the kp weight
     // STRUCTURALLY INERT for this entire game: scrape_valorant.py wrote
     // kp as a literal 0 for every player, and kp_multiplier()'s
@@ -1453,9 +1833,9 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // that region's MAE markedly (kills 6.4953 -> 6.1139, deaths 4.5593
     // -> 4.1734), so the earlier weights were fit on an incomplete
     // sample and are superseded.
-    kills: { history: 0.7, opponent: 0.0, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.0 },
-    deaths: { history: 0.7, opponent: 0.0, kp: 0.3, recencyHalfLife: 6, patchDiscount: 0.3, career: 0.0 },
-    assists: { history: 0.4, opponent: 0.0, kp: 0.1, recencyHalfLife: 6, patchDiscount: 0.8, career: 0.0 },
+    kills: { history: 0.7, opponent: 0.0, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.0, share: 0.4, shrink: 4.0 },
+    deaths: { history: 0.7, opponent: 0.0, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.3, career: 0.0, share: 0.7, shrink: 0.0 },  // kp is dead weight for deaths (useKP: false) — see the cs2 note below
+    assists: { history: 0.4, opponent: 0.0, kp: 0.1, recencyHalfLife: 6, patchDiscount: 0.8, career: 0.0, share: 0.4, shrink: 1.0 },
   },
   cs2: {
     // All three stats now measured with THREE real fixes live: kp
@@ -1575,12 +1955,47 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // measured at exactly +0.00% across every fold — and stops the shipped
     // values implying they were tuned.
     //
-    // Caveat: CS2's validation window is short (1123 rows, folds from
-    // 2026-09-12) because its history only recently deepened. Lower
+    // Caveat: CS2's validation window is short (795 rows, folds from
+    // 2026-09-10) because its history only recently deepened. Lower
     // confidence than the LoL numbers.
-    kills: { history: 0.0, opponent: 0.0, kp: 0.1, recencyHalfLife: 20, patchDiscount: 0.0, career: 0.5 },
-    deaths: { history: 0.0, opponent: 0.0, kp: 0.3, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0 },
-    assists: { history: 0.0, opponent: 0.0, kp: 0.1, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0 },
+    //
+    // KILLS RE-DERIVED AGAIN after the kp baseline was fixed — see the
+    // long note on leagueAvgKP. Every number in the paragraphs above was
+    // measured while `kp` could only ever SUBTRACT in this game (the
+    // baseline was LoL's 66 against a CS2 scale of ~26), so the search
+    // was tuning the rest of the model around a dent it could not name.
+    // Two of those conclusions do not survive the fix:
+    //
+    //   kp 0.1 -> 0.3. It was small because a bigger value meant a bigger
+    //     across-the-board haircut. Two-sided, it earns its keep.
+    //   career 0.5 -> 1.0. The note above records career:1.0 as "actively
+    //     harmful" for kills. It was not: at 1.0 it pulled predictions
+    //     UP, straight into the kp layer's flat ~6% cut, and the search
+    //     read the resulting overshoot as career's fault.
+    //
+    // recencyHalfLife also drops 20 -> 6, reversing the "decay threw away
+    // sample" finding for kills only (deaths and assists keep it).
+    // Measured out-of-sample over 6 walk-forward folds: -4.44% MAE,
+    // winning 6/6 folds, with calibration at 1.011x. Reproduce with:
+    //   python scripts/dev/optimize_weights.py --game cs2 --stat kills --validate \
+    //     --candidate '{"history":0.0,"opponent":0.0,"kp":0.3,"recencyHalfLife":6,"patchDiscount":0.0,"career":1.0}'
+    // (the search returned history 0.3 / patchDiscount 0.4; both are
+    // structurally inert here, so they stay pinned at 0 per the note
+    // above — verified to produce bit-identical predictions.)
+    //
+    // ASSISTS was offered the same candidate and REJECTED it out-of-sample
+    // (-0.37%, winning 3/6 folds), so it is deliberately unchanged. The kp
+    // fix already moved its calibration from 0.944x to 1.004x, which was
+    // the actual defect; a coin-flip MAE change is not a reason to churn.
+    //
+    // DEATHS carries kp: 0.0 because STAT_TYPES.deaths sets useKP: false.
+    // kpMultiplier is never called for this stat, so the 0.3 that sat
+    // here was a dead number the search "fitted" against a parameter it
+    // could not move. Zeroing it changes no prediction; it stops the
+    // table claiming a tuning that never happened. (Same for Valorant.)
+    kills: { history: 0.0, opponent: 0.0, kp: 0.3, recencyHalfLife: 6, patchDiscount: 0.0, career: 1.0, share: 0.0, shrink: 0.0 },
+    deaths: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0, share: 0.6, shrink: 0.0 },
+    assists: { history: 0.0, opponent: 0.0, kp: 0.1, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0, share: 0.0, shrink: 1.0 },
   },
 };
 
@@ -1813,6 +2228,22 @@ function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
 
       <div style={{ marginTop: 12, fontSize: 11, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.8, paddingTop: 10, borderTop: `1px solid ${theme.steelSoft}` }}>
         <div>opponent ×{r.oppMult.toFixed(2)} {cfg.useKP && <>&nbsp;·&nbsp; kp ×{r.kpMult.toFixed(2)}</>} &nbsp;→&nbsp; <span style={{ color: theme.text }}>{r.perGame.toFixed(2)} {cfg.key}/game</span> × {games}g</div>
+        {/* Only shown where the tier actually applied. A line reading
+            "0% of ..." on every LoL card would be noise, and one shown
+            when the tier silently fell back would be a lie. */}
+        {r.shrinkPull != null && r.shrinkPull > 0.02 && (
+          <div>
+            thin sample ({r.priorGames}g) &nbsp;·&nbsp; pulled {Math.round(r.shrinkPull * 100)}% toward
+            the league average of {r.shrunkTo.toFixed(2)} {cfg.key}/game
+          </div>
+        )}
+        {r.shareTier != null && r.shareWeight > 0 && (
+          <div>
+            {Math.round(r.shareWeight * 100)}% from team share
+            {r.sharePct != null && <> ({(r.sharePct * 100).toFixed(1)}% of team {cfg.key})</>}
+            &nbsp;·&nbsp; that estimate alone: {r.shareTier.toFixed(2)} {cfg.key}/game
+          </div>
+        )}
         {/* Reports the REAL tracked match history first, because the
             prior-split aggregate below it is a narrow one-split slice
             and reading "no data on file" made it look as though the app
@@ -2618,7 +3049,7 @@ function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, s
   const changed = defaults
     ? Object.keys(defaults).filter((k) => weights[k] !== defaults[k])
     : [];
-  const LABELS = { history: "History", opponent: "Opponent", kp: "KP", recencyHalfLife: "Recency", patchDiscount: "Patch", career: "Career" };
+  const LABELS = { history: "History", opponent: "Opponent", kp: "KP", recencyHalfLife: "Recency", patchDiscount: "Patch", career: "Career", share: "Team share", shrink: "Shrinkage" };
   return (
     <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: 18, marginBottom: 22 }}>
       <div
@@ -2688,6 +3119,26 @@ function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, s
             step={0.05}
             format={(v) => (v === 0 ? "ignore patch" : `-${Math.round(v * 100)}% weight for matches on an older patch`)}
             tooltip="How much less a match counts if it was played on an older game patch than the one being projected for."
+          />
+          <Slider
+            label="Thin-sample shrinkage"
+            value={weights.shrink || 0}
+            onChange={(v) => onChangeWeight("shrink", v)}
+            min={0}
+            max={16}
+            step={1}
+            format={(v) => (v === 0 ? "off — trust the sample however small" : `half-trust at ${v} map${v > 1 ? "s" : ""} on record`)}
+            tooltip="How hard a player with little history is pulled toward the league's average player. A player with this many maps on record is trusted half as much as the league; with far more, not at all. Off for LoL, which already has career data to ground a newcomer."
+          />
+          <Slider
+            label="Team-share weight"
+            value={weights.share || 0}
+            onChange={(v) => onChangeWeight("share", v)}
+            min={0}
+            max={1}
+            step={0.05}
+            format={(v) => (v === 0 ? "off — player's own rate only" : `${Math.round(v * 100)}% from share of team total`)}
+            tooltip="Blends in a second estimate built the other way round: the player's share of their team's total, times how much a map in this league usually produces. It helps most on deaths, and is off for LoL, where the opponent adjustment already does this job."
           />
           <Slider
             label="Career (gol.gg baseline) weight"
@@ -3252,7 +3703,7 @@ const ACCURACY_SAMPLE = 25;
    first is on this screen. props_history.jsonl and scripts/score_props.py
    exist to make the second one sayable, and until they have a season behind
    them this component must not imply it. */
-function AccuracySummary({ teams, pastMatches, weights, statType, isDesktop }) {
+function AccuracySummary({ teams, pastMatches, weights, statType, isDesktop, borrowedHistory = false }) {
   const theme = useTheme();
   const cfg = STAT_TYPES[statType];
 
@@ -3311,8 +3762,8 @@ function AccuracySummary({ teams, pastMatches, weights, statType, isDesktop }) {
         ))}
       </div>
       <div style={{ flex: 1, minWidth: 190, fontSize: 11.5, color: theme.textFaint, lineHeight: 1.55 }}>
-        Measured against the last {summary.matches} completed matches in this
-        region — {summary.players.toLocaleString()} player projections, each made using only the data
+        Measured against the last {summary.matches} completed matches
+        {borrowedHistory ? " these teams played in their home regions" : " in this region"} — {summary.players.toLocaleString()} player projections, each made using only the data
         that existed before that match was played.
         {" "}
         <span style={{ opacity: 0.85 }}>
@@ -4216,6 +4667,13 @@ function KillProjector() {
   const gameCfg = GAMES[game];
   const regionsData = dataByGame[game] || gameCfg.fallbackRegions;
   const current = regionsData[region] || { teams: {}, past_matches: [], upcoming_matches: [] };
+  /* Split deliberately. `history` is what a player has on record and feeds
+     every projection, form chart and consistency score; `current.past_matches`
+     is what THIS region has played and feeds standings and past results.
+     They are the same list everywhere except a borrowed-roster event that
+     has not started yet — see historyPoolFor. */
+  const history = historyPool(regionsData, region);
+  const historyIsBorrowed = history.length > 0 && (current.past_matches || []).length === 0;
   const hasData = Object.keys(current.teams || {}).length > 0;
   const normalizedUpcoming = formatUpcoming(current.upcoming_matches || []);
 
@@ -4427,12 +4885,12 @@ function KillProjector() {
                     that those views do not show. */}
                 {(tab === "future" || tab === "past") && (
                   <AccuracySummary
-                    teams={current.teams} pastMatches={current.past_matches || []}
+                    teams={current.teams} pastMatches={history} borrowedHistory={historyIsBorrowed}
                     weights={weights} statType={statType} isDesktop={isDesktop}
                   />
                 )}
                 {tab === "future" ? (
-              <FutureTab teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} isDesktop={isDesktop} games={games} game={game} />
+              <FutureTab teams={current.teams} pastMatches={history} upcomingMatches={normalizedUpcoming} weights={weights} statType={statType} isDesktop={isDesktop} games={games} game={game} />
             ) : tab === "edges" ? (
               <EdgesTab regionsData={regionsData} regionList={gameCfg.regionList} regionLabels={gameCfg.regionLabels}
                         weights={weights} statType={statType} game={game} isDesktop={isDesktop} />
@@ -4442,7 +4900,7 @@ function KillProjector() {
             ) : tab === "past" ? (
               <PastResultsTab teams={current.teams} pastMatches={current.past_matches || []} weights={weights} statType={statType} isDesktop={isDesktop} />
             ) : tab === "consistency" ? (
-              <ConsistencyTab teams={current.teams} pastMatches={current.past_matches || []} statType={statType} isDesktop={isDesktop} />
+              <ConsistencyTab teams={current.teams} pastMatches={history} statType={statType} isDesktop={isDesktop} />
             ) : (
               <StandingsTab
                 teams={current.teams} pastMatches={current.past_matches || []} upcomingMatches={normalizedUpcoming}
