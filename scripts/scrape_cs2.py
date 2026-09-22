@@ -202,6 +202,64 @@ async def fetch_team_recent_matches(session, team_id, limit=10):
     return data.get("results", data) if isinstance(data, dict) else data
 
 
+# Stats beyond k/d/a that this app would model if the source carries
+# them. PrizePicks posts lines on more than three stats -- "MAPS 1-2
+# Headshots" appears in a real payload alongside kills, deaths and
+# assists -- and every one of those lines is currently dropped for want
+# of any history to project from.
+#
+# Spellings are candidates, not knowledge: bo3.gg's players_stats row is
+# read here rather than documented anywhere, and it already uses "death"
+# singular where you would expect "deaths", so guessing one name and
+# shipping it would be the usual way of getting a silent zero. Whatever
+# matches first wins, and SOURCE_FIELDS_SEEN records the row's real keys
+# so a run reports what was actually on offer instead of leaving the next
+# person to guess again.
+EXTRA_STAT_FIELDS = {
+    "hs": ("headshots", "head_shots", "headshot_kills", "hs", "kills_hs"),
+}
+SOURCE_FIELDS_SEEN = set()
+
+
+def capture_extra_stats(source_row, into):
+    """Copy whichever extra stats this source row actually carries.
+
+    Present-but-null is the failure this file has already been bitten by
+    twice, so a value is taken only when it is a real number. A missing
+    one leaves the key OFF rather than writing a 0, which downstream
+    would read as "played and got none".
+    """
+    for our_key, candidates in EXTRA_STAT_FIELDS.items():
+        for candidate in candidates:
+            value = source_row.get(candidate)
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                into[our_key] = value
+                break
+    return into
+
+
+def accumulate_extra_stats(slot, row):
+    """Add one map's extra stats into a series total, or void the total.
+
+    A series total summed from only the maps that happened to report the
+    stat is worse than no total: it is a real-looking low number, and a
+    projection built on it under-predicts with nothing to show anything
+    is wrong. So the first map that omits the stat voids it for the whole
+    series, and -- the case that is easy to get wrong -- a later map
+    carrying it must NOT resurrect it.
+    """
+    for our_key in EXTRA_STAT_FIELDS:
+        flag = our_key + "_incomplete"
+        if slot.get(flag):
+            continue  # already voided; a later map cannot undo that
+        if our_key in row:
+            slot[our_key] = slot.get(our_key, 0) + row[our_key]
+        else:
+            slot.pop(our_key, None)
+            slot[flag] = True
+    return slot
+
+
 async def fetch_map_player_stats(session, game_id, canonical_name_by_team_id):
     """Returns ({player_name: {"k":.., "d":.., "a":.., "team": name}},
     {team_id: name}) for one specific map — the second dict is a reliable
@@ -253,10 +311,11 @@ async def fetch_map_player_stats(session, game_id, canonical_name_by_team_id):
         # Same class of bug here, fixed the same way: skip this player's
         # row entirely for this map rather than treating null as real
         # data feeding cur/pt_rate.
+        SOURCE_FIELDS_SEEN.update(s.keys())
         k, d, a = s.get("kills"), s.get("death"), s.get("assists")
         if k is None or d is None or a is None:
             continue
-        result[name] = {"k": k, "d": d, "a": a, "team": team_name}
+        result[name] = capture_extra_stats(s, {"k": k, "d": d, "a": a, "team": team_name})
 
     # Real kill participation, computed from data already fetched above —
     # no extra request needed. CS2 has shipped with kp hardcoded to 0 for
@@ -314,6 +373,7 @@ async def fetch_match_actuals(session, match_slug, canonical_name_by_team_id):
             slot["k"] += row["k"]
             slot["d"] += row["d"]
             slot["a"] += row["a"]
+            accumulate_extra_stats(slot, row)
             # kp combined as sum(kills+assists)/sum(team_total_kills)
             # across both maps, not by averaging two already-computed
             # percentages — see fetch_map_player_stats for why.
@@ -674,6 +734,7 @@ async def build_region_payload(cs2, session):
                     continue
                 total_k = total_d = total_a = total_games = 0
                 kp_numerator = kp_denominator = 0
+                extra_totals, extra_games = {}, {}
                 for mm in past_matches:
                     for s in ("teamA", "teamB"):
                         if mm[s] != team_name:
@@ -693,6 +754,10 @@ async def build_region_payload(cs2, session):
                             # per-match percentages.
                             kp_numerator += row.get("kp_numerator", 0)
                             kp_denominator += row.get("kp_denominator", 0)
+                            for our_key in EXTRA_STAT_FIELDS:
+                                if our_key in row and not row.get(our_key + "_incomplete"):
+                                    extra_totals[our_key] = extra_totals.get(our_key, 0) + row[our_key]
+                                    extra_games[our_key] = extra_games.get(our_key, 0) + mm.get("games", 2)
                 if total_games == 0:
                     continue
                 teams_payload[team_name]["players"].append({
@@ -700,6 +765,12 @@ async def build_region_payload(cs2, session):
                     "cur": {
                         "g": total_games,
                         "k": total_k / total_games, "d": total_d / total_games, "a": total_a / total_games,
+                        # Divided by the games that REPORTED the stat, not
+                        # by every game played -- a player whose first ten
+                        # matches predate the field would otherwise show
+                        # half their real rate.
+                        **{key: extra_totals[key] / extra_games[key]
+                           for key in extra_totals if extra_games.get(key)},
                         # Now genuinely computed from real per-map data
                         # (see fetch_map_player_stats) instead of being
                         # hardcoded to 0 — kpMultiplier() previously
@@ -955,6 +1026,39 @@ async def main():
         json.dump(output, f, separators=(",", ":"))
     print(f"\nWrote cs2_data.json: {len(payload['teams'])} teams, "
           f"{len(payload['past_matches'])} past matches, {len(payload['upcoming_matches'])} upcoming matches")
+    report_source_fields(payload)
+
+
+def report_source_fields(payload):
+    """Say what the source actually offered, and what got captured.
+
+    The app models kills, deaths and assists because that is what it has
+    history for -- but PrizePicks posts lines on more, headshots among
+    them, and every one of those is dropped for want of anything to
+    project from. Whether that can change is a question about bo3.gg's
+    players_stats row, which is read in this file and documented nowhere,
+    so the run answers it rather than the next person guessing.
+
+    Printed every time, not just when something is missing: a field that
+    quietly disappears upstream should be as visible as one that arrives.
+    """
+    print("\n  source fields on bo3.gg players_stats:")
+    known = {"kills", "death", "assists", "steam_profile_id", "team_clan", "clan_name"}
+    extra = sorted(SOURCE_FIELDS_SEEN - known)
+    print(f"    all keys seen ({len(SOURCE_FIELDS_SEEN)}): {', '.join(sorted(SOURCE_FIELDS_SEEN)) or 'none'}")
+    if extra:
+        print(f"    beyond what this scraper already reads: {', '.join(extra)}")
+    for our_key, candidates in EXTRA_STAT_FIELDS.items():
+        hit = next((c for c in candidates if c in SOURCE_FIELDS_SEEN), None)
+        if hit:
+            captured = sum(1 for m in payload["past_matches"]
+                           for side in (m.get("actual") or {}).values()
+                           for row in side.values()
+                           if isinstance(row, dict) and our_key in row)
+            print(f"    {our_key}: FOUND as {hit!r} — captured on {captured} player-series")
+        else:
+            print(f"    {our_key}: not offered under any of {candidates} — "
+                  f"cannot be projected from this source")
 
 
 if __name__ == "__main__":
