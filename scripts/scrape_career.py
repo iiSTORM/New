@@ -356,20 +356,37 @@ def process_one_player(player_name, player_id, previous, progress, total):
     prev_player = previous.get(str(player_id), {})
     prev_seasons = prev_player.get("season_aggregates", {})
 
-    total_games = get_career_game_count(player_id)
-    needs_full_history = total_games is not None and total_games > MATCHLIST_CAP
+    # The game-count request exists ONLY to decide needs_full_history, and
+    # that decision is moot once every season is already cached: the
+    # full-history branch filters to seasons not in prev_seasons, which
+    # leaves exactly [CURRENT_SEASON] -- the same list the other branch
+    # uses. So for a fully-cached player the request is bought and thrown
+    # away, and it was being bought for all ~320 of them on every run,
+    # doubling this scraper's request count for no change in output.
+    seasons_needed = all_seasons_back_to(CURRENT_SEASON)
+    fully_cached = all(s in prev_seasons for s in seasons_needed if s != CURRENT_SEASON)
+
+    if fully_cached:
+        seasons_to_fetch = [CURRENT_SEASON]
+    else:
+        total_games = get_career_game_count(player_id)
+        needs_full_history = total_games is not None and total_games > MATCHLIST_CAP
+        seasons_to_fetch = [CURRENT_SEASON]
+        if needs_full_history:
+            seasons_to_fetch = [s for s in seasons_needed if s not in prev_seasons or s == CURRENT_SEASON]
 
     season_aggregates = dict(prev_seasons)  # reuse cached, immutable past seasons
-    seasons_to_fetch = [CURRENT_SEASON]
-    if needs_full_history:
-        seasons_to_fetch = [s for s in all_seasons_back_to(CURRENT_SEASON) if s not in prev_seasons or s == CURRENT_SEASON]
-
-    for season in seasons_to_fetch:
+    for i, season in enumerate(seasons_to_fetch):
         games = fetch_player_season(player_id, season)
         agg = season_aggregate(games)
         if agg:
             season_aggregates[season] = agg
-        time.sleep(0.5)
+        # Between fetches, not after the last one. The trailing sleep was
+        # pure wall clock: seasons_to_fetch is [CURRENT_SEASON] alone for
+        # almost every player, so this was half a second per player spent
+        # waiting for nothing, on every run.
+        if i + 1 < len(seasons_to_fetch):
+            time.sleep(0.5)
 
     career = decayed_career_baseline(season_aggregates, CURRENT_SEASON)
     progress["done"] += 1
