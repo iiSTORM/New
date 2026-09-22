@@ -2189,6 +2189,9 @@ function Slider({ label, value, onChange, min, max, step, format, tooltip }) {
 // the SAME comparable scale as Opponent and KP (already-centered
 // multipliers) — none of these axes share native units otherwise, so
 // without this normalization the shape wouldn't mean anything.
+// seasonAvg may be null — see ProjectionDetail. Every use below already
+// guarded with `seasonAvg > 0`, which is false for null, so each axis
+// falls back to its neutral 1 rather than producing NaN.
 function projectionRadarAxes(r, seasonAvg) {
   const toRadar = (ratio) => Math.max(0, Math.min(100, 50 + (ratio - 1) * 100));
   const axes = [
@@ -2279,6 +2282,13 @@ function projectionTags(r, theme) {
 // final total.
 function ScoreBar({ label, value, max, unit, color }) {
   const theme = useTheme();
+  // A bar with nothing to show draws nothing. It used to call .toFixed on
+  // whatever it was handed, so one undefined number took the whole page
+  // down — React unmounts the tree on a render throw, so the expanded card
+  // did not lose a row, it lost everything. Real case: a CS2 player with
+  // headshots in their match history but no season rate yet, which made
+  // every projection work and this one line throw.
+  if (typeof value !== "number" || !isFinite(value)) return null;
   const pct = max > 0 ? Math.max(0, Math.min(100, (value / max) * 100)) : 0;
   return (
     <div style={{ marginBottom: 8 }}>
@@ -2305,10 +2315,21 @@ function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
   const theme = useTheme();
   const championStats = useChampionStats();
   const consistency = championStats ? championPoolConsistency(p.name, championStats, cfg.key) : null;
-  const seasonAvg = p.cur[cfg.key];
-  const seasonTotal = seasonAvg * games;
-  const edgePct = seasonTotal > 0 ? ((r.total - seasonTotal) / seasonTotal) * 100 : null;
+  // A player can have no season rate for this stat while still having a
+  // projection: the rate the model uses comes from past_matches, and
+  // p.cur is a separate aggregate that a given stat may predate. 134 of
+  // 271 CS2 players were in exactly that state for headshots on the day
+  // this shipped. null, not undefined, so every consumer below has to
+  // decide what to do about it rather than quietly arithmetic on NaN.
+  const rawSeasonAvg = p.cur ? p.cur[cfg.key] : undefined;
+  const seasonAvg = typeof rawSeasonAvg === "number" && isFinite(rawSeasonAvg) ? rawSeasonAvg : null;
+  const seasonTotal = seasonAvg !== null ? seasonAvg * games : null;
+  const edgePct = seasonTotal ? ((r.total - seasonTotal) / seasonTotal) * 100 : null;
   const axes = projectionRadarAxes(r, seasonAvg);
+  const barScale = Math.max(
+    ...[r.recentFormRate, r.careerRate, seasonAvg].filter((v) => typeof v === "number" && isFinite(v)),
+    0,
+  ) * 1.15;
   const tags = projectionTags(r, theme);
   // pastMatches/team are optional so any caller that hasn't been updated
   // still renders everything else rather than throwing.
@@ -2346,11 +2367,14 @@ function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
       </div>
 
       <div style={{ marginTop: 14 }}>
-        <ScoreBar label="Recent form" value={r.recentFormRate} max={Math.max(r.recentFormRate, r.careerRate || 0, seasonAvg) * 1.15} unit={`${cfg.key}/g`} color={theme.textDim} />
+        {/* One scale for all three bars, so their lengths stay comparable.
+            Built from the values that exist — a missing season rate must
+            not drag the maximum to NaN and flatten every bar to zero. */}
+        <ScoreBar label="Recent form" value={r.recentFormRate} max={barScale} unit={`${cfg.key}/g`} color={theme.textDim} />
         {r.careerRate != null && r.careerWeight > 0 && (
-          <ScoreBar label="Career baseline" value={r.careerRate} max={Math.max(r.recentFormRate, r.careerRate, seasonAvg) * 1.15} unit={`${cfg.key}/g`} color={theme.accent} />
+          <ScoreBar label="Career baseline" value={r.careerRate} max={barScale} unit={`${cfg.key}/g`} color={theme.accent} />
         )}
-        <ScoreBar label="Season average" value={seasonAvg} max={Math.max(r.recentFormRate, r.careerRate || 0, seasonAvg) * 1.15} unit={`${cfg.key}/g`} color={theme.textFaint} />
+        <ScoreBar label="Season average" value={seasonAvg} max={barScale} unit={`${cfg.key}/g`} color={theme.textFaint} />
       </div>
 
       {form.length > 0 && (
