@@ -218,3 +218,48 @@ class TestRequestCounting:
         monkeypatch.setattr(sc.time, "sleep", lambda *_: None)
         sc.fetch("https://example.invalid/x", retries=3)
         assert sc.REQUEST_TOTAL["n"] == calls["n"] > 1
+
+
+class TestTheCountIsReadable:
+    """A metric you cannot read is not a metric.
+
+    The counter was added, printed to stdout mid-job, and turned out to be
+    unreachable: GitHub's job-log API returns the tail of a job, and the
+    tail of these jobs is always the git push. It goes to the run summary
+    now, which appears at the top of the run page.
+    """
+
+    def test_it_lands_in_the_step_summary(self, tmp_path, monkeypatch, capsys):
+        summary = tmp_path / "summary.md"
+        monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))
+        sc.REQUEST_TOTAL["n"] = 4321
+        sc.report_requests("career scrape")
+        assert "4321 requests" in summary.read_text()
+
+    def test_it_still_prints_to_stdout(self, tmp_path, monkeypatch, capsys):
+        monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(tmp_path / "s.md"))
+        sc.REQUEST_TOTAL["n"] = 7
+        sc.report_requests("career scrape")
+        assert "7 requests" in capsys.readouterr().out
+
+    def test_outside_a_workflow_it_is_a_no_op(self, monkeypatch, capsys):
+        monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
+        sc.REQUEST_TOTAL["n"] = 3
+        sc.report_requests("career scrape")  # must not raise
+        assert "3 requests" in capsys.readouterr().out
+
+    def test_an_unwritable_summary_never_fails_the_scrape(self, monkeypatch, capsys):
+        monkeypatch.setenv("GITHUB_STEP_SUMMARY", "/proc/nonexistent/nope.md")
+        sc.REQUEST_TOTAL["n"] = 5
+        sc.report_requests("career scrape")  # must not raise
+        assert "5 requests" in capsys.readouterr().out
+
+    def test_several_runs_append_rather_than_overwrite(self, tmp_path, monkeypatch):
+        summary = tmp_path / "s.md"
+        monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))
+        sc.REQUEST_TOTAL["n"] = 1
+        sc.report_requests("career scrape")
+        sc.REQUEST_TOTAL["n"] = 2
+        sc.report_requests("career scrape")
+        assert summary.read_text().count("requests made") == 2, (
+            "each scraper in a job writes its own line; overwriting would hide the others")

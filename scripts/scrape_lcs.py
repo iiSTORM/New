@@ -14,6 +14,7 @@ lookup, so this has to be maintained by hand a few times a year.
 """
 import json
 import re
+import os
 import sys
 import random
 import time
@@ -66,7 +67,28 @@ REQUEST_TOTAL = {"n": 0}
 
 
 def report_requests(label):
-    print(f"\n  {label}: {REQUEST_TOTAL['n']} requests made this run")
+    line = f"{label}: {REQUEST_TOTAL['n']} requests made this run"
+    print(f"\n  {line}")
+    _write_run_summary(f"- gol.gg {line}")
+
+def _write_run_summary(line):
+    """Also put the number where it can actually be read.
+
+    The counter was added, printed to stdout mid-job, and then turned out
+    to be unreachable: GitHub's job-log API returns the tail of a job, and
+    the tail of these jobs is always the git push. A metric you cannot
+    read is not a metric. GITHUB_STEP_SUMMARY shows up at the top of the
+    run page instead.
+    """
+    path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not path:
+        return
+    try:
+        with open(path, "a") as f:
+            f.write(line + "\n")
+    except OSError:
+        pass  # never fail a scrape over a progress note
+
 
 
 def get(url, retries=4):

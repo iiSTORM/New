@@ -33,6 +33,7 @@ reading data.json for LoL.
 """
 import asyncio
 import json
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -405,7 +406,28 @@ async def build_career_data():
 
 def main():
     data = asyncio.run(build_career_data())
-    print(f"\n  cs2 career scrape: {REQUEST_TOTAL['n']} requests made this run")
+    line = f"cs2 career scrape: {REQUEST_TOTAL['n']} requests made this run"
+    print(f"\n  {line}")
+    _write_run_summary(f"- bo3.gg {line}")
+
+def _write_run_summary(line):
+    """Also put the number where it can actually be read.
+
+    The counter was added, printed to stdout mid-job, and then turned out
+    to be unreachable: GitHub's job-log API returns the tail of a job, and
+    the tail of these jobs is always the git push. A metric you cannot
+    read is not a metric. GITHUB_STEP_SUMMARY shows up at the top of the
+    run page instead.
+    """
+    path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not path:
+        return
+    try:
+        with open(path, "a") as f:
+            f.write(line + "\n")
+    except OSError:
+        pass  # never fail a scrape over a progress note
+
     with open(OUTPUT_PATH, "w") as f:
         # Written minified: these files are machine-generated and never read
         # by hand, and indent=2 was about two thirds of the bytes
