@@ -29,6 +29,25 @@ STAT_ALIASES = {
     "assists": {"assists", "assist", "a"},
 }
 
+# Stats this app reads perfectly well and does not MODEL, because there is
+# no history anywhere in the repo to project them from -- the per-player
+# record is k, d, a and nothing else.
+#
+# Separated from "unrecognised" because the two mean opposite things to
+# whoever reads the funnel. An unrecognised label is a parsing gap and a
+# bug to chase; a headshots line is a working provider, a correctly parsed
+# label, and a stat we have chosen not to cover. Lumping them together
+# hides both: real parse failures get excused as "probably just
+# headshots", and the size of what is not covered never shows up at all.
+#
+# scrape_cs2.py has started recording headshots where bo3.gg offers them.
+# When that history is deep enough to tune against, a stat moves from here
+# to STAT_ALIASES and stops being refused.
+UNMODELLED_STATS = {
+    "headshots": {"headshots", "headshot", "hs"},
+    "points": {"points", "point", "pts"},
+}
+
 # A "Combo" projection is two or more PLAYERS added together into one line,
 # not a variant of a single player's stat. Comparing it against one player's
 # projection is not slightly wrong: a two-player line sits at roughly double
@@ -97,6 +116,23 @@ def parse_stat(label):
     return None, window
 
 
+def unmodelled_stat(label):
+    """The name of a stat this app understands but does not model, or None.
+
+    Runs the same cleaning as parse_stat so the window prefix cannot
+    prevent a match: "MAPS 1-2 Headshots" is headshots.
+    """
+    if not label or not isinstance(label, str):
+        return None
+    cleaned = re.sub(r"\bmaps?\s*\d+\s*[-–]?\s*\d*\b", " ", label, flags=re.I)
+    cleaned = re.sub(r"[^a-zA-Z ]", " ", cleaned).lower()
+    words = set(cleaned.split())
+    for stat, aliases in UNMODELLED_STATS.items():
+        if words & aliases:
+            return stat
+    return None
+
+
 def build_roster_index(regions):
     """{normalized handle: [(region, team, real name), ...]} for every player.
 
@@ -146,7 +182,10 @@ def match_props(raw_props, roster_index):
         key = normalize_name(prop.get("player_name"))
         target = roster_index.get(key)
         if stat is None:
-            unmatched.append({**prop, "reason": "unrecognised stat"})
+            known = unmodelled_stat(label)
+            reason = (f"{known} is not a stat this app projects yet"
+                      if known else "unrecognised stat")
+            unmatched.append({**prop, "reason": reason})
             continue
         if window is None:
             unmatched.append({**prop, "reason": "map window not stated"})

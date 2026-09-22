@@ -146,8 +146,17 @@ class TestMatchProps:
         assert unmatched[0]["reason"] == "map window not stated"
 
     def test_unknown_stat_is_refused(self):
-        _, unmatched = pm.match_props([self._prop(stat_label="MAPS 1-2 Headshots")], self.INDEX)
+        # A label nothing can make sense of. Headshots used to stand in for
+        # this case and no longer can: it is refused for a different and
+        # more specific reason now (see TestUnmodelledStats), which is the
+        # point -- a parse failure and a stat we chose not to cover are not
+        # the same problem and should not read the same in the funnel.
+        _, unmatched = pm.match_props([self._prop(stat_label="Flibbertigibbets")], self.INDEX)
         assert unmatched[0]["reason"] == "unrecognised stat"
+
+    def test_a_stat_we_do_not_model_is_still_refused(self):
+        _, unmatched = pm.match_props([self._prop(stat_label="MAPS 1-2 Headshots")], self.INDEX)
+        assert len(unmatched) == 1, "still refused — it just says why more precisely"
 
     def test_non_numeric_line_is_refused(self):
         _, unmatched = pm.match_props([self._prop(line="n/a")], self.INDEX)
@@ -198,3 +207,54 @@ class TestMatchProps:
 
     def test_no_props_is_not_an_error(self):
         assert pm.match_props([], self.INDEX) == ([], [])
+
+
+class TestUnmodelledStats:
+    """Stats the app reads fine and does not project.
+
+    "MAPS 1-2 Headshots" is a working provider, a correctly parsed label,
+    and a stat with no history behind it. Reporting that as "unrecognised
+    stat" hides two things at once: a real parse failure gets excused as
+    probably-just-headshots, and the size of what is not covered never
+    surfaces.
+    """
+
+    def test_headshots_are_named_rather_than_called_unrecognised(self):
+        _, unmatched = pm.match_props(
+            [{"player_name": "acoR", "stat_label": "MAPS 1-2 Headshots", "line": 12.5}],
+            {"acor": [("CS2", "Sashi", "acoR")]})
+        assert len(unmatched) == 1
+        assert unmatched[0]["reason"] == "headshots is not a stat this app projects yet"
+
+    def test_points_too(self):
+        assert pm.unmodelled_stat("Points") == "points"
+
+    def test_a_window_prefix_does_not_hide_the_stat(self):
+        assert pm.unmodelled_stat("MAP 1 Headshots") == "headshots"
+        assert pm.unmodelled_stat("MAPS 1-3 Headshots") == "headshots"
+
+    def test_a_genuinely_unreadable_label_still_says_unrecognised(self):
+        _, unmatched = pm.match_props(
+            [{"player_name": "acoR", "stat_label": "Flibbertigibbets", "line": 1.5}],
+            {"acor": [("CS2", "Sashi", "acoR")]})
+        assert unmatched[0]["reason"] == "unrecognised stat"
+
+    def test_a_modelled_stat_is_not_swept_up(self):
+        for label in ("MAPS 1-2 Kills", "Deaths", "MAPS 1-3 Assists"):
+            assert pm.unmodelled_stat(label) is None
+
+    def test_nothing_is_both_modelled_and_unmodelled(self):
+        # The day headshots gets a projection it moves between these two,
+        # and being in both would mean it is silently refused anyway.
+        overlap = set(pm.STAT_ALIASES) & set(pm.UNMODELLED_STATS)
+        assert not overlap, overlap
+
+    def test_no_alias_collides_across_the_two_tables(self):
+        modelled = {a for aliases in pm.STAT_ALIASES.values() for a in aliases}
+        unmodelled = {a for aliases in pm.UNMODELLED_STATS.values() for a in aliases}
+        assert not (modelled & unmodelled)
+
+    def test_junk_input_is_not_an_error(self):
+        assert pm.unmodelled_stat(None) is None
+        assert pm.unmodelled_stat(123) is None
+        assert pm.unmodelled_stat("") is None
