@@ -318,9 +318,18 @@ def parse_matchlist_html(html):
 
 
 def fetch_player_season(player_id, season):
+    """The season's games, [] if the player played none, or None if the
+    page could not be fetched at all.
+
+    The distinction matters now that an empty season is REMEMBERED. It
+    used to return [] for both, which is fine when every season is
+    re-fetched every run and catastrophic when it is not: a single
+    network blip would be recorded as "this player never played that
+    season" and never looked at again.
+    """
     html = fetch(f"{BASE}/players/player-matchlist/{player_id}/season-{season}/split-ALL/tournament-ALL/")
     if not html:
-        return []
+        return None
     return parse_matchlist_html(html)
 
 
@@ -428,14 +437,28 @@ def process_one_player(player_name, player_id, previous, progress, total):
         # games could have crossed it. Ask.
         total_games = get_career_game_count(player_id)
 
+    # Seasons already looked at, INCLUDING the ones that turned out to be
+    # empty. Storing only the seasons that produced data meant a player
+    # who simply did not play in S8 had S8 re-fetched on every run
+    # forever -- measured at 1,063 such requests per run across 248
+    # veterans, more than the entire rest of this scraper put together.
+    prev_checked = set(prev_player.get("seasons_checked") or [])
+
     needs_full_history = total_games is not None and total_games > MATCHLIST_CAP
     seasons_to_fetch = [CURRENT_SEASON]
     if needs_full_history:
-        seasons_to_fetch = [s for s in seasons_needed if s not in prev_seasons or s == CURRENT_SEASON]
+        seasons_to_fetch += [s for s in seasons_needed
+                             if s != CURRENT_SEASON
+                             and s not in prev_seasons
+                             and s not in prev_checked]
 
     season_aggregates = dict(prev_seasons)  # reuse cached, immutable past seasons
+    checked = set(prev_checked)
     for i, season in enumerate(seasons_to_fetch):
         games = fetch_player_season(player_id, season)
+        if games is None:
+            continue  # the fetch failed; do not record that as "no games"
+        checked.add(season)
         agg = season_aggregate(games)
         if agg:
             season_aggregates[season] = agg
@@ -451,7 +474,8 @@ def process_one_player(player_name, player_id, previous, progress, total):
     if progress["done"] % 10 == 0 or progress["done"] == total:
         print(f"  ...{progress['done']}/{total} players processed")
     return str(player_id), {"name": player_name, "season_aggregates": season_aggregates,
-                            "career": career, "career_game_count": total_games}
+                            "career": career, "career_game_count": total_games,
+                            "seasons_checked": sorted(checked)}
 
 
 def build_career_data():

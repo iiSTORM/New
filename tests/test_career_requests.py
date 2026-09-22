@@ -263,3 +263,90 @@ class TestTheCountIsReadable:
         sc.report_requests("career scrape")
         assert summary.read_text().count("requests made") == 2, (
             "each scraper in a job writes its own line; overwriting would hide the others")
+
+
+class TestEmptySeasonsAreRemembered:
+    """A season a player did not play is a fact, and facts can be stored.
+
+    Storing only the seasons that PRODUCED data meant a player who simply
+    did not play in S8 had S8 re-fetched on every run, forever. Measured
+    against the real cache: 1,063 such requests per run across 248
+    veterans -- more than the entire rest of this scraper put together,
+    and the reason the LoL career step stayed slow after the game-count
+    cache went in.
+    """
+
+    def seasons(self):
+        return sc.all_seasons_back_to(sc.CURRENT_SEASON)
+
+    def veteran(self, checked=None, have=None):
+        record = {"name": "Faker", "career_game_count": 500,
+                  "season_aggregates": {s: {"g": 10, "k": 4, "d": 2, "a": 6, "kp": 60}
+                                        for s in (have or [sc.CURRENT_SEASON])}}
+        if checked is not None:
+            record["seasons_checked"] = list(checked)
+        return {"1": record}
+
+    def test_a_season_known_to_be_empty_is_not_re_fetched(self, spy):
+        all_but_current = [s for s in self.seasons() if s != sc.CURRENT_SEASON]
+        sc.process_one_player("Faker", 1, self.veteran(checked=all_but_current),
+                              {"done": 0}, 1)
+        assert spy["seasons"] == [sc.CURRENT_SEASON], (
+            "every past season has been looked at; only the live one can change")
+
+    def test_the_current_season_is_always_re_fetched(self, spy):
+        sc.process_one_player("Faker", 1, self.veteran(checked=self.seasons()),
+                              {"done": 0}, 1)
+        assert sc.CURRENT_SEASON in spy["seasons"]
+
+    def test_an_unchecked_season_is_still_fetched(self, spy):
+        checked = [s for s in self.seasons() if s not in ("S8", sc.CURRENT_SEASON)]
+        sc.process_one_player("Faker", 1, self.veteran(checked=checked), {"done": 0}, 1)
+        assert set(spy["seasons"]) == {"S8", sc.CURRENT_SEASON}
+
+    def test_what_was_checked_is_written_back(self, spy):
+        _, record = sc.process_one_player("Faker", 1, self.veteran(checked=[]), {"done": 0}, 1)
+        assert set(record["seasons_checked"]) == set(self.seasons()), (
+            "dropping this makes the next run re-fetch them all again")
+
+    def test_previously_checked_seasons_survive_a_run(self, spy):
+        _, record = sc.process_one_player("Faker", 1, self.veteran(checked=["S6", "S7"]),
+                                          {"done": 0}, 1)
+        assert {"S6", "S7"} <= set(record["seasons_checked"])
+
+    def test_a_record_predating_this_field_still_works(self, spy):
+        """Everything already committed. One more full pass, then cheap."""
+        _, record = sc.process_one_player("Faker", 1, self.veteran(checked=None),
+                                          {"done": 0}, 1)
+        assert record["seasons_checked"]
+
+
+class TestAFailedFetchIsNotAnEmptySeason:
+    """The distinction that makes remembering safe.
+
+    fetch_player_season returned [] both when the page could not be
+    fetched and when the player genuinely played nothing. Harmless while
+    every season was re-fetched every run; catastrophic once they are
+    remembered, because one network blip would be recorded as "never
+    played that season" and never looked at again.
+    """
+
+    def test_a_failed_fetch_returns_none_not_empty(self, monkeypatch):
+        monkeypatch.setattr(sc, "fetch", lambda *a, **k: None)
+        assert sc.fetch_player_season(1, "S8") is None
+
+    def test_a_page_with_no_games_returns_empty(self, monkeypatch):
+        monkeypatch.setattr(sc, "fetch", lambda *a, **k: "<html></html>")
+        monkeypatch.setattr(sc, "parse_matchlist_html", lambda html: [])
+        assert sc.fetch_player_season(1, "S8") == []
+
+    def test_a_failed_season_is_not_marked_checked(self, monkeypatch, spy):
+        seasons = sc.all_seasons_back_to(sc.CURRENT_SEASON)
+        monkeypatch.setattr(sc, "fetch_player_season",
+                            lambda pid, season: None if season == "S8" else [])
+        previous = {"1": {"name": "Faker", "career_game_count": 500,
+                          "season_aggregates": {}, "seasons_checked": []}}
+        _, record = sc.process_one_player("Faker", 1, previous, {"done": 0}, 1)
+        assert "S8" not in record["seasons_checked"], (
+            "a blip must cost a retry next run, never a permanently lost season")
+        assert set(record["seasons_checked"]) == set(seasons) - {"S8"}
