@@ -119,3 +119,97 @@ class TestReporting:
         assert "FOUND as 'headshots'" in out
         assert "captured on 1 player-series" in out
         assert "adr" in out, "fields the scraper does not read yet must still be reported"
+
+
+class TestSeasonRates:
+    """The per-player season aggregate, which existed twice.
+
+    The main pass and the opponent backfill each built this dict by hand,
+    the second under a comment claiming it was "same aggregation logic as
+    the main pass". Adding headshots to one of them left 134 of 271
+    players in a real run with no headshot rate at all -- not an error,
+    not a warning, just a key that was there for half the roster.
+    """
+
+    def match(self, team, player, k=20, d=15, a=5, games=2, **extra):
+        row = {"k": k, "d": d, "a": a, "kp_numerator": k + a, "kp_denominator": 100}
+        row.update(extra)
+        return {"teamA": team, "teamB": "Other", "games": games,
+                "actual": {team: {player: row}, "Other": {}}}
+
+    def test_rates_are_per_game(self):
+        got = sc.season_rates([self.match("A", "p", k=20, games=2)], "A", "p")
+        assert got["k"] == 10 and got["g"] == 2
+
+    def test_totals_are_weighted_by_games_not_averaged_per_match(self):
+        # A Bo3 must count for more than a Bo1. Averaging per-match rates
+        # would give (10 + 30)/2 = 20; the right answer is 60/4 = 15.
+        got = sc.season_rates(
+            [self.match("A", "p", k=20, games=2), self.match("A", "p", k=40, games=2)], "A", "p")
+        assert got["k"] == 15
+
+    def test_headshots_come_through(self):
+        got = sc.season_rates([self.match("A", "p", games=2, hs=10)], "A", "p")
+        assert got["hs"] == 5
+
+    def test_a_player_with_no_matches_is_none_not_a_zero_row(self):
+        assert sc.season_rates([self.match("A", "p")], "A", "someone else") is None
+        assert sc.season_rates([], "A", "p") is None
+
+    def test_a_voided_series_does_not_feed_the_season_rate(self):
+        got = sc.season_rates(
+            [self.match("A", "p", games=2, hs_incomplete=True)], "A", "p")
+        assert "hs" not in got, "a series whose total was voided cannot contribute"
+
+    def test_the_flag_is_believed_even_when_a_value_sits_beside_it(self):
+        """Defence in depth, and deliberately so.
+
+        accumulate_extra_stats voids a total by REMOVING the key as well as
+        setting the flag, so today the two never coexist and the flag check
+        is redundant. This pins the behaviour anyway, because the first
+        version of the test above used a row with the flag and no value --
+        which passes whether the flag is honoured or ignored, and a
+        mutation deleting the check sailed straight through it.
+        """
+        got = sc.season_rates(
+            [self.match("A", "p", games=2, hs=99, hs_incomplete=True)], "A", "p")
+        assert "hs" not in got
+
+    def test_the_rate_divides_by_the_games_that_reported_it(self):
+        # Ten headshots over the one series that recorded them is 5/game,
+        # NOT 10 spread over all four games played. A player whose earlier
+        # matches predate the field must not show half their real rate.
+        got = sc.season_rates([self.match("A", "p", games=2, hs=10),
+                               self.match("A", "p", games=2)], "A", "p")
+        assert got["hs"] == 5 and got["g"] == 4
+
+    def test_kp_is_a_percentage_on_the_same_scale_as_lol(self):
+        got = sc.season_rates([self.match("A", "p", k=20, a=5)], "A", "p")
+        assert got["kp"] == 25.0, "0-100, not a 0-1 fraction"
+
+    def test_matches_for_other_teams_are_ignored(self):
+        other = self.match("B", "p", k=999)
+        got = sc.season_rates([self.match("A", "p", k=20, games=2), other], "A", "p")
+        assert got["k"] == 10
+
+    def test_a_player_on_both_sides_of_the_record_is_counted_once_per_match(self):
+        m = self.match("A", "p", k=20, games=2)
+        m["teamB"] = "A"  # pathological, but the loop checks both sides
+        got = sc.season_rates([m], "A", "p")
+        assert got["g"] == 4, "both sides matched, which is what the loop does"
+
+
+class TestNoSecondCopy:
+    def test_the_aggregate_is_built_in_exactly_one_place(self):
+        """Guards the fix rather than the symptom.
+
+        The failure was two hand-written copies of one dict. If a second
+        ever reappears, headshots -- or whatever the next stat is -- will
+        land in one and not the other, and nothing else here would notice.
+        """
+        source = (Path(__file__).resolve().parent.parent
+                  / "scripts" / "scrape_cs2.py").read_text(encoding="utf-8")
+        assert source.count('"kp": (kp_numerator / kp_denominator * 100)') == 1, \
+            "the season aggregate is being built somewhere other than season_rates()"
+        assert source.count("cur = season_rates(past_matches") == 2, \
+            "both the main pass and the backfill must go through season_rates()"

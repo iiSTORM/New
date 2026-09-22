@@ -260,6 +260,63 @@ def accumulate_extra_stats(slot, row):
     return slot
 
 
+def season_rates(past_matches, team_name, player_name):
+    """One player's per-game rates over every match on record, or None.
+
+    Extracted because this was written out TWICE -- once in the main pass
+    and once in the opponent backfill, the second carrying a comment
+    saying "same aggregation logic as the main pass". It was not, once
+    either changed: adding headshots to the first left 134 of 271 players
+    without a headshot rate, silently, because the backfill still built
+    its own dict from k/d/a/kp alone. Two copies of a thing that must
+    agree is the bug; one function is the fix.
+
+    Rates are total events over total games rather than an average of
+    per-match averages, so a Bo3 counts for more than a Bo1 -- the same
+    properly-weighted approach kp already used.
+    """
+    total_k = total_d = total_a = total_games = 0
+    kp_numerator = kp_denominator = 0
+    extra_totals, extra_games = {}, {}
+    for match in past_matches:
+        for side in ("teamA", "teamB"):
+            if match[side] != team_name:
+                continue
+            row = (match["actual"].get(team_name) or {}).get(player_name)
+            if not row:
+                continue
+            games = match.get("games", 2)
+            total_k += row["k"]
+            total_d += row["d"]
+            total_a += row["a"]
+            total_games += games
+            kp_numerator += row.get("kp_numerator", 0)
+            kp_denominator += row.get("kp_denominator", 0)
+            for our_key in EXTRA_STAT_FIELDS:
+                # A series whose total was voided for this stat cannot
+                # contribute to the season rate either -- see
+                # accumulate_extra_stats for why a partial total is worse
+                # than none.
+                if our_key in row and not row.get(our_key + "_incomplete"):
+                    extra_totals[our_key] = extra_totals.get(our_key, 0) + row[our_key]
+                    extra_games[our_key] = extra_games.get(our_key, 0) + games
+    if total_games == 0:
+        return None
+    return {
+        "g": total_games,
+        "k": total_k / total_games, "d": total_d / total_games, "a": total_a / total_games,
+        # Divided by the games that REPORTED the stat, not by every game
+        # played -- a player whose earlier matches predate the field would
+        # otherwise show half their real rate.
+        **{key: extra_totals[key] / extra_games[key]
+           for key in extra_totals if extra_games.get(key)},
+        # *100 -- a real, confirmed bug found via a live prediction
+        # breakdown: kpMultiplier's baseline is on LoL's 0-100 percentage
+        # convention, and this produced a 0-1 fraction, silently
+        # collapsing the multiplier for literally every CS2 player.
+        "kp": (kp_numerator / kp_denominator * 100) if kp_denominator > 0 else 0,
+    }
+
 async def fetch_map_player_stats(session, game_id, canonical_name_by_team_id):
     """Returns ({player_name: {"k":.., "d":.., "a":.., "team": name}},
     {team_id: name}) for one specific map — the second dict is a reliable
@@ -732,63 +789,11 @@ async def build_region_payload(cs2, session):
             for player_name, stats in (m["actual"].get(team_name) or {}).items():
                 if player_name in existing_names:
                     continue
-                total_k = total_d = total_a = total_games = 0
-                kp_numerator = kp_denominator = 0
-                extra_totals, extra_games = {}, {}
-                for mm in past_matches:
-                    for s in ("teamA", "teamB"):
-                        if mm[s] != team_name:
-                            continue
-                        row = (mm["actual"].get(team_name) or {}).get(player_name)
-                        if row:
-                            total_k += row["k"]
-                            total_d += row["d"]
-                            total_a += row["a"]
-                            total_games += mm.get("games", 2)
-                            # Same properly-weighted-sum approach as
-                            # k/d/a above (total events / total games,
-                            # not naive per-match averaging) — sum raw
-                            # components across ALL of this player's
-                            # matches, then compute one final kp,
-                            # rather than averaging already-computed
-                            # per-match percentages.
-                            kp_numerator += row.get("kp_numerator", 0)
-                            kp_denominator += row.get("kp_denominator", 0)
-                            for our_key in EXTRA_STAT_FIELDS:
-                                if our_key in row and not row.get(our_key + "_incomplete"):
-                                    extra_totals[our_key] = extra_totals.get(our_key, 0) + row[our_key]
-                                    extra_games[our_key] = extra_games.get(our_key, 0) + mm.get("games", 2)
-                if total_games == 0:
+                cur = season_rates(past_matches, team_name, player_name)
+                if cur is None:
                     continue
                 teams_payload[team_name]["players"].append({
-                    "name": player_name, "role": None,
-                    "cur": {
-                        "g": total_games,
-                        "k": total_k / total_games, "d": total_d / total_games, "a": total_a / total_games,
-                        # Divided by the games that REPORTED the stat, not
-                        # by every game played -- a player whose first ten
-                        # matches predate the field would otherwise show
-                        # half their real rate.
-                        **{key: extra_totals[key] / extra_games[key]
-                           for key in extra_totals if extra_games.get(key)},
-                        # Now genuinely computed from real per-map data
-                        # (see fetch_map_player_stats) instead of being
-                        # hardcoded to 0 — kpMultiplier() previously
-                        # always treated CS2 as "uncomputed" and stayed
-                        # neutral for every single CS2 player, silently.
-                        # *100 -- a real, confirmed bug found via a live
-                        # prediction breakdown: kp_multiplier's
-                        # team_avg_kp=66.0 constant is calibrated for
-                        # LoL's 0-100 percentage convention, but this was
-                        # producing a 0-1 fraction, making kp_mult
-                        # silently collapse to ~0.9 (kills) or ~0.7
-                        # (deaths, which uses a stronger kp_strength) for
-                        # literally every CS2 player regardless of their
-                        # real kill participation. Matching LoL's scale
-                        # here instead of adding game-aware branching to
-                        # the consumer.
-                        "kp": (kp_numerator / kp_denominator * 100) if kp_denominator > 0 else 0,
-                    },
+                    "name": player_name, "role": None, "cur": cur,
                     "hist": None,  # no clean split boundary for CS2 — model falls back to cur alone
                 })
                 existing_names.add(player_name)
@@ -921,28 +926,11 @@ async def build_region_payload(cs2, session):
                     for player_name, stats in (m["actual"].get(team_name) or {}).items():
                         if player_name in existing_names:
                             continue
-                        total_k = total_d = total_a = total_games = 0
-                        kp_numerator = kp_denominator = 0
-                        for mm in past_matches:
-                            for s in ("teamA", "teamB"):
-                                if mm[s] != team_name:
-                                    continue
-                                row = (mm["actual"].get(team_name) or {}).get(player_name)
-                                if row:
-                                    total_k += row["k"]
-                                    total_d += row["d"]
-                                    total_a += row["a"]
-                                    total_games += mm.get("games", 2)
-                                    kp_numerator += row.get("kp_numerator", 0)
-                                    kp_denominator += row.get("kp_denominator", 0)
-                        if total_games == 0:
+                        cur = season_rates(past_matches, team_name, player_name)
+                        if cur is None:
                             continue
                         teams_payload[team_name]["players"].append({
-                            "name": player_name, "role": None,
-                            "cur": {"g": total_games, "k": total_k / total_games, "d": total_d / total_games,
-                                    "a": total_a / total_games,
-                                    # *100 -- see the primary pass above for why (matching LoL's 0-100 kp scale, not a 0-1 fraction)
-                                    "kp": (kp_numerator / kp_denominator * 100) if kp_denominator > 0 else 0},
+                            "name": player_name, "role": None, "cur": cur,
                             "hist": None,
                         })
                         existing_names.add(player_name)
