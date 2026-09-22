@@ -61,6 +61,7 @@ REQUEST_CONCURRENCY = 12
 # identical code the sibling gol.gg step varied by 67%. Requests are what
 # this code controls, so they are what it reports.
 REQUEST_TOTAL = {"n": 0}
+REQUEST_LOG_PATH = "request_counts.txt"  # read by the workflow's last step
 MATCHES_PER_PLAYER = 20  # capped meaningfully below the main scraper's own reach -- each match is ~2-3 games, each needing its own players_stats fetch, so this is already 40-60 requests per player; the LoL half-life finding suggests old history contributes little anyway, so there's little value in going deeper at high request cost
 DAY_HALF_LIFE = 180  # days -- MEASURED (scripts/sweep_cs2_day_half_life.py), but the honest headline is that this parameter barely matters. Across 3/7/14/.../365/36500-day candidates, MAE moved <0.3% for every stat, and the basin is flat from ~45 days out: kills best at 90 (+0.05% vs the old 60 guess), deaths at 180 (+0.19%), assists at 365 (+0.28%). 180 is at or near optimal for all three, so it's taken as a free marginal gain -- NOT as a finding. The real result is structural: MATCHES_PER_PLAYER caps history at 13-53 games (median 44), so over a window that short a 90-365 day half-life is nearly indistinguishable from a flat average -- note "no decay at all" (36500) scored only marginally worse than optimum everywhere. This decay parameter is largely REDUNDANT with the window cap. Contrast LoL's SEASON_HALF_LIFE, where sweeping genuinely changed the answer; do not assume an unmeasured constant matters just because a sibling one did.
 
@@ -411,22 +412,30 @@ def main():
     _write_run_summary(f"- bo3.gg {line}")
 
 def _write_run_summary(line):
-    """Also put the number where it can actually be read.
+    """Put the number where it can actually be read.
 
-    The counter was added, printed to stdout mid-job, and then turned out
-    to be unreachable: GitHub's job-log API returns the tail of a job, and
-    the tail of these jobs is always the git push. A metric you cannot
-    read is not a metric. GITHUB_STEP_SUMMARY shows up at the top of the
-    run page instead.
+    Fourth attempt, and the failures are worth recording because each one
+    looked right:
+
+      stdout mid-job -- unreachable, the log API returns a job's TAIL and
+        the tail is always the git push.
+      GITHUB_STEP_SUMMARY alone -- shows in the UI, but nothing fetches it.
+      catting GITHUB_STEP_SUMMARY from a later step -- every step gets its
+        OWN summary file, so the later step read an empty one and printed
+        a header with nothing under it.
+
+    So: a plain file in the workspace that every scraper appends to and
+    the job's last step cats. The summary write stays as well, since it
+    is genuinely nicer to read in the UI.
     """
-    path = os.environ.get("GITHUB_STEP_SUMMARY")
-    if not path:
-        return
-    try:
-        with open(path, "a") as f:
-            f.write(line + "\n")
-    except OSError:
-        pass  # never fail a scrape over a progress note
+    for path in (os.environ.get("GITHUB_STEP_SUMMARY"), REQUEST_LOG_PATH):
+        if not path:
+            continue
+        try:
+            with open(path, "a") as f:
+                f.write(line + "\n")
+        except OSError:
+            pass  # never fail a scrape over a progress note
 
     with open(OUTPUT_PATH, "w") as f:
         # Written minified: these files are machine-generated and never read

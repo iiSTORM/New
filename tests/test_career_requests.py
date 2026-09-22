@@ -229,6 +229,38 @@ class TestTheCountIsReadable:
     now, which appears at the top of the run page.
     """
 
+    def test_it_lands_in_a_file_the_workflow_can_read(self, tmp_path, monkeypatch):
+        """The one that actually works.
+
+        GITHUB_STEP_SUMMARY is per-STEP, so a later step reading it gets
+        an empty file -- which is exactly what happened: the counts step
+        printed its header and nothing under it. A plain workspace file
+        survives between steps.
+        """
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
+        sc.REQUEST_TOTAL["n"] = 321
+        sc.report_requests("career scrape")
+        assert "321 requests" in (tmp_path / sc.REQUEST_LOG_PATH).read_text()
+
+    def test_both_destinations_get_it(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        summary = tmp_path / "summary.md"
+        monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))
+        sc.REQUEST_TOTAL["n"] = 99
+        sc.report_requests("career scrape")
+        assert "99 requests" in summary.read_text()
+        assert "99 requests" in (tmp_path / sc.REQUEST_LOG_PATH).read_text()
+
+    def test_each_scraper_appends_its_own_line(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
+        for n in (1, 2, 3):
+            sc.REQUEST_TOTAL["n"] = n
+            sc.report_requests("career scrape")
+        assert (tmp_path / sc.REQUEST_LOG_PATH).read_text().count("requests made") == 3, (
+            "three scrapers share this file in a job; overwriting hides two of them")
+
     def test_it_lands_in_the_step_summary(self, tmp_path, monkeypatch, capsys):
         summary = tmp_path / "summary.md"
         monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))
@@ -248,7 +280,8 @@ class TestTheCountIsReadable:
         sc.report_requests("career scrape")  # must not raise
         assert "3 requests" in capsys.readouterr().out
 
-    def test_an_unwritable_summary_never_fails_the_scrape(self, monkeypatch, capsys):
+    def test_an_unwritable_destination_never_fails_the_scrape(self, tmp_path, monkeypatch, capsys):
+        monkeypatch.chdir(tmp_path)
         monkeypatch.setenv("GITHUB_STEP_SUMMARY", "/proc/nonexistent/nope.md")
         sc.REQUEST_TOTAL["n"] = 5
         sc.report_requests("career scrape")  # must not raise

@@ -64,6 +64,7 @@ ROLE_ORDER = {"Top": "TOP", "Jungle": "JNG", "Mid": "MID", "ADC": "BOT", "Suppor
 # what it reports: one number per run, comparable regardless of how the
 # site is feeling.
 REQUEST_TOTAL = {"n": 0}
+REQUEST_LOG_PATH = "request_counts.txt"  # read by the workflow's last step
 
 
 def report_requests(label):
@@ -72,22 +73,30 @@ def report_requests(label):
     _write_run_summary(f"- gol.gg {line}")
 
 def _write_run_summary(line):
-    """Also put the number where it can actually be read.
+    """Put the number where it can actually be read.
 
-    The counter was added, printed to stdout mid-job, and then turned out
-    to be unreachable: GitHub's job-log API returns the tail of a job, and
-    the tail of these jobs is always the git push. A metric you cannot
-    read is not a metric. GITHUB_STEP_SUMMARY shows up at the top of the
-    run page instead.
+    Fourth attempt, and the failures are worth recording because each one
+    looked right:
+
+      stdout mid-job -- unreachable, the log API returns a job's TAIL and
+        the tail is always the git push.
+      GITHUB_STEP_SUMMARY alone -- shows in the UI, but nothing fetches it.
+      catting GITHUB_STEP_SUMMARY from a later step -- every step gets its
+        OWN summary file, so the later step read an empty one and printed
+        a header with nothing under it.
+
+    So: a plain file in the workspace that every scraper appends to and
+    the job's last step cats. The summary write stays as well, since it
+    is genuinely nicer to read in the UI.
     """
-    path = os.environ.get("GITHUB_STEP_SUMMARY")
-    if not path:
-        return
-    try:
-        with open(path, "a") as f:
-            f.write(line + "\n")
-    except OSError:
-        pass  # never fail a scrape over a progress note
+    for path in (os.environ.get("GITHUB_STEP_SUMMARY"), REQUEST_LOG_PATH):
+        if not path:
+            continue
+        try:
+            with open(path, "a") as f:
+                f.write(line + "\n")
+        except OSError:
+            pass  # never fail a scrape over a progress note
 
 
 

@@ -56,3 +56,4 @@ valorant.json
 # The scheduled prop refresh takes this as a lock so two runs cannot
 # overlap. It is removed when the run finishes.
 .props-refresh.lock/
+request_counts.txt
