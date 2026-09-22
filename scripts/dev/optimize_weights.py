@@ -37,6 +37,9 @@ STAT_TYPES = {
     "kills": {"key": "k", "oppBasis": "d", "useKP": True, "laneSpecific": True},
     "deaths": {"key": "d", "oppBasis": "k", "useKP": False, "laneSpecific": True},
     "assists": {"key": "a", "oppBasis": "d", "useKP": True, "laneSpecific": False},
+    # CS2 only -- LoL and Valorant record no such thing, and asking for it
+    # there yields no rows rather than a wrong answer.
+    "headshots": {"key": "hs", "oppBasis": "d", "useKP": False, "laneSpecific": False},
 }
 
 # The weights the app actually ships, mirrored from
@@ -48,16 +51,19 @@ SHIPPED_WEIGHTS = {
         "kills":    {"history": 0.8, "opponent": 0.4, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0.0, "career": 0.6, "share": 0.0, "shrink": 0.0},
         "deaths":   {"history": 0.8, "opponent": 0.4, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0.0, "career": 0.6, "share": 0.0, "shrink": 0.0},
         "assists":  {"history": 0.8, "opponent": 0.4, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0.0, "career": 0.6, "share": 0.0, "shrink": 0.0},
+        "headshots": {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 0.0, "share": 0.0, "shrink": 0.0},
     },
     "valorant": {
         "kills":    {"history": 0.7, "opponent": 0, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0, "career": 0, "share": 0.4, "shrink": 4.0},
         "deaths":   {"history": 0.7, "opponent": 0, "kp": 0.0, "recencyHalfLife": 6, "patchDiscount": 0.3, "career": 0, "share": 0.7, "shrink": 0.0},
         "assists":  {"history": 0.4, "opponent": 0, "kp": 0.0, "recencyHalfLife": 6, "patchDiscount": 0.8, "career": 0, "share": 0.4, "shrink": 1.0},
+        "headshots": {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 0.0, "share": 0.0, "shrink": 0.0},
     },
     "cs2": {
         "kills":    {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 6, "patchDiscount": 0.0, "career": 1.0, "share": 0.0, "shrink": 0.0},
         "deaths":   {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0, "share": 0.6, "shrink": 0.0},
         "assists":  {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0, "share": 0.0, "shrink": 1.0},
+        "headshots": {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 0.0, "share": 0.0, "shrink": 3.0},
     },
 }
 
@@ -855,7 +861,16 @@ def project_point_in_time(past_matches, teams, player, team, opponent_team, game
     if pt_rate is not None:
         base = weights["history"] * hist_rate + (1 - weights["history"]) * pt_rate if hist_rate is not None else pt_rate
     else:
-        base = hist_rate if hist_rate is not None else player["cur"][cfg["key"]]
+        # A player can have no rate for this stat at all -- headshots are
+        # recorded only for CS2, and only from the run that started
+        # capturing them. Returning None beats both alternatives: the
+        # KeyError this used to raise, and the silent NaN the JS side
+        # produced from the same expression, which renders as an empty
+        # projection rather than an absent one.
+        cur_rate = (player.get("cur") or {}).get(cfg["key"])
+        base = hist_rate if hist_rate is not None else cur_rate
+        if base is None:
+            return None, pt_games
 
     # Career tier — a prior blended on TOP of the existing recent-form/
     # split-history base, using its own independent weight rather than
@@ -991,6 +1006,8 @@ def _collect(region_data, stat_type, weights, with_dates):
                         match.get("maps_counted", 2), weights,
                         match["date"], stat_type, match.get("patch")
                     )
+                    if predicted is None:
+                        continue  # no rate for this stat -- not a prediction to score
                     if prior_games == 0 and not player.get("hist"):
                         continue  # true cold start with zero grounding — not a fair test of the model
                     if with_dates:
@@ -1085,8 +1102,14 @@ def knockout_report(region_data, stat_type, weights, folds):
     print(f"  {'parameter off':26s} {'OOS MAE':>9s} {'change':>9s}  verdict")
     print(f"  {'(none - baseline)':26s} {base_mean:9.4f} {'':>9s}")
     rows = []
+    # share and shrink belong here as much as the rest. Left out, the
+    # report for a stat that leans on them -- cs2 headshots leans on both
+    # and on nothing else -- printed a baseline and no rows at all, which
+    # reads as "nothing carries this model" rather than "this report does
+    # not look at what does".
     for param, neutral in (("history", 0.0), ("opponent", 0.0), ("kp", 0.0),
                             ("patchDiscount", 0.0), ("career", 0.0),
+                            ("share", 0.0), ("shrink", 0.0),
                             ("recencyHalfLife", 20)):
         if weights.get(param) == neutral:
             continue
@@ -1343,7 +1366,10 @@ def diagnose_opponent_signal(region_data, stat_type, weights, threshold=8):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stat", choices=["kills", "deaths", "assists", "all"], default="all")
+    ap.add_argument("--stat", choices=list(STAT_TYPES) + ["all"], default="all")
+    # Derived, not listed: a stat added to STAT_TYPES is immediately
+    # available here rather than failing on an "invalid choice" from a
+    # copy of the list that nobody remembered to update.
     ap.add_argument("--game", choices=["lol", "valorant", "cs2", "all"], default="all")
     ap.add_argument("--data", default="data.json")
     ap.add_argument("--valorant-data", default="valorant_data.json")
@@ -1417,7 +1443,7 @@ def main():
               f"includes CS2, that's unexpected after the kp computation fix — worth checking "
               f"whether data.json was actually re-scraped with the fix, or is still stale.\n")
 
-    stat_types = ["kills", "deaths", "assists"] if args.stat == "all" else [args.stat]
+    stat_types = list(STAT_TYPES) if args.stat == "all" else [args.stat]
 
     if args.diagnose_opponent:
         for stat_type in stat_types:

@@ -1993,8 +1993,20 @@ try {
       oppBasis: "d",
       useKP: true,
       laneSpecific: false
+    },
+    headshots: {
+      key: "hs",
+      label: "Headshots",
+      singular: "headshot",
+      oppBasis: "d",
+      useKP: false,
+      laneSpecific: false,
+      games: ["cs2"]
     }
   };
+  function statsForGame(game) {
+    return Object.entries(STAT_TYPES).filter(([, cfg]) => !cfg.games || cfg.games.includes(game));
+  }
   const LEAGUE_AVG_KP_FALLBACK = 66;
   const leagueAvgKPCache = new WeakMap();
   function leagueAvgKP(teams) {
@@ -2263,7 +2275,9 @@ try {
     const cfg = STAT_TYPES[statType];
     const refPatch = latestPatch(pastMatches, null);
     const weighted = recencyWeightedRate(pastMatches, team, player.name, cfg.key, null, weights.recencyHalfLife, refPatch, weights.patchDiscount);
-    const curRate = weighted.rate !== null ? weighted.rate : player.cur[cfg.key];
+    const curFallback = player.cur ? player.cur[cfg.key] : undefined;
+    const curRate = weighted.rate !== null ? weighted.rate : typeof curFallback === "number" ? curFallback : null;
+    if (curRate === null) return null;
     const recentFormRate = player.hist ? weights.history * player.hist[cfg.key] + (1 - weights.history) * curRate : curRate;
     const {
       base,
@@ -2410,7 +2424,9 @@ try {
     if (pt.rate !== null) {
       recentFormRate = histRate !== null ? weights.history * histRate + (1 - weights.history) * pt.rate : pt.rate;
     } else {
-      recentFormRate = histRate !== null ? histRate : player.cur[cfg.key];
+      const curFallbackPT = player.cur ? player.cur[cfg.key] : undefined;
+      recentFormRate = histRate !== null ? histRate : typeof curFallbackPT === "number" ? curFallbackPT : null;
+      if (recentFormRate === null) return null;
     }
     const {
       base,
@@ -2469,6 +2485,16 @@ try {
         career: 0.6,
         share: 0.0,
         shrink: 0.0
+      },
+      headshots: {
+        history: 0.0,
+        opponent: 0.0,
+        kp: 0.0,
+        recencyHalfLife: 20,
+        patchDiscount: 0.0,
+        career: 0.0,
+        share: 0.0,
+        shrink: 0.0
       }
     },
     valorant: {
@@ -2501,6 +2527,16 @@ try {
         career: 0.0,
         share: 0.4,
         shrink: 1.0
+      },
+      headshots: {
+        history: 0.0,
+        opponent: 0.0,
+        kp: 0.0,
+        recencyHalfLife: 20,
+        patchDiscount: 0.0,
+        career: 0.0,
+        share: 0.0,
+        shrink: 0.0
       }
     },
     cs2: {
@@ -2533,6 +2569,16 @@ try {
         career: 1.0,
         share: 0.0,
         shrink: 1.0
+      },
+      headshots: {
+        history: 0.0,
+        opponent: 0.0,
+        kp: 0.0,
+        recencyHalfLife: 20,
+        patchDiscount: 0.0,
+        career: 0.0,
+        share: 0.0,
+        shrink: 3.0
       }
     }
   };
@@ -5924,6 +5970,7 @@ try {
   function TopNav({
     theme,
     gameCfg,
+    game,
     region,
     setRegion,
     tab,
@@ -6015,7 +6062,7 @@ try {
         gap: 4,
         marginBottom: 8
       }
-    }, Object.entries(STAT_TYPES).map(([key, cfg]) => React.createElement("button", {
+    }, statsForGame(game).map(([key, cfg]) => React.createElement("button", {
       key: key,
       className: "kp-btn",
       onClick: () => setStatType(key),
@@ -6358,6 +6405,8 @@ try {
     const selectGame = id => {
       setGame(id);
       setRegion(GAMES[id].regionList[0]);
+      const available = statsForGame(id).map(([key]) => key);
+      if (!available.includes(statType)) setStatType(available[0]);
     };
     return React.createElement(ThemeContext.Provider, {
       value: theme
@@ -6520,6 +6569,7 @@ try {
     }), !isDesktop && React.createElement(TopNav, {
       theme: theme,
       gameCfg: gameCfg,
+      game: game,
       region: region,
       setRegion: setRegion,
       tab: tab,
@@ -6554,6 +6604,7 @@ try {
     }, isDesktop && React.createElement(TopNav, {
       theme: theme,
       gameCfg: gameCfg,
+      game: game,
       region: region,
       setRegion: setRegion,
       tab: tab,

@@ -24,6 +24,7 @@ const { code } = transformSync(
   `${body}\nreturn { teamTotal, shareRate, leaguePacePerMap, blendShareTier, project,
                      leaguePlayerRate, shrinkToPrior, ROSTER_SIZE,
                      matchKP, pointInTimeKP, kpMultiplier, leagueAvgKP, KP_SHRINK,
+                     STAT_TYPES, statsForGame,
                      SHARE_HALF_LIFE, DEFAULT_WEIGHTS_BY_GAME_AND_STAT };`,
   { presets: [["@babel/preset-react", { runtime: "classic" }]], filename: "app.jsx",
     parserOpts: { allowReturnOutsideFunction: true } });
@@ -308,8 +309,63 @@ for (const [game, file] of Object.entries({ valorant: "valorant_data.json", cs2:
      setting. If this is ever raised again it must be because a fresh
      out-of-sample run said so, not because the in-sample search reached
      for it, which it still does. */
-  check("kp is zero for every game and stat",
-        Object.values(W).flatMap((g) => Object.values(g).map((s) => s.kp)), [0,0,0,0,0,0,0,0,0]);
+  // Asserted as a property, not against a list of nine zeros — that list
+  // became wrong the moment headshots added a fourth stat, and a failing
+  // length tells you nothing about which weight moved.
+  const nonZero = Object.entries(W).flatMap(([game, stats]) =>
+    Object.entries(stats).filter(([, s]) => s.kp !== 0).map(([stat]) => `${game}/${stat}`));
+  check(`kp is zero for every game and stat${nonZero.length ? ` (${nonZero})` : ""}`,
+        nonZero, []);
+}
+
+/* ---- a stat only one game records ----
+ *
+ * Headshots come from bo3.gg and nothing else carries them. Offering the
+ * tab on LoL would not error: every projection would find no rate, return
+ * null, and render as an absent number with nothing to explain it, which
+ * is the worst of the three possible outcomes.
+ */
+{
+  check("headshots is declared CS2-only", app.STAT_TYPES.headshots.games, ["cs2"]);
+  check("and reads the hs field", app.STAT_TYPES.headshots.key, "hs");
+  check("CS2 offers it", app.statsForGame("cs2").map(([k]) => k).includes("headshots"), true);
+  for (const game of ["lol", "valorant"]) {
+    check(`${game} does not offer it`,
+          app.statsForGame(game).map(([k]) => k).includes("headshots"), false);
+    check(`${game} still offers the three it records`,
+          app.statsForGame(game).map(([k]) => k), ["kills", "deaths", "assists"]);
+  }
+  check("a stat with no games list is offered everywhere",
+        ["lol", "valorant", "cs2"].every((g) => app.statsForGame(g).map(([k]) => k).includes("kills")), true);
+  check("every game offers at least one stat, so the selector is never empty",
+        ["lol", "valorant", "cs2"].every((g) => app.statsForGame(g).length > 0), true);
+}
+
+{
+  // A projection for a stat the player has no rate for must come back
+  // null, not NaN. NaN renders as a blank where a number should be, and
+  // nothing downstream can tell it apart from a real value.
+  const weights = app.DEFAULT_WEIGHTS_BY_GAME_AND_STAT.cs2.headshots;
+  const noHS = { name: "p", role: null, cur: { g: 10, k: 20, d: 15, a: 5, kp: 26 }, hist: null };
+  const teams = { A: { players: [noHS] }, B: { players: [] } };
+  const got = app.project(teams, [], noHS, "A", "B", 2, weights, "headshots");
+  check("a player with no rate for the stat projects null, not NaN", got, null);
+
+  const withHS = { ...noHS, cur: { ...noHS.cur, hs: 7 } };
+  const teams2 = { A: { players: [withHS] }, B: { players: [] } };
+  const ok = app.project(teams2, [], withHS, "A", "B", 2, weights, "headshots");
+  check("and one who has it projects a real number",
+        typeof ok === "object" && ok !== null && isFinite(ok.perGame), true);
+}
+
+{
+  const W = app.DEFAULT_WEIGHTS_BY_GAME_AND_STAT;
+  check("every game carries a headshots entry, so the lookup never returns undefined",
+        ["lol", "valorant", "cs2"].every((g) => typeof W[g].headshots === "object"), true);
+  check("headshots carries no share weight in any game — the knockout calls it inert",
+        [W.lol.headshots.share, W.valorant.headshots.share, W.cs2.headshots.share], [0, 0, 0]);
+  check("CS2 is the only game with a non-zero headshots parameter at all",
+        [W.lol.headshots.shrink, W.valorant.headshots.shrink, W.cs2.headshots.shrink], [0, 0, 3.0]);
 }
 
 console.log(`${pass} passed, ${fail} failed`);

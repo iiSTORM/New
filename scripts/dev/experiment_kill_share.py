@@ -318,7 +318,10 @@ def report(label, rows, folds):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--game", choices=list(GAMES) + ["all"], default="all")
-    ap.add_argument("--stat", choices=["kills", "deaths", "assists", "all"], default="all")
+    ap.add_argument("--stat", choices=list(ow.STAT_TYPES) + ["all"], default="all")
+    # Derived, not listed: a stat added to STAT_TYPES is immediately
+    # available here rather than failing on an "invalid choice" from a
+    # copy of the list that nobody remembered to update.
     ap.add_argument("--folds", type=int, default=6)
     ap.add_argument("--blend", action="store_true",
                     help="Sweep a blend weight for share x pace layered ON TOP of the "
@@ -329,7 +332,7 @@ def main():
 
     table = dc.shipped_weights()
     games = list(GAMES) if args.game == "all" else [args.game]
-    stats = ["kills", "deaths", "assists"] if args.stat == "all" else [args.stat]
+    stats = list(ow.STAT_TYPES) if args.stat == "all" else [args.stat]
 
     for game in games:
         print(f"\n=== {game} " + "=" * 58)

@@ -87,8 +87,16 @@ class TestWindowResolution:
         assert value is None and "box score" in reason
 
     def test_a_stat_the_app_does_not_model(self):
-        value, reason = sc.actual_over_window(lol_match(), "T1", "Faker", "headshots", 2, "lol")
+        value, reason = sc.actual_over_window(lol_match(), "T1", "Faker", "flibberts", 2, "lol")
         assert value is None and "model" in reason
+
+    def test_a_modelled_stat_the_game_does_not_record(self):
+        """Headshots are modelled, and LoL records none. That is a different
+        refusal from a stat nothing models, and a different one again from a
+        player who is simply absent -- reporting all three the same way sends
+        whoever reads the counts hunting a scraping gap that is not there."""
+        value, reason = sc.actual_over_window(lol_match(), "T1", "Faker", "headshots", 2, "lol")
+        assert value is None and reason == "headshots not recorded for this game"
 
 
 class TestGrading:

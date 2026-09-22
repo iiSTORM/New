@@ -63,7 +63,14 @@ class TestParseStat:
         assert pm.parse_stat("Kills") == ("kills", None)
 
     def test_unknown_stat_is_not_guessed(self):
-        assert pm.parse_stat("MAPS 1-2 Headshots")[0] is None
+        assert pm.parse_stat("MAPS 1-2 Flibbertigibbets")[0] is None
+
+    def test_headshots_are_read_now_that_they_are_modelled(self):
+        """Headshots used to be the example of a stat this app refuses. It
+        stopped being one when a scrape run established that the source
+        carries them and the weights were tuned on the resulting history."""
+        assert pm.parse_stat("MAPS 1-2 Headshots") == ("headshots", 2)
+        assert pm.parse_stat("MAP 1 Headshots") == ("headshots", 1)
 
     @pytest.mark.parametrize("value", [None, "", 42])
     def test_junk_is_handled(self, value):
@@ -155,8 +162,14 @@ class TestMatchProps:
         assert unmatched[0]["reason"] == "unrecognised stat"
 
     def test_a_stat_we_do_not_model_is_still_refused(self):
-        _, unmatched = pm.match_props([self._prop(stat_label="MAPS 1-2 Headshots")], self.INDEX)
+        _, unmatched = pm.match_props([self._prop(stat_label="MAPS 1-2 Points")], self.INDEX)
         assert len(unmatched) == 1, "still refused — it just says why more precisely"
+
+    def test_a_headshots_line_now_matches(self):
+        matched, unmatched = pm.match_props(
+            [self._prop(stat_label="MAPS 1-2 Headshots", line=12.5)], self.INDEX)
+        assert unmatched == []
+        assert matched[0]["stat"] == "headshots" and matched[0]["maps"] == 2
 
     def test_non_numeric_line_is_refused(self):
         _, unmatched = pm.match_props([self._prop(line="n/a")], self.INDEX)
@@ -219,19 +232,22 @@ class TestUnmodelledStats:
     surfaces.
     """
 
-    def test_headshots_are_named_rather_than_called_unrecognised(self):
+    def test_an_unmodelled_stat_is_named_rather_than_called_unrecognised(self):
         _, unmatched = pm.match_props(
-            [{"player_name": "acoR", "stat_label": "MAPS 1-2 Headshots", "line": 12.5}],
+            [{"player_name": "acoR", "stat_label": "Points", "line": 12.5}],
             {"acor": [("CS2", "Sashi", "acoR")]})
         assert len(unmatched) == 1
-        assert unmatched[0]["reason"] == "headshots is not a stat this app projects yet"
+        assert unmatched[0]["reason"] == "points is not a stat this app projects yet"
 
-    def test_points_too(self):
-        assert pm.unmodelled_stat("Points") == "points"
+    def test_headshots_left_this_table_when_it_gained_a_projection(self):
+        """The journey this table exists to make possible, asserted once so
+        the two tables cannot both claim it."""
+        assert pm.unmodelled_stat("MAPS 1-2 Headshots") is None
+        assert "headshots" in pm.STAT_ALIASES
 
     def test_a_window_prefix_does_not_hide_the_stat(self):
-        assert pm.unmodelled_stat("MAP 1 Headshots") == "headshots"
-        assert pm.unmodelled_stat("MAPS 1-3 Headshots") == "headshots"
+        assert pm.unmodelled_stat("MAP 1 Points") == "points"
+        assert pm.unmodelled_stat("MAPS 1-3 Points") == "points"
 
     def test_a_genuinely_unreadable_label_still_says_unrecognised(self):
         _, unmatched = pm.match_props(

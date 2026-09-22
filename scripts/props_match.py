@@ -27,6 +27,12 @@ STAT_ALIASES = {
     "kills": {"kills", "kill", "k"},
     "deaths": {"deaths", "death", "d"},
     "assists": {"assists", "assist", "a"},
+    # CS2 only. It sat in UNMODELLED_STATS below until a scrape run
+    # established that bo3.gg's players_stats does carry headshots, which
+    # backfilled 1779 player-series in one pass because that scraper
+    # rebuilds its history rather than appending. The model was tuned on
+    # the resulting 911 backtest rows before this moved.
+    "headshots": {"headshots", "headshot", "hs"},
 }
 
 # Stats this app reads perfectly well and does not MODEL, because there is
@@ -40,11 +46,11 @@ STAT_ALIASES = {
 # hides both: real parse failures get excused as "probably just
 # headshots", and the size of what is not covered never shows up at all.
 #
-# scrape_cs2.py has started recording headshots where bo3.gg offers them.
-# When that history is deep enough to tune against, a stat moves from here
-# to STAT_ALIASES and stops being refused.
+# Headshots used to be the example here and has since made exactly that
+# journey: scrape_cs2.py started recording them, the history backfilled,
+# the weights were tuned on it, and it moved to STAT_ALIASES. The same
+# route is open to anything left in this table.
 UNMODELLED_STATS = {
-    "headshots": {"headshots", "headshot", "hs"},
     "points": {"points", "point", "pts"},
 }
 
