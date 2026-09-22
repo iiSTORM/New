@@ -2015,13 +2015,46 @@ try {
     leagueAvgKPCache.set(teams, avg);
     return avg;
   }
-  function kpMultiplier(player, historyWeight, kpStrength, teams) {
-    const curKP = player.cur.kp;
-    if (!curKP) return 1;
-    const histKP = player.hist ? player.hist.kp : curKP;
-    const blendedKP = historyWeight * histKP + (1 - historyWeight) * curKP;
-    const relative = blendedKP / leagueAvgKP(teams);
-    return 1 + kpStrength * (relative - 1);
+  const KP_SHRINK = 4;
+  function matchKP(match, team, playerName) {
+    const raw = ((match.actual || {})[team] || {})[playerName];
+    if (!raw || typeof raw !== "object") return null;
+    const den = raw.kp_denominator || teamTotal(match, team, "k");
+    if (!den) return null;
+    let num = raw.kp_numerator;
+    if (num === undefined || num === null) {
+      if (raw.k === undefined || raw.k === null || raw.a === undefined || raw.a === null) return null;
+      num = raw.k + raw.a;
+    }
+    return 100 * num / den;
+  }
+  function pointInTimeKP(pastMatches, teams, team, playerName, cutoffDate) {
+    const values = [];
+    for (const m of priorMatches(pastMatches, team, cutoffDate)) {
+      const v = matchKP(m, team, playerName);
+      if (v !== null) values.push(v);
+    }
+    if (!values.length) return null;
+    let rate = decayedMean(values);
+    const league = leagueAvgKP(teams);
+    if (league) {
+      const w = values.length / (values.length + KP_SHRINK);
+      rate = w * rate + (1 - w) * league;
+    }
+    return rate;
+  }
+  function kpMultiplier(player, historyWeight, kpStrength, teams, pastMatches, team, cutoffDate) {
+    if (!kpStrength) return 1;
+    const league = leagueAvgKP(teams);
+    let kp = null;
+    if (pastMatches && team) kp = pointInTimeKP(pastMatches, teams, team, player.name, cutoffDate);
+    if (kp === null) {
+      const curKP = player.cur.kp;
+      if (!curKP) return 1;
+      const histKP = player.hist ? player.hist.kp : curKP;
+      kp = historyWeight * histKP + (1 - historyWeight) * curKP;
+    }
+    return 1 + kpStrength * (kp / league - 1);
   }
   function opponentMultiplier(teams, opponentTeam, oppStrength, oppBasisKey) {
     const oppStat = teamStatPerGame(teams, opponentTeam, oppBasisKey);
@@ -2237,7 +2270,7 @@ try {
       careerRate
     } = applyCareerTier(recentFormRate, player, weights, cfg, null);
     const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, null);
-    const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams) : 1;
+    const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams, pastMatches, team, null) : 1;
     const blended = blendShareTier(base * oppMult * kpMult, weights, pastMatches, teams, team, player.name, cfg.key, null);
     const shrunk = shrinkToPrior(blended.perGame, weights, weighted.games || 0, pastMatches, teams, cfg.key, null);
     const perGame = shrunk.perGame;
@@ -2384,7 +2417,7 @@ try {
       careerRate
     } = applyCareerTier(recentFormRate, player, weights, cfg, cutoffDate);
     const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, cutoffDate);
-    const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams) : 1;
+    const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams, pastMatches, team, cutoffDate) : 1;
     const blendedPT = blendShareTier(base * oppMult * kpMult, weights, pastMatches, teams, team, player.name, cfg.key, cutoffDate);
     const shrunkPT = shrinkToPrior(blendedPT.perGame, weights, pt.games || 0, pastMatches, teams, cfg.key, cutoffDate);
     const perGame = shrunkPT.perGame;
@@ -2462,7 +2495,7 @@ try {
       assists: {
         history: 0.4,
         opponent: 0.0,
-        kp: 0.1,
+        kp: 0.0,
         recencyHalfLife: 6,
         patchDiscount: 0.8,
         career: 0.0,
@@ -2474,7 +2507,7 @@ try {
       kills: {
         history: 0.0,
         opponent: 0.0,
-        kp: 0.3,
+        kp: 0.0,
         recencyHalfLife: 6,
         patchDiscount: 0.0,
         career: 1.0,
@@ -2494,7 +2527,7 @@ try {
       assists: {
         history: 0.0,
         opponent: 0.0,
-        kp: 0.1,
+        kp: 0.0,
         recencyHalfLife: 20,
         patchDiscount: 0.0,
         career: 1.0,
@@ -4263,8 +4296,8 @@ try {
       min: 0,
       max: 1,
       step: 0.05,
-      format: v => `${Math.round(v * 100)}%`,
-      tooltip: "How much the player's own kill participation (their share of their team's total kills) pulls the projection above or below the base rate."
+      format: v => v === 0 ? "off — measured worthless once it stopped reading the future" : `${Math.round(v * 100)}%`,
+      tooltip: "How much the player's own kill participation pulls the projection above or below the base rate. Ships at 0 for every game: it used to be measured against a whole-season figure that included the match being predicted, and once that was fixed it scored no better than being switched off."
     }), React.createElement(Slider, {
       label: "Recency half-life (this split)",
       value: weights.recencyHalfLife,

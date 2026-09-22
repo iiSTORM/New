@@ -23,6 +23,7 @@ const body = raw.slice(raw.indexOf("try {") + "try {".length,
 const { code } = transformSync(
   `${body}\nreturn { teamTotal, shareRate, leaguePacePerMap, blendShareTier, project,
                      leaguePlayerRate, shrinkToPrior, ROSTER_SIZE,
+                     matchKP, pointInTimeKP, kpMultiplier, leagueAvgKP, KP_SHRINK,
                      SHARE_HALF_LIFE, DEFAULT_WEIGHTS_BY_GAME_AND_STAT };`,
   { presets: [["@babel/preset-react", { runtime: "classic" }]], filename: "app.jsx",
     parserOpts: { allowReturnOutsideFunction: true } });
@@ -226,6 +227,89 @@ for (const [game, file] of Object.entries({ valorant: "valorant_data.json", cs2:
   check("CS2 shrinks assists only", [W.cs2.kills.shrink, W.cs2.deaths.shrink, W.cs2.assists.shrink], [0, 0, 1]);
   check("every game and stat states a shrink constant explicitly",
         Object.values(W).every((g) => Object.values(g).every((s) => typeof s.shrink === "number")), true);
+}
+
+/* ---- kill participation, and the leak that used to be in it ----
+ *
+ * kpMultiplier read player.cur.kp, a whole-season figure, so a backtest of
+ * a match in May was handed a kill participation partly built from games
+ * played in August. Worth 0.66pp against its own leave-one-out version,
+ * and it was the whole of the kp layer's apparent value — every leak-free
+ * setting turned out to be no better than switching the layer off.
+ */
+{
+  const withKP = (k, a, extra = {}) => ({ k, d: 1, a, ...extra });
+  const side = (spec) => Object.fromEntries(Object.entries(spec).map(([n, [k, a, e]]) => [n, withKP(k, a, e || {})]));
+  const m = (date, ksA) => ({
+    date, teamA: "A", teamB: "B",
+    actual: { A: side(ksA), B: side({ q0:[1,1], q1:[1,1], q2:[1,1], q3:[1,1], q4:[1,1] }) } });
+
+  // p0 takes 10 kills + 10 assists of a 50-kill team -> 40%.
+  const one = m("2026-01-01", { p0:[10,10], p1:[10,0], p2:[10,0], p3:[10,0], p4:[10,0] });
+  near("KP derived from k + a over the team's kills", app.matchKP(one, "A", "p0"), 40);
+  check("an unknown player has none", app.matchKP(one, "A", "ghost"), null);
+
+  // kp_denominator wins where present: it is the team's kills WHILE THAT
+  // PLAYER PLAYED, which is why two players on one side can differ.
+  const subbed = m("2026-01-01", { p0:[10,10,{kp_numerator:20, kp_denominator:25}],
+                                   p1:[10,0], p2:[10,0], p3:[10,0], p4:[10,0] });
+  near("a substitute's own denominator is preferred over the side total",
+       app.matchKP(subbed, "A", "p0"), 80);
+
+  /* The regression test for the leak. A match ON or AFTER the cutoff must
+     not reach the estimate, however extreme it is. */
+  const history = [
+    m("2026-01-01", { p0:[10,10], p1:[10,0], p2:[10,0], p3:[10,0], p4:[10,0] }),   // 40%
+    m("2026-06-01", { p0:[0,0],   p1:[20,0], p2:[10,0], p3:[10,0], p4:[10,0] }),   // 0%, the future
+  ];
+  const teams = { A: { players: [{ name: "p0", cur: { kp: 40 } }] }, B: { players: [] } };
+  const before = app.pointInTimeKP(history, teams, "A", "p0", "2026-03-01");
+  const after = app.pointInTimeKP(history, teams, "A", "p0", null);
+  check("a match after the cutoff cannot reach the estimate", before > after, true);
+  check("and the estimate is bounded by the league it is shrunk toward",
+        before <= 40 && before > 0, true);
+
+  const noHistory = app.pointInTimeKP([], teams, "A", "p0", null);
+  check("no prior appearances yields nothing to build from", noHistory, null);
+
+  // Shrinkage toward the league: one observation is pulled most of the way.
+  {
+    const solo = [m("2026-01-01", { p0:[20,0], p1:[10,0], p2:[10,0], p3:[5,0], p4:[5,0] })]; // p0 = 40%
+    const t = { A: { players: [{ name: "p0", cur: { kp: 20 } }, { name: "p1", cur: { kp: 20 } }] }, B: { players: [] } };
+    const league = app.leagueAvgKP(t);
+    const got = app.pointInTimeKP(solo, t, "A", "p0", null);
+    near(`a single observation is shrunk toward the league (k=${app.KP_SHRINK})`,
+         got, (1/(1+app.KP_SHRINK)) * 40 + (app.KP_SHRINK/(1+app.KP_SHRINK)) * league);
+  }
+
+  const player = { name: "p0", cur: { kp: 40 }, hist: null };
+
+  /* Through kpMultiplier, not just pointInTimeKP. The leak lived in the
+     WIRING — which cutoff the multiplier passed down — so testing the
+     estimator alone leaves it uncovered. Written after a mutation that
+     re-hardcoded the cutoff to null sailed through a green suite. */
+  const multAt = (cutoff) => app.kpMultiplier(player, 0.3, 0.5, teams, history, "A", cutoff);
+  check("the multiplier itself honours the cutoff it is given",
+        multAt("2026-03-01") !== multAt(null), true);
+  check("and a later cutoff, which admits the poor match, gives a lower multiplier",
+        multAt(null) < multAt("2026-03-01"), true);
+
+  check("strength 0 is exactly neutral and does no work",
+        app.kpMultiplier(player, 0.3, 0, teams, history, "A", null), 1);
+  check("with no history at all it falls back to the season figure rather than giving up",
+        typeof app.kpMultiplier(player, 0.3, 0.5, teams, [], "A", null), "number");
+}
+
+{
+  const W = app.DEFAULT_WEIGHTS_BY_GAME_AND_STAT;
+  /* Pinned at 0 everywhere BY MEASUREMENT, not by neglect. With the leak
+     removed, every leak-free kp setting scored no better than the layer
+     being off — CS2 kills 6.0302 off, 6.0300 at its best leak-free
+     setting. If this is ever raised again it must be because a fresh
+     out-of-sample run said so, not because the in-sample search reached
+     for it, which it still does. */
+  check("kp is zero for every game and stat",
+        Object.values(W).flatMap((g) => Object.values(g).map((s) => s.kp)), [0,0,0,0,0,0,0,0,0]);
 }
 
 console.log(`${pass} passed, ${fail} failed`);

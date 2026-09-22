@@ -1008,17 +1008,71 @@ function leagueAvgKP(teams) {
   return avg;
 }
 
-function kpMultiplier(player, historyWeight, kpStrength, teams) {
-  const curKP = player.cur.kp;
-  // 0 is used as a sentinel for "not computed yet" — a real player's kill
-  // participation is never actually 0, so this can't misfire on genuine
-  // data. Treat it as neutral rather than applying a bogus flat penalty
-  // across every player.
-  if (!curKP) return 1;
-  const histKP = player.hist ? player.hist.kp : curKP;
-  const blendedKP = historyWeight * histKP + (1 - historyWeight) * curKP;
-  const relative = blendedKP / leagueAvgKP(teams);
-  return 1 + kpStrength * (relative - 1);
+const KP_SHRINK = 4; // prior matches at which a player's own KP is worth as
+                     // much as the league's. Their per-match sample is thin
+                     // (median 2 in CS2) and unshrunk it errs by 3.86pp
+                     // against 3.32pp shrunk.
+
+/* One match's kill participation, as a percentage.
+
+   kp_numerator is exactly k + a on all 1414 CS2 rows that carry it, so the
+   same figure is derivable for LoL and Valorant, which record neither.
+   kp_denominator is preferred where present because it is the team's kills
+   WHILE THAT PLAYER PLAYED — it genuinely differs between players on a side
+   that used a substitute — and falls back to the side's own total. */
+function matchKP(match, team, playerName) {
+  const raw = ((match.actual || {})[team] || {})[playerName];
+  if (!raw || typeof raw !== "object") return null;
+  const den = raw.kp_denominator || teamTotal(match, team, "k");
+  if (!den) return null;
+  let num = raw.kp_numerator;
+  if (num === undefined || num === null) {
+    if (raw.k === undefined || raw.k === null || raw.a === undefined || raw.a === null) return null;
+    num = raw.k + raw.a;
+  }
+  return (100 * num) / den;
+}
+
+/* Recency-weighted KP from matches before the cutoff, shrunk to the league.
+
+   This used to read player.cur.kp, a WHOLE-SEASON figure with no cutoff
+   awareness, so a backtest of a match in May was handed a kill
+   participation partly built from games played in August. Measured against
+   its own leave-one-out version, that leak was worth 0.66pp — about a
+   quarter of the estimator's apparent accuracy, and all of the kp layer's
+   apparent value. See the weight table for what happened when it was
+   removed. */
+function pointInTimeKP(pastMatches, teams, team, playerName, cutoffDate) {
+  const values = [];
+  for (const m of priorMatches(pastMatches, team, cutoffDate)) {
+    const v = matchKP(m, team, playerName);
+    if (v !== null) values.push(v);
+  }
+  if (!values.length) return null;
+  let rate = decayedMean(values);
+  const league = leagueAvgKP(teams);
+  if (league) {
+    const w = values.length / (values.length + KP_SHRINK);
+    rate = w * rate + (1 - w) * league;
+  }
+  return rate;
+}
+
+function kpMultiplier(player, historyWeight, kpStrength, teams, pastMatches, team, cutoffDate) {
+  if (!kpStrength) return 1;
+  const league = leagueAvgKP(teams);
+  let kp = null;
+  if (pastMatches && team) kp = pointInTimeKP(pastMatches, teams, team, player.name, cutoffDate);
+  if (kp === null) {
+    // No prior appearances to build one from. The season figure is all
+    // that is left, and in the live path (cutoffDate null) it is
+    // legitimately everything-so-far rather than a look at the future.
+    const curKP = player.cur.kp;
+    if (!curKP) return 1;
+    const histKP = player.hist ? player.hist.kp : curKP;
+    kp = historyWeight * histKP + (1 - historyWeight) * curKP;
+  }
+  return 1 + kpStrength * (kp / league - 1);
 }
 
 function opponentMultiplier(teams, opponentTeam, oppStrength, oppBasisKey) {
@@ -1331,7 +1385,7 @@ function project(teams, pastMatches, player, team, opponentTeam, games, weights,
   const recentFormRate = player.hist ? weights.history * player.hist[cfg.key] + (1 - weights.history) * curRate : curRate;
   const { base, careerRate } = applyCareerTier(recentFormRate, player, weights, cfg, null);
   const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, null);
-  const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams) : 1;
+  const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams, pastMatches, team, null) : 1;
   const blended = blendShareTier(base * oppMult * kpMult, weights, pastMatches, teams,
                                  team, player.name, cfg.key, null);
   const shrunk = shrinkToPrior(blended.perGame, weights, weighted.games || 0, pastMatches,
@@ -1607,7 +1661,7 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
   const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, cutoffDate);
 
   // KP multiplier is the one piece still using full-season data — see note above.
-  const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams) : 1;
+  const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams, pastMatches, team, cutoffDate) : 1;
 
   const blendedPT = blendShareTier(base * oppMult * kpMult, weights, pastMatches, teams,
                                    team, player.name, cfg.key, cutoffDate);
@@ -1755,6 +1809,36 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
    stats, and excluding more made it monotonically worse (kills 2.6556
    -> 2.6664, assists 4.8203 -> 4.8621). Volume beats purity here; the
    CS2 analogy did not transfer. Do not "clean up" the pool by stage. */
+/* KP IS PINNED AT 0 FOR EVERY GAME AND STAT, AND THAT IS A MEASUREMENT.
+
+   kpMultiplier used to read player.cur.kp — a whole-season figure with no
+   cutoff awareness — so a backtest of a match in May was handed a kill
+   participation partly built from games played in August. Quantified by
+   comparing the season figure against its own leave-one-out version, on
+   the question it actually answers, "what will this player's KP be in
+   this match":
+
+       season aggregate, as shipped (leaks)          2.72pp error
+       season aggregate, leave-one-out               3.37pp
+       point-in-time, recency-weighted, shrunk       3.32pp
+       point-in-time, raw                            3.86pp
+
+   So the leak was worth 0.66pp, about a quarter of the estimator's
+   apparent accuracy. Rerunning the weight search with a leak-free KP,
+   every variant converged on the same place — CS2 kills scored 6.0302
+   with the layer off and 6.0300 at its best leak-free setting, which was
+   kp 0.2 shrunk so hard toward the league that the multiplier is ~1.
+   Same on both assists: the best leak-free kp was 0.0.
+
+   The knockout report used to credit kp with +1.49% on CS2 kills and call
+   it "carries the model". It was not carrying anything. It was reading
+   the future. The honest CS2 kills number is 6.0302, not 5.9418, and that
+   1.49% is a correction rather than a regression.
+
+   The layer is kept, not deleted, and it is now point-in-time — so if CS2
+   per-match history ever gets deep enough for a player's own KP to beat
+   the league average (median prior sample today: 2 matches), the search
+   can turn it back on without reintroducing the leak. */
 const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
   // LoL: re-derived with walk-forward validation rather than by minimising
   // error over the whole season at once. The previous per-stat values were
@@ -1835,7 +1919,7 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // sample and are superseded.
     kills: { history: 0.7, opponent: 0.0, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.0, share: 0.4, shrink: 4.0 },
     deaths: { history: 0.7, opponent: 0.0, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.3, career: 0.0, share: 0.7, shrink: 0.0 },  // kp is dead weight for deaths (useKP: false) — see the cs2 note below
-    assists: { history: 0.4, opponent: 0.0, kp: 0.1, recencyHalfLife: 6, patchDiscount: 0.8, career: 0.0, share: 0.4, shrink: 1.0 },
+    assists: { history: 0.4, opponent: 0.0, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.8, career: 0.0, share: 0.4, shrink: 1.0 },
   },
   cs2: {
     // All three stats now measured with THREE real fixes live: kp
@@ -1993,9 +2077,9 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // here was a dead number the search "fitted" against a parameter it
     // could not move. Zeroing it changes no prediction; it stops the
     // table claiming a tuning that never happened. (Same for Valorant.)
-    kills: { history: 0.0, opponent: 0.0, kp: 0.3, recencyHalfLife: 6, patchDiscount: 0.0, career: 1.0, share: 0.0, shrink: 0.0 },
+    kills: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.0, career: 1.0, share: 0.0, shrink: 0.0 },
     deaths: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0, share: 0.6, shrink: 0.0 },
-    assists: { history: 0.0, opponent: 0.0, kp: 0.1, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0, share: 0.0, shrink: 1.0 },
+    assists: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0, share: 0.0, shrink: 1.0 },
   },
 };
 
@@ -3098,8 +3182,8 @@ function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, s
             tooltip="How much weight the player's PREVIOUS split gets vs. their CURRENT split. Higher means the model trusts their track record more than what they've done so far this split." />
           <Slider label="Opponent-strength adjustment" value={weights.opponent} onChange={(v) => onChangeWeight("opponent", v)} min={0} max={2} step={0.1} format={(v) => `${v.toFixed(1)}×`}
             tooltip="How much the opponent's own strength shifts the projection up or down. 0 means the opponent is ignored entirely; higher values react more strongly to a weak or strong matchup." />
-          <Slider label="Kill-participation influence" value={weights.kp} onChange={(v) => onChangeWeight("kp", v)} min={0} max={1} step={0.05} format={(v) => `${Math.round(v * 100)}%`}
-            tooltip="How much the player's own kill participation (their share of their team's total kills) pulls the projection above or below the base rate." />
+          <Slider label="Kill-participation influence" value={weights.kp} onChange={(v) => onChangeWeight("kp", v)} min={0} max={1} step={0.05} format={(v) => (v === 0 ? "off — measured worthless once it stopped reading the future" : `${Math.round(v * 100)}%`)}
+            tooltip="How much the player's own kill participation pulls the projection above or below the base rate. Ships at 0 for every game: it used to be measured against a whole-season figure that included the match being predicted, and once that was fixed it scored no better than being switched off." />
           <Slider
             label="Recency half-life (this split)"
             value={weights.recencyHalfLife}
