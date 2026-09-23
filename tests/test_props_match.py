@@ -274,3 +274,81 @@ class TestUnmodelledStats:
         assert pm.unmodelled_stat(None) is None
         assert pm.unmodelled_stat(123) is None
         assert pm.unmodelled_stat("") is None
+
+
+class TestUnmatchedByTeam:
+    """Splitting "player not on any roster" into the two things it means.
+
+    A real run reported 309 of 361 CS2 props and 30 of 32 LoL props with
+    that one reason. As a number it is unactionable, because it collapses
+    a team this app does not cover (nothing to do but scrape more teams)
+    with a team it does cover whose names are not lining up (lines sitting
+    right there, kept out by a spelling).
+    """
+
+    REGIONS = {"LCS": {"teams": {"T1": {"players": [{"name": "Faker"}]},
+                                 "GEN": {"players": [{"name": "Chovy"}]}}}}
+
+    def refused(self, team, player, reason="player not on any roster"):
+        return {"reason": reason, "team": team, "player_name": player}
+
+    def test_a_tracked_team_is_separated_from_an_untracked_one(self):
+        tracked, untracked = pm.unmatched_by_team(
+            [self.refused("T1", "Zeus"), self.refused("Tier Three Squad", "nobody")],
+            self.REGIONS)
+        assert [t for t, _ in tracked] == ["T1"]
+        assert [t for t, _ in untracked] == ["Tier Three Squad"]
+
+    def test_the_players_are_named_so_the_mismatch_can_be_seen(self):
+        tracked, _ = pm.unmatched_by_team(
+            [self.refused("T1", "Zeus"), self.refused("T1", "Oner")], self.REGIONS)
+        assert tracked[0][1] == ["Oner", "Zeus"]
+
+    def test_team_matching_ignores_case(self):
+        tracked, untracked = pm.unmatched_by_team(
+            [self.refused("t1", "Zeus")], self.REGIONS)
+        assert [t for t, _ in tracked] == ["t1"] and untracked == []
+
+    def test_ordered_by_how_many_lines_are_being_lost(self):
+        """Worst offender first, so the top of the list is where to look.
+
+        The thin team is fed in FIRST on purpose. Built the other way
+        round, insertion order alone produces the expected answer and the
+        assertion passes even with the sort deleted -- which is how it was
+        written at first, and a mutation run caught it.
+        """
+        props = ([self.refused("GEN", "one")]
+                 + [self.refused("T1", f"p{i}") for i in range(3)])
+        tracked, _ = pm.unmatched_by_team(props, self.REGIONS)
+        assert [t for t, _ in tracked] == ["T1", "GEN"]
+
+    def test_teams_losing_the_same_count_are_ordered_by_name(self):
+        """Otherwise the list reshuffles between runs on equal counts."""
+        props = [self.refused("T1", "Zeus"), self.refused("GEN", "one")]
+        tracked, _ = pm.unmatched_by_team(props, self.REGIONS)
+        assert [t for t, _ in tracked] == ["GEN", "T1"]
+
+    def test_untracked_teams_are_ordered_the_same_way(self):
+        props = ([self.refused("Small Org", "a")]
+                 + [self.refused("Big Org", f"p{i}") for i in range(2)])
+        _, untracked = pm.unmatched_by_team(props, self.REGIONS)
+        assert [t for t, _ in untracked] == ["Big Org", "Small Org"]
+
+    def test_other_refusals_are_not_swept_in(self):
+        tracked, untracked = pm.unmatched_by_team(
+            [self.refused("T1", "x", reason="combo line covers more than one player")],
+            self.REGIONS)
+        assert tracked == [] and untracked == []
+
+    def test_a_prop_with_no_team_stated_is_still_counted(self):
+        _, untracked = pm.unmatched_by_team([self.refused(None, "orphan")], self.REGIONS)
+        assert untracked == [("(no team stated)", ["orphan"])]
+
+    def test_duplicate_names_are_listed_once(self):
+        tracked, _ = pm.unmatched_by_team(
+            [self.refused("T1", "Zeus"), self.refused("T1", "Zeus")], self.REGIONS)
+        assert tracked[0][1] == ["Zeus"]
+
+    def test_empty_input_is_not_an_error(self):
+        assert pm.unmatched_by_team([], self.REGIONS) == ([], [])
+        assert pm.unmatched_by_team(None, None) == ([], [])

@@ -168,6 +168,42 @@ def build_roster_index(regions):
     return index, ambiguous
 
 
+def unmatched_by_team(unmatched, regions, reason="player not on any roster"):
+    """Group refused props by the team the provider named, and say whether
+    this app tracks that team at all.
+
+    "309 player not on any roster" is a number nobody can act on. It
+    collapses two completely different situations:
+
+      a team this app does not cover -- CS2 tracks the notable tier while
+        the provider posts every tier there is, so these are expected and
+        the only fix is scraping more teams;
+      a team it DOES cover, whose player names are not lining up -- a
+        normalisation gap, where the lines are sitting right there and one
+        spelling is keeping them out.
+
+    The second is worth fixing and invisible inside the first. Returns
+    (tracked, untracked), each a list of (team, [player names]) ordered by
+    how many lines are being lost.
+    """
+    known_teams = {team.casefold()
+                   for region in (regions or {}).values()
+                   for team in (region.get("teams") or {})}
+    by_team = {}
+    for prop in unmatched or []:
+        if prop.get("reason") != reason:
+            continue
+        team = (prop.get("team") or "").strip() or "(no team stated)"
+        by_team.setdefault(team, []).append(prop.get("player_name"))
+
+    tracked, untracked = [], []
+    for team, players in by_team.items():
+        target = tracked if team.casefold() in known_teams else untracked
+        target.append((team, sorted({p for p in players if p})))
+    key = lambda entry: (-len(entry[1]), entry[0])
+    return sorted(tracked, key=key), sorted(untracked, key=key)
+
+
 def match_props(raw_props, roster_index):
     """Attach each prop to a rostered player.
 

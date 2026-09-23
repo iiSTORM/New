@@ -761,3 +761,72 @@ class TestExistingPropCount:
 
     def test_a_missing_file_reads_as_zero(self, tmp_path):
         assert sp.existing_prop_count(str(tmp_path / "nope.json")) == 0
+
+
+class TestUnmatchedDiagnosis:
+    """The funnel has to say WHICH teams, not just how many props.
+
+    A real run reported "309 player not on any roster" for CS2 and "30"
+    for LoL. Those numbers cannot be acted on: they mix teams this app
+    does not cover, where the only fix is scraping more, with teams it
+    does cover whose names are not lining up, where the lines are sitting
+    right there.
+    """
+
+    def payload(self, *props):
+        """A JSON:API payload shaped the way the provider sends one.
+
+        Players ride in `included`, not `data` -- an earlier version of
+        this helper put them in `data` and every projection parsed with a
+        blank player, so the funnel reported zero raw props and the
+        assertions below failed for a reason that had nothing to do with
+        what they test.
+        """
+        return {
+            "data": [
+                {"type": "projection", "id": f"p{i}",
+                 "attributes": {"stat_type": "MAPS 1-2 Kills", "line_score": 20.5,
+                                "start_time": "2026-09-23T10:00:00-04:00",
+                                "odds_type": "standard"},
+                 "relationships": {"new_player":
+                                   {"data": {"type": "new_player", "id": str(i)}}}}
+                for i in range(len(props))
+            ],
+            "included": [
+                {"type": "new_player", "id": str(i), "attributes":
+                    {"display_name": name, "team": team, "league": "CS2"}}
+                for i, (name, team) in enumerate(props)
+            ],
+        }
+
+    def run(self, monkeypatch, tmp_path, payload):
+        saved = tmp_path / "payload.json"
+        saved.write_text(json.dumps(payload))
+        out = tmp_path / "props.json"
+        assert run(monkeypatch, ["--fixture", str(saved), "--out", str(out),
+                                 "--dry-run"]) == 0
+
+    def test_a_covered_team_is_called_out_by_name(self, tmp_path, monkeypatch, capsys):
+        """The actionable half: these lines are reachable."""
+        data = json.loads(Path("cs2_data.json").read_text())
+        team = next(iter(next(iter(data["regions"].values()))["teams"]))
+        self.run(monkeypatch, tmp_path,
+                 self.payload(("NotARealHandle", team)))
+        out = capsys.readouterr().out
+        assert "DOES track" in out and team in out and "NotARealHandle" in out
+
+    def test_an_uncovered_team_is_reported_separately(self, tmp_path, monkeypatch, capsys):
+        self.run(monkeypatch, tmp_path,
+                 self.payload(("someone", "A Team From Another Tier")))
+        out = capsys.readouterr().out
+        assert "does not cover" in out and "A Team From Another Tier" in out
+        assert "DOES track" not in out
+
+    def test_the_two_are_not_confused(self, tmp_path, monkeypatch, capsys):
+        data = json.loads(Path("cs2_data.json").read_text())
+        team = next(iter(next(iter(data["regions"].values()))["teams"]))
+        self.run(monkeypatch, tmp_path,
+                 self.payload(("NotARealHandle", team), ("someone", "Unknown Org")))
+        out = capsys.readouterr().out
+        assert "DOES track" in out and "does not cover" in out
+        assert "the other 1" in out, "wording must acknowledge both groups"

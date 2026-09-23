@@ -73,7 +73,7 @@ except ImportError:
     # is the only route that works.
     requests = None
 
-from props_match import build_roster_index, match_props
+from props_match import build_roster_index, match_props, unmatched_by_team
 
 OUTPUT_PATH = "props.json"
 
@@ -508,6 +508,29 @@ def main():
             reasons[prop["reason"]] = reasons.get(prop["reason"], 0) + 1
         for reason, count in sorted(reasons.items(), key=lambda kv: -kv[1]):
             print(f"    {count:4d}  {reason}")
+
+        # "player not on any roster" is the reason that hides a fixable
+        # problem inside an expected one. A team this app does not cover
+        # is nothing to do about short of scraping more teams; a team it
+        # DOES cover, whose players are not lining up, means lines are
+        # sitting right there and a spelling is keeping them out.
+        tracked, untracked = unmatched_by_team(unmatched, regions)
+        if tracked:
+            lost = sum(len(players) for _, players in tracked)
+            print(f"      {lost} of those are on teams this app DOES track — "
+                  f"the names are not matching:")
+            for team, players in tracked[:6]:
+                shown = ", ".join(players[:6])
+                more = f" (+{len(players) - 6} more)" if len(players) > 6 else ""
+                print(f"        {team}: {shown}{more}")
+        if untracked:
+            lost = sum(len(players) for _, players in untracked)
+            teams = ", ".join(team for team, _ in untracked[:8])
+            more = f", +{len(untracked) - 8} more" if len(untracked) > 8 else ""
+            # "the rest" only reads correctly when there IS a rest.
+            lead = "the other" if tracked else "all"
+            print(f"      {lead} {lost} are on {len(untracked)} team(s) this app "
+                  f"does not cover: {teams}{more}")
 
     if age_minutes > MAX_AGE_MINUTES:
         print(f"\n! These lines are already {age_minutes:.0f} minutes old, past "
