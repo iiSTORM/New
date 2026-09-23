@@ -106,6 +106,29 @@ browser to this script:
 > into the VS Code file explorer, or make a new file there and paste into it.
 
 
+#### The one-click version
+
+`tools/bookmarklet.html` — open it locally and drag the button to your
+bookmarks bar. Then, on `app.prizepicks.com` while logged in, click it: it
+makes the same request the site makes, from the session you are already
+in, and saves `prizepicks-payload.json` to Downloads. A banner tells you
+how many projections it got.
+
+`./scripts/refresh_props.sh` then finds that file, refuses it if it has
+aged past the 90-minute window the app enforces, runs the matcher and
+commits. Two steps, a few seconds, and nothing pretending to be anything
+it is not.
+
+The page shows the script's full source beside the button, generated from
+`tools/bookmarklet.js` so the code you read is the code you install —
+`python tools/build_bookmarklet.py --check` fails the build if those ever
+drift, and `tests/test_bookmarklet.py` checks the same thing.
+
+Override the pickup with `PROPS_PAYLOAD_DIR` / `PROPS_PAYLOAD_NAME`, or
+turn it off with `PROPS_PAYLOAD_DIR=none`.
+
+#### By hand
+
 ```bash
 # one file, or several — several is the normal case with the URLs above
 python scripts/scrape_props.py --fixture lol.json cs2.json val.json --out props.json
@@ -120,7 +143,13 @@ git add props.json && git commit -m "Update prop lines" && git push
 
 ### Automatic refresh
 
-**Not possible with the PrizePicks adapter.** The scheduled job exists —
+**Still needs your click, with the PrizePicks adapter.** The bookmarklet
+above removes the typing, not the person: nothing here fetches the board
+unattended, because the provider does not permit it and working around
+that is a different thing from using a saved payload. A scheduled run
+with no fresh download simply reports that and leaves `props.json` alone.
+
+**Fully unattended is not possible with the PrizePicks adapter.** The scheduled job exists —
 `scripts/refresh_props.ps1` for Windows Task Scheduler and
 `scripts/refresh_props.sh` for launchd and cron: they run the fetch on a
 timer, commit `props.json` only when the lines have moved, and push. Against
