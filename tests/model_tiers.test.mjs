@@ -228,7 +228,21 @@ for (const [game, file] of Object.entries({ valorant: "valorant_data.json", cs2:
         [W.lol.kills.shrink, W.lol.deaths.shrink, W.lol.assists.shrink], [0, 0, 0]);
   check("Valorant shrinks kills hardest, having no career data at all",
         [W.valorant.kills.shrink, W.valorant.deaths.shrink, W.valorant.assists.shrink], [4, 0, 1]);
-  check("CS2 shrinks assists only", [W.cs2.kills.shrink, W.cs2.deaths.shrink, W.cs2.assists.shrink], [0, 0, 1]);
+  /* CS2 now shrinks all three hard. It did not until the roster roughly
+     doubled: the scraper used to rebuild its team list from one page of
+     the global feed each run, and once past matches carried over, 58
+     teams of thin-history players joined. Pulling a thin sample toward
+     the league rate went from worthless to the largest accuracy gain on
+     this game -- walk-forward over 6 folds, kills 6/6 (-8.54%), assists
+     6/6 (-3.56%), deaths 4/6 (-2.95%).
+
+     headshots is deliberately NOT in that list and stays at 3: the same
+     sweep gives it 1/6 at k=2 and 2/6 at k=16 with the sign flipping in
+     between, which is a knife edge rather than a plateau. */
+  check("CS2 shrinks every career-backed stat hard, since its roster is full of thin histories",
+        [W.cs2.kills.shrink, W.cs2.deaths.shrink, W.cs2.assists.shrink], [8, 4, 8]);
+  check("but headshots was left alone, the sweep being noise there",
+        W.cs2.headshots.shrink, 3);
   check("every game and stat states a shrink constant explicitly",
         Object.values(W).every((g) => Object.values(g).every((s) => typeof s.shrink === "number")), true);
 }
@@ -446,12 +460,12 @@ near("no career rate means no career evidence",
  * therefore promoted the rows the model knew least about, because
  * knowing less produces bigger disagreements.
  */
-near("an edge off three games is worth about a third of its face value",
-     app.edgeMultiplier(3), 0.34);
+near("an edge off three games is worth about half its face value",
+     app.edgeMultiplier(3), 0.52);
 near("four games is the first step up", app.edgeMultiplier(4), 0.72);
 near("eight games again", app.edgeMultiplier(8), 0.93);
-near("and twelve or more is nearly face value", app.edgeMultiplier(12), 0.94);
-near("well beyond twelve stays there", app.edgeMultiplier(400), 0.94);
+near("and twelve or more is nearly face value", app.edgeMultiplier(12), 0.98);
+near("well beyond twelve stays there", app.edgeMultiplier(400), 0.98);
 
 check("the multiplier never inflates an edge",
       app.EDGE_REALIZATION.every((b) => b.factor <= 1), true);
@@ -461,19 +475,38 @@ check("and never increases as evidence falls",
 /* An unknown evidence count takes the worst factor, not the best: a row
    that cannot say what it rests on must not outrank one that can. */
 near("unknown evidence is treated as the thinnest case",
-     app.edgeMultiplier(undefined), 0.34);
-near("and so is a NaN", app.edgeMultiplier(NaN), 0.34);
+     app.edgeMultiplier(undefined), 0.52);
+near("and so is a NaN", app.edgeMultiplier(NaN), 0.52);
 
-near("a positive edge is discounted, not flipped", app.adjustEdge(10, 2), 3.4);
-near("a negative edge keeps its sign", app.adjustEdge(-10, 2), -3.4);
+/* With no league rate to calibrate toward there is nothing to be
+   typical OF, so the edge is scaled directly rather than guessed at. */
+near("a positive edge is discounted, not flipped", app.adjustEdge(10, 2), 5.2);
+near("a negative edge keeps its sign", app.adjustEdge(-10, 2), -5.2);
 check("no edge stays no edge", app.adjustEdge(null, 2), null);
 check("a non-numeric edge is refused", app.adjustEdge("4", 30), null);
+
+/* Given a league rate, the correction belongs to the PROJECTION and the
+   edge follows from it. Scaling the edge directly is only the same thing
+   when the line happens to sit at the league average, and the two
+   disagreed in sign on 5% of a real board.
+
+   mean 20, projection 33, line 30, three games (0.52):
+     calibrated projection = 20 + 0.52 * 13 = 26.76
+     edge                  = 26.76 - 30     = -3.24
+   whereas scaling the raw +3 edge would have said +1.56 -- opposite
+   side of the line, on the same inputs. */
+near("the correction is applied to the projection, not the edge",
+     app.adjustEdge(3, 3, 33, 30, 20), -3.24);
+near("a line sitting exactly at the league average makes the two agree",
+     app.adjustEdge(13, 3, 33, 20, 20), 13 * 0.52);
+near("a well-evidenced projection is barely moved",
+     app.adjustEdge(3, 40, 33, 30, 20), (20 + 0.98 * 13) - 30);
 
 /* The ordering itself, which is the whole point. */
 {
   const rows = [
-    { name: "thin", edge: 14, adjustedEdge: 14 * 0.34 },   // 4.76
-    { name: "deep", edge: -12, adjustedEdge: -12 * 0.94 }, // -11.28
+    { name: "thin", edge: 14, adjustedEdge: 14 * 0.52 },   // 7.28
+    { name: "deep", edge: -12, adjustedEdge: -12 * 0.98 }, // -11.76
   ];
   check("a big edge off little evidence no longer outranks a solid one",
         app.rankEdges(rows).map((r) => r.name), ["deep", "thin"]);

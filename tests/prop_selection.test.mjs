@@ -195,7 +195,15 @@ function extract(name) {
    Sliced from source for the same reason the functions are: a copy here
    would keep passing after the real one changed. */
 function extractConst(name) {
-  const m = new RegExp(`const ${name} = [\\s\\S]*?\\n\\];`).exec(src);
+  // A one-liner first. Falling straight through to the multi-line form
+  // made `const ROSTER_SIZE = 5;` match everything up to the next "\n];"
+  // anywhere below it, silently swallowing whole declarations -- which
+  // surfaced as EDGE_REALIZATION being declared twice.
+  const one = new RegExp(`const ${name} = [^\\n;]*;`).exec(src);
+  if (one) return one[0];
+  // Otherwise an array ("\n];") or an object ("\n};"), whichever closes
+  // first: both are top level in src/app.jsx.
+  const m = new RegExp(`const ${name} = [\\s\\S]*?\\n[\\]}];`).exec(src);
   if (!m) throw new Error(`no const ${name} in src/app.jsx`);
   return m[0];
 }
@@ -207,11 +215,19 @@ const PER_MAP = 12;   // a flat per-map rate, so edges are arithmetic we control
 // would have every row silently discounted as thin and turn the
 // arithmetic below into a test of the multiplier instead.
 const STUB_EVIDENCE = 40;
+// The real leaguePlayerRate walks the whole history through tierCache and
+// several tiers below it. This file already stubs project() outright, so
+// it stubs the league rate the same way -- a fixed number rather than
+// null, so collectEdges still goes down the projection-space branch of
+// adjustEdge rather than its no-league-rate fallback.
+const STUB_LEAGUE_RATE = 11;
 const collectEdges = new Function(`
   ${extract("likelyStarters")}
   ${extractConst("EDGE_REALIZATION")}
   ${extract("edgeMultiplier")}
   ${extract("adjustEdge")}
+  ${extractConst("STAT_TYPES")}
+  function leaguePlayerRate() { return ${STUB_LEAGUE_RATE}; }
   function project() { return { perGame: ${PER_MAP}, evidenceGames: ${STUB_EVIDENCE} }; }
   ${slice}
   return collectEdges;
@@ -345,6 +361,8 @@ const collectEdgesSpy = new Function(`
   ${extractConst("EDGE_REALIZATION")}
   ${extract("edgeMultiplier")}
   ${extract("adjustEdge")}
+  ${extractConst("STAT_TYPES")}
+  function leaguePlayerRate() { return ${STUB_LEAGUE_RATE}; }
   const seenPools = arguments[0];
   function project(teams, pastMatches) {
     seenPools.push(pastMatches);

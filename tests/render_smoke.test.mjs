@@ -602,8 +602,12 @@ if (app.collectEdges && app.EdgesTab) {
   // the raw value appears somewhere let a mutation printing the raw
   // number as the headline pass: the board would then have been ordered
   // by one figure and labelled with another.
+  // 7.3, not 14.0: the projection is calibrated toward the league rate
+  // first (two games of evidence, factor 0.52) and the edge taken from
+  // there. Scaling the raw edge instead would give 7.3 only by
+  // coincidence of this fixture -- the assertions below pin which.
   containsText("the headline figure is the adjusted edge",
-               tab(line(6)), "OVER +4.8");
+               tab(line(6)), "OVER +7.3");
   containsText("and not the raw one it was cut from",
                tab(line(6)), "OVER +14.0", false);
   containsText("a discounted row shows the figure it was cut from",

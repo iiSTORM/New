@@ -473,6 +473,9 @@ function collectEdges(regionsData, regionList, propsData, weights, statType, gam
     // the match card beside it used their real history, and two different
     // numbers for one player is worse than either number alone.
     const pastMatches = historyPool(regionsData, regionKey);
+    // Computed once per region, not per row: it is the same figure for
+    // every player in it, and leaguePacePerMap walks the whole history.
+    const leagueRate = leaguePlayerRate(pastMatches, rd.teams, STAT_TYPES[statType].key, null);
     for (const match of rd.upcoming_matches || []) {
       // Only the player's OWN team has to be rostered. The opponent is
       // needed for one term, which now falls back to neutral, and a line
@@ -513,7 +516,11 @@ function collectEdges(regionsData, regionList, propsData, weights, statType, gam
             // printed above it, and a ranking that cannot be checked
             // against them is worth less than one that can.
             adjustedEdge: prop.lineCount > 1 ? null
-              : adjustEdge(projection - prop.line, breakdown.evidenceGames),
+              : adjustEdge(projection - prop.line, breakdown.evidenceGames,
+                           projection, prop.line,
+                           // The league rate over this line's own window,
+                           // which is what "a typical player" means here.
+                           leagueRate === null ? null : leagueRate * prop.maps),
           });
         }
       }
@@ -1586,18 +1593,24 @@ function evidenceGamesFor(player, weights, careerRate, priorGames) {
    That slope is the fraction of a claimed deviation that shows up. Pooled
    over every game and stat, n-weighted, on 36,707 point-in-time rows:
 
-       0-4g   0.34     8-12g   0.93
-       4-8g   0.72      12+g   0.94
+       0-4g   0.52     8-12g   0.93
+       4-8g   0.72      12+g   0.98
 
-   So an edge off three games is worth about a third of its face value.
+   Re-measured after CS2's shrink weights were corrected, which is what
+   a calibration table has to be: the first reading here was 0.34 / 0.94,
+   taken while CS2 projections were overstating their spread. Fixing the
+   model absorbed most of that on its own, and a table left at the old
+   numbers would have gone on discounting a fault that no longer existed.
+   Re-run scripts/dev/edge_realization.py whenever the weights move.
+
    Smoothed to be non-decreasing (the raw 12-20g reading dips below 8-12g
    on sample composition) and capped at 1, because this may discount a
    claim and must never inflate one. */
 const EDGE_REALIZATION = [
-  { upTo: 4, factor: 0.34 },
+  { upTo: 4, factor: 0.52 },
   { upTo: 8, factor: 0.72 },
   { upTo: 12, factor: 0.93 },
-  { upTo: Infinity, factor: 0.94 },
+  { upTo: Infinity, factor: 0.98 },
 ];
 
 function edgeMultiplier(games) {
@@ -1611,9 +1624,27 @@ function edgeMultiplier(games) {
   return EDGE_REALIZATION[EDGE_REALIZATION.length - 1].factor;
 }
 
-function adjustEdge(edge, games) {
+/* The calibrated projection, then the edge from it -- not the edge
+   scaled directly.
+
+   Those are only the same when the line sits at the league average. The
+   slope describes how far the model overstates a player's distance from
+   a TYPICAL player, so the correction belongs to the projection; the
+   edge is whatever that calibrated projection disagrees with the line
+   by. Scaling the edge instead put the correction on the wrong
+   quantity, and on the committed board it disagreed in sign with this
+   on 5% of rows.
+
+   `mean` is the league per-window rate. Without one there is nothing to
+   calibrate toward, so the edge is returned untouched rather than
+   guessed at. */
+function adjustEdge(edge, games, projection, line, mean) {
   if (edge === null || typeof edge !== "number" || !isFinite(edge)) return null;
-  return edge * edgeMultiplier(games);
+  if (typeof mean !== "number" || !isFinite(mean)
+      || typeof projection !== "number" || typeof line !== "number") {
+    return edge * edgeMultiplier(games);
+  }
+  return (mean + edgeMultiplier(games) * (projection - mean)) - line;
 }
 
 function evidenceTier(games) {
@@ -2234,7 +2265,16 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // here was a dead number the search "fitted" against a parameter it
     // could not move. Zeroing it changes no prediction; it stops the
     // table claiming a tuning that never happened. (Same for Valorant.)
-    kills: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.0, career: 1.0, share: 0.0, shrink: 0.0 },
+    // shrink raised from 0 after the CS2 roster roughly doubled. The
+    // scraper used to rebuild its team list from one page of the global
+    // feed each run; once past matches carried over, 58 teams of
+    // thin-history players joined the roster, and pulling a thin sample
+    // toward the league rate went from worthless to the largest single
+    // accuracy gain on this game. Walk-forward, 6 folds, adopted on the
+    // repo's majority rule:
+    //   kills   k=0 -> 8: 6/6 folds, MAE 6.7073 -> 6.1344 (-8.54%); every
+    //   k from 2 to 12 wins 6/6, so this is a plateau rather than a point.
+    kills: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.0, career: 1.0, share: 0.0, shrink: 8.0 },
     // deaths' share weight is UNDER REVIEW rather than settled. It was
     // adopted at -3.97% on 795 rows winning 4/6 folds; on the 911 rows
     // there are now, removing it measures -2.74%, which would make it
@@ -2247,8 +2287,15 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // elsewhere. Re-run the knockout as CS2's history deepens; if the
     // HARMFUL verdict survives a fold that is not carrying it alone, drop
     // it to 0.
-    deaths: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0, share: 0.6, shrink: 0.0 },
-    assists: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0, share: 0.0, shrink: 1.0 },
+    //   deaths  k=0 -> 4: 4/6 folds, MAE 4.6915 -> 4.5530 (-2.95%); 4/6 at
+    //   every k tried, so the direction is steadier than the size.
+    deaths: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0, share: 0.6, shrink: 4.0 },
+    //   assists k=1 -> 8: 6/6 folds, MAE 2.9501 -> 2.8452 (-3.56%).
+    //
+    // headshots was tested the same way and NOT changed: k=2 wins 1/6
+    // and k=16 wins 2/6, the sign flips across the range, and the best
+    // reading is -0.94%. That is a knife edge, not a plateau.
+    assists: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0, share: 0.0, shrink: 8.0 },
     // HEADSHOTS, tuned out-of-sample the same way as everything else, on
     // 911 rows that exist only because a scrape run was asked what
     // bo3.gg's players_stats actually contains rather than assumed.

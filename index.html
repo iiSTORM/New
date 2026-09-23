@@ -614,6 +614,7 @@ try {
       const rd = regionsData && regionsData[regionKey];
       if (!rd || !rd.teams) continue;
       const pastMatches = historyPool(regionsData, regionKey);
+      const leagueRate = leaguePlayerRate(pastMatches, rd.teams, STAT_TYPES[statType].key, null);
       for (const match of rd.upcoming_matches || []) {
         if (!rd.teams[match.teamA] && !rd.teams[match.teamB]) continue;
         const when = match._sortKey || match.date;
@@ -641,7 +642,7 @@ try {
               player,
               pastMatches,
               edge: prop.lineCount > 1 ? null : projection - prop.line,
-              adjustedEdge: prop.lineCount > 1 ? null : adjustEdge(projection - prop.line, breakdown.evidenceGames)
+              adjustedEdge: prop.lineCount > 1 ? null : adjustEdge(projection - prop.line, breakdown.evidenceGames, projection, prop.line, leagueRate === null ? null : leagueRate * prop.maps)
             });
           }
         }
@@ -2346,7 +2347,7 @@ try {
   }
   const EDGE_REALIZATION = [{
     upTo: 4,
-    factor: 0.34
+    factor: 0.52
   }, {
     upTo: 8,
     factor: 0.72
@@ -2355,7 +2356,7 @@ try {
     factor: 0.93
   }, {
     upTo: Infinity,
-    factor: 0.94
+    factor: 0.98
   }];
   function edgeMultiplier(games) {
     if (typeof games !== "number" || !isFinite(games)) return EDGE_REALIZATION[0].factor;
@@ -2364,9 +2365,12 @@ try {
     }
     return EDGE_REALIZATION[EDGE_REALIZATION.length - 1].factor;
   }
-  function adjustEdge(edge, games) {
+  function adjustEdge(edge, games, projection, line, mean) {
     if (edge === null || typeof edge !== "number" || !isFinite(edge)) return null;
-    return edge * edgeMultiplier(games);
+    if (typeof mean !== "number" || !isFinite(mean) || typeof projection !== "number" || typeof line !== "number") {
+      return edge * edgeMultiplier(games);
+    }
+    return mean + edgeMultiplier(games) * (projection - mean) - line;
   }
   function evidenceTier(games) {
     if (typeof games !== "number" || !isFinite(games)) return null;
@@ -2601,7 +2605,7 @@ try {
         patchDiscount: 0.0,
         career: 1.0,
         share: 0.0,
-        shrink: 0.0
+        shrink: 8.0
       },
       deaths: {
         history: 0.0,
@@ -2611,7 +2615,7 @@ try {
         patchDiscount: 0.0,
         career: 1.0,
         share: 0.6,
-        shrink: 0.0
+        shrink: 4.0
       },
       assists: {
         history: 0.0,
@@ -2621,7 +2625,7 @@ try {
         patchDiscount: 0.0,
         career: 1.0,
         share: 0.0,
-        shrink: 1.0
+        shrink: 8.0
       },
       headshots: {
         history: 0.0,
