@@ -498,6 +498,12 @@ function collectEdges(regionsData, regionList, propsData, weights, statType, gam
           rows.push({
             region: regionKey, name: player.name, role: player.role,
             team, opponent, when, prop, projection, breakdown, oppKnown,
+            // Carried so a row can expand into the same ProjectionDetail
+            // the match cards use. The alternative was rebuilding the
+            // projection inside the row, which would have been a second
+            // call site free to drift from this one -- and the detail
+            // panel's whole job is to explain THIS number.
+            player, pastMatches,
             // No edge where the provider posted several lines and named
             // none of them the market one — same refusal as the readout.
             edge: prop.lineCount > 1 ? null : projection - prop.line,
@@ -2757,6 +2763,12 @@ function computeEloRatings(regionsData, regionList, kFactor = 32) {
 
 function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop }) {
   const { prop, projection, edge } = row;
+  // Same affordance as the match cards' PlayerRow: the number on its own
+  // is a claim, and the reason to trust or discard it is in the
+  // breakdown. A row with no breakdown stays inert rather than opening
+  // an empty panel.
+  const [open, setOpen] = useState(false);
+  const canExpand = !!(row.breakdown && row.player);
   const mapWindow = mapWindowLabel(prop.maps);
   const ambiguous = edge === null;
   const tone = ambiguous || !fresh ? theme.textFaint
@@ -2767,8 +2779,12 @@ function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop }) {
     : "";
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 14px",
-                  borderBottom: `1px solid ${theme.steel}` }}>
+    <div className={canExpand ? "kp-clickable" : undefined}
+         onClick={canExpand ? () => setOpen(!open) : undefined}
+         style={{ padding: "11px 14px", borderBottom: `1px solid ${theme.steel}`,
+                  cursor: canExpand ? "pointer" : "default",
+                  background: open ? theme.graphiteLight : "transparent" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
           <span style={{ fontWeight: 600, fontSize: 14, color: theme.text }}>{row.name}</span>
@@ -2809,6 +2825,17 @@ function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop }) {
           {mapWindow}
         </div>
       </div>
+      </div>
+      {open && canExpand && (
+        // games={prop.maps} on purpose: collectEdges projected this row
+        // over the LINE's window, so the detail has to describe that same
+        // window or its per-game maths would not multiply out to the
+        // number shown above it.
+        <div style={{ marginTop: 12 }}>
+          <ProjectionDetail r={row.breakdown} p={row.player} cfg={cfg} games={prop.maps}
+                            pastMatches={row.pastMatches} team={row.team} />
+        </div>
+      )}
     </div>
   );
 }

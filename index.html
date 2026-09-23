@@ -635,6 +635,8 @@ try {
               projection,
               breakdown,
               oppKnown,
+              player,
+              pastMatches,
               edge: prop.lineCount > 1 ? null : projection - prop.line
             });
           }
@@ -3380,6 +3382,8 @@ try {
       projection,
       edge
     } = row;
+    const [open, setOpen] = useState(false);
+    const canExpand = !!(row.breakdown && row.player);
     const mapWindow = mapWindowLabel(prop.maps);
     const ambiguous = edge === null;
     const tone = ambiguous || !fresh ? theme.textFaint : edge > 0 ? theme.good : edge < 0 ? theme.bad : theme.textDim;
@@ -3391,12 +3395,19 @@ try {
       minute: "2-digit"
     }) : "";
     return React.createElement("div", {
+      className: canExpand ? "kp-clickable" : undefined,
+      onClick: canExpand ? () => setOpen(!open) : undefined,
+      style: {
+        padding: "11px 14px",
+        borderBottom: `1px solid ${theme.steel}`,
+        cursor: canExpand ? "pointer" : "default",
+        background: open ? theme.graphiteLight : "transparent"
+      }
+    }, React.createElement("div", {
       style: {
         display: "flex",
         alignItems: "center",
-        gap: 12,
-        padding: "11px 14px",
-        borderBottom: `1px solid ${theme.steel}`
+        gap: 12
       }
     }, React.createElement("div", {
       style: {
@@ -3498,7 +3509,18 @@ try {
         color: theme.textFaint,
         marginTop: 2
       }
-    }, mapWindow)));
+    }, mapWindow))), open && canExpand && React.createElement("div", {
+      style: {
+        marginTop: 12
+      }
+    }, React.createElement(ProjectionDetail, {
+      r: row.breakdown,
+      p: row.player,
+      cfg: cfg,
+      games: prop.maps,
+      pastMatches: row.pastMatches,
+      team: row.team
+    })));
   }
   function EdgesTab({
     regionsData,

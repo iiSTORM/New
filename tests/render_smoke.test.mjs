@@ -37,7 +37,7 @@ const EXPORTS = [
   "MatchPlayerRow", "HeadToHeadCard", "AccuracySummary", "ThemeContext",
   "PropsContext", "BASE_TOKENS", "GAME_ACCENTS",
   "FutureTab", "PastResultsTab", "ConsistencyTab", "StandingsTab",
-  "ProjectionDetail", "historyPool", "project", "ScoreBar",
+  "ProjectionDetail", "historyPool", "project", "ScoreBar", "collectEdges",
 ];
 const available = EXPORTS.filter((name) =>
   new RegExp(`(function|const)\\s+${name}\\b`).test(body));
@@ -68,6 +68,25 @@ const app = new Function(
 )(React, { createRoot: () => ({ render() {} }) }, fakeWindow, fakeDocument,
   neverResolves, fakeWindow.localStorage, console);
 
+/* A second instance of the same module whose collapsed panels start open.
+   The expandable rows keep `open` in local state, and renderToStaticMarkup
+   does no interaction, so the markup a user actually reads -- the
+   breakdown behind a projection -- was rendered by nothing here. Rather
+   than add a DOM and a click, hand the module factory a React whose
+   useState(false) answers true; app.jsx destructures useState from that
+   object at line 3, so every `const [open, setOpen] = useState(false)`
+   in the tree opens at once.
+
+   Only a literal `false` is intercepted. Other state passes straight
+   through, so a panel holding an object or a string is untouched and this
+   cannot quietly rewrite state it was not aimed at. */
+const openReact = { ...React, useState: (init) => (init === false ? [true, () => {}] : React.useState(init)) };
+const appOpen = new Function(
+  "React", "ReactDOM", "window", "document", "fetch", "localStorage", "console",
+  code
+)(openReact, { createRoot: () => ({ render() {} }) }, fakeWindow, fakeDocument,
+  neverResolves, fakeWindow.localStorage, console);
+
 let pass = 0, fail = 0;
 function renders(label, element) {
   try {
@@ -92,14 +111,21 @@ const player = (name, k = 4) => ({ name, role: "MID", cur: { k, d: 2, a: 5, g: 1
 const rostered = { color: "#e0c341", players: [player("Faker"), player("Zeus", 3)] };
 const weights = { history: 0.3, career: 0.2, opponent: 1, kp: 0.5, recencyHalfLife: 4, patchDiscount: 0.2 };
 
-function wrap(children, props) {
-  const el = app.ThemeContext
-    ? React.createElement(app.ThemeContext.Provider, { value: theme }, children)
+function wrapWith(mod, children, props) {
+  const el = mod.ThemeContext
+    ? React.createElement(mod.ThemeContext.Provider, { value: theme }, children)
     : children;
-  return app.PropsContext
-    ? React.createElement(app.PropsContext.Provider, { value: props ?? null }, el)
+  return mod.PropsContext
+    ? React.createElement(mod.PropsContext.Provider, { value: props ?? null }, el)
     : el;
 }
+
+const wrap = (children, props) => wrapWith(app, children, props);
+// appOpen is a separate instance of the module, so it has its own
+// createContext identities. Providing app's contexts to appOpen's
+// components leaves them reading the default -- null -- and the first
+// theme lookup throws.
+const wrapOpen = (children, props) => wrapWith(appOpen, children, props);
 
 const propsData = {
   fetched_at: new Date().toISOString(), source: "test",
@@ -345,6 +371,123 @@ if (app.ScoreBar) {
     if (!html.includes("4.3")) throw new Error(`a real value must still print, got ${html.slice(0, 80)}`);
     pass++;
   } catch (err) { fail++; console.error(`FAIL  ScoreBar still draws a real value\n        ${err.message}`); }
+}
+
+
+/* ---- the Edges rows expand, like the match cards do ----
+ *
+ * The Edges tab listed a projection and a line and gave no way to see why
+ * the projection said what it did, while the identical number on a match
+ * card opened into a full breakdown. Same component now sits behind both.
+ *
+ * Two things are worth asserting beyond "it mounted". First that
+ * collectEdges actually carries the player object and the history pool on
+ * each row -- the panel is fed entirely from those, and dropping either
+ * would leave the row opening onto nothing. Second that the panel
+ * describes the LINE's map window: collectEdges projects over prop.maps,
+ * so a detail panel handed any other number would print per-game maths
+ * that does not multiply out to the projection printed directly above it.
+ */
+if (app.collectEdges && appOpen.EdgesTab) {
+  const kills = (date, k) => ({
+    date, teamA: "T1", teamB: "GEN", maps_counted: 2,
+    actual: { T1: { Faker: { k, d: 2, a: 5 } }, GEN: {} } });
+  const history = Array.from({ length: 8 }, (_, i) => kills(`2026-0${i + 1}-01`, 20 + i));
+  const regionsData = { R: { teams: { T1: rostered, GEN: rostered }, past_matches: history,
+                             upcoming_matches: [fixture("T1", "GEN")] } };
+  // maps: 3 so the window is distinguishable from every other 2 in scope.
+  const threeMap = {
+    fetched_at: new Date().toISOString(), source: "test",
+    props: { lol: { Faker: [{ player: "Faker", stat: "kills", maps: 3, line: 24.5,
+                              odds_type: "standard", team: "T1",
+                              start_time: "2026-09-21T10:00:00+00:00" }] } },
+  };
+  const rows = app.collectEdges(regionsData, ["R"], threeMap, weights, "kills", "lol");
+
+  try {
+    if (!rows.length) throw new Error("no edge rows built — fixture is wrong, not the code");
+    const row = rows[0];
+    for (const key of ["player", "pastMatches", "breakdown"]) {
+      if (row[key] == null) throw new Error(`row is missing ${key}, so an expanded row has nothing to draw`);
+    }
+    if (row.player.name !== "Faker") throw new Error("row.player is not the player object");
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  an edge row carries what its expanded panel needs\n        ${err.message}`);
+  }
+
+  const openTab = (props) => wrapOpen(React.createElement(appOpen.EdgesTab, {
+    regionsData, regionList: ["R"], regionLabels: {}, weights, statType: "kills",
+    game: "lol", isDesktop: true }), props);
+
+  containsText("an expanded edge row shows the projection breakdown",
+               openTab(threeMap), "Recent form");
+  containsText("and charts the player's history, same as the match card",
+               openTab(threeMap), "Last 8 matches");
+  containsText("and describes the line's map window, not some other one",
+               openTab(threeMap), "× 3g");
+  containsText("a collapsed row shows none of it",
+               wrap(React.createElement(app.EdgesTab, {
+                 regionsData, regionList: ["R"], regionLabels: {}, weights,
+                 statType: "kills", game: "lol", isDesktop: true }), threeMap),
+               "Recent form", false);
+}
+
+/* The headshots crash again, reached the way a user reached it: not by
+   mounting ProjectionDetail directly with hand-built props, but by
+   opening a row on the Edges board. A CS2 player with headshots in
+   history and none in p.cur took the page down here too. */
+if (appOpen.EdgesTab) {
+  const hsWeights = { history: 0, opponent: 0, kp: 0, recencyHalfLife: 20,
+                      patchDiscount: 0, career: 0, share: 0, shrink: 3 };
+  const series = (date, hs) => ({
+    date, teamA: "A", teamB: "B", maps_counted: 2,
+    actual: { A: { Ghost: { k: 20, d: 15, a: 5, hs } }, B: {} } });
+  const noSeasonRate = { name: "Ghost", role: null,
+                         cur: { g: 10, k: 20, d: 15, a: 5, kp: 26 }, hist: null };
+  const regionsData = { R: {
+    teams: { A: { color: "#fff", players: [noSeasonRate] }, B: { color: "#fff", players: [] } },
+    past_matches: [series("2026-01-01", 9), series("2026-02-01", 11)],
+    upcoming_matches: [{ teamA: "A", teamB: "B", date: "Sep 21", time: "5:00 AM",
+                         _sortKey: "2026-09-21T10:00:00+00:00" }] } };
+  const hsProps = {
+    fetched_at: new Date().toISOString(), source: "test",
+    props: { cs2: { Ghost: [{ player: "Ghost", stat: "headshots", maps: 2, line: 18.5,
+                              odds_type: "standard", team: "A",
+                              start_time: "2026-09-21T10:00:00+00:00" }] } },
+  };
+  renders("an expanded edge row for a stat the player has no season rate for",
+    wrapOpen(React.createElement(appOpen.EdgesTab, {
+      regionsData, regionList: ["R"], regionLabels: {}, weights: hsWeights,
+      statType: "headshots", game: "cs2", isDesktop: true }), hsProps));
+}
+
+
+/* The match card's own row, which EdgeRow was modelled on. Mutating its
+   `open &&` away was caught by nothing before this.
+
+   Mounted directly rather than through FutureMatchCard, and that is the
+   whole point: the card body sits behind the CARD's own `open`, so a
+   collapsed card renders no rows at all and an assertion made through it
+   passes whatever the row does. Only the row in isolation can show that
+   its own collapse is what hides the breakdown. */
+if (appOpen.MatchPlayerRow && app.MatchPlayerRow) {
+  const withHistory = Array.from({ length: 8 }, (_, i) => ({
+    date: `2026-0${i + 1}-01`, teamA: "T1", teamB: "GEN", maps_counted: 2,
+    actual: { T1: { Faker: { k: 20 + i, d: 2, a: 5 } }, GEN: {} } }));
+  const p0 = rostered.players[0];
+  const cfg = { key: "k", label: "Kills", singular: "kill", useKP: true };
+  const r = app.project({ T1: rostered, GEN: rostered }, withHistory, p0, "T1",
+                        "GEN", 2, weights, "kills");
+  const rowIn = (mod, wrapper) => wrapper(React.createElement(mod.MatchPlayerRow, {
+    theme, teamColor: "#e0c341", name: p0.name, role: p0.role, stats: [],
+    r, p: p0, cfg, games: 2, pastMatches: withHistory, team: "T1" }), propsData);
+
+  containsText("an expanded match-card row shows the breakdown",
+               rowIn(appOpen, wrapOpen), "Recent form");
+  containsText("and a collapsed one does not",
+               rowIn(app, wrap), "Recent form", false);
 }
 
 console.log(`${pass} rendered, ${fail} failed`);
