@@ -39,8 +39,11 @@ sys.path.insert(0, str(REPO_ROOT / "scripts" / "dev"))
 import diagnose_calibration as dc  # noqa: E402
 import optimize_weights as ow  # noqa: E402
 
-GAMES = ("lol", "valorant", "cs2")
-STATS = ("kills", "deaths", "assists")
+GAMES = tuple(dc.GAMES)
+# Derived rather than listed, so a new stat is covered by these checks the
+# day it ships instead of quietly not being. Headshots was added to
+# STAT_TYPES and every calibration assertion here simply ignored it.
+STATS = tuple(ow.STAT_TYPES)
 
 
 @pytest.fixture(scope="module")
@@ -114,6 +117,8 @@ def test_the_shipped_model_is_calibrated(game, stat, shipped):
     silently shifted off its zero. At the width below, the kp bug
     (0.939x on CS2 kills) fails and nothing else currently does.
     """
+    if not ow.stat_applies_to(stat, game):
+        pytest.skip(f"{game} does not record {stat}")
     weights = dict(shipped[game][stat])
     weights.setdefault("careerRamp", 0)
     rows = dc.rows_for(game, stat, weights)
@@ -126,6 +131,33 @@ def test_the_shipped_model_is_calibrated(game, stat, shipped):
         f"({predicted:.2f} vs {actual:.2f} over {len(rows)} rows) — the model "
         f"is systematically {'low' if ratio < 1 else 'high'}, which becomes a "
         f"standing {'under' if ratio < 1 else 'over'} recommendation on every line")
+
+
+def test_the_two_ports_agree_on_which_games_record_which_stats():
+    """STAT_TYPES exists twice, and the `games` list is the part that
+    silently does nothing when it drifts.
+
+    If JS says headshots is CS2-only and Python does not, the backtest
+    quietly scores a stat the app never offers -- or worse, the app offers
+    a tab the measurements never covered. Parsed out of src/app.jsx rather
+    than mirrored here, for the same reason the weights are.
+    """
+    src = (REPO_ROOT / "src" / "app.jsx").read_text(encoding="utf-8")
+    block = src[src.index("const STAT_TYPES = {"):]
+    block = block[:block.index("\n};")]
+    for stat, cfg in ow.STAT_TYPES.items():
+        assert f"{stat}:" in block, f"{stat} is modelled in Python but absent from src/app.jsx"
+        # Find this stat's line(s) in the JS table.
+        line = block[block.index(f"{stat}:"):]
+        line = line[:line.index("},") + 1]
+        js_games = "games:" in line
+        py_games = cfg.get("games") is not None
+        assert js_games == py_games, (
+            f"{stat}: src/app.jsx {'declares' if js_games else 'does not declare'} a games "
+            f"list, the Python port {'does' if py_games else 'does not'}")
+        if py_games:
+            for game in cfg["games"]:
+                assert f'"{game}"' in line, f"{stat}: {game} missing from src/app.jsx's games list"
 
 
 def test_the_two_copies_of_the_shipped_weights_agree(shipped, capsys):

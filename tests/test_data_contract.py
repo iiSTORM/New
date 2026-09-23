@@ -7,10 +7,15 @@ data has just been scraped. Here the committed files are expected to be as
 old as the last run.
 """
 import json
+import sys
 from datetime import datetime
 from pathlib import Path
 
 import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+
+import props_match as pm  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -121,7 +126,14 @@ class TestPropsFile:
                 for prop in props:
                     where = f"{game}:{name}"
                     assert prop.get("player") == name, where
-                    assert prop.get("stat") in ("kills", "deaths", "assists"), where
+                    # Derived from the matcher, not listed here. This was
+                    # the SECOND copy of ("kills", "deaths", "assists") in
+                    # the suite; the first was fixed when headshots started
+                    # matching and this one was missed, so it failed on the
+                    # first real board that carried a headshots line. A
+                    # hardcoded copy of a table that grows is guaranteed to
+                    # go stale -- the only question is which copy finds out.
+                    assert prop.get("stat") in pm.STAT_ALIASES, where
                     assert isinstance(prop.get("maps"), int), where
                     assert isinstance(prop.get("line"), (int, float)), where
                     assert not isinstance(prop["line"], bool), where

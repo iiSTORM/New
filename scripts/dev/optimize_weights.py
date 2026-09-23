@@ -37,9 +37,12 @@ STAT_TYPES = {
     "kills": {"key": "k", "oppBasis": "d", "useKP": True, "laneSpecific": True},
     "deaths": {"key": "d", "oppBasis": "k", "useKP": False, "laneSpecific": True},
     "assists": {"key": "a", "oppBasis": "d", "useKP": True, "laneSpecific": False},
-    # CS2 only -- LoL and Valorant record no such thing, and asking for it
-    # there yields no rows rather than a wrong answer.
-    "headshots": {"key": "hs", "oppBasis": "d", "useKP": False, "laneSpecific": False},
+    # CS2 only -- LoL and Valorant record no such thing. Declared here the
+    # same way src/app.jsx declares it, so both ports agree about which
+    # stats a game actually has rather than one of them finding out by
+    # getting zero rows back.
+    "headshots": {"key": "hs", "oppBasis": "d", "useKP": False, "laneSpecific": False,
+                  "games": ["cs2"]},
 }
 
 # The weights the app actually ships, mirrored from
@@ -77,6 +80,16 @@ DEFAULT_WEIGHTS = {
 # ============================================================
 # Direct ports of the JS model functions
 # ============================================================
+
+def stat_applies_to(stat_type, game):
+    """Whether a game records this stat at all.
+
+    A stat with no `games` list is universal. Asking a game for one it
+    does not record is not an error, it just has nothing to say -- but it
+    is worth saying so explicitly rather than reporting an empty sample.
+    """
+    games = STAT_TYPES[stat_type].get("games")
+    return games is None or game in games
 
 def get_actual_stat(match, team, player_name, stat_key):
     raw = (match.get("actual") or {}).get(team, {}).get(player_name)
