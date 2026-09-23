@@ -147,3 +147,46 @@ class TestWhatTheScriptDoes:
         """Firefox's viewer innerText is the pretty tree, not the source,
         so it would save something that is not the payload."""
         assert "Raw Data" in source
+
+
+class TestWhereTheRefreshScriptLooks:
+    """A saved board has to be findable from the machine running the
+    script, which is not always the machine that downloaded it.
+
+    In a codespace or a remote VS Code window the browser saves to your
+    laptop while refresh_props.sh runs in the cloud, so $HOME/Downloads
+    there is a different filesystem and is simply empty. That is not a
+    hypothetical -- it is how this was first reported.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def sh(cls):
+        return (ROOT / "scripts" / "refresh_props.sh").read_text(encoding="utf-8")
+
+    def test_the_repo_root_is_searched_as_well_as_downloads(self, sh):
+        assert '$HOME/Downloads:$REPO' in sh, \
+            "a file dragged into the editor's file explorer must be found"
+
+    def test_the_search_list_is_split_rather_than_used_whole(self, sh):
+        """A colon-joined default used as one path would match nothing
+        and quietly fall through to the live fetch, which is exactly the
+        403 this route exists to avoid."""
+        assert 'IFS=":"' in sh
+
+    def test_a_dropped_payload_cannot_be_committed(self):
+        """The repo root being a drop location makes this the difference
+        between a convenience and a board committed by a stray git add."""
+        ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
+        assert "prizepicks-payload.json" in ignore
+
+    def test_the_name_it_looks_for_is_the_name_the_script_saves(self, sh, source):
+        assert 'PAYLOAD_NAME="${PROPS_PAYLOAD_NAME:-prizepicks-payload.json}"' in sh
+        assert 'OUT_NAME = "prizepicks-payload.json"' in source
+
+    def test_staleness_is_bounded_by_the_window_the_app_enforces(self, sh):
+        """90 minutes is not a preference. src/app.jsx greys out a line
+        older than that, so a download past it is not worth committing."""
+        assert 'PAYLOAD_MAX_AGE_MIN="${PROPS_PAYLOAD_MAX_AGE_MIN:-90}"' in sh
+        app = (ROOT / "src" / "app.jsx").read_text(encoding="utf-8")
+        assert "const PROPS_MAX_AGE_MINUTES = 90;" in app

@@ -57,3 +57,8 @@ valorant.json
 # overlap. It is removed when the run finishes.
 .props-refresh.lock/
 request_counts.txt
+
+# Boards saved by tools/bookmarklet.html. The repo root is a supported
+# drop location (a codespace browser downloads to a different machine),
+# so these must never be committable.
+prizepicks-payload.json

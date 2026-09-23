@@ -41,7 +41,13 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO"
 
 BRANCH="${PROPS_BRANCH:-main}"
-PAYLOAD_DIR="${PROPS_PAYLOAD_DIR:-$HOME/Downloads}"
+# Where to look for a board saved by the bookmarklet, in order. Colon
+# separated, so a codespace or a remote VS Code window can be handled
+# without configuring anything: the browser saves to the machine YOUR
+# browser runs on, which is not the machine this script runs on, so the
+# repo root is searched too and dragging the file into the file explorer
+# is enough.
+PAYLOAD_DIR="${PROPS_PAYLOAD_DIR:-$HOME/Downloads:$REPO}"
 PAYLOAD_NAME="${PROPS_PAYLOAD_NAME:-prizepicks-payload.json}"
 # Mirrors PROPS_MAX_AGE_MINUTES in src/app.jsx, which is where staleness is
 # actually enforced. Checked here too so a forgotten download is reported
@@ -92,14 +98,29 @@ fi
 # window is not passed on -- stale lines that still look actionable are
 # the one failure this whole design is arranged to prevent.
 FIXTURE=""
-if [ "$PAYLOAD_DIR" != "none" ] && [ -d "$PAYLOAD_DIR" ]; then
-  FIXTURE="$(find "$PAYLOAD_DIR" -maxdepth 1 -name "$PAYLOAD_NAME" \
+STALE=""
+if [ "$PAYLOAD_DIR" != "none" ]; then
+  # IFS split on ':' rather than an array, because this has to keep
+  # working under the plain sh some cron and launchd setups still use.
+  OLD_IFS="$IFS"; IFS=":"
+  for dir in $PAYLOAD_DIR; do
+    IFS="$OLD_IFS"
+    [ -n "$dir" ] && [ -d "$dir" ] || { IFS=":"; continue; }
+    found="$(find "$dir" -maxdepth 1 -name "$PAYLOAD_NAME" \
                   -mmin "-$PAYLOAD_MAX_AGE_MIN" 2>/dev/null | head -n 1)"
-  if [ -z "$FIXTURE" ] && [ -e "$PAYLOAD_DIR/$PAYLOAD_NAME" ]; then
-    log "$PAYLOAD_DIR/$PAYLOAD_NAME is older than ${PAYLOAD_MAX_AGE_MIN} minutes —"
-    log "  click the bookmarklet again to save a current board, then re-run"
-    exit 1
-  fi
+    if [ -n "$found" ]; then FIXTURE="$found"; break; fi
+    # Remember a stale one so it can be reported by name. A download that
+    # is simply too old and one that was never made need different advice.
+    [ -z "$STALE" ] && [ -e "$dir/$PAYLOAD_NAME" ] && STALE="$dir/$PAYLOAD_NAME"
+    IFS=":"
+  done
+  IFS="$OLD_IFS"
+fi
+
+if [ -z "$FIXTURE" ] && [ -n "$STALE" ]; then
+  log "$STALE is older than ${PAYLOAD_MAX_AGE_MIN} minutes —"
+  log "  click the bookmarklet again to save a current board, then re-run"
+  exit 1
 fi
 
 # scrape_props.py already refuses to replace good lines with an empty file
@@ -112,7 +133,10 @@ if [ -n "$FIXTURE" ]; then
   fi
 elif ! "$PYTHON" scripts/scrape_props.py --out props.json ${DRY_RUN}; then
   log "fetch failed — props.json left as it was"
-  log "  no saved board in $PAYLOAD_DIR either; see tools/bookmarklet.html"
+  log "  no board saved in any of: $PAYLOAD_DIR"
+  log "  see tools/bookmarklet.html — and note that in a codespace or a remote"
+  log "  VS Code window your browser downloads to a different machine, so drop"
+  log "  $PAYLOAD_NAME into the repo root here."
   exit 1
 fi
 

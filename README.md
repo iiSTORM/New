@@ -131,8 +131,16 @@ The page shows the script's full source beside the button, generated from
 `python tools/build_bookmarklet.py --check` fails the build if those ever
 drift, and `tests/test_bookmarklet.py` checks the same thing.
 
-Override the pickup with `PROPS_PAYLOAD_DIR` / `PROPS_PAYLOAD_NAME`, or
-turn it off with `PROPS_PAYLOAD_DIR=none`.
+**In a codespace or a remote VS Code window**, your browser downloads to
+your own machine while `refresh_props.sh` runs in the cloud — so
+`$HOME/Downloads` there is a different filesystem and is simply empty.
+The repo root is searched too, so dragging `prizepicks-payload.json` into
+the editor's file explorer is enough. It is git-ignored, so a stray
+`git add` cannot sweep a board into a commit.
+
+`PROPS_PAYLOAD_DIR` is a colon-separated list, defaulting to
+`$HOME/Downloads:<repo root>`; `PROPS_PAYLOAD_NAME` renames the file it
+looks for, and `PROPS_PAYLOAD_DIR=none` turns the pickup off.
 
 #### By hand
 
