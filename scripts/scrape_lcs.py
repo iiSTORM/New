@@ -14,6 +14,7 @@ lookup, so this has to be maintained by hand a few times a year.
 """
 import json
 import re
+import os
 import sys
 import random
 import time
@@ -55,6 +56,50 @@ COLOR_PALETTE = [
 ROLE_ORDER = {"Top": "TOP", "Jungle": "JNG", "Mid": "MID", "ADC": "BOT", "Support": "SUP"}
 
 
+# Wall clock is not a usable measure of a change to this scraper. Across
+# three runs of IDENTICAL code this step took 4.6, 6.0 and 7.7 minutes --
+# a 67% spread that swamps any change worth making, and exactly what made
+# a first attempt at speeding things up look like a regression when it
+# was really a no-op. Requests are what this code controls, so they are
+# what it reports: one number per run, comparable regardless of how the
+# site is feeling.
+REQUEST_TOTAL = {"n": 0}
+REQUEST_LOG_PATH = "request_counts.txt"  # read by the workflow's last step
+
+
+def report_requests(label):
+    line = f"{label}: {REQUEST_TOTAL['n']} requests made this run"
+    print(f"\n  {line}")
+    _write_run_summary(f"- gol.gg {line}")
+
+def _write_run_summary(line):
+    """Put the number where it can actually be read.
+
+    Fourth attempt, and the failures are worth recording because each one
+    looked right:
+
+      stdout mid-job -- unreachable, the log API returns a job's TAIL and
+        the tail is always the git push.
+      GITHUB_STEP_SUMMARY alone -- shows in the UI, but nothing fetches it.
+      catting GITHUB_STEP_SUMMARY from a later step -- every step gets its
+        OWN summary file, so the later step read an empty one and printed
+        a header with nothing under it.
+
+    So: a plain file in the workspace that every scraper appends to and
+    the job's last step cats. The summary write stays as well, since it
+    is genuinely nicer to read in the UI.
+    """
+    for path in (os.environ.get("GITHUB_STEP_SUMMARY"), REQUEST_LOG_PATH):
+        if not path:
+            continue
+        try:
+            with open(path, "a") as f:
+                f.write(line + "\n")
+        except OSError:
+            pass  # never fail a scrape over a progress note
+
+
+
 def get(url, retries=4):
     """Fetch with retries that actually cover the failure modes this
     project has really hit.
@@ -85,6 +130,7 @@ def get(url, retries=4):
     for attempt in range(retries):
         attempts_made = attempt + 1
         try:
+            REQUEST_TOTAL["n"] += 1
             r = requests.get(url, headers=HEADERS, timeout=20)
             last_status = r.status_code
             if r.status_code == 200:
@@ -748,7 +794,54 @@ def classify_tournament_stage(tournament_name):
     return "regular_season"
 
 
-def scrape_region(region_key, current_tournament, historical_tournament):
+# A completed LoL series' box score does not change, and this scraper was
+# re-fetching every one of them, twice a day, forever. 970 matches at two
+# page loads each is roughly 1,940 requests to gol.gg per run to rebuild
+# data that was already sitting in data.json -- and by the scraper's own
+# comment, that fetch is "the dominant cost of the whole scrape".
+#
+# Two things make reuse safe rather than merely faster:
+#
+#   base_game_id, not (date, teams). Two teams can meet twice on one day
+#   in a round robin, and reusing the wrong box score would be silent and
+#   wrong -- far worse than being slow.
+#
+#   A grace window. gol.gg finalises a page some time after the series
+#   ends, and this repo has already been bitten by a source reporting a
+#   finished match with fields still null. Anything inside the window is
+#   re-fetched regardless, so a result that was incomplete when first
+#   seen gets corrected rather than frozen.
+REUSE_GRACE_DAYS = 3
+
+
+def reusable_past_matches(existing_region, today=None):
+    """{base_game_id: entry} for series worth trusting from a previous run.
+
+    Excludes anything without an id (records written before this existed),
+    anything inside the grace window, and anything whose box score is not
+    actually populated -- a half-scraped entry must be re-fetched, not
+    kept forever because it happens to be old.
+    """
+    today = today or datetime.now(timezone.utc).date()
+    out = {}
+    for entry in (existing_region or {}).get("past_matches") or []:
+        game_id = entry.get("base_game_id")
+        if game_id is None:
+            continue
+        actual = entry.get("actual")
+        if not isinstance(actual, dict) or not any(
+                isinstance(side, dict) and side for side in actual.values()):
+            continue  # no real player stats in it
+        try:
+            played = datetime.fromisoformat(str(entry.get("date"))).date()
+        except (TypeError, ValueError):
+            continue  # undateable, so the grace window cannot be applied
+        if (today - played).days < REUSE_GRACE_DAYS:
+            continue
+        out[game_id] = entry
+    return out
+
+def scrape_region(region_key, current_tournament, historical_tournament, known=None):
     print(f"\n=== {region_key} ({current_tournament}) ===")
 
     print(f"Fetching team rosters (for team/role assignment)...")
@@ -800,6 +893,11 @@ def scrape_region(region_key, current_tournament, historical_tournament):
         left_score, right_score = (int(x) for x in m["score"].split("-"))
         winner = m["team_left"] if left_score > right_score else m["team_right"]
         entry = {
+            # Stored so the next run can tell it already has this series.
+            # gol.gg's own game id, and the only genuinely unique key here
+            # -- two teams can play twice on one day in a round robin, so
+            # (date, teamA, teamB) is not safe to reuse a box score on.
+            "base_game_id": m["base_game_id"],
             "week": m["week"], "date": m["date"], "patch": m.get("patch"),
             "teamA": m["team_left"], "teamB": m["team_right"],
             "winner": winner, "score": m["score"],
@@ -838,8 +936,15 @@ def scrape_region(region_key, current_tournament, historical_tournament):
             entry["per_game"] = per_game
         return entry
 
+    known = known or {}
+    to_fetch = [m for m in matches if m["base_game_id"] not in known]
+    reused = [known[m["base_game_id"]] for m in matches if m["base_game_id"] in known]
+    past_matches.extend(reused)
+    print(f"  {len(reused)} reused from the last run, {len(to_fetch)} to fetch"
+          f"{' (first run since ids were stored — all of them)' if reused == [] and known == {} else ''}")
+
     with ThreadPoolExecutor(max_workers=6) as pool:
-        futures = {pool.submit(fetch_one, m): m for m in matches}
+        futures = {pool.submit(fetch_one, m): m for m in to_fetch}
         for future in as_completed(futures):
             m = futures[future]
             try:
@@ -876,7 +981,8 @@ def main():
     for region_key, cfg in REGIONS.items():
         try:
             payload["regions"][region_key] = scrape_region(
-                region_key, cfg["current"], cfg["historical"]
+                region_key, cfg["current"], cfg["historical"],
+                known=reusable_past_matches(existing_regions.get(region_key)),
             )
         except Exception as e:
             print(f"! region {region_key} failed entirely: {e}", file=sys.stderr)
@@ -908,6 +1014,8 @@ def main():
             sys.exit(1)
         print(f"  ! No committed data.json to fall back to either — writing what little there "
               f"is so the file exists at all.", file=sys.stderr)
+
+    report_requests("stats scrape")
 
     with open("data.json", "w") as f:
         # Written minified: these files are machine-generated and never read
@@ -942,10 +1050,19 @@ def main():
         for p in team.get("players", [])
     )
     if had_career and not now_has_career:
-        print("\n! data.json previously carried merged career data and this fresh write does not.\n"
-              "  Run `python scripts/merge.py` (and scrape_career.py first if career_data.json is\n"
-              "  stale) before committing, or the app will run with the career tier pointed at\n"
-              "  nothing.", file=sys.stderr)
+        # Expected, not alarming: this script writes the raw stats and
+        # merge.py folds career in afterwards, so a fresh write never
+        # carries it. Worded as a reminder rather than a warning because
+        # it fires on EVERY workflow run, and a message that cries wolf
+        # twice a day is one nobody reads on the day it matters.
+        #
+        # The real protection is check_data.py, which runs AFTER merge.py
+        # and fails the run if career stopped reaching players. That is
+        # the failure this text used to be standing in for, and it was
+        # standing in the wrong place: here, the merge has not happened
+        # yet, so there is nothing to detect.
+        print("\n  (career not in this write yet — merge.py folds it in next; "
+              "check_data.py fails the run if it does not)", file=sys.stderr)
 
 
 if __name__ == "__main__":

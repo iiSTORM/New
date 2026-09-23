@@ -147,6 +147,16 @@ jobs:
             sleep $((RANDOM % 5 + 1))
           done
           git push
+      # Deliberately the LAST step in the job. GitHub's job-log API returns
+      # a job's TAIL, and the commit/push step above echoes ~90 lines of
+      # its own script, so anything before it is unreachable from an API
+      # client. Printed here, the counts are the first thing in the tail.
+      - name: Request counts
+        if: always()
+        run: |
+          echo "--- requests made this run ---"
+          cat request_counts.txt 2>/dev/null || echo "(no counts recorded)"
+
 
   scrape-valorant:
     runs-on: ubuntu-latest
@@ -322,3 +332,12 @@ jobs:
             sleep $((RANDOM % 5 + 1))
           done
           git push
+      # Deliberately the LAST step in the job. GitHub's job-log API returns
+      # a job's TAIL, and the commit/push step above echoes ~90 lines of
+      # its own script, so anything before it is unreachable from an API
+      # client. Printed here, the counts are the first thing in the tail.
+      - name: Request counts
+        if: always()
+        run: |
+          echo "--- requests made this run ---"
+          cat request_counts.txt 2>/dev/null || echo "(no counts recorded)"

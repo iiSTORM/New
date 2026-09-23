@@ -51,6 +51,7 @@ see resolve_all_tracked_player_ids() below.
 """
 import json
 import re
+import os
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -66,6 +67,11 @@ OUTPUT_PATH = "career_data.json"
 # a source outage rather than a real change, and will not overwrite the cache.
 MIN_RETAINED_FRACTION = 0.5
 MATCHLIST_CAP = 200  # confirmed real cap on the season-ALL match list view
+# How close to the cap a cached game count has to be before it is worth
+# re-asking. Runs are 12 hours apart and no player plays 30 competitive
+# games in a day, so a count this far below the cap cannot have crossed
+# it since -- and one already above it cannot come back down.
+COUNT_STALENESS_MARGIN = 30
 CURRENT_SEASON = "S16"  # confirmed current season from live nav — update each split if gol.gg's own season counter advances
 CONCURRENCY = 6  # matches scrape_lcs.py's proven-safe concurrency level against this same site
 _debug_sample_printed = {"done": False}  # shared across threads — see parse_matchlist_html's note on why this is printed only once
@@ -163,8 +169,59 @@ def resolve_all_tracked_player_ids():
     return resolved
 
 
+# Wall clock is not a usable measure of a change to these scrapers.
+# Across three runs of IDENTICAL code, the gol.gg stats step took 4.6,
+# 6.0 and 7.7 minutes -- a 67% spread that swamps any change worth
+# making, and it is exactly what made the first attempt at speeding this
+# up look like a regression when it was really a no-op.
+#
+# Requests are the thing this code controls, so they are what it reports.
+# One number at the end of a run, comparable between runs regardless of
+# how the site is feeling.
+REQUEST_TOTAL = {"n": 0}
+REQUEST_LOG_PATH = "request_counts.txt"  # read by the workflow's last step
+
+
+def _count_request():
+    REQUEST_TOTAL["n"] += 1
+
+
+def report_requests(label):
+    line = f"{label}: {REQUEST_TOTAL['n']} requests made this run"
+    print(f"\n  {line}")
+    _write_run_summary(f"- gol.gg {line}")
+
+def _write_run_summary(line):
+    """Put the number where it can actually be read.
+
+    Fourth attempt, and the failures are worth recording because each one
+    looked right:
+
+      stdout mid-job -- unreachable, the log API returns a job's TAIL and
+        the tail is always the git push.
+      GITHUB_STEP_SUMMARY alone -- shows in the UI, but nothing fetches it.
+      catting GITHUB_STEP_SUMMARY from a later step -- every step gets its
+        OWN summary file, so the later step read an empty one and printed
+        a header with nothing under it.
+
+    So: a plain file in the workspace that every scraper appends to and
+    the job's last step cats. The summary write stays as well, since it
+    is genuinely nicer to read in the UI.
+    """
+    for path in (os.environ.get("GITHUB_STEP_SUMMARY"), REQUEST_LOG_PATH):
+        if not path:
+            continue
+        try:
+            with open(path, "a") as f:
+                f.write(line + "\n")
+        except OSError:
+            pass  # never fail a scrape over a progress note
+
+
+
 def fetch(url, retries=3):
     for attempt in range(retries):
+        _count_request()
         try:
             resp = requests.get(url, headers=HEADERS, timeout=20)
             if resp.status_code == 200:
@@ -270,9 +327,18 @@ def parse_matchlist_html(html):
 
 
 def fetch_player_season(player_id, season):
+    """The season's games, [] if the player played none, or None if the
+    page could not be fetched at all.
+
+    The distinction matters now that an empty season is REMEMBERED. It
+    used to return [] for both, which is fine when every season is
+    re-fetched every run and catastrophic when it is not: a single
+    network blip would be recorded as "this player never played that
+    season" and never looked at again.
+    """
     html = fetch(f"{BASE}/players/player-matchlist/{player_id}/season-{season}/split-ALL/tournament-ALL/")
     if not html:
-        return []
+        return None
     return parse_matchlist_html(html)
 
 
@@ -356,26 +422,69 @@ def process_one_player(player_name, player_id, previous, progress, total):
     prev_player = previous.get(str(player_id), {})
     prev_seasons = prev_player.get("season_aggregates", {})
 
-    total_games = get_career_game_count(player_id)
-    needs_full_history = total_games is not None and total_games > MATCHLIST_CAP
+    # The game-count request exists ONLY to decide needs_full_history, and
+    # it was being made for every one of ~320 players on every run --
+    # doubling this scraper's traffic to answer a question whose answer
+    # was already known.
+    #
+    # A first attempt skipped it when every past season was cached. That
+    # was correct and nearly useless: only 14 of 320 players qualified,
+    # because a player only ACCUMULATES old seasons after crossing the cap
+    # once, so the majority have just one cached season and never match.
+    # Measured, it changed nothing. Caching the count itself is what
+    # actually answers the question for everyone.
+    seasons_needed = all_seasons_back_to(CURRENT_SEASON)
+    known_count = prev_player.get("career_game_count")
+    total_games = known_count
 
-    season_aggregates = dict(prev_seasons)  # reuse cached, immutable past seasons
+    if known_count is not None and known_count <= MATCHLIST_CAP - COUNT_STALENESS_MARGIN:
+        pass  # comfortably under the cap, and cannot have crossed it since
+    elif known_count is not None and known_count > MATCHLIST_CAP:
+        pass  # already over it; more games cannot bring it back under
+    else:
+        # Either unknown, or close enough to the cap that a run's worth of
+        # games could have crossed it. Ask.
+        total_games = get_career_game_count(player_id)
+
+    # Seasons already looked at, INCLUDING the ones that turned out to be
+    # empty. Storing only the seasons that produced data meant a player
+    # who simply did not play in S8 had S8 re-fetched on every run
+    # forever -- measured at 1,063 such requests per run across 248
+    # veterans, more than the entire rest of this scraper put together.
+    prev_checked = set(prev_player.get("seasons_checked") or [])
+
+    needs_full_history = total_games is not None and total_games > MATCHLIST_CAP
     seasons_to_fetch = [CURRENT_SEASON]
     if needs_full_history:
-        seasons_to_fetch = [s for s in all_seasons_back_to(CURRENT_SEASON) if s not in prev_seasons or s == CURRENT_SEASON]
+        seasons_to_fetch += [s for s in seasons_needed
+                             if s != CURRENT_SEASON
+                             and s not in prev_seasons
+                             and s not in prev_checked]
 
-    for season in seasons_to_fetch:
+    season_aggregates = dict(prev_seasons)  # reuse cached, immutable past seasons
+    checked = set(prev_checked)
+    for i, season in enumerate(seasons_to_fetch):
         games = fetch_player_season(player_id, season)
+        if games is None:
+            continue  # the fetch failed; do not record that as "no games"
+        checked.add(season)
         agg = season_aggregate(games)
         if agg:
             season_aggregates[season] = agg
-        time.sleep(0.5)
+        # Between fetches, not after the last one. The trailing sleep was
+        # pure wall clock: seasons_to_fetch is [CURRENT_SEASON] alone for
+        # almost every player, so this was half a second per player spent
+        # waiting for nothing, on every run.
+        if i + 1 < len(seasons_to_fetch):
+            time.sleep(0.5)
 
     career = decayed_career_baseline(season_aggregates, CURRENT_SEASON)
     progress["done"] += 1
     if progress["done"] % 10 == 0 or progress["done"] == total:
         print(f"  ...{progress['done']}/{total} players processed")
-    return str(player_id), {"name": player_name, "season_aggregates": season_aggregates, "career": career}
+    return str(player_id), {"name": player_name, "season_aggregates": season_aggregates,
+                            "career": career, "career_game_count": total_games,
+                            "seasons_checked": sorted(checked)}
 
 
 def build_career_data():
@@ -409,6 +518,7 @@ def main():
         sys.exit(1)
 
     data = build_career_data()
+    report_requests("career scrape")
 
     # Never overwrite a good cache with a collapsed one.
     #

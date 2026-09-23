@@ -37,7 +37,7 @@ const EXPORTS = [
   "MatchPlayerRow", "HeadToHeadCard", "AccuracySummary", "ThemeContext",
   "PropsContext", "BASE_TOKENS", "GAME_ACCENTS",
   "FutureTab", "PastResultsTab", "ConsistencyTab", "StandingsTab",
-  "ProjectionDetail", "historyPool", "project",
+  "ProjectionDetail", "historyPool", "project", "ScoreBar",
 ];
 const available = EXPORTS.filter((name) =>
   new RegExp(`(function|const)\\s+${name}\\b`).test(body));
@@ -277,6 +277,74 @@ if (app.ProjectionDetail && app.historyPool && app.project) {
                detail(world.Champions.past_matches), "Last 8 matches", false);
   containsText("and a region with its own history is unaffected",
                detail(app.historyPool(world, "Pacific")), "Last 8 matches");
+}
+
+/* ---- a stat the player has no season rate for ----
+ *
+ * This blanked the page in production. A CS2 player can have headshots in
+ * their match history and no headshot rate in p.cur, because the two are
+ * built separately and a stat can postdate the aggregate — 134 of 271
+ * players were in exactly that state the day headshots shipped. The
+ * projection worked, because the model reads past_matches; ScoreBar then
+ * called .toFixed on the missing season rate and took the whole tree
+ * down. React unmounts on a render throw, so the expanded card did not
+ * lose a row, it lost everything.
+ *
+ * The existing mounts here all hand every component a complete player.
+ * That is the gap: real data is complete until the day a new field
+ * arrives, and then it is complete for some players and not others.
+ */
+if (app.ProjectionDetail && app.project) {
+  const hsCfg = { key: "hs", label: "Headshots", singular: "headshot", oppBasis: "d", useKP: false };
+  const weights = { history: 0, opponent: 0, kp: 0, recencyHalfLife: 20,
+                    patchDiscount: 0, career: 0, share: 0, shrink: 3 };
+  const series = (date, hs) => ({
+    date, teamA: "A", teamB: "B", maps_counted: 2,
+    actual: { A: { Ghost: { k: 20, d: 15, a: 5, hs } }, B: {} } });
+  const history = [series("2026-01-01", 9), series("2026-02-01", 11)];
+
+  // The exact production shape: history has the stat, p.cur does not.
+  const noSeasonRate = { name: "Ghost", role: null,
+                         cur: { g: 10, k: 20, d: 15, a: 5, kp: 26 }, hist: null };
+  const teams = { A: { players: [noSeasonRate] }, B: { players: [] } };
+  const r = app.project(teams, history, noSeasonRate, "A", "B", 2, weights, "headshots");
+  renders("expanded card for a stat with history but no season rate",
+    wrap(React.createElement(app.ProjectionDetail, {
+      r, p: noSeasonRate, cfg: hsCfg, games: 2, pastMatches: history, team: "A" }), propsData));
+
+  // And the degenerate versions of the same thing.
+  renders("expanded card for a player with no cur at all",
+    wrap(React.createElement(app.ProjectionDetail, {
+      r, p: { name: "Ghost", role: null, hist: null }, cfg: hsCfg, games: 2,
+      pastMatches: history, team: "A" }), propsData));
+  renders("expanded card with no history to chart either",
+    wrap(React.createElement(app.ProjectionDetail, {
+      r, p: noSeasonRate, cfg: hsCfg, games: 2, pastMatches: [], team: "A" }), propsData));
+}
+
+if (app.ScoreBar) {
+  /* Asserted on the markup, not just mounted: the bug was a value that
+     should not have been printed, and "it rendered" is exactly what a
+     crash-free wrong answer looks like. */
+  const bar = (value) => renderToStaticMarkup(
+    React.createElement(app.ThemeContext.Provider, { value: theme },
+      React.createElement(app.ScoreBar, { label: "Season average", value, max: 10, unit: "hs/g", color: "#fff" })));
+  for (const [label, value] of [["undefined", undefined], ["null", null],
+                                ["NaN", NaN], ["Infinity", Infinity], ["a string", "7"]]) {
+    try {
+      const html = bar(value);
+      if (html !== "") throw new Error(`rendered ${JSON.stringify(html.slice(0, 60))} instead of nothing`);
+      pass++;
+    } catch (err) {
+      fail++;
+      console.error(`FAIL  ScoreBar draws nothing for ${label}\n        ${err.message}`);
+    }
+  }
+  try {
+    const html = bar(4.25);
+    if (!html.includes("4.3")) throw new Error(`a real value must still print, got ${html.slice(0, 80)}`);
+    pass++;
+  } catch (err) { fail++; console.error(`FAIL  ScoreBar still draws a real value\n        ${err.message}`); }
 }
 
 console.log(`${pass} rendered, ${fail} failed`);

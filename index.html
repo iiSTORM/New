@@ -2771,6 +2771,7 @@ try {
     color
   }) {
     const theme = useTheme();
+    if (typeof value !== "number" || !isFinite(value)) return null;
     const pct = max > 0 ? Math.max(0, Math.min(100, value / max * 100)) : 0;
     return React.createElement("div", {
       style: {
@@ -2816,10 +2817,12 @@ try {
     const theme = useTheme();
     const championStats = useChampionStats();
     const consistency = championStats ? championPoolConsistency(p.name, championStats, cfg.key) : null;
-    const seasonAvg = p.cur[cfg.key];
-    const seasonTotal = seasonAvg * games;
-    const edgePct = seasonTotal > 0 ? (r.total - seasonTotal) / seasonTotal * 100 : null;
+    const rawSeasonAvg = p.cur ? p.cur[cfg.key] : undefined;
+    const seasonAvg = typeof rawSeasonAvg === "number" && isFinite(rawSeasonAvg) ? rawSeasonAvg : null;
+    const seasonTotal = seasonAvg !== null ? seasonAvg * games : null;
+    const edgePct = seasonTotal ? (r.total - seasonTotal) / seasonTotal * 100 : null;
     const axes = projectionRadarAxes(r, seasonAvg);
+    const barScale = Math.max(...[r.recentFormRate, r.careerRate, seasonAvg].filter(v => typeof v === "number" && isFinite(v)), 0) * 1.15;
     const tags = projectionTags(r, theme);
     const form = pastMatches && team ? recentForm(pastMatches, team, p.name, cfg.key, 8) : [];
     const steadiness = consistencyScore(form.map(f => f.value));
@@ -2878,19 +2881,19 @@ try {
     }, React.createElement(ScoreBar, {
       label: "Recent form",
       value: r.recentFormRate,
-      max: Math.max(r.recentFormRate, r.careerRate || 0, seasonAvg) * 1.15,
+      max: barScale,
       unit: `${cfg.key}/g`,
       color: theme.textDim
     }), r.careerRate != null && r.careerWeight > 0 && React.createElement(ScoreBar, {
       label: "Career baseline",
       value: r.careerRate,
-      max: Math.max(r.recentFormRate, r.careerRate, seasonAvg) * 1.15,
+      max: barScale,
       unit: `${cfg.key}/g`,
       color: theme.accent
     }), React.createElement(ScoreBar, {
       label: "Season average",
       value: seasonAvg,
-      max: Math.max(r.recentFormRate, r.careerRate || 0, seasonAvg) * 1.15,
+      max: barScale,
       unit: `${cfg.key}/g`,
       color: theme.textFaint
     })), form.length > 0 && React.createElement("div", {

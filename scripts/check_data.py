@@ -116,6 +116,64 @@ def check_aux_files(game, max_drop_pct, baseline_ref, errors):
             )
 
 
+# The career tier is worth 2.5% of LoL's accuracy and 7-14% of CS2's
+# (scripts/dev/optimize_weights.py --validate), so losing it is not a
+# cosmetic regression. It reaches the app by being MERGED into the game's
+# own data file -- merge.py for LoL, merge_cs2_career_data() inside
+# scrape_cs2.py -- and that merge is the step nothing was checking.
+#
+# The gap this closes: career_data.json can be perfectly healthy, pass the
+# auxiliary check above, and still never reach a single player, because
+# merge.py failed or was skipped. data.json would then commit with
+# career=None on all 320 players and the run would go green, since every
+# other number in it is fine. The model degrades silently -- exactly the
+# shape of failure this script exists for.
+#
+# Compared against the committed baseline rather than a fixed threshold,
+# for the same reason the counts are: a game that has never had career
+# data must not start failing, and one that has must not quietly stop.
+CAREER_GAMES = {"lol", "cs2"}
+
+
+def career_coverage(data):
+    """(players carrying a career baseline, players in total)."""
+    with_career = total = 0
+    for region in (data.get("regions") or {}).values():
+        for team in (region.get("teams") or {}).values():
+            for player in team.get("players") or []:
+                total += 1
+                if player.get("career") or player.get("career_games"):
+                    with_career += 1
+    return with_career, total
+
+
+def check_career_merged(game, current, baseline, max_drop_pct, errors):
+    if game not in CAREER_GAMES:
+        return
+    now, total = career_coverage(current)
+    if not total:
+        return  # the structure check already has more to say about this
+    now_pct = 100.0 * now / total
+    if baseline is None:
+        print(f"  career merged: {now}/{total} players ({now_pct:.0f}%) — no baseline to compare")
+        return
+    before, before_total = career_coverage(baseline)
+    before_pct = 100.0 * before / before_total if before_total else 0.0
+    print(f"  career merged: {now}/{total} players ({now_pct:.0f}%, was {before_pct:.0f}%)")
+    # A percentage-POINT drop, not a relative one: 100% falling to 79%
+    # fails, and a game that has never carried career data (before_pct 0)
+    # can never trip it, since now_pct is never below -20. That is the
+    # intended behaviour and the reason no separate guard for it exists --
+    # an earlier draft had one, and a mutation deleting it changed nothing,
+    # which is how dead code announces itself.
+    if now_pct < before_pct - max_drop_pct:
+        errors.append(
+            f"career data reached {now_pct:.0f}% of players, down from {before_pct:.0f}% — "
+            f"career_data.json can be healthy and still never reach anyone if the merge "
+            f"step failed or was skipped. Run merge.py before committing; the app would "
+            f"otherwise run with the career tier pointed at nothing"
+        )
+
 def counts(data):
     """Total teams, players and past matches across every region."""
     teams = players = past = upcoming = 0
@@ -254,6 +312,7 @@ def main():
         before = counts(baseline)
         print("  baseline     : " + ", ".join(f"{v} {k}" for k, v in before.items()))
         check_regression(now, before, args.max_drop_pct, errors)
+    check_career_merged(args.game, current, baseline, args.max_drop_pct, errors)
 
     if errors:
         print(f"\nFAIL: {path} did not pass:", file=sys.stderr)
