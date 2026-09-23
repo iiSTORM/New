@@ -211,5 +211,13 @@ class TestNoSecondCopy:
                   / "scripts" / "scrape_cs2.py").read_text(encoding="utf-8")
         assert source.count('"kp": (kp_numerator / kp_denominator * 100)') == 1, \
             "the season aggregate is being built somewhere other than season_rates()"
-        assert source.count("cur = season_rates(past_matches") == 2, \
-            "both the main pass and the backfill must go through season_rates()"
+        # Was 2 -- the main pass and the backfill each called this once,
+        # from two hand-written copies of the surrounding loop. The second
+        # copy turned out to carry a bug of its own (it built roster
+        # entries for one side of each match only), so the loop itself is
+        # now add_team_players and there is a single call site. One is the
+        # stronger form of what this has always been asserting.
+        assert source.count("cur = season_rates(past_matches") == 1, \
+            "the roster entry is being built somewhere other than add_team_players()"
+        assert source.count('"name": player_name, "role": None, "cur": cur') == 1, \
+            "a second copy of the roster-entry dict has reappeared"

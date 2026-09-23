@@ -546,7 +546,7 @@ async def build_region_payload(cs2, session):
     teams_payload = {}
     past_matches = []
     upcoming_matches = []
-    color_index = 0
+    color_state = {"i": 0}
 
     # ---- Past matches: scan the global finished() feed, filter by TIER
     # instead of a curated team list — see the module docstring for why.
@@ -779,24 +779,7 @@ async def build_region_payload(cs2, session):
         m.pop("_team2_id", None)
 
     # ---- Build teams payload from whoever actually showed up in past_matches ----
-    for m in past_matches:
-        for side in ("teamA", "teamB"):
-            team_name = m[side]
-            if team_name not in teams_payload:
-                teams_payload[team_name] = {"color": COLOR_PALETTE[color_index % len(COLOR_PALETTE)], "players": []}
-                color_index += 1
-            existing_names = {p["name"] for p in teams_payload[team_name]["players"]}
-            for player_name, stats in (m["actual"].get(team_name) or {}).items():
-                if player_name in existing_names:
-                    continue
-                cur = season_rates(past_matches, team_name, player_name)
-                if cur is None:
-                    continue
-                teams_payload[team_name]["players"].append({
-                    "name": player_name, "role": None, "cur": cur,
-                    "hist": None,  # no clean split boundary for CS2 — model falls back to cur alone
-                })
-                existing_names.add(player_name)
+    add_team_players(past_matches, past_matches, teams_payload, color_state)
 
     # ---- Opponent backfill: any team appearing in upcoming_matches that
     # still has no roster data (genuinely outside the tier/star-notable set
@@ -911,29 +894,13 @@ async def build_region_payload(cs2, session):
                           f"{succeeded_by_team.get(name, 0)} succeeded")
                 print()
 
-            # Fold the newly-backfilled matches into teams_payload directly
-            # — same aggregation logic as the main pass, scoped to just
-            # these new teams so it doesn't redo work already done.
-            for m in past_matches[-added:] if added else []:
-                for side in ("teamA", "teamB"):
-                    team_name = m[side]
-                    if team_name not in unresolved_opponents:
-                        continue  # only building entries for the teams we just backfilled
-                    if team_name not in teams_payload:
-                        teams_payload[team_name] = {"color": COLOR_PALETTE[color_index % len(COLOR_PALETTE)], "players": []}
-                        color_index += 1
-                    existing_names = {p["name"] for p in teams_payload[team_name]["players"]}
-                    for player_name, stats in (m["actual"].get(team_name) or {}).items():
-                        if player_name in existing_names:
-                            continue
-                        cur = season_rates(past_matches, team_name, player_name)
-                        if cur is None:
-                            continue
-                        teams_payload[team_name]["players"].append({
-                            "name": player_name, "role": None, "cur": cur,
-                            "hist": None,
-                        })
-                        existing_names.add(player_name)
+            # Fold the newly-backfilled matches into teams_payload, for
+            # BOTH sides of each. The opponent in a backfilled match is
+            # not who the backfill went looking for, but its player stats
+            # arrive in the same record at no extra request, and refusing
+            # to read them is what left most of the fixture list blank.
+            add_team_players(past_matches[-added:] if added else [],
+                             past_matches, teams_payload, color_state)
 
     return {"teams": teams_payload, "past_matches": past_matches, "upcoming_matches": upcoming_matches}
 
@@ -1015,6 +982,47 @@ async def main():
     print(f"\nWrote cs2_data.json: {len(payload['teams'])} teams, "
           f"{len(payload['past_matches'])} past matches, {len(payload['upcoming_matches'])} upcoming matches")
     report_source_fields(payload)
+
+
+
+def add_team_players(matches, past_matches, teams_payload, color_state, only=None):
+    """Give every team appearing in `matches` a roster entry, built from the
+    player stats those match records already carry.
+
+    `matches` is what to scan; `past_matches` is what to aggregate rates
+    over, which is the full record even when only a slice is being
+    scanned. `only` restricts which teams get an entry.
+
+    This was written out twice -- once for the main pass and once for the
+    backfill -- and the second copy carried a `continue` that skipped
+    every team except the ones being backfilled. A backfilled match record
+    carries player stats for BOTH sides, so that discarded a complete
+    roster for the opponent every time: 58 teams, ENCE and 3DMAX among
+    them, sat in past_matches with full stats and no team entry, and over
+    half the fixture list rendered with no data on either side. Two copies
+    of a thing that must agree is the bug, same as it was for season_rates.
+    """
+    for m in matches:
+        for side in ("teamA", "teamB"):
+            team_name = m[side]
+            if only is not None and team_name not in only:
+                continue
+            if team_name not in teams_payload:
+                teams_payload[team_name] = {
+                    "color": COLOR_PALETTE[color_state["i"] % len(COLOR_PALETTE)], "players": []}
+                color_state["i"] += 1
+            existing_names = {p["name"] for p in teams_payload[team_name]["players"]}
+            for player_name in (m["actual"].get(team_name) or {}):
+                if player_name in existing_names:
+                    continue
+                cur = season_rates(past_matches, team_name, player_name)
+                if cur is None:
+                    continue
+                teams_payload[team_name]["players"].append({
+                    "name": player_name, "role": None, "cur": cur,
+                    "hist": None,  # no clean split boundary for CS2 — model falls back to cur alone
+                })
+                existing_names.add(player_name)
 
 
 def report_source_fields(payload):
