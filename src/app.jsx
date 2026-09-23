@@ -253,6 +253,7 @@ function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, 
             {(role || extraChip) && (
               <div style={{ display: "flex", gap: 4, marginTop: 4, flexWrap: "wrap" }}>
                 {role && <span className="kp-chip" style={{ background: theme.steelSoft, color: theme.textFaint }}>{role}</span>}
+                {r && <EvidenceChip games={r.evidenceGames} compact />}
                 {extraChip}
               </div>
             )}
@@ -1419,9 +1420,11 @@ function project(teams, pastMatches, player, team, opponentTeam, games, weights,
   const shrunk = shrinkToPrior(blended.perGame, weights, weighted.games || 0, pastMatches,
                                teams, cfg.key, null);
   const perGame = shrunk.perGame;
+  const priorGames = weighted.games || 0;
   return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult,
            shareTier: blended.shareTier, sharePct: blended.sharePct, shareWeight: weights.share || 0,
-           shrunkTo: shrunk.shrunkTo, shrinkPull: shrunk.shrinkPull, priorGames: weighted.games || 0,
+           shrunkTo: shrunk.shrunkTo, shrinkPull: shrunk.shrinkPull, priorGames,
+           evidenceGames: evidenceGamesFor(player, weights, careerRate, priorGames),
            perGame, total: perGame * games };
 }
 
@@ -1497,6 +1500,66 @@ function pointInTimeCS2CareerRate(player, statKey, cutoffDate) {
     weighted += (g[statKey] || 0) * weight;
   }
   return totalWeight > 0 ? weighted / totalWeight : null;
+}
+
+/* ============================================================
+   HOW MUCH EVIDENCE IS BEHIND A NUMBER
+
+   A projection off 3 games and one off 40 print identically, and for
+   anyone deciding what to bet that difference matters more than the
+   last decimal place. These do not change any projection -- they
+   describe one.
+
+   The thresholds are measured, not chosen. scripts/dev/
+   evidence_vs_accuracy.py buckets out-of-sample error by the evidence
+   each row had when it was predicted, and the model's own accuracy
+   turns sharply at eight games:
+
+     evidence    valorant kills    cs2 headshots   (vs that stat's own MAE)
+       0-1g          +12.1%              --
+       2-3g           +5.3%           +10.9%
+       4-6g           +3.6%            +7.8%
+       6-8g           +0.0%            +0.4%
+      8-12g           -5.2%            -7.0%
+     12-20g           -3.2%           -13.4%
+
+   So below four games the model is materially worse than its own
+   average, four to eight is about average, and eight or more is
+   consistently better. Those are the boundaries below. Re-run that
+   script if the weights move -- a threshold inherited from a weight
+   table it no longer matches is worse than none.
+   ============================================================ */
+const EVIDENCE_THIN = 4;
+const EVIDENCE_SOLID = 8;
+
+function careerGameCount(player) {
+  // CS2 stores a per-game log; LoL stores an aggregate that carries its
+  // own game count. Valorant has no career scraper, so it has neither
+  // and falls through to match history alone -- which is correct, since
+  // its career weight is zero everywhere.
+  if (player.career_games) return player.career_games.length;
+  if (player.career && typeof player.career.g === "number") return player.career.g;
+  return 0;
+}
+
+/* Games of evidence behind one projection, weighted by the tier it
+   actually leans on. CS2 kills is career 1.0, so its evidence is the
+   career log rather than the match list -- a CS2 player with 6 matches
+   on file and 46 career games is not a thin sample for kills, and
+   counting only matches would understate it as badly as ignoring
+   sample size altogether. Only counts the career log when the career
+   tier actually fired: a player with no career data gets none of it. */
+function evidenceGamesFor(player, weights, careerRate, priorGames) {
+  const careerFired = careerRate != null && weights.career > 0;
+  if (!careerFired) return priorGames;
+  return weights.career * careerGameCount(player) + (1 - weights.career) * priorGames;
+}
+
+function evidenceTier(games) {
+  if (typeof games !== "number" || !isFinite(games)) return null;
+  if (games < EVIDENCE_THIN) return "thin";
+  if (games < EVIDENCE_SOLID) return "limited";
+  return "solid";
 }
 
 function applyCareerTier(base, player, weights, cfg, cutoffDate) {
@@ -2286,6 +2349,34 @@ function projectionTags(r, theme) {
 // same idea as a reference app's "Baseline"/"Opportunity" bars, showing
 // the actual value driving a number instead of hiding it inside one
 // final total.
+/* The evidence marker.
+
+   Deliberately silent on a solid projection. A badge on every row is
+   wallpaper -- it stops being read, and then it cannot warn anybody
+   about the rows that need it. So this draws only when there is
+   something to say, which makes its presence the signal.
+
+   Says the count out loud rather than a word alone, because "thin" is
+   an opinion and "3 games" is a fact the reader can weigh themselves. */
+function EvidenceChip({ games, compact }) {
+  const theme = useTheme();
+  const tier = evidenceTier(games);
+  if (tier === null || tier === "solid") return null;
+  const tone = tier === "thin" ? theme.bad : theme.textFaint;
+  const rounded = Math.round(games);
+  const title = tier === "thin"
+    ? `Only ${rounded} game${rounded === 1 ? "" : "s"} of evidence behind this projection. `
+      + `Measured on past seasons, the model is about 5-12% less accurate than its own average below four games.`
+    : `${rounded} games of evidence behind this projection. `
+      + `The model is around its own average accuracy in this range, and better from eight games up.`;
+  return (
+    <span className="kp-chip kp-num" title={title}
+          style={{ background: `${tone}1A`, color: tone, border: `1px solid ${tone}33` }}>
+      {compact ? `${rounded}g` : `${rounded}g evidence`}
+    </span>
+  );
+}
+
 function ScoreBar({ label, value, max, unit, color }) {
   const theme = useTheme();
   // A bar with nothing to show draws nothing. It used to call .toFixed on
@@ -2371,6 +2462,34 @@ function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
           )}
         </div>
       </div>
+
+      {/* Stated on every projection, not only the weak ones. Someone who
+          opens this panel is asking how much to trust the number, and
+          "solid" only means anything if the same line would have said
+          otherwise. The chip on the row stays silent when there is
+          nothing to warn about; this does not. */}
+      {typeof r.evidenceGames === "number" && isFinite(r.evidenceGames) && (() => {
+        const tier = evidenceTier(r.evidenceGames);
+        const tone = tier === "thin" ? theme.bad : tier === "limited" ? theme.textDim : theme.good;
+        const games = Math.round(r.evidenceGames);
+        const basis = r.careerRate != null && r.careerWeight > 0
+          ? "career record and recent matches" : "recent matches";
+        return (
+          <div style={{ marginTop: 14, padding: "9px 12px", borderRadius: 8,
+                        background: theme.steelSoft, fontSize: 11.5, lineHeight: 1.55,
+                        color: theme.textFaint }}>
+            <span style={{ color: tone, fontWeight: 600 }}>
+              {games} game{games === 1 ? "" : "s"} of evidence
+            </span>
+            {" — drawn from this player's "}{basis}.{" "}
+            {tier === "thin"
+              ? "Below four games the model has measured about 5–12% worse than its own average, so treat this as a weaker read than the number alone suggests."
+              : tier === "limited"
+              ? "Around the model's average accuracy; it improves noticeably from eight games up."
+              : "In the range where the model has measured more accurate than its own average."}
+          </div>
+        );
+      })()}
 
       <div style={{ marginTop: 14 }}>
         {/* One scale for all three bars, so their lengths stay comparable.
@@ -2660,6 +2779,7 @@ function PlayerRow({ teams, pastMatches, p, team, opponentTeam, games, weights, 
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 600, color: theme.text, fontSize: 15, fontFamily: "'Fraunces', serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</div>
             {p.role && <span className="kp-chip" style={{ background: theme.steelSoft, color: theme.textDim, marginTop: 4 }}>{p.role}</span>}
+            <EvidenceChip games={r.evidenceGames} compact />
           </div>
         </div>
         <div style={{ textAlign: "right", flexShrink: 0 }}>
@@ -2789,6 +2909,10 @@ function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop }) {
         <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
           <span style={{ fontWeight: 600, fontSize: 14, color: theme.text }}>{row.name}</span>
           {row.role && <span style={{ fontSize: 10, color: theme.textFaint, textTransform: "uppercase", letterSpacing: 0.5 }}>{row.role}</span>}
+          {/* The board is ranked by edge SIZE, and a big edge off three
+              games is the most dangerous row on the screen -- it sorts
+              to the top precisely because the model had least to go on. */}
+          {row.breakdown && <EvidenceChip games={row.breakdown.evidenceGames} compact />}
         </div>
         <div style={{ fontSize: 11, color: theme.textFaint, marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {row.team} vs {row.opponent}{clock ? ` · ${clock}` : ""}

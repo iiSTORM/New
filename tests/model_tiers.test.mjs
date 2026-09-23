@@ -25,7 +25,9 @@ const { code } = transformSync(
                      leaguePlayerRate, shrinkToPrior, ROSTER_SIZE,
                      matchKP, pointInTimeKP, kpMultiplier, leagueAvgKP, KP_SHRINK,
                      STAT_TYPES, statsForGame,
-                     SHARE_HALF_LIFE, DEFAULT_WEIGHTS_BY_GAME_AND_STAT };`,
+                     SHARE_HALF_LIFE, DEFAULT_WEIGHTS_BY_GAME_AND_STAT,
+                     evidenceTier, careerGameCount, evidenceGamesFor,
+                     EVIDENCE_THIN, EVIDENCE_SOLID };`,
   { presets: [["@babel/preset-react", { runtime: "classic" }]], filename: "app.jsx",
     parserOpts: { allowReturnOutsideFunction: true } });
 const win = { innerWidth: 1400, addEventListener() {}, removeEventListener() {},
@@ -366,6 +368,73 @@ for (const [game, file] of Object.entries({ valorant: "valorant_data.json", cs2:
         [W.lol.headshots.share, W.valorant.headshots.share, W.cs2.headshots.share], [0, 0, 0]);
   check("CS2 is the only game with a non-zero headshots parameter at all",
         [W.lol.headshots.shrink, W.valorant.headshots.shrink, W.cs2.headshots.shrink], [0, 0, 3.0]);
+}
+
+/* ---- how much evidence is behind a number ----
+ *
+ * The app now tells people this, so it has to be right about it. The
+ * thresholds are not opinions: scripts/dev/evidence_vs_accuracy.py
+ * buckets out-of-sample error by the evidence each row had, and the
+ * model's accuracy turns at eight games (valorant kills: +12.1% worse
+ * than its own MAE at 0-1 games, +0.0% at 6-8, -5.2% at 8-12).
+ */
+check("below four games reads as thin", app.evidenceTier(3), "thin");
+check("four games is no longer thin", app.evidenceTier(4), "limited");
+check("seven games is still only limited", app.evidenceTier(7), "limited");
+check("eight games is where the model gets better than its average",
+      app.evidenceTier(8), "solid");
+check("and more than eight stays solid", app.evidenceTier(40), "solid");
+check("the thresholds match the measured turning points",
+      [app.EVIDENCE_THIN, app.EVIDENCE_SOLID], [4, 8]);
+check("a missing count is not silently called solid", app.evidenceTier(undefined), null);
+check("nor is a NaN", app.evidenceTier(NaN), null);
+
+// Career game counts, which differ in shape per game.
+check("CS2 counts its per-game career log",
+      app.careerGameCount({ career_games: [1, 2, 3] }), 3);
+check("LoL reads the game count off its career aggregate",
+      app.careerGameCount({ career: { g: 430, k: 4 } }), 430);
+check("a player with neither has no career evidence",
+      app.careerGameCount({ name: "x" }), 0);
+check("an empty career log is zero, not a crash",
+      app.careerGameCount({ career_games: [] }), 0);
+
+/* The weighting is the part that stops the number lying in either
+   direction. CS2 kills is career 1.0, so a player with 6 matches on file
+   and 46 career games is NOT thin -- counting only matches would call it
+   thin, and ignoring the weight would call a Valorant player solid off a
+   career log the model never reads. */
+const cs2Kills = { career: 1.0 };
+near("a CS2 kills projection is evidenced by the career log",
+     app.evidenceGamesFor({ career_games: new Array(46).fill(0) }, cs2Kills, 0.8, 6), 46);
+check("and that player is solid, not thin",
+      app.evidenceTier(app.evidenceGamesFor(
+        { career_games: new Array(46).fill(0) }, cs2Kills, 0.8, 6)), "solid");
+
+const noCareer = { career: 0 };
+near("with no career weight only matches count",
+     app.evidenceGamesFor({ career_games: new Array(46).fill(0) }, noCareer, null, 6), 6);
+
+near("a half-weighted tier blends the two",
+     app.evidenceGamesFor({ career: { g: 20 } }, { career: 0.5 }, 4.0, 10), 15);
+
+/* The career log only counts when the career tier actually fired. A
+   player with no career data has a null careerRate, and crediting them
+   with career evidence would be inventing it. */
+near("no career rate means no career evidence",
+     app.evidenceGamesFor({ career_games: new Array(46).fill(0) }, cs2Kills, null, 6), 6);
+
+/* And the field reaches the UI through project(), which is what every
+   surface actually reads. */
+{
+  const history = Array.from({ length: 12 }, (_, i) =>
+    match(`2026-0${(i % 9) + 1}-0${(i % 9) + 1}`, "A", "B", [20, 1, 1, 1, 1], [1, 1, 1, 1, 1]));
+  const teams = { A: { players: [{ name: "p0", cur: { k: 20, d: 1, a: 1, g: 2 } }] },
+                  B: { players: [] } };
+  const w = { ...app.DEFAULT_WEIGHTS_BY_GAME_AND_STAT.valorant.kills };
+  const r = app.project(teams, history, teams.A.players[0], "A", "B", 2, w, "kills");
+  check("project() reports the evidence behind its own number",
+        typeof r.evidenceGames === "number" && r.evidenceGames > 0, true);
 }
 
 console.log(`${pass} passed, ${fail} failed`);

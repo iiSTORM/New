@@ -38,6 +38,7 @@ const EXPORTS = [
   "PropsContext", "BASE_TOKENS", "GAME_ACCENTS",
   "FutureTab", "PastResultsTab", "ConsistencyTab", "StandingsTab",
   "ProjectionDetail", "historyPool", "project", "ScoreBar", "collectEdges",
+  "EvidenceChip", "evidenceTier",
 ];
 const available = EXPORTS.filter((name) =>
   new RegExp(`(function|const)\\s+${name}\\b`).test(body));
@@ -488,6 +489,87 @@ if (appOpen.MatchPlayerRow && app.MatchPlayerRow) {
                rowIn(appOpen, wrapOpen), "Recent form");
   containsText("and a collapsed one does not",
                rowIn(app, wrap), "Recent form", false);
+}
+/* ---- the evidence marker ----
+ *
+ * The product is sold on these projections, so the difference between a
+ * number off three games and one off forty has to be visible. These
+ * assert the marker appears exactly where it should and, just as
+ * importantly, stays quiet where it should -- a badge on every row is
+ * wallpaper, and wallpaper cannot warn anyone.
+ */
+if (app.EvidenceChip) {
+  const chip = (games) => renderToStaticMarkup(
+    React.createElement(app.ThemeContext.Provider, { value: theme },
+      React.createElement(app.EvidenceChip, { games, compact: true })));
+
+  containsText("a thin projection is marked with its actual count",
+               React.createElement(app.ThemeContext.Provider, { value: theme },
+                 React.createElement(app.EvidenceChip, { games: 3, compact: true })), "3g");
+  try {
+    if (chip(40) !== "") throw new Error(`drew ${JSON.stringify(chip(40))} on a solid projection`);
+    pass++;
+  } catch (err) { fail++; console.error(`FAIL  a solid projection draws no chip\n        ${err.message}`); }
+  for (const [label, value] of [["undefined", undefined], ["null", null], ["NaN", NaN]]) {
+    try {
+      if (chip(value) !== "") throw new Error("drew something for " + label);
+      pass++;
+    } catch (err) { fail++; console.error(`FAIL  no chip for ${label}\n        ${err.message}`); }
+  }
+}
+
+/* On the board itself, which is the surface that matters: the rows are
+   ranked by edge SIZE, so a big edge off little evidence sorts straight
+   to the top. That is exactly the row a subscriber must not mistake for
+   the strongest bet on the screen. */
+if (app.collectEdges && appOpen.EdgesTab && app.EdgesTab) {
+  const kills = (date, k) => ({
+    date, teamA: "T1", teamB: "GEN", maps_counted: 2,
+    actual: { T1: { Faker: { k, d: 2, a: 5 } }, GEN: {} } });
+  const thinPlayer = { name: "Faker", role: "MID", cur: { k: 4, d: 2, a: 5, g: 12 }, hist: null };
+  const thinTeam = { color: "#e0c341", players: [thinPlayer] };
+  // One match of maps_counted 2 is two games of evidence, which is below
+  // the measured four-game line. Two matches would be four and read as
+  // "limited" -- an earlier draft of this asserted "2g" against exactly
+  // that and failed, which is the arithmetic worth pinning down here.
+  const oneMatch = [kills("2026-01-01", 20)];
+  const twoMatches = [kills("2026-01-01", 20), kills("2026-02-01", 22)];
+  const boardOver = (past) => ({ R: { teams: { T1: thinTeam, GEN: rostered },
+                                      past_matches: past,
+                                      upcoming_matches: [fixture("T1", "GEN")] } });
+  const board = (mod, wrapper, past) => wrapper(React.createElement(mod.EdgesTab, {
+    regionsData: boardOver(past), regionList: ["R"], regionLabels: {}, weights,
+    statType: "kills", game: "lol", isDesktop: true }), propsData);
+
+  containsText("a thin row on the board carries its evidence count",
+               board(app, wrap, oneMatch), "2g");
+  containsText("a limited row does too, with its own count",
+               board(app, wrap, twoMatches), "4g");
+  containsText("the expanded panel spells out what that means",
+               board(appOpen, wrapOpen, oneMatch), "games of evidence");
+  containsText("and says plainly that a thin one is a weaker read",
+               board(appOpen, wrapOpen, oneMatch), "weaker read");
+  containsText("while a limited one is described as around average, not weak",
+               board(appOpen, wrapOpen, twoMatches), "around the model", false);
+}
+
+/* The panel states the evidence on EVERY projection, including strong
+   ones -- "solid" only carries information if the same line would have
+   said otherwise. */
+if (app.ProjectionDetail && app.project) {
+  const many = Array.from({ length: 20 }, (_, i) => ({
+    date: `2026-${String((i % 12) + 1).padStart(2, "0")}-01`,
+    teamA: "T1", teamB: "Rival", maps_counted: 2,
+    actual: { T1: { Faker: { k: 20 + (i % 5), d: 2, a: 5 } }, Rival: {} } }));
+  const teams = { T1: rostered, Rival: rostered };
+  const r = app.project(teams, many, rostered.players[0], "T1", "Rival", 2, weights, "kills");
+  const panel = wrap(React.createElement(app.ProjectionDetail, {
+    r, p: rostered.players[0], cfg: { key: "k", label: "Kills", singular: "kill", useKP: true },
+    games: 2, pastMatches: many, team: "T1" }), propsData);
+  containsText("a well-evidenced projection still states its evidence",
+               panel, "games of evidence");
+  containsText("and says it is in the range the model does better in",
+               panel, "more accurate than its own average");
 }
 
 console.log(`${pass} rendered, ${fail} failed`);
