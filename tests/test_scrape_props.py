@@ -273,8 +273,17 @@ def current_handles(game, count):
     if not data_file.exists():
         pytest.skip(f"{data_file.name} not present")
     with open(data_file) as f:
-        index, _ = pm.build_roster_index(json.load(f).get("regions", {}))
-    names = sorted({e[2] for entries in index.values() for e in entries})
+        index, ambiguous = pm.build_roster_index(json.load(f).get("regions", {}))
+    # Actually unambiguous, which this promised and did not do. A handle
+    # sitting on two teams is refused by the matcher unless the prop names
+    # one of them, so picking one here produced a payload the pipeline was
+    # right to drop -- and the end-to-end count then failed for a reason
+    # that had nothing to do with the pipeline. It surfaced when CS2's
+    # roster coverage roughly doubled and its duplicate handles went from
+    # 6 to 36.
+    skip = set(ambiguous)
+    names = sorted({entries[0][2] for key, entries in index.items()
+                    if key not in skip})
     if len(names) < count:
         pytest.skip(f"{data_file.name} has too few players to test against")
     return names[:count]
@@ -346,15 +355,37 @@ class TestEndToEnd:
         # the fixture rather than pinned to a number nobody can check. The
         # bare 6 that used to be here became wrong the day headshots started
         # matching, and a failing count gives no clue which prop changed.
-        expected = [pr for pr in live_payload["data"]
-                    if pr.get("type") == "projection"
-                    and pm.parse_stat(pr["attributes"].get("stat_type"))[0] is not None
-                    and pm.parse_stat(pr["attributes"].get("stat_type"))[1] is not None]
+        def projectable(pr, matchable_only):
+            if pr.get("type") != "projection":
+                return False
+            stat, window = pm.parse_stat(pr["attributes"].get("stat_type"))
+            if stat is None or window is None:
+                return False
+            if not matchable_only:
+                return True
+            # The matcher also refuses a line it cannot read as a number,
+            # and the fixture carries one on purpose ("n/a"). Leaving that
+            # out here counted a prop that was never going to survive.
+            try:
+                float(pr["attributes"].get("line_score"))
+            except (TypeError, ValueError):
+                return False
+            rel = ((pr.get("relationships") or {}).get("new_player") or {}).get("data") or {}
+            return str(rel.get("id")) in MATCHABLE
+
+        expected = [pr for pr in live_payload["data"] if projectable(pr, False)]
         assert total <= len(expected), "more props written than the payload could support"
-        assert total == 7, (
-            f"{total} props survived; the fixture holds {len(expected)} with a "
-            f"modelled stat and a stated window, the rest being unrostered "
-            f"players and unparseable lines")
+        # Derived, not pinned. A literal here has now gone stale twice --
+        # once when headshots started matching and once when a roster
+        # change swapped in a different handle -- and each time it failed
+        # without saying which prop moved. The survivors are exactly the
+        # projections on a substituted handle that name a modelled stat
+        # and a map window.
+        should_survive = [pr for pr in live_payload["data"] if projectable(pr, True)]
+        assert total == len(should_survive), (
+            f"{total} props survived; {len(should_survive)} projections in the "
+            f"fixture sit on a rostered handle with a modelled stat and a stated "
+            f"window, out of {len(expected)} projectable at all")
 
     def test_stdin_is_the_same_route_as_a_file(self, tmp_path, monkeypatch, live_payload):
         """The paste-from-a-browser route has to land on the identical
