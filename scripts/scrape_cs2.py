@@ -602,6 +602,13 @@ async def build_region_payload(cs2, session):
                 return None
             totals, maps_played, winner_name, team1_name, team2_name, score_str, match_date, t1id, t2id = result
             return {
+                # The source's own id for this match. Written out because
+                # merging runs needs a key, and date+teams is not one: two
+                # teams can meet twice in a day, which is exactly the
+                # collision that made a parity harness disagree with
+                # itself once already. Same reason base_game_id is stored
+                # for LoL and game_id for CS2 careers.
+                "match_id": m.get("slug"),
                 "week": None, "date": match_date[:10] if match_date else None,
                 "patch": None, "teamA": team1_name, "teamB": team2_name,
                 "winner": winner_name,
@@ -777,6 +784,30 @@ async def build_region_payload(cs2, session):
         m["actual"] = {name_rename_map.get(k, k): v for k, v in m["actual"].items()}
         m.pop("_team1_id", None)
         m.pop("_team2_id", None)
+
+    # ---- Fold in what previous runs already scraped ----
+    #
+    # The global feed is one page, so each run sees only the most recent
+    # ~100 matches and any team that has gone quiet since falls out of
+    # the file entirely -- rosters, history and all. That is why teams
+    # churned between runs and why coverage could never climb: 51 teams
+    # rostered against 123 with fixtures, rebuilt from scratch every run.
+    #
+    # Merging makes coverage cumulative instead. The name reconciliation
+    # above is applied to the stored matches too, by name, since they no
+    # longer carry the team ids it normally keys on.
+    previous = load_previous_matches()
+    if previous:
+        for m in previous:
+            m["teamA"] = name_rename_map.get(m["teamA"], m["teamA"])
+            m["teamB"] = name_rename_map.get(m["teamB"], m["teamB"])
+            if m.get("winner") in name_rename_map:
+                m["winner"] = name_rename_map[m["winner"]]
+            m["actual"] = {name_rename_map.get(k, k): v for k, v in (m.get("actual") or {}).items()}
+    fresh_count = len(past_matches)
+    past_matches = merge_past_matches(previous, past_matches)
+    print(f"Merged with previous run: {fresh_count} fresh + {len(previous)} stored "
+          f"-> {len(past_matches)} kept (max {MATCHES_KEPT_PER_TEAM} per team)\n")
 
     # ---- Build teams payload from whoever actually showed up in past_matches ----
     add_team_players(past_matches, past_matches, teams_payload, color_state)
@@ -983,6 +1014,84 @@ async def main():
           f"{len(payload['past_matches'])} past matches, {len(payload['upcoming_matches'])} upcoming matches")
     report_source_fields(payload)
 
+
+
+
+# How many matches of history to keep per team when merging runs.
+#
+# The point of merging at all is that a team stays rostered once seen,
+# instead of falling out the moment it drops off one page of the global
+# feed. Keeping every match ever scraped would do that too and grow
+# without bound, so each team keeps its most recent few and a match
+# survives while either side still wants it.
+#
+# Eight because that is what the app draws: the form chart is the last 8,
+# and CS2's model leans on the career tier (kills is career 1.0) fed from
+# cs2_career_data.json, not on this file's match list. So this needs to
+# carry enough to rate a roster and chart it, not a full season.
+MATCHES_KEPT_PER_TEAM = 8
+
+
+def match_key(m):
+    """Identity for de-duplicating a match across runs.
+
+    The source's own id when present. Records written before that id was
+    stored fall back to a composite -- and it is a FALLBACK, not a
+    scheme: two teams can meet twice in one day, so the composite pulls
+    in the score to separate a double-header. Those legacy records age
+    out on their own as MATCHES_KEPT_PER_TEAM rolls forward.
+    """
+    mid = m.get("match_id")
+    if mid:
+        return ("id", str(mid))
+    return ("legacy", m.get("date"), m.get("teamA"), m.get("teamB"), m.get("score"))
+
+
+def merge_past_matches(previous, fresh, per_team=MATCHES_KEPT_PER_TEAM):
+    """Fold last run's matches in with this run's, newest first.
+
+    Returns the merged list. A match this run fetched wins over the same
+    match stored before, because the stored one may predate a fix to how
+    stats are read -- the headshot capture landed exactly that way.
+
+    Without this the roster is only ever as wide as one page of the
+    global feed: 51 teams out of the 123 with fixtures, and teams
+    dropping out between runs even after being scraped.
+    """
+    by_key = {}
+    for m in list(previous or []) + list(fresh or []):
+        if not m or not m.get("teamA") or not m.get("teamB"):
+            continue
+        by_key[match_key(m)] = m          # fresh overwrites previous
+    ordered = sorted(by_key.values(), key=lambda m: (m.get("date") or ""), reverse=True)
+
+    kept, seen_per_team = [], {}
+    for m in ordered:
+        sides = (m["teamA"], m["teamB"])
+        # Kept while EITHER side still has room, so a busy team does not
+        # evict the only match a quiet opponent has on file.
+        if any(seen_per_team.get(t, 0) < per_team for t in sides):
+            kept.append(m)
+            for t in sides:
+                seen_per_team[t] = seen_per_team.get(t, 0) + 1
+    return kept
+
+
+def load_previous_matches(path="cs2_data.json"):
+    """Last run's matches, or [] when there is no readable file.
+
+    Never fatal: a missing or corrupt file means this run behaves exactly
+    as every run did before merging existed, which is a worse result but
+    a working one.
+    """
+    try:
+        with open(path) as f:
+            data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError, OSError) as e:
+        print(f"  no previous cs2_data.json to merge with ({e.__class__.__name__}) — "
+              f"this run starts from the feed alone")
+        return []
+    return ((data.get("regions") or {}).get("CS2") or {}).get("past_matches") or []
 
 
 def add_team_players(matches, past_matches, teams_payload, color_state, only=None):
