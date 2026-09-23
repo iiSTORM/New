@@ -191,10 +191,28 @@ function extract(name) {
   }
   throw new Error(`unbalanced braces reading ${name}`);
 }
+/* The `const NAME = ...;` form, for the tables the functions above read.
+   Sliced from source for the same reason the functions are: a copy here
+   would keep passing after the real one changed. */
+function extractConst(name) {
+  const m = new RegExp(`const ${name} = [\\s\\S]*?\\n\\];`).exec(src);
+  if (!m) throw new Error(`no const ${name} in src/app.jsx`);
+  return m[0];
+}
+
 const PER_MAP = 12;   // a flat per-map rate, so edges are arithmetic we control
+// Deliberately well-evidenced. This file is about which LINE gets picked
+// and over which window, not about the evidence discount -- that is
+// covered in model_tiers and render_smoke. A stub with no evidence count
+// would have every row silently discounted as thin and turn the
+// arithmetic below into a test of the multiplier instead.
+const STUB_EVIDENCE = 40;
 const collectEdges = new Function(`
   ${extract("likelyStarters")}
-  function project() { return { perGame: ${PER_MAP} }; }
+  ${extractConst("EDGE_REALIZATION")}
+  ${extract("edgeMultiplier")}
+  ${extract("adjustEdge")}
+  function project() { return { perGame: ${PER_MAP}, evidenceGames: ${STUB_EVIDENCE} }; }
   ${slice}
   return collectEdges;
 `)();
@@ -238,7 +256,11 @@ function realPathEarly() { return path.join(root, "props.json"); }
 if (realProps) {
   const edges = collectEdges(cs2.regions, Object.keys(cs2.regions), realProps, {}, "kills", "cs2");
   check("finds the real board's lines", edges.length > 0, true);
-  const sizes = edges.filter((e) => e.edge !== null).map((e) => Math.abs(e.edge));
+  // The ADJUSTED edge, which is what the board is ordered by. Every row
+  // here carries the same stub evidence, so this is also the raw order --
+  // the point is that the assertion names the quantity the sort uses.
+  const sizes = edges.filter((e) => e.edge !== null)
+                     .map((e) => Math.abs(e.adjustedEdge !== null ? e.adjustedEdge : e.edge));
   check("and returns them largest-edge first",
         sizes.every((v, i) => i === 0 || sizes[i - 1] >= v), true);
   check("every row is projected over its own line's window",
@@ -320,8 +342,14 @@ check("an empty bucket reports no rate rather than zero",
 const seenPools = [];
 const collectEdgesSpy = new Function(`
   ${extract("likelyStarters")}
+  ${extractConst("EDGE_REALIZATION")}
+  ${extract("edgeMultiplier")}
+  ${extract("adjustEdge")}
   const seenPools = arguments[0];
-  function project(teams, pastMatches) { seenPools.push(pastMatches); return { perGame: 10 }; }
+  function project(teams, pastMatches) {
+    seenPools.push(pastMatches);
+    return { perGame: 10, evidenceGames: ${STUB_EVIDENCE} };
+  }
   ${slice}
   return collectEdges;
 `)(seenPools);

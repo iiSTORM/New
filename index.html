@@ -640,7 +640,8 @@ try {
               oppKnown,
               player,
               pastMatches,
-              edge: prop.lineCount > 1 ? null : projection - prop.line
+              edge: prop.lineCount > 1 ? null : projection - prop.line,
+              adjustedEdge: prop.lineCount > 1 ? null : adjustEdge(projection - prop.line, breakdown.evidenceGames)
             });
           }
         }
@@ -649,10 +650,13 @@ try {
     return rankEdges(rows);
   }
   function rankEdges(rows) {
+    const key = r => r.adjustedEdge !== null && r.adjustedEdge !== undefined ? r.adjustedEdge : r.edge;
     return [...rows].sort((a, b) => {
-      if (a.edge === null !== (b.edge === null)) return a.edge === null ? 1 : -1;
-      if (a.edge === null) return 0;
-      return Math.abs(b.edge) - Math.abs(a.edge);
+      const ka = key(a),
+        kb = key(b);
+      if (ka === null !== (kb === null)) return ka === null ? 1 : -1;
+      if (ka === null) return 0;
+      return Math.abs(kb) - Math.abs(ka);
     });
   }
   function modelRecord(regionsData, regionList, results, weights, statType) {
@@ -2340,6 +2344,30 @@ try {
     if (!careerFired) return priorGames;
     return weights.career * careerGameCount(player) + (1 - weights.career) * priorGames;
   }
+  const EDGE_REALIZATION = [{
+    upTo: 4,
+    factor: 0.34
+  }, {
+    upTo: 8,
+    factor: 0.72
+  }, {
+    upTo: 12,
+    factor: 0.93
+  }, {
+    upTo: Infinity,
+    factor: 0.94
+  }];
+  function edgeMultiplier(games) {
+    if (typeof games !== "number" || !isFinite(games)) return EDGE_REALIZATION[0].factor;
+    for (const band of EDGE_REALIZATION) {
+      if (games < band.upTo) return band.factor;
+    }
+    return EDGE_REALIZATION[EDGE_REALIZATION.length - 1].factor;
+  }
+  function adjustEdge(edge, games) {
+    if (edge === null || typeof edge !== "number" || !isFinite(edge)) return null;
+    return edge * edgeMultiplier(games);
+  }
   function evidenceTier(games) {
     if (typeof games !== "number" || !isFinite(games)) return null;
     if (games < EVIDENCE_THIN) return "thin";
@@ -3453,7 +3481,11 @@ try {
     const canExpand = !!(row.breakdown && row.player);
     const mapWindow = mapWindowLabel(prop.maps);
     const ambiguous = edge === null;
-    const tone = ambiguous || !fresh ? theme.textFaint : edge > 0 ? theme.good : edge < 0 ? theme.bad : theme.textDim;
+    const shown = row.adjustedEdge !== null && row.adjustedEdge !== undefined ? row.adjustedEdge : edge;
+    const evidence = row.breakdown ? row.breakdown.evidenceGames : null;
+    const MATERIAL_DISCOUNT = 0.9;
+    const discounted = !ambiguous && typeof shown === "number" && edgeMultiplier(evidence) < MATERIAL_DISCOUNT;
+    const tone = ambiguous || !fresh ? theme.textFaint : shown > 0 ? theme.good : shown < 0 ? theme.bad : theme.textDim;
     const when = row.when ? new Date(row.when) : null;
     const clock = when && !isNaN(when) ? when.toLocaleString(undefined, {
       month: "short",
@@ -3570,8 +3602,9 @@ try {
         fontSize: 15,
         fontWeight: 700,
         color: tone
-      }
-    }, ambiguous ? `${prop.lineCount} lines` : !fresh ? `${Math.round(ageMinutes)}m old` : `${edge > 0 ? "OVER +" : edge < 0 ? "UNDER " : ""}${edge === 0 ? "0.0" : Math.abs(edge).toFixed(1)}`), React.createElement("div", {
+      },
+      title: discounted ? `Raw edge ${edge > 0 ? "+" : ""}${edge.toFixed(1)}, cut to ` + `${shown > 0 ? "+" : ""}${shown.toFixed(1)} because it rests on ` + `${Math.round(evidence || 0)} games. Measured on past seasons, about ` + `${Math.round(100 * edgeMultiplier(evidence))}% of a claimed edge at that ` + `sample size actually materialises.` : undefined
+    }, ambiguous ? `${prop.lineCount} lines` : !fresh ? `${Math.round(ageMinutes)}m old` : `${shown > 0 ? "OVER +" : shown < 0 ? "UNDER " : ""}${shown === 0 ? "0.0" : Math.abs(shown).toFixed(1)}`), React.createElement("div", {
       style: {
         fontSize: 9,
         letterSpacing: 0.6,
@@ -3579,7 +3612,7 @@ try {
         color: theme.textFaint,
         marginTop: 2
       }
-    }, mapWindow))), open && canExpand && React.createElement("div", {
+    }, discounted && fresh ? `${mapWindow} · from ${edge > 0 ? "+" : ""}${edge.toFixed(1)}` : mapWindow))), open && canExpand && React.createElement("div", {
       style: {
         marginTop: 12
       }
@@ -3626,7 +3659,8 @@ try {
       return note(React.createElement(React.Fragment, null, "Lines are loaded, but none of them belong to a player in an upcoming ", cfg.label.toLowerCase(), " fixture this app tracks. That is usually the board being a league outside the tracked regions rather than anything broken \u2014 ", React.createElement("code", null, "scripts/dev/inspect_props_payload.py --names"), " says which."));
     }
     const withEdge = rows.filter(r => r.edge !== null);
-    const best = withEdge.length ? Math.abs(withEdge[0].edge) : 0;
+    const best = withEdge.length ? Math.abs(withEdge[0].adjustedEdge !== null && withEdge[0].adjustedEdge !== undefined ? withEdge[0].adjustedEdge : withEdge[0].edge) : 0;
+    const anyDiscounted = withEdge.some(r => r.breakdown && edgeMultiplier(r.breakdown.evidenceGames) < 0.9);
     return React.createElement("div", null, React.createElement("div", {
       style: {
         background: theme.graphite,
@@ -3655,7 +3689,7 @@ try {
         fontSize: 11.5,
         color: theme.textFaint
       }
-    }, "ranked by edge size \xB7 biggest ", best.toFixed(1)), !fresh && React.createElement("span", {
+    }, "ranked by evidence-adjusted edge \xB7 biggest ", best.toFixed(1)), !fresh && React.createElement("span", {
       style: {
         fontSize: 11,
         color: theme.bad,
@@ -3676,7 +3710,7 @@ try {
         marginTop: 10,
         lineHeight: 1.6
       }
-    }, "Edge is the projection minus the line, over the line\u2019s own map window. It is a model disagreeing with a market, not a prediction of the result \u2014 and the model is the same one the accuracy figures on the Future tab describe."));
+    }, "Edge is the projection minus the line, over the line\u2019s own map window, discounted by how much evidence the projection rests on. Measured over past seasons, a disagreement built on fewer than four games realises about a third of its face value, and one built on twelve or more realises almost all of it \u2014 so ranking on the raw number promoted the rows the model knew least about. ", anyDiscounted && "A row that was cut shows the figure it came from beside its map window. ", "It is a model disagreeing with a market, not a prediction of the result \u2014 and the model is the same one the accuracy figures on the Future tab describe."));
   }
   const RECORD_MIN_SAMPLE = 30;
   function RecordTab({

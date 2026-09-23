@@ -30,11 +30,28 @@ import optimize_weights as ow
 
 
 def career_games_before(player, cutoff_date):
-    """How many career games this player had on the day of the match."""
-    games = player.get("career_games") or []
-    if not games:
-        return 0
-    return sum(1 for g in games if (g.get("date") or "")[:10] < cutoff_date)
+    """How many career games this player had on the day of the match.
+
+    Mirrors careerGameCount() in src/app.jsx, which the UI reads -- if
+    these disagree, the thresholds are measured against a different
+    quantity than the one being labelled, which is worse than having no
+    thresholds at all.
+
+    CS2 stores a dated per-game log, so this is exact. LoL stores an
+    aggregate carrying only a total (career.g, typically in the
+    hundreds), which cannot be cut at a date; it is used as-is, and the
+    effect is that LoL rows land in the top bucket, which is true of
+    them. Reading only the CS2 log left every LoL row bucketed by 40% of
+    its match history with a 430-game career ignored, which put them in
+    the thin buckets and made LoL look insensitive to evidence.
+    """
+    games = player.get("career_games")
+    if games:
+        return sum(1 for g in games if (g.get("date") or "")[:10] < cutoff_date)
+    career = player.get("career")
+    if isinstance(career, dict) and isinstance(career.get("g"), (int, float)):
+        return career["g"]
+    return 0
 
 
 def evidence_for(player, prior_games, cutoff_date, weights):

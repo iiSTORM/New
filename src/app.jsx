@@ -508,6 +508,12 @@ function collectEdges(regionsData, regionList, propsData, weights, statType, gam
             // No edge where the provider posted several lines and named
             // none of them the market one — same refusal as the readout.
             edge: prop.lineCount > 1 ? null : projection - prop.line,
+            // What the board ranks on. The raw edge is kept beside it
+            // because it is the number anyone can recompute from the two
+            // printed above it, and a ranking that cannot be checked
+            // against them is worth less than one that can.
+            adjustedEdge: prop.lineCount > 1 ? null
+              : adjustEdge(projection - prop.line, breakdown.evidenceGames),
           });
         }
       }
@@ -516,11 +522,20 @@ function collectEdges(regionsData, regionList, propsData, weights, statType, gam
   return rankEdges(rows);
 }
 
+/* Ranked by the edge that survives its own evidence, not the raw one.
+
+   A +6 off three games and a +4 off forty are not the same bet, and the
+   raw sort put the first above the second every time -- which is to say
+   it promoted the rows the model was least sure of, precisely because
+   being unsure produces bigger disagreements. */
 function rankEdges(rows) {
+  const key = (r) => (r.adjustedEdge !== null && r.adjustedEdge !== undefined
+    ? r.adjustedEdge : r.edge);
   return [...rows].sort((a, b) => {
-    if ((a.edge === null) !== (b.edge === null)) return a.edge === null ? 1 : -1;
-    if (a.edge === null) return 0;
-    return Math.abs(b.edge) - Math.abs(a.edge);
+    const ka = key(a), kb = key(b);
+    if ((ka === null) !== (kb === null)) return ka === null ? 1 : -1;
+    if (ka === null) return 0;
+    return Math.abs(kb) - Math.abs(ka);
   });
 }
 
@@ -1553,6 +1568,52 @@ function evidenceGamesFor(player, weights, careerRate, priorGames) {
   const careerFired = careerRate != null && weights.career > 0;
   if (!careerFired) return priorGames;
   return weights.career * careerGameCount(player) + (1 - weights.career) * priorGames;
+}
+
+/* How much of a claimed edge actually materialises, by evidence.
+
+   Ranking the board by raw edge size put the least-evidenced rows at the
+   top, because a model with little to go on produces wilder numbers and
+   wilder numbers are bigger disagreements with the line. The top of the
+   list was therefore selecting for ignorance.
+
+   These are measured by scripts/dev/edge_realization.py, which regresses
+   how far a player actually landed from a typical player against how far
+   the model said they would, inside each evidence bucket:
+
+       slope = sum(claim * realised) / sum(claim^2)
+
+   That slope is the fraction of a claimed deviation that shows up. Pooled
+   over every game and stat, n-weighted, on 36,707 point-in-time rows:
+
+       0-4g   0.34     8-12g   0.93
+       4-8g   0.72      12+g   0.94
+
+   So an edge off three games is worth about a third of its face value.
+   Smoothed to be non-decreasing (the raw 12-20g reading dips below 8-12g
+   on sample composition) and capped at 1, because this may discount a
+   claim and must never inflate one. */
+const EDGE_REALIZATION = [
+  { upTo: 4, factor: 0.34 },
+  { upTo: 8, factor: 0.72 },
+  { upTo: 12, factor: 0.93 },
+  { upTo: Infinity, factor: 0.94 },
+];
+
+function edgeMultiplier(games) {
+  // An unknown evidence count is treated as the worst case rather than
+  // the best: a row that cannot say what it is built on should not
+  // outrank one that can.
+  if (typeof games !== "number" || !isFinite(games)) return EDGE_REALIZATION[0].factor;
+  for (const band of EDGE_REALIZATION) {
+    if (games < band.upTo) return band.factor;
+  }
+  return EDGE_REALIZATION[EDGE_REALIZATION.length - 1].factor;
+}
+
+function adjustEdge(edge, games) {
+  if (edge === null || typeof edge !== "number" || !isFinite(edge)) return null;
+  return edge * edgeMultiplier(games);
 }
 
 function evidenceTier(games) {
@@ -2891,8 +2952,24 @@ function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop }) {
   const canExpand = !!(row.breakdown && row.player);
   const mapWindow = mapWindowLabel(prop.maps);
   const ambiguous = edge === null;
+  // The number shown is the one the board is ranked by, so the order on
+  // screen always matches the figures printed on it. The raw edge is
+  // still said out loud wherever the two differ, because it is what
+  // anyone can recompute from the projection and the line beside it.
+  const shown = row.adjustedEdge !== null && row.adjustedEdge !== undefined
+    ? row.adjustedEdge : edge;
+  const evidence = row.breakdown ? row.breakdown.evidenceGames : null;
+  // Flagged on the band, not on the arithmetic. Comparing the two
+  // numbers marked almost every row, because the top band's 0.94 still
+  // shifts a mid-sized edge by more than a printed decimal -- 160 of 219
+  // rows on a real board, which is the wallpaper problem the evidence
+  // chip was shaped to avoid. Only the bands that change the story
+  // (0.34 and 0.72) say so.
+  const MATERIAL_DISCOUNT = 0.9;
+  const discounted = !ambiguous && typeof shown === "number"
+    && edgeMultiplier(evidence) < MATERIAL_DISCOUNT;
   const tone = ambiguous || !fresh ? theme.textFaint
-    : edge > 0 ? theme.good : edge < 0 ? theme.bad : theme.textDim;
+    : shown > 0 ? theme.good : shown < 0 ? theme.bad : theme.textDim;
   const when = row.when ? new Date(row.when) : null;
   const clock = when && !isNaN(when)
     ? when.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })
@@ -2940,13 +3017,25 @@ function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop }) {
         <div style={{ fontSize: 9, letterSpacing: 0.6, textTransform: "uppercase", color: theme.textFaint, marginTop: 2 }}>line</div>
       </div>
       <div style={{ textAlign: "right", minWidth: 72 }}>
-        <div className="kp-num" style={{ fontSize: 15, fontWeight: 700, color: tone }}>
+        <div className="kp-num" style={{ fontSize: 15, fontWeight: 700, color: tone }}
+             title={discounted
+               ? `Raw edge ${edge > 0 ? "+" : ""}${edge.toFixed(1)}, cut to `
+                 + `${shown > 0 ? "+" : ""}${shown.toFixed(1)} because it rests on `
+                 + `${Math.round(evidence || 0)} games. Measured on past seasons, about `
+                 + `${Math.round(100 * edgeMultiplier(evidence))}% of a claimed edge at that `
+                 + `sample size actually materialises.`
+               : undefined}>
           {ambiguous ? `${prop.lineCount} lines`
             : !fresh ? `${Math.round(ageMinutes)}m old`
-            : `${edge > 0 ? "OVER +" : edge < 0 ? "UNDER " : ""}${edge === 0 ? "0.0" : Math.abs(edge).toFixed(1)}`}
+            : `${shown > 0 ? "OVER +" : shown < 0 ? "UNDER " : ""}${shown === 0 ? "0.0" : Math.abs(shown).toFixed(1)}`}
         </div>
         <div style={{ fontSize: 9, letterSpacing: 0.6, textTransform: "uppercase", color: theme.textFaint, marginTop: 2 }}>
-          {mapWindow}
+          {/* Printed on the row, not left to a tooltip: someone scanning
+              for the biggest number is exactly the person who needs to
+              know this one was cut, and they are not hovering. */}
+          {discounted && fresh
+            ? `${mapWindow} · from ${edge > 0 ? "+" : ""}${edge.toFixed(1)}`
+            : mapWindow}
         </div>
       </div>
       </div>
@@ -2992,7 +3081,15 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
   }
 
   const withEdge = rows.filter((r) => r.edge !== null);
-  const best = withEdge.length ? Math.abs(withEdge[0].edge) : 0;
+  // The biggest number on the board is the biggest ADJUSTED one, because
+  // that is the order the board is in. Quoting the raw maximum beside a
+  // list sorted the other way would describe a screen nobody is looking at.
+  const best = withEdge.length
+    ? Math.abs(withEdge[0].adjustedEdge !== null && withEdge[0].adjustedEdge !== undefined
+        ? withEdge[0].adjustedEdge : withEdge[0].edge)
+    : 0;
+  const anyDiscounted = withEdge.some((r) => r.breakdown
+    && edgeMultiplier(r.breakdown.evidenceGames) < 0.9);
 
   return (
     <div>
@@ -3004,7 +3101,7 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
             {rows.length} posted {rows.length === 1 ? "line" : "lines"}
           </span>
           <span style={{ fontSize: 11.5, color: theme.textFaint }}>
-            ranked by edge size · biggest {best.toFixed(1)}
+            ranked by evidence-adjusted edge · biggest {best.toFixed(1)}
           </span>
           {!fresh && (
             <span style={{ fontSize: 11, color: theme.bad, marginLeft: "auto" }}>
@@ -3018,9 +3115,12 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
         ))}
       </div>
       <div style={{ fontSize: 11, color: theme.textFaint, marginTop: 10, lineHeight: 1.6 }}>
-        Edge is the projection minus the line, over the line’s own map window. It is a model disagreeing with a
-        market, not a prediction of the result — and the model is the same one the accuracy figures on the Future
-        tab describe.
+        Edge is the projection minus the line, over the line’s own map window, discounted by how much evidence
+        the projection rests on. Measured over past seasons, a disagreement built on fewer than four games
+        realises about a third of its face value, and one built on twelve or more realises almost all of it — so
+        ranking on the raw number promoted the rows the model knew least about. {anyDiscounted && "A row that was cut shows the figure it came from beside its map window. "}
+        It is a model disagreeing with a market, not a prediction of the result — and the model is the same one
+        the accuracy figures on the Future tab describe.
       </div>
     </div>
   );

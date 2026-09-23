@@ -27,7 +27,8 @@ const { code } = transformSync(
                      STAT_TYPES, statsForGame,
                      SHARE_HALF_LIFE, DEFAULT_WEIGHTS_BY_GAME_AND_STAT,
                      evidenceTier, careerGameCount, evidenceGamesFor,
-                     EVIDENCE_THIN, EVIDENCE_SOLID };`,
+                     EVIDENCE_THIN, EVIDENCE_SOLID,
+                     edgeMultiplier, adjustEdge, EDGE_REALIZATION, rankEdges };`,
   { presets: [["@babel/preset-react", { runtime: "classic" }]], filename: "app.jsx",
     parserOpts: { allowReturnOutsideFunction: true } });
 const win = { innerWidth: 1400, addEventListener() {}, removeEventListener() {},
@@ -435,6 +436,66 @@ near("no career rate means no career evidence",
   const r = app.project(teams, history, teams.A.players[0], "A", "B", 2, w, "kills");
   check("project() reports the evidence behind its own number",
         typeof r.evidenceGames === "number" && r.evidenceGames > 0, true);
+}
+
+/* ---- ranking by the edge that survives its own evidence ----
+ *
+ * Measured by scripts/dev/edge_realization.py: of the deviation the
+ * model claims, the fraction that actually materialises is 0.34 below
+ * four games and about 0.94 from twelve up. Ranking on the raw number
+ * therefore promoted the rows the model knew least about, because
+ * knowing less produces bigger disagreements.
+ */
+near("an edge off three games is worth about a third of its face value",
+     app.edgeMultiplier(3), 0.34);
+near("four games is the first step up", app.edgeMultiplier(4), 0.72);
+near("eight games again", app.edgeMultiplier(8), 0.93);
+near("and twelve or more is nearly face value", app.edgeMultiplier(12), 0.94);
+near("well beyond twelve stays there", app.edgeMultiplier(400), 0.94);
+
+check("the multiplier never inflates an edge",
+      app.EDGE_REALIZATION.every((b) => b.factor <= 1), true);
+check("and never increases as evidence falls",
+      app.EDGE_REALIZATION.every((b, i, all) => i === 0 || b.factor >= all[i - 1].factor), true);
+
+/* An unknown evidence count takes the worst factor, not the best: a row
+   that cannot say what it rests on must not outrank one that can. */
+near("unknown evidence is treated as the thinnest case",
+     app.edgeMultiplier(undefined), 0.34);
+near("and so is a NaN", app.edgeMultiplier(NaN), 0.34);
+
+near("a positive edge is discounted, not flipped", app.adjustEdge(10, 2), 3.4);
+near("a negative edge keeps its sign", app.adjustEdge(-10, 2), -3.4);
+check("no edge stays no edge", app.adjustEdge(null, 2), null);
+check("a non-numeric edge is refused", app.adjustEdge("4", 30), null);
+
+/* The ordering itself, which is the whole point. */
+{
+  const rows = [
+    { name: "thin", edge: 14, adjustedEdge: 14 * 0.34 },   // 4.76
+    { name: "deep", edge: -12, adjustedEdge: -12 * 0.94 }, // -11.28
+  ];
+  check("a big edge off little evidence no longer outranks a solid one",
+        app.rankEdges(rows).map((r) => r.name), ["deep", "thin"]);
+  check("and the raw ordering would have had it the other way",
+        [...rows].sort((a, b) => Math.abs(b.edge) - Math.abs(a.edge)).map((r) => r.name),
+        ["thin", "deep"]);
+}
+{
+  // Ambiguous rows (several posted lines, none named the market one)
+  // still sort last, which they did before and must keep doing.
+  const rows = [
+    { name: "ambiguous", edge: null, adjustedEdge: null },
+    { name: "real", edge: 2, adjustedEdge: 1.88 },
+  ];
+  check("rows with no usable edge stay at the bottom",
+        app.rankEdges(rows).map((r) => r.name), ["real", "ambiguous"]);
+}
+{
+  // A row from before adjustedEdge existed must still sort sanely.
+  const rows = [{ name: "a", edge: 3 }, { name: "b", edge: 9 }];
+  check("a row carrying only a raw edge falls back to it",
+        app.rankEdges(rows).map((r) => r.name), ["b", "a"]);
 }
 
 console.log(`${pass} passed, ${fail} failed`);

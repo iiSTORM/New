@@ -571,6 +571,78 @@ if (app.ProjectionDetail && app.project) {
   containsText("and says it is in the range the model does better in",
                panel, "more accurate than its own average");
 }
+/* ---- the board says when it cut an edge ----
+ *
+ * The board is ranked by the adjusted number, so the figure on the row
+ * has to be that same number or the order contradicts the screen. And
+ * the raw edge still has to be visible, because it is the one anyone can
+ * recompute from the projection and line printed beside it -- a ranking
+ * that cannot be checked against them is worth less than one that can.
+ */
+if (app.collectEdges && app.EdgesTab) {
+  const kills = (date, k, who) => ({
+    date, teamA: "T1", teamB: "GEN", maps_counted: 2,
+    actual: { T1: { [who]: { k, d: 2, a: 5 } }, GEN: {} } });
+  const thinP = { name: "Thin", role: "MID", cur: { k: 10, d: 2, a: 5, g: 2 }, hist: null };
+  const past = [kills("2026-01-01", 20, "Thin")];
+  const regionsData = { R: { teams: { T1: { color: "#e0c341", players: [thinP] }, GEN: rostered },
+                             past_matches: past,
+                             upcoming_matches: [fixture("T1", "GEN")] } };
+  const line = (v) => ({ fetched_at: new Date().toISOString(), source: "test",
+    props: { lol: { Thin: [{ player: "Thin", stat: "kills", maps: 2, line: v,
+                             odds_type: "standard", team: "T1",
+                             start_time: "2026-09-21T10:00:00+00:00" }] } } });
+  const tab = (props) => wrap(React.createElement(app.EdgesTab, {
+    regionsData, regionList: ["R"], regionLabels: {}, weights, statType: "kills",
+    game: "lol", isDesktop: true }), props);
+
+  containsText("the board says it ranks on the adjusted edge",
+               tab(line(6)), "ranked by evidence-adjusted edge");
+  // The headline figure must BE the adjusted one. Asserting only that
+  // the raw value appears somewhere let a mutation printing the raw
+  // number as the headline pass: the board would then have been ordered
+  // by one figure and labelled with another.
+  containsText("the headline figure is the adjusted edge",
+               tab(line(6)), "OVER +4.8");
+  containsText("and not the raw one it was cut from",
+               tab(line(6)), "OVER +14.0", false);
+  containsText("a discounted row shows the figure it was cut from",
+               tab(line(6)), "from +14.0");
+  containsText("and the footer explains why the order is what it is",
+               tab(line(6)), "realises about a third of its face value");
+}
+
+/* A well-evidenced row is left alone. At twelve games or more the
+   multiplier is 0.94, which is not a discount worth interrupting a
+   reader for -- flagging on the arithmetic instead of the band marked
+   160 of 219 rows on a real board.
+
+   Built carefully after an earlier version passed for two wrong
+   reasons at once: it looked for "from +" against a row whose edge was
+   negative, and it reused one roster object for BOTH teams, so the
+   opponent contributed a second, zero-evidence row that was marked. */
+if (app.collectEdges && app.EdgesTab) {
+  const many = Array.from({ length: 16 }, (_, i) => ({
+    date: `2026-${String((i % 12) + 1).padStart(2, "0")}-01`,
+    teamA: "T1", teamB: "GEN", maps_counted: 2,
+    actual: { T1: { Faker: { k: 20, d: 2, a: 5 } }, GEN: {} } }));
+  const opponent = { color: "#888", players: [{ name: "Oner", role: "JNG",
+    cur: { k: 3, d: 2, a: 5, g: 12 }, hist: { k: 3, d: 2, a: 5 } }] };
+  const regionsData = { R: { teams: { T1: rostered, GEN: opponent }, past_matches: many,
+                             upcoming_matches: [fixture("T1", "GEN")] } };
+  // Below the projection, so the edge is positive and a "from +N" would
+  // actually appear if the row were being marked.
+  const solid = { fetched_at: new Date().toISOString(), source: "test",
+    props: { lol: { Faker: [{ player: "Faker", stat: "kills", maps: 2, line: 10.0,
+                              odds_type: "standard", team: "T1",
+                              start_time: "2026-09-21T10:00:00+00:00" }] } } };
+  const board = wrap(React.createElement(app.EdgesTab, {
+    regionsData, regionList: ["R"], regionLabels: {}, weights,
+    statType: "kills", game: "lol", isDesktop: true }), solid);
+  containsText("a well-evidenced row shows an OVER, so it is on the board at all",
+               board, "OVER +");
+  containsText("and is not marked as cut", board, "from ", false);
+}
 
 console.log(`${pass} rendered, ${fail} failed`);
 process.exit(fail ? 1 : 0);
