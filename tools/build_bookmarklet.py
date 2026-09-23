@@ -15,6 +15,7 @@ whose newline went missing silently eats the rest of the line.
     python tools/build_bookmarklet.py
 """
 import html
+import re
 import sys
 from pathlib import Path
 from urllib.parse import quote
@@ -81,24 +82,28 @@ PAGE = """<!doctype html>
 <body>
 <main>
   <h1>Save PrizePicks Board</h1>
-  <p class="sub">One click, in your own logged-in browser, to the file the projector reads.</p>
+  <p class="sub">One click, on the tab already showing the board, to the file the projector reads.</p>
 
   <div class="card">
     <h2>Install</h2>
     <p class="note">Drag this to your bookmarks bar. Clicking it here will not work &mdash;
-       a bookmarklet has to run on the PrizePicks tab, not on this page.</p>
+       it has to run on the tab showing the board.</p>
     <p><a class="drag" href="{href}">Save PrizePicks Board</a></p>
   </div>
 
   <div class="card">
     <h2>Use</h2>
     <ol>
-      <li>Open <code>app.prizepicks.com</code> and make sure you are logged in.</li>
+      <li>Open the board endpoint in a tab, logged in as usual:<br>
+          <code>{endpoint}</code></li>
       <li>Click the bookmarklet. A banner says how many projections it saved.</li>
       <li><code>prizepicks-payload.json</code> lands in your Downloads folder.</li>
       <li>Run <code>./scripts/refresh_props.sh</code>. It finds that file, checks it is
           recent, runs the matcher and commits <code>props.json</code>.</li>
     </ol>
+    <p class="note"><strong>Firefox:</strong> switch to the <em>Raw Data</em> tab before
+       clicking. Firefox renders JSON as a tree, and the tree is not the document.
+       Chrome and Edge show the raw text already.</p>
     <p class="note">The app refuses to compute an edge against a line older than 90
        minutes, so the refresh script will not accept a stale download either &mdash;
        it tells you to click again rather than publishing lines that look fresher
@@ -107,11 +112,17 @@ PAGE = """<!doctype html>
 
   <div class="card">
     <h2>What it does</h2>
-    <p class="note">It makes the same request the site makes, from the session you
-       are already in, and saves the answer. It does not disguise itself, and it does
-       nothing the page could not do on its own. The whole source is below &mdash; it is
-       the same text encoded into the link above, generated from one file so the code
-       you read is the code you install.</p>
+    <p class="note"><strong>It makes no request.</strong> You open the endpoint, your
+       browser loads it exactly as it always has, and this saves the document already on
+       screen under the name the refresh script looks for. It is the Save As dialog with
+       the typing removed.</p>
+    <p class="note">An earlier version fetched the endpoint from the app's own page and
+       was answered <code>403</code>: a <code>fetch()</code> across origins carries an
+       <code>Origin</code> header and goes through CORS, which is not the same as opening
+       the URL. Not re-asking for anything turned out to be both simpler and the thing
+       that works.</p>
+    <p class="note">The whole source is below &mdash; the same text encoded into the link
+       above, generated from one file so the code you read is the code you install.</p>
     <pre>{source}</pre>
   </div>
 </main>
@@ -130,7 +141,15 @@ def render():
     # survives raw, which keeps the href a single opaque token with no
     # path-looking structure in it. Small, but free.
     href = "javascript:" + quote(source, safe="")
-    return PAGE.format(href=html.escape(href, quote=True), source=html.escape(source))
+    # Read out of the script rather than written again here: an endpoint
+    # in the instructions that no longer matched the one in the code
+    # would send someone to the wrong page and give them no way to tell.
+    m = re.search(r'ENDPOINT = "([^"]+)"', source)
+    if not m:
+        raise SystemExit("! no ENDPOINT in bookmarklet.js to quote in the instructions")
+    return PAGE.format(href=html.escape(href, quote=True),
+                       source=html.escape(source),
+                       endpoint=html.escape(m.group(1)))
 
 
 def build(check=False):

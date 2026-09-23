@@ -109,10 +109,17 @@ browser to this script:
 #### The one-click version
 
 `tools/bookmarklet.html` — open it locally and drag the button to your
-bookmarks bar. Then, on `app.prizepicks.com` while logged in, click it: it
-makes the same request the site makes, from the session you are already
-in, and saves `prizepicks-payload.json` to Downloads. A banner tells you
-how many projections it got.
+bookmarks bar. Then open the board endpoint in a tab, logged in as usual,
+and click it: it saves the JSON already on screen as
+`prizepicks-payload.json` in Downloads, and a banner tells you how many
+projections it got.
+
+It makes **no request**. An earlier version fetched the endpoint from the
+app's own page and was answered `403` — a `fetch()` across origins carries
+an `Origin` header and goes through CORS, which is not the same as opening
+the URL. Reading the document the browser already loaded has nothing to
+refuse. In Firefox, switch to the *Raw Data* tab first; its JSON viewer
+renders a tree, and the tree is not the document.
 
 `./scripts/refresh_props.sh` then finds that file, refuses it if it has
 aged past the 90-minute window the app enforces, runs the matcher and

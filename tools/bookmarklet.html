@@ -56,24 +56,28 @@
 <body>
 <main>
   <h1>Save PrizePicks Board</h1>
-  <p class="sub">One click, in your own logged-in browser, to the file the projector reads.</p>
+  <p class="sub">One click, on the tab already showing the board, to the file the projector reads.</p>
 
   <div class="card">
     <h2>Install</h2>
     <p class="note">Drag this to your bookmarks bar. Clicking it here will not work &mdash;
-       a bookmarklet has to run on the PrizePicks tab, not on this page.</p>
-    <p><a class="drag" href="javascript:%2F%2A%20Save%20the%20PrizePicks%20board%20from%20the%20session%20you%20are%20already%20in.%0A%20%2A%0A%20%2A%20scrape_props.py%20cannot%20ask%20for%20this%20endpoint%3A%20the%20provider%20refuses%20that%0A%20%2A%20client%2C%20and%20no%20network%20change%20helps.%20The%20documented%20answer%20has%20been%20to%0A%20%2A%20open%20the%20endpoint%20in%20a%20browser%2C%20save%20the%20JSON%2C%20and%20pipe%20it%20in.%20This%20is%0A%20%2A%20that%2C%20minus%20the%20save%20dialog%20--%20you%20click%20it%2C%20in%20your%20own%20browser%2C%20while%0A%20%2A%20logged%20in%20as%20yourself%2C%20and%20the%20file%20lands%20in%20Downloads.%0A%20%2A%0A%20%2A%20It%20does%20nothing%20to%20disguise%20itself%20and%20nothing%20the%20page%20could%20not%20do%3A%0A%20%2A%20it%20is%20the%20same%20request%20the%20site%20makes%2C%20from%20the%20same%20session%2C%20run%0A%20%2A%20because%20you%20asked%20for%20it.%0A%20%2A%2F%0A%28async%20%28%29%20%3D%3E%20%7B%0A%20%20const%20ENDPOINT%20%3D%20%22https%3A%2F%2Fapi.prizepicks.com%2Fprojections%3Fper_page%3D250%26single_stat%3Dtrue%22%3B%0A%0A%20%20const%20say%20%3D%20%28msg%2C%20bad%29%20%3D%3E%20%7B%0A%20%20%20%20const%20el%20%3D%20document.createElement%28%22div%22%29%3B%0A%20%20%20%20el.textContent%20%3D%20msg%3B%0A%20%20%20%20el.style.cssText%20%3D%20%5B%0A%20%20%20%20%20%20%22position%3Afixed%22%2C%20%22z-index%3A2147483647%22%2C%20%22left%3A50%25%22%2C%20%22top%3A24px%22%2C%0A%20%20%20%20%20%20%22transform%3AtranslateX%28-50%25%29%22%2C%20%22padding%3A12px%2018px%22%2C%20%22border-radius%3A10px%22%2C%0A%20%20%20%20%20%20%22font%3A600%2014px%2F1.4%20system-ui%2Csans-serif%22%2C%20%22max-width%3A80vw%22%2C%0A%20%20%20%20%20%20%22box-shadow%3A0%206px%2024px%20rgba%280%2C0%2C0%2C.35%29%22%2C%0A%20%20%20%20%20%20bad%20%3F%20%22background%3A%23b3261e%3Bcolor%3A%23fff%22%20%3A%20%22background%3A%23123f2b%3Bcolor%3A%23c9f7dd%22%2C%0A%20%20%20%20%5D.join%28%22%3B%22%29%3B%0A%20%20%20%20document.body.appendChild%28el%29%3B%0A%20%20%20%20setTimeout%28%28%29%20%3D%3E%20el.remove%28%29%2C%20bad%20%3F%2012000%20%3A%205000%29%3B%0A%20%20%7D%3B%0A%0A%20%20try%20%7B%0A%20%20%20%20const%20res%20%3D%20await%20fetch%28ENDPOINT%2C%20%7B%20credentials%3A%20%22include%22%20%7D%29%3B%0A%20%20%20%20if%20%28%21res.ok%29%20%7B%0A%20%20%20%20%20%20say%28%60PrizePicks%20answered%20HTTP%20%24%7Bres.status%7D.%20If%20that%20is%20401%20or%20403%2C%20%60%0A%20%20%20%20%20%20%20%20%2B%20%60reload%20the%20site%2C%20make%20sure%20you%20are%20logged%20in%2C%20and%20click%20again.%60%2C%20true%29%3B%0A%20%20%20%20%20%20return%3B%0A%20%20%20%20%7D%0A%20%20%20%20const%20text%20%3D%20await%20res.text%28%29%3B%0A%0A%20%20%20%20let%20count%20%3D%200%3B%0A%20%20%20%20try%20%7B%0A%20%20%20%20%20%20const%20data%20%3D%20JSON.parse%28text%29%3B%0A%20%20%20%20%20%20count%20%3D%20%28data.data%20%7C%7C%20%5B%5D%29.filter%28%28x%29%20%3D%3E%20x%20%26%26%20x.type%20%3D%3D%3D%20%22projection%22%29.length%3B%0A%20%20%20%20%7D%20catch%20%28e%29%20%7B%0A%20%20%20%20%20%20%2F%2F%20Saved%20anyway%3A%20a%20payload%20this%20cannot%20parse%20is%20exactly%20the%20thing%0A%20%20%20%20%20%20%2F%2F%20worth%20having%20on%20disk%20to%20look%20at%2C%20and%20scrape_props.py%20will%20say%0A%20%20%20%20%20%20%2F%2F%20more%20about%20it%20than%20a%20banner%20can.%0A%20%20%20%20%20%20say%28%22That%20did%20not%20parse%20as%20JSON%20%E2%80%94%20saving%20it%20anyway%20so%20you%20can%20look%20at%20it.%22%2C%20true%29%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20const%20a%20%3D%20document.createElement%28%22a%22%29%3B%0A%20%20%20%20a.href%20%3D%20URL.createObjectURL%28new%20Blob%28%5Btext%5D%2C%20%7B%20type%3A%20%22application%2Fjson%22%20%7D%29%29%3B%0A%20%20%20%20a.download%20%3D%20%22prizepicks-payload.json%22%3B%0A%20%20%20%20document.body.appendChild%28a%29%3B%0A%20%20%20%20a.click%28%29%3B%0A%20%20%20%20a.remove%28%29%3B%0A%20%20%20%20setTimeout%28%28%29%20%3D%3E%20URL.revokeObjectURL%28a.href%29%2C%2030000%29%3B%0A%0A%20%20%20%20if%20%28count%29%20say%28%60Saved%20prizepicks-payload.json%20%E2%80%94%20%24%7Bcount%7D%20projections.%60%29%3B%0A%20%20%7D%20catch%20%28err%29%20%7B%0A%20%20%20%20say%28%60Could%20not%20read%20the%20board%3A%20%24%7Berr%20%26%26%20err.message%7D.%20Open%20the%20endpoint%20in%20a%20%60%0A%20%20%20%20%20%20%2B%20%60tab%20and%20use%20Save%20As%2C%20then%20pass%20that%20file%20to%20scrape_props.py.%60%2C%20true%29%3B%0A%20%20%7D%0A%7D%29%28%29%3B%0A">Save PrizePicks Board</a></p>
+       it has to run on the tab showing the board.</p>
+    <p><a class="drag" href="javascript:%2F%2A%20Save%20the%20PrizePicks%20board%20that%20this%20tab%20is%20already%20showing.%0A%20%2A%0A%20%2A%20It%20makes%20no%20request.%20An%20earlier%20version%20fetched%20the%20endpoint%20from%20the%0A%20%2A%20app%27s%20own%20page%20and%20was%20answered%20403%3A%20a%20fetch%28%29%20to%20api.prizepicks.com%0A%20%2A%20from%20app.prizepicks.com%20is%20cross-origin%2C%20so%20it%20carries%20an%20Origin%20header%0A%20%2A%20and%20goes%20through%20CORS%2C%20which%20is%20a%20different%20thing%20from%20opening%20the%20URL%0A%20%2A%20and%20gets%20treated%20differently.%20Navigating%20to%20it%20works%2C%20which%20is%20the%0A%20%2A%20route%20the%20README%20has%20always%20documented.%0A%20%2A%0A%20%2A%20So%20this%20does%20not%20re-ask%20for%20anything.%20You%20open%20the%20endpoint%20yourself%2C%0A%20%2A%20the%20browser%20loads%20it%20as%20it%20always%20has%2C%20and%20this%20saves%20the%20document%20that%0A%20%2A%20is%20on%20screen%20under%20the%20name%20the%20refresh%20script%20looks%20for.%20It%20is%20the%0A%20%2A%20Save%20As%20dialog%20with%20the%20typing%20removed%2C%20and%20there%20is%20no%20request%20for%0A%20%2A%20anything%20to%20refuse.%0A%20%2A%2F%0A%28%28%29%20%3D%3E%20%7B%0A%20%20const%20OUT_NAME%20%3D%20%22prizepicks-payload.json%22%3B%0A%20%20const%20ENDPOINT%20%3D%20%22https%3A%2F%2Fapi.prizepicks.com%2Fprojections%3Fper_page%3D250%26single_stat%3Dtrue%22%3B%0A%0A%20%20const%20say%20%3D%20%28msg%2C%20bad%29%20%3D%3E%20%7B%0A%20%20%20%20const%20el%20%3D%20document.createElement%28%22div%22%29%3B%0A%20%20%20%20el.textContent%20%3D%20msg%3B%0A%20%20%20%20el.style.cssText%20%3D%20%5B%0A%20%20%20%20%20%20%22position%3Afixed%22%2C%20%22z-index%3A2147483647%22%2C%20%22left%3A50%25%22%2C%20%22top%3A24px%22%2C%0A%20%20%20%20%20%20%22transform%3AtranslateX%28-50%25%29%22%2C%20%22padding%3A12px%2018px%22%2C%20%22border-radius%3A10px%22%2C%0A%20%20%20%20%20%20%22font%3A600%2014px%2F1.4%20system-ui%2Csans-serif%22%2C%20%22max-width%3A80vw%22%2C%0A%20%20%20%20%20%20%22box-shadow%3A0%206px%2024px%20rgba%280%2C0%2C0%2C.35%29%22%2C%20%22white-space%3Apre-wrap%22%2C%0A%20%20%20%20%20%20bad%20%3F%20%22background%3A%23b3261e%3Bcolor%3A%23fff%22%20%3A%20%22background%3A%23123f2b%3Bcolor%3A%23c9f7dd%22%2C%0A%20%20%20%20%5D.join%28%22%3B%22%29%3B%0A%20%20%20%20document.body.appendChild%28el%29%3B%0A%20%20%20%20setTimeout%28%28%29%20%3D%3E%20el.remove%28%29%2C%20bad%20%3F%2014000%20%3A%205000%29%3B%0A%20%20%7D%3B%0A%0A%20%20%2F%2A%20The%20raw%20document%20text%2C%20however%20the%20browser%20chose%20to%20present%20it.%0A%20%20%20%2A%0A%20%20%20%2A%20Chromium%20puts%20a%20JSON%20document%20in%20a%20%3Cpre%3E.%20Firefox%20renders%20its%20own%0A%20%20%20%2A%20viewer%20instead%2C%20whose%20innerText%20is%20the%20pretty-printed%20tree%20rather%0A%20%20%20%2A%20than%20the%20source%20--%20that%20is%20what%20the%20%22Raw%20Data%22%20tab%20is%20for%2C%20and%20the%0A%20%20%20%2A%20message%20below%20says%20so%20rather%20than%20saving%20the%20tree%20and%20letting%0A%20%20%20%2A%20scrape_props.py%20fail%20on%20it%20later.%20%2A%2F%0A%20%20const%20readDocument%20%3D%20%28%29%20%3D%3E%20%7B%0A%20%20%20%20const%20pre%20%3D%20document.querySelector%28%22pre%22%29%3B%0A%20%20%20%20if%20%28pre%20%26%26%20pre.innerText.trim%28%29%29%20return%20pre.innerText.trim%28%29%3B%0A%20%20%20%20const%20body%20%3D%20document.body%20%3F%20document.body.innerText%20%3A%20%22%22%3B%0A%20%20%20%20return%20%28body%20%7C%7C%20%22%22%29.trim%28%29%3B%0A%20%20%7D%3B%0A%0A%20%20const%20text%20%3D%20readDocument%28%29%3B%0A%20%20if%20%28%21text%29%20%7B%0A%20%20%20%20say%28%60Nothing%20to%20save%20on%20this%20page.%5Cn%5CnOpen%20this%20first%2C%20then%20click%20again%3A%5Cn%24%7BENDPOINT%7D%60%2C%20true%29%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20let%20payload%3B%0A%20%20try%20%7B%0A%20%20%20%20payload%20%3D%20JSON.parse%28text%29%3B%0A%20%20%7D%20catch%20%28e%29%20%7B%0A%20%20%20%20say%28%22This%20page%20is%20not%20raw%20JSON.%5Cn%5Cn%22%0A%20%20%20%20%20%20%2B%20%22In%20Chrome%20or%20Edge%2C%20open%20the%20endpoint%20URL%20directly.%5Cn%22%0A%20%20%20%20%20%20%2B%20%22In%20Firefox%2C%20open%20it%20and%20switch%20to%20the%20%5C%22Raw%20Data%5C%22%20tab%20first.%22%2C%20true%29%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20%2F%2A%20Shaped%20like%20the%20board%2C%20not%20merely%20like%20JSON.%20Saving%20the%20wrong%20page%27s%0A%20%20%20%2A%20JSON%20under%20this%20name%20would%20send%20scrape_props.py%20off%20to%20report%20zero%0A%20%20%20%2A%20matched%20props%2C%20which%20reads%20like%20a%20matching%20bug%20rather%20than%20the%20wrong%0A%20%20%20%2A%20file.%20%2A%2F%0A%20%20const%20projections%20%3D%20%28%28payload%20%26%26%20payload.data%29%20%7C%7C%20%5B%5D%29%0A%20%20%20%20.filter%28%28x%29%20%3D%3E%20x%20%26%26%20x.type%20%3D%3D%3D%20%22projection%22%29.length%3B%0A%20%20if%20%28%21Array.isArray%28payload%20%26%26%20payload.data%29%29%20%7B%0A%20%20%20%20say%28%22That%20is%20JSON%2C%20but%20not%20a%20PrizePicks%20board%20%E2%80%94%20no%20%5C%22data%5C%22%20array.%5Cn%5Cn%22%0A%20%20%20%20%20%20%2B%20%60Open%20this%20and%20try%20again%3A%5Cn%24%7BENDPOINT%7D%60%2C%20true%29%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20const%20a%20%3D%20document.createElement%28%22a%22%29%3B%0A%20%20a.href%20%3D%20URL.createObjectURL%28new%20Blob%28%5Btext%5D%2C%20%7B%20type%3A%20%22application%2Fjson%22%20%7D%29%29%3B%0A%20%20a.download%20%3D%20OUT_NAME%3B%0A%20%20document.body.appendChild%28a%29%3B%0A%20%20a.click%28%29%3B%0A%20%20a.remove%28%29%3B%0A%20%20setTimeout%28%28%29%20%3D%3E%20URL.revokeObjectURL%28a.href%29%2C%2030000%29%3B%0A%0A%20%20say%28projections%0A%20%20%20%20%3F%20%60Saved%20%24%7BOUT_NAME%7D%20%E2%80%94%20%24%7Bprojections%7D%20projections.%60%0A%20%20%20%20%3A%20%60Saved%20%24%7BOUT_NAME%7D%2C%20but%20it%20holds%20no%20projections.%20That%20is%20a%20real%20state%20%60%0A%20%20%20%20%20%20%2B%20%60between%20slates%3B%20if%20you%20expected%20lines%2C%20reload%20the%20endpoint%20and%20try%20again.%60%29%3B%0A%7D%29%28%29%3B%0A">Save PrizePicks Board</a></p>
   </div>
 
   <div class="card">
     <h2>Use</h2>
     <ol>
-      <li>Open <code>app.prizepicks.com</code> and make sure you are logged in.</li>
+      <li>Open the board endpoint in a tab, logged in as usual:<br>
+          <code>https://api.prizepicks.com/projections?per_page=250&amp;single_stat=true</code></li>
       <li>Click the bookmarklet. A banner says how many projections it saved.</li>
       <li><code>prizepicks-payload.json</code> lands in your Downloads folder.</li>
       <li>Run <code>./scripts/refresh_props.sh</code>. It finds that file, checks it is
           recent, runs the matcher and commits <code>props.json</code>.</li>
     </ol>
+    <p class="note"><strong>Firefox:</strong> switch to the <em>Raw Data</em> tab before
+       clicking. Firefox renders JSON as a tree, and the tree is not the document.
+       Chrome and Edge show the raw text already.</p>
     <p class="note">The app refuses to compute an edge against a line older than 90
        minutes, so the refresh script will not accept a stale download either &mdash;
        it tells you to click again rather than publishing lines that look fresher
@@ -82,24 +86,34 @@
 
   <div class="card">
     <h2>What it does</h2>
-    <p class="note">It makes the same request the site makes, from the session you
-       are already in, and saves the answer. It does not disguise itself, and it does
-       nothing the page could not do on its own. The whole source is below &mdash; it is
-       the same text encoded into the link above, generated from one file so the code
-       you read is the code you install.</p>
-    <pre>/* Save the PrizePicks board from the session you are already in.
+    <p class="note"><strong>It makes no request.</strong> You open the endpoint, your
+       browser loads it exactly as it always has, and this saves the document already on
+       screen under the name the refresh script looks for. It is the Save As dialog with
+       the typing removed.</p>
+    <p class="note">An earlier version fetched the endpoint from the app's own page and
+       was answered <code>403</code>: a <code>fetch()</code> across origins carries an
+       <code>Origin</code> header and goes through CORS, which is not the same as opening
+       the URL. Not re-asking for anything turned out to be both simpler and the thing
+       that works.</p>
+    <p class="note">The whole source is below &mdash; the same text encoded into the link
+       above, generated from one file so the code you read is the code you install.</p>
+    <pre>/* Save the PrizePicks board that this tab is already showing.
  *
- * scrape_props.py cannot ask for this endpoint: the provider refuses that
- * client, and no network change helps. The documented answer has been to
- * open the endpoint in a browser, save the JSON, and pipe it in. This is
- * that, minus the save dialog -- you click it, in your own browser, while
- * logged in as yourself, and the file lands in Downloads.
+ * It makes no request. An earlier version fetched the endpoint from the
+ * app&#x27;s own page and was answered 403: a fetch() to api.prizepicks.com
+ * from app.prizepicks.com is cross-origin, so it carries an Origin header
+ * and goes through CORS, which is a different thing from opening the URL
+ * and gets treated differently. Navigating to it works, which is the
+ * route the README has always documented.
  *
- * It does nothing to disguise itself and nothing the page could not do:
- * it is the same request the site makes, from the same session, run
- * because you asked for it.
+ * So this does not re-ask for anything. You open the endpoint yourself,
+ * the browser loads it as it always has, and this saves the document that
+ * is on screen under the name the refresh script looks for. It is the
+ * Save As dialog with the typing removed, and there is no request for
+ * anything to refuse.
  */
-(async () =&gt; {
+(() =&gt; {
+  const OUT_NAME = &quot;prizepicks-payload.json&quot;;
   const ENDPOINT = &quot;https://api.prizepicks.com/projections?per_page=250&amp;single_stat=true&quot;;
 
   const say = (msg, bad) =&gt; {
@@ -109,46 +123,67 @@
       &quot;position:fixed&quot;, &quot;z-index:2147483647&quot;, &quot;left:50%&quot;, &quot;top:24px&quot;,
       &quot;transform:translateX(-50%)&quot;, &quot;padding:12px 18px&quot;, &quot;border-radius:10px&quot;,
       &quot;font:600 14px/1.4 system-ui,sans-serif&quot;, &quot;max-width:80vw&quot;,
-      &quot;box-shadow:0 6px 24px rgba(0,0,0,.35)&quot;,
+      &quot;box-shadow:0 6px 24px rgba(0,0,0,.35)&quot;, &quot;white-space:pre-wrap&quot;,
       bad ? &quot;background:#b3261e;color:#fff&quot; : &quot;background:#123f2b;color:#c9f7dd&quot;,
     ].join(&quot;;&quot;);
     document.body.appendChild(el);
-    setTimeout(() =&gt; el.remove(), bad ? 12000 : 5000);
+    setTimeout(() =&gt; el.remove(), bad ? 14000 : 5000);
   };
 
-  try {
-    const res = await fetch(ENDPOINT, { credentials: &quot;include&quot; });
-    if (!res.ok) {
-      say(`PrizePicks answered HTTP ${res.status}. If that is 401 or 403, `
-        + `reload the site, make sure you are logged in, and click again.`, true);
-      return;
-    }
-    const text = await res.text();
+  /* The raw document text, however the browser chose to present it.
+   *
+   * Chromium puts a JSON document in a &lt;pre&gt;. Firefox renders its own
+   * viewer instead, whose innerText is the pretty-printed tree rather
+   * than the source -- that is what the &quot;Raw Data&quot; tab is for, and the
+   * message below says so rather than saving the tree and letting
+   * scrape_props.py fail on it later. */
+  const readDocument = () =&gt; {
+    const pre = document.querySelector(&quot;pre&quot;);
+    if (pre &amp;&amp; pre.innerText.trim()) return pre.innerText.trim();
+    const body = document.body ? document.body.innerText : &quot;&quot;;
+    return (body || &quot;&quot;).trim();
+  };
 
-    let count = 0;
-    try {
-      const data = JSON.parse(text);
-      count = (data.data || []).filter((x) =&gt; x &amp;&amp; x.type === &quot;projection&quot;).length;
-    } catch (e) {
-      // Saved anyway: a payload this cannot parse is exactly the thing
-      // worth having on disk to look at, and scrape_props.py will say
-      // more about it than a banner can.
-      say(&quot;That did not parse as JSON — saving it anyway so you can look at it.&quot;, true);
-    }
-
-    const a = document.createElement(&quot;a&quot;);
-    a.href = URL.createObjectURL(new Blob([text], { type: &quot;application/json&quot; }));
-    a.download = &quot;prizepicks-payload.json&quot;;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() =&gt; URL.revokeObjectURL(a.href), 30000);
-
-    if (count) say(`Saved prizepicks-payload.json — ${count} projections.`);
-  } catch (err) {
-    say(`Could not read the board: ${err &amp;&amp; err.message}. Open the endpoint in a `
-      + `tab and use Save As, then pass that file to scrape_props.py.`, true);
+  const text = readDocument();
+  if (!text) {
+    say(`Nothing to save on this page.\n\nOpen this first, then click again:\n${ENDPOINT}`, true);
+    return;
   }
+
+  let payload;
+  try {
+    payload = JSON.parse(text);
+  } catch (e) {
+    say(&quot;This page is not raw JSON.\n\n&quot;
+      + &quot;In Chrome or Edge, open the endpoint URL directly.\n&quot;
+      + &quot;In Firefox, open it and switch to the \&quot;Raw Data\&quot; tab first.&quot;, true);
+    return;
+  }
+
+  /* Shaped like the board, not merely like JSON. Saving the wrong page&#x27;s
+   * JSON under this name would send scrape_props.py off to report zero
+   * matched props, which reads like a matching bug rather than the wrong
+   * file. */
+  const projections = ((payload &amp;&amp; payload.data) || [])
+    .filter((x) =&gt; x &amp;&amp; x.type === &quot;projection&quot;).length;
+  if (!Array.isArray(payload &amp;&amp; payload.data)) {
+    say(&quot;That is JSON, but not a PrizePicks board — no \&quot;data\&quot; array.\n\n&quot;
+      + `Open this and try again:\n${ENDPOINT}`, true);
+    return;
+  }
+
+  const a = document.createElement(&quot;a&quot;);
+  a.href = URL.createObjectURL(new Blob([text], { type: &quot;application/json&quot; }));
+  a.download = OUT_NAME;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() =&gt; URL.revokeObjectURL(a.href), 30000);
+
+  say(projections
+    ? `Saved ${OUT_NAME} — ${projections} projections.`
+    : `Saved ${OUT_NAME}, but it holds no projections. That is a real state `
+      + `between slates; if you expected lines, reload the endpoint and try again.`);
 })();
 </pre>
   </div>

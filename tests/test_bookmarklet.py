@@ -71,17 +71,22 @@ class TestGeneratedFileIsCurrent:
         spec.loader.exec_module(bb)
         monkeypatch.setattr(bb, "SRC", tmp_path / "bookmarklet.js")
         monkeypatch.setattr(bb, "OUT", tmp_path / "bookmarklet.html")
-        bb.SRC.write_text("alert(1);", encoding="utf-8")
+        # render() quotes the endpoint into the instructions, so a
+        # source without one is not a page it can build.
+        bb.SRC.write_text('const ENDPOINT = "https://example.test/a";\nalert(1);',
+                          encoding="utf-8")
         assert bb.build() == 0
         assert bb.build(check=True) == 0
-        bb.SRC.write_text("alert(2);", encoding="utf-8")
+        bb.SRC.write_text('const ENDPOINT = "https://example.test/a";\nalert(2);',
+                          encoding="utf-8")
         assert bb.build(check=True) == 1, "a changed script must fail the check"
 
 
 class TestWhatTheScriptDoes:
     def test_it_saves_under_the_name_the_refresh_script_looks_for(self, source):
         """The two halves are wired by a filename and nothing else."""
-        assert 'download = "prizepicks-payload.json"' in source
+        assert 'OUT_NAME = "prizepicks-payload.json"' in source
+        assert "a.download = OUT_NAME" in source
         sh = (ROOT / "scripts" / "refresh_props.sh").read_text(encoding="utf-8")
         assert "prizepicks-payload.json" in sh
 
@@ -94,5 +99,51 @@ class TestWhatTheScriptDoes:
                           "headless", "x-forwarded"):
             assert forbidden not in lowered
 
-    def test_it_reports_an_http_failure_rather_than_saving_the_error(self, source):
-        assert "res.ok" in source and "res.status" in source
+    @staticmethod
+    def code_only(source):
+        """The script with its comments removed.
+
+        Needed because the comments explain at length that this makes no
+        request, and the word they use for that is "fetch()". Checking
+        the raw text found the explanation and called it the thing it was
+        explaining.
+
+        Block comments, then whole-line "//" ones. Deliberately not
+        stripping "//" wherever it appears: the endpoint is an https URL
+        and a blunter rule would cut it in half.
+        """
+        no_blocks = re.sub(r"/\*.*?\*/", "", source, flags=re.S)
+        return "\n".join(l for l in no_blocks.splitlines()
+                          if not l.lstrip().startswith("//"))
+
+    def test_the_comment_stripper_keeps_the_code(self, source):
+        """Guards the guard: a stripper that ate everything would make
+        every assertion below pass against nothing."""
+        code = self.code_only(source)
+        assert "prizepicks-payload.json" in code
+        assert "https://api.prizepicks.com" in code, "an https URL survived intact"
+        assert "makes no request" not in code, "prose should be gone"
+
+    def test_it_asks_for_nothing(self, source):
+        """The point of the rewrite. Fetching the endpoint from the app's
+        page was answered 403 -- a cross-origin fetch carries an Origin
+        header and goes through CORS, which is not what opening the URL
+        does. Reading the document already on screen has nothing to
+        refuse, and re-introducing a request would quietly bring the 403
+        back."""
+        code = self.code_only(source)
+        for forbidden in ("fetch(", "XMLHttpRequest", "sendBeacon",
+                          "credentials", "import("):
+            assert forbidden not in code, f"{forbidden} is a request"
+
+    def test_it_refuses_a_page_that_is_not_the_board(self, source):
+        """Saving the wrong page's JSON under the right name sends
+        scrape_props.py off to report zero matches, which reads like a
+        matching bug rather than the wrong file."""
+        assert "JSON.parse(text)" in source
+        assert 'Array.isArray(payload && payload.data)' in source
+
+    def test_it_tells_firefox_users_what_to_do(self, source):
+        """Firefox's viewer innerText is the pretty tree, not the source,
+        so it would save something that is not the payload."""
+        assert "Raw Data" in source
