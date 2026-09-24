@@ -171,8 +171,10 @@ class TestTheRunAlwaysGetsToSaveItsWork:
     @pytest.fixture(autouse=True)
     def _clean_budget(self):
         sc._DEADLINE["at"] = None
+        sc.BUDGET_SKIPS["n"] = 0
         yield
         sc._DEADLINE["at"] = None
+        sc.BUDGET_SKIPS["n"] = 0
 
     def test_no_budget_started_never_starves_a_player(self):
         assert sc.budget_exhausted() is False
@@ -217,6 +219,45 @@ class TestTheRunAlwaysGetsToSaveItsWork:
         assert calls["n"] == 0, "a skipped player must cost nothing"
         assert len(sc.cached_games_by_id(rec)) == 6, (
             "and must hand back what was already on record, not an empty record")
+
+    def test_the_budget_stops_requests_not_just_player_starts(self):
+        """Where the first version of this went wrong.
+
+        asyncio.gather turns every player into a task and the event loop
+        runs all their synchronous prologues in its first pass, so a
+        check at the top of process_one_player is read by all 1,274
+        before a second has elapsed. The budget has to bite where time
+        is actually spent, which is at the request.
+        """
+        import asyncio
+
+        async def call():
+            sc._semaphore = asyncio.Semaphore(1)
+            return await sc.bo3_get(object(), "/anything")
+
+        sc._DEADLINE["at"] = time.monotonic() - 1
+        before = sc.REQUEST_TOTAL["n"]
+        got = asyncio.run(call())
+        assert got is None, "a declined request returns the shape callers handle"
+        assert sc.REQUEST_TOTAL["n"] == before, "and costs nothing"
+        assert sc.BUDGET_SKIPS["n"] > 0, "and says so"
+
+    def test_a_request_inside_the_budget_is_not_declined(self):
+        """The guard must not be a permanent off switch."""
+        import asyncio
+
+        async def call():
+            sc._semaphore = asyncio.Semaphore(1)
+            # retries=1 so the backoff sleep does not pad the suite; a
+            # bare object() fails on .get either way.
+            return await sc.bo3_get(object(), "/anything", retries=1)
+
+        sc.start_budget()
+        try:
+            asyncio.run(call())
+        except Exception:
+            pass  # a bare object() has no .get -- reaching it is the point
+        assert sc.BUDGET_SKIPS["n"] == 0
 
     def test_an_out_of_budget_unknown_player_is_simply_absent(self):
         import asyncio

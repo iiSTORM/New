@@ -66,6 +66,7 @@ MIN_RETAINED_FRACTION = 0.5
 # after that is the cheap incremental case the cache was built for.
 TIME_BUDGET_SECONDS = int(os.environ.get("CS2_CAREER_TIME_BUDGET_SECONDS", 32 * 60))
 _DEADLINE = {"at": None}
+BUDGET_SKIPS = {"n": 0}
 
 
 def start_budget(now=None):
@@ -117,6 +118,25 @@ _debug_shape_printed = False  # ensures the tier/star fallback debug dump below 
 
 async def bo3_get(session, path, params=None, retries=3):
     async with _semaphore:
+        # The budget is enforced HERE, holding the semaphore, because
+        # this is the only place time is actually spent.
+        #
+        # It was checked once at the top of process_one_player, which
+        # does not bound anything: asyncio.gather turns all 1,274
+        # players into tasks and the event loop runs every one of their
+        # synchronous prologues in its first pass, so they all read the
+        # deadline before a second has elapsed and then queue on this
+        # semaphore for as long as it takes. A live run walked straight
+        # past a 32-minute budget on its way to the step's 45-minute
+        # timeout, which kills the process before anything is written --
+        # the exact outcome the budget exists to prevent.
+        #
+        # Returning None is a shape every caller already handles: an
+        # unresolved id hands back what was on record, no matches keeps
+        # the cached games, and a missing game stat skips that game.
+        if budget_exhausted():
+            BUDGET_SKIPS["n"] += 1
+            return None
         url = f"{BASE}{path}"
         for attempt in range(retries):
             try:
@@ -488,9 +508,11 @@ async def build_career_data():
             process_one_player(session, name, progress, len(tracked_names), previous)
             for name in tracked_names
         ])
-    if progress.get("skipped"):
-        print(f"  ! time budget ({TIME_BUDGET_SECONDS}s) reached — {progress['skipped']} "
-              f"player(s) left for the next run, which resumes from this run's cache",
+    if progress.get("skipped") or BUDGET_SKIPS["n"]:
+        print(f"  ! time budget ({TIME_BUDGET_SECONDS}s) reached — "
+              f"{progress.get('skipped', 0)} player(s) not started and "
+              f"{BUDGET_SKIPS['n']} request(s) declined. What was fetched is kept "
+              f"and the rest resumes from this run's cache next time.",
               file=sys.stderr)
     for name, record in results:
         if record:
