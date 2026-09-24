@@ -2136,6 +2136,15 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
   // and 7/7 regions respectively, and holds on the earliest quarter of the
   // season, which no fold selection touched. Reproduce with:
   //   python scripts/dev/optimize_weights.py --game lol --validate
+  //
+  // THE SAME TEST WAS RUN ON CS2 AND VALORANT AND BOTH KEEP THEIR THREE
+  // SETS (scripts/dev/shared_weight_set.py). This is a LoL property, not
+  // a general one. On CS2 a shared set is worse even on the folds it was
+  // fitted to, because that game's stats want structurally different
+  // things -- kills a role adjustment, deaths team pace, assists
+  // neither. On Valorant the search found 0.6% in-sample by switching
+  // `history` off entirely, a tier that costs +4.0% when removed, and it
+  // inverted on the holdout: kills +0.88%, deaths +1.27%.
   lol: {
     kills: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6, share: 0.0, shrink: 0.0 },
     deaths: { history: 0.8, opponent: 0.4, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.6, share: 0.0, shrink: 0.0 },

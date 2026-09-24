@@ -22,6 +22,43 @@ assists near 2.9: each stat is scored as a RATIO to what the shipped
 weights get on the same folds, and the search minimises the mean of
 those ratios. A set that helps kills by wrecking assists cannot win.
 
+RESULT: both games keep their three sets. LoL's finding does not
+transfer, and the two failures fail differently.
+
+CS2 -- the search never got below 1.0 even on the folds it was FITTED
+to. Best it managed was 1.0013, 0.13% worse than three tuned sets,
+in-sample, where overfitting should have flattered it.
+
+  stat       shipped   shared    change   held out
+  kills       6.2814   6.2763    -0.08%     2/2
+  deaths      4.9975   5.0087    +0.22%     0/2
+  assists     2.8741   2.8699    -0.15%     2/2
+
+That is not a marginal loss, it is evidence the per-stat differences are
+real. CS2's three stats want structurally different things: kills wants
+role adjustment (kp 0.8) and heavy shrink, deaths wants team pace
+(share 0.4) with light shrink and slow recency, assists wants neither.
+Collapsing them costs deaths more than it gains the other two.
+
+VALORANT -- the search DID find 0.6% in-sample, and it inverted:
+
+  stat       shipped   shared    change   held out
+  kills       5.8680   5.9194    +0.88%     0/2
+  deaths      4.0875   4.1396    +1.27%     0/2
+  assists     3.4826   3.4396    -1.23%     2/2
+
+Look at what it did to get there: it drove `history` from 0.6 to 0.0,
+switching off the tier this game's own notes say carries it (turning
+history off costs +4.0% on kills and deaths). Four folds were enough to
+make that look like an improvement. This is the third time in one
+session that a search has produced a real-looking in-sample gain that
+reversed out of sample, which is the entire reason the holdout is not
+optional.
+
+Assists moves the same way in both games, and that is not nothing: it is
+the stat with the least per-stat signal, so it is the one a shared set
+can carry. Not enough to collapse the other two for.
+
 Usage:
     python scripts/dev/shared_weight_set.py --game cs2
 """
