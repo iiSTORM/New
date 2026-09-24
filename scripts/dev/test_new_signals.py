@@ -59,7 +59,10 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import optimize_weights as ow
 
-FIELDS = ("adr", "acs", "kast", "fk", "fd", "hs", "rating")
+# acs is Valorant's; clutch/tk/td/dmg are CS2's. A field absent from a
+# game is simply reported as thin rather than special-cased.
+FIELDS = ("adr", "acs", "kast", "fk", "fd", "hs", "rating",
+          "clutch", "tk", "td", "dmg")
 
 
 def corr(xs, ys):
@@ -72,7 +75,7 @@ def corr(xs, ys):
     return sum((a - mx) * (b - my) for a, b in zip(xs, ys)) / len(xs) / (sx * sy)
 
 
-def collect(data, stat):
+def collect(data, stat, game="valorant"):
     """(date, prediction, actual, {field: season value}) per scoreable row.
 
     The season figures are NOT point-in-time -- they are what the scraper
@@ -100,7 +103,7 @@ def collect(data, stat):
                         continue
                     pred, prior = ow.project_point_in_time(
                         past, teams, p, team, opp, m.get("maps_counted", 2),
-                        ow.SHIPPED_WEIGHTS["valorant"][stat], m["date"], stat,
+                        ow.SHIPPED_WEIGHTS[game][stat], m["date"], stat,
                         m.get("patch"))
                     if pred is None or prior < 4:
                         continue
@@ -115,18 +118,25 @@ def collect(data, stat):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--data", default="valorant_data.json")
+    ap.add_argument("--game", default="valorant",
+                    choices=["valorant", "cs2", "lol"])
+    ap.add_argument("--data", default=None)
     args = ap.parse_args()
-    data = ow.load_region_data(args.data)
+    sources = {"valorant": "valorant_data.json", "cs2": "cs2_data.json",
+               "lol": "data.json"}
+    data = ow.load_region_data(args.data or sources[args.game])
+    game = args.game
 
     for stat in ("kills", "deaths", "assists"):
-        rows = collect(data, stat)
+        if not ow.stat_applies_to(stat, game):
+            continue
+        rows = collect(data, stat, game)
         if len(rows) < 200:
-            print(f"\nvalorant/{stat}: {len(rows)} rows carrying the new fields — "
+            print(f"\n{game}/{stat}: {len(rows)} rows carrying the new fields — "
                   f"re-run once a scrape with them has landed")
             continue
         resid = [a - p for _, p, a, _, _ in rows]
-        print(f"\nvalorant/{stat}  n={len(rows)}  "
+        print(f"\n{game}/{stat}  n={len(rows)}  "
               f"MAE {statistics.mean(abs(r) for r in resid):.4f}")
         print(f"  {'field':8} {'coverage':>9} {'corr with residual':>20}")
         for f in FIELDS:

@@ -19,8 +19,15 @@ import statistics, sys
 sys.path.insert(0, "scripts/dev")
 import optimize_weights as ow
 
-data = ow.load_region_data("valorant_data.json")
-FIELDS = ("adr", "acs", "kast", "rating", "fk", "fd", "hs")
+import argparse
+_ap = argparse.ArgumentParser()
+_ap.add_argument("--game", default="valorant", choices=["valorant", "cs2", "lol"])
+_args = _ap.parse_args()
+GAME = _args.game
+data = ow.load_region_data({"valorant": "valorant_data.json",
+                            "cs2": "cs2_data.json", "lol": "data.json"}[GAME])
+FIELDS = ("adr", "acs", "kast", "rating", "fk", "fd", "hs",
+          "clutch", "tk", "td", "dmg")
 
 def corr(xs, ys):
     if len(xs) < 50: return None
@@ -45,7 +52,7 @@ def pit(past, team, player, field, cutoff):
     return tot/maps if field in ("fk","fd") else tot/rows
 
 for stat in ("kills","deaths"):
-    W = ow.SHIPPED_WEIGHTS["valorant"][stat]
+    W = ow.SHIPPED_WEIGHTS[GAME][stat]
     key = ow.STAT_TYPES[stat]["key"]
     acc = {f: ([], []) for f in FIELDS}
     n = 0
@@ -68,14 +75,20 @@ for stat in ("kills","deaths"):
                         v = pit(past, team, p["name"], f, cutoff)
                         if v is not None:
                             acc[f][0].append(v); acc[f][1].append(r)
-    print(f"\nvalorant/{stat}  n={n}")
-    print(f"  {'field':8} {'n':>6} {'point-in-time':>14} {'leaky screen':>14}")
-    leak = {"kills": {"adr":0.2062,"acs":0.2122,"kast":0.0733,"rating":0.1891,
+    print(f"\n{GAME}/{stat}  n={n}")
+    print(f"  {'field':8} {'n':>6} {'point-in-time':>14}"
+          + (f" {'leaky screen':>14}" if GAME == "valorant" else ""))
+    leak = {} if GAME != "valorant" else {"kills": {"adr":0.2062,"acs":0.2122,"kast":0.0733,"rating":0.1891,
                       "fk":0.1356,"fd":0.0729,"hs":0.0143},
             "deaths": {"adr":-0.0423,"acs":-0.0454,"kast":-0.0939,"rating":-0.0935,
                        "fk":-0.0053,"fd":0.0392,"hs":-0.0088}}[stat]
+    leak = leak if isinstance(leak, dict) else {}
     for f in FIELDS:
         xs, ys = acc[f]
         c = corr(xs, ys)
-        print(f"  {f:8} {len(xs):>6} {c:>14.4f} {leak[f]:>14.4f}" if c is not None
-              else f"  {f:8} {len(xs):>6} {'(thin)':>14}")
+        if c is None:
+            print(f"  {f:8} {len(xs):>6} {'(thin)':>14}")
+        elif f in leak:
+            print(f"  {f:8} {len(xs):>6} {c:>14.4f} {leak[f]:>14.4f}")
+        else:
+            print(f"  {f:8} {len(xs):>6} {c:>14.4f}")

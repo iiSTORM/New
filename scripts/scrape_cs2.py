@@ -240,8 +240,17 @@ EXTRA_STAT_FIELDS = {
     "kast": ("kast",),
     "fk": ("first_kills",),                # opening duels won
     "fd": ("first_death",),                # ... and lost. Singular, per the API.
+    # bo3.gg's OWN score, not the HLTV rating the name suggests: a real
+    # run puts it between 3.5 and 9.3 per map, where HLTV's sits near
+    # 1.0-1.3. Monotone and usable, but do not compare it across sites
+    # or read 1.0 as average.
     "rating": ("player_rating", "player_rating_value"),
     "clutch": ("clutches",),
+    # multikills is offered but is NOT a plain number -- it survived a
+    # live run without ever being captured, which is capture_extra_stats
+    # refusing a non-numeric value rather than a bug. Probably a
+    # breakdown object (2k/3k/4k/5k). Left here so the next person does
+    # not rediscover it; unpacking it needs the real shape first.
     "multi": ("multikills",),
     "tk": ("trade_kills",),                # a kill that traded a fallen teammate
     "td": ("trade_death",),
