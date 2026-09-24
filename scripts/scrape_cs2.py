@@ -622,7 +622,16 @@ async def build_region_payload(cs2, session):
     # the individual upcoming match record itself.
     notable_tournament_ids = {m.get("tournament_id") for m in tier_filtered if m.get("tournament_id") is not None}
 
-    MATCH_LIMIT = 60
+    # Was 60 against a feed that reliably returns 100 notable matches, so
+    # forty were discovered and thrown away every single run -- already
+    # filtered, already known to be worth having, discarded to save the
+    # cheap half of the work. The expensive part is discovery, which
+    # happens either way; this only adds the per-match stat fetches.
+    #
+    # Worth it because more per-team history measurably helps: see the
+    # MATCHES_KEPT_PER_TEAM note for the numbers. Raising the retention
+    # cap without raising this would just keep the same 60 longer.
+    MATCH_LIMIT = 100
     matches_to_process = tier_filtered[:MATCH_LIMIT]
     print(f"Fetching per-map player stats for {len(matches_to_process)} matches "
           f"(capped from {len(tier_filtered)} found; this is the slow part)...")
@@ -1063,11 +1072,29 @@ async def main():
 # without bound, so each team keeps its most recent few and a match
 # survives while either side still wants it.
 #
-# Eight because that is what the app draws: the form chart is the last 8,
-# and CS2's model leans on the career tier (kills is career 1.0) fed from
-# cs2_career_data.json, not on this file's match list. So this needs to
-# carry enough to rate a roster and chart it, not a full season.
-MATCHES_KEPT_PER_TEAM = 8
+# Was eight, on the reasoning that the form chart draws the last 8 and
+# CS2's model leans on the career tier rather than this file's match
+# list. The second half of that turned out to be wrong where it counts.
+#
+# MEASURED by thinning the committed history and re-running the backtest
+# on identical rows -- kills MAE against the per-team cap:
+#
+#     cap 2   324 matches   6.6326
+#     cap 3   388 matches   6.5949
+#     cap 4   427 matches   6.5243
+#     cap 6   470 matches   6.4864
+#     cap 8   481 matches   6.4339
+#
+# Monotonic, -3.0% across that range, and still falling at 8 with no
+# sign of a plateau. The career tier does carry the projection, but this
+# list is where a player's CURRENT form comes from, and a leave-one-out
+# check showed same-event form is the strongest single signal CS2 has:
+# a player's own mean over their tracked matches correlates 0.287 with
+# outcomes where a 34-game career rate reaches 0.227.
+#
+# Sixteen, so accumulation can deepen. The file roughly doubles, to
+# about the size data.json already is.
+MATCHES_KEPT_PER_TEAM = 16
 
 
 def match_key(m):

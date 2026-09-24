@@ -119,6 +119,10 @@ class TestRetention:
     def test_the_shipped_cap_is_enough_to_draw_the_form_chart(self):
         """The app charts the last 8. Keeping fewer would silently
         shorten every CS2 form chart in the product."""
+        # Raised 8 -> 16 on measurement: thinning the committed history
+        # and re-running the backtest gives a monotonic -3.0% on kills
+        # MAE from cap 2 to cap 8, still falling at 8. The floor is what
+        # the form chart draws; the reason to go past it is accuracy.
         assert sc.MATCHES_KEPT_PER_TEAM >= 8
 
 
