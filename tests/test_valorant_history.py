@@ -27,9 +27,19 @@ pytest.importorskip("aiohttp")
 import scrape_valorant as sv
 
 
-def m(mid, a="A", b="B", date="2026-05-01", score="2-1"):
-    return {"match_id": mid, "teamA": a, "teamB": b, "date": date,
-            "score": score, "actual": {}, "games": 2}
+def m(mid, a="A", b="B", date=None, score=None):
+    """One match.
+
+    Date and score vary with the id unless given, so two different
+    matches look different to the composite fallback key as well as to
+    the id -- a fixture where every match shares a date and a score
+    makes them one match under that key, and the tests stop testing
+    what they say.
+    """
+    n = 0 if mid is None else int(mid)
+    return {"match_id": mid, "teamA": a, "teamB": b,
+            "date": date or f"2026-05-{n % 28 + 1:02d}",
+            "score": score or f"2-{n % 3}", "actual": {}, "games": 2}
 
 
 class TestIdentity:
@@ -42,6 +52,11 @@ class TestIdentity:
         first = m(None, date="2026-05-01", score="2-0")
         second = m(None, date="2026-05-01", score="1-2")
         assert sv.match_key(first) != sv.match_key(second)
+
+    def test_a_match_with_an_id_still_has_a_composite_identity(self):
+        """The only thing a stored copy and a fetched copy of one match
+        share across the transition to ids."""
+        assert sv.legacy_key(m(7)) == sv.legacy_key({**m(7), "match_id": None})
 
     def test_a_record_without_an_id_still_has_an_identity(self):
         """Records written before match_id was stored. They age out on
@@ -71,6 +86,29 @@ class TestMerging:
         counted twice, in the rate and in the evidence count."""
         got = sv.merge_history_matches([m(1), m(2)], [], [m(1)])
         assert [x["match_id"] for x in got] == [2]
+
+    def test_a_stored_copy_from_before_ids_is_the_same_match(self):
+        """What actually happened on the first run after match_id landed.
+        Last run's file had no ids, so the stored copy keyed as legacy
+        and the fresh copy keyed as id, the exclusion matched neither,
+        and all 247 current matches ended up in BOTH lists."""
+        stored = {**m(1), "match_id": None}
+        assert sv.merge_history_matches([stored], [], [m(1)]) == []
+
+    def test_it_holds_in_the_other_direction_too(self):
+        """The mirror case: the CURRENT match is the one without an id,
+        and the stored copy has one. Neither side of the transition can
+        be assumed to be the identified one."""
+        current_without_id = {**m(1), "match_id": None}
+        assert sv.merge_history_matches([m(1)], [], [current_without_id]) == []
+
+    def test_a_stored_copy_and_a_fetched_copy_collapse_to_one(self):
+        """The same collision inside the pool itself. The one carrying
+        the id wins, because it is the one this run fetched."""
+        stored = {**m(1), "match_id": None, "actual": {"stale": True}}
+        got = sv.merge_history_matches([stored], [m(1)], [])
+        assert len(got) == 1
+        assert got[0]["match_id"] == 1 and got[0]["actual"] == {}
 
     def test_newest_first(self):
         got = sv.merge_history_matches(

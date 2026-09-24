@@ -717,19 +717,25 @@ def extra_rates(slot):
 MATCHES_KEPT_PER_TEAM = 30
 
 
-def match_key(m):
-    """Identity for de-duplicating a match across runs.
+def legacy_key(m):
+    """What a record written before match_id existed can be identified by.
 
-    vlr.gg's own id when present. Records written before it was stored
-    fall back to a composite -- and it is a FALLBACK, not a scheme: two
-    teams can meet twice in one day, so the composite pulls in the score
-    to separate a double-header. Those legacy records age out on their
-    own as MATCHES_KEPT_PER_TEAM rolls forward.
+    A FALLBACK, not a scheme: two teams can meet twice in one day, so it
+    pulls in the score to separate a double-header. Every record has one
+    of these, including records that also have an id -- which is the
+    point. It is the only thing a stored copy and a freshly fetched copy
+    of the same match have in common across the transition.
     """
+    return ("legacy", m.get("date"), m.get("teamA"), m.get("teamB"), m.get("score"))
+
+
+def match_key(m):
+    """Identity for de-duplicating a match across runs: vlr.gg's own id
+    when present, the composite otherwise."""
     mid = m.get("match_id")
     if mid:
         return ("id", str(mid))
-    return ("legacy", m.get("date"), m.get("teamA"), m.get("teamB"), m.get("score"))
+    return legacy_key(m)
 
 
 def merge_history_matches(previous, fresh, current, per_team=MATCHES_KEPT_PER_TEAM):
@@ -748,15 +754,34 @@ def merge_history_matches(previous, fresh, current, per_team=MATCHES_KEPT_PER_TE
     because the stored one may predate a fix to how stats are read -- the
     opening-duel columns landed exactly that way.
     """
-    held = {match_key(m) for m in current or []}
+    # BOTH keys per current match, and a candidate is tested on both of
+    # its own. The first run after match_id landed proved why: last
+    # run's file held the same matches with no ids, so the stored copy
+    # keyed as legacy and the fresh copy keyed as id, the exclusion
+    # matched neither, and every one of the 247 current matches ended up
+    # in BOTH lists -- counted twice in every rate and every evidence
+    # count, while the depth it was meant to add looked twice as good as
+    # it was.
+    held = set()
+    for m in current or []:
+        held.add(match_key(m))
+        held.add(legacy_key(m))
+
     by_key = {}
     for m in list(previous or []) + list(fresh or []):
         if not m or not m.get("teamA") or not m.get("teamB"):
             continue
-        key = match_key(m)
-        if key in held:
+        if match_key(m) in held or legacy_key(m) in held:
             continue
-        by_key[key] = m  # fresh overwrites previous
+        by_key[match_key(m)] = m  # fresh overwrites previous
+
+    # The same collision inside the pool itself: a stored legacy copy and
+    # a fetched copy of one match are two entries under two keys. The one
+    # carrying the id wins, since it is the one this run fetched.
+    identified = {legacy_key(m) for k, m in by_key.items() if k[0] == "id"}
+    by_key = {k: m for k, m in by_key.items()
+              if k[0] == "id" or k not in identified}
+
     ordered = sorted(by_key.values(), key=lambda m: (m.get("date") or ""), reverse=True)
 
     # The current event's matches count against each team's allowance, so

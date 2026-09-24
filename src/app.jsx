@@ -2199,8 +2199,8 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     deaths: { history: 0.7, opponent: 0.0, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.3, career: 0.0, share: 0.7, shrink: 0.0 },  // kp is dead weight for deaths (useKP: false) — see the cs2 note below
     // ASSISTS RE-FIT against the deeper history (history_matches: the
     // prior event's maps, which the scraper used to discard). Median
-    // per-player depth went 8 -> 20 maps, and the weights that suited
-    // eight do not suit twenty: share 0.4 -> 0.5, shrink 1.0 -> 4.0,
+    // per-player depth went 8 -> 12 maps, and the weights that suited
+    // eight do not suit twelve: share 0.4 -> 0.5, shrink 1.0 -> 4.0,
     // patchDiscount 0.8 -> 1.0, history 0.4 -> 0.3. The last one is the
     // tell — the prior event's matches are now IN the pool, so the tier
     // that summarises them is worth less.
@@ -2209,8 +2209,16 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // last two, which the search never saw: -1.31% where it looked and
     // -0.49% where it did not, 2/2 held-out folds. Then the repo's
     // ordinary adoption test on the whole season, which it passes at
-    // every fold count tried: 4/4, 6/6, 7/8, 6/10, about -1.0% each
+    // every fold count tried: 4/4, 4/6, 7/8, 7/10, about -1.0% each
     // time.
+    //
+    // Both sets of numbers were re-taken after a de-duplication bug was
+    // found (the first run after match_id landed put every current
+    // match in the history list as well, since the stored copy had no
+    // id to match on). The candidate survived it; the claim that deeper
+    // history helps DEATHS did not -- at shipped weights that was
+    // -1.47% over 5/6 folds with the duplicates and is -0.17% over 2/6
+    // without. Assists is the one stat the extra depth actually moves.
     //
     // KILLS AND DEATHS WERE SEARCHED THE SAME WAY AND REJECTED. Both
     // looked better than this on the folds they were fitted to (kills
