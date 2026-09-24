@@ -324,20 +324,22 @@ try {
       }, mapWindow));
     }
     const edge = projection - prop.line;
-    const tone = !fresh ? theme.textFaint : edge > 0 ? theme.good : edge < 0 ? theme.bad : theme.textDim;
+    const live = propIsLive(prop);
+    const aged = live && !fresh ? ageLabel(ageMinutes) : null;
+    const tone = !live ? theme.textFaint : edge > 0 ? theme.good : edge < 0 ? theme.bad : theme.textDim;
     return React.createElement("div", {
       style: {
         textAlign: "right",
         flexShrink: 0,
         minWidth: 74
       },
-      title: `Line ${prop.line} over ${mapWindow}. Projection over the same ${prop.maps} map${prop.maps === 1 ? "" : "s"}: ${projection.toFixed(1)}.`
+      title: `Line ${prop.line} over ${mapWindow}. Projection over the same ${prop.maps} map${prop.maps === 1 ? "" : "s"}: ${projection.toFixed(1)}.` + (aged ? ` Posted line is ${aged} — lines move, so check it before acting.` : "") + (live ? "" : " This fixture has already started.")
     }, React.createElement("div", {
       className: "kp-num",
       style: {
         fontSize: 15,
         fontWeight: 600,
-        color: fresh ? theme.text : theme.textFaint
+        color: live ? theme.text : theme.textFaint
       }
     }, prop.line), React.createElement("div", {
       className: "kp-num",
@@ -347,7 +349,7 @@ try {
         color: tone,
         marginTop: 2
       }
-    }, fresh ? `${edge > 0 ? "+" : ""}${edge.toFixed(1)}` : `${Math.round(ageMinutes)}m old`), React.createElement("div", {
+    }, live ? `${edge > 0 ? "+" : ""}${edge.toFixed(1)}` : "started"), React.createElement("div", {
       style: {
         fontSize: 9,
         letterSpacing: 0.6,
@@ -355,7 +357,7 @@ try {
         color: theme.textFaint,
         marginTop: 3
       }
-    }, fresh ? mapWindow : `${mapWindow} · stale`));
+    }, !live ? `${mapWindow} · started` : aged ? `${mapWindow} · ${aged}` : mapWindow));
   }
   function StatReadout({
     value,
@@ -788,6 +790,18 @@ try {
   function propsAreFresh(propsData) {
     const age = propsAgeMinutes(propsData);
     return age !== null && age <= PROPS_MAX_AGE_MINUTES;
+  }
+  function propIsLive(prop, now = Date.now()) {
+    if (!prop || !prop.start_time) return true;
+    const start = new Date(prop.start_time).getTime();
+    return isNaN(start) ? true : now < start;
+  }
+  function ageLabel(minutes) {
+    if (minutes === null || minutes === undefined || isNaN(minutes)) return null;
+    const m = Math.round(minutes);
+    if (m < 90) return `${m}m old`;
+    const h = minutes / 60;
+    return h < 48 ? `${Math.round(h)}h old` : `${Math.round(h / 24)}d old`;
   }
   function useChampionStats() {
     return useContext(ChampionStatsContext);
@@ -3560,6 +3574,8 @@ try {
       projection,
       edge
     } = row;
+    const live = propIsLive(prop);
+    const aged = live && !fresh ? ageLabel(ageMinutes) : null;
     const [open, setOpen] = useState(false);
     const canExpand = !!(row.breakdown && row.player);
     const mapWindow = mapWindowLabel(prop.maps);
@@ -3568,7 +3584,7 @@ try {
     const evidence = row.evidence !== undefined && row.evidence !== null ? row.evidence : row.breakdown ? row.breakdown.evidenceGames : null;
     const MATERIAL_DISCOUNT = 0.9;
     const discounted = !ambiguous && typeof shown === "number" && edgeMultiplier(evidence) < MATERIAL_DISCOUNT;
-    const tone = ambiguous || !fresh ? theme.textFaint : shown > 0 ? theme.good : shown < 0 ? theme.bad : theme.textDim;
+    const tone = ambiguous || !live ? theme.textFaint : shown > 0 ? theme.good : shown < 0 ? theme.bad : theme.textDim;
     const when = row.when ? new Date(row.when) : null;
     const clock = when && !isNaN(when) ? when.toLocaleString(undefined, {
       month: "short",
@@ -3688,7 +3704,7 @@ try {
         color: tone
       },
       title: discounted ? `Raw edge ${edge > 0 ? "+" : ""}${edge.toFixed(1)}, cut to ` + `${shown > 0 ? "+" : ""}${shown.toFixed(1)} because it rests on ` + `${Math.round(evidence || 0)} games. Measured on past seasons, about ` + `${Math.round(100 * edgeMultiplier(evidence))}% of a claimed edge at that ` + `sample size actually materialises.` : undefined
-    }, ambiguous ? `${prop.lineCount} lines` : !fresh ? `${Math.round(ageMinutes)}m old` : `${shown > 0 ? "OVER +" : shown < 0 ? "UNDER " : ""}${shown === 0 ? "0.0" : Math.abs(shown).toFixed(1)}`), React.createElement("div", {
+    }, ambiguous ? `${prop.lineCount} lines` : !live ? "started" : `${shown > 0 ? "OVER +" : shown < 0 ? "UNDER " : ""}${shown === 0 ? "0.0" : Math.abs(shown).toFixed(1)}`), React.createElement("div", {
       style: {
         fontSize: 9,
         letterSpacing: 0.6,
@@ -3696,7 +3712,7 @@ try {
         color: theme.textFaint,
         marginTop: 2
       }
-    }, discounted && fresh ? `${mapWindow} · from ${edge > 0 ? "+" : ""}${edge.toFixed(1)}` : mapWindow))), open && canExpand && React.createElement("div", {
+    }, !live ? `${mapWindow} · started` : discounted ? `${mapWindow} · from ${edge > 0 ? "+" : ""}${edge.toFixed(1)}${aged ? ` · ${aged}` : ""}` : aged ? `${mapWindow} · ${aged}` : mapWindow))), open && canExpand && React.createElement("div", {
       style: {
         marginTop: 12
       }
@@ -3724,6 +3740,7 @@ try {
     const ageMinutes = propsAgeMinutes(propsData);
     const cfg = STAT_TYPES[statType];
     const rows = collectEdges(regionsData, regionList, propsData, weights, statType, game);
+    const startedCount = rows.filter(r => !propIsLive(r.prop)).length;
     const note = text => React.createElement("div", {
       style: {
         background: theme.graphite,
@@ -3786,10 +3803,16 @@ try {
     }, "ranked by evidence-adjusted edge \xB7 biggest ", best.toFixed(1)), !fresh && React.createElement("span", {
       style: {
         fontSize: 11,
-        color: theme.bad,
+        color: theme.textDim,
         marginLeft: "auto"
       }
-    }, Math.round(ageMinutes), " min old \u2014 past the ", PROPS_MAX_AGE_MINUTES, "-minute window, so no edges are drawn")), lean && React.createElement("div", {
+    }, "lines fetched ", ageLabel(ageMinutes), " \u2014 still priced, but they move"), startedCount > 0 && React.createElement("span", {
+      style: {
+        fontSize: 11,
+        color: theme.textFaint,
+        marginLeft: !fresh ? 0 : "auto"
+      }
+    }, startedCount, " ", startedCount === 1 ? "fixture has" : "fixtures have", " started")), lean && React.createElement("div", {
       style: {
         padding: "11px 16px",
         borderBottom: `1px solid ${theme.steel}`,

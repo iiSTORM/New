@@ -30,7 +30,8 @@ const { code } = transformSync(
                      EVIDENCE_THIN, EVIDENCE_SOLID,
                      edgeMultiplier, adjustEdge, EDGE_REALIZATION, rankEdges,
                      historyIsBorrowed, effectiveEvidence, EVIDENCE_BORROWED_CAP,
-                     historyPoolFor, homeRegionLookup, shortRegionLabel };`,
+                     historyPoolFor, homeRegionLookup, shortRegionLabel,
+                     propIsLive, ageLabel, propsAreFresh, PROPS_MAX_AGE_MINUTES };`,
   { presets: [["@babel/preset-react", { runtime: "classic" }]], filename: "app.jsx",
     parserOpts: { allowReturnOutsideFunction: true } });
 const win = { innerWidth: 1400, addEventListener() {}, removeEventListener() {},
@@ -758,6 +759,49 @@ check("a region with no prefix is untouched", app.shortRegionLabel("LCS"), "LCS"
     check(`${key} tags nothing, being the teams' own league`, stray, []);
   }
 }
+
+/* A line is live until its own fixture starts.
+ *
+ * It used to be live until the PAYLOAD hit 90 minutes old, and past
+ * that the edge was suppressed entirely. That answers the wrong
+ * question: what makes a line worthless is the match being played, not
+ * the file being fetched a while ago, and on a board refreshed twice a
+ * day the suppression fired constantly on fixtures that had not even
+ * kicked off.
+ *
+ * The age is still shown, because lines do move. It just no longer
+ * decides whether an edge exists.
+ */
+{
+  const soon = new Date(Date.now() + 3 * 3600 * 1000).toISOString();
+  const past = new Date(Date.now() - 3 * 3600 * 1000).toISOString();
+
+  check("a line on a fixture that has not started is live",
+        app.propIsLive({ start_time: soon }), true);
+  check("and one whose fixture has started is not",
+        app.propIsLive({ start_time: past }), false);
+  check("a line with no start time stays live rather than being discarded",
+        app.propIsLive({ line: 10.5 }), true);
+  check("as does one whose start time will not parse",
+        app.propIsLive({ start_time: "whenever" }), true);
+  check("a missing prop is not a crash", app.propIsLive(null), true);
+
+  /* The age of the PAYLOAD no longer enters into it. This is the whole
+     behaviour change, so it is pinned directly: an ancient payload
+     carrying a line on a match that has not happened is still live. */
+  check("payload age does not decide liveness",
+        app.propIsLive({ start_time: soon }, Date.now()), true);
+  check("and the freshness helper still reports it, for the caveat",
+        app.propsAreFresh({ fetched_at: new Date(
+          Date.now() - (app.PROPS_MAX_AGE_MINUTES + 60) * 60000).toISOString() }), false);
+}
+
+/* Minutes are how the data arrives and not how anyone reads them. */
+check("minutes stay minutes while they are readable", app.ageLabel(45), "45m old");
+check("and become hours when they are not", app.ageLabel(312), "5h old");
+check("and days past a couple of them", app.ageLabel(60 * 24 * 3), "3d old");
+check("nothing to say about a missing age", app.ageLabel(null), null);
+check("nor about a broken one", app.ageLabel(NaN), null);
 
 check("borrowed evidence cannot read as solid",
       app.evidenceTier(app.effectiveEvidence(400, true)), "limited");

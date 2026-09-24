@@ -175,15 +175,21 @@ function PropReadout({ prop, projection, fresh, ageMinutes }) {
   }
 
   const edge = projection - prop.line;
-  const tone = !fresh ? theme.textFaint : edge > 0 ? theme.good : edge < 0 ? theme.bad : theme.textDim;
+  // Live until the FIXTURE starts, not until the payload gets old. An
+  // old line on a match that has not been played is still the line.
+  const live = propIsLive(prop);
+  const aged = live && !fresh ? ageLabel(ageMinutes) : null;
+  const tone = !live ? theme.textFaint : edge > 0 ? theme.good : edge < 0 ? theme.bad : theme.textDim;
   return (
     <div style={{ textAlign: "right", flexShrink: 0, minWidth: 74 }}
-         title={`Line ${prop.line} over ${mapWindow}. Projection over the same ${prop.maps} map${prop.maps === 1 ? "" : "s"}: ${projection.toFixed(1)}.`}>
-      <div className="kp-num" style={{ fontSize: 15, fontWeight: 600, color: fresh ? theme.text : theme.textFaint }}>
+         title={`Line ${prop.line} over ${mapWindow}. Projection over the same ${prop.maps} map${prop.maps === 1 ? "" : "s"}: ${projection.toFixed(1)}.`
+                + (aged ? ` Posted line is ${aged} — lines move, so check it before acting.` : "")
+                + (live ? "" : " This fixture has already started.")}>
+      <div className="kp-num" style={{ fontSize: 15, fontWeight: 600, color: live ? theme.text : theme.textFaint }}>
         {prop.line}
       </div>
       <div className="kp-num" style={{ fontSize: 11, fontWeight: 700, color: tone, marginTop: 2 }}>
-        {fresh ? `${edge > 0 ? "+" : ""}${edge.toFixed(1)}` : `${Math.round(ageMinutes)}m old`}
+        {live ? `${edge > 0 ? "+" : ""}${edge.toFixed(1)}` : "started"}
       </div>
       {/* The window is named rather than left implicit. The edge above is
           computed over it, and it is not necessarily the number of games
@@ -191,7 +197,7 @@ function PropReadout({ prop, projection, fresh, ageMinutes }) {
           in the same list, and the reader has to know which they are
           reading. */}
       <div style={{ fontSize: 9, letterSpacing: 0.6, textTransform: "uppercase", color: theme.textFaint, marginTop: 3 }}>
-        {fresh ? mapWindow : `${mapWindow} · stale`}
+        {!live ? `${mapWindow} · started` : aged ? `${mapWindow} · ${aged}` : mapWindow}
       </div>
     </div>
   );
@@ -765,6 +771,32 @@ function propsAreFresh(propsData) {
   const age = propsAgeMinutes(propsData);
   return age !== null && age <= PROPS_MAX_AGE_MINUTES;
 }
+
+/* Is this line still about a match that has not happened?
+
+   The prop carries the provider's own start_time for the fixture it was
+   posted on, which is a better clock than how old the payload is: what
+   makes a line worthless is the match being played, not the file being
+   fetched a while ago.
+
+   A line with no readable start time stays live. The alternative is
+   discarding a usable line over a missing field, and the map window and
+   payload age are both still on screen for anyone deciding. */
+function propIsLive(prop, now = Date.now()) {
+  if (!prop || !prop.start_time) return true;
+  const start = new Date(prop.start_time).getTime();
+  return isNaN(start) ? true : now < start;
+}
+
+/* Minutes, said the way someone reads them. "312m old" is arithmetic
+   homework; "5h old" is the same fact. */
+function ageLabel(minutes) {
+  if (minutes === null || minutes === undefined || isNaN(minutes)) return null;
+  const m = Math.round(minutes);
+  if (m < 90) return `${m}m old`;
+  const h = minutes / 60;
+  return h < 48 ? `${Math.round(h)}h old` : `${Math.round(h / 24)}d old`;
+}
 function useChampionStats() {
   return useContext(ChampionStatsContext);
 }
@@ -834,10 +866,21 @@ const DATA_URL_CHAMPION_STATS = "https://raw.githubusercontent.com/iiSTORM/New/r
 const DATA_URL_PROPS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props.json";
 const DATA_URL_RESULTS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props_results.json";
 
-// Lines move continuously and get pulled when news breaks, so an old one is
-// not merely stale — it is misleading in the expensive direction, because it
-// still looks actionable. Past this age the line is shown greyed with its
-// age, and no edge is calculated against it.
+// Lines move continuously and get pulled when news breaks, so an old one
+// can be misleading in the expensive direction — it still looks
+// actionable. That used to SUPPRESS the edge entirely past this age.
+//
+// It no longer does. A line is now live until its own fixture starts,
+// because that is the question actually being asked: a line posted six
+// hours before a match that has not been played is still the line, and
+// refusing to price it made the board go blank exactly when it was
+// being looked at. Past this age the age is PRINTED beside the window
+// instead, so the caveat survives without the edge disappearing.
+//
+// The judgement that an old line is risky has not changed, only who
+// gets to act on it. If this app is ever pointed at anyone else, the
+// suppressing behaviour is propIsLive() returning false past this age
+// as well — one condition, not a rewrite.
 const PROPS_MAX_AGE_MINUTES = 90;
 
 /* ============================================================
@@ -3251,6 +3294,10 @@ function computeEloRatings(regionsData, regionList, kFactor = 32) {
 
 function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop }) {
   const { prop, projection, edge } = row;
+  // Per row, not per payload: these rows can span fixtures hours apart,
+  // and one that has kicked off says so without greying the rest.
+  const live = propIsLive(prop);
+  const aged = live && !fresh ? ageLabel(ageMinutes) : null;
   // Same affordance as the match cards' PlayerRow: the number on its own
   // is a claim, and the reason to trust or discard it is in the
   // breakdown. A row with no breakdown stays inert rather than opening
@@ -3280,7 +3327,7 @@ function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop }) {
   const MATERIAL_DISCOUNT = 0.9;
   const discounted = !ambiguous && typeof shown === "number"
     && edgeMultiplier(evidence) < MATERIAL_DISCOUNT;
-  const tone = ambiguous || !fresh ? theme.textFaint
+  const tone = ambiguous || !live ? theme.textFaint
     : shown > 0 ? theme.good : shown < 0 ? theme.bad : theme.textDim;
   const when = row.when ? new Date(row.when) : null;
   const clock = when && !isNaN(when)
@@ -3339,15 +3386,17 @@ function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop }) {
                  + `sample size actually materialises.`
                : undefined}>
           {ambiguous ? `${prop.lineCount} lines`
-            : !fresh ? `${Math.round(ageMinutes)}m old`
+            : !live ? "started"
             : `${shown > 0 ? "OVER +" : shown < 0 ? "UNDER " : ""}${shown === 0 ? "0.0" : Math.abs(shown).toFixed(1)}`}
         </div>
         <div style={{ fontSize: 9, letterSpacing: 0.6, textTransform: "uppercase", color: theme.textFaint, marginTop: 2 }}>
           {/* Printed on the row, not left to a tooltip: someone scanning
               for the biggest number is exactly the person who needs to
               know this one was cut, and they are not hovering. */}
-          {discounted && fresh
-            ? `${mapWindow} · from ${edge > 0 ? "+" : ""}${edge.toFixed(1)}`
+          {!live ? `${mapWindow} · started`
+            : discounted
+            ? `${mapWindow} · from ${edge > 0 ? "+" : ""}${edge.toFixed(1)}${aged ? ` · ${aged}` : ""}`
+            : aged ? `${mapWindow} · ${aged}`
             : mapWindow}
         </div>
       </div>
@@ -3374,6 +3423,7 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
   const ageMinutes = propsAgeMinutes(propsData);
   const cfg = STAT_TYPES[statType];
   const rows = collectEdges(regionsData, regionList, propsData, weights, statType, game);
+  const startedCount = rows.filter((r) => !propIsLive(r.prop)).length;
 
   const note = (text) => (
     <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
@@ -3440,9 +3490,20 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
           <span style={{ fontSize: 11.5, color: theme.textFaint }}>
             ranked by evidence-adjusted edge · biggest {best.toFixed(1)}
           </span>
+          {/* Informational now, not a refusal. Edges ARE drawn on an old
+              payload, because a line whose match has not been played is
+              still the line; what the reader needs is the caveat, which
+              is the age itself. Amber rather than red for the same
+              reason — it is a thing to know, not a thing that went
+              wrong. */}
           {!fresh && (
-            <span style={{ fontSize: 11, color: theme.bad, marginLeft: "auto" }}>
-              {Math.round(ageMinutes)} min old — past the {PROPS_MAX_AGE_MINUTES}-minute window, so no edges are drawn
+            <span style={{ fontSize: 11, color: theme.textDim, marginLeft: "auto" }}>
+              lines fetched {ageLabel(ageMinutes)} — still priced, but they move
+            </span>
+          )}
+          {startedCount > 0 && (
+            <span style={{ fontSize: 11, color: theme.textFaint, marginLeft: !fresh ? 0 : "auto" }}>
+              {startedCount} {startedCount === 1 ? "fixture has" : "fixtures have"} started
             </span>
           )}
         </div>

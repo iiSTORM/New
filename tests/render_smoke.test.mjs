@@ -128,11 +128,22 @@ const wrap = (children, props) => wrapWith(app, children, props);
 // theme lookup throws.
 const wrapOpen = (children, props) => wrapWith(appOpen, children, props);
 
+/* An UPCOMING fixture, and therefore in the future -- which these
+   fixtures stopped being. The timestamp was pinned at 2026-09-21 and the
+   suite passed until the day a line's usefulness started depending on
+   whether its match had been played; then every row rendered "started"
+   and three assertions failed at once, correctly. Relative to now, so a
+   fixture that is supposed to be upcoming always is. */
+const SOON = new Date(Date.now() + 3 * 3600 * 1000);
+const SOON_ISO = SOON.toISOString();
+const SOON_DATE = SOON.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+const SOON_TIME = SOON.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+
 const propsData = {
   fetched_at: new Date().toISOString(), source: "test",
   props: { lol: { Faker: [{ player: "Faker", stat: "kills", maps: 2, line: 8.5,
                             odds_type: "standard", team: "T1",
-                            start_time: "2026-09-21T10:00:00+00:00" }] } },
+                            start_time: SOON_ISO }] } },
 };
 
 const card = (teams, match, props) => wrap(React.createElement(app.FutureMatchCard, {
@@ -140,8 +151,8 @@ const card = (teams, match, props) => wrap(React.createElement(app.FutureMatchCa
   isDesktop: true, games: 2, game: "lol",
 }), props);
 
-const fixture = (a, b) => ({ teamA: a, teamB: b, date: "Sep 21", time: "5:00 AM",
-                             _sortKey: "2026-09-21T10:00:00+00:00" });
+const fixture = (a, b) => ({ teamA: a, teamB: b, date: SOON_DATE, time: SOON_TIME,
+                             _sortKey: SOON_ISO });
 
 if (app.FutureMatchCard) {
   renders("both teams rostered",
@@ -158,6 +169,46 @@ if (app.FutureMatchCard) {
   renders("props loaded but stale",
     card({ T1: rostered, GEN: rostered }, fixture("T1", "GEN"),
          { ...propsData, fetched_at: "2020-01-01T00:00:00Z" }));
+
+  /* The match card's own readout, driven directly.
+   *
+   * It is a different component from the Edges board's row, and it is
+   * the one a mutation dropping the age note slipped past -- the card
+   * renders collapsed, so nothing inside it reaches the markup and
+   * "does it render" could not see the change. */
+  if (app.PropReadout) {
+    // Freshness computed here rather than pulled off the harness: the
+    // export list does not carry propsAreFresh, so reaching for it gave
+    // undefined and every case rendered as if the payload were old --
+    // which made the fresh case fail for a reason that had nothing to
+    // do with the component.
+    const PAYLOAD_WINDOW_MINUTES = 90;
+    const readout = (prop, fetchedAt) => {
+      const ageMinutes = (Date.now() - new Date(fetchedAt).getTime()) / 60000;
+      return wrap(React.createElement(app.PropReadout, {
+        prop, projection: 11.2,
+        fresh: ageMinutes <= PAYLOAD_WINDOW_MINUTES, ageMinutes,
+      }), null);
+    };
+
+    const upcoming = { line: 8.5, maps: 2, lineCount: 1, start_time: SOON_ISO };
+    const sixHoursAgo = new Date(Date.now() - 6 * 3600 * 1000).toISOString();
+
+    containsText("an old payload still prints the line",
+                 readout(upcoming, sixHoursAgo), "8.5");
+    containsText("and the edge against it", readout(upcoming, sixHoursAgo), "+2.7");
+    containsText("and says how old the line is",
+                 readout(upcoming, sixHoursAgo), "6h old");
+    containsText("a fresh payload says nothing about age",
+                 readout(upcoming, new Date().toISOString()), " old", false);
+
+    const kicked = { ...upcoming,
+                     start_time: new Date(Date.now() - 3 * 3600 * 1000).toISOString() };
+    containsText("a fixture that has kicked off says so instead of an edge",
+                 readout(kicked, new Date().toISOString()), "started");
+    containsText("and prices nothing",
+                 readout(kicked, new Date().toISOString()), "+2.7", false);
+  }
   renders("a team with an empty roster",
     card({ T1: { color: "#fff", players: [] }, GEN: rostered }, fixture("T1", "GEN"), propsData));
   renders("a team with no colour",
@@ -168,8 +219,8 @@ if (app.FutureMatchCard) {
     card({ T1: rostered, GEN: rostered }, fixture("T1", "GEN"), {
       ...propsData,
       props: { lol: { Faker: [
-        { player: "Faker", stat: "kills", maps: 2, line: 10.5, team: "T1", start_time: "2026-09-21T10:00:00+00:00" },
-        { player: "Faker", stat: "kills", maps: 2, line: 6.5, team: "T1", start_time: "2026-09-21T10:00:00+00:00" }] } },
+        { player: "Faker", stat: "kills", maps: 2, line: 10.5, team: "T1", start_time: SOON_ISO },
+        { player: "Faker", stat: "kills", maps: 2, line: 6.5, team: "T1", start_time: SOON_ISO }] } },
     }));
 }
 
@@ -401,7 +452,7 @@ if (app.collectEdges && appOpen.EdgesTab) {
     fetched_at: new Date().toISOString(), source: "test",
     props: { lol: { Faker: [{ player: "Faker", stat: "kills", maps: 3, line: 24.5,
                               odds_type: "standard", team: "T1",
-                              start_time: "2026-09-21T10:00:00+00:00" }] } },
+                              start_time: SOON_ISO }] } },
   };
   const rows = app.collectEdges(regionsData, ["R"], threeMap, weights, "kills", "lol");
 
@@ -450,13 +501,13 @@ if (appOpen.EdgesTab) {
   const regionsData = { R: {
     teams: { A: { color: "#fff", players: [noSeasonRate] }, B: { color: "#fff", players: [] } },
     past_matches: [series("2026-01-01", 9), series("2026-02-01", 11)],
-    upcoming_matches: [{ teamA: "A", teamB: "B", date: "Sep 21", time: "5:00 AM",
-                         _sortKey: "2026-09-21T10:00:00+00:00" }] } };
+    upcoming_matches: [{ teamA: "A", teamB: "B", date: SOON_DATE, time: SOON_TIME,
+                         _sortKey: SOON_ISO }] } };
   const hsProps = {
     fetched_at: new Date().toISOString(), source: "test",
     props: { cs2: { Ghost: [{ player: "Ghost", stat: "headshots", maps: 2, line: 18.5,
                               odds_type: "standard", team: "A",
-                              start_time: "2026-09-21T10:00:00+00:00" }] } },
+                              start_time: SOON_ISO }] } },
   };
   renders("an expanded edge row for a stat the player has no season rate for",
     wrapOpen(React.createElement(appOpen.EdgesTab, {
@@ -591,7 +642,7 @@ if (app.collectEdges && app.EdgesTab) {
   const line = (v) => ({ fetched_at: new Date().toISOString(), source: "test",
     props: { lol: { Thin: [{ player: "Thin", stat: "kills", maps: 2, line: v,
                              odds_type: "standard", team: "T1",
-                             start_time: "2026-09-21T10:00:00+00:00" }] } } });
+                             start_time: SOON_ISO }] } } });
   const tab = (props) => wrap(React.createElement(app.EdgesTab, {
     regionsData, regionList: ["R"], regionLabels: {}, weights, statType: "kills",
     game: "lol", isDesktop: true }), props);
@@ -614,6 +665,51 @@ if (app.collectEdges && app.EdgesTab) {
                tab(line(6)), "from +14.0");
   containsText("and the footer explains why the order is what it is",
                tab(line(6)), "realises about a third of its face value");
+
+  /* An old payload still prices a match that has not been played.
+   *
+   * This is the behaviour that changed. Past 90 minutes the board used
+   * to print "Nm old" where the edge goes and draw nothing at all -- and
+   * on a board refreshed twice a day that fired on fixtures still hours
+   * from kickoff. The age is still shown, because lines do move; it just
+   * no longer decides whether there is an edge. */
+  const stale = (v) => ({
+    fetched_at: new Date(Date.now() - 6 * 3600 * 1000).toISOString(), source: "test",
+    props: { lol: { Thin: [{ player: "Thin", stat: "kills", maps: 2, line: v,
+                             odds_type: "standard", team: "T1",
+                             start_time: SOON_ISO }] } } });
+  /* A started fixture needs BOTH clocks moved, which is the honest
+     shape of it: propFor pairs a line to a fixture by start time, so a
+     past line against a future match is simply no row at all. This is a
+     real state -- a fixture stays in upcoming_matches from kickoff
+     until the next scrape moves it, which can be hours. */
+  const GONE = new Date(Date.now() - 3 * 3600 * 1000).toISOString();
+  const goneData = { R: { teams: { T1: { color: "#e0c341", players: [thinP] }, GEN: rostered },
+                          past_matches: past,
+                          upcoming_matches: [{ teamA: "T1", teamB: "GEN",
+                                               date: "earlier", time: "", _sortKey: GONE }] } };
+  const kickedOff = (v) => ({
+    fetched_at: new Date().toISOString(), source: "test",
+    props: { lol: { Thin: [{ player: "Thin", stat: "kills", maps: 2, line: v,
+                             odds_type: "standard", team: "T1",
+                             start_time: GONE }] } } });
+  const goneTab = (props) => wrap(React.createElement(app.EdgesTab, {
+    regionsData: goneData, regionList: ["R"], regionLabels: {}, weights,
+    statType: "kills", game: "lol", isDesktop: true }), props);
+
+  containsText("an old payload on an unplayed fixture still shows its edge",
+               tab(stale(6)), "OVER +7.3");
+  containsText("and says how old it is rather than hiding the number",
+               tab(stale(6)), "6h old");
+  containsText("the header no longer claims edges are withheld",
+               tab(stale(6)), "no edges are drawn", false);
+  containsText("but it still warns that lines move",
+               tab(stale(6)), "still priced, but they move");
+
+  containsText("a fixture that has started says so instead of pricing it",
+               goneTab(kickedOff(6)), "started");
+  containsText("and draws no edge for it",
+               goneTab(kickedOff(6)), "OVER +7.3", false);
 }
 
 /* A well-evidenced row is left alone. At twelve games or more the
@@ -639,7 +735,7 @@ if (app.collectEdges && app.EdgesTab) {
   const solid = { fetched_at: new Date().toISOString(), source: "test",
     props: { lol: { Faker: [{ player: "Faker", stat: "kills", maps: 2, line: 10.0,
                               odds_type: "standard", team: "T1",
-                              start_time: "2026-09-21T10:00:00+00:00" }] } } };
+                              start_time: SOON_ISO }] } } };
   const board = wrap(React.createElement(app.EdgesTab, {
     regionsData, regionList: ["R"], regionLabels: {}, weights,
     statType: "kills", game: "lol", isDesktop: true }), solid);
@@ -665,9 +761,9 @@ if (app.EdgesTab && app.collectEdges) {
   const lopsided = { fetched_at: new Date().toISOString(), source: "test",
     props: { lol: {
       Faker: [{ player: "Faker", stat: "kills", maps: 2, line: 2.0, odds_type: "standard",
-                team: "T1", start_time: "2026-09-21T10:00:00+00:00" }],
+                team: "T1", start_time: SOON_ISO }],
       Zeus: [{ player: "Zeus", stat: "kills", maps: 2, line: 2.0, odds_type: "standard",
-               team: "T1", start_time: "2026-09-21T10:00:00+00:00" }] } } };
+               team: "T1", start_time: SOON_ISO }] } } };
   const tab = (extra) => wrap(React.createElement(app.EdgesTab, {
     regionsData: region(extra), regionList: ["R"], regionLabels: {}, weights,
     statType: "kills", game: "lol", isDesktop: true }), lopsided);
