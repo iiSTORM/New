@@ -219,6 +219,10 @@ class TestTheRunAlwaysGetsToSaveItsWork:
         assert calls["n"] == 0, "a skipped player must cost nothing"
         assert len(sc.cached_games_by_id(rec)) == 6, (
             "and must hand back what was already on record, not an empty record")
+        # The other route to the same place, once the budget bites
+        # mid-run: bo3_get declines, fetch_player_matches comes back
+        # empty, and TestOutageKeepsHistory pins that an empty result
+        # keeps the cached games rather than replacing them.
 
     def test_the_budget_stops_requests_not_just_player_starts(self):
         """Where the first version of this went wrong.
