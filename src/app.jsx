@@ -97,7 +97,7 @@ function initialsFor(name) {
    emphasised. The standings table already had the better answer — a thin
    colour bar next to neutral text — so that treatment is shared here and
    the accent is freed up to mean "this is the number that matters". */
-function TeamTag({ name, color, size = 14, dim = false }) {
+function TeamTag({ name, color, size = 14, dim = false, region = null }) {
   const theme = useTheme();
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 7, minWidth: 0 }}>
@@ -110,6 +110,18 @@ function TeamTag({ name, color, size = 14, dim = false }) {
         color: dim ? theme.textDim : theme.text, whiteSpace: "nowrap",
         overflow: "hidden", textOverflow: "ellipsis",
       }}>{name}</span>
+      {/* Muted and secondary on purpose: it qualifies the name rather
+          than competing with it, and it is only ever present on a board
+          where the league differs from the tab. Labelled for a screen
+          reader so it is not read as a loose word after the team. */}
+      {region && (
+        <span style={{
+          fontFamily: "'IBM Plex Mono', monospace", fontSize: Math.max(9, size - 5),
+          fontWeight: 600, letterSpacing: 0.3, color: theme.textFaint,
+          border: `1px solid ${theme.steel}`, borderRadius: 4,
+          padding: "1px 5px", flexShrink: 0, whiteSpace: "nowrap",
+        }} aria-label={`from ${region}`}>{region}</span>
+      )}
     </span>
   );
 }
@@ -294,6 +306,79 @@ const ChampionStatsContext = createContext(null);
 const PropsContext = createContext(null);
 function useProps() {
   return useContext(PropsContext);
+}
+
+/* Which league a team actually plays in, for the tabs where that is not
+   the tab you are looking at.
+
+   An international event draws its field out of four regional leagues,
+   so "Paper Rex vs Team Liquid" on the Champions board is two teams
+   whose form, and whose opponents all season, came from opposite sides
+   of the world. The region is the single most useful thing to know
+   about a fixture there and it was the one thing the card did not say.
+
+   Returns a lookup rather than a map so callers stay simple, and null
+   for the ordinary case: in a regional tab every team's home league IS
+   that tab, so nothing is tagged and no rule about "is this an
+   international event" has to be maintained anywhere. The tag appears
+   exactly where it is informative, by construction. */
+const HomeRegionContext = createContext(null);
+function useHomeRegion() {
+  return useContext(HomeRegionContext) || (() => null);
+}
+
+/* "VCT Americas" is most of a card's width. The league prefix is the
+   part every team on an international board shares, so it carries no
+   information there -- what distinguishes them is what follows it. */
+function shortRegionLabel(key) {
+  return String(key || "").replace(/^(VCT|LTA)\s+/i, "").trim() || String(key || "");
+}
+
+function homeRegionLookup(regionsData, regionKey) {
+  if (!regionsData || !regionsData[regionKey]) return () => null;
+  const here = regionsData[regionKey].teams || {};
+  const cache = new Map();
+  return (teamName) => {
+    if (!teamName) return null;
+    if (cache.has(teamName)) return cache.get(teamName);
+    let home = null;
+    // What the scraper recorded when it lent this roster across. It knows
+    // which region it copied from, so it beats re-deriving it.
+    const entry = here[teamName];
+    if (entry && entry.from_home_region) {
+      home = entry.from_home_region;
+    } else {
+      // Otherwise the region where they have actually PLAYED the most --
+      // the same rule the scraper uses to pick a donor, so a team that
+      // has since played at the event resolves to the same league as one
+      // that has not.
+      //
+      // THE TAB ITSELF IS IN THE COMPARISON, which is the whole
+      // correctness of this. Excluding it looks right and is not: a
+      // Pacific team also appears under Champions, so from the Pacific
+      // tab the only other candidate is Champions and the team gets
+      // tagged as a visitor in its own league. Counting the tab too
+      // makes Pacific win on matches and the tag disappear, which is
+      // the same comparison answering both questions.
+      let best = -1;
+      for (const [key, rd] of Object.entries(regionsData)) {
+        if (!rd || !(rd.teams || {})[teamName]) continue;
+        let played = 0;
+        for (const m of rd.past_matches || []) {
+          if (m.teamA === teamName || m.teamB === teamName) played += 1;
+        }
+        // Ties go to the tab being viewed, so a team with no matches
+        // anywhere is never labelled a visitor on its own board.
+        if (played > best || (played === best && key === regionKey)) {
+          best = played;
+          home = key;
+        }
+      }
+    }
+    const label = home && home !== regionKey ? shortRegionLabel(home) : null;
+    cache.set(teamName, label);
+    return label;
+  };
 }
 
 /* How far a posted line's start time may sit from a match's own before it
@@ -3883,6 +3968,7 @@ function GamesControl({ theme, games, setGames }) {
 
 function FutureMatchCard({ teams, pastMatches, match, weights, statType, games, game }) {
   const theme = useTheme();
+  const homeRegion = useHomeRegion();
   const propsData = useProps();
   const propsFresh = propsAreFresh(propsData);
   const propsAge = propsAgeMinutes(propsData);
@@ -3945,9 +4031,11 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games, 
       >
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
-            <TeamTag name={match.teamA} color={teamColorOf(teams, match.teamA, theme.textDim)} />
+            <TeamTag name={match.teamA} color={teamColorOf(teams, match.teamA, theme.textDim)}
+                     region={homeRegion(match.teamA)} />
             <span style={{ color: theme.textFaint, fontSize: 10.5, fontWeight: 500 }}>vs</span>
-            <TeamTag name={match.teamB} color={teamColorOf(teams, match.teamB, theme.textDim)} />
+            <TeamTag name={match.teamB} color={teamColorOf(teams, match.teamB, theme.textDim)}
+                     region={homeRegion(match.teamB)} />
           </div>
           <div style={{ marginTop: 7, fontSize: 11.5, color: theme.textFaint, display: "flex", alignItems: "center", gap: 7 }}>
             <span>{match.date}{match.time ? ` · ${match.time}` : ""}</span>
@@ -4621,6 +4709,7 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isD
 // biasing the backtest. Fixed at 2 on purpose, not an oversight.
 function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
   const theme = useTheme();
+  const homeRegion = useHomeRegion();
   const [open, setOpen] = useState(false);
   const cfg = STAT_TYPES[statType];
   const teamKeys = [match.teamA, match.teamB];
@@ -4687,9 +4776,11 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
             the model's error could be read at a glance. */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
-            <TeamTag name={match.teamA} color={teams[match.teamA].color} dim={match.winner !== match.teamA} />
+            <TeamTag name={match.teamA} color={teams[match.teamA].color} dim={match.winner !== match.teamA}
+                     region={homeRegion(match.teamA)} />
             <span style={{ color: theme.textFaint, fontSize: 10.5, fontWeight: 500 }}>vs</span>
-            <TeamTag name={match.teamB} color={teams[match.teamB].color} dim={match.winner !== match.teamB} />
+            <TeamTag name={match.teamB} color={teams[match.teamB].color} dim={match.winner !== match.teamB}
+                     region={homeRegion(match.teamB)} />
           </div>
           <div style={{ marginTop: 7, fontSize: 11.5, color: theme.textFaint, display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
             <span><span style={{ color: theme.textDim, fontWeight: 600 }}>{match.winner}</span> won {match.score}</span>
@@ -5368,6 +5459,11 @@ function KillProjector() {
      They are the same list everywhere except a borrowed-roster event that
      has not started yet — see historyPoolFor. */
   const history = historyPool(regionsData, region);
+  /* Recomputed only when the data or the tab changes, not per card:
+     resolving a home league walks every other region's match list, and
+     a board renders dozens of cards. */
+  const homeRegion = useMemo(() => homeRegionLookup(regionsData, region),
+                             [regionsData, region]);
   /* True when the pool carries matches this region did not play. Was
      "the region has played nothing at all", which stopped being the same
      question once borrowing went per team: an event mid-way through has
@@ -5391,6 +5487,7 @@ function KillProjector() {
     <ThemeContext.Provider value={theme}>
     <ChampionStatsContext.Provider value={championStats}>
     <PropsContext.Provider value={propsData}>
+    <HomeRegionContext.Provider value={homeRegion}>
       <div style={{
         minHeight: "100vh", color: theme.text, fontFamily: "'Inter', -apple-system, sans-serif", padding: isDesktop ? "32px 32px 60px" : "20px 16px 56px",
         // Exposed to CSS so the stylesheet's focus rings track the live
@@ -5640,6 +5737,7 @@ function KillProjector() {
           </div>
         </div>
       </div>
+    </HomeRegionContext.Provider>
     </PropsContext.Provider>
     </ChampionStatsContext.Provider>
     </ThemeContext.Provider>

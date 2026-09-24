@@ -30,7 +30,7 @@ const { code } = transformSync(
                      EVIDENCE_THIN, EVIDENCE_SOLID,
                      edgeMultiplier, adjustEdge, EDGE_REALIZATION, rankEdges,
                      historyIsBorrowed, effectiveEvidence, EVIDENCE_BORROWED_CAP,
-                     historyPoolFor };`,
+                     historyPoolFor, homeRegionLookup, shortRegionLabel };`,
   { presets: [["@babel/preset-react", { runtime: "classic" }]], filename: "app.jsx",
     parserOpts: { allowReturnOutsideFunction: true } });
 const win = { innerWidth: 1400, addEventListener() {}, removeEventListener() {},
@@ -673,6 +673,91 @@ check("an ordinary region's pool is just its own matches",
       app.historyPoolFor({ A: { teams: { X: {} },
                                 past_matches: [{ date: "1", teamA: "X", teamB: "Y" }] } },
                          "A").length, 1);
+
+/* The home-league tag on an international board.
+ *
+ * "Paper Rex vs Team Liquid" at Champions is two teams whose form, and
+ * whose opponents all season, came from opposite sides of the world.
+ * That is the most useful fact about the fixture and the card did not
+ * say it.
+ *
+ * The rule carries no notion of "is this an international event",
+ * deliberately: a team is tagged when its home league differs from the
+ * tab, which is false for every team in a regional tab and true for
+ * every visiting team in an international one. Nothing to maintain.
+ */
+{
+  const world = {
+    "VCT Champions": {
+      teams: { "Paper Rex": {}, "Team Liquid": { from_home_region: "VCT EMEA" },
+               "Wildcard": {} },
+      past_matches: [{ date: "2026-09-24", teamA: "Paper Rex", teamB: "Team Liquid" }],
+    },
+    "VCT Pacific": {
+      teams: { "Paper Rex": {}, "T1": {} },
+      past_matches: [{ date: "2026-08-01", teamA: "Paper Rex", teamB: "T1" },
+                     { date: "2026-08-08", teamA: "Paper Rex", teamB: "T1" }],
+    },
+    "VCT EMEA": {
+      teams: { "Team Liquid": {}, "Wildcard": {} },
+      past_matches: [{ date: "2026-08-01", teamA: "Team Liquid", teamB: "Wildcard" }],
+    },
+  };
+  const at = (key) => app.homeRegionLookup(world, key);
+
+  check("a visiting team is tagged with the league it actually plays in",
+        at("VCT Champions")("Paper Rex"), "Pacific");
+  check("including one that has already played at the event",
+        // Paper Rex has a Champions match of its own and is still Pacific
+        at("VCT Champions")("Paper Rex"), "Pacific");
+  check("the scraper's own record of where a roster came from is honoured",
+        at("VCT Champions")("Team Liquid"), "EMEA");
+  check("a team that has played nowhere else is still placed",
+        at("VCT Champions")("Wildcard"), "EMEA");
+
+  check("nothing is tagged in the league it belongs to",
+        at("VCT Pacific")("Paper Rex"), null);
+  check("nor in another regional tab",
+        at("VCT EMEA")("Team Liquid"), null);
+  check("a team nobody has heard of is not invented",
+        at("VCT Champions")("Nobody"), null);
+  check("and neither is an empty name", at("VCT Champions")(""), null);
+  check("an unknown tab yields no tags",
+        app.homeRegionLookup(world, "Nowhere")("Paper Rex"), null);
+  check("missing data is not a crash",
+        app.homeRegionLookup(null, "VCT Champions")("Paper Rex"), null);
+}
+
+/* The league prefix is what every team on an international board
+ * shares, so it carries no information there -- what distinguishes them
+ * is what follows it, and card width is scarce. */
+check("the shared league prefix is dropped", app.shortRegionLabel("VCT Americas"), "Americas");
+check("and it is case-insensitive", app.shortRegionLabel("vct pacific"), "pacific");
+check("a name that is only a prefix is kept rather than emptied",
+      app.shortRegionLabel("VCT"), "VCT");
+check("a region with no prefix is untouched", app.shortRegionLabel("LCS"), "LCS");
+
+/* Against the committed Valorant file, which is where this was wanted. */
+{
+  const fs2 = fs.readFileSync(path.join(root, "valorant_data.json"), "utf8");
+  const { regions } = JSON.parse(fs2);
+  const intl = Object.keys(regions).find((k) => /champions/i.test(k));
+  if (intl) {
+    const at = app.homeRegionLookup(regions, intl);
+    const names = Object.keys(regions[intl].teams || {});
+    const tagged = names.filter((n) => at(n));
+    check(`${intl}: every team on the board is placed (${tagged.length}/${names.length})`,
+          tagged.length, names.length);
+    check("and no tag repeats the tab it is shown in",
+          tagged.every((n) => at(n) !== app.shortRegionLabel(intl)), true);
+  }
+  for (const key of Object.keys(regions)) {
+    if (/champions/i.test(key)) continue;
+    const at = app.homeRegionLookup(regions, key);
+    const stray = Object.keys(regions[key].teams || {}).filter((n) => at(n));
+    check(`${key} tags nothing, being the teams' own league`, stray, []);
+  }
+}
 
 check("borrowed evidence cannot read as solid",
       app.evidenceTier(app.effectiveEvidence(400, true)), "limited");

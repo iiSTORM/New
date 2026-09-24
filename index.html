@@ -207,7 +207,8 @@ try {
     name,
     color,
     size = 14,
-    dim = false
+    dim = false,
+    region = null
   }) {
     const theme = useTheme();
     return React.createElement("span", {
@@ -237,7 +238,21 @@ try {
         overflow: "hidden",
         textOverflow: "ellipsis"
       }
-    }, name));
+    }, name), region && React.createElement("span", {
+      style: {
+        fontFamily: "'IBM Plex Mono', monospace",
+        fontSize: Math.max(9, size - 5),
+        fontWeight: 600,
+        letterSpacing: 0.3,
+        color: theme.textFaint,
+        border: `1px solid ${theme.steel}`,
+        borderRadius: 4,
+        padding: "1px 5px",
+        flexShrink: 0,
+        whiteSpace: "nowrap"
+      },
+      "aria-label": `from ${region}`
+    }, region));
   }
   function Chevron({
     open,
@@ -534,6 +549,43 @@ try {
   const PropsContext = createContext(null);
   function useProps() {
     return useContext(PropsContext);
+  }
+  const HomeRegionContext = createContext(null);
+  function useHomeRegion() {
+    return useContext(HomeRegionContext) || (() => null);
+  }
+  function shortRegionLabel(key) {
+    return String(key || "").replace(/^(VCT|LTA)\s+/i, "").trim() || String(key || "");
+  }
+  function homeRegionLookup(regionsData, regionKey) {
+    if (!regionsData || !regionsData[regionKey]) return () => null;
+    const here = regionsData[regionKey].teams || {};
+    const cache = new Map();
+    return teamName => {
+      if (!teamName) return null;
+      if (cache.has(teamName)) return cache.get(teamName);
+      let home = null;
+      const entry = here[teamName];
+      if (entry && entry.from_home_region) {
+        home = entry.from_home_region;
+      } else {
+        let best = -1;
+        for (const [key, rd] of Object.entries(regionsData)) {
+          if (!rd || !(rd.teams || {})[teamName]) continue;
+          let played = 0;
+          for (const m of rd.past_matches || []) {
+            if (m.teamA === teamName || m.teamB === teamName) played += 1;
+          }
+          if (played > best || played === best && key === regionKey) {
+            best = played;
+            home = key;
+          }
+        }
+      }
+      const label = home && home !== regionKey ? shortRegionLabel(home) : null;
+      cache.set(teamName, label);
+      return label;
+    };
   }
   const PROP_MATCH_WINDOW_HOURS = 2;
   function propFor(propsData, game, playerName, statType, matchDate) {
@@ -4630,6 +4682,7 @@ try {
     game
   }) {
     const theme = useTheme();
+    const homeRegion = useHomeRegion();
     const propsData = useProps();
     const propsFresh = propsAreFresh(propsData);
     const propsAge = propsAgeMinutes(propsData);
@@ -4716,7 +4769,8 @@ try {
       }
     }, React.createElement(TeamTag, {
       name: match.teamA,
-      color: teamColorOf(teams, match.teamA, theme.textDim)
+      color: teamColorOf(teams, match.teamA, theme.textDim),
+      region: homeRegion(match.teamA)
     }), React.createElement("span", {
       style: {
         color: theme.textFaint,
@@ -4725,7 +4779,8 @@ try {
       }
     }, "vs"), React.createElement(TeamTag, {
       name: match.teamB,
-      color: teamColorOf(teams, match.teamB, theme.textDim)
+      color: teamColorOf(teams, match.teamB, theme.textDim),
+      region: homeRegion(match.teamB)
     })), React.createElement("div", {
       style: {
         marginTop: 7,
@@ -5614,6 +5669,7 @@ try {
     statType
   }) {
     const theme = useTheme();
+    const homeRegion = useHomeRegion();
     const [open, setOpen] = useState(false);
     const cfg = STAT_TYPES[statType];
     const teamKeys = [match.teamA, match.teamB];
@@ -5722,7 +5778,8 @@ try {
     }, React.createElement(TeamTag, {
       name: match.teamA,
       color: teams[match.teamA].color,
-      dim: match.winner !== match.teamA
+      dim: match.winner !== match.teamA,
+      region: homeRegion(match.teamA)
     }), React.createElement("span", {
       style: {
         color: theme.textFaint,
@@ -5732,7 +5789,8 @@ try {
     }, "vs"), React.createElement(TeamTag, {
       name: match.teamB,
       color: teams[match.teamB].color,
-      dim: match.winner !== match.teamB
+      dim: match.winner !== match.teamB,
+      region: homeRegion(match.teamB)
     })), React.createElement("div", {
       style: {
         marginTop: 7,
@@ -6583,6 +6641,7 @@ try {
       upcoming_matches: []
     };
     const history = historyPool(regionsData, region);
+    const homeRegion = useMemo(() => homeRegionLookup(regionsData, region), [regionsData, region]);
     const historyIsBorrowed = history.length > (current.past_matches || []).length;
     const hasData = Object.keys(current.teams || {}).length > 0;
     const normalizedUpcoming = formatUpcoming(current.upcoming_matches || []);
@@ -6598,6 +6657,8 @@ try {
       value: championStats
     }, React.createElement(PropsContext.Provider, {
       value: propsData
+    }, React.createElement(HomeRegionContext.Provider, {
+      value: homeRegion
     }, React.createElement("div", {
       style: {
         minHeight: "100vh",
@@ -6895,7 +6956,7 @@ try {
         color: theme.textFaint,
         lineHeight: 1.6
       }
-    }, "Data: ", game === "lol" ? "regular-season box scores (gol.gg) and schedule (LoL Esports API)" : "match stats (VLR.gg)", ".")))))));
+    }, "Data: ", game === "lol" ? "regular-season box scores (gol.gg) and schedule (LoL Esports API)" : "match stats (VLR.gg)", "."))))))));
   }
   const root = ReactDOM.createRoot(document.getElementById('root'));
   root.render(React.createElement(KillProjector, null));
