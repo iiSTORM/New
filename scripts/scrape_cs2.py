@@ -625,12 +625,17 @@ async def build_region_payload(cs2, session):
     # Was 60 against a feed that reliably returns 100 notable matches, so
     # forty were discovered and thrown away every single run -- already
     # filtered, already known to be worth having, discarded to save the
-    # cheap half of the work. The expensive part is discovery, which
-    # happens either way; this only adds the per-match stat fetches.
+    # cheap half of the work. Discovery is the expensive part and happens
+    # either way; this only adds the per-match stat fetches.
     #
-    # Worth it because more per-team history measurably helps: see the
-    # MATCHES_KEPT_PER_TEAM note for the numbers. Raising the retention
-    # cap without raising this would just keep the same 60 longer.
+    # Kept at 100 for COVERAGE, not accuracy. More per-team history does
+    # not help CS2 -- measured, see MATCHES_KEPT_PER_TEAM -- but this
+    # does not mostly add depth, because the retention cap bounds that at
+    # 8 per team. What it adds is BREADTH: more teams rostered, and this
+    # game tracks ~258 teams against a fixture list of over a hundred,
+    # with opponents regularly landing on the board carrying no player
+    # data at all. A fixture nobody can project is worth less than one
+    # projected imperfectly.
     MATCH_LIMIT = 100
     matches_to_process = tier_filtered[:MATCH_LIMIT]
     print(f"Fetching per-map player stats for {len(matches_to_process)} matches "
@@ -1072,29 +1077,26 @@ async def main():
 # without bound, so each team keeps its most recent few and a match
 # survives while either side still wants it.
 #
-# Was eight, on the reasoning that the form chart draws the last 8 and
-# CS2's model leans on the career tier rather than this file's match
-# list. The second half of that turned out to be wrong where it counts.
+# Eight because that is what the app draws: the form chart is the last 8,
+# and CS2's model leans on the career tier (kills is career 1.0) fed from
+# cs2_career_data.json, not on this file's match list.
 #
-# MEASURED by thinning the committed history and re-running the backtest
-# on identical rows -- kills MAE against the per-team cap:
+# RAISED TO 16 AND PUT BACK. Thinning the committed history looked like a
+# monotonic -3.0% on kills MAE from cap 2 to cap 8, and that was a row-
+# composition artefact: changing how much history exists changes WHICH
+# ROWS ARE SCOREABLE, because a row with no prior history is dropped
+# rather than predicted. Scored on rows that survive at every depth, more
+# per-team history is slightly WORSE, on the 1335 rows that survive at
+# every depth:
 #
-#     cap 2   324 matches   6.6326
-#     cap 3   388 matches   6.5949
-#     cap 4   427 matches   6.5243
-#     cap 6   470 matches   6.4864
-#     cap 8   481 matches   6.4339
+#     cap2=6.7220  cap3=6.7606  cap4=6.7415  cap6=6.7843  cap8=6.7846
 #
-# Monotonic, -3.0% across that range, and still falling at 8 with no
-# sign of a plateau. The career tier does carry the projection, but this
-# list is where a player's CURRENT form comes from, and a leave-one-out
-# check showed same-event form is the strongest single signal CS2 has:
-# a player's own mean over their tracked matches correlates 0.287 with
-# outcomes where a 34-game career rate reaches 0.227.
+# kills +0.93% from cap 2 to cap 8, deaths +0.61%, assists +0.77%.
 #
-# Sixteen, so accumulation can deepen. The file roughly doubles, to
-# about the size data.json already is.
-MATCHES_KEPT_PER_TEAM = 16
+# Which is consistent with the other CS2 result: pt_games feeds the
+# shrink denominator, so deeper history shrinks less, and CS2's MAE
+# prefers heavy shrinkage. Eight stands.
+MATCHES_KEPT_PER_TEAM = 8
 
 
 def match_key(m):
