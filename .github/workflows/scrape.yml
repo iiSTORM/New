@@ -11,6 +11,24 @@ on:
 permissions:
   contents: write
 
+# One scrape at a time. Two overlapping runs is not a theoretical
+# hazard: run 146 started from a 263-record career cache, spent forty
+# minutes and committed 1,246 players with game history, while run 147
+# had ALREADY CHECKED OUT before that commit landed -- so its base was
+# the same stale 263, it reached 871 in its budget, and its snapshot
+# replaced the 1,246. Nothing failed; the later finisher simply knew
+# less, and "whoever pushes last wins with their snapshot" handed it the
+# file anyway.
+#
+# cancel-in-progress is false on purpose. The CS2 career step is a
+# 40-minute fetch whose whole value is written at the end, so cancelling
+# one part way through throws away everything it has done and leaves the
+# cache exactly where it was. Queueing costs a delayed run; cancelling
+# costs the run.
+concurrency:
+  group: scrape-esports-data
+  cancel-in-progress: false
+
 jobs:
   # LoL and Valorant scraping run as separate jobs (separate runners) so
   # they execute in parallel instead of one waiting on the other — they
@@ -295,7 +313,20 @@ jobs:
           # Guarded with -f because that step is continue-on-error and
           # may legitimately not have produced a file.
           git add cs2_data.json
-          if [ -f cs2_career_data.json ]; then git add cs2_career_data.json; fi
+          # The career file ACCUMULATES, so replacing what is committed
+          # with this run's snapshot is wrong whenever this run started
+          # from an older base -- later is not better, more is. Merged
+          # per player instead, keeping whichever record has the longer
+          # history. Never fatal: if the merge cannot run, the snapshot
+          # is staged as before.
+          if [ -f cs2_career_data.json ]; then
+            git fetch origin main || true
+            git show origin/main:cs2_career_data.json > /tmp/cs2_career_base.json 2>/dev/null || echo '{}' > /tmp/cs2_career_base.json
+            if python scripts/merge_career_files.py cs2_career_data.json /tmp/cs2_career_base.json /tmp/cs2_career_merged.json; then
+              mv /tmp/cs2_career_merged.json cs2_career_data.json
+            fi
+            git add cs2_career_data.json
+          fi
           if git diff --quiet --cached; then
             echo "No changes to commit"
             exit 0
@@ -321,7 +352,17 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             cp /tmp/cs2_data.json.new cs2_data.json
-            if [ -f /tmp/cs2_career_data.json.new ]; then cp /tmp/cs2_career_data.json.new cs2_career_data.json; fi
+            # Same merge on the reapply path. The reset above just
+            # pulled in whatever another run committed while this one
+            # was working, which is exactly the copy worth keeping.
+            if [ -f /tmp/cs2_career_data.json.new ]; then
+              [ -f cs2_career_data.json ] || echo '{}' > cs2_career_data.json
+              if python scripts/merge_career_files.py /tmp/cs2_career_data.json.new cs2_career_data.json /tmp/cs2_career_merged.json; then
+                mv /tmp/cs2_career_merged.json cs2_career_data.json
+              else
+                cp /tmp/cs2_career_data.json.new cs2_career_data.json
+              fi
+            fi
             git add cs2_data.json
             if [ -f cs2_career_data.json ]; then git add cs2_career_data.json; fi
             if git diff --quiet --cached; then
