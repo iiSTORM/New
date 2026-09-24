@@ -221,3 +221,86 @@ class TestNoSecondCopy:
             "the roster entry is being built somewhere other than add_team_players()"
         assert source.count('"name": player_name, "role": None, "cur": cur') == 1, \
             "a second copy of the roster-entry dict has reappeared"
+
+
+class TestTheWiderRow:
+    """bo3.gg offers 34 keys on a players_stats row; this file read six.
+
+    A live run named them: adr, kast, first_kills, first_death,
+    player_rating, clutches, multikills, trade_kills, trade_death and
+    damage, alongside the headshots already taken. Counts and per-round
+    figures are now mixed in one table, which is safe only because
+    accumulate_extra_stats sums a series and season_rates divides by the
+    map count -- summing a per-round figure across maps and dividing by
+    maps is its mean. These hold that invariant.
+    """
+
+    MAP_ONE = {"kills": 20, "death": 15, "assists": 5, "headshots": 9,
+               "adr": 80.0, "kast": 70.0, "first_kills": 3, "first_death": 2,
+               "player_rating": 1.2, "clutches": 1, "multikills": 2,
+               "trade_kills": 4, "trade_death": 3, "damage": 1600}
+    MAP_TWO = {"kills": 18, "death": 17, "assists": 6, "headshots": 7,
+               "adr": 90.0, "kast": 74.0, "first_kills": 1, "first_death": 4,
+               "player_rating": 1.0, "clutches": 0, "multikills": 1,
+               "trade_kills": 2, "trade_death": 5, "damage": 1500}
+
+    def series(self, *rows):
+        slot = {}
+        for r in rows:
+            sc.accumulate_extra_stats(slot, sc.capture_extra_stats(r, {}))
+        return slot
+
+    def rates(self, *rows):
+        slot = self.series(*rows)
+        match = {"teamA": "A", "teamB": "B", "games": len(rows),
+                 "actual": {"A": {"P": {**slot, "k": 38, "d": 32, "a": 11}}, "B": {}}}
+        return sc.season_rates([match], "A", "P")
+
+    def test_the_opening_duels_are_read(self):
+        """The field the whole style question turns on."""
+        got = self.rates(self.MAP_ONE, self.MAP_TWO)
+        assert got["fk"] == 2.0 and got["fd"] == 3.0
+
+    def test_first_death_is_singular_in_this_api(self):
+        """'first_death', not 'first_deaths'. Getting it wrong costs the
+        field silently -- capture only takes keys that are really there."""
+        assert sc.EXTRA_STAT_FIELDS["fd"] == ("first_death",)
+        assert sc.capture_extra_stats({"first_death": 4}, {}) == {"fd": 4}
+        assert sc.capture_extra_stats({"first_deaths": 4}, {}) == {}
+
+    def test_a_per_round_figure_becomes_its_mean(self):
+        """adr is already per round. Across maps of 80 and 90 the answer
+        is 85, not 170."""
+        assert self.rates(self.MAP_ONE, self.MAP_TWO)["adr"] == 85.0
+
+    def test_a_count_becomes_a_per_map_rate(self):
+        """headshots and first_kills are counts and behave the other way:
+        9 and 7 is 8 per map, not 8 per round."""
+        got = self.rates(self.MAP_ONE, self.MAP_TWO)
+        assert got["hs"] == 8.0 and got["clutch"] == 0.5
+
+    def test_the_two_shapes_share_one_divisor(self):
+        """The invariant the mixed table rests on. If season_rates ever
+        stops dividing by the map count, every per-round figure doubles
+        on a two-map series and nothing says so."""
+        one = self.rates(self.MAP_ONE)
+        two = self.rates(self.MAP_ONE, self.MAP_ONE)
+        assert one["adr"] == two["adr"], "a per-round figure must not scale with maps"
+        assert one["hs"] == two["hs"], "nor should a per-map count"
+
+    def test_a_map_missing_one_field_voids_only_that_field(self):
+        """The half-reported total this file was bitten by twice, now
+        with eleven fields where it used to have one."""
+        no_adr = {k: v for k, v in self.MAP_TWO.items() if k != "adr"}
+        slot = self.series(self.MAP_ONE, no_adr)
+        assert "adr" not in slot and slot.get("adr_incomplete") is True
+        assert slot["hs"] == 16, "the other fields are unaffected"
+
+    def test_economy_fields_are_deliberately_left(self):
+        """They describe buy rounds rather than what a player did, and
+        this file already carries 1404 players. Taken only if something
+        shows the performance fields are worth having first."""
+        taken = {c for cands in sc.EXTRA_STAT_FIELDS.values() for c in cands}
+        for skipped in ("money_spent", "utility_value", "weapons_value",
+                        "total_equipment_value", "pistols_value", "money_save"):
+            assert skipped not in taken

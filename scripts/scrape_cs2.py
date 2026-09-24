@@ -215,8 +215,37 @@ async def fetch_team_recent_matches(session, team_id, limit=10):
 # matches first wins, and SOURCE_FIELDS_SEEN records the row's real keys
 # so a run reports what was actually on offer instead of leaving the next
 # person to guess again.
+# Everything worth reading off a bo3.gg players_stats row beyond k/d/a.
+#
+# A live run reported 34 keys on that row and this file was reading six.
+# The names on the left are deliberately short (they are repeated on
+# every player of every map) and deliberately match the Valorant
+# scraper's where the same thing exists, so one analysis can look at
+# both games without a translation table.
+#
+# Counts and per-round figures are mixed here on purpose and need no
+# separation: accumulate_extra_stats sums a series, season_rates divides
+# by the map count, and summing a per-round figure across maps then
+# dividing by maps is its mean. That only holds while the two agree on
+# what a map is -- which is the bug to watch for if either changes.
+#
+# Economy fields (money_spent, utility_value, weapons_value,
+# total_equipment_value, pistols_value, money_save) are deliberately NOT
+# taken. They describe buy rounds rather than what a player did, they
+# would add weight to a file already carrying 1404 players, and nothing
+# has yet shown the performance fields themselves are worth anything.
 EXTRA_STAT_FIELDS = {
     "hs": ("headshots", "head_shots", "headshot_kills", "hs", "kills_hs"),
+    "adr": ("adr",),                       # damage per round
+    "kast": ("kast",),
+    "fk": ("first_kills",),                # opening duels won
+    "fd": ("first_death",),                # ... and lost. Singular, per the API.
+    "rating": ("player_rating", "player_rating_value"),
+    "clutch": ("clutches",),
+    "multi": ("multikills",),
+    "tk": ("trade_kills",),                # a kill that traded a fallen teammate
+    "td": ("trade_death",),
+    "dmg": ("damage",),
 }
 SOURCE_FIELDS_SEEN = set()
 

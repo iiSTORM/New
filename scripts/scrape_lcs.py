@@ -165,6 +165,9 @@ def get(url, retries=4):
     raise requests.exceptions.HTTPError(f"GET {url} failed, last status {last_status}")
 
 
+_HEADER_LABELS_REPORTED = False
+
+
 def parse_player_list(tournament):
     """Pulls the rich per-player stats table (avg K/D/A, KP%, games played).
     Note: this table has no Team/Role columns — those get filled in separately
@@ -197,6 +200,25 @@ def parse_player_list(tournament):
     idx_kp = col("KP%")
     print(f"  {tournament}: columns -> games={idx_games} k={idx_k} d={idx_d} "
           f"a={idx_a} kp={idx_kp}", file=sys.stderr)
+    # Every column this table offers, once per run.
+    #
+    # Five are read and the table is wider than that. On the Valorant
+    # side the same question -- what else is on the page? -- turned out
+    # to be worth first kills and first deaths, the only signal that
+    # survived an honest point-in-time test. The equivalents here are
+    # likely a damage-per-minute and a first-blood share, but the header
+    # labels have never been seen from this environment and gol.gg's
+    # exact wording decides them. So the run says what they are rather
+    # than this file guessing, and nothing is parsed until it has.
+    global _HEADER_LABELS_REPORTED
+    if not _HEADER_LABELS_REPORTED and header_labels:
+        _HEADER_LABELS_REPORTED = True
+        print(f"  [columns] gol.gg players/list offers {len(header_labels)}: "
+              f"{header_labels}", file=sys.stderr)
+        unread = [h for h in header_labels
+                  if h not in ("Player", "Games", "Avg kills", "Avg deaths",
+                               "Avg assists", "KP%")]
+        print(f"  [columns] not read: {unread}", file=sys.stderr)
     parsed_ok = 0
     for i, row in enumerate(rows[1:], start=1):
         cells = row.find_all("td")
