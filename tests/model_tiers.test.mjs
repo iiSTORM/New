@@ -133,7 +133,7 @@ check("a match with no actual at all is null",
   check("LoL takes none of this tier — its opponent term already does the job",
         [W.lol.kills.share, W.lol.deaths.share, W.lol.assists.share], [0, 0, 0]);
   check("Valorant takes it on all three, deaths hardest",
-        [W.valorant.kills.share, W.valorant.deaths.share, W.valorant.assists.share], [0.4, 0.7, 0.4]);
+        [W.valorant.kills.share, W.valorant.deaths.share, W.valorant.assists.share], [0.4, 0.7, 0.5]);
   check("CS2 takes it on deaths only, the stat its pace drives most",
         [W.cs2.kills.share, W.cs2.deaths.share, W.cs2.assists.share], [0, 0.6, 0]);
   check("every game and stat states a share weight explicitly",
@@ -228,8 +228,15 @@ for (const [game, file] of Object.entries({ valorant: "valorant_data.json", cs2:
   const W = app.DEFAULT_WEIGHTS_BY_GAME_AND_STAT;
   check("LoL shrinks nothing — career and a prior split already ground it",
         [W.lol.kills.shrink, W.lol.deaths.shrink, W.lol.assists.shrink], [0, 0, 0]);
-  check("Valorant shrinks kills hardest, having no career data at all",
-        [W.valorant.kills.shrink, W.valorant.deaths.shrink, W.valorant.assists.shrink], [4, 0, 1]);
+  /* Assists moved 1 -> 4 when the history behind it deepened. The prior
+     event's maps used to be discarded, so a Valorant player carried a
+     median of 8; they now carry 20, and a longer record earns a harder
+     pull toward the prior rather than a softer one -- the shrink is
+     answering to a sample whose own mean is worth more. Kills and
+     deaths were re-searched at the same time and both failed the
+     holdout, so they stand. */
+  check("Valorant shrinks kills and assists, not deaths",
+        [W.valorant.kills.shrink, W.valorant.deaths.shrink, W.valorant.assists.shrink], [4, 0, 4]);
   /* CS2 now shrinks all three hard. It did not until the roster roughly
      doubled: the scraper used to rebuild its team list from one page of
      the global feed each run, and once past matches carried over, 58

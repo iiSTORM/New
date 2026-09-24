@@ -2197,7 +2197,29 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // sample and are superseded.
     kills: { history: 0.7, opponent: 0.0, kp: 0.0, recencyHalfLife: 8, patchDiscount: 0.0, career: 0.0, share: 0.4, shrink: 4.0 },
     deaths: { history: 0.7, opponent: 0.0, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.3, career: 0.0, share: 0.7, shrink: 0.0 },  // kp is dead weight for deaths (useKP: false) — see the cs2 note below
-    assists: { history: 0.4, opponent: 0.0, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.8, career: 0.0, share: 0.4, shrink: 1.0 },
+    // ASSISTS RE-FIT against the deeper history (history_matches: the
+    // prior event's maps, which the scraper used to discard). Median
+    // per-player depth went 8 -> 20 maps, and the weights that suited
+    // eight do not suit twenty: share 0.4 -> 0.5, shrink 1.0 -> 4.0,
+    // patchDiscount 0.8 -> 1.0, history 0.4 -> 0.3. The last one is the
+    // tell — the prior event's matches are now IN the pool, so the tier
+    // that summarises them is worth less.
+    //
+    // Found by greedy search on the first four folds and judged on the
+    // last two, which the search never saw: -1.31% where it looked and
+    // -0.49% where it did not, 2/2 held-out folds. Then the repo's
+    // ordinary adoption test on the whole season, which it passes at
+    // every fold count tried: 4/4, 6/6, 7/8, 6/10, about -1.0% each
+    // time.
+    //
+    // KILLS AND DEATHS WERE SEARCHED THE SAME WAY AND REJECTED. Both
+    // looked better than this on the folds they were fitted to (kills
+    // -0.52%, deaths -2.56%) and neither survived the holdout: kills
+    // +0.00%, deaths +0.67% WORSE, 1/2 held-out folds each. A few
+    // hundred candidates against six folds will manufacture a majority
+    // roughly a third of the time, which is what a search reporting its
+    // own score looks like. They stay as they are.
+    assists: { history: 0.3, opponent: 0.0, kp: 0.0, recencyHalfLife: 6, patchDiscount: 1.0, career: 0.0, share: 0.5, shrink: 4.0 },
     headshots: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 0.0, share: 0.0, shrink: 0.0 },  // unreachable — STAT_TYPES.headshots is CS2-only; present so the per-game lookup never returns undefined
   },
   cs2: {

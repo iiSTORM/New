@@ -59,7 +59,7 @@ SHIPPED_WEIGHTS = {
     "valorant": {
         "kills":    {"history": 0.7, "opponent": 0, "kp": 0.0, "recencyHalfLife": 8, "patchDiscount": 0, "career": 0, "share": 0.4, "shrink": 4.0},
         "deaths":   {"history": 0.7, "opponent": 0, "kp": 0.0, "recencyHalfLife": 6, "patchDiscount": 0.3, "career": 0, "share": 0.7, "shrink": 0.0},
-        "assists":  {"history": 0.4, "opponent": 0, "kp": 0.0, "recencyHalfLife": 6, "patchDiscount": 0.8, "career": 0, "share": 0.4, "shrink": 1.0},
+        "assists":  {"history": 0.3, "opponent": 0, "kp": 0.0, "recencyHalfLife": 6, "patchDiscount": 1.0, "career": 0, "share": 0.5, "shrink": 4.0},
         "headshots": {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 0.0, "share": 0.0, "shrink": 0.0},
     },
     "cs2": {
