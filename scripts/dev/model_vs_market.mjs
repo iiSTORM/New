@@ -95,7 +95,8 @@ const app = new Function("React", "ReactDOM", "window", "document", "fetch", "lo
   { getElementById: () => null, addEventListener() {}, removeEventListener() {} },
   () => new Promise(() => {}), win.localStorage, console);
 
-const results = JSON.parse(fs.readFileSync(path.join(root, "props_results.json"), "utf8"));
+const resultsPath = process.argv[2] || path.join(root, "props_results.json");
+const results = JSON.parse(fs.readFileSync(resultsPath, "utf8"));
 const FILES = { lol: "data.json", valorant: "valorant_data.json", cs2: "cs2_data.json" };
 const W = app.DEFAULT_WEIGHTS_BY_GAME_AND_STAT;
 
@@ -125,6 +126,39 @@ function wilson(w, n) {
 const won = all.filter((r) => r.won).length;
 const underBase = all.filter((r) => r.result === "under").length;
 const [lo, hi] = wilson(won, all.length);
+
+/* Clustered on the MATCH, which is the unit that varies independently.
+   Props inside one match share its rounds, its pace and how one-sided it
+   was, so treating them as separate observations overstates the evidence
+   by roughly the number of props per match. Reported FIRST because it is
+   the only version anyone should act on. */
+const matchKey = (r) => [r.game, r.match_date, [r.team, r.opponent].sort().join("|")].join("::");
+const byMatch = new Map();
+for (const r of all) {
+  if (!byMatch.has(matchKey(r))) byMatch.set(matchKey(r), []);
+  byMatch.get(matchKey(r)).push(r);
+}
+const clusters = [...byMatch.values()];
+const rates = clusters.map((v) => v.filter((r) => r.won).length / v.length);
+const maeGap = clusters.map((v) =>
+  mean(v.map((r) => Math.abs(r.projection - r.actual))) -
+  mean(v.map((r) => Math.abs(r.line - r.actual))));
+const sd = (a) => (a.length < 2 ? NaN : Math.sqrt(a.reduce((s, x) => s + (x - mean(a)) ** 2, 0) / (a.length - 1)));
+const se = (a) => sd(a) / Math.sqrt(a.length);
+const ci = (a) => [mean(a) - 1.96 * se(a), mean(a) + 1.96 * se(a)];
+
+console.log(`CLUSTERED ON THE MATCH (${clusters.length} matches, ${all.length} props)`);
+{
+  const [a, b] = ci(rates);
+  console.log(`  win rate per match      ${(100 * mean(rates)).toFixed(1)}%   95% CI ${(100 * a).toFixed(1)}% to ${(100 * b).toFixed(1)}%`);
+  const [c, d] = ci(maeGap);
+  console.log(`  our MAE minus line MAE  ${mean(maeGap).toFixed(3)}    95% CI ${c.toFixed(2)} to ${d.toFixed(2)}   (positive = the line is better)`);
+  const beats = a > 0.524 ? "YES" : b < 0.524 ? "NO" : "cannot tell";
+  const sharper = c > 0 ? "the line, significantly" : d < 0 ? "us, significantly" : "cannot tell";
+  console.log(`  beats breakeven (-110)? ${beats}`);
+  console.log(`  who forecasts better?   ${sharper}`);
+}
+console.log("");
 
 console.log(`graded in file ${results.graded.length}, re-projectable and decided ${all.length}`);
 console.log(`dates ${[...new Set(all.map((r) => r.match_date))].sort().join(", ")}\n`);

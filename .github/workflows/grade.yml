@@ -13,6 +13,17 @@ name: Grade posted lines
 # Triggered by the data landing rather than on a clock: a line becomes
 # gradeable the moment its match appears in a scraped file, and that is
 # exactly when those files are pushed.
+#
+# THE PUSH TRIGGER DOES NOT FIRE FOR THE SCRAPE. A push made with the
+# default GITHUB_TOKEN deliberately does not start another workflow --
+# GitHub's recursion guard -- and the scrape commits its data files with
+# exactly that token. So between 2026-09-21 and 2026-09-24 this ran
+# twice, both times because a human happened to push by hand, while
+# fifteen data commits went by ungraded and props_results.json sat a day
+# stale behind them.
+#
+# The schedule is the fix, and the push trigger stays because it costs
+# nothing and does fire for a human push.
 on:
   push:
     branches: [main]
@@ -21,6 +32,10 @@ on:
       - "data.json"
       - "cs2_data.json"
       - "valorant_data.json"
+  schedule:
+    # Four times a day, offset from the scrape's 09:00/21:00 so it grades
+    # data that has already landed rather than racing it.
+    - cron: "30 1,7,13,19 * * *"
   workflow_dispatch: {}
 
 permissions:
