@@ -237,6 +237,33 @@ def parse_match(match_id, match_path):
     # data-game-id attribute, with the combined view using "all" — real
     # individual maps use a real numeric ID. Skip rows under an "all"
     # container; only count rows under a real per-map container.
+    # ---- First-kill / first-death discovery ----
+    #
+    # vlr.gg's stat table carries FK and FD columns -- who drew first
+    # blood and who gave it up. That is the one thing in this data that
+    # describes HOW a player plays rather than how much they produce,
+    # and it is the missing ingredient for a question this project cannot
+    # currently answer: whether style travels to an international field
+    # better than raw rates do. Measured on what is scraped today, every
+    # style proxy derivable from k/d/a is worth almost nothing (K/D ratio
+    # correlates 0.07 at best with the model's errors, champion pool
+    # 0.02), because style is already baked into a player's own rates.
+    # FK/FD is not.
+    #
+    # Nothing is parsed out of it yet, deliberately. The column order on
+    # this page has never been seen from here, and a guessed regex that
+    # silently mis-binds would be far worse than not having the field:
+    # k/d/a parsing below is untouched by any of this. So the run reports
+    # the shape of a few real rows, and the next one can be written
+    # against what it actually says.
+    ROW_SHAPE_SAMPLES = 4
+    row_shape_seen = []
+
+    def note_row_shape(text):
+        if len(row_shape_seen) < ROW_SHAPE_SAMPLES:
+            numbers = re.findall(r"-?\d+(?:\.\d+)?%?", text)
+            row_shape_seen.append((len(numbers), text[:240]))
+
     all_rounds_kda_re = re.compile(
         r"(\d+)\s+\d+\s+\d+\s*/\s*(\d+)\s+\d+\s+\d+\s*/\s*(\d+)\s+\d+\s+\d+"
     )
@@ -338,6 +365,7 @@ def parse_match(match_id, match_path):
         # triple rows (the spaces before each slash break it) and the
         # triple pattern does not match combined rows, so neither can
         # silently mis-parse the other's format.
+        note_row_shape(row_text)
         m = all_rounds_kda_re.search(row_text) or combined_kda_re.search(row_text)
         if not m:
             unresolved += 1
@@ -372,6 +400,9 @@ def parse_match(match_id, match_path):
         slot["d"] += d
         slot["a"] += a
         map_occurrence_count[side_team][name] = maps_counted + 1
+
+    if row_shape_seen and not _ROW_SHAPE_REPORTED:
+        _report_row_shape(row_shape_seen)
 
     total_players = sum(len(v) for v in totals.values())
     global _ZERO_ROW_MATCH_COUNT
@@ -523,6 +554,24 @@ def build_region_payload(region_key, current_event, historical_event):
     ]
 
     return {"teams": teams, "past_matches": past_matches, "upcoming_matches": upcoming_matches}
+
+
+_ROW_SHAPE_REPORTED = False
+
+
+def _report_row_shape(samples):
+    """Print what a real stat row looks like, once per run.
+
+    So the next change to this file can be written against the page as it
+    is rather than as it is imagined. Printed once and only once: the
+    point is a readable sample, not a transcript of every row scraped.
+    """
+    global _ROW_SHAPE_REPORTED
+    _ROW_SHAPE_REPORTED = True
+    print("\n  [row shape] vlr.gg stat rows, for working out where FK/FD sit:")
+    for count, text in samples:
+        print(f"    {count:3} numbers | {text}")
+    print("    (k/d/a is read from the first three triples; FK/FD are not read yet)\n")
 
 
 def lend_rosters_to_eventless_regions(regions):
