@@ -580,19 +580,29 @@ try {
     const rd = regionsData && regionsData[regionKey];
     if (!rd) return [];
     const own = rd.past_matches || [];
-    if (own.length > 0 || !rd.rosters_from_home_regions) return own;
-    const wanted = new Set(Object.keys(rd.teams || {}));
-    if (wanted.size === 0) return own;
+    const borrowedTeams = new Set();
+    for (const [name, t] of Object.entries(rd.teams || {})) {
+      if (t && t.from_home_region) borrowedTeams.add(name);
+    }
+    if (borrowedTeams.size === 0) {
+      if (own.length > 0 || !rd.rosters_from_home_regions) return own;
+      for (const name of Object.keys(rd.teams || {})) borrowedTeams.add(name);
+    }
+    if (borrowedTeams.size === 0) return own;
     const seen = new Set();
     const pool = [];
+    const add = m => {
+      const id = `${m.date || ""}|${m.teamA}|${m.teamB}`;
+      if (seen.has(id)) return;
+      seen.add(id);
+      pool.push(m);
+    };
+    for (const m of own) add(m);
     for (const [key, other] of Object.entries(regionsData)) {
       if (key === regionKey) continue;
       for (const m of other && other.past_matches || []) {
-        if (!wanted.has(m.teamA) && !wanted.has(m.teamB)) continue;
-        const id = `${m.date || ""}|${m.teamA}|${m.teamB}`;
-        if (seen.has(id)) continue;
-        seen.add(id);
-        pool.push(m);
+        if (!borrowedTeams.has(m.teamA) && !borrowedTeams.has(m.teamB)) continue;
+        add(m);
       }
     }
     return pool;
@@ -615,13 +625,13 @@ try {
       if (!rd || !rd.teams) continue;
       const pastMatches = historyPool(regionsData, regionKey);
       const leagueRate = leaguePlayerRate(pastMatches, rd.teams, STAT_TYPES[statType].key, null);
-      const borrowed = historyIsBorrowed(rd);
       for (const match of rd.upcoming_matches || []) {
         if (!rd.teams[match.teamA] && !rd.teams[match.teamB]) continue;
         const when = match._sortKey || match.date;
         for (const team of [match.teamA, match.teamB]) {
           if (!rd.teams[team]) continue;
           const opponent = team === match.teamA ? match.teamB : match.teamA;
+          const borrowed = historyIsBorrowed(rd, team);
           const oppKnown = !!rd.teams[opponent];
           for (const player of likelyStarters(rd.teams[team].players || [])) {
             const prop = propFor(propsData, game, player.name, statType, when);
@@ -2376,8 +2386,12 @@ try {
     return mean + edgeMultiplier(games) * (projection - mean) - line;
   }
   const EVIDENCE_BORROWED_CAP = EVIDENCE_SOLID - 1;
-  function historyIsBorrowed(regionData) {
-    return !!(regionData && regionData.rosters_from_home_regions && !(regionData.past_matches || []).length);
+  function historyIsBorrowed(regionData, teamName) {
+    if (!regionData) return false;
+    const teams = regionData.teams || {};
+    const anyPerTeam = Object.values(teams).some(t => t && t.from_home_region);
+    if (anyPerTeam) return !!(teamName && teams[teamName] && teams[teamName].from_home_region);
+    return !!(regionData.rosters_from_home_regions && !(regionData.past_matches || []).length);
   }
   function effectiveEvidence(games, borrowed) {
     if (typeof games !== "number" || !isFinite(games)) return games;
@@ -5391,7 +5405,7 @@ try {
         color: theme.textFaint,
         lineHeight: 1.55
       }
-    }, "Measured against the last ", summary.matches, " completed matches", borrowedHistory ? " these teams played in their home regions" : " in this region", " \u2014 ", summary.players.toLocaleString(), " player projections, each made using only the data that existed before that match was played.", " ", React.createElement("span", {
+    }, "Measured against the last ", summary.matches, " completed matches", borrowedHistory ? " these teams played, including in their home regions" : " in this region", " \u2014 ", summary.players.toLocaleString(), " player projections, each made using only the data that existed before that match was played.", " ", React.createElement("span", {
       style: {
         opacity: 0.85
       }
@@ -6568,7 +6582,7 @@ try {
       upcoming_matches: []
     };
     const history = historyPool(regionsData, region);
-    const historyIsBorrowed = history.length > 0 && (current.past_matches || []).length === 0;
+    const historyIsBorrowed = history.length > (current.past_matches || []).length;
     const hasData = Object.keys(current.teams || {}).length > 0;
     const normalizedUpcoming = formatUpcoming(current.upcoming_matches || []);
     const selectGame = id => {

@@ -29,7 +29,8 @@ const { code } = transformSync(
                      evidenceTier, careerGameCount, evidenceGamesFor,
                      EVIDENCE_THIN, EVIDENCE_SOLID,
                      edgeMultiplier, adjustEdge, EDGE_REALIZATION, rankEdges,
-                     historyIsBorrowed, effectiveEvidence, EVIDENCE_BORROWED_CAP };`,
+                     historyIsBorrowed, effectiveEvidence, EVIDENCE_BORROWED_CAP,
+                     historyPoolFor };`,
   { presets: [["@babel/preset-react", { runtime: "classic" }]], filename: "app.jsx",
     parserOpts: { allowReturnOutsideFunction: true } });
 const win = { innerWidth: 1400, addEventListener() {}, removeEventListener() {},
@@ -553,6 +554,66 @@ check("once it has played, it is its own evidence again",
 check("an ordinary region is never borrowed",
       app.historyIsBorrowed({ past_matches: [] }), false);
 check("and neither is a missing region", app.historyIsBorrowed(null), false);
+
+/* Per team, not per region.
+ *
+ * Both halves of borrowing -- the scraper lending rosters and the app
+ * lending history -- used to turn off the moment the event played one
+ * match. A real board caught what that costs: Champions had exactly one
+ * completed match, so its two participants counted as "the event has
+ * started" and the other FOURTEEN teams with fixtures, every one of them
+ * sitting in its home region with a full season behind it, lost their
+ * roster and their history in the same tick. An event fills up one match
+ * at a time.
+ */
+const mixed = {
+  "VCT Champions": {
+    teams: { "Team Liquid": {}, "Paper Rex": {}, "T1": { from_home_region: "VCT Pacific" } },
+    past_matches: [{ date: "2026-09-24", teamA: "Team Liquid", teamB: "Paper Rex" }],
+  },
+  "VCT Pacific": {
+    teams: { T1: {} },
+    past_matches: [{ date: "2026-08-01", teamA: "T1", teamB: "Gen.G" },
+                   { date: "2026-08-08", teamA: "DRX", teamB: "Gen.G" }],
+  },
+};
+
+check("a team that has played at the event is its own evidence",
+      app.historyIsBorrowed(mixed["VCT Champions"], "Team Liquid"), false);
+check("a team that has not is borrowed, even though the event has started",
+      app.historyIsBorrowed(mixed["VCT Champions"], "T1"), true);
+check("a team nobody asked about is not borrowed",
+      app.historyIsBorrowed(mixed["VCT Champions"], "Nobody"), false);
+
+{
+  const pool = app.historyPoolFor(mixed, "VCT Champions");
+  check("the pool keeps the event's own match", pool.some((m) => m.teamB === "Paper Rex"), true);
+  check("and adds the borrowed team's home season",
+        pool.some((m) => m.teamA === "T1"), true);
+  check("but not a home-region match the borrowed team is not in",
+        pool.some((m) => m.teamA === "DRX"), false);
+  check("three teams, two sources, no duplicates",
+        pool.length, new Set(pool.map((m) => `${m.date}|${m.teamA}|${m.teamB}`)).size);
+}
+
+/* Files written before the scraper marked provenance per team carry only
+ * the region-wide flag, which meant every roster or none. */
+{
+  const legacy = {
+    "VCT Champions": { teams: { T1: {} }, past_matches: [], rosters_from_home_regions: true },
+    "VCT Pacific": { teams: { T1: {} },
+                     past_matches: [{ date: "2026-08-01", teamA: "T1", teamB: "Gen.G" }] },
+  };
+  check("a legacy borrowed region still borrows",
+        app.historyPoolFor(legacy, "VCT Champions").length, 1);
+  check("and still reads as borrowed",
+        app.historyIsBorrowed(legacy["VCT Champions"], "T1"), true);
+}
+
+check("an ordinary region's pool is just its own matches",
+      app.historyPoolFor({ A: { teams: { X: {} },
+                                past_matches: [{ date: "1", teamA: "X", teamB: "Y" }] } },
+                         "A").length, 1);
 
 check("borrowed evidence cannot read as solid",
       app.evidenceTier(app.effectiveEvidence(400, true)), "limited");

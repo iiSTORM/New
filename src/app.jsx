@@ -431,20 +431,45 @@ function historyPoolFor(regionsData, regionKey) {
   const rd = regionsData && regionsData[regionKey];
   if (!rd) return [];
   const own = rd.past_matches || [];
-  if (own.length > 0 || !rd.rosters_from_home_regions) return own;
 
-  const wanted = new Set(Object.keys(rd.teams || {}));
-  if (wanted.size === 0) return own;
+  /* Which teams here are borrowed, rather than whether the region is.
+     Both this and the scraper's lending used to be all-or-nothing on the
+     region, and both collapsed together the moment the event played its
+     first map: Champions had one match, so two teams counted as "the
+     event has started" and the other fourteen — every one of them with a
+     real season one region over — lost their history in the same tick
+     they lost their roster. An event fills up one match at a time. */
+  const borrowedTeams = new Set();
+  for (const [name, t] of Object.entries(rd.teams || {})) {
+    if (t && t.from_home_region) borrowedTeams.add(name);
+  }
+  /* Files written before the scraper marked provenance per team carry
+     only the region-wide flag, which meant every roster or none. */
+  if (borrowedTeams.size === 0) {
+    if (own.length > 0 || !rd.rosters_from_home_regions) return own;
+    for (const name of Object.keys(rd.teams || {})) borrowedTeams.add(name);
+  }
+  if (borrowedTeams.size === 0) return own;
+
+  /* The region's OWN matches stay in. A borrowed team cannot appear in
+     them — it would have a roster of its own if it had played here — so
+     mixing them is not the double-count the old all-or-nothing rule was
+     guarding against; it is a board where the teams that have played at
+     the event use that, and the teams that have not use their season. */
   const seen = new Set();
   const pool = [];
+  const add = (m) => {
+    const id = `${m.date || ""}|${m.teamA}|${m.teamB}`;
+    if (seen.has(id)) return;
+    seen.add(id);
+    pool.push(m);
+  };
+  for (const m of own) add(m);
   for (const [key, other] of Object.entries(regionsData)) {
     if (key === regionKey) continue;
     for (const m of (other && other.past_matches) || []) {
-      if (!wanted.has(m.teamA) && !wanted.has(m.teamB)) continue;
-      const id = `${m.date || ""}|${m.teamA}|${m.teamB}`;
-      if (seen.has(id)) continue;
-      seen.add(id);
-      pool.push(m);
+      if (!borrowedTeams.has(m.teamA) && !borrowedTeams.has(m.teamB)) continue;
+      add(m);
     }
   }
   return pool;
@@ -476,8 +501,6 @@ function collectEdges(regionsData, regionList, propsData, weights, statType, gam
     // Computed once per region, not per row: it is the same figure for
     // every player in it, and leaguePacePerMap walks the whole history.
     const leagueRate = leaguePlayerRate(pastMatches, rd.teams, STAT_TYPES[statType].key, null);
-    // Every fixture in this region shares the answer, so ask once.
-    const borrowed = historyIsBorrowed(rd);
     for (const match of rd.upcoming_matches || []) {
       // Only the player's OWN team has to be rostered. The opponent is
       // needed for one term, which now falls back to neutral, and a line
@@ -491,6 +514,9 @@ function collectEdges(regionsData, regionList, propsData, weights, statType, gam
       for (const team of [match.teamA, match.teamB]) {
         if (!rd.teams[team]) continue;
         const opponent = team === match.teamA ? match.teamB : match.teamA;
+        // Per team, not per region: at an event that has started, some
+        // rosters here are its own and some are their home region's.
+        const borrowed = historyIsBorrowed(rd, team);
         const oppKnown = !!rd.teams[opponent];
         for (const player of likelyStarters(rd.teams[team].players || [])) {
           const prop = propFor(propsData, game, player.name, statType, when);
@@ -1683,8 +1709,16 @@ function adjustEdge(edge, games, projection, line, mean) {
    borrowed() is false and the real count applies again. */
 const EVIDENCE_BORROWED_CAP = EVIDENCE_SOLID - 1;
 
-function historyIsBorrowed(regionData) {
-  return !!(regionData && regionData.rosters_from_home_regions
+function historyIsBorrowed(regionData, teamName) {
+  if (!regionData) return false;
+  const teams = regionData.teams || {};
+  // Per-team provenance, written by the scraper since lending became per
+  // team. Authoritative for the whole region as soon as ANY team carries
+  // it, because then the region-wide flag only means "some are".
+  const anyPerTeam = Object.values(teams).some((t) => t && t.from_home_region);
+  if (anyPerTeam) return !!(teamName && teams[teamName] && teams[teamName].from_home_region);
+  // Older files carry only the region-wide flag, which was all-or-nothing.
+  return !!(regionData.rosters_from_home_regions
             && !(regionData.past_matches || []).length);
 }
 
@@ -4338,7 +4372,7 @@ function AccuracySummary({ teams, pastMatches, weights, statType, isDesktop, bor
       </div>
       <div style={{ flex: 1, minWidth: 190, fontSize: 11.5, color: theme.textFaint, lineHeight: 1.55 }}>
         Measured against the last {summary.matches} completed matches
-        {borrowedHistory ? " these teams played in their home regions" : " in this region"} — {summary.players.toLocaleString()} player projections, each made using only the data
+        {borrowedHistory ? " these teams played, including in their home regions" : " in this region"} — {summary.players.toLocaleString()} player projections, each made using only the data
         that existed before that match was played.
         {" "}
         <span style={{ opacity: 0.85 }}>
@@ -5248,7 +5282,11 @@ function KillProjector() {
      They are the same list everywhere except a borrowed-roster event that
      has not started yet — see historyPoolFor. */
   const history = historyPool(regionsData, region);
-  const historyIsBorrowed = history.length > 0 && (current.past_matches || []).length === 0;
+  /* True when the pool carries matches this region did not play. Was
+     "the region has played nothing at all", which stopped being the same
+     question once borrowing went per team: an event mid-way through has
+     its own matches AND its not-yet-started teams' home seasons. */
+  const historyIsBorrowed = history.length > (current.past_matches || []).length;
   const hasData = Object.keys(current.teams || {}).length > 0;
   const normalizedUpcoming = formatUpcoming(current.upcoming_matches || []);
 

@@ -687,15 +687,14 @@ def extra_rates(slot):
     return out
 
 
-def lend_rosters_to_eventless_regions(regions):
-    """Give a not-yet-started event the rosters of the regions it drew from.
+def lend_rosters_from_home_regions(regions):
+    """Give a fixture's teams the rosters of the regions they drew from.
 
     Rosters here are built by aggregating player stats out of PLAYED
-    matches, so an event whose fixtures exist but whose first map has not
-    been played arrives as a schedule with nobody in it -- confirmed on a
-    real run: Champions returned 34 fixtures and 0 teams. Every posted line
-    on that event then has no player to attach to, which is the whole
-    reason for tracking it.
+    matches, so a team that has fixtures at an event but has not yet
+    played a map there arrives as a name with nobody behind it. Every
+    posted line on that team then has no player to attach to, which is
+    the whole reason for tracking the event.
 
     The players are not missing, they are in their home regions with a
     season of form behind them, and that form is also the RIGHT baseline
@@ -704,36 +703,83 @@ def lend_rosters_to_eventless_regions(regions):
     event, not last year's edition of it. So the entry is copied across
     rather than recomputed from nothing.
 
-    Only ever for a region with fixtures and NO teams at all. A region that
-    scraped some teams is mid-event, not missing a roster, and overwriting
-    it with regional form would discard the event's own -- which is the
-    better data the moment a single map has been played.
+    PER TEAM, which is the whole correction. This was all-or-nothing on
+    the region -- lend only to an event with no teams at all -- and that
+    rule collapsed the moment the event's first map was played. A real
+    run caught it: Champions had played exactly one match, so the two
+    teams in it were the region's entire roster and the other FOURTEEN
+    teams with fixtures, every one of them available in its home region,
+    were left unprojectable. An event fills up one match at a time, so
+    "has any teams" was never the same question as "has this team".
+
+    A team that HAS an entry here keeps it. That half of the old rule was
+    right: once a team has played at the event, the event's own numbers
+    are the better data and must not be overwritten with regional form.
+
+    Each borrowed entry carries from_home_region, so the app can say
+    whose season these numbers actually are rather than inferring it from
+    a region-wide flag that is now true for some teams and false for
+    others.
 
     Returns a list of (region, borrowed, missing) for reporting.
     """
+    # Built once, over every region including the one being filled. A
+    # team that is already here is skipped by the `name in own` check
+    # below before the index is ever consulted, so excluding this region
+    # from it as well was a second guard on the same case -- and a branch
+    # no test could reach, which is how a guard stops being one.
+    # A team can sit in more than one region -- an international event
+    # is tracked as its own region, so its participants appear there AND
+    # under their league. The donor is the region where they have
+    # actually played the most, not whichever came first in REGIONS
+    # order: the point of borrowing is a season of form, and the entry
+    # with two matches behind it is not the one to copy when the entry
+    # with twelve exists.
+    played_in = {}
+    for donor_key, donor_region in regions.items():
+        for m in donor_region.get("past_matches") or []:
+            for side in (m.get("teamA"), m.get("teamB")):
+                if side:
+                    played_in[(donor_key, side)] = played_in.get((donor_key, side), 0) + 1
     donors = {}
-    for region in regions.values():
-        for team_name, team in (region.get("teams") or {}).items():
-            donors.setdefault(team_name, team)
+    for donor_key, donor_region in regions.items():
+        for team_name, team in (donor_region.get("teams") or {}).items():
+            best = donors.get(team_name)
+            depth = played_in.get((donor_key, team_name), 0)
+            if best is None or depth > best[0]:
+                donors[team_name] = (depth, donor_key, team)
+    donors = {name: (donor_key, team) for name, (_, donor_key, team) in donors.items()}
 
     report = []
     for key, region in regions.items():
-        if region.get("teams"):
-            continue
         fixtures = region.get("upcoming_matches") or []
         if not fixtures:
             continue
+        own = region.setdefault("teams", {})
         wanted = sorted({name for m in fixtures
                          for name in (m.get("teamA"), m.get("teamB"))
                          if name and name != "TBD"})
-        borrowed = {n: copy.deepcopy(donors[n]) for n in wanted if n in donors}
-        missing = [n for n in wanted if n not in donors]
+        borrowed, missing = {}, []
+        for name in wanted:
+            if name in own:
+                continue
+            if name not in donors:
+                missing.append(name)
+                continue
+            donor_key, donor = donors[name]
+            entry = copy.deepcopy(donor)
+            # Flagged rather than silent: these players' numbers come
+            # from their regional season, not from this event.
+            entry["from_home_region"] = donor_key
+            own[name] = entry
+            borrowed[name] = entry
         if borrowed:
-            region["teams"] = borrowed
-            # Flagged rather than silent: these players' numbers come from
-            # their regional season, not from this event.
+            # Kept for the region-level consumers that predate the
+            # per-team flag. It now means "some roster here is borrowed",
+            # which is what it always meant in practice.
             region["rosters_from_home_regions"] = True
-        report.append((key, borrowed, missing))
+        if borrowed or missing:
+            report.append((key, borrowed, missing))
     return report
 
 
@@ -750,9 +796,10 @@ def main():
         except Exception as e:
             print(f"! region {region_key} failed entirely: {e}", file=sys.stderr)
 
-    for key, borrowed, missing in lend_rosters_to_eventless_regions(payload["regions"]):
-        print(f"\n{key}: no played matches yet, so rosters come from the teams' "
-              f"home regions — {len(borrowed)} team(s) resolved")
+    for key, borrowed, missing in lend_rosters_from_home_regions(payload["regions"]):
+        print(f"\n{key}: {len(borrowed)} team(s) have fixtures but no maps played "
+              f"here yet, so their rosters come from their home regions: "
+              f"{sorted(borrowed)}")
         if missing:
             print(f"  {len(missing)} team(s) not found in any region, so their "
                   f"fixtures stay unprojected: {missing}")
