@@ -6,6 +6,25 @@
  * board's own record can be reconstructed. This runs it and asks the
  * three questions that matter, in order of how uncomfortable they are.
  *
+ * READ THE CLUSTERING BEFORE THE NUMBERS. The 69 props come from EIGHT
+ * matches -- six CS2, two Valorant -- and props within a match share
+ * rounds, pace and how one-sided it was, so they are nowhere near 69
+ * independent observations. Clustered on the match, which is the right
+ * unit:
+ *
+ *   win rate per match      43.7%  +/- 21.7   ->  22% to 65%
+ *   our MAE minus line MAE  +0.29  +/- 0.57   ->  -0.28 to +0.85
+ *   per-match win rates     36, 40, 63, 60, 0, 100, 11, 40 (%)
+ *
+ * Breakeven sits inside the first interval and zero inside the second.
+ * So NOTHING HERE IS ESTABLISHED: not that the model loses money, not
+ * that the line forecasts better. The first version of this file said
+ * both, on a Wilson interval that assumed 69 independent rows. It was
+ * wrong to.
+ *
+ * The per-prop numbers below are still the point estimates, and still
+ * worth reading -- they are just not evidence yet.
+ *
  * RESULT, on 69 decided props over four days (2026-09-21 to 24):
  *
  *   model won                30/69   43.5%   [95% CI 32-55%]
@@ -40,12 +59,15 @@
  * expected -- these are Champions fixtures projected from home-region
  * form, and the step up in class costs more than either side priced.
  *
- * CAVEATS THAT MATTER. n=69 over four days is one regime, not a record.
- * The confidence interval spans 32-55%, so this does not establish that
- * the model loses money -- it establishes that nothing here shows it
- * winning, and that the market is the sharper forecast in this sample.
- * 735 posted lines were refused for grading because no completed match
- * was found on that date, so the graded set is also a selection.
+ * WHY THE SAMPLE IS EIGHT MATCHES, AND WHAT FIXES IT. 646 of 724 CS2
+ * lines old enough to grade were refused for "no completed match on
+ * that date", and 645 of those were dated AFTER the latest match held
+ * for that team. This scraper takes the most recent NOTABLE matches
+ * while the prop provider posts far wider, so fixtures were projected,
+ * played, and never scraped. 63 missing results across 51 teams unlock
+ * all 646 -- about 70 graded matches instead of 8. scrape_cs2.py now
+ * fetches them (teams_awaiting_results), so this file gets an answer
+ * worth acting on in a few runs rather than a few months.
  *
  * Usage:
  *     node scripts/dev/model_vs_market.mjs

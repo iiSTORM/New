@@ -79,6 +79,34 @@ UPCOMING_PAGE_LIMIT = 100  # the API's own page size in cs2api's queries
 # Upper bound on opponents whose rosters get backfilled in one run. Each
 # costs a team search plus several match fetches, and the API rate-limits.
 MAX_BACKFILL_OPPONENTS = 25
+
+# Teams whose POSTED LINES are waiting on a result, fetched per run so
+# the board's own record can grow.
+#
+# The loop was open at this end. This scraper fetches the most recent
+# NOTABLE matches -- tier a/s or 3+ stars -- while the prop provider
+# posts lines on a far wider field, so a fixture could be projected,
+# played, and never scraped. Of 724 CS2 lines old enough to grade, 646
+# were refused for "no completed match on that date", and 645 of those
+# were dated AFTER the latest match we hold for that team. We were
+# projecting fixtures we could never learn the answer to.
+#
+# 63 missing results across 51 teams unlock all 646. That is the record
+# going from 8 graded matches to about 70, which is the difference
+# between a number nobody should act on and one that can be measured
+# against the market.
+MAX_RESULT_BACKFILL_TEAMS = 30
+# Widened from 3 to 6 — confirmed via live diagnosis that a real match
+# can flip from empty player stats to fully populated within minutes
+# (bo3.gg's own stats pipeline hasn't finished processing very recent
+# matches yet: a game's raw "state" is null with null scores when stats
+# aren't ready, vs "done" with real scores when they are). Fetching more
+# candidates per team gives a better chance of landing on an already-
+# processed match instead of the very latest one, still mid-pipeline.
+# Module level because BOTH backfills use it — the roster one and the
+# results one.
+BACKFILL_MATCHES_PER_TEAM = 6
+PROPS_HISTORY_PATH = "props_history.jsonl"
 # 1-5 scale inferred from real data (a minor qualifier showed stars=1; the
 # match above showed stars=5). 3 is a starting midpoint, not a confirmed
 # cutoff — build_region_payload prints the real star distribution across
@@ -920,7 +948,6 @@ async def build_region_payload(cs2, session):
         # are). Fetching more candidates per team gives a better chance
         # of landing on an already-processed match instead of the
         # very latest one that might still be mid-pipeline.
-        BACKFILL_MATCHES_PER_TEAM = 6
         backfill_matches = []
         team_name_by_match_slug = {}  # tracks which target opponent each match came from, for the per-team success report below
         for name in unresolved_opponents:
@@ -991,6 +1018,64 @@ async def build_region_payload(cs2, session):
             # arrive in the same record at no extra request, and refusing
             # to read them is what left most of the fixture list blank.
             add_team_players(past_matches[-added:] if added else [],
+                             past_matches, teams_payload, color_state)
+
+    # ---- results for lines we already posted -------------------------
+    #
+    # Separate from the roster backfill above, which chases teams with no
+    # players. This chases teams whose POSTED LINES have no outcome: the
+    # fixture was projected, played, and never scraped, because this
+    # scraper takes the most recent NOTABLE matches and the prop provider
+    # posts far wider. 646 of 724 gradeable CS2 lines were stranded that
+    # way, all but one of them dated after the last match we held for
+    # that team.
+    #
+    # Reuses the same per-team fetch, so it is the proven path with a
+    # different list of teams. Bounded, and ordered by how many lines are
+    # waiting on each team, so a capped run buys the most answers it can.
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    awaiting = teams_awaiting_results(load_props_history(), past_matches,
+                                      set(teams_payload), today)
+    if awaiting:
+        wanted = awaiting[:MAX_RESULT_BACKFILL_TEAMS]
+        print(f"Fetching results for {len(wanted)} team(s) with posted lines still ungraded"
+              + (f" (of {len(awaiting)}; the rest wait for the next run)"
+                 if len(awaiting) > len(wanted) else "") + f": {wanted}")
+        result_matches = []
+        for name in wanted:
+            try:
+                found = await cs2.search_teams(name)
+            except Exception as e:
+                print(f"  ! search_teams({name!r}) failed: {e}", file=sys.stderr)
+                continue
+            candidates = found.get("results", found) if isinstance(found, dict) else found
+            if not candidates:
+                continue
+            exact = next((t for t in candidates if t.get("name") == name), None)
+            team_id = (exact or candidates[0]).get("id")
+            if not team_id:
+                continue
+            short_name_by_team_id[team_id] = name
+            result_matches.extend(
+                await fetch_team_recent_matches(session, team_id,
+                                                limit=BACKFILL_MATCHES_PER_TEAM))
+        if result_matches:
+            known = {match_key(m) for m in past_matches}
+            processed = await asyncio.gather(
+                *[process(m, short_name_by_team_id) for m in result_matches])
+            added_results = 0
+            for entry in processed:
+                if not entry:
+                    continue
+                entry["teamA"] = short_name_by_team_id.get(entry.pop("_team1_id", None), entry["teamA"])
+                entry["teamB"] = short_name_by_team_id.get(entry.pop("_team2_id", None), entry["teamB"])
+                if match_key(entry) in known:
+                    continue
+                known.add(match_key(entry))
+                past_matches.append(entry)
+                added_results += 1
+            print(f"  added {added_results} result(s) for previously ungradeable lines\n")
+            add_team_players(past_matches[-added_results:] if added_results else [],
                              past_matches, teams_payload, color_state)
 
     return {"teams": teams_payload, "past_matches": past_matches, "upcoming_matches": upcoming_matches}
@@ -1105,6 +1190,69 @@ async def main():
 # shrink denominator, so deeper history shrinks less, and CS2's MAE
 # prefers heavy shrinkage. Eight stands.
 MATCHES_KEPT_PER_TEAM = 8
+
+
+def teams_awaiting_results(props_history, past_matches, tracked_teams, today):
+    """Teams to fetch recent results for, busiest first.
+
+    A line is waiting when its fixture has been played, we track the
+    team, and we hold no match for that team on that date. Returns team
+    names ordered by how many lines are waiting on each, so a bounded
+    run buys the most gradeable rows it can.
+
+    Pure on purpose: the fetch that follows is network-bound and cannot
+    be tested offline, but WHICH results are worth asking for is the
+    part with the logic in it.
+    """
+    have = set()
+    for m in past_matches or []:
+        date = (m.get("date") or "")[:10]
+        if not date:
+            continue
+        for side in ("teamA", "teamB"):
+            if m.get(side):
+                have.add((m[side], date))
+
+    waiting = {}
+    for row in props_history or []:
+        if row.get("game") != "cs2":
+            continue
+        team = row.get("team")
+        date = (row.get("start_time") or "")[:10]
+        if not team or len(date) != 10:
+            continue
+        # A fixture that has not happened yet is not a missing result.
+        if date > today:
+            continue
+        if team not in tracked_teams:
+            continue
+        if (team, date) in have:
+            continue
+        waiting[team] = waiting.get(team, 0) + 1
+    return [t for t, _ in sorted(waiting.items(), key=lambda kv: (-kv[1], kv[0]))]
+
+
+def load_props_history(path=PROPS_HISTORY_PATH):
+    """Every posted line on record, or [] when there is no file.
+
+    Never fatal: without it this run simply behaves as every run did
+    before the record existed.
+    """
+    rows = []
+    try:
+        with open(path) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    rows.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue  # one bad line is not a reason to lose the rest
+    except (FileNotFoundError, OSError) as e:
+        print(f"  no {path} to check for ungraded lines ({e.__class__.__name__})")
+        return []
+    return rows
 
 
 def match_key(m):
