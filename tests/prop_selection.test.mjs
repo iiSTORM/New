@@ -227,6 +227,10 @@ const collectEdges = new Function(`
   ${extract("edgeMultiplier")}
   ${extract("adjustEdge")}
   ${extractConst("STAT_TYPES")}
+  ${extractConst("EVIDENCE_SOLID")}
+  ${extractConst("EVIDENCE_BORROWED_CAP")}
+  ${extract("historyIsBorrowed")}
+  ${extract("effectiveEvidence")}
   function leaguePlayerRate() { return ${STUB_LEAGUE_RATE}; }
   function project() { return { perGame: ${PER_MAP}, evidenceGames: ${STUB_EVIDENCE} }; }
   ${slice}
@@ -362,6 +366,10 @@ const collectEdgesSpy = new Function(`
   ${extract("edgeMultiplier")}
   ${extract("adjustEdge")}
   ${extractConst("STAT_TYPES")}
+  ${extractConst("EVIDENCE_SOLID")}
+  ${extractConst("EVIDENCE_BORROWED_CAP")}
+  ${extract("historyIsBorrowed")}
+  ${extract("effectiveEvidence")}
   function leaguePlayerRate() { return ${STUB_LEAGUE_RATE}; }
   const seenPools = arguments[0];
   function project(teams, pastMatches) {

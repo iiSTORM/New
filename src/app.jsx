@@ -476,6 +476,8 @@ function collectEdges(regionsData, regionList, propsData, weights, statType, gam
     // Computed once per region, not per row: it is the same figure for
     // every player in it, and leaguePacePerMap walks the whole history.
     const leagueRate = leaguePlayerRate(pastMatches, rd.teams, STAT_TYPES[statType].key, null);
+    // Every fixture in this region shares the answer, so ask once.
+    const borrowed = historyIsBorrowed(rd);
     for (const match of rd.upcoming_matches || []) {
       // Only the player's OWN team has to be rostered. The opponent is
       // needed for one term, which now falls back to neutral, and a line
@@ -508,6 +510,11 @@ function collectEdges(regionsData, regionList, propsData, weights, statType, gam
             // call site free to drift from this one -- and the detail
             // panel's whole job is to explain THIS number.
             player, pastMatches,
+            // The raw count stays on the breakdown, because it is a true
+            // statement about how many maps were read. This is the count
+            // that should be TRUSTED, which is a different question.
+            borrowedContext: borrowed,
+            evidence: effectiveEvidence(breakdown.evidenceGames, borrowed),
             // No edge where the provider posted several lines and named
             // none of them the market one — same refusal as the readout.
             edge: prop.lineCount > 1 ? null : projection - prop.line,
@@ -516,7 +523,8 @@ function collectEdges(regionsData, regionList, propsData, weights, statType, gam
             // printed above it, and a ranking that cannot be checked
             // against them is worth less than one that can.
             adjustedEdge: prop.lineCount > 1 ? null
-              : adjustEdge(projection - prop.line, breakdown.evidenceGames,
+              : adjustEdge(projection - prop.line,
+                           effectiveEvidence(breakdown.evidenceGames, borrowed),
                            projection, prop.line,
                            // The league rate over this line's own window,
                            // which is what "a typical player" means here.
@@ -1647,6 +1655,44 @@ function adjustEdge(edge, games, projection, line, mean) {
   return (mean + edgeMultiplier(games) * (projection - mean)) - line;
 }
 
+/* Evidence borrowed from another competition is not evidence about this
+   one.
+
+   A not-yet-started international event carries no completed matches of
+   its own, so historyPool lends it the teams' home-region matches. That
+   makes a projection possible, and the map count behind it looks large
+   -- but every one of those maps was played somewhere else, against a
+   different field.
+
+   Measured on the board this was found on: all 78 Valorant lines were
+   VCT Champions fixtures, our projections sat 0.48 kills below each
+   player's own regional rate, and the market's lines sat 1.48 below.
+   Something about a 16-team international field is priced in that
+   regional form does not contain, and 73% of the board read OVER as a
+   result.
+
+   What that something is worth cannot be measured here: there are zero
+   cross-region matches in any of the three games' data, so there is no
+   international form to fit against. Inventing a step-up discount would
+   be a number with nothing behind it. What IS defensible is declining to
+   call these projections well-evidenced, which is what this does.
+
+   The cap is a judgement, not a measurement -- one band below solid, so
+   the board stops leading with them and the chip says so. It lifts on
+   its own: the moment that event has completed matches of its own,
+   borrowed() is false and the real count applies again. */
+const EVIDENCE_BORROWED_CAP = EVIDENCE_SOLID - 1;
+
+function historyIsBorrowed(regionData) {
+  return !!(regionData && regionData.rosters_from_home_regions
+            && !(regionData.past_matches || []).length);
+}
+
+function effectiveEvidence(games, borrowed) {
+  if (typeof games !== "number" || !isFinite(games)) return games;
+  return borrowed ? Math.min(games, EVIDENCE_BORROWED_CAP) : games;
+}
+
 function evidenceTier(games) {
   if (typeof games !== "number" || !isFinite(games)) return null;
   if (games < EVIDENCE_THIN) return "thin";
@@ -2466,13 +2512,21 @@ function projectionTags(r, theme) {
 
    Says the count out loud rather than a word alone, because "thin" is
    an opinion and "3 games" is a fact the reader can weigh themselves. */
-function EvidenceChip({ games, compact }) {
+function EvidenceChip({ games, compact, borrowed }) {
   const theme = useTheme();
   const tier = evidenceTier(games);
   if (tier === null || tier === "solid") return null;
   const tone = tier === "thin" ? theme.bad : theme.textFaint;
   const rounded = Math.round(games);
-  const title = tier === "thin"
+  // Said differently for a borrowed context, because the number alone
+  // would be read as "we only found this much" when the truth is "we
+  // found plenty, from somewhere else".
+  const title = borrowed
+    ? `This event has no completed matches yet, so the projection is built from the `
+      + `players' home-region form. That is real form against a different field, and `
+      + `how much it transfers is not something this app has any results to measure. `
+      + `Treated as a weaker read until the event has played.`
+    : tier === "thin"
     ? `Only ${rounded} game${rounded === 1 ? "" : "s"} of evidence behind this projection. `
       + `Measured on past seasons, the model is about 5-12% less accurate than its own average below four games.`
     : `${rounded} games of evidence behind this projection. `
@@ -2480,7 +2534,8 @@ function EvidenceChip({ games, compact }) {
   return (
     <span className="kp-chip kp-num" title={title}
           style={{ background: `${tone}1A`, color: tone, border: `1px solid ${tone}33` }}>
-      {compact ? `${rounded}g` : `${rounded}g evidence`}
+      {borrowed ? (compact ? "other event" : "form from another event")
+                : (compact ? `${rounded}g` : `${rounded}g evidence`)}
     </span>
   );
 }
@@ -3005,7 +3060,12 @@ function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop }) {
   // anyone can recompute from the projection and the line beside it.
   const shown = row.adjustedEdge !== null && row.adjustedEdge !== undefined
     ? row.adjustedEdge : edge;
-  const evidence = row.breakdown ? row.breakdown.evidenceGames : null;
+  // The trusted count, not the raw one: a borrowed-roster event's maps
+  // were played in another competition, and the chip and the ranking both
+  // have to reflect that rather than the size of the pile.
+  const evidence = row.evidence !== undefined && row.evidence !== null
+    ? row.evidence
+    : (row.breakdown ? row.breakdown.evidenceGames : null);
   // Flagged on the band, not on the arithmetic. Comparing the two
   // numbers marked almost every row, because the top band's 0.94 still
   // shifts a mid-sized edge by more than a printed decimal -- 160 of 219
@@ -3036,7 +3096,8 @@ function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop }) {
           {/* The board is ranked by edge SIZE, and a big edge off three
               games is the most dangerous row on the screen -- it sorts
               to the top precisely because the model had least to go on. */}
-          {row.breakdown && <EvidenceChip games={row.breakdown.evidenceGames} compact />}
+          {row.breakdown && <EvidenceChip games={evidence} compact
+                                          borrowed={row.borrowedContext} />}
         </div>
         <div style={{ fontSize: 11, color: theme.textFaint, marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {row.team} vs {row.opponent}{clock ? ` · ${clock}` : ""}
@@ -3136,7 +3197,31 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
         ? withEdge[0].adjustedEdge : withEdge[0].edge)
     : 0;
   const anyDiscounted = withEdge.some((r) => r.breakdown
-    && edgeMultiplier(r.breakdown.evidenceGames) < 0.9);
+    && edgeMultiplier(r.evidence !== undefined ? r.evidence : r.breakdown.evidenceGames) < 0.9);
+
+  /* A board that nearly all points one way is a statement about the
+     model, not a list of opportunities.
+
+     Real edges are scattered: the market is wrong in both directions.
+     When almost every line reads the same way, the likelier reading is
+     that the model and the market disagree about the EVENT rather than
+     about the players -- a level offset, which no amount of per-player
+     accuracy will fix and which the reader cannot see by scrolling.
+
+     Found on a real board: 57 of 78 Valorant lines read OVER, every one
+     of them a VCT Champions fixture projected from regional form, with
+     the market pricing a step up in class that regional form does not
+     contain. */
+  const ONE_SIDED_MIN_ROWS = 10;
+  const ONE_SIDED_SHARE = 0.7;
+  const decided = fresh ? withEdge.filter((r) => r.edge !== 0) : [];
+  const overs = decided.filter((r) => r.edge > 0).length;
+  const lean = decided.length >= ONE_SIDED_MIN_ROWS
+    && (overs / decided.length >= ONE_SIDED_SHARE
+        || overs / decided.length <= 1 - ONE_SIDED_SHARE)
+    ? { overs, n: decided.length, side: overs * 2 > decided.length ? "over" : "under" }
+    : null;
+  const borrowedCount = withEdge.filter((r) => r.borrowedContext).length;
 
   return (
     <div>
@@ -3156,6 +3241,24 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
             </span>
           )}
         </div>
+        {lean && (
+          <div style={{ padding: "11px 16px", borderBottom: `1px solid ${theme.steel}`,
+                        background: `${theme.accent}0E`, fontSize: 12, lineHeight: 1.55,
+                        color: theme.textDim }}>
+            <strong style={{ color: theme.text }}>
+              {lean.overs} of {lean.n} lines read {lean.side.toUpperCase()}.
+            </strong>{" "}
+            Edges that nearly all point one way usually mean the model and the market
+            disagree about the fixture rather than about the players — a level offset,
+            which per-player accuracy cannot fix.
+            {borrowedCount === withEdge.length && withEdge.length > 0 && (
+              <> Every line here is for an event with no completed matches yet, so the
+                 projections come from the players’ form in another competition. The
+                 market is pricing something about this event that that form does not
+                 contain.</>
+            )}
+          </div>
+        )}
         {rows.map((row, i) => (
           <EdgeRow key={`${row.game}-${row.name}-${row.team}-${i}`} row={row} theme={theme} cfg={cfg}
                    fresh={fresh} ageMinutes={ageMinutes} isDesktop={isDesktop} />

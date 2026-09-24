@@ -615,6 +615,7 @@ try {
       if (!rd || !rd.teams) continue;
       const pastMatches = historyPool(regionsData, regionKey);
       const leagueRate = leaguePlayerRate(pastMatches, rd.teams, STAT_TYPES[statType].key, null);
+      const borrowed = historyIsBorrowed(rd);
       for (const match of rd.upcoming_matches || []) {
         if (!rd.teams[match.teamA] && !rd.teams[match.teamB]) continue;
         const when = match._sortKey || match.date;
@@ -641,8 +642,10 @@ try {
               oppKnown,
               player,
               pastMatches,
+              borrowedContext: borrowed,
+              evidence: effectiveEvidence(breakdown.evidenceGames, borrowed),
               edge: prop.lineCount > 1 ? null : projection - prop.line,
-              adjustedEdge: prop.lineCount > 1 ? null : adjustEdge(projection - prop.line, breakdown.evidenceGames, projection, prop.line, leagueRate === null ? null : leagueRate * prop.maps)
+              adjustedEdge: prop.lineCount > 1 ? null : adjustEdge(projection - prop.line, effectiveEvidence(breakdown.evidenceGames, borrowed), projection, prop.line, leagueRate === null ? null : leagueRate * prop.maps)
             });
           }
         }
@@ -2372,6 +2375,14 @@ try {
     }
     return mean + edgeMultiplier(games) * (projection - mean) - line;
   }
+  const EVIDENCE_BORROWED_CAP = EVIDENCE_SOLID - 1;
+  function historyIsBorrowed(regionData) {
+    return !!(regionData && regionData.rosters_from_home_regions && !(regionData.past_matches || []).length);
+  }
+  function effectiveEvidence(games, borrowed) {
+    if (typeof games !== "number" || !isFinite(games)) return games;
+    return borrowed ? Math.min(games, EVIDENCE_BORROWED_CAP) : games;
+  }
   function evidenceTier(games) {
     if (typeof games !== "number" || !isFinite(games)) return null;
     if (games < EVIDENCE_THIN) return "thin";
@@ -2822,14 +2833,15 @@ try {
   }
   function EvidenceChip({
     games,
-    compact
+    compact,
+    borrowed
   }) {
     const theme = useTheme();
     const tier = evidenceTier(games);
     if (tier === null || tier === "solid") return null;
     const tone = tier === "thin" ? theme.bad : theme.textFaint;
     const rounded = Math.round(games);
-    const title = tier === "thin" ? `Only ${rounded} game${rounded === 1 ? "" : "s"} of evidence behind this projection. ` + `Measured on past seasons, the model is about 5-12% less accurate than its own average below four games.` : `${rounded} games of evidence behind this projection. ` + `The model is around its own average accuracy in this range, and better from eight games up.`;
+    const title = borrowed ? `This event has no completed matches yet, so the projection is built from the ` + `players' home-region form. That is real form against a different field, and ` + `how much it transfers is not something this app has any results to measure. ` + `Treated as a weaker read until the event has played.` : tier === "thin" ? `Only ${rounded} game${rounded === 1 ? "" : "s"} of evidence behind this projection. ` + `Measured on past seasons, the model is about 5-12% less accurate than its own average below four games.` : `${rounded} games of evidence behind this projection. ` + `The model is around its own average accuracy in this range, and better from eight games up.`;
     return React.createElement("span", {
       className: "kp-chip kp-num",
       title: title,
@@ -2838,7 +2850,7 @@ try {
         color: tone,
         border: `1px solid ${tone}33`
       }
-    }, compact ? `${rounded}g` : `${rounded}g evidence`);
+    }, borrowed ? compact ? "other event" : "form from another event" : compact ? `${rounded}g` : `${rounded}g evidence`);
   }
   function ScoreBar({
     label,
@@ -3486,7 +3498,7 @@ try {
     const mapWindow = mapWindowLabel(prop.maps);
     const ambiguous = edge === null;
     const shown = row.adjustedEdge !== null && row.adjustedEdge !== undefined ? row.adjustedEdge : edge;
-    const evidence = row.breakdown ? row.breakdown.evidenceGames : null;
+    const evidence = row.evidence !== undefined && row.evidence !== null ? row.evidence : row.breakdown ? row.breakdown.evidenceGames : null;
     const MATERIAL_DISCOUNT = 0.9;
     const discounted = !ambiguous && typeof shown === "number" && edgeMultiplier(evidence) < MATERIAL_DISCOUNT;
     const tone = ambiguous || !fresh ? theme.textFaint : shown > 0 ? theme.good : shown < 0 ? theme.bad : theme.textDim;
@@ -3538,8 +3550,9 @@ try {
         letterSpacing: 0.5
       }
     }, row.role), row.breakdown && React.createElement(EvidenceChip, {
-      games: row.breakdown.evidenceGames,
-      compact: true
+      games: evidence,
+      compact: true,
+      borrowed: row.borrowedContext
     })), React.createElement("div", {
       style: {
         fontSize: 11,
@@ -3664,7 +3677,17 @@ try {
     }
     const withEdge = rows.filter(r => r.edge !== null);
     const best = withEdge.length ? Math.abs(withEdge[0].adjustedEdge !== null && withEdge[0].adjustedEdge !== undefined ? withEdge[0].adjustedEdge : withEdge[0].edge) : 0;
-    const anyDiscounted = withEdge.some(r => r.breakdown && edgeMultiplier(r.breakdown.evidenceGames) < 0.9);
+    const anyDiscounted = withEdge.some(r => r.breakdown && edgeMultiplier(r.evidence !== undefined ? r.evidence : r.breakdown.evidenceGames) < 0.9);
+    const ONE_SIDED_MIN_ROWS = 10;
+    const ONE_SIDED_SHARE = 0.7;
+    const decided = fresh ? withEdge.filter(r => r.edge !== 0) : [];
+    const overs = decided.filter(r => r.edge > 0).length;
+    const lean = decided.length >= ONE_SIDED_MIN_ROWS && (overs / decided.length >= ONE_SIDED_SHARE || overs / decided.length <= 1 - ONE_SIDED_SHARE) ? {
+      overs,
+      n: decided.length,
+      side: overs * 2 > decided.length ? "over" : "under"
+    } : null;
+    const borrowedCount = withEdge.filter(r => r.borrowedContext).length;
     return React.createElement("div", null, React.createElement("div", {
       style: {
         background: theme.graphite,
@@ -3699,7 +3722,20 @@ try {
         color: theme.bad,
         marginLeft: "auto"
       }
-    }, Math.round(ageMinutes), " min old \u2014 past the ", PROPS_MAX_AGE_MINUTES, "-minute window, so no edges are drawn")), rows.map((row, i) => React.createElement(EdgeRow, {
+    }, Math.round(ageMinutes), " min old \u2014 past the ", PROPS_MAX_AGE_MINUTES, "-minute window, so no edges are drawn")), lean && React.createElement("div", {
+      style: {
+        padding: "11px 16px",
+        borderBottom: `1px solid ${theme.steel}`,
+        background: `${theme.accent}0E`,
+        fontSize: 12,
+        lineHeight: 1.55,
+        color: theme.textDim
+      }
+    }, React.createElement("strong", {
+      style: {
+        color: theme.text
+      }
+    }, lean.overs, " of ", lean.n, " lines read ", lean.side.toUpperCase(), "."), " ", "Edges that nearly all point one way usually mean the model and the market disagree about the fixture rather than about the players \u2014 a level offset, which per-player accuracy cannot fix.", borrowedCount === withEdge.length && withEdge.length > 0 && React.createElement(React.Fragment, null, " Every line here is for an event with no completed matches yet, so the projections come from the players\u2019 form in another competition. The market is pricing something about this event that that form does not contain.")), rows.map((row, i) => React.createElement(EdgeRow, {
       key: `${row.game}-${row.name}-${row.team}-${i}`,
       row: row,
       theme: theme,

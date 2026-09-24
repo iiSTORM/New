@@ -28,7 +28,8 @@ const { code } = transformSync(
                      SHARE_HALF_LIFE, DEFAULT_WEIGHTS_BY_GAME_AND_STAT,
                      evidenceTier, careerGameCount, evidenceGamesFor,
                      EVIDENCE_THIN, EVIDENCE_SOLID,
-                     edgeMultiplier, adjustEdge, EDGE_REALIZATION, rankEdges };`,
+                     edgeMultiplier, adjustEdge, EDGE_REALIZATION, rankEdges,
+                     historyIsBorrowed, effectiveEvidence, EVIDENCE_BORROWED_CAP };`,
   { presets: [["@babel/preset-react", { runtime: "classic" }]], filename: "app.jsx",
     parserOpts: { allowReturnOutsideFunction: true } });
 const win = { innerWidth: 1400, addEventListener() {}, removeEventListener() {},
@@ -530,6 +531,48 @@ near("a well-evidenced projection is barely moved",
   check("a row carrying only a raw edge falls back to it",
         app.rankEdges(rows).map((r) => r.name), ["b", "a"]);
 }
+
+/* ---- evidence borrowed from another competition ----
+ *
+ * A not-yet-started international event has no matches of its own, so
+ * historyPool lends it the teams' home-region form. The map count behind
+ * a projection then looks large while every one of those maps was played
+ * against a different field.
+ *
+ * Found on a real board: all 78 Valorant lines were VCT Champions
+ * fixtures, our projections sat 0.48 kills below each player's own
+ * regional rate and the market's sat 1.48 below. What a step up in class
+ * is worth cannot be fitted here -- there are zero cross-region matches
+ * in any of the three games -- so the projection is left alone and only
+ * the confidence in it is cut.
+ */
+check("a borrowed-roster event with nothing played is borrowed",
+      app.historyIsBorrowed({ rosters_from_home_regions: true, past_matches: [] }), true);
+check("once it has played, it is its own evidence again",
+      app.historyIsBorrowed({ rosters_from_home_regions: true, past_matches: [{}] }), false);
+check("an ordinary region is never borrowed",
+      app.historyIsBorrowed({ past_matches: [] }), false);
+check("and neither is a missing region", app.historyIsBorrowed(null), false);
+
+check("borrowed evidence cannot read as solid",
+      app.evidenceTier(app.effectiveEvidence(400, true)), "limited");
+check("the cap sits one band below solid",
+      app.EVIDENCE_BORROWED_CAP < app.EVIDENCE_SOLID, true);
+near("an unborrowed count passes through untouched",
+     app.effectiveEvidence(400, false), 400);
+near("a borrowed count already below the cap is not raised",
+     app.effectiveEvidence(2, true), 2);
+check("a thin borrowed row stays thin rather than being promoted",
+      app.evidenceTier(app.effectiveEvidence(2, true)), "thin");
+check("a missing count is not turned into a number by the cap",
+      app.effectiveEvidence(undefined, true), undefined);
+
+/* The consequence that matters: the board stops treating a pile of
+   somebody else's matches as though it vouched for this fixture. */
+near("a borrowed row is discounted like a limited one",
+     app.edgeMultiplier(app.effectiveEvidence(400, true)), 0.72);
+near("the same row unborrowed would have been near face value",
+     app.edgeMultiplier(400), 0.98);
 
 console.log(`${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

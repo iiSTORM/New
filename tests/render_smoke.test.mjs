@@ -647,6 +647,55 @@ if (app.collectEdges && app.EdgesTab) {
                board, "OVER +");
   containsText("and is not marked as cut", board, "from ", false);
 }
+/* ---- a one-sided board says so ----
+ *
+ * Real edges scatter: the market is wrong in both directions. When
+ * nearly every line reads the same way, the likelier reading is a level
+ * disagreement about the fixture, which no per-player accuracy fixes and
+ * which a reader cannot see by scrolling.
+ */
+if (app.EdgesTab && app.collectEdges) {
+  const many = Array.from({ length: 16 }, (_, i) => ({
+    date: `2026-${String((i % 12) + 1).padStart(2, "0")}-01`,
+    teamA: "T1", teamB: "GEN", maps_counted: 2,
+    actual: { T1: { Faker: { k: 20, d: 2, a: 5 } }, GEN: { Zeus: { k: 4, d: 2, a: 5 } } } }));
+  const region = (extra) => ({ R: { teams: { T1: rostered, GEN: rostered },
+    past_matches: many, upcoming_matches: [fixture("T1", "GEN")], ...extra } });
+  // Two players, both lined far below their form, so every edge is an over.
+  const lopsided = { fetched_at: new Date().toISOString(), source: "test",
+    props: { lol: {
+      Faker: [{ player: "Faker", stat: "kills", maps: 2, line: 2.0, odds_type: "standard",
+                team: "T1", start_time: "2026-09-21T10:00:00+00:00" }],
+      Zeus: [{ player: "Zeus", stat: "kills", maps: 2, line: 2.0, odds_type: "standard",
+               team: "T1", start_time: "2026-09-21T10:00:00+00:00" }] } } };
+  const tab = (extra) => wrap(React.createElement(app.EdgesTab, {
+    regionsData: region(extra), regionList: ["R"], regionLabels: {}, weights,
+    statType: "kills", game: "lol", isDesktop: true }), lopsided);
+
+  // Only two rows here, under the ten-row floor, so it must stay quiet:
+  // a two-row board leaning one way is not evidence of anything.
+  containsText("a board too small to judge says nothing about its lean",
+               tab({}), "read OVER", false);
+}
+
+/* And the borrowed-context chip, which is what a Champions board shows. */
+if (app.EvidenceChip) {
+  const chip = (games, borrowed) => renderToStaticMarkup(
+    React.createElement(app.ThemeContext.Provider, { value: theme },
+      React.createElement(app.EvidenceChip, { games, compact: true, borrowed })));
+  containsText("a borrowed row is named, not given a misleading count",
+               React.createElement(app.ThemeContext.Provider, { value: theme },
+                 React.createElement(app.EvidenceChip,
+                   { games: app.effectiveEvidence ? 7 : 7, compact: true, borrowed: true })),
+               "other event");
+  try {
+    const html = chip(7, true);
+    if (/\d+g/.test(html)) throw new Error("showed a map count for borrowed form");
+    pass++;
+  } catch (err) {
+    fail++; console.error(`FAIL  a borrowed chip does not show a map count\n        ${err.message}`);
+  }
+}
 
 console.log(`${pass} rendered, ${fail} failed`);
 process.exit(fail ? 1 : 0);
