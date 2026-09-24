@@ -187,6 +187,21 @@ _HEADER_LABELS_REPORTED = False
 # k/d/a, which are already here), "Penta Kills" (too rare to carry a
 # rate), and the four warding columns (support-specific, and nothing
 # about them bears on a kills/deaths/assists prop).
+#
+# COVERAGE IS NOT UNIFORM, and the run's own report is what said so.
+# LPL returns nothing at all for fb_pct, fb_victim, csd15 and xpd15 --
+# 0 of 60 players, against 40/40 or 50/50 everywhere else -- so those
+# columns are absent from a sixth of the tracked field rather than
+# thinly populated in it. solo_kills is patchy in every region
+# (206/320 overall), which is consistent with gol.gg rendering a count
+# of zero as a blank; parse_number leaves the key off either way,
+# because a blank that might mean zero and a blank that means "not
+# measured" cannot be told apart from here and guessing wrong writes a
+# fabricated zero into the model.
+#
+# None of this is currently load-bearing: measured against residuals on
+# 6,403 rows, no column here reaches 0.034 (see
+# scripts/dev/prior_event_signal.py). It matters the day one is used.
 EXTRA_COLUMNS = {
     "Win rate": "win_rate",
     "CSM": "csm",
