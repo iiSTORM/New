@@ -484,8 +484,16 @@ check("an unknown region is empty rather than a crash",
 const valorantPath = path.join(root, "valorant_data.json");
 if (fs.existsSync(valorantPath)) {
   const { regions } = JSON.parse(fs.readFileSync(valorantPath, "utf8"));
-  const borrowed = Object.keys(regions).filter(
-    (k) => regions[k].rosters_from_home_regions && (regions[k].past_matches || []).length === 0);
+  /* Per team, which is how the scraper marks it now. The old test asked
+     whether the REGION had borrowed -- rosters_from_home_regions and no
+     matches of its own -- and that question stopped being answerable the
+     moment an event played its first map: Champions had one match, so it
+     read as "started", and these checks silently stopped running on the
+     region they were written for. */
+  const borrowedTeamsIn = (key) => new Set(
+    Object.entries(regions[key].teams || {})
+      .filter(([, t]) => t && t.from_home_region).map(([n]) => n));
+  const borrowed = Object.keys(regions).filter((k) => borrowedTeamsIn(k).size > 0);
   for (const key of borrowed) {
     const pool = historyPoolFor(regions, key);
     check(`${key} finds real history for its borrowed rosters`, pool.length > 0, true);
@@ -499,11 +507,25 @@ if (fs.existsSync(valorantPath)) {
     const missing = [...names].filter(
       (t) => !pool.some((m) => m.teamA === t || m.teamB === t));
     check(`${key} leaves no team without history`, missing, []);
+    // The half the all-or-nothing rule got wrong in the other direction:
+    // the teams that HAVE played here must keep their own matches.
+    check(`${key} keeps the matches it has played itself`,
+          (regions[key].past_matches || []).every(
+            (m) => pool.includes(m)), true);
   }
   for (const key of Object.keys(regions)) {
     if (borrowed.includes(key)) continue;
-    check(`${key} is untouched by borrowing`,
-          historyPoolFor(regions, key), regions[key].past_matches || []);
+    /* Not "identical to past_matches" -- every region now carries
+       history_matches, the games its players played before this event,
+       and those belong in a projection. The invariant is that nothing
+       from ANOTHER region leaks in without a borrowed roster to justify
+       it. */
+    const own = new Set([...(regions[key].past_matches || []),
+                         ...(regions[key].history_matches || [])]);
+    const pool = historyPoolFor(regions, key);
+    check(`${key} pulls nothing from another region`,
+          pool.every((m) => own.has(m)), true);
+    check(`${key} keeps everything of its own`, pool.length, own.size);
   }
 }
 

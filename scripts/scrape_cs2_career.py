@@ -308,6 +308,38 @@ def load_previous_output():
         return {}
 
 
+def parse_stored_date(value):
+    """A stored game's date, back as a timezone-aware datetime.
+
+    The cache writes dates with .isoformat() and so reads them back as
+    STRINGS, while a freshly fetched game carries a real datetime. The
+    two are concatenated into one list, and everything downstream then
+    saw a mix: decayed_baseline does `now - g["date"]` and the
+    serializer calls g["date"].isoformat(), and each raises on whichever
+    kind it did not get.
+
+    It raised inside asyncio.gather, so a SINGLE cached game killed the
+    whole run -- which is why the career file sat at 263 records from the
+    moment the cache landed, and why the step finished in two seconds
+    while reporting 1,274 players to process.
+
+    None for anything unparseable, so the game is re-fetched rather than
+    carried forward as a date nothing can do arithmetic on.
+    """
+    if isinstance(value, datetime):
+        when = value
+    elif isinstance(value, str):
+        try:
+            when = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+    else:
+        return None
+    # Naive dates cannot be subtracted from an aware `now`, which is the
+    # same class of crash one layer down.
+    return when if when.tzinfo else when.replace(tzinfo=timezone.utc)
+
+
 def cached_games_by_id(previous_record):
     """{game_id: stored game} for games already on record.
 
@@ -316,12 +348,20 @@ def cached_games_by_id(previous_record):
     and every run after is cheap -- the same migration the LoL match
     cache makes, for the same reason: a weaker key risks attaching one
     game's box score to another, which is silent and wrong.
+
+    Dates come back as datetimes, so a cached game and a fetched one are
+    the same shape. This is the boundary the cache crosses, so it is the
+    one place that conversion belongs.
     """
     out = {}
     for game in (previous_record or {}).get("games") or []:
         game_id = game.get("game_id")
-        if game_id is not None:
-            out[game_id] = game
+        if game_id is None:
+            continue
+        when = parse_stored_date(game.get("date"))
+        if when is None:
+            continue  # unreadable date: re-fetch rather than carry it
+        out[game_id] = {**game, "date": when}
     return out
 
 async def process_one_player(session, name, progress, total, previous=None):

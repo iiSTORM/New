@@ -96,6 +96,87 @@ class TestTheSavingIsReal:
         assert len([g for g, _ in refs if g not in cached]) == 40
 
 
+class TestCachedAndFreshAreTheSameShape:
+    """The bug that stopped this scraper dead.
+
+    The cache writes dates with .isoformat(), so it reads them back as
+    STRINGS, while a freshly fetched game carries a real datetime. Both
+    go into one list. decayed_baseline does `now - g["date"]` and the
+    serializer calls g["date"].isoformat(); each raises on whichever
+    kind it did not get -- and it raised inside asyncio.gather, so one
+    cached game killed the whole run.
+
+    It did, on every run since the cache landed: the career file sat at
+    263 records while the roster grew past 1,400, and the step finished
+    in two seconds after reporting 1,274 players to process.
+    """
+
+    def test_a_stored_date_comes_back_as_a_datetime(self):
+        import datetime as dt
+        got = sc.cached_games_by_id(record(game(1)))
+        assert isinstance(got[1]["date"], dt.datetime)
+
+    def test_a_date_that_is_already_a_datetime_is_left_alone(self):
+        import datetime as dt
+        when = dt.datetime(2026, 1, 1, tzinfo=dt.timezone.utc)
+        got = sc.cached_games_by_id({"games": [{"game_id": 1, "date": when}]})
+        assert got[1]["date"] == when
+
+    def test_a_naive_date_is_made_comparable(self):
+        """`now` is timezone-aware, and subtracting a naive datetime from
+        it raises -- the same crash one layer down."""
+        got = sc.cached_games_by_id({"games": [{"game_id": 1, "k": 1, "d": 1, "a": 1,
+                                                "date": "2026-01-01T00:00:00"}]})
+        assert sc.decayed_baseline(list(got.values())) is not None
+
+    def test_a_z_suffixed_date_parses(self):
+        """bo3.gg writes +00:00 and this scraper writes isoformat, so a
+        Z is not expected -- but it is what every other date reader here
+        accepts, and stdlib support for it is version-dependent."""
+        got = sc.cached_games_by_id({"games": [{"game_id": 1, "k": 1, "d": 1, "a": 1,
+                                                "date": "2026-01-01T00:00:00Z"}]})
+        assert sc.decayed_baseline(list(got.values())) is not None
+
+    def test_an_unreadable_date_is_dropped_rather_than_carried(self):
+        for bad in ("not a date", "", None, 12345):
+            got = sc.cached_games_by_id({"games": [{"game_id": 1, "date": bad}]})
+            assert got == {}, f"{bad!r} must not reach the arithmetic"
+
+    def test_a_cached_game_can_be_decayed(self):
+        """What decayed_baseline does to every game, cached or not."""
+        assert sc.decayed_baseline(list(sc.cached_games_by_id(
+            record(game(1), game(2))).values()))["g"] == 2
+
+    def test_a_cached_game_can_be_serialised_back(self):
+        """And what process_one_player does to every game on the way
+        out. A string date has no .isoformat()."""
+        games = list(sc.cached_games_by_id(record(game(1))).values())
+        assert [{**g, "date": g["date"].isoformat()} for g in games][0]["date"]
+
+    def test_a_run_that_is_entirely_cache_still_produces_a_record(self):
+        """End to end, the way the failing run went: every game already
+        on record, nothing to fetch, and it died anyway."""
+        import asyncio
+
+        async def no_matches(session, player_id):
+            return [{"games": [{"id": 1, "begin_at": "2026-01-01T00:00:00+00:00"},
+                               {"id": 2, "begin_at": "2026-01-02T00:00:00+00:00"}]}]
+
+        async def never(*a, **kw):
+            raise AssertionError("nothing should be fetched — it is all cached")
+
+        orig = sc.fetch_player_matches, sc.fetch_game_stats_for_player
+        sc.fetch_player_matches, sc.fetch_game_stats_for_player = no_matches, never
+        try:
+            name, rec = asyncio.run(sc.process_one_player(
+                None, "donk", {"done": 0}, 1, {"donk": record(game(1), game(2))}))
+        finally:
+            sc.fetch_player_matches, sc.fetch_game_stats_for_player = orig
+        assert rec["games_fetched"] == 2
+        assert all(isinstance(g["date"], str) for g in rec["games"]), (
+            "what goes back to the file must be JSON, not datetimes")
+
+
 class TestRequestCounting:
     def test_the_counter_exists_and_starts_countable(self):
         assert isinstance(sc.REQUEST_TOTAL["n"], int)

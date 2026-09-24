@@ -39,10 +39,15 @@ def rows_dated(data, stat, weights):
     cfg = ow.STAT_TYPES[stat]
     out = []
     for rd in data.values():
-        teams, past = rd.get("teams", {}), rd.get("past_matches", [])
-        if not teams or not past:
+        teams, scored = rd.get("teams", {}), rd.get("past_matches", [])
+        if not teams or not scored:
             continue
-        for m in past:
+        # Predict against everything on record, score only what this
+        # event has played -- the same split _collect uses, and the same
+        # one the app makes. Reading past_matches for both would sweep
+        # against a shallower history than the model actually has.
+        past = ow.history_pool(rd)
+        for m in scored:
             for side in ("teamA", "teamB"):
                 team = m[side]
                 opp = m["teamB"] if side == "teamA" else m["teamA"]
