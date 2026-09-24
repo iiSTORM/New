@@ -167,6 +167,72 @@ def get(url, retries=4):
 
 _HEADER_LABELS_REPORTED = False
 
+# The rest of gol.gg's players/list table, mapped label -> stored key.
+#
+# A run printed the 26 labels it actually offers rather than this file
+# guessing them, and the two that matter were there: "FB %" and "FB
+# Victim", the LoL analogues of the Valorant opening-duel columns that
+# were the ONLY signal to survive an honest point-in-time test there
+# (fk and fd, 0.072 each, both positive -- contest involvement). "DPM"
+# is the analogue of ADR, which did not survive (0.2062 leaky ->
+# 0.0192 point-in-time), so it is taken to be measured, not because it
+# is expected to work.
+#
+# Located by label like the five before them, so gol.gg reordering the
+# table cannot silently bind one column's numbers to another's key.
+# Read from the same request that was already being made: no extra
+# cost, and no reason to make this round trip twice.
+#
+# Left out deliberately: "Country" (not a number), "KDA" (a function of
+# k/d/a, which are already here), "Penta Kills" (too rare to carry a
+# rate), and the four warding columns (support-specific, and nothing
+# about them bears on a kills/deaths/assists prop).
+EXTRA_COLUMNS = {
+    "Win rate": "win_rate",
+    "CSM": "csm",
+    "GPM": "gpm",
+    "DMG%": "dmg_pct",
+    "Gold%": "gold_pct",
+    "DPM": "dpm",
+    "VS%": "vs_pct",
+    "GD@15": "gd15",
+    "CSD@15": "csd15",
+    "XPD@15": "xpd15",
+    "FB %": "fb_pct",
+    "FB Victim": "fb_victim",
+    "Solo Kills": "solo_kills",
+}
+READ_COLUMNS = ("Player", "Games", "Avg kills", "Avg deaths", "Avg assists",
+                "KP%") + tuple(EXTRA_COLUMNS)
+
+
+def parse_number(text):
+    """One cell, or None.
+
+    gol.gg writes percentages with a % sign, early-game differentials
+    with a leading minus, and a missing value as "-" or an empty cell.
+    None rather than 0.0 is the whole point: a player who has never
+    taken a first blood and a player whose cell did not parse are
+    different facts, and writing the second in as the first would put a
+    fabricated zero into the model. Same rule the CS2 and Valorant
+    scrapers already hold to -- a field that could not be read is left
+    off the record entirely.
+    """
+    if text is None:
+        return None
+    cleaned = text.strip().replace("%", "").replace(",", "").replace("\u2212", "-")
+    try:
+        value = float(cleaned)
+    except ValueError:
+        return None  # "", "-", "N/A" and anything else that is not a number
+    # float() accepts "nan", "inf" and "-infinity" without complaint, and
+    # a NaN propagates silently through every mean, weight and comparison
+    # it reaches -- a missing value that pretends to be present is worse
+    # than one that admits it.
+    if value != value or value in (float("inf"), float("-inf")):
+        return None
+    return value
+
 
 def parse_player_list(tournament):
     """Pulls the rich per-player stats table (avg K/D/A, KP%, games played).
@@ -193,6 +259,15 @@ def parse_player_list(tournament):
             return header_labels.index(label)
         except ValueError:
             return None
+    # Everything else on this table is located by label; the name was
+    # still cells[0]. That held only as long as gol.gg kept Player
+    # first, and a reordering would have bound every player record to
+    # whatever number landed in column zero -- the exact silent
+    # mis-binding the label lookup exists to prevent. Falls back to 0,
+    # since a table with no "Player" header still has the name there.
+    idx_name = col("Player")
+    if idx_name is None:
+        idx_name = 0
     idx_games = col("Games")
     idx_k = col("Avg kills")
     idx_d = col("Avg deaths")
@@ -215,17 +290,24 @@ def parse_player_list(tournament):
         _HEADER_LABELS_REPORTED = True
         print(f"  [columns] gol.gg players/list offers {len(header_labels)}: "
               f"{header_labels}", file=sys.stderr)
-        unread = [h for h in header_labels
-                  if h not in ("Player", "Games", "Avg kills", "Avg deaths",
-                               "Avg assists", "KP%")]
+        unread = [h for h in header_labels if h not in READ_COLUMNS]
         print(f"  [columns] not read: {unread}", file=sys.stderr)
+        absent = [h for h in READ_COLUMNS if h not in header_labels]
+        if absent:
+            # The other direction, and the one that fails silently: a
+            # column this file asks for that the page no longer offers
+            # just stops appearing in the output, and every consumer
+            # treats it as a player who happens to have no value.
+            print(f"  [columns] asked for but NOT OFFERED: {absent}", file=sys.stderr)
+    extra_idx = {key: col(label) for label, key in EXTRA_COLUMNS.items()}
+    extra_seen = {key: 0 for key in extra_idx}
     parsed_ok = 0
     for i, row in enumerate(rows[1:], start=1):
         cells = row.find_all("td")
         if len(cells) < 5 or None in (idx_games, idx_k, idx_d, idx_a, idx_kp):
             continue
         try:
-            name = cells[0].get_text(strip=True)
+            name = cells[idx_name].get_text(strip=True)
             games = int(cells[idx_games].get_text(strip=True))
             k = float(cells[idx_k].get_text(strip=True))
             d = float(cells[idx_d].get_text(strip=True))
@@ -237,12 +319,31 @@ def parse_player_list(tournament):
                       f"{[c.get_text(strip=True) for c in cells]}", file=sys.stderr)
             continue
         parsed_ok += 1
+        # The wider table, gathered separately from k/d/a and unable to
+        # affect them: an unreadable DPM cell must not cost a row its
+        # kills, which is why this is not inside the try above.
+        extras = {}
+        for key, idx in extra_idx.items():
+            if idx is None or idx >= len(cells):
+                continue
+            value = parse_number(cells[idx].get_text(strip=True))
+            if value is not None:
+                extras[key] = value
+                extra_seen[key] += 1
         # team/role filled in by parse_team_rosters(); placeholder for now
         players[name] = {
             "name": name, "team": None, "role": None,
             "g": games, "k": k, "d": d, "a": a, "kp": kp,
+            **extras,
         }
     print(f"    parsed {parsed_ok}/{max(len(rows) - 1, 0)} rows successfully", file=sys.stderr)
+    if parsed_ok:
+        got = ", ".join(f"{key}={extra_seen[key]}" for key in sorted(extra_seen)
+                        if extra_seen[key])
+        missing = [key for key in sorted(extra_seen) if not extra_seen[key]]
+        print(f"      extra columns on {parsed_ok} row(s): {got or 'none'}", file=sys.stderr)
+        if missing:
+            print(f"      extra columns EMPTY for every row: {missing}", file=sys.stderr)
     return players
 
 
@@ -769,6 +870,22 @@ def series_prop_window_kills(base_id, score):
     return combined, draft, per_game, label, len(kda_list)
 
 
+def tier_stats(stats):
+    """One tier's record: the five that were always here, plus whichever
+    of the wider columns this player actually had a value for.
+
+    Whitelisted rather than copied wholesale, because parse_player_list
+    also carries name/team/role placeholders that have no business being
+    repeated inside every tier. A key absent here means the cell was
+    absent or unreadable, never zero -- see parse_number.
+    """
+    if not stats:
+        return None
+    tier = {key: stats[key] for key in ("g", "k", "d", "a", "kp")}
+    tier.update({key: stats[key] for key in EXTRA_COLUMNS.values() if key in stats})
+    return tier
+
+
 def build_teams_payload(cur_players, hist_players, roster):
     teams = {}
     unmatched = []
@@ -784,9 +901,8 @@ def build_teams_payload(cur_players, hist_players, roster):
         hist = hist_players.get(name)
         entry = {
             "name": name, "role": role,
-            "cur": {"g": cur["g"], "k": cur["k"], "d": cur["d"], "a": cur["a"], "kp": cur["kp"]},
-            "hist": ({"g": hist["g"], "k": hist["k"], "d": hist["d"], "a": hist["a"], "kp": hist["kp"]}
-                      if hist else None),
+            "cur": tier_stats(cur),
+            "hist": tier_stats(hist),
         }
         teams[team]["players"].append(entry)
     if unmatched:
