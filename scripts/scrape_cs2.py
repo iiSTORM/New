@@ -698,6 +698,13 @@ async def build_region_payload(cs2, session):
                 # for LoL and game_id for CS2 careers.
                 "match_id": m.get("slug"),
                 "week": None, "date": match_date[:10] if match_date else None,
+                # The full timestamp as well as the day. Two teams do meet
+                # twice in a day, and the grader cannot tell which match a
+                # posted line belonged to from a calendar date -- it
+                # refuses rather than coin-flip, and that refusal was 211
+                # of the ungraded lines. The posted line carries a clock;
+                # now so does the result.
+                "start_time": match_date,
                 "patch": None, "teamA": team1_name, "teamB": team2_name,
                 "winner": winner_name,
                 "score": score_str, "actual": totals, "games": maps_played,

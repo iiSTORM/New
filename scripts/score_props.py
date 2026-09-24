@@ -69,6 +69,21 @@ def utc_date(timestamp):
         return None
 
 
+def parse_time(timestamp):
+    """A timestamp as an aware UTC datetime, or None.
+
+    Aware on purpose: the provider writes an offset and bo3.gg writes
+    +00:00, and subtracting a naive datetime from an aware one raises
+    rather than comparing. A naive value is read as UTC, which is what
+    both sources mean when they omit it.
+    """
+    try:
+        when = datetime.fromisoformat(str(timestamp))
+    except (TypeError, ValueError):
+        return None
+    return when.astimezone(timezone.utc) if when.tzinfo else when.replace(tzinfo=timezone.utc)
+
+
 def load_history(path):
     records = []
     try:
@@ -151,6 +166,39 @@ def actual_over_window(match, team, player, stat, maps, game):
     return None, "player missing from the box score"
 
 
+# How far a posted line's start time may sit from a match's own before
+# they are not the same fixture. Providers and the source disagree by
+# minutes over scheduled-versus-actual start; they do not disagree by
+# hours, and two legs of a double-header are further apart than this.
+DOUBLE_HEADER_TOLERANCE_HOURS = 4
+
+
+def nearest_by_start_time(candidates, line_start):
+    """The one match a posted line belongs to, or None if unsettled.
+
+    None rather than a guess in every ambiguous case: no clock on the
+    line, no clock on the results, nothing inside the tolerance, or two
+    matches equally close. A wrong answer here does not look like an
+    error downstream, it looks like a graded result.
+    """
+    want = parse_time(line_start)
+    if want is None:
+        return None
+    timed = []
+    for m in candidates:
+        when = parse_time(m.get("start_time"))
+        if when is not None:
+            timed.append((abs((when - want).total_seconds()), m))
+    if not timed:
+        return None
+    timed.sort(key=lambda pair: pair[0])
+    if timed[0][0] > DOUBLE_HEADER_TOLERANCE_HOURS * 3600:
+        return None
+    if len(timed) > 1 and timed[1][0] - timed[0][0] < 60:
+        return None  # two matches essentially equidistant: not settled
+    return timed[0][1]
+
+
 def grade(records, data_by_game):
     """Attach an outcome to every observation that can carry one."""
     graded, refused = [], collections.Counter()
@@ -174,13 +222,20 @@ def grade(records, data_by_game):
             refused["no completed match on that date"] += 1
             continue
         if len(candidates) > 1:
-            # Teams do play twice in a day in CS2 tournaments. Which match a
-            # line belonged to is not recoverable from a calendar date, and
+            # Teams do play twice in a day in CS2 tournaments. A calendar
+            # date cannot say which match a line belonged to -- but a
+            # CLOCK can, and both sides carry one now: the posted line
+            # has always had start_time, and the scraper stores the
+            # match's full timestamp rather than truncating it to a day.
+            #
+            # Still refuses when the times cannot settle it, because
             # picking one would be a coin flip recorded as a result.
-            refused["team played more than once that day"] += 1
-            continue
-
-        match = candidates[0]
+            match = nearest_by_start_time(candidates, rec.get("start_time"))
+            if match is None:
+                refused["team played more than once that day"] += 1
+                continue
+        else:
+            match = candidates[0]
         value, reason = actual_over_window(
             match, rec.get("team"), rec.get("player"),
             rec.get("stat"), rec.get("maps"), game)
