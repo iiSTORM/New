@@ -237,32 +237,28 @@ def parse_match(match_id, match_path):
     # data-game-id attribute, with the combined view using "all" — real
     # individual maps use a real numeric ID. Skip rows under an "all"
     # container; only count rows under a real per-map container.
-    # ---- First-kill / first-death discovery ----
+    # ---- First kills and first deaths ----
     #
-    # vlr.gg's stat table carries FK and FD columns -- who drew first
-    # blood and who gave it up. That is the one thing in this data that
-    # describes HOW a player plays rather than how much they produce,
-    # and it is the missing ingredient for a question this project cannot
-    # currently answer: whether style travels to an international field
-    # better than raw rates do. Measured on what is scraped today, every
-    # style proxy derivable from k/d/a is worth almost nothing (K/D ratio
-    # correlates 0.07 at best with the model's errors, champion pool
-    # 0.02), because style is already baked into a player's own rates.
-    # FK/FD is not.
+    # The one thing on this page describing HOW a player plays rather
+    # than how much they produce: who wins the opening duel, and who
+    # loses it. Every style proxy derivable from k/d/a was measured
+    # against the model's errors and came back near zero (K/D ratio 0.07
+    # at best, champion pool 0.02), because style is already inside a
+    # player's own rates. Opening duels are not.
     #
-    # Nothing is parsed out of it yet, deliberately. The column order on
-    # this page has never been seen from here, and a guessed regex that
-    # silently mis-binds would be far worse than not having the field:
-    # k/d/a parsing below is untouched by any of this. So the run reports
-    # the shape of a few real rows, and the next one can be written
-    # against what it actually says.
-    ROW_SHAPE_SAMPLES = 4
-    row_shape_seen = []
-
-    def note_row_shape(text):
-        if len(row_shape_seen) < ROW_SHAPE_SAMPLES:
-            numbers = re.findall(r"-?\d+(?:\.\d+)?%?", text)
-            row_shape_seen.append((len(numbers), text[:240]))
+    # The column order was read off a real run rather than guessed:
+    #
+    #   name TAG | rating x3 | ACS x3 | K x3 / D x3 / A x3 | K-D x3
+    #        | KAST% x3 | ADR x3 | HS% x3 | FK x3 | FD x3 | FK-FD x3
+    #
+    # Read from the tail, after the last percent sign, because there are
+    # two %-triples on the row (KAST and HS) and anchoring on the first
+    # would land three columns early.
+    #
+    # The FK-FD column is a checksum and is treated as one: a parse is
+    # accepted only when fk - fd equals it. That makes a mis-bind
+    # self-detecting instead of silent, and it is what refuses the
+    # combined-shape rows, which carry no duel columns at all.
 
     all_rounds_kda_re = re.compile(
         r"(\d+)\s+\d+\s+\d+\s*/\s*(\d+)\s+\d+\s+\d+\s*/\s*(\d+)\s+\d+\s+\d+"
@@ -365,7 +361,6 @@ def parse_match(match_id, match_path):
         # triple rows (the spaces before each slash break it) and the
         # triple pattern does not match combined rows, so neither can
         # silently mis-parse the other's format.
-        note_row_shape(row_text)
         m = all_rounds_kda_re.search(row_text) or combined_kda_re.search(row_text)
         if not m:
             unresolved += 1
@@ -386,6 +381,10 @@ def parse_match(match_id, match_path):
         side_team = tag_to_team[tag]
 
         slot = totals[side_team].setdefault(name, {"k": 0, "d": 0, "a": 0})
+        STAT_ROW_COUNTS["rows"] += 1
+        extra = parse_stat_row(row_text, m)
+        if extra is not None:
+            STAT_ROW_COUNTS["parsed"] += 1
         maps_counted = map_occurrence_count[side_team].setdefault(name, 0)
         if maps_counted >= 2:
             # This is the app's convention across both games: only maps/games
@@ -399,10 +398,13 @@ def parse_match(match_id, match_path):
         slot["k"] += k
         slot["d"] += d
         slot["a"] += a
+        if extra is not None:
+            # Only alongside a map that counted, so these cover exactly
+            # the same maps as k/d/a.
+            for field, value in extra.items():
+                slot[field] = slot.get(field, 0) + value
+            slot["rows"] = slot.get("rows", 0) + 1
         map_occurrence_count[side_team][name] = maps_counted + 1
-
-    if row_shape_seen and not _ROW_SHAPE_REPORTED:
-        _report_row_shape(row_shape_seen)
 
     total_players = sum(len(v) for v in totals.values())
     global _ZERO_ROW_MATCH_COUNT
@@ -496,12 +498,28 @@ def build_region_payload(region_key, current_event, historical_event):
                 team_total_k = sum(kda["k"] for kda in players.values())
                 for name, kda in players.items():
                     slot = agg.setdefault(name, {"team": team, "k": 0, "d": 0, "a": 0,
-                                                 "games": 0, "kp_num": 0, "kp_den": 0})
+                                                 "games": 0, "kp_num": 0, "kp_den": 0,
+                                                 "extra_games": 0, "extra_rows": 0,
+                                                 **{f: 0 for f in EXTRA_STAT_FIELDS}})
                     slot["team"] = team  # last-seen team wins (handles roster moves reasonably)
                     slot["k"] += kda["k"]
                     slot["d"] += kda["d"]
                     slot["a"] += kda["a"]
                     slot["games"] += m["maps_played"]
+                    # Opening duels carry their OWN game count. A row whose
+                    # checksum failed contributes k/d/a and no duels, so
+                    # dividing duels by `games` would quietly understate
+                    # anyone who had one -- the two rates need separate
+                    # divisors or they are not rates of the same thing.
+                    if kda.get("rows"):
+                        # These carry their own counters. A row whose
+                        # checksums failed contributes k/d/a and nothing
+                        # else, so sharing the k/d/a divisor would quietly
+                        # understate anyone that happened to.
+                        for field in EXTRA_STAT_FIELDS:
+                            slot[field] = slot.get(field, 0) + kda.get(field, 0)
+                        slot["extra_games"] += m["maps_played"]
+                        slot["extra_rows"] += kda["rows"]
                     # Accumulated as numerator/denominator rather than
                     # averaging per-match ratios, so matches with more
                     # rounds carry proportionally more weight instead of
@@ -528,15 +546,16 @@ def build_region_payload(region_key, current_event, historical_event):
         entry = {
             "name": name, "role": None,
             "cur": {"g": cur["games"], "k": cur["k"] / g, "d": cur["d"] / g, "a": cur["a"] / g,
-                    "kp": kp_pct(cur)},
+                    "kp": kp_pct(cur), **extra_rates(cur)},
             "hist": None,
         }
         if hist and hist["games"] > 0:
             hg = hist["games"]
             entry["hist"] = {"g": hg, "k": hist["k"] / hg, "d": hist["d"] / hg, "a": hist["a"] / hg,
-                             "kp": kp_pct(hist)}
+                             "kp": kp_pct(hist), **extra_rates(hist)}
         teams[team]["players"].append(entry)
     print(f"  built payload for {len(teams)} teams: {list(teams.keys())}")
+    report_first_duels()
 
     past_matches = []
     for m in cur_played:
@@ -556,22 +575,116 @@ def build_region_payload(region_key, current_event, historical_event):
     return {"teams": teams, "past_matches": past_matches, "upcoming_matches": upcoming_matches}
 
 
-_ROW_SHAPE_REPORTED = False
+STAT_ROW_COUNTS = {"rows": 0, "parsed": 0}
+
+# Everything parse_stat_row returns, which is what gets summed per player.
+EXTRA_STAT_FIELDS = ("acs", "adr", "kast", "hs", "rating", "fk", "fd")
+
+# Everything a triple-shape vlr.gg stat row carries after the player and
+# team tag, in order. Each name is three columns wide -- all rounds, then
+# attack, then defence -- and only the all-rounds figure is kept.
+#
+#   rating | ACS | K / D / A | K-D | KAST% | ADR | HS% | FK | FD | FK-FD
+#
+# Read off a production run rather than guessed. K/D/A is located by the
+# existing regex and everything else is positioned relative to it, which
+# is why this cannot drift away from the numbers already trusted.
+_TAIL_COLUMNS = ["kd_diff", "kast", "adr", "hs", "fk", "fd", "fd_diff"]
+
+_NUM = re.compile(r"[+-]?\d+(?:\.\d+)?")
 
 
-def _report_row_shape(samples):
-    """Print what a real stat row looks like, once per run.
+def parse_stat_row(row_text, kda_match):
+    """Every all-rounds figure on one stat row, or None if unreadable.
 
-    So the next change to this file can be written against the page as it
-    is rather than as it is imagined. Printed once and only once: the
-    point is a readable sample, not a transcript of every row scraped.
+    None rather than a guess. The row carries its own arithmetic in two
+    places -- kills minus deaths, and first kills minus first deaths --
+    and both must agree before anything here is believed. A mis-bound
+    column is then self-detecting instead of silently becoming a number
+    the model trusts.
+
+    Returns per-map figures for the maps this row covers, EXCEPT rating,
+    kast and hs, which are already per-round or per-cent and are carried
+    through as they are.
     """
-    global _ROW_SHAPE_REPORTED
-    _ROW_SHAPE_REPORTED = True
-    print("\n  [row shape] vlr.gg stat rows, for working out where FK/FD sit:")
-    for count, text in samples:
-        print(f"    {count:3} numbers | {text}")
-    print("    (k/d/a is read from the first three triples; FK/FD are not read yet)\n")
+    if not kda_match:
+        return None
+    k, d, a = (int(x) for x in kda_match.groups())
+
+    head = _NUM.findall(row_text[:kda_match.start()])
+    tail = _NUM.findall(row_text[kda_match.end():])
+    if len(head) < 6 or len(tail) < len(_TAIL_COLUMNS) * 3:
+        return None
+
+    cols = {name: tail[i * 3] for i, name in enumerate(_TAIL_COLUMNS)}
+    try:
+        kd_diff = int(cols["kd_diff"])
+        fk, fd, fd_diff = int(cols["fk"]), int(cols["fd"]), int(cols["fd_diff"])
+        out = {
+            "acs": float(head[-3]),
+            "rating": float(head[-6]),
+            "kast": float(cols["kast"]),
+            "adr": float(cols["adr"]),
+            "hs": float(cols["hs"]),
+            "fk": fk,
+            "fd": fd,
+        }
+    except (ValueError, IndexError):
+        return None
+
+    # Both checksums, together. Either one failing means the columns are
+    # not where this thinks they are.
+    if k - d != kd_diff or fk - fd != fd_diff:
+        return None
+    return out
+
+
+def parse_first_duels(row_text):
+    """(first kills, first deaths), or None. Kept as its own entry point
+    because it is the field the style work actually needs; everything
+    else on the row is along for the ride."""
+    kda = re.search(r"(\d+)\s+\d+\s+\d+\s*/\s*(\d+)\s+\d+\s+\d+\s*/\s*(\d+)\s+\d+\s+\d+",
+                    row_text)
+    parsed = parse_stat_row(row_text, kda)
+    return (parsed["fk"], parsed["fd"]) if parsed else None
+
+
+def report_first_duels():
+    seen, parsed = STAT_ROW_COUNTS["rows"], STAT_ROW_COUNTS["parsed"]
+    if not seen:
+        return
+    print(f"  extra stat columns read on {parsed}/{seen} rows "
+          f"({100.0 * parsed / seen:.0f}%): acs, kast, adr, hs, fk, fd")
+    if parsed == 0:
+        print("  ! no row passed both checksums — the column order has moved, so "
+              "these fields will be absent rather than wrong", file=sys.stderr)
+
+
+def extra_rates(slot):
+    """The columns beyond k/d/a as rates, or nothing at all.
+
+    Absent rather than zero when no row was readable: a player who never
+    contests an opening is a real and different thing from a player whose
+    rows this scraper could not parse, and writing 0 for both would make
+    them indistinguishable downstream.
+
+    fk and fd are counts, so they become per-map rates. acs, adr, kast,
+    hs and rating are already per-round or per-cent, so they are averaged
+    over the rows they came from -- dividing those by maps would halve
+    them.
+
+    Module level rather than nested, so a test can call it instead of
+    reading the source and hoping. A mutation that made the guard below
+    unreachable passed a source-grep version of that test.
+    """
+    maps = slot.get("extra_games") or 0
+    rows = slot.get("extra_rows") or 0
+    if not maps or not rows:
+        return {}
+    out = {"fk": slot["fk"] / maps, "fd": slot["fd"] / maps, "eg": maps}
+    for field in ("acs", "adr", "kast", "hs", "rating"):
+        out[field] = slot.get(field, 0) / rows
+    return out
 
 
 def lend_rosters_to_eventless_regions(regions):
