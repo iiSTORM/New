@@ -174,3 +174,84 @@ class TestHistoryLoading:
         assert sc.load_history(str(tmp_path / "nope.jsonl")) is None
         (tmp_path / "empty.jsonl").write_text("")
         assert sc.load_history(str(tmp_path / "empty.jsonl")) == []
+
+
+class TestDoubleHeaders:
+    """Teams play twice in a day, and a calendar date cannot say which
+    match a line belonged to.
+
+    The grader refused those outright rather than coin-flip, which was
+    right and cost 211 of the ungraded lines. Both sides carry a clock
+    now: the posted line always had start_time, and the CS2 scraper
+    stores the match's full timestamp instead of truncating it to a day.
+
+    None is still the answer whenever the clocks cannot settle it. A
+    wrong pick here does not surface as an error downstream -- it
+    surfaces as a graded result, which is worse than no result.
+    """
+
+    @staticmethod
+    def match(start, tag):
+        return {"start_time": start, "tag": tag}
+
+    def test_the_nearer_match_wins(self):
+        got = sc.nearest_by_start_time(
+            [self.match("2026-09-22T10:00:00+00:00", "morning"),
+             self.match("2026-09-22T18:00:00+00:00", "evening")],
+            "2026-09-22T17:40:00+00:00")
+        assert got["tag"] == "evening"
+
+    def test_and_so_does_the_earlier_one_when_it_is_nearer(self):
+        got = sc.nearest_by_start_time(
+            [self.match("2026-09-22T10:00:00+00:00", "morning"),
+             self.match("2026-09-22T18:00:00+00:00", "evening")],
+            "2026-09-22T10:15:00+00:00")
+        assert got["tag"] == "morning"
+
+    def test_offsets_are_respected_not_ignored(self):
+        """The provider writes -04:00 and the source writes +00:00. Read
+        as wall clock these are four hours apart and the wrong match
+        wins."""
+        # Candidates chosen so the two readings pick DIFFERENT matches:
+        # read correctly the line is 14:00 UTC and 13:30 wins; read as
+        # wall clock it is 10:00 and 09:30 wins.
+        got = sc.nearest_by_start_time(
+            [self.match("2026-09-22T09:30:00+00:00", "utc-morning"),
+             self.match("2026-09-22T13:30:00+00:00", "utc-afternoon")],
+            "2026-09-22T10:00:00-04:00")   # == 14:00 UTC
+        assert got["tag"] == "utc-afternoon"
+
+    def test_a_naive_timestamp_is_read_as_utc(self):
+        got = sc.nearest_by_start_time(
+            [self.match("2026-09-22T14:00:00", "naive")], "2026-09-22T14:05:00+00:00")
+        assert got["tag"] == "naive"
+
+    def test_nothing_within_tolerance_is_refused(self):
+        assert sc.nearest_by_start_time(
+            [self.match("2026-09-22T02:00:00+00:00", "dawn")],
+            "2026-09-22T20:00:00+00:00") is None
+
+    def test_two_matches_equally_close_are_refused(self):
+        assert sc.nearest_by_start_time(
+            [self.match("2026-09-22T12:00:00+00:00", "a"),
+             self.match("2026-09-22T12:00:00+00:00", "b")],
+            "2026-09-22T12:30:00+00:00") is None
+
+    def test_a_line_with_no_clock_is_refused(self):
+        assert sc.nearest_by_start_time(
+            [self.match("2026-09-22T12:00:00+00:00", "a")], None) is None
+
+    def test_results_with_no_clock_are_refused(self):
+        """Records written before the scraper stored a timestamp. They
+        must keep refusing rather than start guessing."""
+        assert sc.nearest_by_start_time([{"tag": "old"}, {"tag": "older"}],
+                                        "2026-09-22T12:00:00+00:00") is None
+
+    def test_an_unparseable_clock_is_refused(self):
+        assert sc.nearest_by_start_time(
+            [self.match("2026-09-22T12:00:00+00:00", "a")], "whenever") is None
+
+    def test_the_tolerance_is_tighter_than_a_double_header_gap(self):
+        """Two legs of a double-header sit further apart than this, and
+        scheduled-versus-actual start disagrees by minutes."""
+        assert 1 <= sc.DOUBLE_HEADER_TOLERANCE_HOURS <= 6
