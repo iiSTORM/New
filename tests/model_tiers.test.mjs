@@ -134,8 +134,15 @@ check("a match with no actual at all is null",
         [W.lol.kills.share, W.lol.deaths.share, W.lol.assists.share], [0, 0, 0]);
   check("Valorant takes it on all three, deaths hardest",
         [W.valorant.kills.share, W.valorant.deaths.share, W.valorant.assists.share], [0.4, 0.7, 0.5]);
+  /* Deaths came down 0.6 -> 0.4 once the career tier was real: the
+     team-pace tier had been carrying weight that now belongs to a
+     per-player rate. Chosen for robustness over size -- 0.2 and 0.3
+     score better in total but 0.4 is a majority at every granularity
+     and perfect at the finer ones (4/4, 6/6, 8/8, 9/9). A share weight
+     for KILLS came out of the same sweep at 4/6 and was rejected: 1/4
+     at four folds, 4/8 at eight. */
   check("CS2 takes it on deaths only, the stat its pace drives most",
-        [W.cs2.kills.share, W.cs2.deaths.share, W.cs2.assists.share], [0, 0.6, 0]);
+        [W.cs2.kills.share, W.cs2.deaths.share, W.cs2.assists.share], [0, 0.4, 0]);
   check("every game and stat states a share weight explicitly",
         Object.values(W).every((g) => Object.values(g).every((s) => typeof s.share === "number")), true);
 }
@@ -334,19 +341,36 @@ for (const [game, file] of Object.entries({ valorant: "valorant_data.json", cs2:
 
 {
   const W = app.DEFAULT_WEIGHTS_BY_GAME_AND_STAT;
-  /* Pinned at 0 everywhere BY MEASUREMENT, not by neglect. With the leak
-     removed, every leak-free kp setting scored no better than the layer
-     being off — CS2 kills 6.0302 off, 6.0300 at its best leak-free
-     setting. If this is ever raised again it must be because a fresh
-     out-of-sample run said so, not because the in-sample search reached
-     for it, which it still does. */
-  // Asserted as a property, not against a list of nine zeros — that list
-  // became wrong the moment headshots added a fourth stat, and a failing
-  // length tells you nothing about which weight moved.
+  /* Zero everywhere BY MEASUREMENT except CS2 kills, and that one moved
+     only because the data underneath it changed.
+     
+     The old reading was honest: with the leak removed, every leak-free
+     kp setting scored no better than the layer being off — CS2 kills
+     6.0302 off against 6.0300 at its best. But that was taken while
+     1,124 of 1,404 CS2 players had no career record at all, because the
+     career scrape had been failing silently for weeks. kp is a
+     MULTIPLIER on the base rate, and scaling noise by role does
+     nothing. With an independent per-game history behind 98% of players
+     at a median of 41 games, there is a real number to adjust: 6/6
+     folds at every value from 0.1 to 0.8, and a majority at every fold
+     count tried (4/4, 6/6, 7/8, 6/9).
+
+     The bar that comment set — a fresh out-of-sample run, not the
+     in-sample search reaching for it — is the bar this cleared, and the
+     leak was re-checked rather than assumed gone. kp_multiplier still
+     falls back to the SEASON aggregate when no point-in-time figure
+     exists, which would leak; it fires 1,690 times and every one of
+     those rows is dropped before scoring, because a player with no
+     prior appearances has prior === 0 and CS2 has no hist tier to save
+     them. Re-running with the fallback forced neutral gives identical
+     MAE to four decimal places at every kp setting, which is the proof
+     rather than the argument. */
   const nonZero = Object.entries(W).flatMap(([game, stats]) =>
     Object.entries(stats).filter(([, s]) => s.kp !== 0).map(([stat]) => `${game}/${stat}`));
-  check(`kp is zero for every game and stat${nonZero.length ? ` (${nonZero})` : ""}`,
-        nonZero, []);
+  check(`kp is zero everywhere except cs2/kills${nonZero.length ? ` (${nonZero})` : ""}`,
+        nonZero, ["cs2/kills"]);
+  check("and cs2/kills carries the value the sweep plateaued on",
+        W.cs2.kills.kp, 0.8);
 }
 
 /* ---- a stat only one game records ----

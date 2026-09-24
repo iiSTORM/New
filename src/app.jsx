@@ -2395,7 +2395,21 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // repo's majority rule:
     //   kills   k=0 -> 8: 6/6 folds, MAE 6.7073 -> 6.1344 (-8.54%); every
     //   k from 2 to 12 wins 6/6, so this is a plateau rather than a point.
-    kills: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.0, career: 1.0, share: 0.0, shrink: 8.0 },
+    // KP CAME ALIVE for kills once the career tier was actually being
+    // written. It measured 0.0 before, and that was honest at the time:
+    // 1,124 of 1,404 players had no career record, so the base rate this
+    // multiplier scales was mostly noise and scaling noise by role does
+    // nothing. With an independent per-game history behind 98% of
+    // players at a median of 41 games, there is a real number to adjust.
+    //
+    // It is a plateau, not a knife edge -- 6/6 folds at EVERY value from
+    // 0.1 to 0.8, improving monotonically (-0.11% to -0.56%) -- and it
+    // holds at every fold count tried: 4/4, 6/6, 7/8, 6/9.
+    //
+    // A share weight for kills came out of the same sweep at 4/6 and was
+    // REJECTED: 1/4 at four folds and 4/8 at eight, which is fold-
+    // boundary luck rather than signal.
+    kills: { history: 0.0, opponent: 0.0, kp: 0.8, recencyHalfLife: 6, patchDiscount: 0.0, career: 1.0, share: 0.0, shrink: 8.0 },
     // deaths' share weight is UNDER REVIEW rather than settled. It was
     // adopted at -3.97% on 795 rows winning 4/6 folds; on the 911 rows
     // there are now, removing it measures -2.74%, which would make it
@@ -2425,7 +2439,14 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // -0.10% by 10 folds), deaths shrink 2.0 (bigger total gain, 4/8),
     // and assists shrink 6.0 (a majority everywhere but worth -0.01%
     // to -0.14%, which is not a reason to move a shipped weight).
-    deaths: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0, share: 0.6, shrink: 3.0 },
+    // SHARE COMES DOWN 0.6 -> 0.4 for the same reason the shrink did:
+    // both were fitted while most players had no career grounding, so
+    // the team-pace tier was carrying weight that now belongs to a real
+    // per-player rate. The most robust value on offer rather than the
+    // largest -- 0.2 and 0.3 score better in total (-1.43% and -1.27% at
+    // eight folds) but 0.4 wins a majority at every granularity and is
+    // PERFECT at the finer ones: 4/4, 6/6, 8/8, 9/9, -0.70% to -0.98%.
+    deaths: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0, share: 0.4, shrink: 3.0 },
     //   assists k=1 -> 8: 6/6 folds, MAE 2.9501 -> 2.8452 (-3.56%).
     //
     // headshots was tested the same way and NOT changed: k=2 wins 1/6
