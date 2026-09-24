@@ -628,14 +628,22 @@ async def build_region_payload(cs2, session):
     # cheap half of the work. Discovery is the expensive part and happens
     # either way; this only adds the per-match stat fetches.
     #
-    # Kept at 100 for COVERAGE, not accuracy. More per-team history does
-    # not help CS2 -- measured, see MATCHES_KEPT_PER_TEAM -- but this
-    # does not mostly add depth, because the retention cap bounds that at
-    # 8 per team. What it adds is BREADTH: more teams rostered, and this
-    # game tracks ~258 teams against a fixture list of over a hundred,
-    # with opponents regularly landing on the board carrying no player
-    # data at all. A fixture nobody can project is worth less than one
-    # projected imperfectly.
+    # Kept at 100 for COVERAGE, not accuracy -- more per-team history
+    # does not help CS2, see MATCHES_KEPT_PER_TEAM -- and the first run
+    # at 100 says the coverage case is real but SMALL. Measured against
+    # the run before it:
+    #
+    #     matches   481 -> 526   (+45)
+    #     players  1404 -> 1426  (+22)
+    #     teams     258 -> 262   (+4)
+    #     median maps per player    2 -> 2   (the cap bounds depth)
+    #     fixture teams rostered  94/98 -> 81/84, i.e. 96% both times
+    #
+    # So it adds real data every run and did NOT move the rostered share,
+    # which was already 96%. Unrostered fixtures went 4 to 3. Worth the
+    # extra stat fetches because the additions accumulate and a fixture
+    # nobody can project is worth less than one projected imperfectly --
+    # but nobody should expect this to show up in an accuracy number.
     MATCH_LIMIT = 100
     matches_to_process = tier_filtered[:MATCH_LIMIT]
     print(f"Fetching per-map player stats for {len(matches_to_process)} matches "
