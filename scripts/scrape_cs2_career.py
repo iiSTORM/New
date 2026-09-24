@@ -562,10 +562,20 @@ def write_output(data):
     here. It raised AFTER open(..., "w") had already truncated the file,
     which is the part that mattered: the scrape could not save its work
     and quietly emptied what was there. cs2_career_data.json sat at 263
-    records while the roster grew past 1400, and CS2 kills carries a
-    career weight of 1.0, so two thirds of that game was projected
-    without the tier that dominates it -- 12.7% worse on kills and 18.1%
-    on deaths, measured.
+    records while the roster grew past 1400, so two thirds of that game
+    was projected without a tier carrying a weight of 1.0.
+
+    What that cost, measured properly once coverage reached 98%: turning
+    the tier off across the same rows is +0.5% on kills, +2.4% on deaths
+    and +2.1% on assists, and on the rows that specifically lacked it,
+    +1.2% / +2.3% / +1.7%.
+
+    NOT the 12.7% / 18.1% / 11.4% first reported here. That compared
+    players who HAD career records against players who did not, which is
+    mostly a statement about which players bo3.gg had resolved. Scoring
+    both groups with the tier switched off for both leaves 6.9% / 10.2%
+    / 7.3% of the gap still standing -- the established players were
+    simply more predictable to begin with. Real, and a quarter the size.
 
     Refusing to write a collapsed result is the belt to that braces, and
     it is measured in PLAYERS WITH GAMES rather than players: this

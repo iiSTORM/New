@@ -2410,7 +2410,22 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // it to 0.
     //   deaths  k=0 -> 4: 4/6 folds, MAE 4.6915 -> 4.5530 (-2.95%); 4/6 at
     //   every k tried, so the direction is steadier than the size.
-    deaths: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0, share: 0.6, shrink: 4.0 },
+    // DEATHS' SHRINK RE-FIT at 98% career coverage, 4.0 -> 3.0. The
+    // career scrape had been writing nothing for weeks (two stacked
+    // bugs), so 1,124 of 1,404 players had no career tier at all and
+    // this weight was fitted to compensate for grounding that was
+    // missing rather than absent by design. With the tier present at a
+    // median of 41 games per player, less pull toward the prior is
+    // right. Majority at every fold count tried: 3/4, 6/6, 7/8, 7/9,
+    // -0.18% to -0.25% each time.
+    //
+    // Three other candidates came out of the same sweep and were
+    // rejected for not holding across fold counts: kills career
+    // 1.0 -> 0.8 (2/4, so not a majority where it matters most, and
+    // -0.10% by 10 folds), deaths shrink 2.0 (bigger total gain, 4/8),
+    // and assists shrink 6.0 (a majority everywhere but worth -0.01%
+    // to -0.14%, which is not a reason to move a shipped weight).
+    deaths: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0, share: 0.6, shrink: 3.0 },
     //   assists k=1 -> 8: 6/6 folds, MAE 2.9501 -> 2.8452 (-3.56%).
     //
     // headshots was tested the same way and NOT changed: k=2 wins 1/6

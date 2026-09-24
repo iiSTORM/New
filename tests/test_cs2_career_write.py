@@ -1,9 +1,8 @@
 """The CS2 career file actually getting written, and never getting wiped.
 
-cs2_career_data.json is the highest-leverage file in the CS2 pipeline:
-kills carries a career weight of 1.0, and rows without career data are
-projected 12.7% worse on kills, 18.1% on deaths and 11.4% on assists
-(measured across 4,818 backtest rows). It sat at 263 records while the
+cs2_career_data.json carries the CS2 career tier, weighted 1.0 on all
+three stats. Turning it off across the same rows costs +0.5% on kills,
++2.4% on deaths and +2.1% on assists. It sat at 263 records while the
 roster grew past 1,400 because the write block had been mis-indented
 into _write_run_summary and referred to `data`, a local of main() --
 every run raised NameError, and it raised AFTER open(..., "w") had

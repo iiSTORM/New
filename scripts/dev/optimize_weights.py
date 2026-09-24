@@ -64,7 +64,7 @@ SHIPPED_WEIGHTS = {
     },
     "cs2": {
         "kills":    {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 6, "patchDiscount": 0.0, "career": 1.0, "share": 0.0, "shrink": 8.0},
-        "deaths":   {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0, "share": 0.6, "shrink": 4.0},
+        "deaths":   {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0, "share": 0.6, "shrink": 3.0},
         "assists":  {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0, "share": 0.0, "shrink": 8.0},
         "headshots": {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 0.0, "share": 0.0, "shrink": 3.0},
     },

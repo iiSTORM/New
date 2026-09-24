@@ -248,8 +248,13 @@ for (const [game, file] of Object.entries({ valorant: "valorant_data.json", cs2:
      headshots is deliberately NOT in that list and stays at 3: the same
      sweep gives it 1/6 at k=2 and 2/6 at k=16 with the sign flipping in
      between, which is a knife edge rather than a plateau. */
+  /* Deaths came back down to 3 once the career tier was actually being
+     written. That scrape had been saving nothing for weeks, so 1,124 of
+     1,404 players had no career grounding and this weight was carrying
+     the slack; with the tier present at a median of 41 games per player
+     there is less to carry. Majority at 3/4, 6/6, 7/8 and 7/9 folds. */
   check("CS2 shrinks every career-backed stat hard, since its roster is full of thin histories",
-        [W.cs2.kills.shrink, W.cs2.deaths.shrink, W.cs2.assists.shrink], [8, 4, 8]);
+        [W.cs2.kills.shrink, W.cs2.deaths.shrink, W.cs2.assists.shrink], [8, 3, 8]);
   check("but headshots was left alone, the sweep being noise there",
         W.cs2.headshots.shrink, 3);
   check("every game and stat states a shrink constant explicitly",
