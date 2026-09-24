@@ -1,6 +1,40 @@
 #!/usr/bin/env python3
 """Do acs, adr, kast or the opening duels predict better than kills do?
 
+ANSWERED, and the answer is mostly no. Recorded here because the
+measurement was nearly believed:
+
+  field    leaky screen   point-in-time
+  adr           +0.2062         +0.0192
+  acs           +0.2122         +0.0229
+  rating        +0.1891         -0.0174
+  kast          +0.0733         -0.0349
+  fk            +0.1356         +0.0718
+  fd            +0.0729         +0.0723
+
+Everything but the opening duels was measuring itself. Season aggregates
+contain the matches being scored, so a player who happened to have a big
+season looked like a player the model was underrating. On that screen
+ADR alone "beat" the whole model, 5.60 against 5.91. Recomputed from
+matches strictly before each one, ADR alone loses on 0 of 6 folds and is
+5.95% worse.
+
+fk and fd are the two that survive, which is what the hypothesis
+predicted: opening duels describe HOW a player plays, and that does not
+collapse the way a production average does. Both correlate POSITIVELY
+with the kills residual, which is the tell -- nobody is both good and
+bad at openings, so what they share is contesting them at all.
+
+Fitted as a model term walk-forward, though, it is worth -0.15% on MAE
+at 4 of 6 folds. That is the same size as the opponent-weight candidate
+already rejected on this game (5/6 folds, -0.08%), and it is held to the
+same standard: not shipped.
+
+The columns are still captured, for two reasons. They cost nothing --
+they were already on a page being fetched -- and the question the
+hypothesis was really about is transfer to an international field, which
+needs VCT Champions results that did not exist when this was run.
+
 These arrived together off one vlr.gg row. The question for each is the
 same and it is not "does it correlate with kills" -- of course it does --
 but "given what the model already knows, does it know MORE?"
@@ -105,6 +139,7 @@ def main():
             print(f"  {f:8} {len(have):9} {c:+20.4f}{flag}")
 
         # ADR as a replacement basis, scaled to kills by the league ratio.
+    # NOTE: this figure is leaky and was wrong. See the header.
         pairs = [(x[3]["adr"], x[4]) for x in rows if "adr" in x[3] and x[4]]
         if stat == "kills" and len(pairs) >= 100:
             per_kill = statistics.mean(a / k for a, k in pairs if k)
