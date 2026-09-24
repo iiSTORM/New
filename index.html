@@ -579,13 +579,14 @@ try {
   function historyPoolFor(regionsData, regionKey) {
     const rd = regionsData && regionsData[regionKey];
     if (!rd) return [];
-    const own = rd.past_matches || [];
+    const carried = rd.history_matches || [];
+    const own = carried.length ? (rd.past_matches || []).concat(carried) : rd.past_matches || [];
     const borrowedTeams = new Set();
     for (const [name, t] of Object.entries(rd.teams || {})) {
       if (t && t.from_home_region) borrowedTeams.add(name);
     }
     if (borrowedTeams.size === 0) {
-      if (own.length > 0 || !rd.rosters_from_home_regions) return own;
+      if ((rd.past_matches || []).length > 0 || !rd.rosters_from_home_regions) return own;
       for (const name of Object.keys(rd.teams || {})) borrowedTeams.add(name);
     }
     if (borrowedTeams.size === 0) return own;

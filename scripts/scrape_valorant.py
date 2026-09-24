@@ -557,22 +557,44 @@ def build_region_payload(region_key, current_event, historical_event):
     print(f"  built payload for {len(teams)} teams: {list(teams.keys())}")
     report_first_duels()
 
-    past_matches = []
-    for m in cur_played:
+    def as_record(m):
         winner = m["teamA"] if (m["scoreA"] or 0) > (m["scoreB"] or 0) else m["teamB"]
-        past_matches.append({
+        return {
+            # vlr.gg's own id. Already fetched, never stored, and the only
+            # safe key for de-duplicating a match across runs -- two teams
+            # can meet twice in one day, so date+teams is not an identity.
+            "match_id": m["match_id"],
             "week": None, "date": m["date"], "patch": m["patch"],
             "teamA": m["teamA"], "teamB": m["teamB"],
             "winner": winner, "score": f"{m['scoreA']}-{m['scoreB']}",
             "actual": m["actual"], "games": m["maps_played"],
-        })
+        }
+
+    past_matches = [as_record(m) for m in cur_played]
+    # The prior event's matches, which were fetched, aggregated into the
+    # "hist" tier, and then thrown away.
+    #
+    # That left every player's per-match history capped at the CURRENT
+    # event: a median of 8 maps, against LoL's 14 and a measured
+    # relationship between evidence and accuracy that is steep exactly
+    # there (a projection on 4 maps or fewer realises 52% of its edge; on
+    # more than 12, 98%). Worse, the cap resets to zero the day an event
+    # rolls over, which is precisely when the board is busiest.
+    #
+    # Kept separate from past_matches rather than appended to it. That
+    # list is what THIS event has played and feeds standings and the Past
+    # Results tab, where a previous split's games would simply be wrong.
+    # historyPoolFor already draws the distinction on the app side; this
+    # gives it something to draw from.
+    history_matches = [as_record(m) for m in hist_played]
 
     upcoming_matches = [
         {"date": m["date"], "teamA": m["teamA"], "teamB": m["teamB"], "block": None}
         for m in cur_upcoming if m["teamA"] != "TBD" and m["teamB"] != "TBD"
     ]
 
-    return {"teams": teams, "past_matches": past_matches, "upcoming_matches": upcoming_matches}
+    return {"teams": teams, "past_matches": past_matches,
+            "history_matches": history_matches, "upcoming_matches": upcoming_matches}
 
 
 STAT_ROW_COUNTS = {"rows": 0, "parsed": 0}
@@ -687,6 +709,109 @@ def extra_rates(slot):
     return out
 
 
+# How many matches of history each team keeps, beyond what the current
+# event has played. Deep enough to cover an event rollover twice over --
+# a team plays 10-14 maps in a split -- and bounded so the file cannot
+# grow without limit as seasons accumulate. At ~1.3KB per match record
+# this caps the history at roughly a megabyte across all five regions.
+MATCHES_KEPT_PER_TEAM = 30
+
+
+def match_key(m):
+    """Identity for de-duplicating a match across runs.
+
+    vlr.gg's own id when present. Records written before it was stored
+    fall back to a composite -- and it is a FALLBACK, not a scheme: two
+    teams can meet twice in one day, so the composite pulls in the score
+    to separate a double-header. Those legacy records age out on their
+    own as MATCHES_KEPT_PER_TEAM rolls forward.
+    """
+    mid = m.get("match_id")
+    if mid:
+        return ("id", str(mid))
+    return ("legacy", m.get("date"), m.get("teamA"), m.get("teamB"), m.get("score"))
+
+
+def merge_history_matches(previous, fresh, current, per_team=MATCHES_KEPT_PER_TEAM):
+    """Everything a region's players have on record but have not played
+    at the current event, newest first and capped per team.
+
+    `previous` is last run's accumulated history AND last run's
+    past_matches together -- an event that has rolled over is exactly the
+    case this exists for, and its matches were the current event's a run
+    ago. `fresh` is this run's prior-event fetch. `current` is this run's
+    past_matches, whose ids are excluded: a match belongs in one list or
+    the other, never both, or every consumer that concatenates them
+    counts it twice.
+
+    A match this run fetched wins over the same match stored before,
+    because the stored one may predate a fix to how stats are read -- the
+    opening-duel columns landed exactly that way.
+    """
+    held = {match_key(m) for m in current or []}
+    by_key = {}
+    for m in list(previous or []) + list(fresh or []):
+        if not m or not m.get("teamA") or not m.get("teamB"):
+            continue
+        key = match_key(m)
+        if key in held:
+            continue
+        by_key[key] = m  # fresh overwrites previous
+    ordered = sorted(by_key.values(), key=lambda m: (m.get("date") or ""), reverse=True)
+
+    # The current event's matches count against each team's allowance, so
+    # a team mid-season keeps a fixed depth rather than growing without
+    # bound while a team that has not started yet gets the full window.
+    seen_per_team = {}
+    for m in current or []:
+        for t in (m.get("teamA"), m.get("teamB")):
+            seen_per_team[t] = seen_per_team.get(t, 0) + 1
+
+    kept = []
+    for m in ordered:
+        sides = (m["teamA"], m["teamB"])
+        # Kept while EITHER side still has room, so a busy team does not
+        # evict the only match a quiet opponent has on file.
+        if any(seen_per_team.get(t, 0) < per_team for t in sides):
+            kept.append(m)
+            for t in sides:
+                seen_per_team[t] = seen_per_team.get(t, 0) + 1
+    return kept
+
+
+def load_previous_regions(path="valorant_data.json"):
+    """Last run's regions, or {} when there is no readable file.
+
+    Never fatal: a missing or corrupt file means this run behaves exactly
+    as every run did before accumulation existed, which is a shallower
+    result but a working one.
+    """
+    try:
+        with open(path) as f:
+            data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError, OSError) as e:
+        print(f"  no previous valorant_data.json to merge with "
+              f"({e.__class__.__name__}) — this run starts from the events alone")
+        return {}
+    return data.get("regions") or {}
+
+
+def accumulate_history(regions, previous_regions):
+    """Fold last run's matches into each region's history. Reports
+    (region, before, after) per region for the run log."""
+    report = []
+    for key, region in regions.items():
+        prior = previous_regions.get(key) or {}
+        before = len(region.get("history_matches") or [])
+        region["history_matches"] = merge_history_matches(
+            list(prior.get("history_matches") or []) + list(prior.get("past_matches") or []),
+            region.get("history_matches"),
+            region.get("past_matches"),
+        )
+        report.append((key, before, len(region["history_matches"])))
+    return report
+
+
 def lend_rosters_from_home_regions(regions):
     """Give a fixture's teams the rosters of the regions they drew from.
 
@@ -795,6 +920,11 @@ def main():
             )
         except Exception as e:
             print(f"! region {region_key} failed entirely: {e}", file=sys.stderr)
+
+    for key, before, after in accumulate_history(payload["regions"],
+                                                 load_previous_regions()):
+        print(f"{key}: {after} match(es) of history beyond this event "
+              f"({before} from this run's prior-event fetch)")
 
     for key, borrowed, missing in lend_rosters_from_home_regions(payload["regions"]):
         print(f"\n{key}: {len(borrowed)} team(s) have fixtures but no maps played "

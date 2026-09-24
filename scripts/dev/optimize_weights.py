@@ -956,6 +956,25 @@ def project_point_in_time(past_matches, teams, player, team, opponent_team, game
 # Backtest harness
 # ============================================================
 
+def history_pool(rd):
+    """What a region's players have on record, mirroring the app's
+    historyPoolFor.
+
+    The current event's matches plus whatever was carried over from
+    before it. The two are stored apart because past_matches answers
+    "what has happened at THIS event" for standings, but a projection
+    does not care which event a map was played at -- and Valorant used to
+    throw the older ones away, capping every player at a median of 8 maps
+    and resetting them to zero the day an event rolled over.
+
+    Only the current event's matches are SCORED (the caller iterates
+    those), so deepening this pool changes how well each row is
+    predicted, never which rows a backtest measures. Before and after
+    stay comparable.
+    """
+    return list(rd.get("past_matches") or []) + list(rd.get("history_matches") or [])
+
+
 def load_region_data(path, region_keys=None):
     """Loads a data.json/valorant_data.json file. Returns {region: {teams, past_matches}}."""
     if not Path(path).exists():
@@ -992,10 +1011,11 @@ def _collect(region_data, stat_type, weights, with_dates):
     results = []
     for region_key, rd in region_data.items():
         teams = rd.get("teams", {})
-        past_matches = rd.get("past_matches", [])
-        if not teams or not past_matches:
+        scored = rd.get("past_matches", [])
+        if not teams or not scored:
             continue
-        for match in past_matches:
+        past_matches = history_pool(rd)
+        for match in scored:
             for side in ("teamA", "teamB"):
                 team = match[side]
                 opp = match["teamB"] if side == "teamA" else match["teamA"]
@@ -1269,10 +1289,11 @@ def collect_opponent_diagnosis_rows(region_data, stat_type, weights):
     rows = []
     for region_key, rd in region_data.items():
         teams = rd.get("teams", {})
-        past_matches = rd.get("past_matches", [])
-        if not teams or not past_matches:
+        scored = rd.get("past_matches", [])
+        if not teams or not scored:
             continue
-        for match in past_matches:
+        past_matches = history_pool(rd)
+        for match in scored:
             for side in ("teamA", "teamB"):
                 team = match[side]
                 opp = match["teamB"] if side == "teamA" else match["teamA"]

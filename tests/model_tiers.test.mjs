@@ -610,6 +610,29 @@ check("a team nobody asked about is not borrowed",
         app.historyIsBorrowed(legacy["VCT Champions"], "T1"), true);
 }
 
+/* The current event is not the whole record.
+ *
+ * The scraper fetched the prior event, aggregated it into the "hist"
+ * tier and threw the matches away, capping every Valorant player at a
+ * median of 8 maps and resetting them to zero the day an event rolled
+ * over. They are kept in history_matches now -- apart from past_matches,
+ * which answers "what has happened at THIS event" for standings, where a
+ * previous split's games would be wrong. */
+{
+  const carried = {
+    R: {
+      teams: { X: {} },
+      past_matches: [{ date: "2026-06-01", teamA: "X", teamB: "Y" }],
+      history_matches: [{ date: "2026-02-01", teamA: "X", teamB: "Z" },
+                        { date: "2026-01-01", teamA: "X", teamB: "W" }],
+    },
+  };
+  const pool = app.historyPoolFor(carried, "R");
+  check("carried history joins the pool", pool.length, 3);
+  check("the current event is still in it", pool.some((m) => m.teamB === "Y"), true);
+  check("and so is what came before it", pool.some((m) => m.teamB === "W"), true);
+}
+
 check("an ordinary region's pool is just its own matches",
       app.historyPoolFor({ A: { teams: { X: {} },
                                 past_matches: [{ date: "1", teamA: "X", teamB: "Y" }] } },

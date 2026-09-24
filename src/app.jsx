@@ -430,7 +430,18 @@ function projectionOverWindow(breakdown, prop) {
 function historyPoolFor(regionsData, regionKey) {
   const rd = regionsData && regionsData[regionKey];
   if (!rd) return [];
-  const own = rd.past_matches || [];
+  /* `own` is everything this region's players have on record: the
+     current event's matches plus the ones carried over from before it.
+     The two are stored apart because past_matches answers "what has
+     happened at THIS event" for standings and the Past Results tab,
+     where a previous split's games would be wrong. For a projection the
+     distinction does not exist -- a map a player played is a map they
+     played, and the scraper used to throw the older ones away, capping
+     every Valorant player at a median of 8 maps and resetting them to
+     zero the day an event rolled over. */
+  const carried = rd.history_matches || [];
+  const own = carried.length ? (rd.past_matches || []).concat(carried)
+                             : (rd.past_matches || []);
 
   /* Which teams here are borrowed, rather than whether the region is.
      Both this and the scraper's lending used to be all-or-nothing on the
@@ -446,7 +457,7 @@ function historyPoolFor(regionsData, regionKey) {
   /* Files written before the scraper marked provenance per team carry
      only the region-wide flag, which meant every roster or none. */
   if (borrowedTeams.size === 0) {
-    if (own.length > 0 || !rd.rosters_from_home_regions) return own;
+    if ((rd.past_matches || []).length > 0 || !rd.rosters_from_home_regions) return own;
     for (const name of Object.keys(rd.teams || {})) borrowedTeams.add(name);
   }
   if (borrowedTeams.size === 0) return own;
