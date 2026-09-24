@@ -35,6 +35,7 @@ import asyncio
 import json
 import os
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -51,6 +52,31 @@ OUTPUT_PATH = "cs2_career_data.json"
 # already on record is treated as a source outage, not an update. Same
 # value, and same reasoning, as scrape_career.MIN_RETAINED_FRACTION.
 MIN_RETAINED_FRACTION = 0.5
+# Wall-clock budget, deliberately under the workflow step's own
+# timeout-minutes: 45. A timeout there SIGKILLs the process before
+# write_output ever runs, so the run saves nothing -- including the
+# player ids and games it spent forty-five minutes fetching. The next
+# run then starts from the same cold cache and times out in the same
+# place, forever. Stopping early and writing what we have makes the
+# cache converge over a handful of runs instead of never.
+#
+# This is not hypothetical arithmetic: the roster is ~1,270 players and
+# the cache currently covers ~260 of them, so the first run after this
+# has roughly a thousand cold players at 40-60 requests each. Every run
+# after that is the cheap incremental case the cache was built for.
+TIME_BUDGET_SECONDS = int(os.environ.get("CS2_CAREER_TIME_BUDGET_SECONDS", 32 * 60))
+_DEADLINE = {"at": None}
+
+
+def start_budget(now=None):
+    _DEADLINE["at"] = (time.monotonic() if now is None else now) + TIME_BUDGET_SECONDS
+
+
+def budget_exhausted(now=None):
+    """False when no budget was started, so direct callers and tests of
+    process_one_player are never silently starved."""
+    at = _DEADLINE["at"]
+    return at is not None and (time.monotonic() if now is None else now) >= at
 EXISTING_CS2_DATA_PATH = "cs2_data.json"
 # This bounds TOTAL concurrent requests to bo3.gg directly (see
 # _semaphore below), not just how many players are processed at once —
@@ -300,6 +326,14 @@ def cached_games_by_id(previous_record):
 
 async def process_one_player(session, name, progress, total, previous=None):
     prev = (previous or {}).get(name) or {}
+    if budget_exhausted():
+        # Every player is scheduled up front and gated by the shared
+        # semaphore, so the ones that have not started yet simply hand
+        # back what was already on record and cost nothing. Their turn
+        # comes next run, with everything fetched so far already cached.
+        progress["done"] += 1
+        progress["skipped"] = progress.get("skipped", 0) + 1
+        return name, (prev or None)
     # A player's bo3.gg id does not change, and it is already stored. The
     # search request that finds it was being made for every player on
     # every run to rediscover a number we had written down.
@@ -404,6 +438,7 @@ async def build_career_data():
     # fetches can interleave and keep the request pool continuously
     # full instead of processing player-by-player in sequential batches.
     previous = load_previous_output()
+    start_budget()
     known_ids = sum(1 for r in previous.values() if (r or {}).get("player_id"))
     known_games = sum(len(cached_games_by_id(r)) for r in previous.values())
     print(f"Processing {len(tracked_names)} players (up to {REQUEST_CONCURRENCY} concurrent requests total)...")
@@ -413,6 +448,10 @@ async def build_career_data():
             process_one_player(session, name, progress, len(tracked_names), previous)
             for name in tracked_names
         ])
+    if progress.get("skipped"):
+        print(f"  ! time budget ({TIME_BUDGET_SECONDS}s) reached — {progress['skipped']} "
+              f"player(s) left for the next run, which resumes from this run's cache",
+              file=sys.stderr)
     for name, record in results:
         if record:
             output[name] = record

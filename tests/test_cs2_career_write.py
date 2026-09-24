@@ -16,6 +16,7 @@ import ast
 import builtins
 import json
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -158,6 +159,72 @@ class TestOutageKeepsHistory:
     def test_an_empty_record_uses_the_games_key_the_readers_look_for(self):
         _, rec = self._run({"donk": {"player_id": 42}}, [])
         assert "games" in rec, "consumers read `games`; a `career` key is dead weight"
+
+
+class TestTheRunAlwaysGetsToSaveItsWork:
+    """The workflow step is capped at 45 minutes and a timeout there
+    SIGKILLs the process before write_output runs -- so a run that is
+    too big to finish saves nothing, and the next run starts from the
+    same cold cache and dies in the same place. With ~1,000 cold players
+    at 40-60 requests each, that is the run this is about."""
+
+    @pytest.fixture(autouse=True)
+    def _clean_budget(self):
+        sc._DEADLINE["at"] = None
+        yield
+        sc._DEADLINE["at"] = None
+
+    def test_no_budget_started_never_starves_a_player(self):
+        assert sc.budget_exhausted() is False
+
+    def test_a_fresh_budget_is_not_exhausted(self):
+        sc.start_budget(now=0.0)
+        assert sc.budget_exhausted(now=0.0) is False
+        assert sc.budget_exhausted(now=sc.TIME_BUDGET_SECONDS - 1) is False
+
+    def test_the_budget_runs_out(self):
+        sc.start_budget(now=0.0)
+        assert sc.budget_exhausted(now=sc.TIME_BUDGET_SECONDS) is True
+
+    def test_the_budget_is_under_the_workflow_timeout(self):
+        """Pointless if the step is killed before the budget fires."""
+        import re
+        wf = (Path(__file__).resolve().parent.parent
+              / ".github/workflows/scrape.yml").read_text()
+        block = wf[wf.index("scripts/scrape_cs2_career.py"):]
+        minutes = int(re.search(r"timeout-minutes:\s*(\d+)", block).group(1))
+        assert sc.TIME_BUDGET_SECONDS < minutes * 60, (
+            f"budget {sc.TIME_BUDGET_SECONDS}s must leave room under the "
+            f"{minutes}-minute step timeout")
+
+    def test_an_out_of_budget_player_makes_no_requests(self):
+        import asyncio
+        calls = {"n": 0}
+
+        async def boom(*a, **kw):
+            calls["n"] += 1
+            return None
+
+        sc.start_budget(now=0.0)
+        sc._DEADLINE["at"] = time.monotonic() - 1  # already spent
+        orig = sc.resolve_player_id, sc.fetch_player_matches
+        sc.resolve_player_id, sc.fetch_player_matches = boom, boom
+        try:
+            name, rec = asyncio.run(sc.process_one_player(
+                None, "donk", {"done": 0}, 1, {"donk": record(6)}))
+        finally:
+            sc.resolve_player_id, sc.fetch_player_matches = orig
+        assert calls["n"] == 0, "a skipped player must cost nothing"
+        assert len(sc.cached_games_by_id(rec)) == 6, (
+            "and must hand back what was already on record, not an empty record")
+
+    def test_an_out_of_budget_unknown_player_is_simply_absent(self):
+        import asyncio
+        sc._DEADLINE["at"] = time.monotonic() - 1
+        progress = {"done": 0}
+        name, rec = asyncio.run(sc.process_one_player(None, "nobody", progress, 1, {}))
+        assert rec is None
+        assert progress["skipped"] == 1
 
 
 class TestNoOtherFunctionCanRepeatThisBug:
