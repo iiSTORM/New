@@ -275,8 +275,11 @@ jobs:
 
       - name: Scrape bo3.gg (CS2 per-map player stats via direct API + cs2api discovery)
         # MATCH_LIMIT in scrape_cs2.py caps how many tier-filtered matches
-        # are processed per run (currently 60 — see the constant in that
-        # script; this comment previously claimed 20 and had gone stale).
+        # are processed per run (currently 100 — see the constant in that
+        # script; this comment has gone stale twice now, so read it there).
+        # Each match costs one request per MAP played, not a flat two: the
+        # full series is fetched so a map-1 or maps-1-3 line can be settled
+        # over its own maps. Measured at +16% requests on a real feed.
         # continue-on-error so a hiccup here never blocks LoL/Valorant data
         # from committing.
         run: python scripts/scrape_cs2.py

@@ -3077,12 +3077,13 @@ function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
    RECENT FORM & CONSISTENCY — the last N matches for a player,
    and how reliably they produce.
 
-   Deliberately works at MATCH level rather than per-game. The LoL
-   scraper does emit a finer `per_game` field, but it is LoL-only,
-   and more importantly every projection in this app is a per-MATCH
-   number. Showing per-game history next to a per-match projection
-   would invite comparing two different units. Match level keeps the
-   history and the projection directly comparable.
+   Deliberately works at MATCH level rather than per-game. All three
+   scrapers now emit a finer `per_game` field -- it is what lets a
+   map-1 line and a maps-1-3 line be settled over their own maps -- but
+   every projection in this app is a per-MATCH number, and showing
+   per-game history beside a per-match projection would invite
+   comparing two different units. Match level keeps the history and the
+   projection directly comparable.
    ============================================================ */
 
 function recentForm(pastMatches, team, playerName, statKey, limit = 8) {
