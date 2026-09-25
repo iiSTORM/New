@@ -4,7 +4,8 @@
   "description": "Build tooling for the front end. The app itself ships as a single self-contained index.html and has no runtime dependencies beyond React from a CDN.",
   "scripts": {
     "build": "node build/build-frontend.js",
-    "check": "node build/build-frontend.js --check"
+    "check": "node build/build-frontend.js --check",
+    "test": "node build/run-tests.mjs"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
