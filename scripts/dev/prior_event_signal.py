@@ -145,7 +145,7 @@ def main():
                             continue
                         predicted, prior = ow.project_point_in_time(
                             past, teams, player, team, opp,
-                            match.get("maps_counted", 2), weights,
+                            ow.maps_counted_for(match), weights,
                             match["date"], stat, match.get("patch"))
                         # prior < 4 is a cold start, not a test of the model
                         if predicted is None or prior < 4:

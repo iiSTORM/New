@@ -88,7 +88,7 @@ def main():
                         for label, weights in (("on", base), ("off", off)):
                             predicted, prior = ow.project_point_in_time(
                                 past, teams, player, team, opp,
-                                match.get("maps_counted", 2), weights,
+                                ow.maps_counted_for(match), weights,
                                 match["date"], stat, match.get("patch"))
                             if predicted is None:
                                 continue

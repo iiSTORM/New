@@ -156,7 +156,7 @@ def main():
                             groups[(team, player["name"])].append(actual)
                             predicted, prior = ow.project_point_in_time(
                                 pool, teams, player, team, opp,
-                                match.get("maps_counted", 2), weights,
+                                ow.maps_counted_for(match), weights,
                                 match["date"], stat, match.get("patch"))
                             if predicted is None:
                                 continue

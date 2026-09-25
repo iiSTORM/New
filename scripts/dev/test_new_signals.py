@@ -102,7 +102,7 @@ def collect(data, stat, game="valorant"):
                     if actual is None or actual == "unavailable":
                         continue
                     pred, prior = ow.project_point_in_time(
-                        past, teams, p, team, opp, m.get("maps_counted", 2),
+                        past, teams, p, team, opp, ow.maps_counted_for(m),
                         ow.SHIPPED_WEIGHTS[game][stat], m["date"], stat,
                         m.get("patch"))
                     if pred is None or prior < 4:

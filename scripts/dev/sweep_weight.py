@@ -58,7 +58,7 @@ def rows_dated(data, stat, weights):
                     if actual is None or actual == "unavailable":
                         continue
                     pred, prior = ow.project_point_in_time(
-                        past, teams, p, team, opp, m.get("maps_counted", 2),
+                        past, teams, p, team, opp, ow.maps_counted_for(m),
                         weights, m["date"], stat, m.get("patch"))
                     if pred is None:
                         continue
@@ -89,8 +89,14 @@ def sweep(game, stat, param, values, folds=6):
     if len(ref_rows) < 200:
         print(f"  {game}/{stat}: only {len(ref_rows)} rows, not enough to judge")
         return
-    dates = sorted({d for d, _, _ in ref_rows})
-    bounds = ow.fold_boundaries(dates, folds)
+    # Per-row dates, not the set of distinct ones. fold_boundaries slices
+    # by index, so handing it unique dates cuts the CALENDAR into equal
+    # pieces while row density varies wildly across it -- on CS2 that
+    # produced folds of [79, 592, 641, 1072, 965, 1543] rows, and both
+    # the mean-of-fold-MAEs and the "folds won" count weight a 79-row
+    # fold exactly as much as a 1543-row one. Per-row dates cut the ROWS
+    # into equal pieces: [443, 516, 665, 472, 554, 517].
+    bounds = ow.fold_boundaries([d for d, _, _ in ref_rows], folds)
     ref = fold_mae(ref_rows, bounds)
     ref_total = statistics.mean(ref)
 

@@ -178,6 +178,53 @@ class TestWindowResolution:
         assert value is None and reason == "headshots not recorded for this game"
 
 
+class TestTheWindowAStoredTotalCovers:
+    """Which window a match's series total answers, when it has no
+    per-map breakdown.
+
+    "CS2 and Valorant fix theirs at two and say so by omission" was
+    wrong, and wrong in the direction this file exists to prevent. CS2
+    writes `games`, not maps_counted, and 24 committed Bo1s carry a
+    ONE-map total. Reading that as two maps grades a maps 1-2 line
+    against a single map -- a guaranteed under on every player in the
+    match, recorded as a real result.
+    """
+
+    def bo1(self, kills=14):
+        """A CS2 Bo1 as the scraper writes one: games 1, no breakdown."""
+        return {"date": "2026-09-18", "teamA": "Sashi", "teamB": "FOKUS",
+                "games": 1,
+                "actual": {"Sashi": {"acoR": {"k": kills, "d": 10, "a": 2}}}}
+
+    def test_a_bo1_total_covers_one_map(self):
+        assert sc.total_window(self.bo1()) == 1
+
+    def test_so_a_map_one_line_grades_against_it(self):
+        value, reason = sc.actual_over_window(
+            self.bo1(kills=14), "Sashi", "acoR", "kills", 1, "cs2")
+        assert (value, reason) == (14, None)
+
+    def test_and_a_maps_one_to_two_line_is_refused_not_graded(self):
+        """The wrong grade this prevents: 14 kills over ONE map, settled
+        against a line priced for two."""
+        value, reason = sc.actual_over_window(
+            self.bo1(kills=14), "Sashi", "acoR", "kills", 2, "cs2")
+        assert value is None and "maps 1-1 total" in reason
+
+    def test_maps_counted_still_wins_where_a_game_records_both(self):
+        match = dict(self.bo1(), maps_counted=3, games=2)
+        assert sc.total_window(match) == 3
+
+    def test_an_ordinary_record_with_neither_still_reads_as_two(self):
+        assert sc.total_window(cs2_match()) == 2
+
+    @pytest.mark.parametrize("bad", [0, -1, None, "1", True])
+    def test_a_games_value_it_cannot_use_falls_through(self, bad):
+        """True is the sly one: it equals 1 in Python and would turn
+        every match carrying it into a Bo1."""
+        assert sc.total_window({"games": bad}) == 2
+
+
 class TestWindowIsCovered:
     """The cheap question -- can this record settle a line over N maps at
     all -- asked without naming a player.

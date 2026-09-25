@@ -138,13 +138,19 @@ def index_matches(regions):
 def total_window(match):
     """How many maps this match's series total sums over.
 
-    LoL records it per match, because its total follows the format -- a
-    Bo3's runs through map 2 and a Bo5's through map 3. CS2 and Valorant
-    fix theirs at two and say so by omission.
+    Read off the match, never assumed. LoL records maps_counted, because
+    its total follows the format -- a Bo3's runs through map 2 and a
+    Bo5's through map 3. CS2 and Valorant record `games` instead, and
+    "say so by omission" was wrong for CS2: 24 committed Bo1s carry a
+    ONE-map total, and calling it a two-map total grades a maps 1-2 line
+    against a single map. That is not a missing grade, it is a wrong one
+    -- a guaranteed under on every player in the match -- which is the
+    exact failure this file was written to avoid.
     """
-    recorded = match.get("maps_counted")
-    if isinstance(recorded, int) and recorded > 0:
-        return recorded
+    for field in ("maps_counted", "games"):
+        recorded = match.get(field)
+        if isinstance(recorded, int) and not isinstance(recorded, bool) and recorded > 0:
+            return recorded
     return DEFAULT_TOTAL_WINDOW
 
 

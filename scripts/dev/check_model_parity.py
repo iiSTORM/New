@@ -59,7 +59,7 @@ def main():
             opp = match["teamB"] if match["teamA"] == team else match["teamA"]
             player = next(p for p in teams[team]["players"] if p["name"] == player_name)
             py_value, _ = ow.project_point_in_time(
-                past, teams, player, team, opp, match.get("maps_counted", 2),
+                past, teams, player, team, opp, ow.maps_counted_for(match),
                 weights, match["date"], stat, match.get("patch"))
             gap = abs(py_value - js_value)
             checked += 1

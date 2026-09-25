@@ -114,7 +114,7 @@ def pace_rate(past_matches, team, stat_key, cutoff):
         total = team_totals(m, team, stat_key)
         if not total:
             continue
-        vals.append(total / (m.get("maps_counted") or 2))
+        vals.append(total / ow.maps_counted_for(m))
     return _weighted(decayed(vals)) if vals else None
 
 
@@ -126,7 +126,7 @@ def conceded_rate(past_matches, team, stat_key, cutoff):
         total = team_totals(m, other, stat_key)
         if not total:
             continue
-        vals.append(total / (m.get("maps_counted") or 2))
+        vals.append(total / ow.maps_counted_for(m))
     return _weighted(decayed(vals)) if vals else None
 
 
@@ -151,7 +151,7 @@ def collect(region_data, stat_type, variant):
             cutoff = match.get("date")
             if not cutoff:
                 continue
-            maps = match.get("maps_counted", 2)
+            maps = ow.maps_counted_for(match)
             for side in ("teamA", "teamB"):
                 team = match[side]
                 opp = match["teamB"] if side == "teamA" else match["teamA"]
@@ -226,7 +226,7 @@ def collect_pairs(region_data, stat_type, weights, pace_variant="league"):
             cutoff = match.get("date")
             if not cutoff:
                 continue
-            maps = match.get("maps_counted", 2)
+            maps = ow.maps_counted_for(match)
             for side in ("teamA", "teamB"):
                 team = match[side]
                 opp = match["teamB"] if side == "teamA" else match["teamA"]

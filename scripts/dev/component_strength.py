@@ -99,7 +99,7 @@ def main():
                     actual = ow.get_actual_stat(match, team, player["name"], key)
                     if actual is None or actual == "unavailable":
                         continue
-                    cutoff, maps = match["date"], match.get("maps_counted", 2)
+                    cutoff, maps = match["date"], ow.maps_counted_for(match)
                     model, _ = ow.project_point_in_time(
                         pool, teams, player, team, opp, maps, weights,
                         cutoff, args.stat, match.get("patch"))

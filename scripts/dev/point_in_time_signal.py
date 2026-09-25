@@ -68,7 +68,7 @@ for stat in ("kills","deaths"):
                     a = ow.get_actual_stat(m, team, p["name"], key)
                     if a is None or a=="unavailable": continue
                     pred, prior = ow.project_point_in_time(past, teams, p, team, opp,
-                        m.get("maps_counted",2), W, cutoff, stat, m.get("patch"))
+                        ow.maps_counted_for(m), W, cutoff, stat, m.get("patch"))
                     if pred is None or prior < 4: continue
                     r = a - pred; n += 1
                     for f in FIELDS:

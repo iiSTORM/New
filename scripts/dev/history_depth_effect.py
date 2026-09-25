@@ -80,7 +80,7 @@ def errors_at(region, fixed, extra, stat):
                 if actual is None or actual == "unavailable":
                     continue
                 predicted, prior = ow.project_point_in_time(
-                    pool, teams, player, team, opp, match.get("maps_counted", 2),
+                    pool, teams, player, team, opp, ow.maps_counted_for(match),
                     weights, match["date"], stat, match.get("patch"))
                 if predicted is None or (prior == 0 and not player.get("hist")):
                     continue
