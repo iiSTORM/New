@@ -292,6 +292,37 @@ for (const [game, file] of Object.entries({ valorant: "valorant_data.json", cs2:
      marginally better on MAE at some fold counts but wins fewer folds
      at every one of them, so the more robust value is taken over the
      better-looking one. */
+  /* Headshots has a career tier now, and the reason it did not is
+     worth keeping: the sweep reported career 1.0 at +149.84% and the
+     weight was pinned at 0 as "emphatically right".
+
+     That number was real and the conclusion drawn from it was exactly
+     backwards. pointInTimeCS2CareerRate read `g[statKey] || 0`, and no
+     career game recorded headshots at all -- so the tier returned zero
+     for every player and blending a projection toward zero destroyed
+     it. The tier was not wrong, it was empty. Every other CS2 stat has
+     sat at career 1.0 throughout, carrying +2.4% to +3.3%, and this one
+     stat was locked out of it by a `|| 0`.
+
+     With the scraper capturing headshots and the tier skipping games
+     that do not record a stat, at 56% career coverage:
+
+         4 folds  -1.73%  4/4      8 folds  -1.73%  8/8
+         6 folds  -1.86%  6/6     10 folds  -1.85%  9/9
+
+     0.8 over 1.0 on robustness, not size: 1.0 scores 0.03% better and
+     drops a fold at 8 and at 10, which is the same trade taken on
+     assists shrink. Confirmed independently by optimize_weights
+     --candidate at -1.89%, 6/6.
+
+     UNDERSTATED, not overstated: the 44% of rows with no headshot
+     history get null and the tier does not fire, so they dilute the
+     measured effect toward zero. Worth re-sweeping once the career
+     migration converges -- the VALUE may move, the direction will not. */
+  check("headshots takes the career tier too, now that the tier has data",
+        W.cs2.headshots.career, 0.8);
+  check("and every CS2 stat is career-backed",
+        [W.cs2.kills.career, W.cs2.deaths.career, W.cs2.assists.career].every((v) => v === 1.0), true);
   check("CS2 shrinks every career-backed stat hard, since its roster is full of thin histories",
         [W.cs2.kills.shrink, W.cs2.deaths.shrink, W.cs2.assists.shrink], [8, 3, 4]);
   check("and headshots shrinks too, now that the map count is right",
