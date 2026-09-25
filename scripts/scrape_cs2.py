@@ -1137,23 +1137,17 @@ async def build_region_payload(cs2, session):
                 await fetch_team_recent_matches(session, team_id,
                                                 limit=BACKFILL_MATCHES_PER_TEAM))
         if result_matches:
-            known = {match_key(m) for m in past_matches}
-            processed = await asyncio.gather(
-                *[process(m, short_name_by_team_id) for m in result_matches])
-            added_results = 0
             for entry in processed:
-                if not entry:
-                    continue
-                entry["teamA"] = short_name_by_team_id.get(entry.pop("_team1_id", None), entry["teamA"])
-                entry["teamB"] = short_name_by_team_id.get(entry.pop("_team2_id", None), entry["teamB"])
-                if match_key(entry) in known:
-                    continue
-                known.add(match_key(entry))
-                past_matches.append(entry)
-                added_results += 1
-            print(f"  added {added_results} result(s) for previously ungradeable lines\n")
-            add_team_players(past_matches[-added_results:] if added_results else [],
-                             past_matches, teams_payload, color_state)
+                if entry:
+                    entry["teamA"] = short_name_by_team_id.get(entry.pop("_team1_id", None), entry["teamA"])
+                    entry["teamB"] = short_name_by_team_id.get(entry.pop("_team2_id", None), entry["teamB"])
+            added_results, refreshed_results, touched = absorb_results(past_matches, processed)
+            print(f"  added {added_results} result(s) for previously ungradeable lines, "
+                  f"refreshed {refreshed_results} already on file\n")
+            # The entries themselves, not a tail slice: a refreshed match
+            # sits wherever it already was, so slicing would scan the
+            # wrong records (and, at 0 added, the whole list).
+            add_team_players(touched, past_matches, teams_payload, color_state)
 
     return {"teams": teams_payload, "past_matches": past_matches, "upcoming_matches": upcoming_matches}
 
@@ -1357,6 +1351,55 @@ def match_key(m):
     if mid:
         return ("id", str(mid))
     return ("legacy", m.get("date"), m.get("teamA"), m.get("teamB"), m.get("score"))
+
+
+def absorb_results(past_matches, fresh):
+    """Fold re-fetched results into the list in place.
+
+    Returns (added, refreshed, touched) -- touched being the entries
+    that actually landed, in the order they were offered.
+
+    A match already on file is REPLACED, not skipped. Skipping quietly
+    undid the whole point of re-fetching: the results asked for are
+    asked for precisely because what we hold cannot settle their lines,
+    so the fetched copy is the better one by construction. A real run
+    proved it -- 60 teams selected, 370 matches fetched, 9 kept, because
+    every one that mattered collided with the stale record it was meant
+    to replace. It is the same rule merge_past_matches applies below,
+    for the same reason: a stored record may predate a fix to what gets
+    read out of a box score.
+
+    Two things are refused rather than absorbed, because either would
+    turn a source hiccup into data loss:
+      - an entry with no player stats, which improves on nothing
+      - a record with no per-map breakdown replacing one that has it
+
+    Pure on purpose, like teams_awaiting_results: the fetch around it is
+    network-bound and cannot be tested offline, but what gets KEPT is
+    the part with the logic in it.
+    """
+    position = {}
+    for i, m in enumerate(past_matches):
+        position.setdefault(match_key(m), i)
+
+    added = refreshed = 0
+    touched = []
+    for entry in fresh or []:
+        if not entry or not entry.get("actual"):
+            continue
+        key = match_key(entry)
+        at = position.get(key)
+        if at is None:
+            position[key] = len(past_matches)
+            past_matches.append(entry)
+            added += 1
+        else:
+            if past_matches[at].get("per_game") and not entry.get("per_game"):
+                continue
+            past_matches[at] = entry
+            refreshed += 1
+        touched.append(entry)
+    return added, refreshed, touched
 
 
 def merge_past_matches(previous, fresh, per_team=MATCHES_KEPT_PER_TEAM):

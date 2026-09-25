@@ -170,6 +170,93 @@ class TestWhichTeamsToAsk:
         assert got == []
 
 
+class TestWhatGetsKept:
+    """What the fetched results do once they arrive.
+
+    The third failure mode in this chain, and the one that made the
+    other two fixes buy almost nothing. Selection was right and the
+    fetch was right; the results were then dropped as duplicates of the
+    very records they were meant to replace. A real run: 60 teams
+    selected, 370 matches fetched, 9 kept.
+    """
+
+    def stale(self, mid="m1"):
+        return {"match_id": mid, "teamA": "A", "teamB": "B", "date": "2026-09-22",
+                "actual": {"A": {"p": {"k": 20}}}}
+
+    def fresh(self, mid="m1", maps=3):
+        return {"match_id": mid, "teamA": "A", "teamB": "B", "date": "2026-09-22",
+                "actual": {"A": {"p": {"k": 20}}},
+                "per_game": [{"A": {"p": {"k": 7}}} for _ in range(maps)]}
+
+    def test_a_refetched_match_replaces_the_stored_one(self):
+        past = [self.stale()]
+        added, refreshed, touched = sc.absorb_results(past, [self.fresh()])
+        assert (added, refreshed) == (0, 1)
+        assert len(past) == 1
+        assert len(past[0]["per_game"]) == 3
+        assert touched == [past[0]]
+
+    def test_it_does_not_duplicate_the_match(self):
+        """Appending instead of replacing would leave two records for one
+        fixture, and the grader would then see a double-header that
+        never happened."""
+        past = [self.stale()]
+        sc.absorb_results(past, [self.fresh()])
+        assert len(past) == 1
+
+    def test_a_match_not_on_file_is_still_added(self):
+        past = [self.stale("m1")]
+        added, refreshed, _ = sc.absorb_results(past, [self.fresh("m2")])
+        assert (added, refreshed) == (1, 0)
+        assert len(past) == 2
+
+    def test_an_entry_with_no_player_stats_never_lands(self):
+        """Overwriting a good record with an empty one turns a source
+        hiccup into data loss."""
+        past = [self.stale()]
+        empty = dict(self.stale(), actual={})
+        added, refreshed, touched = sc.absorb_results(past, [empty, None])
+        assert (added, refreshed, touched) == (0, 0, [])
+        assert past[0]["actual"]["A"]["p"]["k"] == 20
+
+    def test_a_breakdown_is_never_traded_for_a_record_without_one(self):
+        """Same match, same source, so this should not arise -- and if
+        the source ever serves a thinner answer, losing the finer record
+        to it is the one outcome worth refusing outright."""
+        past = [self.fresh()]
+        added, refreshed, _ = sc.absorb_results(past, [self.stale()])
+        assert (added, refreshed) == (0, 0)
+        assert len(past[0]["per_game"]) == 3
+
+    def test_a_shorter_breakdown_still_replaces_a_longer_one(self):
+        """Not the same question. A series really can be re-read as
+        fewer maps -- a 2-1 corrected to 2-0 -- and refusing that would
+        pin a wrong result in place forever."""
+        past = [self.fresh(maps=3)]
+        added, refreshed, _ = sc.absorb_results(past, [self.fresh(maps=2)])
+        assert (added, refreshed) == (0, 1)
+        assert len(past[0]["per_game"]) == 2
+
+    def test_the_touched_list_is_what_landed_not_a_tail_slice(self):
+        """It feeds roster building. A refreshed match stays where it
+        already was, so a tail slice would scan the wrong records -- and
+        with nothing added, the whole list."""
+        past = [self.stale("m1"), self.stale("m2")]
+        _, _, touched = sc.absorb_results(past, [self.fresh("m1")])
+        assert [t["match_id"] for t in touched] == ["m1"]
+
+    def test_two_copies_in_one_batch_do_not_double_count(self):
+        past = []
+        added, refreshed, _ = sc.absorb_results(past, [self.fresh("m9"), self.fresh("m9")])
+        assert (added, refreshed) == (1, 1) and len(past) == 1
+
+    def test_nothing_to_absorb_is_not_an_error(self):
+        past = [self.stale()]
+        assert sc.absorb_results(past, []) == (0, 0, [])
+        assert sc.absorb_results(past, None) == (0, 0, [])
+
+
 class TestItNeverBreaksAScrape:
     def test_no_history_file_is_not_an_error(self, tmp_path):
         assert sc.load_props_history(str(tmp_path / "nope.jsonl")) == []
