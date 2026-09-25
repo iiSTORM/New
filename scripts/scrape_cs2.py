@@ -95,7 +95,12 @@ MAX_BACKFILL_OPPONENTS = 25
 # going from 8 graded matches to about 70, which is the difference
 # between a number nobody should act on and one that can be measured
 # against the market.
-MAX_RESULT_BACKFILL_TEAMS = 30
+# Raised 30 -> 60 once the backfill proved itself: the first run took
+# gradeable CS2 lines from 79 to 394, and the cap was the only reason it
+# was not all of them. 51 teams were waiting then, and the queue grows
+# daily as new lines are posted, so a cap below the backlog never
+# catches up -- it just moves the shortfall to the next run forever.
+MAX_RESULT_BACKFILL_TEAMS = 60
 # Widened from 3 to 6 — confirmed via live diagnosis that a real match
 # can flip from empty player stats to fully populated within minutes
 # (bo3.gg's own stats pipeline hasn't finished processing very recent
