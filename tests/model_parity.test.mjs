@@ -30,7 +30,7 @@ const bootstrap = raw.indexOf("const root = ReactDOM.createRoot");
 if (bootstrap < 0) throw new Error("bootstrap not found — has src/app.jsx changed shape?");
 const body = raw.slice(raw.indexOf("try {") + "try {".length, bootstrap);
 const { code } = transformSync(
-  `${body}\nreturn { projectPointInTime, DEFAULT_WEIGHTS_BY_GAME_AND_STAT };`,
+  `${body}\nreturn { projectPointInTime, mapsCountedFor, DEFAULT_WEIGHTS_BY_GAME_AND_STAT };`,
   { presets: [["@babel/preset-react", { runtime: "classic" }]], filename: "app.jsx",
     parserOpts: { allowReturnOutsideFunction: true } });
 
@@ -70,8 +70,14 @@ for (const [game, file] of Object.entries(FILES)) {
           const team = m[side], opp = side === "teamA" ? m.teamB : m.teamA;
           if (!teams[team]) continue;
           for (const player of teams[team].players || []) {
+            // app.mapsCountedFor, not `m.maps_counted || 2`. The map
+            // count is part of what the two ports have to agree on, and
+            // a harness carrying its OWN copy of the rule tests the
+            // model against a third opinion. This one did: the Python
+            // side moved to the shared helper and the harness did not,
+            // so every CS2 Bo1 came back exactly 2x apart.
             const r = app.projectPointInTime(past, teams, player, team, opp,
-              m.maps_counted || 2, weights, m.date, stat, m.patch);
+              app.mapsCountedFor(m), weights, m.date, stat, m.patch);
             if (!r || typeof r.total !== "number" || !isFinite(r.total)) continue;
             rows.push([regionKey, i, team, player.name, Number(r.total.toFixed(9))]);
             if (rows.length >= PER_COMBO) break outer;
