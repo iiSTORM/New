@@ -1,6 +1,6 @@
 try {
 
-const { useState, useEffect, useMemo, useContext, createContext } = React;
+const { useState, useEffect, useMemo, useContext, createContext, Fragment } = React;
 
 
 /* ============================================================
@@ -234,7 +234,13 @@ function DeltaBadge({ value, digits = 1, goodBelow = 2.5 }) {
    flexible stats array so it works for both the single-number "PROJ"
    case (future matches) and the three-number "PROJ / ACT / DIFF" case
    (past matches) without duplicating markup. */
-function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, cfg, games, pastMatches, team, prop, propProjection, propsFresh, propsAge }) {
+/* `props` is a list, one entry per posted map window, with
+   `propProjections` holding this model's number over each of those
+   same windows at the matching index. A player can hold a map-1 line
+   and a maps-1-2 line in one fixture -- two markets, two lines, two
+   edges -- and showing one of them would leave the other invisible
+   with nothing on screen saying so. */
+function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, cfg, games, pastMatches, team, props, propProjections, propsFresh, propsAge }) {
   const [open, setOpen] = useState(false);
   const canExpand = !!(r && p && cfg); // callers that don't pass the full breakdown just get the plain row, same as before
   return (
@@ -278,7 +284,11 @@ function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, 
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "flex-end", gap: 16, flexShrink: 0 }}>
-          <PropReadout prop={prop} projection={propProjection} fresh={propsFresh} ageMinutes={propsAge} />
+          {(props || []).map((posted, i) => (
+            <PropReadout key={posted.maps} prop={posted}
+                         projection={(propProjections || [])[i]}
+                         fresh={propsFresh} ageMinutes={propsAge} />
+          ))}
           {stats.map((s, i) => (
             <div key={i} style={{ textAlign: "right", minWidth: s.big ? 52 : 38 }}>
               <div style={{ fontSize: 9, letterSpacing: 0.6, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>{s.label}</div>
@@ -420,12 +430,12 @@ const PROP_MATCH_WINDOW_HOURS = 2;
                 `odds_type` names the market line where the provider sends
                 it; where it does not, the ambiguity is reported rather
                 than resolved, and no edge is drawn. */
-function propFor(propsData, game, playerName, statType, matchDate) {
-  if (!propsData || !propsData.props) return null;
+function propsFor(propsData, game, playerName, statType, matchDate) {
+  if (!propsData || !propsData.props) return [];
   const forGame = propsData.props[game];
-  if (!forGame) return null;
+  if (!forGame) return [];
   const list = (forGame[playerName] || []).filter((p) => p.stat === statType);
-  if (!list.length) return null;
+  if (!list.length) return [];
 
   let candidates = list;
   const when = String(matchDate || "");
@@ -443,7 +453,7 @@ function propFor(propsData, game, playerName, statType, matchDate) {
       .filter((x) => !isNaN(x.delta) && x.delta <= PROP_MATCH_WINDOW_HOURS * 3600000);
     // Lines exist for this player, but none for this fixture. Showing
     // another match's line here would be worse than showing none.
-    if (!timed.length) return null;
+    if (!timed.length) return [];
     const nearest = Math.min(...timed.map((x) => x.delta));
     candidates = timed.filter((x) => x.delta === nearest).map((x) => x.p);
   } else if (!isNaN(matchMs)) {
@@ -452,17 +462,39 @@ function propFor(propsData, game, playerName, statType, matchDate) {
       const at = new Date(p.start_time);
       return !isNaN(at) && at.toISOString().slice(0, 10) === day;
     });
-    if (!sameDay.length) return null;
+    if (!sameDay.length) return [];
     candidates = sameDay;
   }
 
-  const market = candidates.filter(
-    (p) => String(p.odds_type || "").toLowerCase() === "standard"
-  );
-  if (market.length) candidates = market;
+  /* The window is a grouping key, not a tiebreak.
 
-  const distinct = [...new Set(candidates.map((p) => p.line))];
-  return { ...candidates[0], lineCount: distinct.length };
+     Pooling the windows together and then counting distinct values, as
+     this used to, reads a map-1 line of 12.5 and a maps-1-2 line of 24.5
+     as two alternate payouts with no market line named -- and suppresses
+     the edge on both. They are not alternates. They are two markets over
+     two different sets of maps, and each has its own line, its own
+     projection and its own edge.
+
+     So alternate-payout ambiguity is resolved INSIDE a window, where it
+     is a real question, and never across windows, where it is not. */
+  const byWindow = new Map();
+  for (const p of candidates) {
+    const key = typeof p.maps === "number" ? p.maps : -1;
+    if (!byWindow.has(key)) byWindow.set(key, []);
+    byWindow.get(key).push(p);
+  }
+
+  const out = [];
+  for (const maps of [...byWindow.keys()].sort((a, b) => a - b)) {
+    let group = byWindow.get(maps);
+    const market = group.filter(
+      (p) => String(p.odds_type || "").toLowerCase() === "standard"
+    );
+    if (market.length) group = market;
+    const distinct = [...new Set(group.map((p) => p.line))];
+    out.push({ ...group[0], lineCount: distinct.length });
+  }
+  return out;
 }
 
 /* The projection to put beside a posted line.
@@ -621,43 +653,51 @@ function collectEdges(regionsData, regionList, propsData, weights, statType, gam
         const borrowed = historyIsBorrowed(rd, team);
         const oppKnown = !!rd.teams[opponent];
         for (const player of likelyStarters(rd.teams[team].players || [])) {
-          const prop = propFor(propsData, game, player.name, statType, when);
-          if (!prop) continue;
-          // Projected over the LINE's window, which is the fixture's, and
-          // not over whatever the games-in-series control happens to show.
-          const breakdown = project(rd.teams, pastMatches, player, team,
-                                    opponent, prop.maps, weights, statType);
-          const projection = projectionOverWindow(breakdown, prop);
-          if (projection === null) continue;
-          rows.push({
-            region: regionKey, name: player.name, role: player.role,
-            team, opponent, when, prop, projection, breakdown, oppKnown,
-            // Carried so a row can expand into the same ProjectionDetail
-            // the match cards use. The alternative was rebuilding the
-            // projection inside the row, which would have been a second
-            // call site free to drift from this one -- and the detail
-            // panel's whole job is to explain THIS number.
-            player, pastMatches,
-            // The raw count stays on the breakdown, because it is a true
-            // statement about how many maps were read. This is the count
-            // that should be TRUSTED, which is a different question.
-            borrowedContext: borrowed,
-            evidence: effectiveEvidence(breakdown.evidenceGames, borrowed),
-            // No edge where the provider posted several lines and named
-            // none of them the market one — same refusal as the readout.
-            edge: prop.lineCount > 1 ? null : projection - prop.line,
-            // What the board ranks on. The raw edge is kept beside it
-            // because it is the number anyone can recompute from the two
-            // printed above it, and a ranking that cannot be checked
-            // against them is worth less than one that can.
-            adjustedEdge: prop.lineCount > 1 ? null
-              : adjustEdge(projection - prop.line,
-                           effectiveEvidence(breakdown.evidenceGames, borrowed),
-                           projection, prop.line,
-                           // The league rate over this line's own window,
-                           // which is what "a typical player" means here.
-                           leagueRate === null ? null : leagueRate * prop.maps),
-          });
+          // One row per POSTED WINDOW, not one per player. A map-1 line
+          // and a maps-1-2 line on the same fixture are two markets with
+          // two lines and two edges, and collapsing them to one row
+          // meant whichever window the provider happened to list second
+          // never reached the board at all.
+          for (const prop of propsFor(propsData, game, player.name, statType, when)) {
+            // Projected over the LINE's window, which is the fixture's, and
+            // not over whatever the games-in-series control happens to show.
+            const breakdown = project(rd.teams, pastMatches, player, team,
+                                      opponent, prop.maps, weights, statType);
+            const projection = projectionOverWindow(breakdown, prop);
+            if (projection === null) continue;
+            rows.push({
+              region: regionKey, name: player.name, role: player.role,
+              team, opponent, when, prop, projection, breakdown, oppKnown,
+              // The window this row is about, lifted out of the prop so the
+              // board can section on it without reaching back through.
+              maps: prop.maps,
+              // Carried so a row can expand into the same ProjectionDetail
+              // the match cards use. The alternative was rebuilding the
+              // projection inside the row, which would have been a second
+              // call site free to drift from this one -- and the detail
+              // panel's whole job is to explain THIS number.
+              player, pastMatches,
+              // The raw count stays on the breakdown, because it is a true
+              // statement about how many maps were read. This is the count
+              // that should be TRUSTED, which is a different question.
+              borrowedContext: borrowed,
+              evidence: effectiveEvidence(breakdown.evidenceGames, borrowed),
+              // No edge where the provider posted several lines and named
+              // none of them the market one — same refusal as the readout.
+              edge: prop.lineCount > 1 ? null : projection - prop.line,
+              // What the board ranks on. The raw edge is kept beside it
+              // because it is the number anyone can recompute from the two
+              // printed above it, and a ranking that cannot be checked
+              // against them is worth less than one that can.
+              adjustedEdge: prop.lineCount > 1 ? null
+                : adjustEdge(projection - prop.line,
+                             effectiveEvidence(breakdown.evidenceGames, borrowed),
+                             projection, prop.line,
+                             // The league rate over this line's own window,
+                             // which is what "a typical player" means here.
+                             leagueRate === null ? null : leagueRate * prop.maps),
+            });
+          }
         }
       }
     }
@@ -728,6 +768,30 @@ function modelRecord(regionsData, regionList, results, weights, statType) {
     });
   }
   return rows;
+}
+
+/* The same record, split by the market each bet was made in.
+
+   A map-1 bet and a maps-1-2 bet are priced separately and settled
+   separately, and there is no reason the model should be equally good at
+   both: a per-map rate scaled to a single map rests entirely on that
+   rate, while the same rate over two maps has a map's worth of variance
+   averaged out of it. Pooling the windows lets a strong record on one
+   carry a losing record on the other, which is precisely the claim this
+   screen exists to stop anyone making. */
+function recordByWindow(rows) {
+  const byWindow = new Map();
+  for (const r of rows) {
+    const maps = typeof r.maps === "number" ? r.maps : -1;
+    if (!byWindow.has(maps)) byWindow.set(maps, []);
+    byWindow.get(maps).push(r);
+  }
+  return [...byWindow.keys()].sort((a, b) => a - b).map((maps) => {
+    const inWindow = byWindow.get(maps);
+    const won = inWindow.filter((r) => r.won).length;
+    return { maps, n: inWindow.length, won,
+             rate: inWindow.length ? won / inWindow.length : null };
+  });
 }
 
 /* Does a bigger disagreement win more often? If the model is worth
@@ -3415,6 +3479,30 @@ function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop }) {
   );
 }
 
+/* The board, split into one section per map window.
+
+   Map 1, maps 1-2 and maps 1-3 are three different markets. They are
+   priced separately, they are settled separately, and the model's record
+   on one says nothing about its record on another -- so they are read
+   separately too, rather than interleaved by edge into a single column
+   where the only thing telling them apart is a 9px label.
+
+   Ranking inside a section is whatever order the rows arrived in, which
+   is rankEdges' global order: filtering preserves it, so the top of each
+   section is still that section's best row. */
+function windowSections(rows) {
+  const byWindow = new Map();
+  for (const row of rows) {
+    const maps = typeof row.maps === "number" ? row.maps
+      : (row.prop && typeof row.prop.maps === "number" ? row.prop.maps : -1);
+    if (!byWindow.has(maps)) byWindow.set(maps, []);
+    byWindow.get(maps).push(row);
+  }
+  return [...byWindow.keys()]
+    .sort((a, b) => a - b)
+    .map((maps) => ({ maps, rows: byWindow.get(maps) }));
+}
+
 /* The board, ranked. See collectEdges for why this view exists at all. */
 function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, game, isDesktop }) {
   const theme = useTheme();
@@ -3525,9 +3613,29 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
             )}
           </div>
         )}
-        {rows.map((row, i) => (
-          <EdgeRow key={`${row.game}-${row.name}-${row.team}-${i}`} row={row} theme={theme} cfg={cfg}
-                   fresh={fresh} ageMinutes={ageMinutes} isDesktop={isDesktop} />
+        {windowSections(rows).map(({ maps, rows: section }) => (
+          <Fragment key={maps}>
+            {/* Named even when it is the only section on the board. A
+                reader who cannot see which maps they are looking at has
+                to infer it from the line, and the whole point of
+                separating the windows is that the inference is wrong as
+                soon as a second one appears. */}
+            <div style={{ padding: "9px 16px", borderTop: `1px solid ${theme.steel}`,
+                          borderBottom: `1px solid ${theme.steel}`, background: theme.graphiteLight,
+                          display: "flex", alignItems: "baseline", gap: 8 }}>
+              <span style={{ fontSize: 10.5, letterSpacing: 1, textTransform: "uppercase",
+                             fontWeight: 700, color: theme.textDim }}>
+                {maps > 0 ? mapWindowLabel(maps) : "window not stated"}
+              </span>
+              <span style={{ fontSize: 11, color: theme.textFaint }}>
+                {section.length} {section.length === 1 ? "line" : "lines"}
+              </span>
+            </div>
+            {section.map((row, i) => (
+              <EdgeRow key={`${row.game}-${row.name}-${row.team}-${maps}-${i}`} row={row} theme={theme} cfg={cfg}
+                       fresh={fresh} ageMinutes={ageMinutes} isDesktop={isDesktop} />
+            ))}
+          </Fragment>
         ))}
       </div>
       <div style={{ fontSize: 11, color: theme.textFaint, marginTop: 10, lineHeight: 1.6 }}>
@@ -3586,6 +3694,7 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
   const decided = rows.length;
   const won = rows.filter((r) => r.won).length;
   const buckets = recordByEdge(rows);
+  const windows = recordByWindow(rows);
   const graded = results.graded.length;
 
   return (
@@ -3606,6 +3715,32 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
           on a handful of results.</>
         )}
       </>)}
+
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+                    ...elevation(), marginTop: 12, overflow: "hidden" }}>
+        <div style={{ padding: "12px 16px", borderBottom: `1px solid ${theme.steel}`, fontSize: 12.5, color: theme.text }}>
+          By map window
+        </div>
+        {windows.map((w) => {
+          const enough = w.n >= RECORD_MIN_SAMPLE;
+          return (
+            <div key={w.maps} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 16px",
+                                       borderBottom: `1px solid ${theme.steel}` }}>
+              <div style={{ flex: 1, fontSize: 12.5, color: theme.textDim }}>
+                {w.maps > 0 ? mapWindowLabel(w.maps) : "window not stated"}
+              </div>
+              <div className="kp-num" style={{ fontSize: 12, color: theme.textFaint, minWidth: 70, textAlign: "right" }}>
+                {w.won}/{w.n}
+              </div>
+              <div className="kp-num" style={{ fontSize: 14, fontWeight: 700, minWidth: 64, textAlign: "right",
+                                               color: enough ? (w.rate > 0.5 ? theme.good : w.rate < 0.5 ? theme.bad : theme.textDim)
+                                                             : theme.textFaint }}>
+                {enough ? `${(100 * w.rate).toFixed(0)}%` : "\u2014"}
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
                     ...elevation(), marginTop: 12, overflow: "hidden" }}>
@@ -3636,7 +3771,8 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
       <div style={{ fontSize: 11, color: theme.textFaint, marginTop: 10, lineHeight: 1.65 }}>
         If the model is worth anything, that column climbs as the disagreement grows. If it does not, a
         confident edge is worth no more than a marginal one. Rates are withheld below {RECORD_MIN_SAMPLE}
-        {" "}bets per row. Pushes and projections landing exactly on the line are excluded — neither is a bet.
+        {" "}bets per row, in both tables — a window with four bets in it has no record, only a number.
+        {" "}Pushes and projections landing exactly on the line are excluded — neither is a bet.
         {isDesktop && " Nothing here accounts for the price paid, so a win rate above 50% is not by itself a profit."}
       </div>
     </div>
@@ -4067,11 +4203,17 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games, 
       // display string is not a parse error that announces itself --
       // new Date("Sep 21") is a valid date in 2001 -- so every line falls
       // outside the window and the app shows nothing, with no complaint.
-      const prop = propFor(propsData, game, p.name, statType,
-                           match._sortKey || match.date);
-      const propProjection = projectionOverWindow(breakdown, prop);
+      // Every window posted for this player in this fixture, not just
+      // one: map 1 and maps 1-2 are separate markets and the card shows
+      // both rather than silently picking a side.
+      const posted = propsFor(propsData, game, p.name, statType,
+                              match._sortKey || match.date);
+      // breakdown.perGame is a per-map rate, so each window's projection
+      // is that rate times its own map count -- one breakdown answers
+      // them all, which is why it is computed once above.
+      const propProjections = posted.map((w) => projectionOverWindow(breakdown, w));
       return { team, name: p.name, role: p.role, proj: breakdown.total,
-               prop, propProjection, player: p, breakdown };
+               props: posted, propProjections, player: p, breakdown };
     });
   });
   const totalProj = rows.reduce((s, row) => s + row.proj, 0);
@@ -4132,8 +4274,8 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games, 
               name={row.name}
               role={row.role}
               stats={[{ label: "PROJ", value: row.proj.toFixed(1), color: theme.accent, big: true }]}
-              prop={row.prop}
-              propProjection={row.propProjection}
+              props={row.props}
+              propProjections={row.propProjections}
               propsFresh={propsFresh}
               propsAge={propsAge}
               r={row.breakdown}

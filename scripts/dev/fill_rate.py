@@ -18,9 +18,22 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 import score_props as sp
 
 FILES = {"cs2": "cs2_data.json", "valorant": "valorant_data.json", "lol": "data.json"}
-# Refusals no amount of re-scraping will clear.
-STRUCTURAL = ("cover maps 1-2 only", "player missing from the box score",
-              "line is not a number", "unreadable start time")
+# Refusals no amount of re-scraping will clear: the player is not in the
+# box score, the stat does not exist in this game, the line is malformed,
+# or the series simply never played the maps the line named.
+#
+# "no per-map breakdown" is deliberately NOT here. It used to be counted
+# as permanent, because the scrapers threw the per-map split away and a
+# map-1 line could never be settled. They keep it now, so that refusal
+# clears itself as matches are re-fetched -- which makes it recoverable,
+# and counting it as structural would understate the ceiling.
+STRUCTURAL = ("player missing from the box score",
+              "player missing from a map's box score",
+              "not recorded for this game",
+              "stat this app does not model",
+              "line does not name a map window",
+              "line is not a number", "unreadable start time",
+              "series ran")
 
 
 def main():

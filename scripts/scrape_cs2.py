@@ -468,21 +468,61 @@ async def fetch_map_player_stats(session, game_id, canonical_name_by_team_id):
     return result, resolved_name_by_team_id
 
 
-async def fetch_match_actuals(session, match_slug, canonical_name_by_team_id):
-    """Fetches one finished match's games (maps), and per-player K/D/A for
-    maps 1+2 only, capped exactly like scrape_valorant.py does — the 3rd
-    map of a Bo3 that went the distance is excluded so 'actual' data lines
-    up with what the model always projects for (2 games).
+# How many maps `actual` sums over. This is the window the model's
+# history is built from and the window CS2's own two-map lines are posted
+# over, and it does NOT move: widening it would silently rewrite every
+# per-map rate the model has ever fit against.
+COLLAPSED_WINDOW_MAPS = 2
 
-    Returns (totals, maps_played, winner_name, team1_name, team2_name,
-    score_str, match_date, team1_id, team2_id) — team1_id/team2_id are
-    returned so build_region_payload can later reconcile this match's
-    team names against the short form used by upcoming-match/schedule
-    endpoints."""
+# How many maps get a stored per-map breakdown. Covers a Bo5 that goes
+# the distance; anything past that is not a format this board sees.
+MAX_MAPS_STORED = 5
+
+# The fields kept per map, as opposed to per series. Deliberately only
+# the ones a posted line can name: a per-map breakdown of every style
+# column would roughly triple a payload the browser downloads on every
+# visit, to answer questions nobody is asking of a single map. The
+# series total keeps carrying the full set.
+PER_MAP_FIELDS = ("k", "d", "a", "hs")
+
+
+def per_map_entry(row):
+    """One player's line on one map, in the shape score_props.py grades.
+
+    Missing fields are left out rather than zero-filled: the grader
+    treats an absent stat as "not recorded for this game" and refuses,
+    which is the honest answer, while a zero would grade as a real 0.
+    """
+    return {field: row[field] for field in PER_MAP_FIELDS
+            if isinstance(row.get(field), int)}
+
+
+async def fetch_match_actuals(session, match_slug, canonical_name_by_team_id):
+    """Fetches one finished match's games (maps), per-player.
+
+    Returns two views of the same box scores, because two different
+    consumers need two different windows:
+
+      totals   — one series total over maps 1-2 exactly, carrying the
+                 full stat set. This is what the model's history reads
+                 and it is fixed at two maps on purpose (see
+                 COLLAPSED_WINDOW_MAPS).
+      per_game — a list, one entry per map actually played, carrying
+                 k/d/a/hs. This is what makes a map-1 line and a
+                 maps-1-3 line gradeable AGAINST THE MAPS THEY NAME
+                 rather than being refused for want of a breakdown.
+                 Every map is fetched now, including the third of a Bo3
+                 that went the distance, which the old code discarded.
+
+    Returns (totals, per_game, maps_played, winner_name, team1_name,
+    team2_name, score_str, match_date, team1_id, team2_id) —
+    team1_id/team2_id are returned so build_region_payload can later
+    reconcile this match's team names against the short form used by
+    upcoming-match/schedule endpoints."""
     match = await bo3_get(session, f"/matches/{match_slug}", params={"with": "games"})
     if not match:
         return None
-    games = sorted(match.get("games", []), key=lambda g: g.get("number", 0))[:2]
+    games = sorted(match.get("games", []), key=lambda g: g.get("number", 0))[:MAX_MAPS_STORED]
     if not games:
         return None
 
@@ -491,11 +531,17 @@ async def fetch_match_actuals(session, match_slug, canonical_name_by_team_id):
     )
 
     totals = {}
+    per_game = []
     name_by_team_id = {}
-    for map_stats, resolved_map in per_map_results:
+    for index, (map_stats, resolved_map) in enumerate(per_map_results):
         name_by_team_id.update(resolved_map)
+        this_map = {}
+        counts_toward_totals = index < COLLAPSED_WINDOW_MAPS
         for player_name, row in map_stats.items():
             team = row["team"]
+            this_map.setdefault(team, {})[player_name] = per_map_entry(row)
+            if not counts_toward_totals:
+                continue
             totals.setdefault(team, {})
             slot = totals[team].setdefault(player_name, {"k": 0, "d": 0, "a": 0, "kp_numerator": 0, "kp_denominator": 0})
             slot["k"] += row["k"]
@@ -507,6 +553,7 @@ async def fetch_match_actuals(session, match_slug, canonical_name_by_team_id):
             # percentages — see fetch_map_player_stats for why.
             slot["kp_numerator"] += row["k"] + row["a"]
             slot["kp_denominator"] += row["team_total_k"]
+        per_game.append(this_map)
 
     team_names = list(totals.keys())
     if len(team_names) != 2:
@@ -525,7 +572,11 @@ async def fetch_match_actuals(session, match_slug, canonical_name_by_team_id):
     score_str = f"{t1s}-{t2s}" if t1s is not None and t2s is not None else ""
     match_date = match.get("start_date")  # confirmed real field — "date" is not
 
-    return totals, len(games), winner_name, team_names[0], team_names[1], score_str, match_date, team1_id, team2_id
+    # maps_played stays the number of maps `totals` covers, not the
+    # number played: every consumer of it reads it as "what the series
+    # total divides by". The real map count is len(per_game).
+    return (totals, per_game, min(len(games), COLLAPSED_WINDOW_MAPS), winner_name,
+            team_names[0], team_names[1], score_str, match_date, team1_id, team2_id)
 
 
 def normalize_team_name(name):
@@ -693,7 +744,8 @@ async def build_region_payload(cs2, session):
                 print(f"  ...{progress['done']}/{progress['total']} matches processed")
             if not result:
                 return None
-            totals, maps_played, winner_name, team1_name, team2_name, score_str, match_date, t1id, t2id = result
+            (totals, per_game, maps_played, winner_name, team1_name, team2_name,
+             score_str, match_date, t1id, t2id) = result
             return {
                 # The source's own id for this match. Written out because
                 # merging runs needs a key, and date+teams is not one: two
@@ -713,6 +765,11 @@ async def build_region_payload(cs2, session):
                 "patch": None, "teamA": team1_name, "teamB": team2_name,
                 "winner": winner_name,
                 "score": score_str, "actual": totals, "games": maps_played,
+                # One entry per map actually played. `actual` above is
+                # the maps 1-2 total and always will be; this is what
+                # lets a map-1 line and a maps-1-3 line each be graded
+                # over its own window instead of refused.
+                "per_game": per_game,
                 "_team1_id": t1id, "_team2_id": t2id,  # dropped before writing final output — see reconciliation below
             }
 

@@ -21,14 +21,24 @@ number rather than a feeling.
 
 WHAT CAN AND CANNOT BE GRADED
 -----------------------------
-LoL carries per_game, a per-map breakdown, so a line over maps 1-3 or over
-map 1 resolves exactly by summing the maps the line names.
+Every map window is its own question. A map-1 line, a maps-1-2 line and a
+maps-1-3 line on the same series are three different bets that happen to
+share a player, and each has to be settled against exactly the maps it
+names. So the unit of truth here is per_game, a per-map breakdown: given
+one, any window resolves by summing that many maps, and no window is
+privileged over another.
 
-CS2 and Valorant store one total per series covering exactly maps 1-2,
-because their scrapers deliberately collect the first two maps and no more.
-That is precisely the window those providers post, so their lines grade
-exactly -- and a line over any OTHER window cannot be graded at all rather
-than being graded against the wrong maps.
+A match without a per-map breakdown carries one series total instead, and
+that total covers one specific window -- maps 1-2 for CS2 and Valorant by
+construction, and whatever maps_counted records for LoL. Such a match can
+settle a line over THAT window and nothing else. This is the older record
+shape; matches gain their breakdown as they are re-scraped, so the bucket
+shrinks on its own.
+
+A window longer than the series actually ran is refused rather than
+settled short. A maps-1-3 line on a series that ended 2-0 is a real case
+and books differ on how they void it, so it is counted under its own
+reason instead of being graded against a guess.
 
 Anything ambiguous is refused and counted by reason, on the same principle
 the matching uses: a wrong grade is worse than a missing one, because a
@@ -49,10 +59,11 @@ GAME_DATA = {
     "valorant": "valorant_data.json",
 }
 
-# The windows each game's stored results can actually answer.
-#   lol      — per_game is a list of maps, so any prefix window resolves.
-#   cs2/val  — one series total covering exactly maps 1-2, and nothing finer.
-GRADEABLE_WINDOWS = {"lol": None, "cs2": {2}, "valorant": {2}}
+# What a series total covers when the match carries no per-map breakdown
+# and does not say. CS2 and Valorant fix their totals at maps 1-2 by
+# construction; LoL records the real number in maps_counted, which is read
+# in preference to this.
+DEFAULT_TOTAL_WINDOW = 2
 
 # CS2 records headshots; LoL and Valorant do not. A headshots line on
 # those games therefore finds no value in the box score and is refused by
@@ -124,6 +135,19 @@ def index_matches(regions):
     return index
 
 
+def total_window(match):
+    """How many maps this match's series total sums over.
+
+    LoL records it per match, because its total follows the format -- a
+    Bo3's runs through map 2 and a Bo5's through map 3. CS2 and Valorant
+    fix theirs at two and say so by omission.
+    """
+    recorded = match.get("maps_counted")
+    if isinstance(recorded, int) and recorded > 0:
+        return recorded
+    return DEFAULT_TOTAL_WINDOW
+
+
 def actual_over_window(match, team, player, stat, maps, game):
     """What the player actually did over exactly the line's maps.
 
@@ -132,26 +156,37 @@ def actual_over_window(match, team, player, stat, maps, game):
     key = STAT_KEY.get(stat)
     if key is None:
         return None, "stat this app does not model"
+    if not isinstance(maps, int) or maps <= 0:
+        return None, "line does not name a map window"
 
-    allowed = GRADEABLE_WINDOWS.get(game)
-    if allowed is not None and maps not in allowed:
-        # Refused rather than approximated: grading a map-1 line against a
-        # two-map total would manufacture a losing record out of nothing.
-        return None, f"{game} results cover maps 1-2 only, line was over {maps}"
-
+    # The per-map breakdown first, because it answers every window and the
+    # series total answers exactly one. A match that has both is graded
+    # from the breakdown for the same reason: maps 1-3 and map 1 are
+    # questions the total cannot be asked.
     per_game = match.get("per_game")
-    if isinstance(per_game, list):
+    if isinstance(per_game, list) and per_game:
         if len(per_game) < maps:
+            # Settling a maps-1-3 line on a 2-0 sweep would invent the
+            # third map's zero. Counted under its own reason so the size
+            # of the bucket is visible rather than assumed.
             return None, f"series ran {len(per_game)} map(s), line was over {maps}"
         total = 0
         for game_stats in per_game[:maps]:
             entry = ((game_stats or {}).get(team) or {}).get(player)
-            if isinstance(entry, dict) and not isinstance(entry.get(key), int):
-                return None, f"{stat} not recorded for this game"
             if not isinstance(entry, dict):
                 return None, "player missing from a map's box score"
+            if not isinstance(entry.get(key), int):
+                return None, f"{stat} not recorded for this game"
             total += entry[key]
         return total, None
+
+    # No breakdown: one total, covering one window. Refused rather than
+    # approximated for any other -- grading a map-1 line against a two-map
+    # total would manufacture a losing record out of nothing.
+    covered = total_window(match)
+    if maps != covered:
+        return None, (f"{game} result is a maps 1-{covered} total with no per-map "
+                      f"breakdown, line was over {maps}")
 
     entry = ((match.get("actual") or {}).get(team) or {}).get(player)
     if isinstance(entry, dict) and isinstance(entry.get(key), int):
@@ -287,6 +322,41 @@ def summarise(graded):
     return out
 
 
+def window_label(maps):
+    return "map 1" if maps == 1 else f"maps 1-{maps}"
+
+
+def summarise_by_window(graded):
+    """The same record, split by the window each line was posted over.
+
+    Kept separate from summarise() rather than folded into it because a
+    map-1 line and a maps-1-2 line are not the same bet and pooling them
+    hides exactly the thing worth knowing: whether the model's edge is
+    real on one window and imaginary on another. Sorted by game then
+    window so the table reads in map order.
+    """
+    out = {}
+    by_key = collections.defaultdict(list)
+    for row in graded:
+        maps = row.get("maps")
+        if isinstance(maps, int) and maps > 0:
+            by_key[(row["game"], maps)].append(row)
+    for (game, maps), rows in sorted(by_key.items()):
+        decided = [r for r in rows if r["result"] != "push"]
+        overs = sum(1 for r in decided if r["result"] == "over")
+        margins = [r["margin"] for r in rows]
+        out[f"{game} {window_label(maps)}"] = {
+            "game": game, "maps": maps,
+            "graded": len(rows),
+            "pushes": len(rows) - len(decided),
+            "over": overs,
+            "under": len(decided) - overs,
+            "over_rate": round(overs / len(decided), 4) if decided else None,
+            "mean_margin": round(sum(margins) / len(margins), 3) if margins else None,
+        }
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--history", default="props_history.jsonl")
@@ -340,6 +410,16 @@ def main():
         print(f"  {s['graded']:6d}  {s['over']:4d}  {s['under']:5d}  {s['pushes']:4d}  "
               f"{rate}  {s['mean_margin']:11.2f}   {game}")
 
+    by_window = summarise_by_window(graded)
+    if by_window:
+        print("\nBY MAP WINDOW")
+        print("  graded  over  under  push   over rate   mean margin   window")
+        for label, s in by_window.items():
+            rate = "        —" if s["graded"] < args.min_sample or s["over_rate"] is None \
+                else f"{s['over_rate'] * 100:8.1f}%"
+            print(f"  {s['graded']:6d}  {s['over']:4d}  {s['under']:5d}  {s['pushes']:4d}  "
+                  f"{rate}  {s['mean_margin']:11.2f}   {label}")
+
     thin = [g for g, s in summary.items() if s["graded"] < args.min_sample]
     if thin:
         print(f"\n  Rates withheld for {', '.join(thin)}: fewer than "
@@ -352,8 +432,8 @@ def main():
 
     if args.json_out:
         with open(args.json_out, "w") as f:
-            json.dump({"summary": summary, "graded": graded,
-                       "refused": dict(refused)}, f, indent=2)
+            json.dump({"summary": summary, "by_window": by_window,
+                       "graded": graded, "refused": dict(refused)}, f, indent=2)
         print(f"\nWrote {args.json_out}")
     return 0
 

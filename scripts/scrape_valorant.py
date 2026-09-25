@@ -207,7 +207,7 @@ def parse_match(match_id, match_path):
     result = {
         "match_id": match_id, "teamA": team_a, "teamB": team_b,
         "date": date_iso, "played": False, "patch": patch,
-        "scoreA": score_a, "scoreB": score_b, "actual": None, "maps_played": None,
+        "scoreA": score_a, "scoreB": score_b, "actual": None, "per_game": None, "maps_played": None,
     }
 
     if not played or score_a is None or (score_a == 0 and score_b == 0):
@@ -288,7 +288,13 @@ def parse_match(match_id, match_path):
 
     global _MAP_ID_DEBUG_DONE
     totals = {team_a: {}, team_b: {}}
-    map_occurrence_count = {team_a: {}, team_b: {}}  # per-player count of maps counted so far, capped at 2
+    # One entry per map, in map order, holding every map the series
+    # played. `totals` above stops at two maps on purpose; this does not,
+    # because a line posted over map 1 or over maps 1-3 has to be graded
+    # against the maps it names rather than refused for want of a
+    # breakdown.
+    per_game = []
+    map_occurrence_count = {team_a: {}, team_b: {}}  # per-player count of maps seen so far
     tag_to_team = {}  # first distinct team-tag seen -> team_a, second -> team_b
     unresolved = 0
     unresolved_samples = []  # real row text for anything still unparseable, so a future format change surfaces itself instead of silently dropping rows again
@@ -385,15 +391,24 @@ def parse_match(match_id, match_path):
         extra = parse_stat_row(row_text, m)
         if extra is not None:
             STAT_ROW_COUNTS["parsed"] += 1
-        maps_counted = map_occurrence_count[side_team].setdefault(name, 0)
-        if maps_counted >= 2:
+        # Document order on this page follows map order (map 1's roster,
+        # then map 2's, then map 3's if it happened), so the Nth
+        # occurrence of a given player among real, non-"all" map sections
+        # is their map-N stats. That index is what files each row into
+        # per_game, and what decides whether it also counts toward the
+        # series total.
+        map_index = map_occurrence_count[side_team].setdefault(name, 0)
+        map_occurrence_count[side_team][name] = map_index + 1
+        while len(per_game) <= map_index:
+            per_game.append({})
+        per_game[map_index].setdefault(side_team, {})[name] = {"k": k, "d": d, "a": a}
+
+        if map_index >= MAPS_IN_SERIES_TOTAL:
             # This is the app's convention across both games: only maps/games
             # 1 and 2 of a series count toward "actual" totals, regardless of
             # whether the series went to a 3rd map — matches series_g1_g2_kills
-            # on the LCS side exactly. Document order on this page follows map
-            # order (map 1's roster, then map 2's, then map 3's if it happened),
-            # so the 3rd occurrence of a given player (among real, non-"all"
-            # map sections) is always their map-3 stats.
+            # on the LCS side exactly. The later maps are not discarded any
+            # more, they are filed in per_game above.
             continue
         slot["k"] += k
         slot["d"] += d
@@ -404,7 +419,6 @@ def parse_match(match_id, match_path):
             for field, value in extra.items():
                 slot[field] = slot.get(field, 0) + value
             slot["rows"] = slot.get("rows", 0) + 1
-        map_occurrence_count[side_team][name] = maps_counted + 1
 
     total_players = sum(len(v) for v in totals.values())
     global _ZERO_ROW_MATCH_COUNT
@@ -425,10 +439,13 @@ def parse_match(match_id, match_path):
 
     result["played"] = True
     result["actual"] = totals
+    result["per_game"] = per_game
     # Fixed at 2 to match the "maps/games 1+2 only" convention used across
     # both games — every Bo3/Bo5 series has at least 2 maps by definition,
     # so this is safe even though the series itself may have gone longer.
-    result["maps_played"] = 2
+    # It describes what `actual` sums over, not how long the series ran;
+    # the real map count is len(per_game).
+    result["maps_played"] = MAPS_IN_SERIES_TOTAL
     return result
 
 
@@ -568,6 +585,10 @@ def build_region_payload(region_key, current_event, historical_event):
             "teamA": m["teamA"], "teamB": m["teamB"],
             "winner": winner, "score": f"{m['scoreA']}-{m['scoreB']}",
             "actual": m["actual"], "games": m["maps_played"],
+            # One entry per map actually played. `actual` is the maps 1-2
+            # total and stays one; this is what lets a map-1 line and a
+            # maps-1-3 line each be graded over the maps they name.
+            "per_game": m.get("per_game") or [],
         }
 
     past_matches = [as_record(m) for m in cur_played]
@@ -596,6 +617,12 @@ def build_region_payload(region_key, current_event, historical_event):
     return {"teams": teams, "past_matches": past_matches,
             "history_matches": history_matches, "upcoming_matches": upcoming_matches}
 
+
+# How many maps a stored `actual` total sums over. Fixed: widening it
+# would silently rewrite every per-map rate the model has ever been
+# fitted against. Windows other than this one are answered by the
+# per-map breakdown instead.
+MAPS_IN_SERIES_TOTAL = 2
 
 STAT_ROW_COUNTS = {"rows": 0, "parsed": 0}
 

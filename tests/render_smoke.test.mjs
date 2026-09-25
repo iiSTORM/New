@@ -38,7 +38,7 @@ const EXPORTS = [
   "PropsContext", "BASE_TOKENS", "GAME_ACCENTS",
   "FutureTab", "PastResultsTab", "ConsistencyTab", "StandingsTab",
   "ProjectionDetail", "historyPool", "project", "ScoreBar", "collectEdges",
-  "EvidenceChip", "evidenceTier",
+  "EvidenceChip", "evidenceTier", "windowSections", "projectionOverWindow",
 ];
 const available = EXPORTS.filter((name) =>
   new RegExp(`(function|const)\\s+${name}\\b`).test(body));
@@ -484,6 +484,121 @@ if (app.collectEdges && appOpen.EdgesTab) {
                  regionsData, regionList: ["R"], regionLabels: {}, weights,
                  statType: "kills", game: "lol", isDesktop: true }), threeMap),
                "Recent form", false);
+}
+
+/* Two map windows on one fixture, end to end.
+ *
+ * Map 1 and maps 1-3 are separate markets. They were being pooled into
+ * one candidate list, read as two alternate payouts with no market line
+ * named, and BOTH edges suppressed -- a failure that shows up on screen
+ * as a line with no number beside it, which looks like a quiet day
+ * rather than a bug.
+ *
+ * So this asserts the whole path: two rows out of collectEdges, one per
+ * window, each with its own projection; and a board that draws them
+ * under their own headings rather than interleaved.
+ */
+if (app.collectEdges && app.EdgesTab) {
+  const kills = (date, k) => ({
+    date, teamA: "T1", teamB: "GEN", maps_counted: 2,
+    actual: { T1: { Faker: { k, d: 2, a: 5 } }, GEN: {} } });
+  const history = Array.from({ length: 8 }, (_, i) => kills(`2026-0${i + 1}-01`, 20 + i));
+  // Two distinct rosters on purpose: sharing one puts Faker on both
+  // sides of the fixture, which doubles every row and would hide a real
+  // duplicate behind a fixture artefact.
+  const opposition = { color: "#4488cc", players: [player("Chovy", 5)] };
+  const regionsData = { R: { teams: { T1: rostered, GEN: opposition }, past_matches: history,
+                             upcoming_matches: [fixture("T1", "GEN")] } };
+  const bothWindows = {
+    fetched_at: new Date().toISOString(), source: "test",
+    props: { lol: { Faker: [
+      { player: "Faker", stat: "kills", maps: 1, line: 8.5,
+        odds_type: "standard", team: "T1", start_time: SOON_ISO },
+      { player: "Faker", stat: "kills", maps: 3, line: 24.5,
+        odds_type: "standard", team: "T1", start_time: SOON_ISO }] } },
+  };
+  const rows = app.collectEdges(regionsData, ["R"], bothWindows, weights, "kills", "lol");
+
+  try {
+    const windows = rows.map((r) => r.maps).sort();
+    if (windows.join(",") !== "1,3") {
+      throw new Error(`got windows [${windows}], wanted both 1 and 3 -- `
+        + "a collapsed window never reaches the board at all");
+    }
+    for (const row of rows) {
+      if (row.edge === null) {
+        throw new Error(`the ${row.maps}-map row has no edge: the two windows were `
+          + "read as alternate payouts on one market");
+      }
+      // Each window's projection is the per-map rate times its OWN map
+      // count. One number serving both would be right for at most one.
+      const want = row.breakdown.perGame * row.maps;
+      if (Math.abs(row.projection - want) > 1e-9) {
+        throw new Error(`the ${row.maps}-map row projects ${row.projection}, not ${want}`);
+      }
+    }
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  both posted windows become their own priced row\n        ${err.message}`);
+  }
+
+  /* Asserted on the helper, not on the board's text. Every EdgeRow
+     already prints its own window label, so "the markup says map 1" is
+     true whether the board is sectioned or a single undivided list --
+     which is exactly the regression this is here to catch. */
+  if (app.windowSections) {
+    try {
+      const sections = app.windowSections(rows);
+      const shape = sections.map((s) => `${s.maps}:${s.rows.length}`).join(" ");
+      if (shape !== "1:1 3:1") {
+        throw new Error(`sections came out as [${shape}], wanted one per window in map order`);
+      }
+      pass++;
+    } catch (err) {
+      fail++;
+      console.error(`FAIL  the board splits into one section per window\n        ${err.message}`);
+    }
+  }
+
+  const board = wrap(React.createElement(app.EdgesTab, {
+    regionsData, regionList: ["R"], regionLabels: {}, weights,
+    statType: "kills", game: "lol", isDesktop: true }), bothWindows);
+  containsText("and prints both lines", board, "8.5");
+  containsText("including the longer window's", board, "24.5");
+
+  if (appOpen.FutureMatchCard) {
+    // appOpen, because a match card renders COLLAPSED: its player rows,
+    // and every posted line on them, exist only once the card is open.
+    // A test against the collapsed markup passes whatever the rows say.
+    const card = wrapOpen(React.createElement(appOpen.FutureMatchCard, {
+      match: fixture("T1", "GEN"), teams: { T1: rostered, GEN: opposition },
+      pastMatches: history, games: 2, weights, statType: "kills",
+      game: "lol", regionsData, regionList: ["R"], isDesktop: true }), bothWindows);
+    containsText("a match card shows the map 1 line", card, "8.5");
+    containsText("and the maps 1-3 line beside it", card, "24.5");
+
+    /* And each line's EDGE is against its own window's projection.
+       Feeding every readout the first window's number leaves both lines
+       on screen and both edges wrong, which nothing above would notice:
+       the maps 1-3 line would read as a huge under purely because it was
+       compared with a one-map projection. */
+    if (app.project && app.projectionOverWindow) {
+      const faker = rostered.players[0];
+      const breakdown = app.project({ T1: rostered, GEN: opposition }, history,
+                                    faker, "T1", "GEN", 1, weights, "kills");
+      const edgeFor = (line, maps) =>
+        app.projectionOverWindow(breakdown, { maps }) - line;
+      const oneMap = edgeFor(8.5, 1), threeMap = edgeFor(24.5, 3);
+      const fmt = (e) => `${e > 0 ? "+" : ""}${e.toFixed(1)}`;
+      if (fmt(oneMap) === fmt(threeMap)) {
+        throw new Error("fixture is wrong: the two windows' edges print identically, "
+          + "so this cannot tell them apart");
+      }
+      containsText("the map 1 edge is against a one-map projection", card, fmt(oneMap));
+      containsText("and the maps 1-3 edge against a three-map one", card, fmt(threeMap));
+    }
+  }
 }
 
 /* The headshots crash again, reached the way a user reached it: not by

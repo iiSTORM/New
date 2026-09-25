@@ -26,11 +26,21 @@ const src = fs.readFileSync(path.join(root, "src/app.jsx"), "utf8");
 const start = src.indexOf("const PROP_MATCH_WINDOW_HOURS");
 const end = src.indexOf("function propsAgeMinutes");
 if (start < 0 || end < 0) {
-  console.error("Could not find propFor in src/app.jsx — has it been renamed?");
+  console.error("Could not find propsFor in src/app.jsx — has it been renamed?");
   process.exit(1);
 }
 const slice = src.slice(start, end);
-const propFor = new Function(slice + "\nreturn propFor;")();
+const propsFor = new Function(slice + "\nreturn propsFor;")();
+
+/* The old single-window lookup, kept HERE rather than in the app.
+ *
+ * Nothing in the app wants "one window" any more -- a board that showed
+ * one would hide the other market -- and a function nothing calls is a
+ * place for behaviour to drift unobserved. The rules it was written to
+ * test are unchanged though (which fixture a line belongs to, which
+ * payout is the market one), so the tests below go on asking them of the
+ * first window propsFor returns. */
+const propFor = (...args) => propsFor(...args)[0] || null;
 const projectionOverWindow = new Function(slice + "\nreturn projectionOverWindow;")();
 
 let pass = 0, fail = 0;
@@ -131,7 +141,40 @@ check("identical lines are not ambiguous",
       propFor(props([line(2, { line: 8.5 }), line(2, { line: 8.5 })]),
               "lol", "Faker", "kills", AT).lineCount, 1);
 
+/* Two map windows on one fixture.
+ *
+ * The case that made this a list instead of a single value. A map-1 line
+ * of 12.5 and a maps-1-2 line of 24.5 are two markets, not two payouts
+ * on one market: pooling them saw two distinct numbers, concluded the
+ * provider had named no market line, and refused an edge on both. Five
+ * cs2 player-stat-fixtures on a real board were silenced that way.
+ */
+const twoWindows = props([
+  line(1, { line: 12.5 }),
+  line(2, { line: 24.5 }),
+]);
+const windows = propsFor(twoWindows, "lol", "Faker", "kills", AT);
+check("both windows come back", windows.length, 2);
+check("in map order", windows.map((w) => w.maps).join(","), "1,2");
+check("map 1 keeps its own line", windows[0].line, 12.5);
+check("maps 1-2 keeps its own line", windows[1].line, 24.5);
+check("neither is called ambiguous",
+      windows.every((w) => w.lineCount === 1), true);
+check("and each projects over its own window",
+      windows.map((w) => projectionOverWindow({ perGame: 10 }, w)).join(","), "10,20");
+
+/* Ambiguity still resolves, but only within a window. Three payouts on
+   maps 1-2 do not make the single map-1 line ambiguous. */
+const mixed = propsFor(props([
+  line(1, { line: 12.5 }),
+  line(2, { line: 30.5 }), line(2, { line: 24.5 }), line(2, { line: 18.5 }),
+]), "lol", "Faker", "kills", AT);
+check("alternate payouts are counted inside their own window",
+      mixed.map((w) => w.lineCount).join(","), "1,3");
+
 // Nothing to show.
+check("propsFor on an unknown player is an empty list",
+      propsFor(props([line(2)]), "lol", "Nobody", "kills", AT).length, 0);
 check("unknown player", propFor(props([line(2)]), "lol", "Nobody", "kills", AT), null);
 check("unknown stat", propFor(props([line(2)]), "lol", "Faker", "deaths", AT), null);
 check("unknown game", propFor(props([line(2)]), "cs2", "Faker", "kills", AT), null);
@@ -538,9 +581,18 @@ if (fs.existsSync(realPath)) {
   for (const [game, players] of Object.entries(real.props || {})) {
     for (const [name, list] of Object.entries(players)) {
       for (const p of list) {
-        const got = propFor(real, game, name, p.stat, p.start_time);
-        if (!got) { check(`${game}/${name} resolves against its own start time`, got, "a line"); continue; }
-        check(`${game}/${name} keeps the posted window`, got.maps, p.maps);
+        const all = propsFor(real, game, name, p.stat, p.start_time);
+        if (!all.length) { check(`${game}/${name} resolves against its own start time`, null, "a line"); continue; }
+        // Every window that was POSTED has to come back, not just one.
+        // A player with a map-1 line and a maps-1-2 line in the same
+        // fixture holds two markets, and returning either one alone
+        // means the other never reaches the board.
+        check(`${game}/${name} keeps the posted window`,
+              all.some((w) => w.maps === p.maps), true);
+        // ...and no window comes back twice, which would double-count
+        // the same market on a board ranked by edge.
+        check(`${game}/${name} lists each window once`,
+              new Set(all.map((w) => w.maps)).size, all.length);
         checked++;
       }
     }

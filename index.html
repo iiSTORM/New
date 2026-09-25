@@ -117,7 +117,8 @@ try {
     useEffect,
     useMemo,
     useContext,
-    createContext
+    createContext,
+    Fragment
   } = React;
   const BASE_TOKENS = {
     void: "#14181F",
@@ -421,8 +422,8 @@ try {
     games,
     pastMatches,
     team,
-    prop,
-    propProjection,
+    props,
+    propProjections,
     propsFresh,
     propsAge
   }) {
@@ -504,12 +505,13 @@ try {
         gap: 16,
         flexShrink: 0
       }
-    }, React.createElement(PropReadout, {
-      prop: prop,
-      projection: propProjection,
+    }, (props || []).map((posted, i) => React.createElement(PropReadout, {
+      key: posted.maps,
+      prop: posted,
+      projection: (propProjections || [])[i],
       fresh: propsFresh,
       ageMinutes: propsAge
-    }), stats.map((s, i) => React.createElement("div", {
+    })), stats.map((s, i) => React.createElement("div", {
       key: i,
       style: {
         textAlign: "right",
@@ -590,12 +592,12 @@ try {
     };
   }
   const PROP_MATCH_WINDOW_HOURS = 2;
-  function propFor(propsData, game, playerName, statType, matchDate) {
-    if (!propsData || !propsData.props) return null;
+  function propsFor(propsData, game, playerName, statType, matchDate) {
+    if (!propsData || !propsData.props) return [];
     const forGame = propsData.props[game];
-    if (!forGame) return null;
+    if (!forGame) return [];
     const list = (forGame[playerName] || []).filter(p => p.stat === statType);
-    if (!list.length) return null;
+    if (!list.length) return [];
     let candidates = list;
     const when = String(matchDate || "");
     const hasClock = /\d{1,2}:\d{2}/.test(when);
@@ -605,7 +607,7 @@ try {
         p,
         delta: Math.abs(new Date(p.start_time).getTime() - matchMs)
       })).filter(x => !isNaN(x.delta) && x.delta <= PROP_MATCH_WINDOW_HOURS * 3600000);
-      if (!timed.length) return null;
+      if (!timed.length) return [];
       const nearest = Math.min(...timed.map(x => x.delta));
       candidates = timed.filter(x => x.delta === nearest).map(x => x.p);
     } else if (!isNaN(matchMs)) {
@@ -614,16 +616,27 @@ try {
         const at = new Date(p.start_time);
         return !isNaN(at) && at.toISOString().slice(0, 10) === day;
       });
-      if (!sameDay.length) return null;
+      if (!sameDay.length) return [];
       candidates = sameDay;
     }
-    const market = candidates.filter(p => String(p.odds_type || "").toLowerCase() === "standard");
-    if (market.length) candidates = market;
-    const distinct = [...new Set(candidates.map(p => p.line))];
-    return {
-      ...candidates[0],
-      lineCount: distinct.length
-    };
+    const byWindow = new Map();
+    for (const p of candidates) {
+      const key = typeof p.maps === "number" ? p.maps : -1;
+      if (!byWindow.has(key)) byWindow.set(key, []);
+      byWindow.get(key).push(p);
+    }
+    const out = [];
+    for (const maps of [...byWindow.keys()].sort((a, b) => a - b)) {
+      let group = byWindow.get(maps);
+      const market = group.filter(p => String(p.odds_type || "").toLowerCase() === "standard");
+      if (market.length) group = market;
+      const distinct = [...new Set(group.map(p => p.line))];
+      out.push({
+        ...group[0],
+        lineCount: distinct.length
+      });
+    }
+    return out;
   }
   function projectionOverWindow(breakdown, prop) {
     if (!breakdown || !prop || typeof breakdown.perGame !== "number") return null;
@@ -689,29 +702,30 @@ try {
           const borrowed = historyIsBorrowed(rd, team);
           const oppKnown = !!rd.teams[opponent];
           for (const player of likelyStarters(rd.teams[team].players || [])) {
-            const prop = propFor(propsData, game, player.name, statType, when);
-            if (!prop) continue;
-            const breakdown = project(rd.teams, pastMatches, player, team, opponent, prop.maps, weights, statType);
-            const projection = projectionOverWindow(breakdown, prop);
-            if (projection === null) continue;
-            rows.push({
-              region: regionKey,
-              name: player.name,
-              role: player.role,
-              team,
-              opponent,
-              when,
-              prop,
-              projection,
-              breakdown,
-              oppKnown,
-              player,
-              pastMatches,
-              borrowedContext: borrowed,
-              evidence: effectiveEvidence(breakdown.evidenceGames, borrowed),
-              edge: prop.lineCount > 1 ? null : projection - prop.line,
-              adjustedEdge: prop.lineCount > 1 ? null : adjustEdge(projection - prop.line, effectiveEvidence(breakdown.evidenceGames, borrowed), projection, prop.line, leagueRate === null ? null : leagueRate * prop.maps)
-            });
+            for (const prop of propsFor(propsData, game, player.name, statType, when)) {
+              const breakdown = project(rd.teams, pastMatches, player, team, opponent, prop.maps, weights, statType);
+              const projection = projectionOverWindow(breakdown, prop);
+              if (projection === null) continue;
+              rows.push({
+                region: regionKey,
+                name: player.name,
+                role: player.role,
+                team,
+                opponent,
+                when,
+                prop,
+                projection,
+                breakdown,
+                oppKnown,
+                maps: prop.maps,
+                player,
+                pastMatches,
+                borrowedContext: borrowed,
+                evidence: effectiveEvidence(breakdown.evidenceGames, borrowed),
+                edge: prop.lineCount > 1 ? null : projection - prop.line,
+                adjustedEdge: prop.lineCount > 1 ? null : adjustEdge(projection - prop.line, effectiveEvidence(breakdown.evidenceGames, borrowed), projection, prop.line, leagueRate === null ? null : leagueRate * prop.maps)
+              });
+            }
           }
         }
       }
@@ -759,6 +773,24 @@ try {
       });
     }
     return rows;
+  }
+  function recordByWindow(rows) {
+    const byWindow = new Map();
+    for (const r of rows) {
+      const maps = typeof r.maps === "number" ? r.maps : -1;
+      if (!byWindow.has(maps)) byWindow.set(maps, []);
+      byWindow.get(maps).push(r);
+    }
+    return [...byWindow.keys()].sort((a, b) => a - b).map(maps => {
+      const inWindow = byWindow.get(maps);
+      const won = inWindow.filter(r => r.won).length;
+      return {
+        maps,
+        n: inWindow.length,
+        won,
+        rate: inWindow.length ? won / inWindow.length : null
+      };
+    });
   }
   const EDGE_BUCKETS = [[0, 1], [1, 2], [2, 3], [3, Infinity]];
   function recordByEdge(rows) {
@@ -3725,6 +3757,18 @@ try {
       team: row.team
     })));
   }
+  function windowSections(rows) {
+    const byWindow = new Map();
+    for (const row of rows) {
+      const maps = typeof row.maps === "number" ? row.maps : row.prop && typeof row.prop.maps === "number" ? row.prop.maps : -1;
+      if (!byWindow.has(maps)) byWindow.set(maps, []);
+      byWindow.get(maps).push(row);
+    }
+    return [...byWindow.keys()].sort((a, b) => a - b).map(maps => ({
+      maps,
+      rows: byWindow.get(maps)
+    }));
+  }
   function EdgesTab({
     regionsData,
     regionList,
@@ -3825,15 +3869,43 @@ try {
       style: {
         color: theme.text
       }
-    }, lean.overs, " of ", lean.n, " lines read ", lean.side.toUpperCase(), "."), " ", "Edges that nearly all point one way usually mean the model and the market disagree about the fixture rather than about the players \u2014 a level offset, which per-player accuracy cannot fix.", borrowedCount === withEdge.length && withEdge.length > 0 && React.createElement(React.Fragment, null, " Every line here is for an event with no completed matches yet, so the projections come from the players\u2019 form in another competition. The market is pricing something about this event that that form does not contain.")), rows.map((row, i) => React.createElement(EdgeRow, {
-      key: `${row.game}-${row.name}-${row.team}-${i}`,
+    }, lean.overs, " of ", lean.n, " lines read ", lean.side.toUpperCase(), "."), " ", "Edges that nearly all point one way usually mean the model and the market disagree about the fixture rather than about the players \u2014 a level offset, which per-player accuracy cannot fix.", borrowedCount === withEdge.length && withEdge.length > 0 && React.createElement(React.Fragment, null, " Every line here is for an event with no completed matches yet, so the projections come from the players\u2019 form in another competition. The market is pricing something about this event that that form does not contain.")), windowSections(rows).map(({
+      maps,
+      rows: section
+    }) => React.createElement(Fragment, {
+      key: maps
+    }, React.createElement("div", {
+      style: {
+        padding: "9px 16px",
+        borderTop: `1px solid ${theme.steel}`,
+        borderBottom: `1px solid ${theme.steel}`,
+        background: theme.graphiteLight,
+        display: "flex",
+        alignItems: "baseline",
+        gap: 8
+      }
+    }, React.createElement("span", {
+      style: {
+        fontSize: 10.5,
+        letterSpacing: 1,
+        textTransform: "uppercase",
+        fontWeight: 700,
+        color: theme.textDim
+      }
+    }, maps > 0 ? mapWindowLabel(maps) : "window not stated"), React.createElement("span", {
+      style: {
+        fontSize: 11,
+        color: theme.textFaint
+      }
+    }, section.length, " ", section.length === 1 ? "line" : "lines")), section.map((row, i) => React.createElement(EdgeRow, {
+      key: `${row.game}-${row.name}-${row.team}-${maps}-${i}`,
       row: row,
       theme: theme,
       cfg: cfg,
       fresh: fresh,
       ageMinutes: ageMinutes,
       isDesktop: isDesktop
-    }))), React.createElement("div", {
+    }))))), React.createElement("div", {
       style: {
         fontSize: 11,
         color: theme.textFaint,
@@ -3890,6 +3962,7 @@ try {
     const decided = rows.length;
     const won = rows.filter(r => r.won).length;
     const buckets = recordByEdge(rows);
+    const windows = recordByWindow(rows);
     const graded = results.graded.length;
     return React.createElement("div", null, shell(React.createElement(React.Fragment, null, React.createElement("div", {
       style: {
@@ -3907,6 +3980,57 @@ try {
         color: theme.text
       }
     }, decided), " (", (100 * won / decided).toFixed(1), "%). Each projection was rebuilt from data that predated its own match, so this is not the model grading its own homework \u2014 but it is a small sample, and a sample this size moves several points on a handful of results."))), React.createElement("div", {
+      style: {
+        background: theme.graphite,
+        border: `1px solid ${theme.steel}`,
+        ...cardShape(theme.cornerStyle),
+        ...elevation(),
+        marginTop: 12,
+        overflow: "hidden"
+      }
+    }, React.createElement("div", {
+      style: {
+        padding: "12px 16px",
+        borderBottom: `1px solid ${theme.steel}`,
+        fontSize: 12.5,
+        color: theme.text
+      }
+    }, "By map window"), windows.map(w => {
+      const enough = w.n >= RECORD_MIN_SAMPLE;
+      return React.createElement("div", {
+        key: w.maps,
+        style: {
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          padding: "10px 16px",
+          borderBottom: `1px solid ${theme.steel}`
+        }
+      }, React.createElement("div", {
+        style: {
+          flex: 1,
+          fontSize: 12.5,
+          color: theme.textDim
+        }
+      }, w.maps > 0 ? mapWindowLabel(w.maps) : "window not stated"), React.createElement("div", {
+        className: "kp-num",
+        style: {
+          fontSize: 12,
+          color: theme.textFaint,
+          minWidth: 70,
+          textAlign: "right"
+        }
+      }, w.won, "/", w.n), React.createElement("div", {
+        className: "kp-num",
+        style: {
+          fontSize: 14,
+          fontWeight: 700,
+          minWidth: 64,
+          textAlign: "right",
+          color: enough ? w.rate > 0.5 ? theme.good : w.rate < 0.5 ? theme.bad : theme.textDim : theme.textFaint
+        }
+      }, enough ? `${(100 * w.rate).toFixed(0)}%` : "\u2014"));
+    })), React.createElement("div", {
       style: {
         background: theme.graphite,
         border: `1px solid ${theme.steel}`,
@@ -3965,7 +4089,7 @@ try {
         marginTop: 10,
         lineHeight: 1.65
       }
-    }, "If the model is worth anything, that column climbs as the disagreement grows. If it does not, a confident edge is worth no more than a marginal one. Rates are withheld below ", RECORD_MIN_SAMPLE, " ", "bets per row. Pushes and projections landing exactly on the line are excluded \u2014 neither is a bet.", isDesktop && " Nothing here accounts for the price paid, so a win rate above 50% is not by itself a profit."));
+    }, "If the model is worth anything, that column climbs as the disagreement grows. If it does not, a confident edge is worth no more than a marginal one. Rates are withheld below ", RECORD_MIN_SAMPLE, " ", "bets per row, in both tables \u2014 a window with four bets in it has no record, only a number.", " ", "Pushes and projections landing exactly on the line are excluded \u2014 neither is a bet.", isDesktop && " Nothing here accounts for the price paid, so a win rate above 50% is not by itself a profit."));
   }
   function StandingsTab({
     teams,
@@ -4732,15 +4856,15 @@ try {
       const opp = team === match.teamA ? match.teamB : match.teamA;
       return likelyStarters(teams[team].players).map(p => {
         const breakdown = project(teams, pastMatches, p, team, opp, games, weights, statType);
-        const prop = propFor(propsData, game, p.name, statType, match._sortKey || match.date);
-        const propProjection = projectionOverWindow(breakdown, prop);
+        const posted = propsFor(propsData, game, p.name, statType, match._sortKey || match.date);
+        const propProjections = posted.map(w => projectionOverWindow(breakdown, w));
         return {
           team,
           name: p.name,
           role: p.role,
           proj: breakdown.total,
-          prop,
-          propProjection,
+          props: posted,
+          propProjections,
           player: p,
           breakdown
         };
@@ -4858,8 +4982,8 @@ try {
         color: theme.accent,
         big: true
       }],
-      prop: row.prop,
-      propProjection: row.propProjection,
+      props: row.props,
+      propProjections: row.propProjections,
       propsFresh: propsFresh,
       propsAge: propsAge,
       r: row.breakdown,

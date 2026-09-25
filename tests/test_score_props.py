@@ -28,9 +28,23 @@ def lol_match(date="2026-09-21", maps=3, kills=(5, 4, 6)):
 
 
 def cs2_match(date="2026-09-21", kills=28):
-    """CS2 stores one total covering exactly maps 1-2 and nothing finer."""
+    """An OLD-shaped CS2 record: one total covering exactly maps 1-2 and
+    nothing finer. Records scraped before the per-map breakdown existed
+    all look like this, and they age out only as matches are re-fetched,
+    so the fallback they exercise has to keep working."""
     return {"date": date, "teamA": "Sashi", "teamB": "FOKUS",
             "actual": {"Sashi": {"acoR": {"k": kills, "d": 20, "a": 5}}}}
+
+
+def cs2_match_per_map(date="2026-09-21", kills=(14, 14, 11)):
+    """A CS2 record as the scraper writes one now: every map played, kept
+    separately, with `actual` still summing exactly maps 1-2."""
+    return {
+        "date": date, "teamA": "Sashi", "teamB": "FOKUS",
+        "per_game": [{"Sashi": {"acoR": {"k": k, "d": 10, "a": 2, "hs": 7}}}
+                     for k in kills],
+        "actual": {"Sashi": {"acoR": {"k": sum(kills[:2]), "d": 20, "a": 5}}},
+    }
 
 
 def regions(*matches):
@@ -73,12 +87,77 @@ class TestWindowResolution:
         assert value == 28 and reason is None
 
     @pytest.mark.parametrize("maps", [1, 3])
-    def test_cs2_refuses_any_other_window(self, maps):
-        """Its stored total covers maps 1-2 because the scraper collects
-        exactly two. A map-1 line graded against it would lose almost
-        always, and the record would look like a broken model."""
+    def test_a_lone_total_refuses_any_other_window(self, maps):
+        """An old-shaped record's total covers maps 1-2 and says nothing
+        about any other window. A map-1 line graded against it would lose
+        almost always, and the record would look like a broken model."""
         value, reason = sc.actual_over_window(cs2_match(), "Sashi", "acoR", "kills", maps, "cs2")
-        assert value is None and "maps 1-2 only" in reason
+        assert value is None and "no per-map breakdown" in reason
+
+    def test_cs2_map_one_resolves_from_the_breakdown(self):
+        """The refusal above is not a fact about CS2, it is a fact about a
+        record with no breakdown. Given one, a map-1 line is exact."""
+        value, reason = sc.actual_over_window(
+            cs2_match_per_map(kills=(14, 14, 11)), "Sashi", "acoR", "kills", 1, "cs2")
+        assert value == 14 and reason is None
+
+    def test_cs2_maps_one_to_three_resolves_from_the_breakdown(self):
+        """The window nobody could grade before. A maps 1-3 line is its
+        own market and settles over its own three maps."""
+        value, reason = sc.actual_over_window(
+            cs2_match_per_map(kills=(14, 14, 11)), "Sashi", "acoR", "kills", 3, "cs2")
+        assert value == 39 and reason is None
+
+    def test_cs2_maps_one_to_two_still_matches_the_stored_total(self):
+        """The breakdown and the total have to agree on the window they
+        overlap on, or one of the two is wrong and every record built on
+        either is suspect."""
+        match = cs2_match_per_map(kills=(14, 14, 11))
+        from_breakdown, _ = sc.actual_over_window(match, "Sashi", "acoR", "kills", 2, "cs2")
+        assert from_breakdown == match["actual"]["Sashi"]["acoR"]["k"] == 28
+
+    def test_a_three_map_line_on_a_two_map_series_is_refused(self):
+        """A CS2 series that ended 2-0 never played a third map. Settling
+        a maps 1-3 line on two maps invents the third map's zero, so it is
+        counted under its own reason instead."""
+        value, reason = sc.actual_over_window(
+            cs2_match_per_map(kills=(14, 14)), "Sashi", "acoR", "kills", 3, "cs2")
+        assert value is None and "2 map" in reason
+
+    def test_the_breakdown_beats_the_total_when_both_are_present(self):
+        """Not a preference -- a requirement. The total answers exactly
+        one window and the breakdown answers every window, so reaching for
+        the total first would refuse questions the record can answer."""
+        match = cs2_match_per_map(kills=(14, 14, 11))
+        match["actual"]["Sashi"]["acoR"]["k"] = 999  # deliberately wrong
+        value, _ = sc.actual_over_window(match, "Sashi", "acoR", "kills", 2, "cs2")
+        assert value == 28
+
+    def test_headshots_resolve_per_map(self):
+        value, reason = sc.actual_over_window(
+            cs2_match_per_map(), "Sashi", "acoR", "headshots", 2, "cs2")
+        assert value == 14 and reason is None
+
+    def test_a_lone_total_uses_the_window_the_match_records(self):
+        """LoL's total follows the format: a Bo5's runs through map 3. A
+        record that says so grades a maps 1-3 line and refuses a 1-2 one,
+        which is the reverse of the CS2 default and the reason the window
+        is read off the match rather than off the game."""
+        match = lol_match(maps=3)
+        del match["per_game"]
+        value, reason = sc.actual_over_window(match, "T1", "Faker", "kills", 3, "lol")
+        assert value == 15 and reason is None
+        value, reason = sc.actual_over_window(match, "T1", "Faker", "kills", 2, "lol")
+        assert value is None and "maps 1-3 total" in reason
+
+    @pytest.mark.parametrize("maps", [0, -1, None, "2"])
+    def test_a_line_with_no_usable_window_is_refused(self, maps):
+        """maps reaches here straight off the provider's payload. A zero
+        or a string would slice per_game into an empty list and grade
+        every such line as a 0, which reads as a real result."""
+        value, reason = sc.actual_over_window(
+            cs2_match_per_map(), "Sashi", "acoR", "kills", maps, "cs2")
+        assert value is None and "map window" in reason
 
     def test_a_player_missing_from_a_map_is_refused(self):
         match = lol_match()
