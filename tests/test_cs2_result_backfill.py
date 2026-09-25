@@ -257,6 +257,77 @@ class TestWhatGetsKept:
         assert sc.absorb_results(past, None) == (0, 0, [])
 
 
+class TestTheFetchIsWired:
+    """That the results absorbed are the ones this block just fetched.
+
+    Not a style check. An edit to the block dropped its
+    `asyncio.gather(process(...))` while leaving the variable name
+    `processed` in place -- and there is another `processed` in the same
+    function, from the notable-match pass. So the run selected 60 teams,
+    fetched nothing, re-absorbed the main block's results over
+    themselves, and reported "refreshed 72 already on file". Exactly one
+    record in the whole file changed.
+
+    Nothing could catch that at runtime: no exception, no empty result,
+    a plausible-looking log line, and a green suite. The only thing that
+    distinguishes it is the shape of the code, so that is what is
+    asserted -- the fetch feeding absorb_results has to exist, be
+    awaited, and be the thing absorb_results is handed.
+    """
+
+    @staticmethod
+    def tree():
+        import ast
+        return ast.parse((ROOT / "scripts" / "scrape_cs2.py").read_text())
+
+    def absorb_call(self):
+        import ast
+        calls = [n for n in ast.walk(self.tree())
+                 if isinstance(n, ast.Call) and getattr(n.func, "id", None) == "absorb_results"]
+        assert len(calls) == 1, "expected exactly one absorb_results call site"
+        return calls[0]
+
+    def test_absorb_is_handed_a_plain_name(self):
+        import ast
+        second = self.absorb_call().args[1]
+        assert isinstance(second, ast.Name), \
+            "the results absorbed should be a named variable, so the assertions below can follow it"
+
+    def test_that_name_is_assigned_exactly_once_in_the_file(self):
+        """A name assigned twice is a name that can be read stale, which
+        is the whole failure this guards."""
+        import ast
+        want = self.absorb_call().args[1].id
+        assigns = [n for n in ast.walk(self.tree())
+                   if isinstance(n, ast.Assign)
+                   and any(isinstance(t, ast.Name) and t.id == want for t in n.targets)]
+        assert len(assigns) == 1, f"{want!r} is assigned {len(assigns)} times; it must be unambiguous"
+
+    def test_it_is_assigned_from_an_awaited_gather_over_process(self):
+        import ast
+        want = self.absorb_call().args[1].id
+        assign = next(n for n in ast.walk(self.tree())
+                      if isinstance(n, ast.Assign)
+                      and any(isinstance(t, ast.Name) and t.id == want for t in n.targets))
+        assert isinstance(assign.value, ast.Await), f"{want!r} is not awaited — nothing was fetched"
+        call = assign.value.value
+        assert isinstance(call, ast.Call) and ast.unparse(call.func) == "asyncio.gather", \
+            f"{want!r} does not come from asyncio.gather"
+        assert "process(" in ast.unparse(call), \
+            f"{want!r} is gathered from something other than process()"
+
+    def test_it_is_gathered_over_the_matches_that_were_selected(self):
+        """The last link: fetched from result_matches, the list the
+        per-team search above fills. Gathering over anything else would
+        pass every assertion here and still answer the wrong question."""
+        import ast
+        want = self.absorb_call().args[1].id
+        assign = next(n for n in ast.walk(self.tree())
+                      if isinstance(n, ast.Assign)
+                      and any(isinstance(t, ast.Name) and t.id == want for t in n.targets))
+        assert "result_matches" in ast.unparse(assign.value)
+
+
 class TestItNeverBreaksAScrape:
     def test_no_history_file_is_not_an_error(self, tmp_path):
         assert sc.load_props_history(str(tmp_path / "nope.jsonl")) == []

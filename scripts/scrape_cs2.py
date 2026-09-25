@@ -1137,11 +1137,20 @@ async def build_region_payload(cs2, session):
                 await fetch_team_recent_matches(session, team_id,
                                                 limit=BACKFILL_MATCHES_PER_TEAM))
         if result_matches:
-            for entry in processed:
+            # Deliberately NOT called `processed`. The main block above
+            # has a variable by that name, and an edit that dropped this
+            # gather silently re-absorbed ITS results instead of these:
+            # the run reported "refreshed 72 already on file", changed
+            # exactly one record, and fetched none of the 370 matches it
+            # had just gone to the trouble of selecting. A name that
+            # cannot collide turns that into a NameError.
+            result_processed = await asyncio.gather(
+                *[process(m, short_name_by_team_id) for m in result_matches])
+            for entry in result_processed:
                 if entry:
                     entry["teamA"] = short_name_by_team_id.get(entry.pop("_team1_id", None), entry["teamA"])
                     entry["teamB"] = short_name_by_team_id.get(entry.pop("_team2_id", None), entry["teamB"])
-            added_results, refreshed_results, touched = absorb_results(past_matches, processed)
+            added_results, refreshed_results, touched = absorb_results(past_matches, result_processed)
             print(f"  added {added_results} result(s) for previously ungradeable lines, "
                   f"refreshed {refreshed_results} already on file\n")
             # The entries themselves, not a tail slice: a refreshed match
