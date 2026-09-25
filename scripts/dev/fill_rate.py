@@ -54,27 +54,48 @@ def main():
     data = {g: json.load(open(f)) for g, f in FILES.items() if os.path.exists(f)}
     graded, refused = sp.grade(list(uniq.values()), data)
 
-    today = datetime.datetime.now(datetime.timezone.utc).date()
+    # Against the CLOCK, not the calendar. A fixture at 20:00 today has
+    # not been played at 03:00 today, and counting it as settleable-but-
+    # ungraded put 325 lines into "what another scrape buys" when no
+    # scrape could buy them -- the match did not exist yet. That is not a
+    # rounding error in the headline: it read 62.9% when the honest
+    # figure against fixtures that have actually happened was far higher,
+    # and it makes the number look stuck while nothing is wrong.
+    #
+    # A line whose start time will not parse is treated as settleable, so
+    # an unreadable timestamp shows up in the refusal counts rather than
+    # being quietly excused as "not played yet".
+    now = datetime.datetime.now(datetime.timezone.utc)
     future = sum(1 for r in uniq.values()
-                 if (sp.utc_date(r.get("start_time")) or today) > today)
+                 if (sp.parse_time(r.get("start_time")) or now) > now)
     total = len(uniq)
     settleable = total - future
     structural = sum(n for reason, n in refused.items()
                      if any(k in reason for k in STRUCTURAL))
     recoverable = settleable - len(graded) - structural
 
+    # Every rate here divides by settleable, which is legitimately zero
+    # when every fixture on the board is still ahead of us -- a board
+    # posted in the morning for an evening slate. That is the ordinary
+    # state of a fresh board, not an error, and it used to end the run
+    # in ZeroDivisionError.
+    def share(n):
+        return "    —" if not settleable else f"{100 * n / settleable:.1f}%"
+
     print(f"posted lines on record      {total}")
     print(f"  fixture not played yet    {future}")
     print(f"  settleable now            {settleable}")
     print(f"    graded                  {len(graded):5d}  "
-          f"{100 * len(graded) / settleable:.1f}% of settleable")
-    print(f"    ungradeable by nature   {structural:5d}  "
-          f"{100 * structural / settleable:.1f}%")
+          f"{share(len(graded))} of settleable")
+    print(f"    ungradeable by nature   {structural:5d}  {share(structural)}")
     print(f"    still recoverable       {recoverable:5d}  "
-          f"{100 * recoverable / settleable:.1f}%   <- what another scrape buys")
+          f"{share(recoverable)}   <- what another scrape buys")
     reachable = len(graded) + recoverable
     print(f"\n  ceiling for this history  {reachable}/{settleable} "
-          f"({100 * reachable / settleable:.1f}%)  -- 100% is not the target")
+          f"({share(reachable)})  -- 100% is not the target")
+    if not settleable:
+        print("  Nothing on this board has been played yet, so there is no "
+              "fill rate to report.")
     print("\n  refusals:")
     for reason, n in refused.most_common():
         tag = "structural" if any(k in reason for k in STRUCTURAL) else "recoverable"
