@@ -3842,6 +3842,11 @@ try {
     const cfg = STAT_TYPES[statType];
     const rows = collectEdges(regionsData, regionList, propsData, weights, statType, game);
     const startedCount = rows.filter(r => !propIsLive(r.prop)).length;
+    const results = useGradedResults();
+    const graded = useMemo(() => results ? modelRecord(regionsData, regionList, results, weights, statType) : [], [results, regionsData, regionList, weights, statType]);
+    const record = useMemo(() => graded.length ? recordVsLine(graded) : null, [graded]);
+    const ranking = useMemo(() => graded.length ? rankingIsInformative(graded) : null, [graded]);
+    const BREAKEVEN = 0.524;
     const note = text => React.createElement("div", {
       style: {
         background: theme.graphite,
@@ -3913,7 +3918,23 @@ try {
         color: theme.textFaint,
         marginLeft: !fresh ? 0 : "auto"
       }
-    }, startedCount, " ", startedCount === 1 ? "fixture has" : "fixtures have", " started")), lean && React.createElement("div", {
+    }, startedCount, " ", startedCount === 1 ? "fixture has" : "fixtures have", " started")), record && record.winRate && React.createElement("div", {
+      style: {
+        padding: "11px 16px",
+        borderBottom: `1px solid ${theme.steel}`,
+        fontSize: 11.5,
+        lineHeight: 1.6,
+        color: theme.textDim
+      }
+    }, React.createElement("strong", {
+      style: {
+        color: theme.text
+      }
+    }, "This board's record: ", (100 * record.winRate.mean).toFixed(1), "%"), " ", "when the projection disagreed with the line, over ", record.matches, " matches", " ", "(95% CI ", (100 * record.winRate.lo).toFixed(1), "\u2013", (100 * record.winRate.hi).toFixed(1), "%). Breakeven at \u2212110 is ", (100 * BREAKEVEN).toFixed(1), "%", record.winRate.lo > BREAKEVEN ? ", which this clears." : record.winRate.hi < BREAKEVEN ? ", which this is below." : ", and that interval still contains it — nothing here is established yet.", ranking && !ranking.informative && React.createElement(React.Fragment, null, " ", "Rows are sorted by the size of the disagreement, but a bigger one has", " ", React.createElement("strong", {
+      style: {
+        color: theme.text
+      }
+    }, "not"), " won more often so far", " ", "(", (100 * ranking.big.mean).toFixed(0), "% at ", ranking.threshold, "+ against", " ", (100 * ranking.small.mean).toFixed(0), "% below it), so read the order as", " ", "a sort, not a ranking of confidence."), ranking && ranking.informative && React.createElement(React.Fragment, null, " ", "Rows above ", ranking.threshold, " have won ", (100 * ranking.big.mean).toFixed(0), "%", " ", "against ", (100 * ranking.small.mean).toFixed(0), "% below it.")), lean && React.createElement("div", {
       style: {
         padding: "11px 16px",
         borderBottom: `1px solid ${theme.steel}`,
@@ -3972,15 +3993,7 @@ try {
     }, "Edge is the projection minus the line, over the line\u2019s own map window, discounted by how much evidence the projection rests on. Measured over past seasons, a disagreement built on fewer than four games realises about a third of its face value, and one built on twelve or more realises almost all of it \u2014 so ranking on the raw number promoted the rows the model knew least about. ", anyDiscounted && "A row that was cut shows the figure it came from beside its map window. ", "It is a model disagreeing with a market, not a prediction of the result \u2014 and the model is the same one the accuracy figures on the Future tab describe."));
   }
   const RECORD_MIN_SAMPLE = 30;
-  function RecordTab({
-    regionsData,
-    regionList,
-    weights,
-    statType,
-    isDesktop
-  }) {
-    const theme = useTheme();
-    const cfg = STAT_TYPES[statType];
+  function useGradedResults() {
     const [results, setResults] = useState(undefined);
     useEffect(() => {
       let live = true;
@@ -3995,6 +4008,33 @@ try {
         live = false;
       };
     }, []);
+    return results;
+  }
+  function rankingIsInformative(rows, threshold = 2) {
+    const decided = rows.filter(r => r.result !== "push" && typeof r.edge === "number");
+    const big = decided.filter(r => Math.abs(r.edge) >= threshold);
+    const small = decided.filter(r => Math.abs(r.edge) < threshold);
+    const rate = set => clusteredMean(groupByMatch(set).map(m => m.filter(r => r.won).length / m.length));
+    const bigRate = rate(big),
+      smallRate = rate(small);
+    if (!bigRate || !smallRate || big.length < 30 || small.length < 30) return null;
+    return {
+      big: bigRate,
+      small: smallRate,
+      threshold,
+      informative: bigRate.lo > smallRate.mean
+    };
+  }
+  function RecordTab({
+    regionsData,
+    regionList,
+    weights,
+    statType,
+    isDesktop
+  }) {
+    const theme = useTheme();
+    const cfg = STAT_TYPES[statType];
+    const results = useGradedResults();
     const rows = useMemo(() => results ? modelRecord(regionsData, regionList, results, weights, statType) : [], [results, regionsData, regionList, weights, statType]);
     const shell = children => React.createElement("div", {
       style: {

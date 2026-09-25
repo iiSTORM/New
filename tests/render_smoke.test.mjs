@@ -40,6 +40,7 @@ const EXPORTS = [
   "ProjectionDetail", "historyPool", "project", "ScoreBar", "collectEdges",
   "EvidenceChip", "evidenceTier", "windowSections", "projectionOverWindow",
   "DataStatus", "oldestRegion", "recordVsLine", "calibration", "clusteredMean",
+  "rankingIsInformative",
 ];
 const available = EXPORTS.filter((name) =>
   new RegExp(`(function|const)\\s+${name}\\b`).test(body));
@@ -599,6 +600,115 @@ if (app.collectEdges && app.EdgesTab) {
       containsText("the map 1 edge is against a one-map projection", card, fmt(oneMap));
       containsText("and the maps 1-3 edge against a three-map one", card, fmt(threeMap));
     }
+  }
+}
+
+/* Does the board's ORDER mean anything?
+ *
+ * The Edges tab sorts by the size of the disagreement, and a sorted
+ * list asserts that its top is better than its middle. That assertion
+ * is testable, and on the record so far it is false: at edge >= 1 the
+ * bigger disagreements have won 48.7% against 55.3% for the smaller
+ * ones. The board says so on itself rather than leaving the reader to
+ * infer confidence from position.
+ *
+ * The thing to guard is the direction of the claim. Saying "the top of
+ * this board is better" when it is not is the single most expensive
+ * thing this page could get wrong.
+ */
+if (app.rankingIsInformative) {
+  const row = (edge, won, i, date = "2026-09-20") => ({
+    game: "cs2", match_date: date, team: `T${i}`, opponent: `O${i}`,
+    result: "over", won, edge, projection: 20, actual: 20, line: 18,
+  });
+  // 40 matches either side of the threshold, so the sample floor is met.
+  const make = (bigWinRate, smallWinRate) => {
+    const out = [];
+    for (let i = 0; i < 40; i++) {
+      out.push(row(3, i / 40 < bigWinRate, `b${i}`));
+      out.push(row(0.5, i / 40 < smallWinRate, `s${i}`));
+    }
+    return out;
+  };
+
+  try {
+    const flat = app.rankingIsInformative(make(0.5, 0.5), 2);
+    if (!flat) throw new Error("returned null on a sufficient sample");
+    if (flat.informative) throw new Error("called a flat curve informative");
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  a flat edge curve is not called informative\n        ${err.message}`);
+  }
+
+  try {
+    // Big band clearly and consistently better.
+    const real = app.rankingIsInformative(make(0.95, 0.30), 2);
+    if (!real || !real.informative) {
+      throw new Error(`a genuinely predictive curve was not recognised (${real && real.informative})`);
+    }
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  a real edge curve IS recognised\n        ${err.message}`);
+  }
+
+  try {
+    // Backwards: the big band does WORSE. Must never read as informative.
+    const inverted = app.rankingIsInformative(make(0.20, 0.90), 2);
+    if (inverted && inverted.informative) throw new Error("an inverted curve was called informative");
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  an inverted edge curve is never informative\n        ${err.message}`);
+  }
+
+  try {
+    const thin = app.rankingIsInformative([row(3, true, 1), row(0.5, false, 2)], 2);
+    if (thin !== null) throw new Error("reported a verdict off two rows");
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  too few rows returns no verdict at all\n        ${err.message}`);
+  }
+
+  try {
+    /* The sample floor, tested where it actually bites. Ten matches a
+       side is enough for an interval to exist but nowhere near enough
+       to claim the board's order means something, and a 90%-vs-10%
+       split is exactly the flattering result a thin sample invents. */
+    const few = [];
+    for (let i = 0; i < 10; i++) {
+      few.push(row(3, i < 9, `b${i}`));
+      few.push(row(0.5, i < 1, `s${i}`));
+    }
+    if (app.rankingIsInformative(few, 2) !== null) {
+      throw new Error("claimed a verdict on ten matches a side");
+    }
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  a sample below the floor gets no verdict however lopsided\n        ${err.message}`);
+  }
+
+  try {
+    /* The real-world shape, and the one a loose test misses: the top
+       band's MEAN is a little higher, but its interval is nowhere near
+       clearing the bottom band. On the live record that is 51.7%
+       against 50.4%. Comparing means alone calls this a working
+       ranking; it is two noisy numbers that happen to be ordered. */
+    const barely = app.rankingIsInformative(make(0.55, 0.50), 2);
+    if (!barely) throw new Error("returned null on a sufficient sample");
+    if (barely.big.mean <= barely.small.mean) {
+      throw new Error("fixture is wrong: the top band must LOOK better for this to test anything");
+    }
+    if (barely.informative) {
+      throw new Error("a higher mean with an overlapping interval was called informative");
+    }
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  looking better is not the same as being better\n        ${err.message}`);
   }
 }
 

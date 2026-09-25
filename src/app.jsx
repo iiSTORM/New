@@ -3619,6 +3619,18 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
   const rows = collectEdges(regionsData, regionList, propsData, weights, statType, game);
   const startedCount = rows.filter((r) => !propIsLive(r.prop)).length;
 
+  /* What this board has actually done, shown ON the board.
+     A ranked list asserts that its top is better than its middle, and
+     that assertion is testable -- so it is tested here rather than left
+     for the reader to take on faith from a tab they may never open. */
+  const results = useGradedResults();
+  const graded = useMemo(
+    () => (results ? modelRecord(regionsData, regionList, results, weights, statType) : []),
+    [results, regionsData, regionList, weights, statType]);
+  const record = useMemo(() => (graded.length ? recordVsLine(graded) : null), [graded]);
+  const ranking = useMemo(() => (graded.length ? rankingIsInformative(graded) : null), [graded]);
+  const BREAKEVEN = 0.524;
+
   const note = (text) => (
     <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
                   ...elevation(), padding: "18px 20px", fontSize: 12.5, color: theme.textFaint, lineHeight: 1.6 }}>
@@ -3701,6 +3713,35 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
             </span>
           )}
         </div>
+        {record && record.winRate && (
+          <div style={{ padding: "11px 16px", borderBottom: `1px solid ${theme.steel}`,
+                        fontSize: 11.5, lineHeight: 1.6, color: theme.textDim }}>
+            <strong style={{ color: theme.text }}>
+              This board's record: {(100 * record.winRate.mean).toFixed(1)}%
+            </strong>{" "}
+            when the projection disagreed with the line, over {record.matches} matches
+            {" "}(95% CI {(100 * record.winRate.lo).toFixed(1)}–{(100 * record.winRate.hi).toFixed(1)}%).
+            Breakeven at −110 is {(100 * BREAKEVEN).toFixed(1)}%
+            {record.winRate.lo > BREAKEVEN ? ", which this clears."
+              : record.winRate.hi < BREAKEVEN ? ", which this is below."
+              : ", and that interval still contains it — nothing here is established yet."}
+            {ranking && !ranking.informative && (
+              <>
+                {" "}Rows are sorted by the size of the disagreement, but a bigger one has
+                {" "}<strong style={{ color: theme.text }}>not</strong> won more often so far
+                {" "}({(100 * ranking.big.mean).toFixed(0)}% at {ranking.threshold}+ against
+                {" "}{(100 * ranking.small.mean).toFixed(0)}% below it), so read the order as
+                {" "}a sort, not a ranking of confidence.
+              </>
+            )}
+            {ranking && ranking.informative && (
+              <>
+                {" "}Rows above {ranking.threshold} have won {(100 * ranking.big.mean).toFixed(0)}%
+                {" "}against {(100 * ranking.small.mean).toFixed(0)}% below it.
+              </>
+            )}
+          </div>
+        )}
         {lean && (
           <div style={{ padding: "11px 16px", borderBottom: `1px solid ${theme.steel}`,
                         background: `${theme.accent}0E`, fontSize: 12, lineHeight: 1.55,
@@ -3761,11 +3802,19 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
    difference with an encouraging number off a handful of bets. */
 const RECORD_MIN_SAMPLE = 30;
 
-function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
-  const theme = useTheme();
-  const cfg = STAT_TYPES[statType];
-  const [results, setResults] = useState(undefined);   // undefined = still loading
+/* The graded record, fetched once per component that needs it.
 
+   Lifted out of RecordTab because the EDGES board needs it too, and for
+   a reason worth stating: that board is a ranked list, and a ranked
+   list asserts that the top of it is better than the middle. The
+   measured record says it is not -- bigger disagreements have not won
+   more often. A board making that claim while the evidence sits one tab
+   away is the kind of thing a paying reader is entitled to be annoyed
+   about.
+
+   undefined = still loading, null = unavailable. */
+function useGradedResults() {
+  const [results, setResults] = useState(undefined);
   useEffect(() => {
     let live = true;
     fetch(DATA_URL_RESULTS, { cache: "no-store" })
@@ -3774,6 +3823,36 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
       .catch(() => { if (live) setResults(null); });
     return () => { live = false; };
   }, []);
+  return results;
+}
+
+/* Has a bigger disagreement actually won more often?
+
+   Returns null until there is enough to say. The comparison is the top
+   band against everything below it, both clustered on the match, and it
+   answers "is the top of this board worth more than the rest of it" --
+   which is the only thing the ranking claims. */
+function rankingIsInformative(rows, threshold = 2) {
+  const decided = rows.filter((r) => r.result !== "push" && typeof r.edge === "number");
+  const big = decided.filter((r) => Math.abs(r.edge) >= threshold);
+  const small = decided.filter((r) => Math.abs(r.edge) < threshold);
+  const rate = (set) => clusteredMean(
+    groupByMatch(set).map((m) => m.filter((r) => r.won).length / m.length));
+  const bigRate = rate(big), smallRate = rate(small);
+  if (!bigRate || !smallRate || big.length < 30 || small.length < 30) return null;
+  return {
+    big: bigRate, small: smallRate, threshold,
+    // "Informative" only if the top band's interval clears the bottom
+    // band's point estimate. Anything less is two noisy numbers that
+    // happen to be ordered.
+    informative: bigRate.lo > smallRate.mean,
+  };
+}
+
+function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
+  const theme = useTheme();
+  const cfg = STAT_TYPES[statType];
+  const results = useGradedResults();
 
   const rows = useMemo(
     () => (results ? modelRecord(regionsData, regionList, results, weights, statType) : []),
