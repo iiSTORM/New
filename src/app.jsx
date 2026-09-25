@@ -2676,7 +2676,7 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // headshots was tested the same way and NOT changed: k=2 wins 1/6
     // and k=16 wins 2/6, the sign flips across the range, and the best
     // reading is -0.94%. That is a knife edge, not a plateau.
-    assists: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0, share: 0.0, shrink: 8.0 },
+    assists: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 1.0, share: 0.0, shrink: 4.0 },
     // HEADSHOTS, tuned out-of-sample the same way as everything else, on
     // 911 rows that exist only because a scrape run was asked what
     // bo3.gg's players_stats actually contains rather than assumed.
@@ -2703,7 +2703,7 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // a parameter whose removal costs nothing still ships a value fitted
     // to noise. Recency is likewise flat — 6, 12 and 20 sit within 0.3pp
     // — and pinned at the no-decay end.
-    headshots: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 0.0, share: 0.0, shrink: 3.0 },
+    headshots: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 0.0, share: 0.0, shrink: 6.0 },
   },
 };
 

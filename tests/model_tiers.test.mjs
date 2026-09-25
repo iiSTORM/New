@@ -253,18 +253,38 @@ for (const [game, file] of Object.entries({ valorant: "valorant_data.json", cs2:
      this game -- walk-forward over 6 folds, kills 6/6 (-8.54%), assists
      6/6 (-3.56%), deaths 4/6 (-2.95%).
 
-     headshots is deliberately NOT in that list and stays at 3: the same
-     sweep gives it 1/6 at k=2 and 2/6 at k=16 with the sign flipping in
-     between, which is a knife edge rather than a plateau. */
+     headshots used to be excluded from that list and pinned at 3: the
+     sweep gave it 1/6 at k=2 and 2/6 at k=16 with the sign flipping in
+     between, which is a knife edge rather than a plateau. That reading
+     came off corrupted data AND a broken instrument -- every CS2 Bo1
+     was being read as two maps, and sweep_weight.py cut its folds from
+     distinct dates, so a 79-row fold counted as much as a 1543-row one.
+     With both fixed it is a plateau, not a knife edge: 4.0, 6.0 and 8.0
+     all adopt, the peak sits at 6.0 at every fold count, and the size
+     barely moves across them --
+
+         4 folds  -1.08%  3/4      8 folds  -1.16%  7/8
+         6 folds  -1.11%  5/6      9 folds  -1.11%  8/9
+
+     confirmed independently by optimize_weights --candidate, which
+     builds its folds differently and returns the same -1.11%, 5/6. */
   /* Deaths came back down to 3 once the career tier was actually being
      written. That scrape had been saving nothing for weeks, so 1,124 of
      1,404 players had no career grounding and this weight was carrying
      the slack; with the tier present at a median of 41 games per player
      there is less to carry. Majority at 3/4, 6/6, 7/8 and 7/9 folds. */
+  /* Assists came down from 8 to 4 in the same pass, for the same
+     reason: the map-count fix changed what every per-map rate is worth,
+     so the pull toward the prior is answering to a different sample. It
+     holds at 4/4, 5/6, 7/8 and 8/9 folds, -0.31% to -0.36%, and
+     optimize_weights --candidate agrees at -0.35%, 5/6. 3.0 scores
+     marginally better on MAE at some fold counts but wins fewer folds
+     at every one of them, so the more robust value is taken over the
+     better-looking one. */
   check("CS2 shrinks every career-backed stat hard, since its roster is full of thin histories",
-        [W.cs2.kills.shrink, W.cs2.deaths.shrink, W.cs2.assists.shrink], [8, 3, 8]);
-  check("but headshots was left alone, the sweep being noise there",
-        W.cs2.headshots.shrink, 3);
+        [W.cs2.kills.shrink, W.cs2.deaths.shrink, W.cs2.assists.shrink], [8, 3, 4]);
+  check("and headshots shrinks too, now that the map count is right",
+        W.cs2.headshots.shrink, 6);
   check("every game and stat states a shrink constant explicitly",
         Object.values(W).every((g) => Object.values(g).every((s) => typeof s.shrink === "number")), true);
 }
@@ -421,7 +441,7 @@ for (const [game, file] of Object.entries({ valorant: "valorant_data.json", cs2:
   check("headshots carries no share weight in any game — the knockout calls it inert",
         [W.lol.headshots.share, W.valorant.headshots.share, W.cs2.headshots.share], [0, 0, 0]);
   check("CS2 is the only game with a non-zero headshots parameter at all",
-        [W.lol.headshots.shrink, W.valorant.headshots.shrink, W.cs2.headshots.shrink], [0, 0, 3.0]);
+        [W.lol.headshots.shrink, W.valorant.headshots.shrink, W.cs2.headshots.shrink], [0, 0, 6.0]);
 }
 
 /* ---- how much evidence is behind a number ----
