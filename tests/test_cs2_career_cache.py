@@ -22,12 +22,54 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 import scrape_cs2_career as sc
 
 
-def record(*games, player_id=42):
-    return {"player_id": player_id, "games_fetched": len(games), "games": list(games)}
+def record(*games, player_id=42, schema=sc.CAREER_GAME_SCHEMA):
+    """A record as a real run writes it, current schema by default.
+
+    `schema` is a parameter because "a record from an older schema" is
+    its own case -- it must be re-fetched rather than reused -- and a
+    fixture that silently omitted the field made every cache test
+    exercise that path instead of the one it named."""
+    rec = {"player_id": player_id, "games_fetched": len(games), "games": list(games)}
+    if schema is not None:
+        rec["games_schema"] = schema
+    return rec
 
 
 def game(game_id, k=20):
     return {"game_id": game_id, "k": k, "d": 15, "a": 5, "date": "2026-01-01T00:00:00+00:00"}
+
+
+class TestSchemaMigration:
+    """A record from before a field was captured is re-fetched once.
+
+    Cached games are never otherwise re-fetched, so adding headshots to
+    the per-game record would have been useless without this: every game
+    already on file -- a median of 41 per player -- would have stayed
+    without one forever, and the tier would have had only matches played
+    from that day onward to work with.
+    """
+
+    def test_a_record_from_an_older_schema_is_not_reused(self):
+        old = record(game(1), game(2), schema=None)
+        assert sc.cached_games_by_id(old) == {}
+
+    def test_a_current_record_is_reused(self):
+        assert set(sc.cached_games_by_id(record(game(1), game(2)))) == {1, 2}
+
+    def test_a_record_from_a_FUTURE_schema_is_also_not_reused(self):
+        """Only equality is safe. A file written by a newer version and
+        read by an older one is a rollback, and guessing at a shape this
+        code has never seen is how one game's box score ends up attached
+        to another."""
+        ahead = record(game(1), schema=sc.CAREER_GAME_SCHEMA + 1)
+        assert sc.cached_games_by_id(ahead) == {}
+
+    def test_a_re_fetched_game_is_accepted_without_the_new_field(self):
+        """Otherwise a match the source genuinely has no headshots for
+        is re-fetched on every run, forever. The schema marks that the
+        question was ASKED, not that the answer was yes."""
+        no_hs = record(game(1))          # current schema, no "hs" key
+        assert set(sc.cached_games_by_id(no_hs)) == {1}
 
 
 class TestCachedGames:
@@ -47,11 +89,11 @@ class TestCachedGames:
         """One migration run, then permanently cheap. Guessing a weaker
         key instead would risk the wrong box score forever."""
         old = {"k": 20, "d": 15, "a": 5, "date": "2026-01-01T00:00:00+00:00"}
-        assert sc.cached_games_by_id({"games": [old]}) == {}
+        assert sc.cached_games_by_id({"games_schema": sc.CAREER_GAME_SCHEMA, "games": [old]}) == {}
 
     def test_a_mixed_record_reuses_only_what_is_identifiable(self):
         old = {"k": 1, "d": 1, "a": 1, "date": "2026-01-01T00:00:00+00:00"}
-        got = sc.cached_games_by_id({"games": [old, game(7)]})
+        got = sc.cached_games_by_id({"games_schema": sc.CAREER_GAME_SCHEMA, "games": [old, game(7)]})
         assert set(got) == {7}
 
     def test_an_empty_or_missing_record_is_not_an_error(self):
@@ -119,13 +161,13 @@ class TestCachedAndFreshAreTheSameShape:
     def test_a_date_that_is_already_a_datetime_is_left_alone(self):
         import datetime as dt
         when = dt.datetime(2026, 1, 1, tzinfo=dt.timezone.utc)
-        got = sc.cached_games_by_id({"games": [{"game_id": 1, "date": when}]})
+        got = sc.cached_games_by_id({"games_schema": sc.CAREER_GAME_SCHEMA, "games": [{"game_id": 1, "date": when}]})
         assert got[1]["date"] == when
 
     def test_a_naive_date_is_made_comparable(self):
         """`now` is timezone-aware, and subtracting a naive datetime from
         it raises -- the same crash one layer down."""
-        got = sc.cached_games_by_id({"games": [{"game_id": 1, "k": 1, "d": 1, "a": 1,
+        got = sc.cached_games_by_id({"games_schema": sc.CAREER_GAME_SCHEMA, "games": [{"game_id": 1, "k": 1, "d": 1, "a": 1,
                                                 "date": "2026-01-01T00:00:00"}]})
         assert sc.decayed_baseline(list(got.values())) is not None
 
@@ -133,13 +175,13 @@ class TestCachedAndFreshAreTheSameShape:
         """bo3.gg writes +00:00 and this scraper writes isoformat, so a
         Z is not expected -- but it is what every other date reader here
         accepts, and stdlib support for it is version-dependent."""
-        got = sc.cached_games_by_id({"games": [{"game_id": 1, "k": 1, "d": 1, "a": 1,
+        got = sc.cached_games_by_id({"games_schema": sc.CAREER_GAME_SCHEMA, "games": [{"game_id": 1, "k": 1, "d": 1, "a": 1,
                                                 "date": "2026-01-01T00:00:00Z"}]})
         assert sc.decayed_baseline(list(got.values())) is not None
 
     def test_an_unreadable_date_is_dropped_rather_than_carried(self):
         for bad in ("not a date", "", None, 12345):
-            got = sc.cached_games_by_id({"games": [{"game_id": 1, "date": bad}]})
+            got = sc.cached_games_by_id({"games_schema": sc.CAREER_GAME_SCHEMA, "games": [{"game_id": 1, "date": bad}]})
             assert got == {}, f"{bad!r} must not reach the arithmetic"
 
     def test_a_cached_game_can_be_decayed(self):
@@ -180,3 +222,86 @@ class TestCachedAndFreshAreTheSameShape:
 class TestRequestCounting:
     def test_the_counter_exists_and_starts_countable(self):
         assert isinstance(sc.REQUEST_TOTAL["n"], int)
+
+
+class TestHeadshotsAreCaptured:
+    """Why headshots, and why it is not part of the completeness gate.
+
+    Across every line this app has recorded, CS2 headshots is 592 of
+    1,519 -- 39% of the market, second only to CS2 kills and more than
+    Valorant and LoL combined. Deaths and assists, both modelled as
+    first-class stats, have four lines between them, ever. The career
+    tier is worth +2.4% to +3.3% on the stats that have one, and
+    headshots has never had one.
+    """
+
+    @staticmethod
+    def _capture(row):
+        """The real capture, driven through the real function."""
+        import asyncio
+
+        async def fake_get(session, path, **kw):
+            return [{"steam_profile": {"player": {"id": 7}}, **row}]
+
+        import scrape_cs2_career as mod
+        original, mod.bo3_get = mod.bo3_get, fake_get
+        try:
+            return asyncio.run(mod.fetch_game_stats_for_player(None, 1, 7))
+        finally:
+            mod.bo3_get = original
+
+    def test_headshots_are_captured_when_the_source_has_them(self):
+        got = self._capture({"kills": 20, "death": 15, "assists": 5, "headshots": 9})
+        assert got == {"k": 20, "d": 15, "a": 5, "hs": 9}
+
+    def test_a_game_without_them_is_still_kept(self):
+        """It is good history for three stats out of four. Dropping it
+        would throw away history in order to acquire history."""
+        got = self._capture({"kills": 20, "death": 15, "assists": 5})
+        assert got == {"k": 20, "d": 15, "a": 5}
+
+    def test_a_null_headshot_figure_is_not_stored_as_zero(self):
+        """The documented fake-zero failure: bo3.gg returns null for a
+        map it has not finished processing, and a zero there is
+        indistinguishable from a real one that drags the average down."""
+        got = self._capture({"kills": 20, "death": 15, "assists": 5, "headshots": None})
+        assert "hs" not in got
+
+    def test_the_kda_gate_is_unchanged(self):
+        """Headshots must not become a fourth reason to drop a game."""
+        assert self._capture({"kills": 20, "death": None, "assists": 5, "headshots": 9}) is None
+
+
+class TestTheCareerTierSkipsAMissingStat:
+    """Mirrors the JS assertions in tests/render_smoke.test.mjs.
+
+    Both ports had `missing -> 0`, so the parity harness agreed with
+    itself while both were wrong -- and it will keep agreeing, because
+    no career game currently lacks a stat. Each port is therefore
+    asserted on its own rather than against the other.
+    """
+
+    @staticmethod
+    def rate(games, stat):
+        import sys, os
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts", "dev"))
+        import optimize_weights as ow
+        return ow.point_in_time_cs2_career_rate({"career_games": games}, stat, "2026-09-01")
+
+    G = "2026-08-01T00:00:00+00:00"
+
+    def test_a_game_without_the_stat_is_skipped(self):
+        got = self.rate([{"date": self.G, "k": 20, "hs": 10},
+                         {"date": self.G, "k": 20, "hs": 10},
+                         {"date": self.G, "k": 20}], "hs")
+        assert abs(got - 10) < 1e-9, "a missing figure counted as zero gives ~6.67"
+
+    def test_a_real_zero_still_counts(self):
+        got = self.rate([{"date": self.G, "k": 20, "hs": 10},
+                         {"date": self.G, "k": 20, "hs": 0}], "hs")
+        assert abs(got - 5) < 1e-9
+
+    def test_a_stat_nothing_records_has_no_rate(self):
+        games = [{"date": self.G, "k": 20}, {"date": self.G, "k": 20}]
+        assert self.rate(games, "hs") is None
+        assert self.rate(games, "k") == 20, "k/d/a behaviour must be unchanged"

@@ -296,7 +296,28 @@ async def fetch_game_stats_for_player(session, game_id, player_id):
             k, d, a = row.get("kills"), row.get("death"), row.get("assists")
             if k is None or d is None or a is None:
                 return None
-            return {"k": k, "d": d, "a": a}
+            game = {"k": k, "d": d, "a": a}
+            # Headshots, where the source has them.
+            #
+            # Worth capturing because of what the market actually posts:
+            # across every line this app has recorded, CS2 headshots is
+            # 592 of 1,519 -- 39%, second only to CS2 kills and more
+            # than valorant and LoL combined. Deaths and assists, both
+            # modelled as first-class stats, have four lines between
+            # them, ever. The career tier carries +2.4% to +3.3% on the
+            # stats that have one; headshots has never had one to carry.
+            #
+            # NOT part of the k/d/a completeness gate above: a game with
+            # real k/d/a and no headshot figure is still a good game for
+            # three stats out of four, and dropping it would throw away
+            # history to acquire history. The consumers skip a game that
+            # does not record the stat they are asking for rather than
+            # reading the gap as a zero, which is what makes a partially
+            # populated field safe while the cache fills.
+            hs = row.get("headshots")
+            if isinstance(hs, int) and not isinstance(hs, bool):
+                game["hs"] = hs
+            return game
     return None
 
 
@@ -370,6 +391,23 @@ def parse_stored_date(value):
     return when if when.tzinfo else when.replace(tzinfo=timezone.utc)
 
 
+# Bumped when a game record gains a field, so records written before it
+# are re-fetched ONCE rather than carrying a permanent gap.
+#
+# Without this, adding headshots would have been useless: cached games
+# are never re-fetched, so every game already on file -- a median of 41
+# per player -- would have stayed hs-less forever and the tier would
+# have had only newly played matches to work with. Re-fetching is paced
+# by the existing time budget, exactly as the per-map breakdown
+# conversion was: each run converts what it can and caches the result.
+#
+# A one-time pass, not a standing invalidation. A game re-fetched under
+# schema 2 is accepted whatever came back, including no headshot figure
+# at all -- otherwise a match the source genuinely has no headshots for
+# would be re-fetched on every run, forever.
+CAREER_GAME_SCHEMA = 2
+
+
 def cached_games_by_id(previous_record):
     """{game_id: stored game} for games already on record.
 
@@ -383,6 +421,11 @@ def cached_games_by_id(previous_record):
     the same shape. This is the boundary the cache crosses, so it is the
     one place that conversion belongs.
     """
+    # A record from before the current schema is re-fetched wholesale.
+    # Cheap to state, and the alternative is a field that only ever
+    # populates for matches played from today onward.
+    if (previous_record or {}).get("games_schema") != CAREER_GAME_SCHEMA:
+        return {}
     out = {}
     for game in (previous_record or {}).get("games") or []:
         game_id = game.get("game_id")
@@ -423,14 +466,23 @@ async def process_one_player(session, name, progress, total, previous=None):
         # written straight over the real one -- a single outage would
         # have emptied every player's history while the file stayed the
         # right shape and the step still exited 0.
-        if cached_games_by_id(prev):
+        # "Is there history to lose", NOT "is the cache reusable". Those
+        # are different questions and conflating them is a data-loss bug:
+        # cached_games_by_id is schema-gated, so during a migration it
+        # returns nothing for records that are perfectly good history,
+        # and this guard would have handed back an empty record and
+        # written it straight over forty real games -- the exact outage
+        # failure the guard exists to prevent, reintroduced by the
+        # migration meant to improve the data.
+        if prev.get("games"):
             print(f"  ! {name!r} (id={player_id}): 0 matches returned — keeping the "
                   f"{len(prev.get('games') or [])} game(s) already on record", file=sys.stderr)
             return name, prev
         print(f"  ! {name!r} (id={player_id}): resolved to a real player, but 0 matches found — "
               f"worth a manual check if this recurs for a player who should have real history",
               file=sys.stderr)
-        return name, {"player_id": player_id, "games_fetched": 0, "games": []}
+        return name, {"player_id": player_id, "games_fetched": 0,
+                      "games_schema": CAREER_GAME_SCHEMA, "games": []}
 
     game_refs = [
         (game.get("id"), game.get("begin_at"))
@@ -485,6 +537,7 @@ async def process_one_player(session, name, progress, total, previous=None):
         print(f"  ...{progress['done']}/{total} players processed")
     return name, {
         "player_id": player_id, "games_fetched": len(games),
+        "games_schema": CAREER_GAME_SCHEMA,
         "career_preview_only_do_not_use_for_predictions": baseline,
         "games": games_serializable,
     }

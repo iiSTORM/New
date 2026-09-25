@@ -40,7 +40,7 @@ const EXPORTS = [
   "ProjectionDetail", "historyPool", "project", "ScoreBar", "collectEdges",
   "EvidenceChip", "evidenceTier", "windowSections", "projectionOverWindow",
   "DataStatus", "oldestRegion", "recordVsLine", "calibration", "clusteredMean",
-  "rankingIsInformative",
+  "rankingIsInformative", "pointInTimeCS2CareerRate", "offeredStats", "postedLineCounts",
 ];
 const available = EXPORTS.filter((name) =>
   new RegExp(`(function|const)\\s+${name}\\b`).test(body));
@@ -600,6 +600,144 @@ if (app.collectEdges && app.EdgesTab) {
       containsText("the map 1 edge is against a one-map projection", card, fmt(oneMap));
       containsText("and the maps 1-3 edge against a three-map one", card, fmt(threeMap));
     }
+  }
+}
+
+/* The stat selector follows the market, not a hardcoded list of four.
+ *
+ * Across every line this app has recorded: CS2 kills 736, CS2 headshots
+ * 592, Valorant kills 151, LoL kills 35 -- and deaths and assists, both
+ * first-class in the model, four lines between them, ever. Two of the
+ * four tabs led to an empty board every time, and headshots at 39% of
+ * the market sat behind a tab nobody had a reason to press.
+ */
+if (app.offeredStats && app.postedLineCounts) {
+  const board = (byStat) => ({
+    fetched_at: new Date().toISOString(), source: "test",
+    props: { cs2: { Faker: Object.entries(byStat).flatMap(([stat, n]) =>
+      Array.from({ length: n }, () => ({ player: "Faker", stat, maps: 2, line: 8.5 }))) } },
+  });
+
+  try {
+    const counts = app.postedLineCounts(board({ kills: 3, headshots: 2 }), "cs2");
+    if (counts.kills !== 3 || counts.headshots !== 2) throw new Error(JSON.stringify(counts));
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  counts the lines actually posted\n        ${err.message}`);
+  }
+
+  try {
+    const keys = app.offeredStats("cs2", board({ kills: 3, headshots: 2 }), "kills").map(([k]) => k);
+    if (keys.includes("deaths") || keys.includes("assists")) {
+      throw new Error(`offered ${keys} — a stat with no lines leads to an empty board`);
+    }
+    if (!keys.includes("headshots")) throw new Error("dropped a stat that HAS lines");
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  a stat with no posted lines is not offered\n        ${err.message}`);
+  }
+
+  try {
+    // Never yank the tab a reader is standing on.
+    const keys = app.offeredStats("cs2", board({ kills: 3 }), "deaths").map(([k]) => k);
+    if (!keys.includes("deaths")) throw new Error("the selected stat vanished from under the reader");
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  the selected stat is always offered\n        ${err.message}`);
+  }
+
+  try {
+    // No board loaded is not evidence that a stat has no market.
+    for (const empty of [null, undefined, { props: {} }]) {
+      const keys = app.offeredStats("cs2", empty, "kills").map(([k]) => k);
+      if (!keys.includes("deaths") || !keys.includes("assists")) {
+        throw new Error(`hid stats with no board loaded: ${keys}`);
+      }
+    }
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  with no board loaded every stat is still offered\n        ${err.message}`);
+  }
+
+  try {
+    // A game whose board is empty must not end up with zero tabs.
+    const keys = app.offeredStats("cs2", board({ kills: 0 }), "kills").map(([k]) => k);
+    if (!keys.length) throw new Error("offered nothing at all");
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  never offers an empty selector\n        ${err.message}`);
+  }
+}
+
+/* A career game that does not RECORD a stat is skipped, not zeroed.
+ *
+ * `g[statKey] || 0` folded "bo3.gg has no headshot figure for this map"
+ * into "this player got no headshots". It never bit for k/d/a, because
+ * the career scraper drops a game missing any of them -- so every game
+ * on file has all three and the gap never existed. It bites the moment
+ * a stat is captured for SOME games and not others, which is exactly
+ * what a newly added field looks like while the career cache fills.
+ *
+ * The parity harness cannot see this: no career game currently lacks a
+ * stat, so zeroing and skipping give identical answers on today's data
+ * and would keep doing so right up until headshots lands.
+ */
+if (app.pointInTimeCS2CareerRate) {
+  const at = (d) => `2026-0${d}-01T00:00:00+00:00`;
+  const player = (games) => ({ career_games: games });
+  const CUTOFF = "2026-09-01";
+
+  try {
+    // Two games with the stat, one without. The answer must be the
+    // average of the two that have it -- not of three, one counted 0.
+    const mixed = player([
+      { date: at(8), k: 20, hs: 10 },
+      { date: at(8), k: 20, hs: 10 },
+      { date: at(8), k: 20 },
+    ]);
+    const got = app.pointInTimeCS2CareerRate(mixed, "hs", CUTOFF);
+    if (Math.abs(got - 10) > 1e-9) {
+      throw new Error(`got ${got}, wanted 10 (a missing figure counted as a zero gives ~6.67)`);
+    }
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  a game without the stat is skipped, not averaged in as zero\n        ${err.message}`);
+  }
+
+  try {
+    // A genuine zero is real data and must still count.
+    const withZero = player([
+      { date: at(8), k: 20, hs: 10 },
+      { date: at(8), k: 20, hs: 0 },
+    ]);
+    const got = app.pointInTimeCS2CareerRate(withZero, "hs", CUTOFF);
+    if (Math.abs(got - 5) > 1e-9) throw new Error(`got ${got}, wanted 5`);
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  a real zero still counts\n        ${err.message}`);
+  }
+
+  try {
+    // No game records it at all: no rate, rather than a confident 0.
+    const none = player([{ date: at(8), k: 20 }, { date: at(8), k: 20 }]);
+    if (app.pointInTimeCS2CareerRate(none, "hs", CUTOFF) !== null) {
+      throw new Error("returned a rate from games that record nothing");
+    }
+    // ...and the stat they DO record is unaffected.
+    if (app.pointInTimeCS2CareerRate(none, "k", CUTOFF) !== 20) {
+      throw new Error("k/d/a behaviour changed");
+    }
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  a stat no game records has no rate at all\n        ${err.message}`);
   }
 }
 

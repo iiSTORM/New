@@ -1311,6 +1311,45 @@ function statsForGame(game) {
   return Object.entries(STAT_TYPES).filter(([, cfg]) => !cfg.games || cfg.games.includes(game));
 }
 
+/* How many lines the provider is posting on each stat, right now.
+
+   The selector offered four stats equally and the market is nothing
+   like that. Across every line this app has recorded: CS2 kills 736,
+   CS2 headshots 592, Valorant kills 151, LoL kills 35 -- and deaths and
+   assists, both first-class in the model, four lines between them,
+   ever. So two of the four tabs led to an empty board every time, and
+   headshots -- 39% of the market -- sat behind a tab nobody had a
+   reason to press.
+
+   Counted from the live board rather than hardcoded, so it follows the
+   provider instead of a comment that goes stale. */
+function postedLineCounts(propsData, game) {
+  const out = {};
+  const byPlayer = (propsData && propsData.props && propsData.props[game]) || {};
+  for (const lines of Object.values(byPlayer)) {
+    for (const line of lines || []) {
+      if (line && line.stat) out[line.stat] = (out[line.stat] || 0) + 1;
+    }
+  }
+  return out;
+}
+
+/* The stats worth offering for this game: the ones with lines on the
+   board, plus whichever is selected.
+
+   The selected one is always kept so the tab a reader is standing on
+   never disappears underneath them. With no board loaded at all this
+   returns everything, which is the old behaviour and the right
+   fallback -- an absent props.json is not evidence that a stat has no
+   market. */
+function offeredStats(game, propsData, selected) {
+  const all = statsForGame(game);
+  const counts = postedLineCounts(propsData, game);
+  if (!Object.keys(counts).length) return all.map(([key, cfg]) => [key, cfg, null]);
+  const offered = all.filter(([key]) => counts[key] > 0 || key === selected);
+  return (offered.length ? offered : all).map(([key, cfg]) => [key, cfg, counts[key] || 0]);
+}
+
 /* ============================================================
    MODEL — all functions take `teams` explicitly since it can now
    come from a live fetch instead of the module-level fallback.
@@ -1858,10 +1897,24 @@ function pointInTimeCS2CareerRate(player, statKey, cutoffDate) {
     // timedelta.days, which truncates. Fractional days here made this
     // the only remaining disagreement between the two ports once the
     // half-life was fixed.
+    // A game that does not RECORD this stat is skipped, not counted as
+    // zero. `|| 0` folded "bo3.gg has no headshot figure for this map"
+    // into "this player got no headshots", which is the same fake-zero
+    // failure scrape_cs2_career.py documents at length for k/d/a -- a
+    // handful of them in a player's most recent games, where the decay
+    // weight is heaviest, dragged whole projections down and reached a
+    // user as systematic under-prediction.
+    //
+    // It never bit for k/d/a because the scraper drops a game missing
+    // any of them. It bites the moment a stat is captured for SOME
+    // games and not others, which is exactly what a newly added field
+    // looks like while the career cache fills.
+    const value = g[statKey];
+    if (typeof value !== "number") continue;
     const daysAgo = Math.max(0, Math.floor((cutoffMs - new Date(g.date).getTime()) / 86400000));
     const weight = Math.pow(0.5, daysAgo / CS2_CAREER_DAY_HALF_LIFE);
     totalWeight += weight;
-    weighted += (g[statKey] || 0) * weight;
+    weighted += value * weight;
   }
   return totalWeight > 0 ? weighted / totalWeight : null;
 }
@@ -5612,6 +5665,10 @@ function GameSwitcher({ game, selectGame, statusByGame, theme }) {
    stack on small screens (still bigger/clearer than the old treatment). ---------- */
 
 function TopNav({ theme, gameCfg, game, region, setRegion, tab, setTab, statType, setStatType, isDesktop }) {
+  // The live board, so the stat selector can follow what the provider
+  // is actually posting instead of offering four tabs equally when two
+  // of them lead nowhere.
+  const propsData = useProps();
   const TABS = [["future", "Future"], ["edges", "Edges"], ["record", "Record"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
   return (
     <div style={{ marginBottom: isDesktop ? 22 : 14 }}>
@@ -5683,12 +5740,15 @@ function TopNav({ theme, gameCfg, game, region, setRegion, tab, setTab, statType
           ))}
         </div>
         <div role="group" aria-label="Stat" style={{ display: "flex", gap: 4, marginBottom: 8 }}>
-          {statsForGame(game).map(([key, cfg]) => (
+          {offeredStats(game, propsData, statType).map(([key, cfg, posted]) => (
             <button
               key={key}
               className="kp-btn"
               onClick={() => setStatType(key)}
               aria-pressed={statType === key}
+              title={posted === null ? undefined
+                : posted === 0 ? `No lines posted on ${cfg.label.toLowerCase()} right now`
+                : `${posted} line${posted === 1 ? "" : "s"} posted on ${cfg.label.toLowerCase()}`}
               style={{
                 padding: "7px 14px", borderRadius: 20, border: "1px solid " + (statType === key ? theme.accent : theme.steel),
                 background: statType === key ? theme.accentSoft : "transparent",
@@ -5697,6 +5757,13 @@ function TopNav({ theme, gameCfg, game, region, setRegion, tab, setTab, statType
               }}
             >
               {cfg.label}
+              {/* The count, so a reader can see where the market is
+                  rather than having to press each tab to find out. */}
+              {posted ? (
+                <span className="kp-num" style={{ fontSize: 10, marginLeft: 5, opacity: 0.75 }}>
+                  {posted}
+                </span>
+              ) : null}
             </button>
           ))}
         </div>

@@ -2182,6 +2182,23 @@ try {
   function statsForGame(game) {
     return Object.entries(STAT_TYPES).filter(([, cfg]) => !cfg.games || cfg.games.includes(game));
   }
+  function postedLineCounts(propsData, game) {
+    const out = {};
+    const byPlayer = propsData && propsData.props && propsData.props[game] || {};
+    for (const lines of Object.values(byPlayer)) {
+      for (const line of lines || []) {
+        if (line && line.stat) out[line.stat] = (out[line.stat] || 0) + 1;
+      }
+    }
+    return out;
+  }
+  function offeredStats(game, propsData, selected) {
+    const all = statsForGame(game);
+    const counts = postedLineCounts(propsData, game);
+    if (!Object.keys(counts).length) return all.map(([key, cfg]) => [key, cfg, null]);
+    const offered = all.filter(([key]) => counts[key] > 0 || key === selected);
+    return (offered.length ? offered : all).map(([key, cfg]) => [key, cfg, counts[key] || 0]);
+  }
   const LEAGUE_AVG_KP_FALLBACK = 66;
   const leagueAvgKPCache = new WeakMap();
   function leagueAvgKP(teams) {
@@ -2495,10 +2512,12 @@ try {
     let totalWeight = 0;
     let weighted = 0;
     for (const g of eligible) {
+      const value = g[statKey];
+      if (typeof value !== "number") continue;
       const daysAgo = Math.max(0, Math.floor((cutoffMs - new Date(g.date).getTime()) / 86400000));
       const weight = Math.pow(0.5, daysAgo / CS2_CAREER_DAY_HALF_LIFE);
       totalWeight += weight;
-      weighted += (g[statKey] || 0) * weight;
+      weighted += value * weight;
     }
     return totalWeight > 0 ? weighted / totalWeight : null;
   }
@@ -6622,6 +6641,7 @@ try {
     setStatType,
     isDesktop
   }) {
+    const propsData = useProps();
     const TABS = [["future", "Future"], ["edges", "Edges"], ["record", "Record"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
     return React.createElement("div", {
       style: {
@@ -6705,11 +6725,12 @@ try {
         gap: 4,
         marginBottom: 8
       }
-    }, statsForGame(game).map(([key, cfg]) => React.createElement("button", {
+    }, offeredStats(game, propsData, statType).map(([key, cfg, posted]) => React.createElement("button", {
       key: key,
       className: "kp-btn",
       onClick: () => setStatType(key),
       "aria-pressed": statType === key,
+      title: posted === null ? undefined : posted === 0 ? `No lines posted on ${cfg.label.toLowerCase()} right now` : `${posted} line${posted === 1 ? "" : "s"} posted on ${cfg.label.toLowerCase()}`,
       style: {
         padding: "7px 14px",
         borderRadius: 20,
@@ -6721,7 +6742,14 @@ try {
         cursor: "pointer",
         fontFamily: "'Inter', sans-serif"
       }
-    }, cfg.label)))));
+    }, cfg.label, posted ? React.createElement("span", {
+      className: "kp-num",
+      style: {
+        fontSize: 10,
+        marginLeft: 5,
+        opacity: 0.75
+      }
+    }, posted) : null)))));
   }
   function SettingsPanel({
     theme,

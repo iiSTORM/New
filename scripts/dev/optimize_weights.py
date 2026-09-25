@@ -650,10 +650,18 @@ def point_in_time_cs2_career_rate(player, stat_key, cutoff_date):
             game_dt = datetime.fromisoformat(g["date"].replace("Z", "+00:00")).replace(tzinfo=None)
         except (ValueError, AttributeError):
             continue
+        # Skipped, not zero -- see the note in pointInTimeCS2CareerRate
+        # in src/app.jsx. A stat captured for some games and not others
+        # is what a newly added field looks like while the career cache
+        # fills, and counting the gaps as zeros is the documented
+        # fake-zero failure all over again.
+        value = g.get(stat_key)
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
+            continue
         days_ago = max(0, (cutoff_dt - game_dt).days)
         weight = 0.5 ** (days_ago / CS2_CAREER_DAY_HALF_LIFE)
         total_weight += weight
-        weighted += g.get(stat_key, 0) * weight
+        weighted += value * weight
     return weighted / total_weight if total_weight > 0 else None
 
 

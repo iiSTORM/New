@@ -26,13 +26,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 import scrape_cs2_career as sc
 
 
-def record(n_games, player_id=42):
-    return {
+def record(n_games, player_id=42, schema=sc.CAREER_GAME_SCHEMA):
+    rec = {
         "player_id": player_id,
         "games_fetched": n_games,
         "games": [{"game_id": i, "k": 20, "d": 15, "a": 5,
                    "date": "2026-01-01T00:00:00+00:00"} for i in range(n_games)],
     }
+    if schema is not None:
+        rec["games_schema"] = schema
+    return rec
 
 
 def written(tmp_path):
@@ -328,3 +331,37 @@ def _names_bound_in(nodes):
             elif isinstance(sub, (ast.Global, ast.Nonlocal)):
                 bound |= set(sub.names)
     return bound
+
+
+class TestHeadshotsSurviveTheMigration:
+    """Adding a per-game field must not cost the history already on file.
+
+    The schema bump re-fetches every cached game once, and the outage
+    guard used cached_games_by_id() to decide whether there was history
+    worth keeping -- so during the migration that guard answered "no"
+    for records that were perfectly good, and would have written an
+    empty record straight over forty real games. That is the exact
+    failure the guard exists to prevent, reintroduced by the change
+    meant to improve the data.
+    """
+
+    def test_an_outage_keeps_history_even_when_the_cache_is_invalidated(self, monkeypatch):
+        """A pre-schema record has nothing REUSABLE and everything to
+        LOSE. Those are different questions."""
+        pre = record(6, schema=None)
+        assert sc.cached_games_by_id(pre) == {}, "fixture must be un-reusable for this to test anything"
+        assert pre.get("games"), "and must still hold real history"
+
+    def test_the_guard_asks_about_games_not_about_the_cache(self):
+        """Pinned on the source, because the distinction is invisible in
+        behaviour until a migration and a source outage coincide -- and
+        by then the history is gone."""
+        import inspect
+        src = inspect.getsource(sc.process_one_player)
+        guard = [l for l in src.splitlines() if "keeping the" in l]
+        assert guard, "the outage guard's message moved; re-check what it tests"
+        window = src[:src.index(guard[0])]
+        tail = window[-600:]
+        assert 'prev.get("games")' in tail, (
+            "the outage guard must test for history that EXISTS, not for a cache that is "
+            "REUSABLE -- cached_games_by_id is schema-gated and returns nothing mid-migration")
