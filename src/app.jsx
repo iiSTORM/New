@@ -794,6 +794,88 @@ function recordByWindow(rows) {
   });
 }
 
+/* ============================================================
+   THE RECORD, CLUSTERED. Props inside one match are not
+   independent observations.
+
+   Ten props from one CS2 map share its rounds, its pace and how
+   one-sided it was. Treating them as ten independent rows makes every
+   interval about three times too narrow, which is how a 43.7% win rate
+   over EIGHT matches once got reported here as if it meant something.
+   The match is the unit: each contributes one number, and the spread
+   ACROSS matches is what the interval is built from.
+   ============================================================ */
+
+function groupByMatch(rows) {
+  const out = new Map();
+  for (const r of rows) {
+    // The PAIR, sorted -- not this row's team. Both sides of a map
+    // share its rounds and its pace, so they are one dependent unit,
+    // and keying on `team` alone splits every match into two clusters.
+    // That is the same under-counting this whole function exists to
+    // prevent, just one level in: it read 75 matches where there were
+    // 49, and every interval came out too narrow again. Caught by
+    // cross-checking against scripts/dev/model_vs_market.mjs, which is
+    // why the two are compared in the tests rather than trusted to
+    // agree.
+    const pair = [r.team, r.opponent].slice().sort().join("|");
+    const key = `${r.game}|${r.match_date}|${pair}`;
+    if (!out.has(key)) out.set(key, []);
+    out.get(key).push(r);
+  }
+  return [...out.values()];
+}
+
+/* Mean of per-match values with a 95% interval. Returns null below two
+   matches, where a spread cannot be computed at all -- and a single
+   match reported with no interval is exactly the overclaim this file
+   exists to stop. */
+function clusteredMean(perMatch) {
+  const n = perMatch.length;
+  if (n < 2) return null;
+  const mean = perMatch.reduce((a, b) => a + b, 0) / n;
+  const variance = perMatch.reduce((s, x) => s + (x - mean) ** 2, 0) / (n - 1);
+  const se = Math.sqrt(variance / n);
+  return { mean, lo: mean - 1.96 * se, hi: mean + 1.96 * se, n };
+}
+
+/* Win rate and accuracy against the posted line, both clustered.
+
+   The accuracy figure is the one that decides whether any of this is
+   worth paying for, and it is deliberately signed so that POSITIVE
+   means the line was closer. There is no version of this that flatters
+   the model by accident. */
+function recordVsLine(rows) {
+  const decided = rows.filter((r) => r.result !== "push" && typeof r.actual === "number"
+                                     && typeof r.line === "number");
+  const matches = groupByMatch(decided);
+  const winRate = clusteredMean(
+    matches.map((m) => m.filter((r) => r.won).length / m.length));
+  const maeGap = clusteredMean(matches.map((m) => {
+    const ours = m.reduce((s, r) => s + Math.abs(r.projection - r.actual), 0) / m.length;
+    const line = m.reduce((s, r) => s + Math.abs(r.line - r.actual), 0) / m.length;
+    return ours - line;
+  }));
+  return { winRate, maeGap, matches: matches.length, props: decided.length };
+}
+
+/* Is the model's number centred, or systematically high or low?
+
+   MAE cannot tell you: a model 8% low on every row and one off by 8% in
+   random directions score identically. Next to a posted line a constant
+   offset turns into a constant "under" on every player, which looks
+   like a signal and is a ruler with the wrong zero. */
+function calibration(rows) {
+  const usable = rows.filter((r) => typeof r.actual === "number");
+  if (!usable.length) return null;
+  const errors = usable.map((r) => r.projection - r.actual);
+  const mean = errors.reduce((a, b) => a + b, 0) / errors.length;
+  const closer = usable.filter((r) => typeof r.line === "number"
+    && Math.abs(r.projection - r.actual) < Math.abs(r.line - r.actual)).length;
+  const withLine = usable.filter((r) => typeof r.line === "number").length;
+  return { mean, n: usable.length, closer, withLine };
+}
+
 /* Does a bigger disagreement win more often? If the model is worth
    anything that curve slopes upward, and if it does not, a confident edge
    is worth no more than a marginal one — which is the single most useful
@@ -3719,7 +3801,15 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
   const won = rows.filter((r) => r.won).length;
   const buckets = recordByEdge(rows);
   const windows = recordByWindow(rows);
+  const vsLine = recordVsLine(rows);
+  const cal = calibration(rows);
   const graded = results.graded.length;
+
+  // Breakeven at -110, the standard price. A win rate below this loses
+  // money however good it looks next to 50%, and 50% is the number
+  // people instinctively compare against -- so it is stated, not left
+  // for the reader to remember.
+  const BREAKEVEN = 0.524;
 
   return (
     <div>
@@ -3739,6 +3829,91 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
           on a handful of results.</>
         )}
       </>)}
+
+      {/* The only question that decides whether any of this is worth
+          paying for, and the app never asked it -- it lived in a dev
+          script. Clustered on the match, and signed so POSITIVE means
+          the line was closer: there is no reading of this that
+          flatters the model by accident. */}
+      {vsLine.winRate && vsLine.maeGap && (
+        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+                      ...elevation(), marginTop: 12, overflow: "hidden" }}>
+          <div style={{ padding: "12px 16px", borderBottom: `1px solid ${theme.steel}`, fontSize: 12.5, color: theme.text }}>
+            Against the posted line
+            <span style={{ color: theme.textFaint, fontSize: 11 }}>
+              {" "}· {vsLine.matches} matches, {vsLine.props} props
+            </span>
+          </div>
+          {[
+            {
+              label: "Win rate when we disagreed",
+              value: `${(100 * vsLine.winRate.mean).toFixed(1)}%`,
+              ci: `${(100 * vsLine.winRate.lo).toFixed(1)}% to ${(100 * vsLine.winRate.hi).toFixed(1)}%`,
+              // Settled only when the whole interval clears breakeven.
+              // A point estimate above it with an interval straddling
+              // it is not a profitable model, it is an unfinished
+              // measurement.
+              verdict: vsLine.winRate.lo > BREAKEVEN ? "beats breakeven"
+                : vsLine.winRate.hi < BREAKEVEN ? "below breakeven"
+                : "cannot tell yet",
+              good: vsLine.winRate.lo > BREAKEVEN,
+              bad: vsLine.winRate.hi < BREAKEVEN,
+              note: `breakeven at -110 is ${(100 * BREAKEVEN).toFixed(1)}%`,
+            },
+            {
+              label: "Our error minus the line's",
+              value: `${vsLine.maeGap.mean > 0 ? "+" : ""}${vsLine.maeGap.mean.toFixed(3)}`,
+              ci: `${vsLine.maeGap.lo.toFixed(2)} to ${vsLine.maeGap.hi.toFixed(2)}`,
+              verdict: vsLine.maeGap.hi < 0 ? "we forecast better"
+                : vsLine.maeGap.lo > 0 ? "the line forecasts better"
+                : "cannot tell yet",
+              good: vsLine.maeGap.hi < 0,
+              bad: vsLine.maeGap.lo > 0,
+              note: "positive means the line was closer to the truth",
+            },
+          ].map((row) => (
+            <div key={row.label} style={{ padding: "11px 16px", borderBottom: `1px solid ${theme.steel}` }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+                <div style={{ flex: 1, fontSize: 12.5, color: theme.textDim, minWidth: 150 }}>{row.label}</div>
+                <div className="kp-num" style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>{row.value}</div>
+                <div className="kp-num" style={{ fontSize: 11, color: theme.textFaint, minWidth: 130, textAlign: "right" }}>
+                  95% CI {row.ci}
+                </div>
+                <div style={{ fontSize: 11, fontWeight: 600, minWidth: 128, textAlign: "right",
+                              color: row.good ? theme.good : row.bad ? theme.bad : theme.textFaint }}>
+                  {row.verdict}
+                </div>
+              </div>
+              <div style={{ fontSize: 10.5, color: theme.textFaint, marginTop: 4 }}>{row.note}</div>
+            </div>
+          ))}
+          <div style={{ padding: "10px 16px", fontSize: 11, color: theme.textFaint, lineHeight: 1.6 }}>
+            Both intervals are clustered on the match, not the prop. Ten props from one map share its
+            rounds and how one-sided it was, so counting them as ten independent results makes every
+            interval about three times too narrow — which is how eight matches once got reported here
+            as though they meant something.
+          </div>
+        </div>
+      )}
+
+      {cal && cal.withLine > 0 && (
+        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+                      ...elevation(), marginTop: 12, padding: "12px 16px", fontSize: 12, color: theme.textDim, lineHeight: 1.65 }}>
+          <span style={{ color: theme.text, fontWeight: 600 }}>Is the number centred?</span>{" "}
+          Across {cal.n} graded projections the average miss is{" "}
+          <span className="kp-num" style={{ color: theme.text }}>
+            {cal.mean > 0 ? "+" : ""}{cal.mean.toFixed(2)}
+          </span>{" "}
+          — {Math.abs(cal.mean) < 0.25 ? "essentially centred" : cal.mean > 0 ? "projecting high" : "projecting low"}.
+          We landed closer than the line on{" "}
+          <span className="kp-num" style={{ color: theme.text }}>
+            {(100 * cal.closer / cal.withLine).toFixed(1)}%
+          </span>{" "}
+          of them. Average error cannot see this on its own: a model wrong by the same amount every
+          time and one wrong in random directions score identically, and only the first turns into the
+          same recommendation on every player.
+        </div>
+      )}
 
       <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
                     ...elevation(), marginTop: 12, overflow: "hidden" }}>

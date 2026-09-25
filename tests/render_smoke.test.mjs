@@ -39,7 +39,7 @@ const EXPORTS = [
   "FutureTab", "PastResultsTab", "ConsistencyTab", "StandingsTab",
   "ProjectionDetail", "historyPool", "project", "ScoreBar", "collectEdges",
   "EvidenceChip", "evidenceTier", "windowSections", "projectionOverWindow",
-  "DataStatus", "oldestRegion",
+  "DataStatus", "oldestRegion", "recordVsLine", "calibration", "clusteredMean",
 ];
 const available = EXPORTS.filter((name) =>
   new RegExp(`(function|const)\\s+${name}\\b`).test(body));
@@ -599,6 +599,77 @@ if (app.collectEdges && app.EdgesTab) {
       containsText("the map 1 edge is against a one-map projection", card, fmt(oneMap));
       containsText("and the maps 1-3 edge against a three-map one", card, fmt(threeMap));
     }
+  }
+}
+
+/* The record against the posted line, clustered on the match.
+ *
+ * This is the number that decides whether any of this is worth paying
+ * for, so the app computes it itself now rather than leaving it in a
+ * dev script. The risk in moving it is that the two quietly disagree
+ * and nobody notices which is right, so the grouping rule is pinned
+ * directly -- it is where the mistake actually happened.
+ *
+ * Keying on `team` rather than the sorted PAIR split every match into
+ * two clusters and reported 75 where there were 49. Both sides of a map
+ * share its rounds and its pace; they are one dependent unit. Caught
+ * only by cross-checking against scripts/dev/model_vs_market.mjs.
+ */
+if (app.recordVsLine && app.clusteredMean) {
+  const prop = (over) => ({
+    game: "cs2", match_date: "2026-09-20", team: "A", opponent: "B",
+    result: "over", won: true, projection: 20, actual: 20, line: 18, ...over,
+  });
+
+  try {
+    // Two rows, opposite sides of ONE map. One cluster, not two.
+    const both = [prop({ team: "A", opponent: "B" }), prop({ team: "B", opponent: "A" })];
+    const got = app.recordVsLine(both);
+    if (got.matches !== 1) throw new Error(`grouped into ${got.matches} clusters, wanted 1`);
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  both sides of a map are one cluster\n        ${err.message}`);
+  }
+
+  try {
+    const twoMatches = [
+      prop({ match_date: "2026-09-20" }), prop({ match_date: "2026-09-21" })];
+    if (app.recordVsLine(twoMatches).matches !== 2) throw new Error("different dates merged");
+    const twoGames = [prop({ game: "cs2" }), prop({ game: "valorant" })];
+    if (app.recordVsLine(twoGames).matches !== 2) throw new Error("different games merged");
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  genuinely different matches stay separate\n        ${err.message}`);
+  }
+
+  try {
+    // Signed so POSITIVE means the line was closer. Getting this
+    // backwards would flatter the model on the one number that matters.
+    const weAreWorse = [
+      prop({ team: "A", opponent: "B", projection: 30, line: 20, actual: 20 }),
+      prop({ team: "C", opponent: "D", match_date: "2026-09-21", projection: 30, line: 20, actual: 20 }),
+    ];
+    const gap = app.recordVsLine(weAreWorse).maeGap;
+    if (!(gap.mean > 0)) throw new Error(`gap ${gap.mean}, wanted positive when the line is closer`);
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  the accuracy gap is signed the unflattering way\n        ${err.message}`);
+  }
+
+  try {
+    // One match cannot carry an interval, and reporting a mean with no
+    // spread is the overclaim this is built to prevent.
+    if (app.clusteredMean([0.5]) !== null) throw new Error("one value returned an interval");
+    if (app.clusteredMean([]) !== null) throw new Error("no values returned an interval");
+    const two = app.clusteredMean([0.4, 0.6]);
+    if (!(two && two.lo < two.mean && two.mean < two.hi)) throw new Error("interval does not bracket the mean");
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  an interval needs at least two matches\n        ${err.message}`);
   }
 }
 

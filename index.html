@@ -792,6 +792,59 @@ try {
       };
     });
   }
+  function groupByMatch(rows) {
+    const out = new Map();
+    for (const r of rows) {
+      const pair = [r.team, r.opponent].slice().sort().join("|");
+      const key = `${r.game}|${r.match_date}|${pair}`;
+      if (!out.has(key)) out.set(key, []);
+      out.get(key).push(r);
+    }
+    return [...out.values()];
+  }
+  function clusteredMean(perMatch) {
+    const n = perMatch.length;
+    if (n < 2) return null;
+    const mean = perMatch.reduce((a, b) => a + b, 0) / n;
+    const variance = perMatch.reduce((s, x) => s + (x - mean) ** 2, 0) / (n - 1);
+    const se = Math.sqrt(variance / n);
+    return {
+      mean,
+      lo: mean - 1.96 * se,
+      hi: mean + 1.96 * se,
+      n
+    };
+  }
+  function recordVsLine(rows) {
+    const decided = rows.filter(r => r.result !== "push" && typeof r.actual === "number" && typeof r.line === "number");
+    const matches = groupByMatch(decided);
+    const winRate = clusteredMean(matches.map(m => m.filter(r => r.won).length / m.length));
+    const maeGap = clusteredMean(matches.map(m => {
+      const ours = m.reduce((s, r) => s + Math.abs(r.projection - r.actual), 0) / m.length;
+      const line = m.reduce((s, r) => s + Math.abs(r.line - r.actual), 0) / m.length;
+      return ours - line;
+    }));
+    return {
+      winRate,
+      maeGap,
+      matches: matches.length,
+      props: decided.length
+    };
+  }
+  function calibration(rows) {
+    const usable = rows.filter(r => typeof r.actual === "number");
+    if (!usable.length) return null;
+    const errors = usable.map(r => r.projection - r.actual);
+    const mean = errors.reduce((a, b) => a + b, 0) / errors.length;
+    const closer = usable.filter(r => typeof r.line === "number" && Math.abs(r.projection - r.actual) < Math.abs(r.line - r.actual)).length;
+    const withLine = usable.filter(r => typeof r.line === "number").length;
+    return {
+      mean,
+      n: usable.length,
+      closer,
+      withLine
+    };
+  }
   const EDGE_BUCKETS = [[0, 1], [1, 2], [2, 3], [3, Infinity]];
   function recordByEdge(rows) {
     return EDGE_BUCKETS.map(([lo, hi]) => {
@@ -3967,7 +4020,10 @@ try {
     const won = rows.filter(r => r.won).length;
     const buckets = recordByEdge(rows);
     const windows = recordByWindow(rows);
+    const vsLine = recordVsLine(rows);
+    const cal = calibration(rows);
     const graded = results.graded.length;
+    const BREAKEVEN = 0.524;
     return React.createElement("div", null, shell(React.createElement(React.Fragment, null, React.createElement("div", {
       style: {
         color: theme.text,
@@ -3983,7 +4039,127 @@ try {
       style: {
         color: theme.text
       }
-    }, decided), " (", (100 * won / decided).toFixed(1), "%). Each projection was rebuilt from data that predated its own match, so this is not the model grading its own homework \u2014 but it is a small sample, and a sample this size moves several points on a handful of results."))), React.createElement("div", {
+    }, decided), " (", (100 * won / decided).toFixed(1), "%). Each projection was rebuilt from data that predated its own match, so this is not the model grading its own homework \u2014 but it is a small sample, and a sample this size moves several points on a handful of results."))), vsLine.winRate && vsLine.maeGap && React.createElement("div", {
+      style: {
+        background: theme.graphite,
+        border: `1px solid ${theme.steel}`,
+        ...cardShape(theme.cornerStyle),
+        ...elevation(),
+        marginTop: 12,
+        overflow: "hidden"
+      }
+    }, React.createElement("div", {
+      style: {
+        padding: "12px 16px",
+        borderBottom: `1px solid ${theme.steel}`,
+        fontSize: 12.5,
+        color: theme.text
+      }
+    }, "Against the posted line", React.createElement("span", {
+      style: {
+        color: theme.textFaint,
+        fontSize: 11
+      }
+    }, " ", "\xB7 ", vsLine.matches, " matches, ", vsLine.props, " props")), [{
+      label: "Win rate when we disagreed",
+      value: `${(100 * vsLine.winRate.mean).toFixed(1)}%`,
+      ci: `${(100 * vsLine.winRate.lo).toFixed(1)}% to ${(100 * vsLine.winRate.hi).toFixed(1)}%`,
+      verdict: vsLine.winRate.lo > BREAKEVEN ? "beats breakeven" : vsLine.winRate.hi < BREAKEVEN ? "below breakeven" : "cannot tell yet",
+      good: vsLine.winRate.lo > BREAKEVEN,
+      bad: vsLine.winRate.hi < BREAKEVEN,
+      note: `breakeven at -110 is ${(100 * BREAKEVEN).toFixed(1)}%`
+    }, {
+      label: "Our error minus the line's",
+      value: `${vsLine.maeGap.mean > 0 ? "+" : ""}${vsLine.maeGap.mean.toFixed(3)}`,
+      ci: `${vsLine.maeGap.lo.toFixed(2)} to ${vsLine.maeGap.hi.toFixed(2)}`,
+      verdict: vsLine.maeGap.hi < 0 ? "we forecast better" : vsLine.maeGap.lo > 0 ? "the line forecasts better" : "cannot tell yet",
+      good: vsLine.maeGap.hi < 0,
+      bad: vsLine.maeGap.lo > 0,
+      note: "positive means the line was closer to the truth"
+    }].map(row => React.createElement("div", {
+      key: row.label,
+      style: {
+        padding: "11px 16px",
+        borderBottom: `1px solid ${theme.steel}`
+      }
+    }, React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "baseline",
+        gap: 10,
+        flexWrap: "wrap"
+      }
+    }, React.createElement("div", {
+      style: {
+        flex: 1,
+        fontSize: 12.5,
+        color: theme.textDim,
+        minWidth: 150
+      }
+    }, row.label), React.createElement("div", {
+      className: "kp-num",
+      style: {
+        fontSize: 15,
+        fontWeight: 700,
+        color: theme.text
+      }
+    }, row.value), React.createElement("div", {
+      className: "kp-num",
+      style: {
+        fontSize: 11,
+        color: theme.textFaint,
+        minWidth: 130,
+        textAlign: "right"
+      }
+    }, "95% CI ", row.ci), React.createElement("div", {
+      style: {
+        fontSize: 11,
+        fontWeight: 600,
+        minWidth: 128,
+        textAlign: "right",
+        color: row.good ? theme.good : row.bad ? theme.bad : theme.textFaint
+      }
+    }, row.verdict)), React.createElement("div", {
+      style: {
+        fontSize: 10.5,
+        color: theme.textFaint,
+        marginTop: 4
+      }
+    }, row.note))), React.createElement("div", {
+      style: {
+        padding: "10px 16px",
+        fontSize: 11,
+        color: theme.textFaint,
+        lineHeight: 1.6
+      }
+    }, "Both intervals are clustered on the match, not the prop. Ten props from one map share its rounds and how one-sided it was, so counting them as ten independent results makes every interval about three times too narrow \u2014 which is how eight matches once got reported here as though they meant something.")), cal && cal.withLine > 0 && React.createElement("div", {
+      style: {
+        background: theme.graphite,
+        border: `1px solid ${theme.steel}`,
+        ...cardShape(theme.cornerStyle),
+        ...elevation(),
+        marginTop: 12,
+        padding: "12px 16px",
+        fontSize: 12,
+        color: theme.textDim,
+        lineHeight: 1.65
+      }
+    }, React.createElement("span", {
+      style: {
+        color: theme.text,
+        fontWeight: 600
+      }
+    }, "Is the number centred?"), " ", "Across ", cal.n, " graded projections the average miss is", " ", React.createElement("span", {
+      className: "kp-num",
+      style: {
+        color: theme.text
+      }
+    }, cal.mean > 0 ? "+" : "", cal.mean.toFixed(2)), " ", "\u2014 ", Math.abs(cal.mean) < 0.25 ? "essentially centred" : cal.mean > 0 ? "projecting high" : "projecting low", ". We landed closer than the line on", " ", React.createElement("span", {
+      className: "kp-num",
+      style: {
+        color: theme.text
+      }
+    }, (100 * cal.closer / cal.withLine).toFixed(1), "%"), " ", "of them. Average error cannot see this on its own: a model wrong by the same amount every time and one wrong in random directions score identically, and only the first turns into the same recommendation on every player."), React.createElement("div", {
       style: {
         background: theme.graphite,
         border: `1px solid ${theme.steel}`,
