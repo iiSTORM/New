@@ -101,7 +101,8 @@ def sweep(game, stat, param, values, folds=6):
     ref_total = statistics.mean(ref)
 
     print(f"\n{game}/{stat}  {param}  (shipped {shipped_value}, "
-          f"{len(ref_rows)} rows, {len(ref)} folds, MAE {ref_total:.4f})")
+          f"{len(ref_rows)} rows, {len(ref)} folds, MAE {ref_total:.4f})"
+          + ow.market_note(game, stat, ow.posted_line_counts()))
     print(f"  {'value':>7}  {'folds won':>9}  {'MAE':>8}  {'change':>8}   verdict")
     for v in values:
         cand = dict(base)

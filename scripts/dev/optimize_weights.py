@@ -91,6 +91,55 @@ def stat_applies_to(stat_type, game):
     games = STAT_TYPES[stat_type].get("games")
     return games is None or game in games
 
+def posted_line_counts(path="props_history.jsonl"):
+    """{(game, stat): lines ever posted}, from the recorded board.
+
+    Here because a weight is only worth what the market asks for, and
+    this repo spent real effort proving that was not obvious. A CS2
+    assists shrink constant was validated across four fold counts and
+    shipped -- for a stat the provider has posted ZERO lines on. The
+    whole market, across every line ever recorded:
+
+        cs2/kills 736, cs2/headshots 592, valorant/kills 151,
+        lol/kills 35, and deaths + assists four lines between them.
+
+    So the sweeps print this beside each stat. Not a gate -- measuring
+    an unposted stat is still legitimate, and a market can change -- but
+    the cost of the next one should be visible while it is being paid.
+
+    Never fatal: no file means no counts, and the sweeps say so rather
+    than refusing to run.
+    """
+    counts = {}
+    try:
+        with open(path) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    row = json.loads(line)
+                except ValueError:
+                    continue
+                key = (row.get("game"), row.get("stat"))
+                if all(key):
+                    counts[key] = counts.get(key, 0) + 1
+    except OSError:
+        return {}
+    return counts
+
+
+def market_note(game, stat, counts):
+    """One phrase describing how much market this stat has."""
+    if not counts:
+        return ""
+    n = counts.get((game, stat), 0)
+    if n == 0:
+        return "  [NO LINES EVER POSTED on this stat]"
+    total = sum(counts.values()) or 1
+    return f"  [{n} lines posted, {100.0 * n / total:.0f}% of the market]"
+
+
 def maps_counted_for(match):
     """How many maps a stored match's `actual` totals actually cover.
 
@@ -1509,7 +1558,9 @@ def main():
         return
 
     if args.validate or args.candidate:
-        shipped = SHIPPED_WEIGHTS.get(args.game if args.game != "all" else "lol", {})
+        game_key = args.game if args.game != "all" else "lol"
+        shipped = SHIPPED_WEIGHTS.get(game_key, {})
+        market = posted_line_counts()
         override = json.loads(args.candidate) if args.candidate else None
         for stat_type in stat_types:
             base = dict(DEFAULT_WEIGHTS)
@@ -1520,7 +1571,8 @@ def main():
                 continue
             folds = fold_boundaries([r[1] for r in rows], args.folds)
             print(f"=== {stat_type.upper()} ===  {len(rows)} rows, {len(folds)} folds "
-                  f"from {folds[0][0]}")
+                  f"from {folds[0][0]}"
+                  + market_note(game_key, stat_type, market))
             vals = [x for x in per_fold_mae(region_data, stat_type, base, folds) if x]
             print(f"  shipped weights, out-of-sample MAE: {sum(vals)/len(vals):.4f}")
             oos = sum(vals) / len(vals)

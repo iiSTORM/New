@@ -87,3 +87,62 @@ class TestCompareOutOfSample:
         self._stub(monkeypatch, [None, None], [None, None])
         change, wins, n = ow.compare_out_of_sample({}, "kills", {}, {"_cand": 1}, [1, 2])
         assert change is None and n == 0
+
+
+class TestTheMarketIsVisibleWhereWeightsAreChosen:
+    """A weight is only worth what the market asks for.
+
+    This repo proved that is not obvious: a CS2 assists shrink constant
+    was validated across four fold counts and shipped, for a stat the
+    provider has posted ZERO lines on. Across every line ever recorded,
+    CS2 kills and headshots are 87% of the market and deaths + assists
+    are four lines between them.
+
+    Not a gate -- measuring an unposted stat is still legitimate and a
+    market can change -- but the cost should be visible while it is
+    being paid.
+    """
+
+    import sys as _sys, os as _os
+    _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "scripts", "dev"))
+
+    @staticmethod
+    def counts(tmp_path, rows):
+        import json
+        import optimize_weights as ow
+        p = tmp_path / "h.jsonl"
+        p.write_text("\n".join(json.dumps(r) for r in rows))
+        return ow.posted_line_counts(str(p))
+
+    def test_lines_are_counted_per_game_and_stat(self, tmp_path):
+        got = self.counts(tmp_path, [
+            {"game": "cs2", "stat": "kills"}, {"game": "cs2", "stat": "kills"},
+            {"game": "cs2", "stat": "headshots"},
+        ])
+        assert got == {("cs2", "kills"): 2, ("cs2", "headshots"): 1}
+
+    def test_a_stat_with_no_lines_is_named_as_such(self, tmp_path):
+        import optimize_weights as ow
+        counts = self.counts(tmp_path, [{"game": "cs2", "stat": "kills"}])
+        assert "NO LINES EVER POSTED" in ow.market_note("cs2", "assists", counts)
+        assert "NO LINES EVER POSTED" not in ow.market_note("cs2", "kills", counts)
+
+    def test_a_stat_with_lines_reports_its_share(self, tmp_path):
+        import optimize_weights as ow
+        counts = self.counts(tmp_path, [{"game": "cs2", "stat": "kills"}] * 3
+                             + [{"game": "cs2", "stat": "headshots"}])
+        note = ow.market_note("cs2", "kills", counts)
+        assert "3 lines posted" in note and "75% of the market" in note
+
+    def test_a_missing_history_file_is_not_fatal(self):
+        """The sweeps must still run. A missing record is a reason to
+        say nothing, not a reason to refuse to measure."""
+        import optimize_weights as ow
+        assert ow.posted_line_counts("definitely/not/a/file.jsonl") == {}
+        assert ow.market_note("cs2", "kills", {}) == ""
+
+    def test_a_malformed_row_is_skipped_not_fatal(self, tmp_path):
+        import optimize_weights as ow
+        p = tmp_path / "h.jsonl"
+        p.write_text('{"game":"cs2","stat":"kills"}\nnot json\n{"game":null,"stat":"kills"}\n')
+        assert ow.posted_line_counts(str(p)) == {("cs2", "kills"): 1}

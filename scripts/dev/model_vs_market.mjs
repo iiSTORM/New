@@ -172,18 +172,46 @@ for (const side of ["over", "under"]) {
   if (sel.length) console.log(`  took ${side.padEnd(6)} ${sel.filter((r) => r.won).length}/${sel.length}  ${pct(sel.filter((r) => r.won).length, sel.length)}`);
 }
 
+/* Per game, with the MATCH count beside the prop count.
+ *
+ * Printing n=48 for Valorant invited exactly the reading this file was
+ * rewritten to prevent. Those 48 props are TWO matches -- a 0-2 and a
+ * 1-2, both short -- and every player in both underperformed, so our
+ * number and the line's were both high and ours by more. Read as 48
+ * observations it looks like a calibration problem worth chasing. Read
+ * as two matches it is two matches.
+ *
+ * Below MIN_MATCHES the comparison is withheld rather than printed
+ * small, on the same principle the rest of this file uses: a number
+ * nobody should act on is worse than no number, because it gets acted
+ * on anyway. */
+const MIN_MATCHES = 10;
+const matchesIn = (sel) => new Set(sel.map(matchKey)).size;
+
 console.log("\n  who forecasts better");
 for (const g of [...new Set(all.map((r) => r.game)), "ALL"]) {
   const sel = g === "ALL" ? all : all.filter((r) => r.game === g);
   if (!sel.length) continue;
+  const m = matchesIn(sel);
+  const head = `    ${g.padEnd(9)} ${String(m).padStart(3)} matches / ${String(sel.length).padStart(3)} props`;
+  if (m < MIN_MATCHES) {
+    console.log(`${head}  -- too few matches to compare (under ${MIN_MATCHES})`);
+    continue;
+  }
   const ourMae = mean(sel.map((r) => Math.abs(r.projection - r.actual)));
   const lineMae = mean(sel.map((r) => Math.abs(r.line - r.actual)));
   const closer = sel.filter((r) => Math.abs(r.projection - r.actual) < Math.abs(r.line - r.actual)).length;
-  console.log(`    ${g.padEnd(9)} n=${String(sel.length).padStart(3)}  our MAE ${ourMae.toFixed(2)}  line MAE ${lineMae.toFixed(2)}  we were closer on ${pct(closer, sel.length)}`);
+  console.log(`${head}  our MAE ${ourMae.toFixed(2)}  line MAE ${lineMae.toFixed(2)}  we were closer on ${pct(closer, sel.length)}`);
 }
 
 console.log("\n  bias (negative = the number was too high)");
 for (const g of [...new Set(all.map((r) => r.game))]) {
   const sel = all.filter((r) => r.game === g);
-  console.log(`    ${g.padEnd(9)} n=${String(sel.length).padStart(3)}  ours ${mean(sel.map((r) => r.actual - r.projection)).toFixed(2)}  line ${mean(sel.map((r) => r.actual - r.line)).toFixed(2)}`);
+  const m = matchesIn(sel);
+  const head = `    ${g.padEnd(9)} ${String(m).padStart(3)} matches / ${String(sel.length).padStart(3)} props`;
+  if (m < MIN_MATCHES) {
+    console.log(`${head}  -- too few matches to read a bias from`);
+    continue;
+  }
+  console.log(`${head}  ours ${mean(sel.map((r) => r.actual - r.projection)).toFixed(2)}  line ${mean(sel.map((r) => r.actual - r.line)).toFixed(2)}`);
 }
