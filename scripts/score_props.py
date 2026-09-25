@@ -148,6 +148,30 @@ def total_window(match):
     return DEFAULT_TOTAL_WINDOW
 
 
+def window_is_covered(match, maps):
+    """Whether this stored match can settle a line over `maps` maps at
+    all, before any particular player or stat is asked about.
+
+    Two callers need this question at different depths. The grader goes
+    on to look a player up and has distinct refusals to report. The CS2
+    scraper only needs to know whether re-fetching a match it already
+    holds would buy anything -- a match on record whose window the line
+    names is NOT covered is exactly as ungradeable as no match at all,
+    and treating it as settled is what left 202 map-1 lines stranded
+    behind records the backfill kept skipping.
+
+    Kept beside actual_over_window rather than reimplemented in the
+    scraper, and pinned to it by a test, because two copies of "which
+    windows does this record answer" is two copies that drift.
+    """
+    if not isinstance(maps, int) or maps <= 0:
+        return False
+    per_game = match.get("per_game")
+    if isinstance(per_game, list) and per_game:
+        return len(per_game) >= maps
+    return maps == total_window(match)
+
+
 def actual_over_window(match, team, player, stat, maps, game):
     """What the player actually did over exactly the line's maps.
 

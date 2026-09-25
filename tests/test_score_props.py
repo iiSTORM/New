@@ -178,6 +178,46 @@ class TestWindowResolution:
         assert value is None and reason == "headshots not recorded for this game"
 
 
+class TestWindowIsCovered:
+    """The cheap question -- can this record settle a line over N maps at
+    all -- asked without naming a player.
+
+    It exists because the CS2 scraper needs it to decide what to
+    re-fetch, and a second copy of "which windows does this record
+    answer" living in the scraper is a second copy that drifts. So the
+    two are pinned to each other here rather than merely written to
+    agree.
+    """
+
+    RECORDS = {
+        "no breakdown, default window": cs2_match(),
+        "no breakdown, says three": dict(cs2_match(), maps_counted=3),
+        "three-map breakdown": cs2_match_per_map(kills=(14, 14, 11)),
+        "two-map breakdown": cs2_match_per_map(kills=(14, 14)),
+        "empty breakdown falls back to the total": dict(cs2_match(), per_game=[]),
+    }
+
+    @pytest.mark.parametrize("shape", sorted(RECORDS))
+    @pytest.mark.parametrize("maps", [1, 2, 3, 4])
+    def test_it_agrees_with_the_grader(self, shape, maps):
+        """True exactly when the grader does not refuse for a WINDOW
+        reason. A player refusal is a different question and is reached
+        only after the window is known to be answerable."""
+        match = self.RECORDS[shape]
+        value, reason = sc.actual_over_window(match, "Sashi", "acoR", "kills", maps, "cs2")
+        refused_on_the_window = reason is not None and (
+            "no per-map breakdown" in reason or "series ran" in reason
+            or "map window" in reason)
+        assert sc.window_is_covered(match, maps) is not refused_on_the_window
+
+    @pytest.mark.parametrize("maps", [0, -1, None, "2", 2.0])
+    def test_a_window_it_cannot_read_is_not_covered(self, maps):
+        """False, not an exception: this runs inside a scraper deciding
+        what to request, and a malformed row there must not take the
+        run down."""
+        assert sc.window_is_covered(cs2_match_per_map(), maps) is False
+
+
 class TestGrading:
     def data(self, game, *matches):
         return {game: {"regions": regions(*matches)}}

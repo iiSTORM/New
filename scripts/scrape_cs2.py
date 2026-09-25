@@ -38,11 +38,19 @@ rather than forcing a fake historical window.
 """
 import asyncio
 import json
+import os
 import sys
 from datetime import datetime, timedelta, timezone
 
 import aiohttp
 from cs2api import CS2
+
+# Which map windows a stored record can settle, imported rather than
+# restated: the backfill below decides what to re-fetch on exactly the
+# question the grader answers, and two copies of that rule would drift.
+# score_props imports nothing but the standard library.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from score_props import window_is_covered
 
 BO3_BASE = "https://api.bo3.gg/api/v1"
 HEADERS = {
@@ -1265,22 +1273,23 @@ def teams_awaiting_results(props_history, past_matches, tracked_teams, today):
     """Teams to fetch recent results for, busiest first.
 
     A line is waiting when its fixture has been played, we track the
-    team, and we hold no match for that team on that date. Returns team
-    names ordered by how many lines are waiting on each, so a bounded
-    run buys the most gradeable rows it can.
+    team, and we hold nothing that can SETTLE it -- which is not the
+    same as holding no match at all. Returns team names ordered by how
+    many lines are waiting on each, so a bounded run buys the most
+    gradeable rows it can.
 
     Pure on purpose: the fetch that follows is network-bound and cannot
     be tested offline, but WHICH results are worth asking for is the
     part with the logic in it.
     """
-    have = set()
+    held = {}
     for m in past_matches or []:
         date = (m.get("date") or "")[:10]
         if not date:
             continue
         for side in ("teamA", "teamB"):
             if m.get(side):
-                have.add((m[side], date))
+                held.setdefault((m[side], date), []).append(m)
 
     waiting = {}
     for row in props_history or []:
@@ -1295,7 +1304,18 @@ def teams_awaiting_results(props_history, past_matches, tracked_teams, today):
             continue
         if team not in tracked_teams:
             continue
-        if (team, date) in have:
+        # A line over a window nothing could ever settle is not a reason
+        # to spend a request -- re-fetching buys it nothing.
+        maps = row.get("maps")
+        if not isinstance(maps, int) or maps <= 0:
+            continue
+        # Holding A match is not the same as holding one that can settle
+        # THIS line. A record with no per-map breakdown answers maps 1-2
+        # and nothing else, so a map-1 line sitting behind one is exactly
+        # as ungradeable as a line with no match at all -- and counting
+        # it as settled is what stranded 202 of them, in matches the
+        # backfill then skipped on every subsequent run.
+        if any(window_is_covered(m, maps) for m in held.get((team, date), ())):
             continue
         waiting[team] = waiting.get(team, 0) + 1
     return [t for t, _ in sorted(waiting.items(), key=lambda kv: (-kv[1], kv[0]))]

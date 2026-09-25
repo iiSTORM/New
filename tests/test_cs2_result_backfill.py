@@ -29,9 +29,12 @@ import scrape_cs2 as sc
 TODAY = "2026-09-24"
 
 
-def line(team, date, player="p", game="cs2"):
+def line(team, date, player="p", game="cs2", maps=2):
+    # maps defaults to 2 because every real posted line names a window
+    # and maps 1-2 is the one a stored total answers. A row without one
+    # is not a normal row, and is covered explicitly below.
     return {"game": game, "team": team, "player": player,
-            "start_time": f"{date}T10:00:00+00:00", "stat": "kills"}
+            "start_time": f"{date}T10:00:00+00:00", "stat": "kills", "maps": maps}
 
 
 def played(team, date, opp="Other"):
@@ -57,6 +60,62 @@ class TestWhichTeamsToAsk:
 
     def test_a_fixture_that_has_not_happened_is_not_missing(self):
         got = sc.teams_awaiting_results([line("A", "2026-09-27")], [], {"A"}, TODAY)
+        assert got == []
+
+    def test_a_held_match_that_cannot_settle_the_line_is_still_wanted(self):
+        """The second failure mode, found after the first was fixed.
+
+        A record with no per-map breakdown answers maps 1-2 and nothing
+        else. Holding one and calling the line settled left 202 map-1
+        lines stranded: the match was on file, so the backfill skipped
+        it on every subsequent run, and the only path that could have
+        re-fetched it -- the notable-match feed -- never covered those
+        fixtures. Nothing converted them, and no amount of re-running
+        would have."""
+        got = sc.teams_awaiting_results([line("A", "2026-09-22", maps=1)],
+                                        [played("A", "2026-09-22")], {"A"}, TODAY)
+        assert got == ["A"]
+
+    def test_and_stops_being_wanted_once_the_breakdown_lands(self):
+        """Otherwise the fix trades a stranded line for an endless
+        re-fetch of the same match, every run, forever."""
+        with_maps = dict(played("A", "2026-09-22"), per_game=[{}, {}])
+        got = sc.teams_awaiting_results([line("A", "2026-09-22", maps=1)],
+                                        [with_maps], {"A"}, TODAY)
+        assert got == []
+
+    def test_a_maps_one_to_three_line_needs_three_maps_on_file(self):
+        two = dict(played("A", "2026-09-22"), per_game=[{}, {}])
+        three = dict(played("A", "2026-09-22"), per_game=[{}, {}, {}])
+        assert sc.teams_awaiting_results([line("A", "2026-09-22", maps=3)],
+                                         [two], {"A"}, TODAY) == ["A"]
+        assert sc.teams_awaiting_results([line("A", "2026-09-22", maps=3)],
+                                         [three], {"A"}, TODAY) == []
+
+    def test_a_line_naming_no_window_is_not_worth_a_request(self):
+        """It can never be graded whatever comes back, so chasing it
+        would spend the bounded budget on nothing."""
+        for bad in (None, 0, -1, "2"):
+            assert sc.teams_awaiting_results([line("A", "2026-09-22", maps=bad)],
+                                             [], {"A"}, TODAY) == []
+
+    def test_one_settleable_line_does_not_cover_an_unsettleable_one(self):
+        """Two windows on one fixture. The maps 1-2 line is answered by
+        the stored total and the map-1 line is not, so the team is still
+        worth asking about -- once."""
+        rows = [line("A", "2026-09-22", maps=2), line("A", "2026-09-22", maps=1)]
+        got = sc.teams_awaiting_results(rows, [played("A", "2026-09-22")], {"A"}, TODAY)
+        assert got == ["A"]
+
+    def test_a_double_header_is_covered_by_whichever_leg_settles_it(self):
+        """Two matches share (team, date). The line is settleable if
+        EITHER can settle it -- reading only the first would re-fetch a
+        team whose result is already on file."""
+        first = dict(played("A", "2026-09-22", opp="X"), match_id="A-1")
+        second = dict(played("A", "2026-09-22", opp="Y"), match_id="A-2",
+                      per_game=[{}, {}])
+        got = sc.teams_awaiting_results([line("A", "2026-09-22", maps=1)],
+                                        [first, second], {"A"}, TODAY)
         assert got == []
 
     def test_today_still_counts(self):
