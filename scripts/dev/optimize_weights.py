@@ -91,6 +91,21 @@ def stat_applies_to(stat_type, game):
     games = STAT_TYPES[stat_type].get("games")
     return games is None or game in games
 
+def maps_counted_for(match):
+    """How many maps a stored match's `actual` totals actually cover.
+
+    Mirrors mapsCountedFor() in src/app.jsx -- see the note there for why
+    the old default of 2 was wrong for CS2, which writes `games` and has
+    never written maps_counted. A Bo1 read as two maps is the single
+    largest source of the "model runs high on CS2" reading.
+    """
+    for field in ("maps_counted", "games"):
+        value = (match or {}).get(field)
+        if isinstance(value, (int, float)) and not isinstance(value, bool) and value > 0:
+            return value
+    return 2
+
+
 def get_actual_stat(match, team, player_name, stat_key):
     raw = (match.get("actual") or {}).get(team, {}).get(player_name)
     if raw is None:
@@ -225,7 +240,7 @@ def _recency_entries(past_matches, team, player_name, stat_key, cutoff_date):
         # off recent form and onto the prior-split `hist` figure (which
         # comes from gol.gg's own per-game stats and stayed correct).
         entries.append((m.get("date") or "", val, parse_patch(m.get("patch")),
-                        m.get("maps_counted", 2)))
+                        maps_counted_for(m)))
     entries.sort(key=lambda e: e[0])
     _recency_entries_cache[key] = entries
     return entries
@@ -328,7 +343,7 @@ def point_in_time_team_stat(past_matches, team, stat_key, cutoff_date):
         # Real map count, not a fixed 2 — "actual" sums maps 1-2 for a
         # Bo3 but 1-3 for a Bo5, so dividing every match by 2 inflates
         # the per-game rate for anyone with Bo5 history.
-        games += m.get("maps_counted", 2)
+        games += maps_counted_for(m)
     result = total / games if games > 0 else None
     _point_in_time_team_stat_cache[key] = result
     return result
@@ -385,7 +400,7 @@ def point_in_time_player_names_stat(past_matches, team, player_names, stat_key, 
             continue
         if not m.get("actual") or team not in m["actual"]:
             continue
-        maps = m.get("maps_counted", 2)  # see note in point_in_time_team_stat
+        maps = maps_counted_for(m)  # see note in point_in_time_team_stat
         for name in player_names:
             val = get_actual_stat(m, team, name, stat_key)
             if isinstance(val, (int, float)):
@@ -765,7 +780,7 @@ def league_pace_per_map(past_matches, teams, stat_key, cutoff_date):
             total = team_total(m, team, stat_key)
             if not total:
                 continue
-            values.append(total / (m.get("maps_counted") or 2))
+            values.append(total / maps_counted_for(m))
         rate = _weighted_mean(_decayed(values)) if values else None
         if rate is not None:
             per_team.append(rate)
@@ -1036,7 +1051,7 @@ def _collect(region_data, stat_type, weights, with_dates):
                     # existed.
                     predicted, prior_games = project_point_in_time(
                         past_matches, teams, player, team, opp,
-                        match.get("maps_counted", 2), weights,
+                        maps_counted_for(match), weights,
                         match["date"], stat_type, match.get("patch")
                     )
                     if predicted is None:

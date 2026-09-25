@@ -2196,6 +2196,10 @@ try {
     const ratio = oppStat / leagueAvgStat(teams, oppBasisKey);
     return 1 + oppStrength * (ratio - 1);
   }
+  function mapsCountedFor(match) {
+    const recorded = match && typeof match.maps_counted === "number" && match.maps_counted > 0 ? match.maps_counted : match && typeof match.games === "number" && match.games > 0 ? match.games : null;
+    return recorded === null ? 2 : recorded;
+  }
   function getActualStat(match, team, playerName, statKey) {
     const raw = match.actual && match.actual[team] && match.actual[team][playerName];
     if (raw === undefined) return undefined;
@@ -2232,7 +2236,7 @@ try {
         date: m.date || "",
         val,
         patch: parsePatch(m.patch),
-        maps: m.maps_counted || 2
+        maps: mapsCountedFor(m)
       });
     }
     if (entries.length === 0) return {
@@ -2338,7 +2342,7 @@ try {
       for (const m of priorMatches(pastMatches, team, cutoffDate)) {
         const total = teamTotal(m, team, statKey);
         if (!total) continue;
-        values.push(total / (m.maps_counted || 2));
+        values.push(total / mapsCountedFor(m));
       }
       const rate = decayedMean(values);
       if (rate !== null) perTeam.push(rate);
@@ -2534,7 +2538,7 @@ try {
         const val = getActualStat(m, sourceTeam, playerName, "k");
         if (typeof val === "number") total += val;
       }
-      games += m.maps_counted || 2;
+      games += mapsCountedFor(m);
     }
     return games > 0 ? total / games : null;
   }
@@ -2553,7 +2557,7 @@ try {
         const val = getActualStat(m, team, name, statKey);
         if (typeof val === "number") {
           total += val;
-          games += m.maps_counted || 2;
+          games += mapsCountedFor(m);
         }
       }
     }
@@ -3256,7 +3260,7 @@ try {
         opponent: m.teamA === team ? m.teamB : m.teamA,
         stage: m.stage || null,
         seriesFormat: m.series_format || null,
-        mapsCounted: m.maps_counted || null
+        mapsCounted: mapsCountedFor(m)
       });
     }
     rows.sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : 0);
@@ -5540,7 +5544,7 @@ try {
         if (!teams[match.teamA] || !teams[match.teamB]) continue;
         for (const team of [match.teamA, match.teamB]) {
           const opp = team === match.teamA ? match.teamB : match.teamA;
-          const mapsCounted = match.maps_counted || 2;
+          const mapsCounted = mapsCountedFor(match);
           for (const player of teams[team].players || []) {
             const actual = getActualStat(match, team, player.name, cfg.key);
             if (actual === undefined || actual === null) continue;
@@ -5845,7 +5849,7 @@ try {
         p,
         actual
       }) => {
-        const mapsCounted = match.maps_counted || 2;
+        const mapsCounted = mapsCountedFor(match);
         const breakdown = projectPointInTime(pastMatches, teams, p, team, opp, mapsCounted, weights, match.date, statType, match.patch);
         return {
           team,
@@ -5960,7 +5964,7 @@ try {
       }
     }, "\u2022"), React.createElement("span", {
       className: "kp-num"
-    }, match.series_format, ", maps 1-", match.maps_counted || 2)), React.createElement("span", {
+    }, match.series_format, ", maps 1-", mapsCountedFor(match))), React.createElement("span", {
       "aria-hidden": "true",
       style: {
         opacity: 0.5

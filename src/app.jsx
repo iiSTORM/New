@@ -1365,6 +1365,29 @@ function opponentMultiplier(teams, opponentTeam, oppStrength, oppBasisKey) {
   return 1 + oppStrength * (ratio - 1);
 }
 
+/* How many maps a stored match's `actual` totals actually cover.
+
+   Every reader of this used to default to 2, and for CS2 that default
+   was simply wrong: the scraper has never written maps_counted -- it
+   writes `games` -- so a Bo1 was read as two maps everywhere. 50 of 699
+   committed CS2 matches are Bo1s, and each one was compared against a
+   two-map projection in the backtest and folded into its players' rates
+   at half its real per-map value. It is the single largest source of the
+   "model runs high on CS2" reading: the days that spike hardest are the
+   days with the most Bo1s, and the spike shows up on kills and deaths
+   together (correlation 0.87), which is the signature of a map-count
+   mismatch rather than a level bias.
+
+   LoL records maps_counted properly and is unaffected. Valorant's
+   `games` is fixed at 2 by construction, so it reads the same either
+   way. */
+function mapsCountedFor(match) {
+  const recorded = (match && typeof match.maps_counted === "number" && match.maps_counted > 0)
+    ? match.maps_counted
+    : (match && typeof match.games === "number" && match.games > 0 ? match.games : null);
+  return recorded === null ? 2 : recorded;
+}
+
 function getActualStat(match, team, playerName, statKey) {
   const raw = match.actual && match.actual[team] && match.actual[team][playerName];
   if (raw === undefined) return undefined;
@@ -1437,7 +1460,7 @@ function recencyWeightedRate(pastMatches, team, playerName, statKey, cutoffDate,
     // maps carries the series' real map count so the weighted per-game
     // rate divides by what the total actually covers. A Bo5 sums 3 maps
     // but a fixed 2 would divide it by 2, inflating that player's rate.
-    entries.push({ date: m.date || "", val, patch: parsePatch(m.patch), maps: m.maps_counted || 2 });
+    entries.push({ date: m.date || "", val, patch: parsePatch(m.patch), maps: mapsCountedFor(m) });
   }
   if (entries.length === 0) return { rate: null, games: 0 };
   entries.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0)); // oldest first
@@ -1579,7 +1602,7 @@ function leaguePacePerMap(pastMatches, teams, statKey, cutoffDate) {
     for (const m of priorMatches(pastMatches, team, cutoffDate)) {
       const total = teamTotal(m, team, statKey);
       if (!total) continue;
-      values.push(total / (m.maps_counted || 2));
+      values.push(total / mapsCountedFor(m));
     }
     const rate = decayedMean(values);
     if (rate !== null) perTeam.push(rate);
@@ -1985,7 +2008,7 @@ function pointInTimeTeamStat(pastMatches, team, statKey, cutoffDate) {
       const val = getActualStat(m, sourceTeam, playerName, "k"); // team-level kills, either own or conceded
       if (typeof val === "number") total += val;
     }
-    games += m.maps_counted || 2; // real map count — a Bo5 sums 3 maps, not 2
+    games += mapsCountedFor(m); // real map count — a Bo5 sums 3 maps, a CS2 Bo1 sums 1
   }
   return games > 0 ? total / games : null;
 }
@@ -2027,7 +2050,7 @@ function pointInTimePlayerNamesStat(pastMatches, team, playerNames, statKey, cut
       const val = getActualStat(m, team, name, statKey);
       if (typeof val === "number") {
         total += val;
-        games += m.maps_counted || 2; // real map count, as above
+        games += mapsCountedFor(m); // real map count, as above
       }
     }
   }
@@ -3104,7 +3127,7 @@ function recentForm(pastMatches, team, playerName, statKey, limit = 8) {
       // 2 — without it, bars of different map-counts sit side by side
       // looking directly comparable when they aren't.
       seriesFormat: m.series_format || null,
-      mapsCounted: m.maps_counted || null,
+      mapsCounted: mapsCountedFor(m),
     });
   }
   rows.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)); // newest first
@@ -4711,7 +4734,7 @@ function AccuracySummary({ teams, pastMatches, weights, statType, isDesktop, bor
       if (!teams[match.teamA] || !teams[match.teamB]) continue;
       for (const team of [match.teamA, match.teamB]) {
         const opp = team === match.teamA ? match.teamB : match.teamA;
-        const mapsCounted = match.maps_counted || 2;
+        const mapsCounted = mapsCountedFor(match);
         for (const player of teams[team].players || []) {
           const actual = getActualStat(match, team, player.name, cfg.key);
           if (actual === undefined || actual === null) continue;
@@ -4936,7 +4959,7 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
         // window (maps 1-2 for a Bo3, 1-3 for a Bo5), so a fixed 2 here
         // would under-predict every Bo5 and make the PROJ/ACT/DIFF
         // columns disagree with the model's own backtest.
-        const mapsCounted = match.maps_counted || 2;
+        const mapsCounted = mapsCountedFor(match);
         const breakdown = projectPointInTime(pastMatches, teams, p, team, opp, mapsCounted, weights, match.date, statType, match.patch);
         return { team, name: p.name, role: p.role, proj: breakdown.total, priorGames: breakdown.priorGames, actual, diff: actual - breakdown.total, player: p, breakdown, mapsCounted };
       });
@@ -4991,7 +5014,7 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
             {match.series_format && (
               <>
                 <span aria-hidden="true" style={{ opacity: 0.5 }}>•</span>
-                <span className="kp-num">{match.series_format}, maps 1-{match.maps_counted || 2}</span>
+                <span className="kp-num">{match.series_format}, maps 1-{mapsCountedFor(match)}</span>
               </>
             )}
             <span aria-hidden="true" style={{ opacity: 0.5 }}>•</span>
