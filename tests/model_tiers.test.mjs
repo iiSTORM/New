@@ -139,11 +139,22 @@ check("a match with no actual at all is null",
      team-pace tier had been carrying weight that now belongs to a
      per-player rate. Chosen for robustness over size -- 0.2 and 0.3
      score better in total but 0.4 is a majority at every granularity
-     and perfect at the finer ones (4/4, 6/6, 8/8, 9/9). A share weight
-     for KILLS came out of the same sweep at 4/6 and was rejected: 1/4
-     at four folds, 4/8 at eight. */
-  check("CS2 takes it on deaths only, the stat its pace drives most",
-        [W.cs2.kills.share, W.cs2.deaths.share, W.cs2.assists.share], [0, 0.4, 0]);
+     and perfect at the finer ones (4/4, 6/6, 8/8, 9/9).
+
+     KILLS takes 0.2 now, and it did not before. The earlier rejection
+     was right on its own numbers -- 4/6 folds, 1/4 at four, 4/8 at
+     eight -- but those were measured while every CS2 Bo1 was read as
+     two maps, and share_rate and league_pace_per_map both divide by
+     that count, so the tier was fed halved pace on 7% of matches. With
+     the count right it wins 6/6 at 0.1 and 0.2.
+
+     It is adopted JOINTLY with kp 0.5, not on its own: alone it is
+     -0.21%, under this repo's 0.25% bar. The pair is -0.27% to -0.33%
+     and a fold majority at every count tried (3/4, 5/6, 7/8, 6/9).
+     That is a weaker claim than a parameter earning its place
+     unaided, and it is recorded as one. */
+  check("CS2 takes it on deaths, and on kills alongside kp",
+        [W.cs2.kills.share, W.cs2.deaths.share, W.cs2.assists.share], [0.2, 0.4, 0]);
   check("every game and stat states a share weight explicitly",
         Object.values(W).every((g) => Object.values(g).every((s) => typeof s.share === "number")), true);
 }
@@ -376,6 +387,13 @@ for (const [game, file] of Object.entries({ valorant: "valorant_data.json", cs2:
      folds at every value from 0.1 to 0.8, and a majority at every fold
      count tried (4/4, 6/6, 7/8, 6/9).
 
+     It came down 0.8 -> 0.5 when the map count was fixed. 0.8 sat past
+     the optimum on the far side, close enough to the baseline that the
+     knockout report called the whole layer "inert - noise risk" by
+     comparing only 0.8 against 0.0. The curve has a real minimum: every
+     value from 0.1 to 0.6 beats 0.8, and 0.5 wins the most folds at the
+     finer counts (3/4, 5/6, 7/8, 7/9) for the same MAE as 0.4.
+
      The bar that comment set — a fresh out-of-sample run, not the
      in-sample search reaching for it — is the bar this cleared, and the
      leak was re-checked rather than assumed gone. kp_multiplier still
@@ -391,7 +409,7 @@ for (const [game, file] of Object.entries({ valorant: "valorant_data.json", cs2:
   check(`kp is zero everywhere except cs2/kills${nonZero.length ? ` (${nonZero})` : ""}`,
         nonZero, ["cs2/kills"]);
   check("and cs2/kills carries the value the sweep plateaued on",
-        W.cs2.kills.kp, 0.8);
+        W.cs2.kills.kp, 0.5);
 }
 
 /* ---- a stat only one game records ----

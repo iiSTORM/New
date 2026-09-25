@@ -2633,7 +2633,7 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // A share weight for kills came out of the same sweep at 4/6 and was
     // REJECTED: 1/4 at four folds and 4/8 at eight, which is fold-
     // boundary luck rather than signal.
-    kills: { history: 0.0, opponent: 0.0, kp: 0.8, recencyHalfLife: 6, patchDiscount: 0.0, career: 1.0, share: 0.0, shrink: 8.0 },
+    kills: { history: 0.0, opponent: 0.0, kp: 0.5, recencyHalfLife: 6, patchDiscount: 0.0, career: 1.0, share: 0.2, shrink: 8.0 },
     // deaths' share weight is UNDER REVIEW rather than settled. It was
     // adopted at -3.97% on 795 rows winning 4/6 folds; on the 911 rows
     // there are now, removing it measures -2.74%, which would make it
