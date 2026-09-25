@@ -5162,13 +5162,59 @@ function relativeTime(iso) {
   return days === 1 ? "yesterday" : `${days}d ago`;
 }
 
-function DataStatus({ status, lastUpdated, errorDetail, onRetry }) {
+/* How old the DATA is, and which region is the oldest.
+
+   Not when the scraper ran. Those are different questions and the badge
+   was answering the wrong one: the LoL scraper falls back to committed
+   data for any region it cannot reach, then stamps generated_at with the
+   current time, so a region carrying five-day-old matches sat under
+   "Live data · updated 9h ago". A total outage is already handled --
+   that scraper refuses to rewrite the file at all -- but a partial one
+   was silently mislabelled, and a partial one is the common case.
+
+   Each region now records its own refreshed_at. The badge reports the
+   OLDEST of them, because a page is only as current as the stalest
+   thing on it, and names that region so the reader knows which numbers
+   to distrust rather than distrusting all of them.
+
+   Files written before the field existed have no refreshed_at anywhere,
+   and fall back to generated_at -- the old behaviour, for old data. */
+function oldestRegion(regions, fallback) {
+  let worstKey = null, worstAt = null;
+  for (const [key, region] of Object.entries(regions || {})) {
+    const at = region && region.refreshed_at;
+    if (!at) continue;
+    const t = new Date(at).getTime();
+    if (isNaN(t)) continue;
+    if (worstAt === null || t < worstAt) { worstAt = t; worstKey = key; }
+  }
+  if (worstAt === null) return { at: fallback || null, region: null, perRegion: false };
+  return { at: new Date(worstAt).toISOString(), region: worstKey, perRegion: true };
+}
+
+// A region more than this far behind the freshest one is not just old,
+// it is out of step with the rest of the page -- which is the thing
+// worth naming, and it is what a half-scraped run looks like.
+const REGION_LAG_HOURS = 12;
+
+function DataStatus({ status, lastUpdated, errorDetail, onRetry, regions }) {
   const theme = useTheme();
   const color = status === "live" ? theme.good : status === "loading" ? theme.textDim : theme.accent;
-  const relative = relativeTime(lastUpdated);
+  const oldest = oldestRegion(regions, lastUpdated);
+  const effective = oldest.at || lastUpdated;
+  const relative = relativeTime(effective);
   // Data older than a day usually means the scrape has been failing, which
   // is worth a visible change of tone rather than a quietly stale number.
-  const stale = lastUpdated && (Date.now() - new Date(lastUpdated).getTime()) > 36 * 3600 * 1000;
+  const stale = effective && (Date.now() - new Date(effective).getTime()) > 36 * 3600 * 1000;
+  // Named only when it is actually behind the rest. On a healthy run
+  // every region shares one timestamp and saying "oldest: LCS" would be
+  // noise dressed as information.
+  const freshest = Object.values(regions || {})
+    .map((r) => r && r.refreshed_at ? new Date(r.refreshed_at).getTime() : NaN)
+    .filter((t) => !isNaN(t));
+  const lagging = oldest.perRegion && freshest.length > 1
+    && Math.max(...freshest) - new Date(oldest.at).getTime() > REGION_LAG_HOURS * 3600 * 1000
+    ? oldest.region : null;
   const label =
     status === "live" ? `Live data · updated ${relative || "recently"}` :
     status === "loading" ? "Loading live data…" :
@@ -5183,6 +5229,11 @@ function DataStatus({ status, lastUpdated, errorDetail, onRetry }) {
         >
           <span style={{ width: 6, height: 6, borderRadius: "50%", background: stale ? theme.accent : color, flexShrink: 0 }} />
           {label}
+          {lagging && (
+            <span style={{ color: theme.accent }}>
+              · {lagging} is {relativeTime(oldest.at)}
+            </span>
+          )}
         </div>
         {status !== "loading" && (
           <button onClick={onRetry} style={{ background: "none", border: "none", color: theme.textFaint, fontSize: 11, cursor: "pointer", textDecoration: "underline" }}>
@@ -5843,6 +5894,9 @@ function KillProjector() {
             <DataStatus
               status={statusByGame[game]}
               lastUpdated={lastUpdatedByGame[game]}
+              // The regions themselves, so the badge can report how old
+              // the DATA is rather than when the scraper last ran.
+              regions={regionsData}
               errorDetail={errorByGame[game]}
               onRetry={() => fetchGameData(game)}
             />

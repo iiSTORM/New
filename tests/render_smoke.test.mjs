@@ -39,6 +39,7 @@ const EXPORTS = [
   "FutureTab", "PastResultsTab", "ConsistencyTab", "StandingsTab",
   "ProjectionDetail", "historyPool", "project", "ScoreBar", "collectEdges",
   "EvidenceChip", "evidenceTier", "windowSections", "projectionOverWindow",
+  "DataStatus", "oldestRegion",
 ];
 const available = EXPORTS.filter((name) =>
   new RegExp(`(function|const)\\s+${name}\\b`).test(body));
@@ -598,6 +599,89 @@ if (app.collectEdges && app.EdgesTab) {
       containsText("the map 1 edge is against a one-map projection", card, fmt(oneMap));
       containsText("and the maps 1-3 edge against a three-map one", card, fmt(threeMap));
     }
+  }
+}
+
+/* How old the data is, against when the scraper ran.
+ *
+ * The badge read generated_at -- the run timestamp -- and the LoL
+ * scraper stamps that fresh even when a region it could not reach fell
+ * back to committed data. So a region carrying five-day-old matches sat
+ * under "Live data, updated 9h ago". A total outage was already handled
+ * (that scraper refuses to rewrite the file); a PARTIAL one, which is
+ * the common case, was silently mislabelled.
+ *
+ * For something people pay for, a badge asserting a freshness the data
+ * does not have is worse than no badge.
+ */
+if (app.oldestRegion) {
+  const hoursAgo = (h) => new Date(Date.now() - h * 3600 * 1000).toISOString();
+
+  const cases = [
+    ["reports the oldest region, not the freshest",
+     { A: { refreshed_at: hoursAgo(2) }, B: { refreshed_at: hoursAgo(120) } }, null, "B"],
+    ["one region is trivially the oldest",
+     { A: { refreshed_at: hoursAgo(9) } }, null, "A"],
+    ["ignores a region with no timestamp rather than treating it as ancient",
+     { A: { refreshed_at: hoursAgo(2) }, B: {} }, null, "A"],
+    ["falls back to the run stamp when NO region records one",
+     { A: {}, B: {} }, hoursAgo(9), null],
+    ["and survives an unparseable timestamp",
+     { A: { refreshed_at: "not a date" }, B: { refreshed_at: hoursAgo(3) } }, null, "B"],
+  ];
+  for (const [name, regions, fallback, wantRegion] of cases) {
+    try {
+      const got = app.oldestRegion(regions, fallback);
+      if (got.region !== wantRegion) {
+        throw new Error(`named ${got.region}, wanted ${wantRegion}`);
+      }
+      if (wantRegion === null && got.at !== fallback) {
+        throw new Error(`fell back to ${got.at}, wanted ${fallback}`);
+      }
+      pass++;
+    } catch (err) {
+      fail++;
+      console.error(`FAIL  ${name}\n        ${err.message}`);
+    }
+  }
+
+  // Empty and missing inputs reach this from a first paint, before any
+  // fetch has landed.
+  for (const [name, arg] of [["null", null], ["undefined", undefined], ["empty", {}]]) {
+    try {
+      const got = app.oldestRegion(arg, null);
+      if (got.at !== null || got.region !== null) throw new Error(JSON.stringify(got));
+      pass++;
+    } catch (err) {
+      fail++;
+      console.error(`FAIL  ${name} regions does not throw\n        ${err.message}`);
+    }
+  }
+
+  if (app.DataStatus) {
+    const badge = (regions, lastUpdated) => wrap(React.createElement(app.DataStatus, {
+      status: "live", lastUpdated, regions, errorDetail: null, onRetry: () => {},
+    }), null);
+
+    // The real shape of the bug: run stamped minutes ago, one region days behind.
+    const partialOutage = { LCS: { refreshed_at: hoursAgo(1) }, LEC: { refreshed_at: hoursAgo(120) } };
+    // "updated 5d ago" is the LABEL. Asserting a bare "5d ago" passes on
+    // the lag note alone, which left the original bug -- the label
+    // reading the run stamp -- alive through a mutation run.
+    containsText("a partially stale board reports the STALE age in its label",
+                 badge(partialOutage, hoursAgo(1)), "updated 5d ago");
+    containsText("and does not report the run stamp",
+                 badge(partialOutage, hoursAgo(1)), "updated 1h ago", false);
+    containsText("and names the region that is behind",
+                 badge(partialOutage, hoursAgo(1)), "LEC is");
+    // Deliberately unequal, so "the oldest" is deterministic and the
+    // assertion cannot pass by the tie landing on the other region.
+    containsText("a healthy board names no region, though one is nominally oldest",
+                 badge({ LCS: { refreshed_at: hoursAgo(2) }, LEC: { refreshed_at: hoursAgo(3) } },
+                       hoursAgo(2)),
+                 " is ", false);
+    containsText("an old-shaped file with no per-region stamps still reports the run",
+                 badge({ LCS: {}, LEC: {} }, hoursAgo(9)), "9h ago");
   }
 }
 

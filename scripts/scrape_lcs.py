@@ -1123,27 +1123,48 @@ def main():
         with open("data.json") as f:
             existing = json.load(f)
         existing_regions = existing.get("regions", {})
+        existing_generated_at = existing.get("generated_at")
     except FileNotFoundError:
         existing_regions = {}
+        existing_generated_at = None
 
+    # generated_at says when this SCRIPT ran. refreshed_at, per region,
+    # says when that region's data was last actually re-fetched, and the
+    # two are not the same whenever a region falls back below.
+    #
+    # They were conflated, and the app read generated_at: a partial
+    # outage left every failed region carrying weeks-old matches under a
+    # timestamp minutes old, and the page said "Live data - updated 9h
+    # ago" over it. For a total outage this script already refuses to
+    # rewrite the file at all; a PARTIAL one was silently mislabelled.
+    now_iso = datetime.now(timezone.utc).isoformat()
     payload = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": now_iso,
         "regions": {},
     }
     failed = []
     for region_key, cfg in REGIONS.items():
         try:
-            payload["regions"][region_key] = scrape_region(
+            region = scrape_region(
                 region_key, cfg["current"], cfg["historical"],
                 known=reusable_past_matches(existing_regions.get(region_key)),
             )
+            region["refreshed_at"] = now_iso
+            payload["regions"][region_key] = region
         except Exception as e:
             print(f"! region {region_key} failed entirely: {e}", file=sys.stderr)
             failed.append(region_key)
             if region_key in existing_regions:
                 print(f"  falling back to last committed data for {region_key} (stale, not "
                       f"refreshed this run)", file=sys.stderr)
-                payload["regions"][region_key] = existing_regions[region_key]
+                carried = existing_regions[region_key]
+                # Keep the age it already had. A record written before
+                # this field existed has no refreshed_at of its own, and
+                # the file's old generated_at is the closest true thing
+                # available -- never this run's, which is the bug.
+                if not carried.get("refreshed_at"):
+                    carried["refreshed_at"] = existing_generated_at
+                payload["regions"][region_key] = carried
             else:
                 print(f"  ! no prior data.json data exists for {region_key} either — it will be "
                       f"genuinely missing this run", file=sys.stderr)

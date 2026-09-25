@@ -6135,16 +6135,46 @@ try {
     const days = Math.round(hours / 24);
     return days === 1 ? "yesterday" : `${days}d ago`;
   }
+  function oldestRegion(regions, fallback) {
+    let worstKey = null,
+      worstAt = null;
+    for (const [key, region] of Object.entries(regions || {})) {
+      const at = region && region.refreshed_at;
+      if (!at) continue;
+      const t = new Date(at).getTime();
+      if (isNaN(t)) continue;
+      if (worstAt === null || t < worstAt) {
+        worstAt = t;
+        worstKey = key;
+      }
+    }
+    if (worstAt === null) return {
+      at: fallback || null,
+      region: null,
+      perRegion: false
+    };
+    return {
+      at: new Date(worstAt).toISOString(),
+      region: worstKey,
+      perRegion: true
+    };
+  }
+  const REGION_LAG_HOURS = 12;
   function DataStatus({
     status,
     lastUpdated,
     errorDetail,
-    onRetry
+    onRetry,
+    regions
   }) {
     const theme = useTheme();
     const color = status === "live" ? theme.good : status === "loading" ? theme.textDim : theme.accent;
-    const relative = relativeTime(lastUpdated);
-    const stale = lastUpdated && Date.now() - new Date(lastUpdated).getTime() > 36 * 3600 * 1000;
+    const oldest = oldestRegion(regions, lastUpdated);
+    const effective = oldest.at || lastUpdated;
+    const relative = relativeTime(effective);
+    const stale = effective && Date.now() - new Date(effective).getTime() > 36 * 3600 * 1000;
+    const freshest = Object.values(regions || {}).map(r => r && r.refreshed_at ? new Date(r.refreshed_at).getTime() : NaN).filter(t => !isNaN(t));
+    const lagging = oldest.perRegion && freshest.length > 1 && Math.max(...freshest) - new Date(oldest.at).getTime() > REGION_LAG_HOURS * 3600 * 1000 ? oldest.region : null;
     const label = status === "live" ? `Live data · updated ${relative || "recently"}` : status === "loading" ? "Loading live data…" : status === "no-url" ? "Using bundled snapshot (no live source configured)" : "Live fetch failed — using bundled snapshot";
     return React.createElement("div", {
       style: {
@@ -6178,7 +6208,11 @@ try {
         background: stale ? theme.accent : color,
         flexShrink: 0
       }
-    }), label), status !== "loading" && React.createElement("button", {
+    }), label, lagging && React.createElement("span", {
+      style: {
+        color: theme.accent
+      }
+    }, "\xB7 ", lagging, " is ", relativeTime(oldest.at))), status !== "loading" && React.createElement("button", {
       onClick: onRetry,
       style: {
         background: "none",
@@ -6960,6 +6994,7 @@ try {
     }), React.createElement(DataStatus, {
       status: statusByGame[game],
       lastUpdated: lastUpdatedByGame[game],
+      regions: regionsData,
       errorDetail: errorByGame[game],
       onRetry: () => fetchGameData(game)
     }), !isDesktop && React.createElement(TopNav, {

@@ -961,15 +961,24 @@ def lend_rosters_from_home_regions(regions):
 
 
 def main():
+    # refreshed_at, per region, says when that region was last actually
+    # re-fetched. A region that fails here is DROPPED rather than
+    # carried forward stale, so anything present was fetched this run
+    # and the two timestamps agree. The LoL scraper is the one where
+    # they diverge, and the field exists on every game so the app can
+    # ask one question of all three.
+    now_iso = datetime.now(timezone.utc).isoformat()
     payload = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": now_iso,
         "regions": {},
     }
     for region_key, cfg in REGIONS.items():
         try:
-            payload["regions"][region_key] = build_region_payload(
+            region = build_region_payload(
                 region_key, cfg["current"], cfg["historical"]
             )
+            region["refreshed_at"] = now_iso
+            payload["regions"][region_key] = region
         except Exception as e:
             print(f"! region {region_key} failed entirely: {e}", file=sys.stderr)
 

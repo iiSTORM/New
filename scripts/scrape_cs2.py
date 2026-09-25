@@ -1223,8 +1223,15 @@ async def main():
 
     merge_cs2_career_data(payload)
 
+    # refreshed_at mirrors generated_at here, and that is the true
+    # answer rather than a shortcut: this scraper has no partial-outage
+    # fallback -- the step fails and commits nothing -- so a region
+    # present in the file was re-fetched this run. The field exists on
+    # every game so the app can ask one question of all three.
+    now_iso = datetime.now(timezone.utc).isoformat()
+    payload["refreshed_at"] = now_iso
     output = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": now_iso,
         "regions": {"CS2": payload},
     }
     with open("cs2_data.json", "w") as f:
