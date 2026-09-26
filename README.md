@@ -511,17 +511,29 @@ keyed by team *name*, so a split team projects off half its games.
 The scraper had been reporting this for a while as a `[debug]` line and then
 writing both spellings anyway. `scrape_cs2.py` now folds them before writing,
 using `team_aliases.py`, which treats two entries as one team only when their
-names reduce to the same key (case, accents, punctuation, a leading `Team` or
-a trailing `Esports`/`Gaming` are spelling, not identity) **and** their
-rosters actually overlap. Requiring both is what stops a normalisation
-collision between two different orgs from pooling their histories.
+names reduce to the same key (case, accents, punctuation, a leading `Team`, a
+trailing `Esports`/`Gaming`, or one of bo3.gg's own identifiers glued on the
+end are spelling, not identity) **and** their rosters actually overlap.
+Requiring both is what stops a normalisation collision between two different
+orgs from pooling their histories.
 
-It therefore leaves alone the things it can also see but cannot judge:
-`BBL`/`Echo` and `A Great Chaos`/`FAFO` (rebrands), `MARKandLARRY`/
-`MARKnLARRY` and `NemNemesis`/`Nemesis` (typos), `5STR`/`5star` and
-`NT`/`Nice Try` (abbreviations), `Orgless`/`Orgless (Aus)` (possibly a real
-distinction), and `WBT Academy_2NMK3fBkP7gb7JK1` (an id leaking into a team
-name, which needs its own fix). Those stay in the report.
+That last case is `WBT Academy_2NMK3fBkP7gb7JK1`, and bo3.gg's own match slugs
+for its games say `wbt-academy` with nothing after it — the source stating the
+two are one team, rather than it being inferred from a shared roster. An
+identifier is a trailing token of 12+ characters with two runs of digits and
+both cases; measured against all 401 real team names in the three games it
+picks out exactly that one, at every length threshold from 10 upward. The
+floor still matters for the future: `W7M2k` has the same digits and cases and
+is the shape of a real esports tag. `scrape_cs2.py` also stopped letting such
+a name win the "first `clan_name` seen for this team id" race that made it
+canonical in the first place.
+
+It leaves alone the things it can see and cannot judge: `BBL`/`Echo` and
+`A Great Chaos`/`FAFO` (rebrands), `MARKandLARRY`/`MARKnLARRY` and
+`NemNemesis`/`Nemesis` (typos), `5STR`/`5star` and `NT`/`Nice Try`
+(abbreviations), and `Orgless`/`Orgless (Aus)` (possibly a real distinction).
+`WBT` and `WBT Academy` are five different players each and stay separate.
+Those stay in the report.
 
 `check_data.py` prints any team holding two entries, for every game, as a
 warning. gol.gg and vlr.gg were clean when this was written, and nothing
