@@ -13,9 +13,18 @@ implementation that says the browser's answer is right.
 """
 import math
 
-SAME_MATCH_CORRELATION = 0.104
+SAME_MATCH_CORRELATION = 0.101
+# Two levels, measured separately: 57.1% agreement between legs on one roster
+# (7,436 pairs) and 52.2% between legs on opposing sides of the same fixture
+# (5,910 pairs). See the long note in src/app.jsx.
+SAME_TEAM_CORRELATION = 0.143
+OPPOSING_TEAMS_CORRELATION = 0.043
+# Bootstrapped over the 79 matches the pairs come from, not over the pairs.
+SAME_MATCH_CORRELATION_LOW = 0.047
+SAME_MATCH_CORRELATION_HIGH = 0.160
 FACTOR_INTEGRATION_LIMIT = 8
 FACTOR_INTEGRATION_STEPS = 400
+NESTED_INTEGRATION_STEPS = 200
 
 
 def standard_normal_pdf(z):
@@ -96,21 +105,79 @@ def group_hit_probability(probabilities, rho):
     return min(1.0, max(0.0, (h / 3) * total))
 
 
-def joint_hit_probability(legs, rho=SAME_MATCH_CORRELATION):
-    """legs: [{"p": float, "matchKey": str|None}]."""
+def integrate_over_factor(f, steps):
+    lo, hi = -FACTOR_INTEGRATION_LIMIT, FACTOR_INTEGRATION_LIMIT
+    h = (hi - lo) / steps
+    total = f(lo) + f(hi)
+    for i in range(1, steps):
+        total += f(lo + i * h) * (4 if i % 2 else 2)
+    return (h / 3) * total
+
+
+def fixture_hit_probability(sides, rho_team, rho_fixture):
+    """P(every leg on one fixture lands), legs split by side.
+
+    sides: [[p, ...], [p, ...]] -- one list per team.
+    """
+    flat = [p for side in sides for p in side]
+    if any(not (isinstance(p, (int, float)) and 0 < p < 1) for p in flat):
+        return None
+    if not flat:
+        return 1.0
+    if len(flat) == 1:
+        return flat[0]
+    if not rho_team and not rho_fixture:
+        result = 1.0
+        for p in flat:
+            result *= p
+        return result
+    if not rho_team > rho_fixture:
+        # An imaginary team loading. Fall back to the flat model at the larger.
+        return group_hit_probability(flat, max(rho_team, rho_fixture))
+
+    a_fixture = math.sqrt(rho_fixture)
+    b_team = math.sqrt(rho_team - rho_fixture)
+    rest = math.sqrt(1 - rho_team)
+    thresholds_by_side = [[standard_normal_quantile(1 - p) for p in side] for side in sides]
+
+    def outer(z_fixture):
+        product = 1.0
+        for thresholds in thresholds_by_side:
+            def inner_f(z_team, thresholds=thresholds):
+                inner = 1.0
+                for t in thresholds:
+                    inner *= 1 - standard_normal_cdf(
+                        (t - a_fixture * z_fixture - b_team * z_team) / rest)
+                return standard_normal_pdf(z_team) * inner
+            product *= integrate_over_factor(inner_f, NESTED_INTEGRATION_STEPS)
+        return standard_normal_pdf(z_fixture) * product
+
+    return min(1.0, max(0.0, integrate_over_factor(outer, NESTED_INTEGRATION_STEPS)))
+
+
+def joint_hit_probability(legs, rho_team=SAME_TEAM_CORRELATION,
+                          rho_fixture=OPPOSING_TEAMS_CORRELATION):
+    """legs: [{"p": float, "matchKey": str|None, "teamKey": str|None}]."""
     if not legs:
         return None
-    by_match = {}
+    by_fixture = {}
     order = []
     for leg in legs:
-        key = leg.get("matchKey") or f"__{len(by_match)}"
-        if key not in by_match:
-            by_match[key] = []
+        key = leg.get("matchKey") or f"__fixture{len(by_fixture)}"
+        if key not in by_fixture:
+            by_fixture[key] = ({}, [])
             order.append(key)
-        by_match[key].append(leg.get("p"))
+        sides, side_order = by_fixture[key]
+        side = leg.get("teamKey") or f"__side{len(sides)}"
+        if side not in sides:
+            sides[side] = []
+            side_order.append(side)
+        sides[side].append(leg.get("p"))
     joint = 1.0
     for key in order:
-        group = group_hit_probability(by_match[key], rho)
+        sides, side_order = by_fixture[key]
+        group = fixture_hit_probability([sides[s] for s in side_order],
+                                        rho_team, rho_fixture)
         if group is None:
             return None
         joint *= group

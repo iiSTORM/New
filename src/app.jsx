@@ -616,7 +616,42 @@ function standardisedEdge(row) {
    a common factor with loading sqrt(rho). Independent legs fall out of the
    same formula at rho = 0, where it reduces exactly to the product -- so
    there is one code path and not two. */
-const SAME_MATCH_CORRELATION = 0.104;
+const SAME_MATCH_CORRELATION = 0.101;
+
+/* And it is not ONE number, which is what a second look at the record said.
+   Split the same-match pairs by whether the two legs are on the same side:
+
+     both legs on the SAME team      57.1% agree  (7,436 pairs)  rho 0.143
+     legs on OPPOSING teams          52.2% agree  (5,910 pairs)  rho 0.043
+     same stat vs different stat     55.1% / 54.7%               rho 0.103 / 0.094
+
+   So the team matters and the stat does not, and a single rho is wrong by more
+   than a factor of three between the two shapes a fixture can produce. Five
+   overs stacked on one roster are a much more concentrated bet than five
+   spread across both sides of the same map.
+
+   Which needs two levels rather than one: a fixture-level factor every leg on
+   the map shares, and a team-level factor only its own side shares.
+
+     X = sqrt(rf) * Zfixture + sqrt(rt - rf) * Zteam + sqrt(1 - rt) * e
+
+   Two legs on one team correlate at rt, two on opposing teams at rf, two on
+   different fixtures at zero, and X keeps unit variance. Verified by simulation
+   against both measured figures before shipping (0.144 and 0.044 against
+   targets of 0.143 and 0.043). rt > rf is required for the middle term to be
+   real, and is asserted below rather than assumed. */
+const SAME_TEAM_CORRELATION = 0.143;
+const OPPOSING_TEAMS_CORRELATION = 0.043;
+
+/* Clustered on the MATCH, because 13,346 pairs come from only 79 matches and
+   the pairs are not independent observations. Bootstrapped over matches:
+
+     rho 0.101, 95% CI 0.047 to 0.160
+
+   That interval is what makes every same-fixture rung's sign undetermined
+   rather than positive, and the view shows the range instead of the point. */
+const SAME_MATCH_CORRELATION_LOW = 0.047;
+const SAME_MATCH_CORRELATION_HIGH = 0.160;
 
 // Simpson's rule over the shared factor. Fixed grid rather than an adaptive
 // one so the Python port in scripts/dev/parlay_math.py produces the same
@@ -696,21 +731,87 @@ function groupHitProbability(probabilities, rho) {
   return Math.min(1, Math.max(0, (h / 3) * total));
 }
 
-/* P(the whole parlay lands). Legs group by match; groups are independent,
-   which the 50.0% cross-match figure is the measurement of. */
-function jointHitProbability(legs, rho = SAME_MATCH_CORRELATION) {
+/* Simpson over one factor, at whatever resolution the caller can afford. The
+   nested case below runs this inside itself, so its grid is coarser -- 200 on
+   each level is still finer than any probability displayed, and the Python port
+   uses the same numbers so the two agree to the last place. */
+function integrateOverFactor(f, steps) {
+  const lo = -FACTOR_INTEGRATION_LIMIT, hi = FACTOR_INTEGRATION_LIMIT;
+  const h = (hi - lo) / steps;
+  let total = f(lo) + f(hi);
+  for (let i = 1; i < steps; i++) total += f(lo + i * h) * (i % 2 ? 4 : 2);
+  return (h / 3) * total;
+}
+const NESTED_INTEGRATION_STEPS = 200;
+
+/* P(every leg on ONE FIXTURE lands), with the legs split by side.
+
+   `sides` is [[p, p, ...], [p, ...]] -- one array per team, so a fixture whose
+   legs are all on one roster arrives as a single array and one whose legs
+   straddle it arrives as two. The fixture factor is shared by both; the team
+   factor only within each. */
+function fixtureHitProbability(sides, rhoTeam, rhoFixture) {
+  const flat = sides.flat();
+  if (flat.some((p) => !(typeof p === "number" && p > 0 && p < 1))) return null;
+  if (!flat.length) return 1;
+  if (flat.length === 1) return flat[0];
+  // Both levels off: independence, and the product exactly.
+  if (!rhoTeam && !rhoFixture) return flat.reduce((a, b) => a * b, 1);
+  // A fixture level no smaller than the team level would need an imaginary
+  // team loading. Fall back to the flat one-factor model at the larger of the
+  // two rather than produce a NaN, and say so by using it for everything.
+  if (!(rhoTeam > rhoFixture)) {
+    return groupHitProbability(flat, Math.max(rhoTeam, rhoFixture));
+  }
+  const aFixture = Math.sqrt(rhoFixture);
+  const bTeam = Math.sqrt(rhoTeam - rhoFixture);
+  const rest = Math.sqrt(1 - rhoTeam);
+  const thresholdsBySide = sides.map((ps) => ps.map((p) => standardNormalQuantile(1 - p)));
+
+  const outer = (zFixture) => {
+    let product = 1;
+    for (const thresholds of thresholdsBySide) {
+      // Within a side, the team factor is the only thing left shared.
+      product *= integrateOverFactor((zTeam) => {
+        let inner = 1;
+        for (const t of thresholds) {
+          inner *= 1 - standardNormalCdf(
+            (t - aFixture * zFixture - bTeam * zTeam) / rest);
+        }
+        return standardNormalPdf(zTeam) * inner;
+      }, NESTED_INTEGRATION_STEPS);
+    }
+    return standardNormalPdf(zFixture) * product;
+  };
+  const got = integrateOverFactor(outer, NESTED_INTEGRATION_STEPS);
+  return Math.min(1, Math.max(0, got));
+}
+
+/* P(the whole parlay lands). Legs group by fixture, and within a fixture by
+   side; fixtures are independent, which the 50.0% cross-match agreement is the
+   measurement of.
+
+   A leg may carry `teamKey`. Without one it is treated as its own side, which
+   is the conservative reading for a same-fixture group -- it correlates at the
+   fixture level only, never at the higher team level, so nothing is assumed
+   into existence. */
+function jointHitProbability(legs, rhoTeam = SAME_TEAM_CORRELATION,
+                             rhoFixture = OPPOSING_TEAMS_CORRELATION) {
   if (!legs || !legs.length) return null;
-  const byMatch = new Map();
+  const byFixture = new Map();
   for (const leg of legs) {
-    // Anything without a match key is its own group, which is the
-    // conservative reading: it cannot be assumed to share a map with another.
-    const key = leg.matchKey || `__${byMatch.size}`;
-    if (!byMatch.has(key)) byMatch.set(key, []);
-    byMatch.get(key).push(leg.p);
+    // Anything without a fixture key is its own fixture: it cannot be assumed
+    // to share a map with another.
+    const key = leg.matchKey || `__fixture${byFixture.size}`;
+    if (!byFixture.has(key)) byFixture.set(key, new Map());
+    const sides = byFixture.get(key);
+    const side = leg.teamKey || `__side${sides.size}`;
+    if (!sides.has(side)) sides.set(side, []);
+    sides.get(side).push(leg.p);
   }
   let joint = 1;
-  for (const probabilities of byMatch.values()) {
-    const group = groupHitProbability(probabilities, rho);
+  for (const sides of byFixture.values()) {
+    const group = fixtureHitProbability([...sides.values()], rhoTeam, rhoFixture);
     if (group === null) return null;
     joint *= group;
   }
@@ -824,51 +925,99 @@ function parlayEvidence(recordRows) {
    - refuses a rung it cannot fill, rather than padding it with the next
      unranked thing on the list. */
 function buildParlays(rows, { sizes = [2, 3, 4, 5, 6], multipliers = PAYOUT_MULTIPLIERS,
-                              correlation = SAME_MATCH_CORRELATION } = {}) {
+                              shapes = ["spread", "fixture", "team"] } = {}) {
   const usable = (rows || []).filter(
     (r) => typeof r.edge === "number" && r.prop && typeof standardisedEdge(r) === "number");
   const ranked = [...usable].sort(
     (a, b) => Math.abs(standardisedEdge(b)) - Math.abs(standardisedEdge(a)));
 
+  /* Three shapes, because concentration is the axis the correlation acts on
+     and it changes the answer more than the leg count does.
+
+       spread   one leg per fixture. The legs are independent, so the parlay is
+                a bet on five reads.
+       fixture  every leg on one map, both sides of it. Correlated at 0.043.
+       team     every leg on one ROSTER. Correlated at 0.143, which is where
+                the whole of the concentration value sits if any of it is real.
+
+     The last two are what you asked for after I flagged them. They are built,
+     labelled as concentrated, and priced across the correlation interval
+     rather than at its point estimate -- because at the low end of that
+     interval every one of them is negative, and at the high end the 4, 5 and
+     6-leg are positive. The sign is not determined by the record. */
   const out = [];
-  for (const size of sizes) {
-    const legs = [];
-    const takenPlayers = new Set();
-    const takenMatches = new Set();
-    // First pass takes one leg per match, which is the shape worth having.
-    for (const row of ranked) {
-      if (legs.length >= size) break;
-      const matchKey = parlayMatchKey(row);
-      if (takenPlayers.has(row.name) || takenMatches.has(matchKey)) continue;
-      legs.push(row);
-      takenPlayers.add(row.name);
-      takenMatches.add(matchKey);
-    }
-    let spread = legs.length;
-    // Second pass fills from matches already used, still one leg per player.
-    for (const row of ranked) {
+  const byFixture = new Map();
+  const byTeam = new Map();
+  for (const row of ranked) {
+    const fixture = parlayMatchKey(row);
+    const team = parlayTeamKey(row);
+    if (!byFixture.has(fixture)) byFixture.set(fixture, []);
+    byFixture.get(fixture).push(row);
+    if (!byTeam.has(team)) byTeam.set(team, []);
+    byTeam.get(team).push(row);
+  }
+  // The deepest pool of each kind, so a shape that can be filled is offered.
+  const deepest = (pools) => [...pools.values()].reduce(
+    (best, pool) => (!best || pool.length > best.length ? pool : best), null) || [];
+  const deepestFixture = deepest(byFixture);
+  const deepestTeam = deepest(byTeam);
+
+  const pick = (pool, size) => {
+    const legs = [], takenPlayers = new Set();
+    for (const row of pool) {
       if (legs.length >= size) break;
       if (takenPlayers.has(row.name)) continue;
       legs.push(row);
       takenPlayers.add(row.name);
     }
-    if (legs.length < size) continue;
+    return legs.length === size ? legs : null;
+  };
 
+  for (const size of sizes) {
     const multiplier = multipliers[size] || null;
-    const legInputs = legs.map((row) => ({ p: null, matchKey: parlayMatchKey(row) }));
-    const matches = new Set(legInputs.map((l) => l.matchKey)).size;
-    out.push({
-      size, legs, multiplier,
-      breakEven: breakEvenPerLeg(multiplier, size),
-      matches,
-      sharesAMatch: matches < size,
-      // Filled in by the view only when parlayEvidence says the numbers may
-      // be shown; the ladder itself is computable without them and is what
-      // makes the view useful while they are withheld.
-      legInputs,
-      spread,
-      weakestLeg: Math.min(...legs.map((r) => Math.abs(standardisedEdge(r)))),
-    });
+    const candidates = [];
+    if (shapes.includes("spread")) {
+      // One leg per fixture, then fill from fixtures already used rather than
+      // leaving the rung unbuilt.
+      const legs = [], takenPlayers = new Set(), takenMatches = new Set();
+      for (const row of ranked) {
+        if (legs.length >= size) break;
+        const matchKey = parlayMatchKey(row);
+        if (takenPlayers.has(row.name) || takenMatches.has(matchKey)) continue;
+        legs.push(row); takenPlayers.add(row.name); takenMatches.add(matchKey);
+      }
+      for (const row of ranked) {
+        if (legs.length >= size) break;
+        if (takenPlayers.has(row.name)) continue;
+        legs.push(row); takenPlayers.add(row.name);
+      }
+      if (legs.length === size) candidates.push(["spread", legs]);
+    }
+    if (shapes.includes("fixture")) {
+      const legs = pick(deepestFixture, size);
+      if (legs) candidates.push(["fixture", legs]);
+    }
+    if (shapes.includes("team")) {
+      const legs = pick(deepestTeam, size);
+      if (legs) candidates.push(["team", legs]);
+    }
+
+    for (const [shape, legs] of candidates) {
+      const fixtures = new Set(legs.map(parlayMatchKey));
+      const teams = new Set(legs.map(parlayTeamKey));
+      // A "fixture" rung that happens to have landed on one roster is a team
+      // rung, and would otherwise be offered twice under two labels.
+      if (shape === "fixture" && teams.size === 1) continue;
+      out.push({
+        size, legs, multiplier, shape,
+        breakEven: breakEvenPerLeg(multiplier, size),
+        matches: fixtures.size,
+        sides: teams.size,
+        sharesAMatch: fixtures.size < size,
+        concentrated: shape !== "spread",
+        weakestLeg: Math.min(...legs.map((r) => Math.abs(standardisedEdge(r)))),
+      });
+    }
   }
   return out;
 }
@@ -880,14 +1029,47 @@ function parlayMatchKey(row) {
   return `${row.game || ""}|${String(row.when || "").slice(0, 16)}|${pair}`;
 }
 
+/* Which side of the fixture a leg sits on. Legs on one roster correlate at
+   0.143 and legs across the fixture at 0.043, so this is not a label -- it is
+   the difference between a five-leg that measures +23% and one that measures
+   -20% at the same per-leg rate. */
+function parlayTeamKey(row) {
+  return `${parlayMatchKey(row)}|${String(row.team || "")}`;
+}
+
+function parlayLegInputs(rung, probabilityOf) {
+  return rung.legs.map((row) => ({
+    p: probabilityOf(row), matchKey: parlayMatchKey(row), teamKey: parlayTeamKey(row),
+  }));
+}
+
 /* The parlay's chance of landing, given a per-leg probability for each leg.
    Separate from buildParlays because the ladder is shown either way and this
    is the part that waits for evidence. */
-function parlayProbability(rung, probabilityOf, correlation = SAME_MATCH_CORRELATION) {
+function parlayProbability(rung, probabilityOf, rhoTeam = SAME_TEAM_CORRELATION,
+                          rhoFixture = OPPOSING_TEAMS_CORRELATION) {
   if (!rung || !rung.legs) return null;
-  const legs = rung.legs.map((row) => ({ p: probabilityOf(row), matchKey: parlayMatchKey(row) }));
+  const legs = parlayLegInputs(rung, probabilityOf);
   if (legs.some((l) => typeof l.p !== "number")) return null;
-  return jointHitProbability(legs, correlation);
+  return jointHitProbability(legs, rhoTeam, rhoFixture);
+}
+
+/* The same rung priced across the correlation interval rather than at its
+   point estimate, because for a same-fixture rung that interval decides the
+   SIGN. Scaling both levels by the same factor keeps their measured ratio,
+   which is the part the record is most confident about. */
+function parlayProbabilityRange(rung, probabilityOf) {
+  const scale = (target) => {
+    const factor = target / SAME_MATCH_CORRELATION;
+    return parlayProbability(rung, probabilityOf,
+                             Math.min(0.95, SAME_TEAM_CORRELATION * factor),
+                             Math.min(0.94, OPPOSING_TEAMS_CORRELATION * factor));
+  };
+  return {
+    mid: parlayProbability(rung, probabilityOf),
+    lo: scale(SAME_MATCH_CORRELATION_LOW),
+    hi: scale(SAME_MATCH_CORRELATION_HIGH),
+  };
 }
 
 /* ---------- Fixtures the posted board implies ------------------------------
@@ -4681,15 +4863,25 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
 
       {ladder.map((rung) => {
         const perLeg = measured ? measured.mean : null;
-        // EV at the rate actually measured, with same-match correlation applied
-        // where the rung shares a fixture. Arithmetic on a measurement.
-        const atMeasured = perLeg === null ? null
-          : parlayProbability(rung, () => perLeg);
+        /* EV at the rate actually measured, with the two-level correlation
+           applied. Arithmetic on a measurement, not a model claim -- and
+           computed across the correlation INTERVAL rather than at its point
+           estimate, because for a concentrated rung that interval decides the
+           sign and a single number would hide it. */
+        const range = perLeg === null ? null : parlayProbabilityRange(rung, () => perLeg);
+        const atMeasured = range && range.mid;
         const evAtMeasured = parlayExpectedValue(atMeasured, rung.multiplier);
+        const evLo = range && parlayExpectedValue(range.lo, rung.multiplier);
+        const evHi = range && parlayExpectedValue(range.hi, rung.multiplier);
+        const signUndetermined = evLo !== null && evHi !== null
+          && Math.min(evLo, evHi) < 0 && Math.max(evLo, evHi) > 0;
         const shortfall = perLeg !== null && rung.breakEven !== null
           ? rung.breakEven - perLeg : null;
+        const shapeLabel = { spread: "one leg per fixture",
+                             fixture: "all on one fixture",
+                             team: "all on one roster" }[rung.shape] || rung.shape;
         return (
-          <div key={rung.size}
+          <div key={`${rung.size}-${rung.shape}`}
                style={{ background: theme.graphite, border: `1px solid ${theme.steel}`,
                         ...cardShape(theme.cornerStyle), ...elevation(), marginBottom: 10,
                         padding: "14px 16px" }}>
@@ -4697,6 +4889,11 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
                           gap: 10, marginBottom: 10 }}>
               <span style={{ color: theme.text, fontWeight: 700, fontSize: 14 }}>
                 {rung.size} legs
+              </span>
+              <span style={{ fontSize: 11.5, padding: "2px 7px",
+                             borderRadius: 3, border: `1px solid ${theme.steel}`,
+                             color: rung.concentrated ? theme.bad : theme.textDim }}>
+                {shapeLabel}
               </span>
               <span style={{ color: theme.textDim, fontSize: 12 }}>
                 {rung.multiplier ? `pays ${rung.multiplier}x` : "no multiplier on file"}
@@ -4719,10 +4916,13 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
             </div>
 
             <div style={{ fontSize: 12, color: theme.textDim, marginBottom: 8 }}>
-              {rung.sharesAMatch
-                ? `${rung.matches} fixture(s) for ${rung.size} legs — some legs share a match, `
-                  + `so they are correlated and priced that way`
-                : `${rung.matches} different fixtures, so the legs are independent`}
+              {rung.shape === "spread"
+                ? `${rung.matches} different fixtures, so the legs are independent`
+                : rung.shape === "team"
+                  ? `every leg on one roster — correlated at 0.143, the highest this `
+                    + `record measures, and the reason this rung prices differently`
+                  : `${rung.matches} fixture across ${rung.sides} sides — legs on one side `
+                    + `correlate at 0.143, across the fixture at 0.043`}
             </div>
 
             <div style={{ display: "grid", gap: 4, marginBottom: 10 }}>
@@ -4763,6 +4963,23 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
                     {evAtMeasured >= 0 ? "+" : ""}{(evAtMeasured * 100).toFixed(0)}%
                   </strong>
                   {" "}per unit staked.
+                  {rung.concentrated && evLo !== null && evHi !== null && (
+                    <>
+                      {" "}Across the correlation interval this record actually supports
+                      (0.047 to 0.160) that runs{" "}
+                      <strong style={{ color: theme.text }}>
+                        {evLo >= 0 ? "+" : ""}{(evLo * 100).toFixed(0)}% to{" "}
+                        {evHi >= 0 ? "+" : ""}{(evHi * 100).toFixed(0)}%
+                      </strong>
+                      {signUndetermined && (
+                        <strong style={{ color: theme.bad }}>
+                          {" "}— which crosses zero, so the record does not determine
+                          whether this rung is worth making.
+                        </strong>
+                      )}
+                      {!signUndetermined && evHi < 0 && " — negative across all of it."}
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -4774,9 +4991,14 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
         Multipliers are the published PrizePicks Power Play defaults and are not read from
         any feed — they move, and they differ by entry type and jurisdiction. Check them
         against your own board; the break-even beside each one recomputes from whatever is
-        in force. Same-match legs are priced with the correlation measured from this app's
-        own graded record (two legs on one match land the same way 55.2% of the time against
-        50.0% across matches), not as independent bets.
+        in force.
+        {" "}Legs are not combined by multiplying. Two on one roster land the same way 57.1%
+        of the time and two on opposing sides of a fixture 52.2%, against 50.0% across
+        fixtures — so correlation is applied at two levels, measured from this app's own
+        graded record. A concentrated rung's return depends on that correlation more than
+        on anything else here, and the interval shown beside it is bootstrapped over the 79
+        matches the pairs come from rather than over the 13,346 pairs, which are not
+        independent observations.
       </div>
     </div>
   );

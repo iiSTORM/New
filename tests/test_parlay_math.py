@@ -96,6 +96,150 @@ class TestCorrelatedLegsAreNotIndependent:
             f"ships {pm.SAME_MATCH_CORRELATION}, the measurement implies {implied:.3f}")
 
 
+class TestTheTwoLevels:
+    """One correlation was wrong by more than a factor of three.
+
+    Legs on one roster agree 57.1% of the time (7,436 pairs) and legs on
+    opposing sides of the same fixture 52.2% (5,910), so a fixture produces two
+    quite different shapes and the concentrated one is where all of the
+    concentration value sits. The stat does not matter: same stat 55.1%,
+    different stat 54.7%.
+    """
+
+    def test_the_team_level_is_above_the_fixture_level(self):
+        """Required for the middle loading, sqrt(rt - rf), to be real at all."""
+        assert pm.SAME_TEAM_CORRELATION > pm.OPPOSING_TEAMS_CORRELATION
+
+    def test_both_come_from_the_agreement_rates_measured(self):
+        for agreement, shipped in ((0.571, pm.SAME_TEAM_CORRELATION),
+                                   (0.522, pm.OPPOSING_TEAMS_CORRELATION)):
+            implied = 1 - (1 - agreement) / (2 * 0.25)
+            assert abs(shipped - implied) < 0.005, (
+                f"ships {shipped}, {agreement:.1%} agreement implies {implied:.3f}")
+
+    def test_the_interval_brackets_the_point_estimate(self):
+        assert (pm.SAME_MATCH_CORRELATION_LOW < pm.SAME_MATCH_CORRELATION
+                < pm.SAME_MATCH_CORRELATION_HIGH)
+
+    def test_one_roster_beats_one_fixture_beats_separate_fixtures(self):
+        """The ordering the whole concentrated-rung idea turns on."""
+        p = 0.497
+        roster = pm.joint_hit_probability([{"p": p, "matchKey": "m", "teamKey": "A"}] * 5)
+        fixture = pm.joint_hit_probability(
+            [{"p": p, "matchKey": "m", "teamKey": "A" if i < 3 else "B"} for i in range(5)])
+        spread = pm.joint_hit_probability(
+            [{"p": p, "matchKey": f"m{i}", "teamKey": f"t{i}"} for i in range(5)])
+        assert roster > fixture > spread, (roster, fixture, spread)
+        assert abs(spread - p ** 5) < 1e-9, "separate fixtures are not the plain product"
+
+    @pytest.mark.parametrize("rho", [0.043, 0.101, 0.143, 0.3, 0.6])
+    def test_a_two_leg_group_reproduces_exactly_the_correlation_asked_for(self, rho):
+        """The construction itself, against the closed form.
+
+        For two standard normals with correlation rho, both above their medians,
+        P(both) = 1/4 + arcsin(rho) / 2pi exactly -- so the correlation the
+        integral actually produces can be read back out and compared to the one
+        requested. (A linear 4*P - 1 was tried first and failed at rho 0.3 by
+        0.11, which is the approximation being wrong rather than the code: at
+        rho 0.3 the exact P is 0.29849 and 4 * 0.29849 - 1 = 0.194.)
+        """
+        joint = pm.fixture_hit_probability([[0.5, 0.5]], rho, rho * 0.3)
+        implied = math.sin(2 * math.pi * (joint - 0.25))
+        assert abs(implied - rho) < 1e-4, (
+            f"asked for {rho}, the integral produces {implied:.6f}")
+
+    def test_two_legs_on_opposing_sides_get_the_fixture_level(self):
+        """The other half of the same check: across the fixture it must be the
+        LOWER correlation, not the team one."""
+        joint = pm.fixture_hit_probability([[0.5], [0.5]], pm.SAME_TEAM_CORRELATION,
+                                           pm.OPPOSING_TEAMS_CORRELATION)
+        implied = math.sin(2 * math.pi * (joint - 0.25))
+        assert abs(implied - pm.OPPOSING_TEAMS_CORRELATION) < 1e-4, (
+            f"across the fixture the integral produces {implied:.6f}, not "
+            f"{pm.OPPOSING_TEAMS_CORRELATION}")
+
+    def test_a_side_with_no_key_is_its_own_side(self):
+        """Conservative: it correlates at the fixture level only, never at the
+        higher team level, so nothing is assumed into existence."""
+        unkeyed = pm.joint_hit_probability([{"p": 0.6, "matchKey": "m"},
+                                           {"p": 0.6, "matchKey": "m"}])
+        keyed = pm.joint_hit_probability([{"p": 0.6, "matchKey": "m", "teamKey": "A"},
+                                          {"p": 0.6, "matchKey": "m", "teamKey": "A"}])
+        assert unkeyed < keyed
+
+    @pytest.mark.parametrize("rho_team,rho_fixture", [(0.05, 0.05), (0.05, 0.2), (0.0, 0.3)])
+    def test_an_imaginary_team_loading_falls_back_rather_than_going_nan(
+            self, rho_team, rho_fixture):
+        got = pm.fixture_hit_probability([[0.6], [0.6]], rho_team, rho_fixture)
+        assert got is not None and 0 < got < 1 and not math.isnan(got)
+
+    def test_both_levels_off_is_the_product(self):
+        assert abs(pm.fixture_hit_probability([[0.6], [0.5]], 0, 0) - 0.30) < 1e-15
+
+
+class TestTheConcentratedRungsSignIsNotDetermined:
+    """The reason the view shows an interval and not a number.
+
+    At the 49.7% per leg measured over 75 matches, a same-roster 5- or 6-leg is
+    positive at the correlation point estimate and negative at the low end of
+    its interval. That is not a recommendation either way, and the app says so.
+    """
+
+    MEASURED = 0.497
+    MULTIPLIERS = {2: 3, 3: 5, 4: 10, 5: 20, 6: 37.5}
+
+    def ev(self, legs, rho_team, rho_fixture, multiplier):
+        joint = pm.joint_hit_probability(legs, rho_team, rho_fixture)
+        return pm.parlay_expected_value(joint, multiplier)
+
+    def roster(self, n):
+        return [{"p": self.MEASURED, "matchKey": "m", "teamKey": "A"}] * n
+
+    def scaled(self, target):
+        factor = target / pm.SAME_MATCH_CORRELATION
+        return (min(0.95, pm.SAME_TEAM_CORRELATION * factor),
+                min(0.94, pm.OPPOSING_TEAMS_CORRELATION * factor))
+
+    def test_spread_rungs_are_negative_at_every_size(self):
+        for n, multiplier in self.MULTIPLIERS.items():
+            legs = [{"p": self.MEASURED, "matchKey": f"m{i}", "teamKey": f"t{i}"}
+                    for i in range(n)]
+            ev = self.ev(legs, pm.SAME_TEAM_CORRELATION, pm.OPPOSING_TEAMS_CORRELATION,
+                         multiplier)
+            assert ev < 0, f"{n}-leg spread is {ev:+.0%} at {self.MEASURED:.1%} a leg"
+
+    def test_small_concentrated_rungs_are_negative_across_the_whole_interval(self):
+        """Two and three legs need correlation far above anything measured."""
+        for n in (2, 3):
+            for target in (pm.SAME_MATCH_CORRELATION_LOW, pm.SAME_MATCH_CORRELATION,
+                           pm.SAME_MATCH_CORRELATION_HIGH):
+                rt, rf = self.scaled(target)
+                ev = self.ev(self.roster(n), rt, rf, self.MULTIPLIERS[n])
+                assert ev < 0, f"{n}-leg roster is {ev:+.0%} at rho {target}"
+
+    def test_the_big_concentrated_rungs_change_sign_inside_the_interval(self):
+        """Which is the finding, and the reason nothing here is presented as a
+        recommendation. If this test starts failing because the interval has
+        narrowed, the view's caveat needs revisiting rather than the test."""
+        flipped = []
+        for n in (5, 6):
+            lo_rt, lo_rf = self.scaled(pm.SAME_MATCH_CORRELATION_LOW)
+            hi_rt, hi_rf = self.scaled(pm.SAME_MATCH_CORRELATION_HIGH)
+            low = self.ev(self.roster(n), lo_rt, lo_rf, self.MULTIPLIERS[n])
+            high = self.ev(self.roster(n), hi_rt, hi_rf, self.MULTIPLIERS[n])
+            if low < 0 < high:
+                flipped.append(n)
+        assert flipped, ("no concentrated rung changes sign across the correlation "
+                         "interval any more — the view still says one does")
+
+    def test_at_the_point_estimate_the_six_leg_roster_is_positive(self):
+        """Stated plainly rather than left implied: this is what was flagged,
+        and it is why the shape exists in the ladder at all."""
+        ev = self.ev(self.roster(6), pm.SAME_TEAM_CORRELATION,
+                     pm.OPPOSING_TEAMS_CORRELATION, 37.5)
+        assert ev > 0, f"the six-leg roster measures {ev:+.0%} at the point estimate"
+
+
 class TestBounds:
     @pytest.mark.parametrize("n", [1, 2, 3, 4, 5, 6])
     def test_a_joint_probability_is_a_probability(self, n):

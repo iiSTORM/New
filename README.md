@@ -424,18 +424,62 @@ That last one is the reason to ship this before the model can rank. At the
 and −43% per unit staked, and a reader can see exactly how far short that falls
 of the 54.7–58.5% the payouts require.
 
-**Legs are not combined by multiplying.** Two legs on one match share the map's
-rounds and pace, and the graded record says so: two legs in the same match land
-the same way 55.2% of the time (12,578 pairs) against 50.0% across matches
-(200,000 sampled), where independence predicts 50.0%. Per-match outcome
-variance runs 3.1× what independence implies. At an even base rate that is
-ρ = 0.10, applied through a one-factor model where legs within a match share a
-factor and legs across matches do not — the same formula reduces exactly to the
-product at ρ = 0, so there is one code path rather than two.
+**Legs are not combined by multiplying**, and not at one correlation either.
+Two legs on one match share the map's rounds and pace, and how much depends on
+whether they are on the same side of it:
+
+| | agreement | pairs | ρ |
+| --- | --- | --- | --- |
+| both legs on one roster | 57.1% | 7,436 | 0.143 |
+| legs on opposing sides | 52.2% | 5,910 | 0.043 |
+| legs in different fixtures | 50.0% | 200,000 sampled | 0.000 |
+| same stat vs different stat | 55.1% / 54.7% | | 0.103 / 0.094 |
+
+So the side matters by more than a factor of three and the stat does not.
+That needs two levels: a fixture factor every leg on the map shares and a team
+factor only its own side shares, `X = √rf·Z_fixture + √(rt−rf)·Z_team +
+√(1−rt)·ε`. Two legs on one roster then correlate at `rt`, two across the
+fixture at `rf`, two in different fixtures at zero, and `X` keeps unit
+variance — verified by simulation against both measured figures before
+shipping, and checked in the tests against the closed form
+`P(both) = ¼ + arcsin(ρ)/2π`, which reproduces the requested correlation to
+1e-4. At ρ = 0 the whole thing reduces exactly to the product, so there is one
+code path rather than two.
+
 `scripts/dev/parlay_math.py` is a second implementation whose only job is to
-disagree if the first is wrong; `tests/parlay_parity.test.mjs` compares 244
+disagree if the first is wrong; `tests/parlay_parity.test.mjs` compares 381
 cases and `tests/test_parlay_math.py` checks the approximations against an
 exact normal.
+
+### Concentrated rungs, and why their sign is shown as a range
+
+The ladder offers three shapes at each size: one leg per fixture, all legs on
+one fixture across both sides, and all legs on one roster. The last two are
+**concentrated**, and at the per-leg rate actually measured they price
+better than the spread ones — not because the picks are better but because
+correlation raises the chance every leg lands together faster than the payout
+falls away.
+
+That is a real consequence of a measured correlation, and it is also
+knife-edge. ρ is bootstrapped over the 79 matches the pairs come from rather
+than over the 13,346 pairs, which are not independent observations, and it
+comes out **0.101 with a 95% interval of 0.047 to 0.160**. Across that
+interval:
+
+| rung | at ρ = 0.047 | at ρ = 0.101 | at ρ = 0.160 |
+| --- | --- | --- | --- |
+| 2-leg, one roster | −24% | −20% | −16% |
+| 4-leg, one roster | −25% | −6% | **+16%** |
+| 5-leg, one roster | −14% | **+21%** | **+62%** |
+
+So every concentrated rung from four legs up changes sign inside the interval,
+and the view says so in those words rather than printing the point estimate
+alone. Two- and three-leg concentrated rungs need ρ above 0.3, far outside
+anything measured, and are negative throughout.
+
+None of this is a recommendation. It rests on a correlation from 79 matches, on
+a multiplier table that cannot be verified from any feed, and on one aggregate
+hit rate standing in for every leg.
 
 Payout multipliers are the published PrizePicks Power Play defaults and are
 **not** read from any feed — `props.json` carries a line and an odds type and

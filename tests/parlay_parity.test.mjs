@@ -34,9 +34,11 @@ if (start < 0 || end < 0 || end <= start) {
 }
 const slice = src.slice(start, end);
 const app = new Function(slice + `
-  return { jointHitProbability, groupHitProbability, standardNormalCdf,
-           standardNormalQuantile, breakEvenPerLeg, parlayExpectedValue,
-           SAME_MATCH_CORRELATION, PAYOUT_MULTIPLIERS };
+  return { jointHitProbability, groupHitProbability, fixtureHitProbability,
+           standardNormalCdf, standardNormalQuantile, breakEvenPerLeg,
+           parlayExpectedValue, SAME_MATCH_CORRELATION, SAME_TEAM_CORRELATION,
+           OPPOSING_TEAMS_CORRELATION, SAME_MATCH_CORRELATION_LOW,
+           SAME_MATCH_CORRELATION_HIGH, PAYOUT_MULTIPLIERS };
 `)();
 
 let pass = 0, fail = 0;
@@ -81,6 +83,39 @@ check("no legs is not a parlay", app.jointHitProbability([]), null);
   check("which is not what two legs sharing a match give", keyed !== unkeyed, true);
 }
 
+/* ---------- the two levels ---------- */
+
+check("the team level is above the fixture level, or the model is imaginary",
+      app.SAME_TEAM_CORRELATION > app.OPPOSING_TEAMS_CORRELATION, true);
+check("and the interval brackets the point estimate",
+      app.SAME_MATCH_CORRELATION_LOW < app.SAME_MATCH_CORRELATION
+      && app.SAME_MATCH_CORRELATION < app.SAME_MATCH_CORRELATION_HIGH, true);
+near("both levels off is exactly the product",
+     app.fixtureHitProbability([[0.6], [0.5]], 0, 0), 0.30, 1e-15);
+{
+  // The ordering the whole feature turns on: one roster is the most
+  // concentrated, one fixture across both sides next, separate fixtures least.
+  const p = 0.497;
+  const roster = app.jointHitProbability(
+    Array.from({ length: 5 }, () => ({ p, matchKey: "m", teamKey: "A" })));
+  const fixture = app.jointHitProbability(
+    Array.from({ length: 5 }, (_, i) => ({ p, matchKey: "m", teamKey: i < 3 ? "A" : "B" })));
+  const spread = app.jointHitProbability(
+    Array.from({ length: 5 }, (_, i) => ({ p, matchKey: `m${i}`, teamKey: `t${i}` })));
+  check("one roster beats one fixture beats five fixtures",
+        roster > fixture && fixture > spread, true);
+  near("and five separate fixtures are the plain product", spread, Math.pow(p, 5), 1e-9);
+}
+check("a leg with no team key is its own side rather than pooled into one",
+      app.jointHitProbability([{ p: 0.6, matchKey: "m" }, { p: 0.6, matchKey: "m" }])
+      < app.jointHitProbability([{ p: 0.6, matchKey: "m", teamKey: "A" },
+                                 { p: 0.6, matchKey: "m", teamKey: "A" }]), true);
+check("an imaginary team loading falls back rather than returning NaN",
+      [0.2, 0.05].map((rf) => {
+        const got = app.fixtureHitProbability([[0.6], [0.6]], 0.05, rf);
+        return typeof got === "number" && got > 0 && got < 1;
+      }), [true, true]);
+
 /* ---------- break-even, which is exact arithmetic ---------- */
 near("a 2-leg at 3x needs 57.7% a leg", app.breakEvenPerLeg(3, 2), Math.sqrt(1 / 3), 1e-15);
 check("a multiplier of 1 or less pays nothing to break even against",
@@ -106,6 +141,28 @@ for (const rho of [0, 0.05, app.SAME_MATCH_CORRELATION, 0.3, 0.6]) {
     }
   }
 }
+// the nested path: one fixture, one or two sides, every size
+for (const [rt, rf] of [[app.SAME_TEAM_CORRELATION, app.OPPOSING_TEAMS_CORRELATION],
+                        [0.3, 0.1], [0.05, 0.05], [0.05, 0.2], [0.6, 0.02]]) {
+  for (let size = 1; size <= 6; size++) {
+    for (let split = 0; split <= size; split++) {
+      const legs = [];
+      for (let i = 0; i < size; i++) {
+        legs.push({ p: probs[(i + split) % probs.length], matchKey: "m",
+                    teamKey: i < split ? "A" : "B" });
+      }
+      cases.push({ legs, rhoTeam: rt, rhoFixture: rf });
+    }
+  }
+}
+// several fixtures, each with two sides
+cases.push({ legs: [{ p: 0.6, matchKey: "a", teamKey: "a1" }, { p: 0.55, matchKey: "a", teamKey: "a2" },
+                    { p: 0.7, matchKey: "b", teamKey: "b1" }, { p: 0.5, matchKey: "b", teamKey: "b1" }],
+             rhoTeam: app.SAME_TEAM_CORRELATION, rhoFixture: app.OPPOSING_TEAMS_CORRELATION });
+// a same-fixture group where some legs carry no side at all
+cases.push({ legs: [{ p: 0.6, matchKey: "a", teamKey: "a1" }, { p: 0.6, matchKey: "a" },
+                    { p: 0.6, matchKey: "a" }],
+             rhoTeam: app.SAME_TEAM_CORRELATION, rhoFixture: app.OPPOSING_TEAMS_CORRELATION });
 // mixed shapes: several matches, uneven group sizes, unkeyed legs
 cases.push({ legs: [{ p: 0.6, matchKey: "a" }, { p: 0.55, matchKey: "a" },
                     { p: 0.7, matchKey: "b" }], rho: app.SAME_MATCH_CORRELATION });
@@ -117,9 +174,14 @@ cases.push({ legs: [{ p: 0.9, matchKey: "z" }, { p: 0.9, matchKey: "z" },
                     { p: 0.9, matchKey: "z" }, { p: 0.9, matchKey: "z" }], rho: 0.104 });
 cases.push({ legs: [{ p: 0.35, matchKey: "z" }, { p: 0.35, matchKey: "z" }], rho: 0.9 });
 
-const handoff = cases.map((c) => ({
-  ...c, js: app.jointHitProbability(c.legs, c.rho),
-}));
+const handoff = cases.map((c) => {
+  // Older cases carry a single rho, which means "both levels at this value" --
+  // the flat one-factor shape the engine still has to reproduce.
+  const rhoTeam = c.rhoTeam !== undefined ? c.rhoTeam : c.rho;
+  const rhoFixture = c.rhoFixture !== undefined ? c.rhoFixture : c.rho;
+  return { ...c, rhoTeam, rhoFixture,
+           js: app.jointHitProbability(c.legs, rhoTeam, rhoFixture) };
+});
 if (handoff.some((c) => typeof c.js !== "number")) {
   console.error("FAIL  a case produced no JS answer at all");
   fail++;
@@ -135,7 +197,7 @@ import parlay_math as pm
 cases = json.load(open(${JSON.stringify(out)}))
 worst, worst_case, checked = 0.0, None, 0
 for c in cases:
-    mine = pm.joint_hit_probability(c["legs"], c["rho"])
+    mine = pm.joint_hit_probability(c["legs"], c["rhoTeam"], c["rhoFixture"])
     if mine is None or c["js"] is None:
         print("MISMATCH: one side refused", c); raise SystemExit(1)
     checked += 1

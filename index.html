@@ -709,7 +709,11 @@ try {
     const scale = residualScale(row.game || row.prop && row.prop.game, row.statType, row.maps);
     return scale ? edge / scale : edge;
   }
-  const SAME_MATCH_CORRELATION = 0.104;
+  const SAME_MATCH_CORRELATION = 0.101;
+  const SAME_TEAM_CORRELATION = 0.143;
+  const OPPOSING_TEAMS_CORRELATION = 0.043;
+  const SAME_MATCH_CORRELATION_LOW = 0.047;
+  const SAME_MATCH_CORRELATION_HIGH = 0.160;
   const FACTOR_INTEGRATION_LIMIT = 8;
   const FACTOR_INTEGRATION_STEPS = 400;
   function standardNormalPdf(z) {
@@ -760,17 +764,58 @@ try {
     }
     return Math.min(1, Math.max(0, h / 3 * total));
   }
-  function jointHitProbability(legs, rho = SAME_MATCH_CORRELATION) {
+  function integrateOverFactor(f, steps) {
+    const lo = -FACTOR_INTEGRATION_LIMIT,
+      hi = FACTOR_INTEGRATION_LIMIT;
+    const h = (hi - lo) / steps;
+    let total = f(lo) + f(hi);
+    for (let i = 1; i < steps; i++) total += f(lo + i * h) * (i % 2 ? 4 : 2);
+    return h / 3 * total;
+  }
+  const NESTED_INTEGRATION_STEPS = 200;
+  function fixtureHitProbability(sides, rhoTeam, rhoFixture) {
+    const flat = sides.flat();
+    if (flat.some(p => !(typeof p === "number" && p > 0 && p < 1))) return null;
+    if (!flat.length) return 1;
+    if (flat.length === 1) return flat[0];
+    if (!rhoTeam && !rhoFixture) return flat.reduce((a, b) => a * b, 1);
+    if (!(rhoTeam > rhoFixture)) {
+      return groupHitProbability(flat, Math.max(rhoTeam, rhoFixture));
+    }
+    const aFixture = Math.sqrt(rhoFixture);
+    const bTeam = Math.sqrt(rhoTeam - rhoFixture);
+    const rest = Math.sqrt(1 - rhoTeam);
+    const thresholdsBySide = sides.map(ps => ps.map(p => standardNormalQuantile(1 - p)));
+    const outer = zFixture => {
+      let product = 1;
+      for (const thresholds of thresholdsBySide) {
+        product *= integrateOverFactor(zTeam => {
+          let inner = 1;
+          for (const t of thresholds) {
+            inner *= 1 - standardNormalCdf((t - aFixture * zFixture - bTeam * zTeam) / rest);
+          }
+          return standardNormalPdf(zTeam) * inner;
+        }, NESTED_INTEGRATION_STEPS);
+      }
+      return standardNormalPdf(zFixture) * product;
+    };
+    const got = integrateOverFactor(outer, NESTED_INTEGRATION_STEPS);
+    return Math.min(1, Math.max(0, got));
+  }
+  function jointHitProbability(legs, rhoTeam = SAME_TEAM_CORRELATION, rhoFixture = OPPOSING_TEAMS_CORRELATION) {
     if (!legs || !legs.length) return null;
-    const byMatch = new Map();
+    const byFixture = new Map();
     for (const leg of legs) {
-      const key = leg.matchKey || `__${byMatch.size}`;
-      if (!byMatch.has(key)) byMatch.set(key, []);
-      byMatch.get(key).push(leg.p);
+      const key = leg.matchKey || `__fixture${byFixture.size}`;
+      if (!byFixture.has(key)) byFixture.set(key, new Map());
+      const sides = byFixture.get(key);
+      const side = leg.teamKey || `__side${sides.size}`;
+      if (!sides.has(side)) sides.set(side, []);
+      sides.get(side).push(leg.p);
     }
     let joint = 1;
-    for (const probabilities of byMatch.values()) {
-      const group = groupHitProbability(probabilities, rho);
+    for (const sides of byFixture.values()) {
+      const group = fixtureHitProbability([...sides.values()], rhoTeam, rhoFixture);
       if (group === null) return null;
       joint *= group;
     }
@@ -835,48 +880,83 @@ try {
   function buildParlays(rows, {
     sizes = [2, 3, 4, 5, 6],
     multipliers = PAYOUT_MULTIPLIERS,
-    correlation = SAME_MATCH_CORRELATION
+    shapes = ["spread", "fixture", "team"]
   } = {}) {
     const usable = (rows || []).filter(r => typeof r.edge === "number" && r.prop && typeof standardisedEdge(r) === "number");
     const ranked = [...usable].sort((a, b) => Math.abs(standardisedEdge(b)) - Math.abs(standardisedEdge(a)));
     const out = [];
-    for (const size of sizes) {
-      const legs = [];
-      const takenPlayers = new Set();
-      const takenMatches = new Set();
-      for (const row of ranked) {
-        if (legs.length >= size) break;
-        const matchKey = parlayMatchKey(row);
-        if (takenPlayers.has(row.name) || takenMatches.has(matchKey)) continue;
-        legs.push(row);
-        takenPlayers.add(row.name);
-        takenMatches.add(matchKey);
-      }
-      let spread = legs.length;
-      for (const row of ranked) {
+    const byFixture = new Map();
+    const byTeam = new Map();
+    for (const row of ranked) {
+      const fixture = parlayMatchKey(row);
+      const team = parlayTeamKey(row);
+      if (!byFixture.has(fixture)) byFixture.set(fixture, []);
+      byFixture.get(fixture).push(row);
+      if (!byTeam.has(team)) byTeam.set(team, []);
+      byTeam.get(team).push(row);
+    }
+    const deepest = pools => [...pools.values()].reduce((best, pool) => !best || pool.length > best.length ? pool : best, null) || [];
+    const deepestFixture = deepest(byFixture);
+    const deepestTeam = deepest(byTeam);
+    const pick = (pool, size) => {
+      const legs = [],
+        takenPlayers = new Set();
+      for (const row of pool) {
         if (legs.length >= size) break;
         if (takenPlayers.has(row.name)) continue;
         legs.push(row);
         takenPlayers.add(row.name);
       }
-      if (legs.length < size) continue;
+      return legs.length === size ? legs : null;
+    };
+    for (const size of sizes) {
       const multiplier = multipliers[size] || null;
-      const legInputs = legs.map(row => ({
-        p: null,
-        matchKey: parlayMatchKey(row)
-      }));
-      const matches = new Set(legInputs.map(l => l.matchKey)).size;
-      out.push({
-        size,
-        legs,
-        multiplier,
-        breakEven: breakEvenPerLeg(multiplier, size),
-        matches,
-        sharesAMatch: matches < size,
-        legInputs,
-        spread,
-        weakestLeg: Math.min(...legs.map(r => Math.abs(standardisedEdge(r))))
-      });
+      const candidates = [];
+      if (shapes.includes("spread")) {
+        const legs = [],
+          takenPlayers = new Set(),
+          takenMatches = new Set();
+        for (const row of ranked) {
+          if (legs.length >= size) break;
+          const matchKey = parlayMatchKey(row);
+          if (takenPlayers.has(row.name) || takenMatches.has(matchKey)) continue;
+          legs.push(row);
+          takenPlayers.add(row.name);
+          takenMatches.add(matchKey);
+        }
+        for (const row of ranked) {
+          if (legs.length >= size) break;
+          if (takenPlayers.has(row.name)) continue;
+          legs.push(row);
+          takenPlayers.add(row.name);
+        }
+        if (legs.length === size) candidates.push(["spread", legs]);
+      }
+      if (shapes.includes("fixture")) {
+        const legs = pick(deepestFixture, size);
+        if (legs) candidates.push(["fixture", legs]);
+      }
+      if (shapes.includes("team")) {
+        const legs = pick(deepestTeam, size);
+        if (legs) candidates.push(["team", legs]);
+      }
+      for (const [shape, legs] of candidates) {
+        const fixtures = new Set(legs.map(parlayMatchKey));
+        const teams = new Set(legs.map(parlayTeamKey));
+        if (shape === "fixture" && teams.size === 1) continue;
+        out.push({
+          size,
+          legs,
+          multiplier,
+          shape,
+          breakEven: breakEvenPerLeg(multiplier, size),
+          matches: fixtures.size,
+          sides: teams.size,
+          sharesAMatch: fixtures.size < size,
+          concentrated: shape !== "spread",
+          weakestLeg: Math.min(...legs.map(r => Math.abs(standardisedEdge(r))))
+        });
+      }
     }
     return out;
   }
@@ -884,14 +964,32 @@ try {
     const pair = [row.team, row.opponent].map(t => String(t || "")).sort().join(" vs ");
     return `${row.game || ""}|${String(row.when || "").slice(0, 16)}|${pair}`;
   }
-  function parlayProbability(rung, probabilityOf, correlation = SAME_MATCH_CORRELATION) {
-    if (!rung || !rung.legs) return null;
-    const legs = rung.legs.map(row => ({
+  function parlayTeamKey(row) {
+    return `${parlayMatchKey(row)}|${String(row.team || "")}`;
+  }
+  function parlayLegInputs(rung, probabilityOf) {
+    return rung.legs.map(row => ({
       p: probabilityOf(row),
-      matchKey: parlayMatchKey(row)
+      matchKey: parlayMatchKey(row),
+      teamKey: parlayTeamKey(row)
     }));
+  }
+  function parlayProbability(rung, probabilityOf, rhoTeam = SAME_TEAM_CORRELATION, rhoFixture = OPPOSING_TEAMS_CORRELATION) {
+    if (!rung || !rung.legs) return null;
+    const legs = parlayLegInputs(rung, probabilityOf);
     if (legs.some(l => typeof l.p !== "number")) return null;
-    return jointHitProbability(legs, correlation);
+    return jointHitProbability(legs, rhoTeam, rhoFixture);
+  }
+  function parlayProbabilityRange(rung, probabilityOf) {
+    const scale = target => {
+      const factor = target / SAME_MATCH_CORRELATION;
+      return parlayProbability(rung, probabilityOf, Math.min(0.95, SAME_TEAM_CORRELATION * factor), Math.min(0.94, OPPOSING_TEAMS_CORRELATION * factor));
+    };
+    return {
+      mid: parlayProbability(rung, probabilityOf),
+      lo: scale(SAME_MATCH_CORRELATION_LOW),
+      hi: scale(SAME_MATCH_CORRELATION_HIGH)
+    };
   }
   const BOARD_MAX_AGE_HOURS = 12;
   const MAX_BOARD_AGE_DAYS = 3;
@@ -4540,11 +4638,20 @@ try {
       }
     }, (measured.mean * 100).toFixed(1), "%"), " ", "of the time (", (measured.lo * 100).toFixed(1), "\u2013", (measured.hi * 100).toFixed(1), "%, clustered on the match). Every rung below is priced against that rate, not against a model number.")) : React.createElement("div", null, "The graded record has not loaded, so nothing here has been checked against it.")), ladder.map(rung => {
       const perLeg = measured ? measured.mean : null;
-      const atMeasured = perLeg === null ? null : parlayProbability(rung, () => perLeg);
+      const range = perLeg === null ? null : parlayProbabilityRange(rung, () => perLeg);
+      const atMeasured = range && range.mid;
       const evAtMeasured = parlayExpectedValue(atMeasured, rung.multiplier);
+      const evLo = range && parlayExpectedValue(range.lo, rung.multiplier);
+      const evHi = range && parlayExpectedValue(range.hi, rung.multiplier);
+      const signUndetermined = evLo !== null && evHi !== null && Math.min(evLo, evHi) < 0 && Math.max(evLo, evHi) > 0;
       const shortfall = perLeg !== null && rung.breakEven !== null ? rung.breakEven - perLeg : null;
+      const shapeLabel = {
+        spread: "one leg per fixture",
+        fixture: "all on one fixture",
+        team: "all on one roster"
+      }[rung.shape] || rung.shape;
       return React.createElement("div", {
-        key: rung.size,
+        key: `${rung.size}-${rung.shape}`,
         style: {
           background: theme.graphite,
           border: `1px solid ${theme.steel}`,
@@ -4569,6 +4676,14 @@ try {
         }
       }, rung.size, " legs"), React.createElement("span", {
         style: {
+          fontSize: 11.5,
+          padding: "2px 7px",
+          borderRadius: 3,
+          border: `1px solid ${theme.steel}`,
+          color: rung.concentrated ? theme.bad : theme.textDim
+        }
+      }, shapeLabel), React.createElement("span", {
+        style: {
           color: theme.textDim,
           fontSize: 12
         }
@@ -4592,7 +4707,7 @@ try {
           color: theme.textDim,
           marginBottom: 8
         }
-      }, rung.sharesAMatch ? `${rung.matches} fixture(s) for ${rung.size} legs — some legs share a match, ` + `so they are correlated and priced that way` : `${rung.matches} different fixtures, so the legs are independent`), React.createElement("div", {
+      }, rung.shape === "spread" ? `${rung.matches} different fixtures, so the legs are independent` : rung.shape === "team" ? `every leg on one roster — correlated at 0.143, the highest this ` + `record measures, and the reason this rung prices differently` : `${rung.matches} fixture across ${rung.sides} sides — legs on one side ` + `correlate at 0.143, across the fixture at 0.043`), React.createElement("div", {
         style: {
           display: "grid",
           gap: 4,
@@ -4639,7 +4754,15 @@ try {
         style: {
           color: evAtMeasured >= 0 ? theme.good : theme.bad
         }
-      }, evAtMeasured >= 0 ? "+" : "", (evAtMeasured * 100).toFixed(0), "%"), " ", "per unit staked.")));
+      }, evAtMeasured >= 0 ? "+" : "", (evAtMeasured * 100).toFixed(0), "%"), " ", "per unit staked.", rung.concentrated && evLo !== null && evHi !== null && React.createElement(React.Fragment, null, " ", "Across the correlation interval this record actually supports (0.047 to 0.160) that runs", " ", React.createElement("strong", {
+        style: {
+          color: theme.text
+        }
+      }, evLo >= 0 ? "+" : "", (evLo * 100).toFixed(0), "% to", " ", evHi >= 0 ? "+" : "", (evHi * 100).toFixed(0), "%"), signUndetermined && React.createElement("strong", {
+        style: {
+          color: theme.bad
+        }
+      }, " ", "\u2014 which crosses zero, so the record does not determine whether this rung is worth making."), !signUndetermined && evHi < 0 && " — negative across all of it."))));
     }), React.createElement("div", {
       style: {
         fontSize: 11.5,
@@ -4647,7 +4770,7 @@ try {
         lineHeight: 1.6,
         marginTop: 4
       }
-    }, "Multipliers are the published PrizePicks Power Play defaults and are not read from any feed \u2014 they move, and they differ by entry type and jurisdiction. Check them against your own board; the break-even beside each one recomputes from whatever is in force. Same-match legs are priced with the correlation measured from this app's own graded record (two legs on one match land the same way 55.2% of the time against 50.0% across matches), not as independent bets."));
+    }, "Multipliers are the published PrizePicks Power Play defaults and are not read from any feed \u2014 they move, and they differ by entry type and jurisdiction. Check them against your own board; the break-even beside each one recomputes from whatever is in force.", " ", "Legs are not combined by multiplying. Two on one roster land the same way 57.1% of the time and two on opposing sides of a fixture 52.2%, against 50.0% across fixtures \u2014 so correlation is applied at two levels, measured from this app's own graded record. A concentrated rung's return depends on that correlation more than on anything else here, and the interval shown beside it is bootstrapped over the 79 matches the pairs come from rather than over the 13,346 pairs, which are not independent observations."));
   }
   function RecordTab({
     regionsData,
