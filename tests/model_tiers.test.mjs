@@ -325,8 +325,31 @@ for (const [game, file] of Object.entries({ valorant: "valorant_data.json", cs2:
         [W.cs2.kills.career, W.cs2.deaths.career, W.cs2.assists.career].every((v) => v === 1.0), true);
   check("CS2 shrinks every career-backed stat hard, since its roster is full of thin histories",
         [W.cs2.kills.shrink, W.cs2.deaths.shrink, W.cs2.assists.shrink], [8, 3, 4]);
-  check("and headshots shrinks too, now that the map count is right",
-        W.cs2.headshots.shrink, 6);
+  /* And then came back DOWN to 3 -- the value it started at -- once
+     headshots got a career tier. Not a reversal of the measurement; a
+     reversal of what the measurement was measuring.
+
+     shrink pulls a thin sample toward a prior, and career changes what
+     that prior is made of. With no career tier, shrink at 6 was doing
+     career's job: dragging every thin history toward a league rate
+     because nothing better existed. The knockout shows the handover
+     exactly -- shrink was worth +9.85% when career was off, and +0.60%
+     once career carries +2.80%.
+
+     So 6 was correct when it was measured and wrong a few hours later,
+     because I changed a tier underneath it in the same session. Nothing
+     in this repo's process catches that; I only re-checked because I
+     thought to. Re-measured at 88% career coverage:
+
+         4 folds  -0.94%  4/4      8 folds  -0.86%  8/8
+         6 folds  -0.87%  6/6     10 folds  -0.92%  9/10
+
+     3.0 over 2.0 on robustness again: 2.0 scores 0.1-0.2% better at
+     every count and takes a bare 4/6 at six folds, where 3.0 is near
+     perfect throughout. Confirmed by optimize_weights --candidate at
+     -0.87%, 6/6. */
+  check("and headshots shrinks less than it used to, now that career carries the prior",
+        W.cs2.headshots.shrink, 3);
   check("every game and stat states a shrink constant explicitly",
         Object.values(W).every((g) => Object.values(g).every((s) => typeof s.shrink === "number")), true);
 }
@@ -490,7 +513,7 @@ for (const [game, file] of Object.entries({ valorant: "valorant_data.json", cs2:
   check("headshots carries no share weight in any game — the knockout calls it inert",
         [W.lol.headshots.share, W.valorant.headshots.share, W.cs2.headshots.share], [0, 0, 0]);
   check("CS2 is the only game with a non-zero headshots parameter at all",
-        [W.lol.headshots.shrink, W.valorant.headshots.shrink, W.cs2.headshots.shrink], [0, 0, 6.0]);
+        [W.lol.headshots.shrink, W.valorant.headshots.shrink, W.cs2.headshots.shrink], [0, 0, 3.0]);
 }
 
 /* ---- how much evidence is behind a number ----

@@ -2838,7 +2838,7 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // a parameter whose removal costs nothing still ships a value fitted
     // to noise. Recency is likewise flat — 6, 12 and 20 sit within 0.3pp
     // — and pinned at the no-decay end.
-    headshots: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 0.8, share: 0.0, shrink: 6.0 },
+    headshots: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 0.8, share: 0.0, shrink: 3.0 },
   },
 };
 
