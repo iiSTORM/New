@@ -828,6 +828,26 @@ try {
     5: 20,
     6: 37.5
   };
+  const PAYOUT_TABLE_SOURCE = "PrizePicks Power Play defaults — not fetched, replace with yours";
+  const STANDARD_ODDS_TYPE = "standard";
+  function legIsStandardPriced(row) {
+    const type = row && row.prop && row.prop.odds_type;
+    return type === undefined || type === null || type === STANDARD_ODDS_TYPE;
+  }
+  function payoutTableFrom(overrides) {
+    const out = {
+      ...PAYOUT_MULTIPLIERS
+    };
+    for (const size of Object.keys(out)) {
+      const given = overrides && Number(overrides[size]);
+      if (isFinite(given) && given > 1) out[size] = given;
+    }
+    return out;
+  }
+  function payoutTableIsDefault(overrides) {
+    const table = payoutTableFrom(overrides);
+    return Object.keys(PAYOUT_MULTIPLIERS).every(size => table[size] === PAYOUT_MULTIPLIERS[size]);
+  }
   function breakEvenPerLeg(multiplier, legs) {
     if (!multiplier || multiplier <= 1 || !legs || legs < 1) return null;
     return Math.pow(1 / multiplier, 1 / legs);
@@ -882,7 +902,14 @@ try {
     multipliers = PAYOUT_MULTIPLIERS,
     shapes = ["spread", "fixture", "team"]
   } = {}) {
-    const usable = (rows || []).filter(r => typeof r.edge === "number" && r.prop && typeof standardisedEdge(r) === "number");
+    const priced = (rows || []).filter(r => typeof r.edge === "number" && r.prop && typeof standardisedEdge(r) === "number");
+    const usable = priced.filter(legIsStandardPriced);
+    const skippedOddsTypes = {};
+    for (const row of priced) {
+      if (legIsStandardPriced(row)) continue;
+      const type = String(row.prop.odds_type);
+      skippedOddsTypes[type] = (skippedOddsTypes[type] || 0) + 1;
+    }
     const ranked = [...usable].sort((a, b) => Math.abs(standardisedEdge(b)) - Math.abs(standardisedEdge(a)));
     const out = [];
     const byFixture = new Map();
@@ -958,6 +985,7 @@ try {
         });
       }
     }
+    out.skippedOddsTypes = skippedOddsTypes;
     return out;
   }
   function parlayMatchKey(row) {
@@ -4552,6 +4580,10 @@ try {
   }) {
     const theme = useTheme();
     const results = useGradedResults();
+    const [payoutOverrides, setPayoutOverrides] = useState(() => loadStored("kp.payoutMultipliers", {}));
+    useEffect(() => saveStored("kp.payoutMultipliers", payoutOverrides), [payoutOverrides]);
+    const multipliers = useMemo(() => payoutTableFrom(payoutOverrides), [payoutOverrides]);
+    const usingDefaults = payoutTableIsDefault(payoutOverrides);
     const rows = useMemo(() => {
       const all = [];
       for (const gameId of GAME_LIST) {
@@ -4591,7 +4623,9 @@ try {
       return all;
     }, [results, dataByGame, weightsByGameAndStat]);
     const evidence = useMemo(() => recordRows.length ? parlayEvidence(recordRows) : null, [recordRows]);
-    const ladder = useMemo(() => buildParlays(rows), [rows]);
+    const ladder = useMemo(() => buildParlays(rows, {
+      multipliers
+    }), [rows, multipliers]);
     const shell = children => React.createElement("div", {
       style: {
         background: theme.graphite,
@@ -4636,7 +4670,78 @@ try {
       style: {
         color: theme.text
       }
-    }, (measured.mean * 100).toFixed(1), "%"), " ", "of the time (", (measured.lo * 100).toFixed(1), "\u2013", (measured.hi * 100).toFixed(1), "%, clustered on the match). Every rung below is priced against that rate, not against a model number.")) : React.createElement("div", null, "The graded record has not loaded, so nothing here has been checked against it.")), ladder.map(rung => {
+    }, (measured.mean * 100).toFixed(1), "%"), " ", "of the time (", (measured.lo * 100).toFixed(1), "\u2013", (measured.hi * 100).toFixed(1), "%, clustered on the match). Every rung below is priced against that rate, not against a model number.")) : React.createElement("div", null, "The graded record has not loaded, so nothing here has been checked against it.")), React.createElement("div", {
+      style: {
+        background: theme.graphite,
+        border: `1px solid ${theme.steel}`,
+        ...cardShape(theme.cornerStyle),
+        ...elevation(),
+        padding: "14px 16px",
+        marginBottom: 14,
+        fontSize: 12.5,
+        color: theme.textDim
+      }
+    }, React.createElement("div", {
+      style: {
+        color: theme.text,
+        fontWeight: 600,
+        marginBottom: 2
+      }
+    }, "What your board pays"), React.createElement("div", {
+      style: {
+        marginBottom: 10,
+        color: theme.textFaint,
+        fontSize: 11.5
+      }
+    }, usingDefaults ? `Currently the ${PAYOUT_TABLE_SOURCE}. The provider refuses requests from ` + `this app, so these cannot be checked against your board from here — put ` + `your own in and every break-even and return below recomputes.` : "Using your numbers. Every break-even and return below is computed from them."), React.createElement("div", {
+      style: {
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 12,
+        alignItems: "flex-end"
+      }
+    }, Object.keys(PAYOUT_MULTIPLIERS).map(size => React.createElement("label", {
+      key: size,
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 3,
+        fontSize: 11.5,
+        color: theme.textDim
+      }
+    }, React.createElement("span", null, size, " picks"), React.createElement("input", {
+      type: "number",
+      step: "0.5",
+      min: "1",
+      value: payoutOverrides[size] !== undefined && payoutOverrides[size] !== "" ? payoutOverrides[size] : "",
+      placeholder: String(PAYOUT_MULTIPLIERS[size]),
+      onChange: e => setPayoutOverrides(prev => ({
+        ...prev,
+        [size]: e.target.value
+      })),
+      style: {
+        width: 74,
+        padding: "5px 7px",
+        fontSize: 12.5,
+        background: theme.void,
+        color: theme.text,
+        border: `1px solid ${theme.steel}`,
+        borderRadius: 3
+      }
+    }))), !usingDefaults && React.createElement("button", {
+      className: "kp-btn",
+      onClick: () => setPayoutOverrides({}),
+      style: {
+        fontSize: 11.5,
+        padding: "6px 10px"
+      }
+    }, "Back to defaults")), ladder.skippedOddsTypes && Object.keys(ladder.skippedOddsTypes).length > 0 && React.createElement("div", {
+      style: {
+        marginTop: 10,
+        fontSize: 11.5,
+        color: theme.textFaint
+      }
+    }, "Left out of every rung:", " ", Object.entries(ladder.skippedOddsTypes).map(([type, n]) => `${n} ${type}`).join(", "), " ", "line(s). A demon raises an entry's payout and a goblin lowers it, so a table keyed on leg count does not price them \u2014 showing one beside these multipliers would be showing a payout that is not its payout.")), ladder.map(rung => {
       const perLeg = measured ? measured.mean : null;
       const range = perLeg === null ? null : parlayProbabilityRange(rung, () => perLeg);
       const atMeasured = range && range.mid;
@@ -4770,7 +4875,7 @@ try {
         lineHeight: 1.6,
         marginTop: 4
       }
-    }, "Multipliers are the published PrizePicks Power Play defaults and are not read from any feed \u2014 they move, and they differ by entry type and jurisdiction. Check them against your own board; the break-even beside each one recomputes from whatever is in force.", " ", "Legs are not combined by multiplying. Two on one roster land the same way 57.1% of the time and two on opposing sides of a fixture 52.2%, against 50.0% across fixtures \u2014 so correlation is applied at two levels, measured from this app's own graded record. A concentrated rung's return depends on that correlation more than on anything else here, and the interval shown beside it is bootstrapped over the 79 matches the pairs come from rather than over the 13,346 pairs, which are not independent observations."));
+    }, usingDefaults ? "Multipliers are the published PrizePicks Power Play defaults and are not read " + "from any feed — the provider refuses requests from this app, so they cannot " + "be verified here. Enter your board's above and everything recomputes." : "Multipliers are the ones you entered above.", " ", "Every rung is standard legs only, because that is what a table keyed on leg count describes.", " ", "Legs are not combined by multiplying. Two on one roster land the same way 57.1% of the time and two on opposing sides of a fixture 52.2%, against 50.0% across fixtures \u2014 so correlation is applied at two levels, measured from this app's own graded record. A concentrated rung's return depends on that correlation more than on anything else here, and the interval shown beside it is bootstrapped over the 79 matches the pairs come from rather than over the 13,346 pairs, which are not independent observations."));
   }
   function RecordTab({
     regionsData,

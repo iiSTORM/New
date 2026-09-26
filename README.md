@@ -481,11 +481,41 @@ None of this is a recommendation. It rests on a correlation from 79 matches, on
 a multiplier table that cannot be verified from any feed, and on one aggregate
 hit rate standing in for every leg.
 
-Payout multipliers are the published PrizePicks Power Play defaults and are
-**not** read from any feed — `props.json` carries a line and an odds type and
-no price at all. They move, and differ by entry type and jurisdiction. Treat
-them as a default to check; the break-even recomputes from whatever is in
-force.
+### The payout table cannot be verified from here
+
+`props.json` carries a line and an odds type and **no price at all**, and the
+provider refuses server-side requests from every network — which is why the
+board is captured from a logged-in browser in the first place. So the shipped
+multipliers are published PrizePicks Power Play defaults that this repo has no
+way to check.
+
+Three things follow, and all three are now in place.
+
+**Enter your own.** The Parlays tab has a field per entry size, kept in the
+browser like the weights. Every break-even and every return recomputes from
+whatever is in it, and the view says which of the two it is using. One size
+entered does not lose the others.
+
+**A flat table keyed on leg count only prices standard legs.** The live board
+carries 291 standard, 23 demon and 18 goblin lines and the graded history
+1,174 / 152 / 22. A demon raises an entry's payout and a goblin lowers it, so a
+rung containing either is not priced by this table at all. `buildParlays` takes
+standard legs only and reports what it left out — no rung on the board this was
+written against picked a demon, which was luck rather than design.
+
+**Check whether the payout is in the capture.** `scrape_props.py` keeps nine
+fields per projection and discards the rest, so a payout sitting in the payload
+would never reach `props.json` and nobody would know:
+
+```bash
+python scripts/dev/inspect_props_payload.py ~/Downloads/prizepicks-payload.json --payouts
+```
+
+That lists every field a projection carries, flags anything payout-shaped, and
+searches the `included` side too — a league object sometimes carries the payout
+structure rather than the projection. On the committed fixture it reports none,
+which is the honest state of what this repo can see; run it on a real capture
+and if the number is there, the table should be read rather than defaulted.
 
 ### Ranking in units of the model's own error
 
