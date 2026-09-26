@@ -60,6 +60,15 @@ jobs:
       - name: Check prop selection
         run: node tests/prop_selection.test.mjs
 
+      # The board-fixture inference runs twice, in two languages: in the
+      # scrape workflow so the fixtures are committed and auditable, and at
+      # read time so a line posted since the last scrape is visible while it
+      # is live. Drift between them is silent and lands on the money side --
+      # the app listing a fixture the data file does not have, or hiding one
+      # it does, with the projection beside a line on the wrong game.
+      - name: Check both board-fixture ports agree
+        run: node tests/board_parity.test.mjs
+
       # The whole measurement apparatus here rests on optimize_weights.py
       # being a faithful port of the model in src/app.jsx. Nothing enforced
       # that, and they had drifted in two places at once -- a constant left

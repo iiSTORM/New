@@ -41,6 +41,7 @@ const EXPORTS = [
   "EvidenceChip", "evidenceTier", "windowSections", "projectionOverWindow",
   "DataStatus", "oldestRegion", "recordVsLine", "calibration", "clusteredMean",
   "rankingIsInformative", "pointInTimeCS2CareerRate", "offeredStats", "postedLineCounts",
+  "withBoardFixtures",
 ];
 const available = EXPORTS.filter((name) =>
   new RegExp(`(function|const)\\s+${name}\\b`).test(body));
@@ -568,6 +569,54 @@ if (app.collectEdges && app.EdgesTab) {
     statType: "kills", game: "lol", isDesktop: true }), bothWindows);
   containsText("and prints both lines", board, "8.5");
   containsText("including the longer window's", board, "24.5");
+
+  /* A line whose fixture the schedule never published.
+   *
+   * The whole end of the chain in one assertion, because it is the claim the
+   * board inference exists to make and nothing else here asserts it:
+   * withBoardFixtures turns a posted line on a rostered team into a fixture,
+   * collectEdges walks that fixture, and the line reaches the board with the
+   * opponent marked unknown. Tested through the real EdgesTab because a row
+   * in an array nobody renders is not a visible line. */
+  if (app.withBoardFixtures) {
+    try {
+      const noFixtures = { R: { ...regionsData.R, upcoming_matches: [] } };
+      const augmented = app.withBoardFixtures(noFixtures, bothWindows, "lol",
+                                              new Date(SOON_ISO));
+      const added = augmented.R.upcoming_matches;
+      if (added.length !== 1) {
+        throw new Error(`${added.length} fixture(s) inferred from the board, wanted 1`);
+      }
+      if (added[0].teamA !== "T1" || added[0].teamB !== "TBD") {
+        throw new Error(`inferred ${added[0].teamA} vs ${added[0].teamB} -- the board `
+          + "cannot name an opponent, so the other side has to stay undecided");
+      }
+      const inferredRows = app.collectEdges(augmented, ["R"], bothWindows, weights,
+                                            "kills", "lol");
+      if (inferredRows.length !== 2) {
+        throw new Error(`${inferredRows.length} row(s) off the inferred fixture, wanted `
+          + "2 -- one per posted window");
+      }
+      if (inferredRows.some((r) => r.oppKnown)) {
+        throw new Error("a row off an inferred fixture claims a known opponent");
+      }
+      if (app.collectEdges(noFixtures, ["R"], bothWindows, weights, "kills", "lol").length) {
+        throw new Error("the un-augmented data already produced rows, so this proved nothing");
+      }
+      pass++;
+    } catch (err) {
+      fail++;
+      console.error("FAIL  a line with no published fixture still reaches the board"
+        + `\n        ${err.message}`);
+    }
+
+    const inferredBoard = wrap(React.createElement(app.EdgesTab, {
+      regionsData: app.withBoardFixtures({ R: { ...regionsData.R, upcoming_matches: [] } },
+                                         bothWindows, "lol", new Date(SOON_ISO)),
+      regionList: ["R"], regionLabels: {}, weights,
+      statType: "kills", game: "lol", isDesktop: true }), bothWindows);
+    containsText("and the board prints it", inferredBoard, "8.5");
+  }
 
   if (appOpen.FutureMatchCard) {
     // appOpen, because a match card renders COLLAPSED: its player rows,

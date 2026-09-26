@@ -12,6 +12,7 @@ falls back to a snapshot bundled inside the page if a fetch fails.
 
 ```
 src/app.jsx                    the frontend source — edit this
+                               (mirrors scripts/board_fixtures.py — see below)
 src/index.template.html        the HTML shell around it
 build/build-frontend.js        compiles src/ into index.html
 index.html                     GENERATED — do not edit by hand
@@ -472,6 +473,26 @@ falls back to neutral). Anything it adds or changes is stamped `inferred` in
 
 It is additive and `continue-on-error`: a board that adds nothing is the
 normal state once the schedule provider catches up.
+
+**The same rule runs a second time, in the app.** The pipeline runs twice a
+day and the board is refreshed every half hour, so a line posted at noon for
+a 16:00 game would have waited for the 21:00 scrape to become visible — which
+is to say it would have been invisible for the only hours it mattered.
+`withBoardFixtures` in `src/app.jsx` therefore folds the same fixtures in at
+read time, over whatever board the page just fetched, before the Edges,
+Upcoming and Record views read the fixture list. Both passes are idempotent,
+so the overlap costs nothing: an inferred `X vs TBD` already in the file
+marks that team as having a fixture and the second pass finds nothing to add.
+
+Two implementations of one rule is a drift surface, and the drift would be
+silent — the app listing a fixture the data file does not have, or hiding one
+it does, with a projection sitting beside a line on the wrong game. So
+`tests/board_parity.test.mjs` runs both over the same inputs and compares
+fixture by fixture: the three committed data files plus twenty synthetic
+shapes, with the cases defined once on the JS side and recomputed by
+`scripts/dev/check_board_parity.py` rather than listed twice. It re-execs
+itself under a non-UTC timezone, because a naive timestamp read as local time
+rather than UTC is identical to correct behaviour on a UTC runner.
 
 Regions currently covered: LCS, LEC, LCK, LPL, LCP, CBLOL, TCL (LoL);
 VCT Americas / EMEA / Pacific / China; CS2 (single pool).

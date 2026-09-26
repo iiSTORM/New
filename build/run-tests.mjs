@@ -9,8 +9,11 @@
  * minutes later, which is the wrong place to catch it.
  *
  * CI already runs each of these as its own step (see
- * .github/workflows/tests.yml). This is the same set in the same order,
- * so "it passed locally" and "it passed in CI" mean the same thing.
+ * .github/workflows/tests.yml). This is the same SET -- the node suites are
+ * discovered here and hand-listed there, so the two orders differ -- which
+ * is what makes "it passed locally" and "it passed in CI" mean the same
+ * thing. Adding a tests/*.test.mjs file gets it run here automatically and
+ * still needs a step adding there.
  *
  *   npm test
  */

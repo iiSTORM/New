@@ -181,6 +181,18 @@ def board_slots(props, game, regions, now, fetched_at=None,
     return slots_by_region, counts
 
 
+def stamp_text(when):
+    """A kickoff written the way the schedule sources already write one.
+
+    UTC with a Z and no sub-second part, which is both what the LoL Esports
+    API emits ("2026-09-26T20:00:00Z") and exactly what the JS port produces.
+    isoformat() would keep the board's own offset here and JS cannot, so the
+    two sides would write the same instant as different text and
+    tests/board_parity.test.mjs could only compare them loosely.
+    """
+    return when.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def fixture_matches_slot(fixture_date, slot_when, window):
     """Is this fixture the game the board put at `slot_when`?
 
@@ -279,7 +291,7 @@ def augment_regions(regions, slots_by_region, window_hours=BOARD_MATCH_WINDOW_HO
             target = []
             regions[region_key]["upcoming_matches"] = target
         for team in leftover:
-            fixture = {"date": slot["when"].isoformat(), "teamA": team,
+            fixture = {"date": stamp_text(slot["when"]), "teamA": team,
                        "teamB": "TBD", "block": "", "inferred": "board:team"}
             target.append(fixture)
             # Into `existing` as well as the region's own list: a team

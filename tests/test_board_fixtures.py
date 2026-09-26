@@ -350,7 +350,7 @@ class TestAddingAMissingFixture:
         slots = [{"when": bf.parse_stamp(stamp(3)), "teams": {"SU Esports": 2}}]
         counts, _ = bf.augment_regions(regions, {"TCL": slots})
         assert regions["TCL"]["upcoming_matches"] == [
-            {"date": bf.parse_stamp(stamp(3)).isoformat(), "teamA": "SU Esports",
+            {"date": bf.stamp_text(bf.parse_stamp(stamp(3))), "teamA": "SU Esports",
              "teamB": "TBD", "block": "", "inferred": "board:team"}]
         assert counts["added"] == 1
 
@@ -454,6 +454,66 @@ class TestNotPublishingAGameTwice:
         assert len(added) == 1
 
 
+class TestIdempotence:
+    """The workflow writes its inferred fixtures into the file the app then
+    reads and re-infers over. A second pass that added anything would double
+    every fixture the first one found."""
+
+    def test_a_second_pass_over_an_added_fixture_adds_nothing(self):
+        regions = {"TCL": region({"SU Esports": ["Zeitnot"]})}
+        slots = [{"when": bf.parse_stamp(stamp(3)), "teams": {"SU Esports": 1}}]
+        first, _ = bf.augment_regions(regions, {"TCL": slots})
+        assert first["added"] == 1
+        second, _ = bf.augment_regions(regions, {"TCL": slots})
+        assert not second["added"] and second["already_covered"] == 1
+        assert len(regions["TCL"]["upcoming_matches"]) == 1
+
+    def test_a_second_pass_over_a_filled_hole_adds_nothing(self):
+        regions = {"LCS": region(
+            {"LYON": ["Bvoy"], "Shopify Rebellion": ["Tomio"]},
+            [{"date": stamp(6), "teamA": "TBD", "teamB": "LYON"}])}
+        slots = [{"when": bf.parse_stamp(stamp(6)),
+                  "teams": {"LYON": 1, "Shopify Rebellion": 1}}]
+        first, _ = bf.augment_regions(regions, {"LCS": slots})
+        assert first["filled"] == 1
+        second, _ = bf.augment_regions(regions, {"LCS": slots})
+        assert not second["filled"] and not second["added"]
+        assert len(regions["LCS"]["upcoming_matches"]) == 1
+
+    def test_a_second_pass_over_the_real_board_adds_nothing(self):
+        """Run against the committed files, which is the shape the workflow
+        actually hands the app: already inferred over once."""
+        import json
+        from datetime import datetime
+        props_path = REPO_ROOT / "props.json"
+        if not props_path.exists():
+            pytest.skip("no props.json committed")
+        props = json.loads(props_path.read_text())
+        captured = bf.parse_stamp(props.get("fetched_at")) or NOW
+        # Judged from when the board was captured, so a board that has since
+        # gone past MAX_BOARD_AGE_DAYS does not turn this into a no-op that
+        # passes by doing nothing.
+        for game, filename in (("lol", "data.json"), ("cs2", "cs2_data.json"),
+                               ("valorant", "valorant_data.json")):
+            path = REPO_ROOT / filename
+            if not path.exists():
+                continue
+            regions = (json.loads(path.read_text()).get("regions") or {})
+            slots, _ = bf.board_slots(props.get("props") or {}, game, regions,
+                                      captured, fetched_at=props.get("fetched_at"))
+            first, _ = bf.augment_regions(regions, slots)
+            before = {k: list(v.get("upcoming_matches") or []) for k, v in regions.items()}
+            slots_again, _ = bf.board_slots(props.get("props") or {}, game, regions,
+                                            captured, fetched_at=props.get("fetched_at"))
+            second, _ = bf.augment_regions(regions, slots_again)
+            after = {k: list(v.get("upcoming_matches") or []) for k, v in regions.items()}
+            assert not second.get("filled") and not second.get("added"), \
+                f"{game}: a second pass changed {dict(second)}"
+            assert before == after, f"{game}: a second pass rewrote the fixture list"
+            assert first.get("added") or first.get("filled") or first.get("already_covered"), \
+                f"{game}: the first pass did nothing, so this proved nothing"
+
+
 class TestAugmentRegionsHousekeeping:
     def test_does_not_disturb_a_region_the_board_says_nothing_about(self):
         untouched = [{"date": stamp(6), "teamA": "T1", "teamB": "Gen.G"}]
@@ -482,6 +542,16 @@ class TestAugmentRegionsHousekeeping:
         early = {"when": bf.parse_stamp(stamp(2)), "teams": {"K27": 1}}
         late = {"when": bf.parse_stamp(stamp(9)), "teams": {"ex-RUBY": 1}}
         assert run([early, late]) == run([late, early])
+
+
+class TestStampText:
+    def test_writes_utc_with_a_z_and_no_subseconds(self):
+        assert bf.stamp_text(bf.parse_stamp("2026-09-26T05:00:00.000-04:00")) == \
+            "2026-09-26T09:00:00Z"
+
+    def test_matches_the_shape_the_schedule_sources_already_emit(self):
+        assert bf.stamp_text(bf.parse_stamp("2026-09-26T20:00:00Z")) == \
+            "2026-09-26T20:00:00Z"
 
 
 class TestDescribe:

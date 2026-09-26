@@ -510,6 +510,230 @@ function projectionOverWindow(breakdown, prop) {
   return breakdown.perGame * prop.maps;
 }
 
+/* ---------- Fixtures the posted board implies ------------------------------
+
+   The read-time half of scripts/board_fixtures.py, and the reason there are
+   two halves at all: the pipeline runs twice a day, the board is refreshed
+   every half hour, and a line posted at noon for a 16:00 game would have
+   waited for the 21:00 scrape to become visible — which is to say it would
+   have been invisible for the only hours it mattered.
+
+   So the same rule runs here, over whatever board the page just fetched.
+   The two are held identical by tests/board_parity.test.mjs, which runs both
+   against the committed data files and a set of synthetic shapes and fails on
+   any disagreement. Change one and the other has to follow; the docstring in
+   board_fixtures.py is the reasoning, not repeated here.
+
+   Both are idempotent, which is what makes running both safe: an inferred
+   `X vs TBD` already in the data marks X as having a fixture, so the second
+   pass finds nothing to add.                                            */
+
+// Mirrors UPCOMING_MAX_AGE_HOURS in scrape_cs2.py: a match already under way
+// is still worth showing, so a kickoff is "past" only well after it passed.
+const BOARD_MAX_AGE_HOURS = 12;
+// Mirrors MAX_BOARD_AGE_DAYS in board_fixtures.py. Far longer than
+// PROPS_MAX_AGE_MINUTES, which governs whether a LINE is worth comparing
+// against; a kickoff stays evidence about the fixture list long after the
+// number beside it has gone stale.
+const MAX_BOARD_AGE_DAYS = 3;
+const PLACEHOLDER_TEAMS = new Set(["", "tbd", "?"]);
+
+function isPlaceholderTeam(name) {
+  return PLACEHOLDER_TEAMS.has(String(name === null || name === undefined ? "" : name).trim().toLowerCase());
+}
+
+/* new Date(), narrowed to what Python's fromisoformat would also accept.
+
+   Not a nicety: `new Date("Sep 21")` is a VALID date in 2001, so the bare
+   permissive parse turns a display string into a timestamp eight hundred
+   years out instead of announcing itself — the same trap formatUpcoming's
+   _sortKey exists to avoid. A naive stamp is read as UTC here because that
+   is what the Python side does with it; left to the platform it would be
+   read as the viewer's local time and the two would disagree by the
+   viewer's offset. */
+const ISO_STAMP = /^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/;
+
+function parseStamp(raw) {
+  if (typeof raw !== "string" || !raw.trim()) return null;
+  const text = raw.trim();
+  if (!ISO_STAMP.test(text)) return null;
+  const normalized = text.replace(" ", "T");
+  const zoned = /(Z|[+-]\d{2}:?\d{2})$/.test(normalized) || !normalized.includes("T")
+    ? normalized : normalized + "Z";
+  const at = new Date(zoned);
+  return isNaN(at.getTime()) ? null : at;
+}
+
+/* Lowercased player handle -> the roster teams carrying it. A Set, not a
+   name: 232 of CS2's 1396 rostered handles are on more than one team. */
+function boardTeamIndex(regionData) {
+  const index = new Map();
+  const teams = (regionData && regionData.teams) || {};
+  for (const teamName of Object.keys(teams)) {
+    for (const player of (teams[teamName] && teams[teamName].players) || []) {
+      const name = player && player.name;
+      if (typeof name !== "string" || !name.trim()) continue;
+      const key = name.trim().toLowerCase();
+      if (!index.has(key)) index.set(key, new Set());
+      index.get(key).add(teamName);
+    }
+  }
+  return index;
+}
+
+/* The roster team a board row belongs to, or null. Keyed on the PLAYER —
+   see resolve_team in board_fixtures.py for why, and why the row's own team
+   name is only the tiebreak, matched on equality rather than containment. */
+function resolveBoardTeam(row, index) {
+  const handle = String((row && row.player) || "").trim().toLowerCase();
+  if (!handle) return null;
+  const candidates = index.get(handle);
+  if (!candidates || candidates.size === 0) return null;
+  if (candidates.size === 1) return [...candidates][0];
+  const stated = String((row && row.team) || "").trim().toLowerCase();
+  const exact = [...candidates].filter((team) => team.toLowerCase() === stated);
+  return exact.length === 1 ? exact[0] : null;
+}
+
+/* The kickoffs this board implies, per region. Walks the board once and
+   assigns each row to the regions it could belong to. */
+function boardSlots(regionsData, propsData, game, now) {
+  const regions = regionsData || {};
+  const regionKeys = Object.keys(regions);
+  const byRegion = new Map(regionKeys.map((key) => [key, new Map()]));
+  const forGame = (propsData && propsData.props && propsData.props[game]) || null;
+  if (!forGame) return byRegion;
+
+  const captured = parseStamp(propsData && propsData.fetched_at);
+  if (captured && (now - captured) / 86400000 > MAX_BOARD_AGE_DAYS) return byRegion;
+
+  const indexes = new Map(regionKeys.map((key) => [key, boardTeamIndex(regions[key])]));
+  const known = new Set(regionKeys.map((key) => String(key).trim().toLowerCase()));
+  const horizon = now.getTime() - BOARD_MAX_AGE_HOURS * 3600000;
+
+  for (const rows of Object.values(forGame)) {
+    for (const row of rows || []) {
+      // A row's stated league scopes it only where this game HAS a region by
+      // that name. Valorant labels its lines with the players' home region
+      // while the fixture is filed under 'VCT Champions'.
+      const stated = String((row && row.region) || "").trim().toLowerCase();
+      const when = parseStamp(row && row.start_time);
+      if (when === null || when.getTime() < horizon) continue;
+      for (const key of regionKeys) {
+        if (known.has(stated) && String(key).trim().toLowerCase() !== stated) continue;
+        const team = resolveBoardTeam(row, indexes.get(key));
+        if (team === null) continue;
+        const slots = byRegion.get(key);
+        const stamp = when.getTime();
+        if (!slots.has(stamp)) slots.set(stamp, new Set());
+        slots.get(stamp).add(team);
+      }
+    }
+  }
+  return byRegion;
+}
+
+/* Is this fixture the game the board put at `slotWhen`?
+
+   Mirrors propsFor's asymmetry above, for the same reason: bo3.gg and the
+   LoL Esports API state a kickoff, vlr.gg states a bare date, and a bare
+   date read as midnight is nine hours from its own board — which called
+   every real Valorant fixture missing. */
+function fixtureMatchesSlot(fixtureDate, slotWhen, windowMs) {
+  const when = parseStamp(fixtureDate);
+  if (when === null) return false;
+  if (String(fixtureDate).includes(":")) {
+    return Math.abs(when.getTime() - slotWhen) <= windowMs;
+  }
+  return when.toISOString().slice(0, 10) === new Date(slotWhen).toISOString().slice(0, 10);
+}
+
+/* regionsData with the board's fixtures folded in.
+
+   Returns the input UNCHANGED, by reference, when there is nothing to add:
+   historyPool caches on that identity and a fresh object every render would
+   rescan every region's whole season. */
+function withBoardFixtures(regionsData, propsData, game, now) {
+  const at = now || new Date();
+  const slotsByRegion = boardSlots(regionsData, propsData, game, at);
+  const windowMs = PROP_MATCH_WINDOW_HOURS * 3600000;
+
+  // Flat (region, slot) list in one deterministic order, so the result does
+  // not depend on which region happened to be iterated first.
+  const ordered = [];
+  for (const [regionKey, slots] of slotsByRegion) {
+    for (const [stamp, teams] of slots) ordered.push({ regionKey, stamp, teams });
+  }
+  if (!ordered.length) return regionsData;
+  ordered.sort((a, b) => (a.stamp - b.stamp) || (a.regionKey < b.regionKey ? -1
+    : a.regionKey > b.regionKey ? 1 : 0));
+
+  // Coverage is judged across every region, because "does this team already
+  // have a fixture then" is a question about the game, not about the bucket
+  // the fixture is filed under.
+  const lists = new Map();
+  const existing = [];
+  for (const regionKey of Object.keys(regionsData || {})) {
+    const list = ((regionsData[regionKey] || {}).upcoming_matches) || [];
+    const copy = list.map((m) => ({ ...m }));
+    lists.set(regionKey, copy);
+    for (const fixture of copy) existing.push(fixture);
+  }
+
+  const sides = (f) => [f.teamA, f.teamB];
+  let touched = false;
+  for (const { regionKey, stamp, teams } of ordered) {
+    const near = existing.filter((f) => fixtureMatchesSlot(f.date, stamp, windowMs));
+    const committed = new Set();
+    for (const f of near) {
+      for (const name of sides(f)) if (!isPlaceholderTeam(name)) committed.add(name);
+    }
+    // A fixture near this slot with one side named and the other a
+    // placeholder. The named side must be one the board also puts here, or
+    // this is a different game that merely kicks off nearby.
+    const holes = near.filter((f) =>
+      sides(f).filter(isPlaceholderTeam).length === 1
+      && sides(f).some((n) => !isPlaceholderTeam(n) && teams.has(n)));
+    const leftover = [...teams].filter((t) => !committed.has(t)).sort();
+    if (!leftover.length) continue;
+
+    if (holes.length) {
+      // The leftovers belong to these holes. Fill one only where the board
+      // leaves no choice; otherwise leave the holes alone AND add nothing,
+      // because a new fixture here would publish the same game twice.
+      if (holes.length === 1 && leftover.length === 1) {
+        const hole = holes[0];
+        hole[isPlaceholderTeam(hole.teamA) ? "teamA" : "teamB"] = leftover[0];
+        hole.inferred = "board:opponent";
+        touched = true;
+      }
+      continue;
+    }
+
+    // No fixture at all for these teams. One entry each, opponent left
+    // undecided: who they play is exactly what the board cannot say.
+    const target = lists.get(regionKey);
+    if (!target) continue;
+    for (const team of leftover) {
+      // Trimmed to whole seconds with a Z: the exact text stamp_text() in
+      // board_fixtures.py produces, so the two sides are comparable as
+      // strings rather than only as instants.
+      const fixture = { date: new Date(stamp).toISOString().replace(/\.\d{3}Z$/, "Z"), teamA: team,
+                        teamB: "TBD", block: "", inferred: "board:team" };
+      target.push(fixture);
+      existing.push(fixture);
+      touched = true;
+    }
+  }
+  if (!touched) return regionsData;
+
+  const out = {};
+  for (const regionKey of Object.keys(regionsData)) {
+    out[regionKey] = { ...regionsData[regionKey], upcoming_matches: lists.get(regionKey) };
+  }
+  return out;
+}
+
 /* Every posted line for this game, with the projection that belongs beside
    it, across every region at once.
 
@@ -6050,7 +6274,22 @@ function KillProjector() {
   }, []);
 
   const gameCfg = GAMES[game];
-  const regionsData = dataByGame[game] || gameCfg.fallbackRegions;
+  const scrapedRegions = dataByGame[game] || gameCfg.fallbackRegions;
+  /* The board's own fixtures, folded in before anything reads the list.
+
+     Here rather than inside EdgesTab because all three tabs have to agree:
+     a fixture the Edges view projects and the Upcoming view does not list is
+     worse than not having it. Memoized because withBoardFixtures walks the
+     whole board against every region's roster, and because it returns the
+     same object when there is nothing to add -- which historyPool's WeakMap
+     and the hooks below key on.
+
+     The workflow does this too, twice a day, and the two are idempotent so
+     the overlap costs nothing. This pass is what makes a line posted since
+     the last scrape visible for the hours it is live. */
+  const regionsData = useMemo(
+    () => withBoardFixtures(scrapedRegions, propsData, game),
+    [scrapedRegions, propsData, game]);
   const current = regionsData[region] || { teams: {}, past_matches: [], upcoming_matches: [] };
   /* Split deliberately. `history` is what a player has on record and feeds
      every projection, form chart and consistency score; `current.past_matches`

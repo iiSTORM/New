@@ -643,6 +643,156 @@ try {
     if (typeof prop.maps !== "number" || prop.maps <= 0) return null;
     return breakdown.perGame * prop.maps;
   }
+  const BOARD_MAX_AGE_HOURS = 12;
+  const MAX_BOARD_AGE_DAYS = 3;
+  const PLACEHOLDER_TEAMS = new Set(["", "tbd", "?"]);
+  function isPlaceholderTeam(name) {
+    return PLACEHOLDER_TEAMS.has(String(name === null || name === undefined ? "" : name).trim().toLowerCase());
+  }
+  const ISO_STAMP = /^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/;
+  function parseStamp(raw) {
+    if (typeof raw !== "string" || !raw.trim()) return null;
+    const text = raw.trim();
+    if (!ISO_STAMP.test(text)) return null;
+    const normalized = text.replace(" ", "T");
+    const zoned = /(Z|[+-]\d{2}:?\d{2})$/.test(normalized) || !normalized.includes("T") ? normalized : normalized + "Z";
+    const at = new Date(zoned);
+    return isNaN(at.getTime()) ? null : at;
+  }
+  function boardTeamIndex(regionData) {
+    const index = new Map();
+    const teams = regionData && regionData.teams || {};
+    for (const teamName of Object.keys(teams)) {
+      for (const player of teams[teamName] && teams[teamName].players || []) {
+        const name = player && player.name;
+        if (typeof name !== "string" || !name.trim()) continue;
+        const key = name.trim().toLowerCase();
+        if (!index.has(key)) index.set(key, new Set());
+        index.get(key).add(teamName);
+      }
+    }
+    return index;
+  }
+  function resolveBoardTeam(row, index) {
+    const handle = String(row && row.player || "").trim().toLowerCase();
+    if (!handle) return null;
+    const candidates = index.get(handle);
+    if (!candidates || candidates.size === 0) return null;
+    if (candidates.size === 1) return [...candidates][0];
+    const stated = String(row && row.team || "").trim().toLowerCase();
+    const exact = [...candidates].filter(team => team.toLowerCase() === stated);
+    return exact.length === 1 ? exact[0] : null;
+  }
+  function boardSlots(regionsData, propsData, game, now) {
+    const regions = regionsData || {};
+    const regionKeys = Object.keys(regions);
+    const byRegion = new Map(regionKeys.map(key => [key, new Map()]));
+    const forGame = propsData && propsData.props && propsData.props[game] || null;
+    if (!forGame) return byRegion;
+    const captured = parseStamp(propsData && propsData.fetched_at);
+    if (captured && (now - captured) / 86400000 > MAX_BOARD_AGE_DAYS) return byRegion;
+    const indexes = new Map(regionKeys.map(key => [key, boardTeamIndex(regions[key])]));
+    const known = new Set(regionKeys.map(key => String(key).trim().toLowerCase()));
+    const horizon = now.getTime() - BOARD_MAX_AGE_HOURS * 3600000;
+    for (const rows of Object.values(forGame)) {
+      for (const row of rows || []) {
+        const stated = String(row && row.region || "").trim().toLowerCase();
+        const when = parseStamp(row && row.start_time);
+        if (when === null || when.getTime() < horizon) continue;
+        for (const key of regionKeys) {
+          if (known.has(stated) && String(key).trim().toLowerCase() !== stated) continue;
+          const team = resolveBoardTeam(row, indexes.get(key));
+          if (team === null) continue;
+          const slots = byRegion.get(key);
+          const stamp = when.getTime();
+          if (!slots.has(stamp)) slots.set(stamp, new Set());
+          slots.get(stamp).add(team);
+        }
+      }
+    }
+    return byRegion;
+  }
+  function fixtureMatchesSlot(fixtureDate, slotWhen, windowMs) {
+    const when = parseStamp(fixtureDate);
+    if (when === null) return false;
+    if (String(fixtureDate).includes(":")) {
+      return Math.abs(when.getTime() - slotWhen) <= windowMs;
+    }
+    return when.toISOString().slice(0, 10) === new Date(slotWhen).toISOString().slice(0, 10);
+  }
+  function withBoardFixtures(regionsData, propsData, game, now) {
+    const at = now || new Date();
+    const slotsByRegion = boardSlots(regionsData, propsData, game, at);
+    const windowMs = PROP_MATCH_WINDOW_HOURS * 3600000;
+    const ordered = [];
+    for (const [regionKey, slots] of slotsByRegion) {
+      for (const [stamp, teams] of slots) ordered.push({
+        regionKey,
+        stamp,
+        teams
+      });
+    }
+    if (!ordered.length) return regionsData;
+    ordered.sort((a, b) => a.stamp - b.stamp || (a.regionKey < b.regionKey ? -1 : a.regionKey > b.regionKey ? 1 : 0));
+    const lists = new Map();
+    const existing = [];
+    for (const regionKey of Object.keys(regionsData || {})) {
+      const list = (regionsData[regionKey] || {}).upcoming_matches || [];
+      const copy = list.map(m => ({
+        ...m
+      }));
+      lists.set(regionKey, copy);
+      for (const fixture of copy) existing.push(fixture);
+    }
+    const sides = f => [f.teamA, f.teamB];
+    let touched = false;
+    for (const {
+      regionKey,
+      stamp,
+      teams
+    } of ordered) {
+      const near = existing.filter(f => fixtureMatchesSlot(f.date, stamp, windowMs));
+      const committed = new Set();
+      for (const f of near) {
+        for (const name of sides(f)) if (!isPlaceholderTeam(name)) committed.add(name);
+      }
+      const holes = near.filter(f => sides(f).filter(isPlaceholderTeam).length === 1 && sides(f).some(n => !isPlaceholderTeam(n) && teams.has(n)));
+      const leftover = [...teams].filter(t => !committed.has(t)).sort();
+      if (!leftover.length) continue;
+      if (holes.length) {
+        if (holes.length === 1 && leftover.length === 1) {
+          const hole = holes[0];
+          hole[isPlaceholderTeam(hole.teamA) ? "teamA" : "teamB"] = leftover[0];
+          hole.inferred = "board:opponent";
+          touched = true;
+        }
+        continue;
+      }
+      const target = lists.get(regionKey);
+      if (!target) continue;
+      for (const team of leftover) {
+        const fixture = {
+          date: new Date(stamp).toISOString().replace(/\.\d{3}Z$/, "Z"),
+          teamA: team,
+          teamB: "TBD",
+          block: "",
+          inferred: "board:team"
+        };
+        target.push(fixture);
+        existing.push(fixture);
+        touched = true;
+      }
+    }
+    if (!touched) return regionsData;
+    const out = {};
+    for (const regionKey of Object.keys(regionsData)) {
+      out[regionKey] = {
+        ...regionsData[regionKey],
+        upcoming_matches: lists.get(regionKey)
+      };
+    }
+    return out;
+  }
   function historyPoolFor(regionsData, regionKey) {
     const rd = regionsData && regionsData[regionKey];
     if (!rd) return [];
@@ -7063,7 +7213,8 @@ try {
       attemptFetch(1).then(data => setChampionStats(data)).catch(err => console.warn("Champion stats fetch failed (champion-pool consistency insight will be unavailable):", err));
     }, []);
     const gameCfg = GAMES[game];
-    const regionsData = dataByGame[game] || gameCfg.fallbackRegions;
+    const scrapedRegions = dataByGame[game] || gameCfg.fallbackRegions;
+    const regionsData = useMemo(() => withBoardFixtures(scrapedRegions, propsData, game), [scrapedRegions, propsData, game]);
     const current = regionsData[region] || {
       teams: {},
       past_matches: [],
