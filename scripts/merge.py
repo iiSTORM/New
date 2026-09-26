@@ -166,6 +166,78 @@ def load_schedule():
     return schedule
 
 
+def resolve_upcoming(region_schedule, lookup, region_key="?"):
+    """The fixtures a region can actually show, and why the rest cannot.
+
+    Returns (upcoming, counts). Pure, and pulled out of main() for the
+    reason absorb_results was in scrape_cs2: this is the part with the
+    decision in it, the surrounding step is file I/O, and while it sat
+    inline the only thing tests could reach was normalize(). A rule that
+    discarded every playoff fixture with an undecided opponent lived here
+    untested for as long as it took a real board to lose 26 lines to it.
+    """
+    upcoming = []
+    dropped_tbd = 0      # expected: bracket slots whose teams aren't decided yet
+    dropped_unknown = 0  # real problem: a named team we failed to resolve
+    kept_half = 0        # one side decided, the other an undecided bracket slot
+    for m in region_schedule:
+        a_raw, b_raw = normalize(m["teamA"]), normalize(m["teamB"])
+        a = lookup.get(a_raw.lower())
+        b = lookup.get(b_raw.lower())
+        if a and b:
+            upcoming.append({"date": m["date"], "teamA": a, "teamB": b, "block": m.get("block", "")})
+            continue
+        # These two cases were previously summed into one "dropped"
+        # count, which made the number impossible to act on: a
+        # playoff bracket legitimately full of undecided slots looked
+        # identical to the scraper silently failing to recognise real
+        # teams. During playoffs the TBD count is expected to be
+        # LARGE and is not a defect; the unknown count should be zero
+        # and every entry is a genuine bug worth chasing.
+        side_is_tbd = (
+            m["teamA"] == "TBD" or m["teamB"] == "TBD"
+            or not m["teamA"].strip() or not m["teamB"].strip()
+        )
+        # ONE side decided and the other a genuine placeholder is a
+        # real fixture, and it was being thrown away.
+        #
+        # LYON played at 20:00 on 2026-09-26 against a bracket slot
+        # that had not resolved yet, and the provider posted 13
+        # maps 1-3 lines on their players. Every one of them had
+        # nowhere to land, because this required BOTH sides to
+        # resolve -- during playoffs, which is exactly when half a
+        # bracket is undecided and when the lines are busiest.
+        #
+        # The app is already built for it: collectEdges needs only
+        # the player's own team rostered and falls back to a neutral
+        # opponent term, deliberately, because a CS2 board stranded
+        # five lines this way. Kept with the undecided side left as
+        # TBD so the projection carries that caveat rather than
+        # disappearing.
+        #
+        # Still requires the unresolved side to be a LITERAL
+        # placeholder. A named team this scraper failed to recognise
+        # falls through to the unknown-team path below, where it is
+        # reported as the bug it is rather than quietly relabelled
+        # TBD and hidden.
+        if (a or b) and side_is_tbd:
+            upcoming.append({"date": m["date"], "teamA": a or "TBD",
+                             "teamB": b or "TBD", "block": m.get("block", "")})
+            kept_half += 1
+            continue
+        if side_is_tbd:
+            dropped_tbd += 1
+        else:
+            dropped_unknown += 1
+            print(f"  ! {region_key}: dropped '{m['teamA']}' vs '{m['teamB']}' "
+                  f"(named team(s) not found in this region's known teams — "
+                  f"unresolved: {[n for n, r in ((m['teamA'], a), (m['teamB'], b)) if not r]}. "
+                  f"Add to TEAM_NAME_MAP if this is a real team.)",
+                  file=sys.stderr)
+    return upcoming, {"tbd": dropped_tbd, "unknown": dropped_unknown,
+                      "half": kept_half}
+
+
 def main():
     with open("data.json") as f:
         data = json.load(f)
@@ -175,40 +247,15 @@ def main():
         known_teams = set(region_data.get("teams", {}).keys())
         lookup = build_lookup(known_teams)
         region_schedule = schedule.get("regions", {}).get(region_key, [])
-        upcoming = []
-        dropped_tbd = 0      # expected: bracket slots whose teams aren't decided yet
-        dropped_unknown = 0  # real problem: a named team we failed to resolve
-        for m in region_schedule:
-            a_raw, b_raw = normalize(m["teamA"]), normalize(m["teamB"])
-            a = lookup.get(a_raw.lower())
-            b = lookup.get(b_raw.lower())
-            if a and b:
-                upcoming.append({"date": m["date"], "teamA": a, "teamB": b, "block": m.get("block", "")})
-                continue
-            # These two cases were previously summed into one "dropped"
-            # count, which made the number impossible to act on: a
-            # playoff bracket legitimately full of undecided slots looked
-            # identical to the scraper silently failing to recognise real
-            # teams. During playoffs the TBD count is expected to be
-            # LARGE and is not a defect; the unknown count should be zero
-            # and every entry is a genuine bug worth chasing.
-            side_is_tbd = (
-                m["teamA"] == "TBD" or m["teamB"] == "TBD"
-                or not m["teamA"].strip() or not m["teamB"].strip()
-            )
-            if side_is_tbd:
-                dropped_tbd += 1
-            else:
-                dropped_unknown += 1
-                print(f"  ! {region_key}: dropped '{m['teamA']}' vs '{m['teamB']}' "
-                      f"(named team(s) not found in this region's known teams — "
-                      f"unresolved: {[n for n, r in ((m['teamA'], a), (m['teamB'], b)) if not r]}. "
-                      f"Add to TEAM_NAME_MAP if this is a real team.)",
-                      file=sys.stderr)
+        upcoming, counts = resolve_upcoming(region_schedule, lookup, region_key)
+        dropped_tbd, dropped_unknown, kept_half = (
+            counts["tbd"], counts["unknown"], counts["half"])
         region_data["upcoming_matches"] = upcoming
         detail = []
+        if kept_half:
+            detail.append(f"{kept_half} kept with an undecided opponent")
         if dropped_tbd:
-            detail.append(f"{dropped_tbd} TBD/undecided")
+            detail.append(f"{dropped_tbd} TBD vs TBD")
         if dropped_unknown:
             detail.append(f"{dropped_unknown} UNKNOWN TEAM")
         suffix = f" ({', '.join(detail)})" if detail else ""

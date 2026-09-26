@@ -141,3 +141,74 @@ class TestMergeEndToEnd:
         merge.main()
         merged = json.loads((tmp_path / "data.json").read_text())
         assert merged["regions"]["LCS"]["upcoming_matches"] == []
+
+
+class TestAnUndecidedOpponentIsStillAFixture:
+    """One side decided and the other a bracket slot is a real fixture.
+
+    LYON played at 20:00 on 2026-09-26 against a slot that had not
+    resolved, and the provider posted 13 maps 1-3 lines on their
+    players. Every one had nowhere to land, because the merge required
+    BOTH sides to resolve -- during playoffs, which is exactly when half
+    a bracket is undecided and when the lines are busiest. Two LCS teams
+    accounted for 26 of the 70 LoL lines on that board.
+
+    The app was already built for this: collectEdges needs only the
+    player's own team rostered and falls back to a neutral opponent term,
+    deliberately, because a CS2 board stranded five lines the same way.
+    """
+
+    @staticmethod
+    def _merge(schedule_rows, known_teams):
+        """The real resolver, through the real lookup builder."""
+        upcoming, _ = merge.resolve_upcoming(
+            schedule_rows, merge.build_lookup(set(known_teams)), "LCS")
+        return upcoming
+
+    @staticmethod
+    def _counts(schedule_rows, known_teams):
+        _, counts = merge.resolve_upcoming(
+            schedule_rows, merge.build_lookup(set(known_teams)), "LCS")
+        return counts
+
+    def row(self, a, b, date="2026-09-26T20:00:00Z"):
+        return {"date": date, "teamA": a, "teamB": b, "block": "Playoffs"}
+
+    def test_a_tbd_opponent_keeps_the_fixture(self):
+        got = self._merge([self.row("TBD", "LYON")], ["LYON"])
+        assert len(got) == 1
+        assert got[0]["teamB"] == "LYON" and got[0]["teamA"] == "TBD"
+
+    def test_either_side_works(self):
+        got = self._merge([self.row("LYON", "TBD")], ["LYON"])
+        assert len(got) == 1 and got[0]["teamA"] == "LYON" and got[0]["teamB"] == "TBD"
+
+    def test_tbd_against_tbd_is_still_dropped(self):
+        """No side to project, so nothing to show."""
+        assert self._merge([self.row("TBD", "TBD")], ["LYON"]) == []
+
+    def test_a_blank_side_counts_as_undecided(self):
+        got = self._merge([self.row("", "LYON")], ["LYON"])
+        assert len(got) == 1 and got[0]["teamA"] == "TBD"
+
+    def test_an_UNRECOGNISED_named_team_is_still_dropped_and_reported(self):
+        """The important boundary. A real team this scraper failed to
+        resolve must NOT be relabelled TBD and quietly kept -- that
+        hides a name-mapping bug behind a feature."""
+        assert self._merge([self.row("Some Real Team", "LYON")], ["LYON"]) == []
+
+    def test_a_fully_resolved_fixture_is_unaffected(self):
+        got = self._merge([self.row("LYON", "Cloud9")], ["LYON", "Cloud9"])
+        assert len(got) == 1 and got[0]["teamA"] == "LYON" and got[0]["teamB"] == "Cloud9"
+
+    def test_the_three_outcomes_are_counted_separately(self):
+        """A playoff bracket full of undecided slots must not read the
+        same as a scraper that stopped recognising team names. That
+        distinction is the whole reason these counts exist."""
+        counts = self._counts([
+            self.row("TBD", "LYON"),          # kept, one side decided
+            self.row("TBD", "TBD"),           # dropped, nothing to show
+            self.row("Some Real Team", "LYON"),  # dropped, a real bug
+            self.row("LYON", "Cloud9"),       # fully resolved
+        ], ["LYON", "Cloud9"])
+        assert counts == {"half": 1, "tbd": 1, "unknown": 1}
