@@ -11,38 +11,47 @@ the two sources just picked different official names ("Gen.G Esports" vs
 gol.gg's exact casing). Add more here as the logs report new mismatches —
 "TBD vs TBD" entries are always correctly dropped (that match's teams
 aren't determined yet, so it isn't projectable regardless)."""
+import collections
 import json
+import os
 import sys
 from datetime import datetime, timezone
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from team_aliases import alias_key
+
+# Only the names the two sources genuinely SPELL DIFFERENTLY -- a sponsor or
+# city word one carries and the other drops, or an abbreviation. Pure spelling
+# (case, accents, punctuation, spacing) needs no entry: resolve_side below
+# falls back to team_aliases.alias_key, which reduces both sides to the same
+# key. Five entries came out when that was added and are recorded here rather
+# than deleted, because the knowledge in them is what says the alias fallback
+# is doing the right thing and not merely something:
+#
+#   "gen.g esports"       -> "Gen.G"              punctuation + a dropped word
+#   "nongshim red force"  -> "Nongshim RedForce"  a space gol.gg does not have
+#   "thunder talk gaming" -> "ThunderTalk Gaming" same
+#   "anyone's legend"     -> "Anyone s Legend"    gol.gg drops the apostrophe
+#   "leviatán"            -> "Leviatan"           the API keeps the accent
+#
+# That last one had a comment saying its gol.gg spelling was inferred from a
+# page title rather than confirmed, and to double-check it resolved. The
+# fallback resolves it whichever way gol.gg writes it, which is a better
+# answer than a guess that happened to be right.
 TEAM_NAME_MAP = {
-    # LCS
+    # LCS — sponsor suffixes
     "cloud9 kia": "Cloud9",
     "team liquid alienware": "Team Liquid",
-    # LCK
-    "gen.g esports": "Gen.G",
-    "nongshim red force": "Nongshim RedForce",  # gol.gg has no space in "RedForce"
     # LPL — API includes city/sponsor prefixes gol.gg doesn't use
     "xi'an team we": "Team WE",
     "shenzhen ninjas in pyjamas": "Ninjas in Pyjamas",
     "beijing jdg esports": "JD Gaming",
-    "thunder talk gaming": "ThunderTalk Gaming",  # gol.gg has no space between Thunder/Talk
-    "anyone's legend": "Anyone s Legend",  # gol.gg's own listing drops the apostrophe
     # CBLOL — confirmed against a real gol.gg game page titled "RED Canids
     # vs Los Grandes": the API uses "RED Kalunga" (drops "Canids") while
     # gol.gg drops the sponsor "Kalunga" instead; "LOS" is API shorthand
     # for the full "Los Grandes".
     "red kalunga": "RED Canids",
     "los": "Los Grandes",
-    # Leviatán was originally a one-off CBLOL Cup guest team (LLA), but was
-    # confirmed as a full 2026 CBLOL partner team for the whole season —
-    # this entry matters beyond just the Cup now. LoL Esports API keeps
-    # the accent ("LEVIATÁN"); gol.gg appears to drop it, per a real
-    # indexed gol.gg game page titled "Leviatan vs RED Canids" (CBLOL Cup
-    # 2026 Week 1) — inferred from that page title, not directly
-    # confirmed against gol.gg's own stored team name, so double-check
-    # this resolves cleanly on the next merge run.
-    "leviatán": "Leviatan",
     # TCL — confirmed against a real current TCL 2026 Summer team list:
     # "PCIFIC Esports" (unusual spelling, genuinely correct on both sides,
     # not a typo) and "SU Esports" (API adds sponsor prefix "Avella" that
@@ -58,8 +67,99 @@ def normalize(name):
 
 def build_lookup(known_teams):
     """Case-insensitive lookup: API casing (e.g. 'KIWOOM DRX') resolves to
-    gol.gg's exact casing (e.g. 'Kiwoom DRX') as long as the letters match."""
-    return {t.lower(): t for t in known_teams}
+    gol.gg's exact casing (e.g. 'Kiwoom DRX') as long as the letters match.
+
+    Two tracked teams differing only in case are left out rather than one
+    silently winning on dict order. The comprehension this replaced answered
+    with whichever was iterated last, which is the arbitrary-winner problem
+    the alias fold exists to remove -- rare in the LoL data, and free to not
+    have.
+    """
+    by_key = collections.defaultdict(list)
+    for team in known_teams:
+        by_key[team.lower()].append(team)
+    return {key: names[0] for key, names in by_key.items() if len(names) == 1}
+
+
+def build_alias_lookup(known_teams):
+    """{alias_key: the one team with that key, or None if several share it}.
+
+    Punctuation, accents and spacing are spelling, not identity, and every
+    entry TEAM_NAME_MAP used to hold for them was a line of hand-maintained
+    knowledge that had to be added after a fixture had already been dropped.
+
+    A shared key maps to None rather than being left out, so resolve_side can
+    tell "several tracked teams look like this" -- which is a real thing to
+    look at -- from "nothing here looks like it", which is not.
+    """
+    by_key = collections.defaultdict(list)
+    for team in known_teams:
+        key = alias_key(team)
+        if key:
+            by_key[key].append(team)
+    return {key: (names[0] if len(names) == 1 else None)
+            for key, names in by_key.items()}
+
+
+def tracked_by_key(regions):
+    """{alias_key: [(region, team)]} across every region in the file.
+
+    So a name that resolves nowhere can be told apart from one that resolves
+    in a DIFFERENT region. The two look identical in a log that only counts
+    "unknown team", which is how eight qualifier and cross-league teams read
+    as missing TEAM_NAME_MAP entries when they were nothing of the kind.
+    """
+    found = collections.defaultdict(list)
+    for region_key, region_data in (regions or {}).items():
+        for team in (region_data.get("teams") or {}):
+            key = alias_key(team)
+            if key:
+                found[key].append((region_key, team))
+    return found
+
+
+# Why a named side could not be resolved. Only UNKNOWN_SPELLING is a bug in
+# this file; the other two are facts about what the roster scrape covers.
+ELSEWHERE = "tracked in another region"
+UNCOVERED = "not tracked in any region"
+AMBIGUOUS = "two tracked teams share its spelling"
+
+
+def resolve_side(name, lookup, aliases, elsewhere=None):
+    """(resolved name, None) or (None, why not).
+
+    Three tries, narrowest first: the exact name, the name TEAM_NAME_MAP
+    gives for it, then its spelling-insensitive key.
+
+    The second and third overlap on every entry the map currently holds --
+    "Cloud9 Kia" resolves either by the map pointing at "Cloud9" or by
+    alias_key("Cloud9") finding it -- so removing the middle try changes no
+    answer today. Both stay because they fail differently: the map is the
+    only thing that can reach a genuinely different name, and the alias key
+    is the only thing that still works when gol.gg respells the target the
+    map points at. The overlap is the point, not an oversight.
+    """
+    for candidate in (name, normalize(name)):
+        hit = lookup.get(str(candidate or "").lower())
+        if hit:
+            return hit, None
+    key = alias_key(normalize(name))
+    if not key:
+        return None, UNCOVERED
+    hit = aliases.get(key)
+    if hit:
+        return hit, None
+    if key in aliases:
+        # Present but shared. Picking one is the normalisation collision the
+        # fallback exists to avoid, and calling it "not tracked" would send
+        # you looking in the wrong place.
+        return None, AMBIGUOUS
+    where = (elsewhere or {}).get(key) or []
+    if len(where) > 1:
+        return None, AMBIGUOUS
+    if where:
+        return None, f"{ELSEWHERE} ({where[0][0]}/{where[0][1]})"
+    return None, UNCOVERED
 
 
 def merge_career_data(data):
@@ -166,7 +266,8 @@ def load_schedule():
     return schedule
 
 
-def resolve_upcoming(region_schedule, lookup, region_key="?"):
+def resolve_upcoming(region_schedule, lookup, region_key="?", aliases=None,
+                     elsewhere=None):
     """The fixtures a region can actually show, and why the rest cannot.
 
     Returns (upcoming, counts). Pure, and pulled out of main() for the
@@ -176,14 +277,16 @@ def resolve_upcoming(region_schedule, lookup, region_key="?"):
     discarded every playoff fixture with an undecided opponent lived here
     untested for as long as it took a real board to lose 26 lines to it.
     """
+    if aliases is None:
+        aliases = build_alias_lookup(lookup.values())
     upcoming = []
-    dropped_tbd = 0      # expected: bracket slots whose teams aren't decided yet
-    dropped_unknown = 0  # real problem: a named team we failed to resolve
-    kept_half = 0        # one side decided, the other an undecided bracket slot
+    dropped_tbd = 0        # expected: bracket slots whose teams aren't decided yet
+    dropped_uncovered = 0  # expected too: a team the roster scrape does not cover
+    dropped_unknown = 0    # real problem: a name we failed to resolve
+    kept_half = 0          # one side decided, the other an undecided bracket slot
     for m in region_schedule:
-        a_raw, b_raw = normalize(m["teamA"]), normalize(m["teamB"])
-        a = lookup.get(a_raw.lower())
-        b = lookup.get(b_raw.lower())
+        a, why_a = resolve_side(m["teamA"], lookup, aliases, elsewhere)
+        b, why_b = resolve_side(m["teamB"], lookup, aliases, elsewhere)
         if a and b:
             upcoming.append({"date": m["date"], "teamA": a, "teamB": b, "block": m.get("block", "")})
             continue
@@ -227,15 +330,26 @@ def resolve_upcoming(region_schedule, lookup, region_key="?"):
             continue
         if side_is_tbd:
             dropped_tbd += 1
-        else:
-            dropped_unknown += 1
-            print(f"  ! {region_key}: dropped '{m['teamA']}' vs '{m['teamB']}' "
-                  f"(named team(s) not found in this region's known teams — "
-                  f"unresolved: {[n for n, r in ((m['teamA'], a), (m['teamB'], b)) if not r]}. "
-                  f"Add to TEAM_NAME_MAP if this is a real team.)",
-                  file=sys.stderr)
+            continue
+        # A name this app tracks nowhere is a fact about the roster scrape's
+        # coverage, not a bug in the mapping above, and lumping the two
+        # together is how "8 UNKNOWN TEAM" read as eight missing
+        # TEAM_NAME_MAP entries. Every one of them was an LCS Regional
+        # Qualifier or an LLA/CBLOL-Academy side that gol.gg's league pages
+        # do not list at all, so no entry could have pointed anywhere.
+        unresolved = [(n, why) for n, r, why in ((m["teamA"], a, why_a),
+                                                 (m["teamB"], b, why_b)) if not r]
+        if all(why == UNCOVERED for _, why in unresolved):
+            dropped_uncovered += 1
+            continue
+        dropped_unknown += 1
+        detail = ", ".join(f"{n!r} ({why})" for n, why in unresolved)
+        print(f"  ! {region_key}: dropped '{m['teamA']}' vs '{m['teamB']}' — "
+              f"{detail}. A spelling difference resolves on its own; add to "
+              f"TEAM_NAME_MAP only when the two sources use genuinely "
+              f"different names.", file=sys.stderr)
     return upcoming, {"tbd": dropped_tbd, "unknown": dropped_unknown,
-                      "half": kept_half}
+                      "uncovered": dropped_uncovered, "half": kept_half}
 
 
 def main():
@@ -243,11 +357,13 @@ def main():
         data = json.load(f)
     schedule = load_schedule()
 
+    elsewhere = tracked_by_key(data.get("regions"))
     for region_key, region_data in data.get("regions", {}).items():
         known_teams = set(region_data.get("teams", {}).keys())
         lookup = build_lookup(known_teams)
         region_schedule = schedule.get("regions", {}).get(region_key, [])
-        upcoming, counts = resolve_upcoming(region_schedule, lookup, region_key)
+        upcoming, counts = resolve_upcoming(region_schedule, lookup, region_key,
+                                           build_alias_lookup(known_teams), elsewhere)
         dropped_tbd, dropped_unknown, kept_half = (
             counts["tbd"], counts["unknown"], counts["half"])
         region_data["upcoming_matches"] = upcoming
@@ -256,6 +372,8 @@ def main():
             detail.append(f"{kept_half} kept with an undecided opponent")
         if dropped_tbd:
             detail.append(f"{dropped_tbd} TBD vs TBD")
+        if counts["uncovered"]:
+            detail.append(f"{counts['uncovered']} not covered by the roster scrape")
         if dropped_unknown:
             detail.append(f"{dropped_unknown} UNKNOWN TEAM")
         suffix = f" ({', '.join(detail)})" if detail else ""

@@ -201,14 +201,111 @@ class TestAnUndecidedOpponentIsStillAFixture:
         got = self._merge([self.row("LYON", "Cloud9")], ["LYON", "Cloud9"])
         assert len(got) == 1 and got[0]["teamA"] == "LYON" and got[0]["teamB"] == "Cloud9"
 
-    def test_the_three_outcomes_are_counted_separately(self):
-        """A playoff bracket full of undecided slots must not read the
-        same as a scraper that stopped recognising team names. That
-        distinction is the whole reason these counts exist."""
+    def test_the_outcomes_are_counted_separately(self):
+        """A playoff bracket full of undecided slots must not read the same as
+        a scraper that stopped recognising team names -- and neither must a
+        team this app simply does not cover. All three were 'dropped' once,
+        and the middle one is the only bug among them."""
         counts = self._counts([
-            self.row("TBD", "LYON"),          # kept, one side decided
-            self.row("TBD", "TBD"),           # dropped, nothing to show
-            self.row("Some Real Team", "LYON"),  # dropped, a real bug
-            self.row("LYON", "Cloud9"),       # fully resolved
+            self.row("TBD", "LYON"),             # kept, one side decided
+            self.row("TBD", "TBD"),              # dropped, nothing to show
+            self.row("Some Real Team", "LYON"),  # dropped, not tracked anywhere
+            self.row("LYON", "Cloud9"),          # fully resolved
         ], ["LYON", "Cloud9"])
-        assert counts == {"half": 1, "tbd": 1, "unknown": 1}
+        assert counts == {"half": 1, "tbd": 1, "uncovered": 1, "unknown": 0}
+
+    def test_one_uncovered_side_does_not_excuse_a_real_bug_on_the_other(self):
+        """Classified on ALL of a row's unresolved sides, not any of them.
+        A fixture between a qualifier team we do not cover and a name we do
+        track one region over is still a name to look at, and reading the
+        row as a coverage gap is how it would stop being reported."""
+        elsewhere = merge.tracked_by_key({"LCK": {"teams": {"T1": {}}}})
+        teams = {"LYON", "Cloud9"}
+        _, counts = merge.resolve_upcoming(
+            [self.row("Maryville University", "T1")], merge.build_lookup(teams),
+            "LCS", merge.build_alias_lookup(teams), elsewhere)
+        assert counts["unknown"] == 1 and counts["uncovered"] == 0
+
+
+class TestResolvingASide:
+    """The three tries, and what each unresolved case is called.
+
+    Eight names came out of one real merge run as "UNKNOWN TEAM", which read
+    as eight missing TEAM_NAME_MAP entries. Every one was an LCS Regional
+    Qualifier or an LLA/CBLOL-Academy side that gol.gg's league pages do not
+    list at all, so no entry could have pointed anywhere. A count that cannot
+    tell a coverage gap from a mapping bug sends you to fix the wrong file.
+    """
+
+    LCS = ["Cloud9", "Team Liquid", "LYON", "Nongshim RedForce"]
+
+    def resolve(self, name, teams=None, elsewhere=None):
+        teams = set(teams or self.LCS)
+        return merge.resolve_side(name, merge.build_lookup(teams),
+                                  merge.build_alias_lookup(teams), elsewhere)
+
+    def test_an_exact_name_resolves(self):
+        assert self.resolve("Cloud9") == ("Cloud9", None)
+
+    def test_case_only_resolves(self):
+        assert self.resolve("CLOUD9") == ("Cloud9", None)
+
+    def test_the_name_map_still_resolves_a_sponsor_suffix(self):
+        assert self.resolve("Cloud9 Kia") == ("Cloud9", None)
+        assert self.resolve("Team Liquid Alienware") == ("Team Liquid", None)
+
+    @pytest.mark.parametrize("api_name,golgg_name", [
+        ("Gen.G Esports", "Gen.G"),
+        ("Nongshim Red Force", "Nongshim RedForce"),
+        ("Thunder Talk Gaming", "ThunderTalk Gaming"),
+        ("Anyone's Legend", "Anyone s Legend"),
+        ("LEVIATÁN", "Leviatan"),
+    ])
+    def test_a_pure_spelling_difference_needs_no_map_entry(self, api_name, golgg_name):
+        """Each of these HAD an entry. They are punctuation, spacing and an
+        accent, which the alias fallback reduces away -- and it resolves the
+        accent whichever way gol.gg happens to write it, where the entry was
+        a guess inferred from a page title."""
+        assert golgg_name.lower() not in merge.TEAM_NAME_MAP, \
+            f"{golgg_name} still has a hand-maintained entry"
+        assert api_name.lower() not in merge.TEAM_NAME_MAP
+        assert self.resolve(api_name, teams=[golgg_name]) == (golgg_name, None)
+
+    def test_a_team_tracked_nowhere_is_a_coverage_gap(self):
+        name, why = self.resolve("Maryville University")
+        assert name is None and why == merge.UNCOVERED
+
+    def test_a_team_tracked_in_another_region_says_which(self):
+        elsewhere = merge.tracked_by_key({"LCK": {"teams": {"T1": {}}}})
+        name, why = self.resolve("T1", elsewhere=elsewhere)
+        assert name is None and merge.ELSEWHERE in why and "LCK/T1" in why
+
+    def test_two_tracked_teams_sharing_a_spelling_are_not_guessed_between(self):
+        name, why = self.resolve("pain", teams=["paiN", "PAIN"])
+        assert name is None and why == merge.AMBIGUOUS
+
+    def test_a_name_with_no_letters_at_all_is_a_coverage_gap(self):
+        assert self.resolve("!!!") == (None, merge.UNCOVERED)
+
+
+class TestBuildLookup:
+    def test_resolves_api_casing_to_golggs(self):
+        assert merge.build_lookup({"Kiwoom DRX"})["kiwoom drx"] == "Kiwoom DRX"
+
+    def test_leaves_out_two_teams_differing_only_in_case(self):
+        """Answered with whichever was iterated last before."""
+        assert merge.build_lookup({"paiN", "PAIN"}) == {}
+
+
+class TestBuildAliasLookup:
+    def test_maps_a_spelling_key_to_its_team(self):
+        assert merge.build_alias_lookup({"Gen.G"})["geng"] == "Gen.G"
+
+    def test_a_key_two_teams_share_resolves_to_neither(self):
+        """Resolving to either would be the normalisation collision the
+        fallback exists to avoid. Recorded as None rather than omitted, so
+        "several teams look like this" can be told from "none does"."""
+        assert merge.build_alias_lookup({"paiN", "PAIN"}) == {"pain": None}
+
+    def test_leaves_out_a_name_that_reduces_to_nothing(self):
+        assert merge.build_alias_lookup({"Esports"}) == {}

@@ -444,6 +444,30 @@ harmful than stale career data.
 
 Every job then runs `infer_fixtures.py` as its last step before validation.
 
+### Team names across two sources
+
+gol.gg and the LoL Esports API spell the same team differently in two ways,
+and `merge.py` now handles them differently because they are not the same
+problem. Pure spelling — case, accents, punctuation, spacing — resolves on its
+own through `team_aliases.alias_key`, so `Gen.G Esports`, `Nongshim Red
+Force`, `Thunder Talk Gaming`, `Anyone's Legend` and `LEVIATÁN` no longer need
+an entry; five came out of `TEAM_NAME_MAP` when that fallback was added, and
+one of them had been a guess at gol.gg's accent that the fallback resolves
+either way. `TEAM_NAME_MAP` now holds only names the two sources genuinely
+differ on: a sponsor or city word one carries and the other drops
+(`Cloud9 Kia`, `Beijing JDG Esports`, `Avella SU Esports`), or an
+abbreviation (`LOS` for `Los Grandes`).
+
+A name that still does not resolve is reported as one of three things, because
+one count for all of them sends you to the wrong file. **Not tracked in any
+region** is a fact about what the roster scrape covers, not a bug: a real run
+reported eight of these as `UNKNOWN TEAM`, which read as eight missing map
+entries, and every one was an LCS Regional Qualifier or an LLA/CBLOL-Academy
+side that gol.gg's league pages do not list at all — no entry could have
+pointed anywhere. **Tracked in another region** names the region, so a
+cross-league fixture is obvious. **Two tracked teams share its spelling** is
+left unresolved rather than guessed. Only the last two are bugs in this file.
+
 ### One team, one name
 
 bo3.gg does not spell a team the same way twice, and `cs2_data.json`
