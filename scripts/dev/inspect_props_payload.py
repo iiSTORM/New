@@ -38,6 +38,11 @@ def main():
                     help="saved provider payloads, one per league is normal")
     ap.add_argument("--show", type=int, default=30,
                     help="how many distinct labels to list (default 30)")
+    ap.add_argument("--payouts", action="store_true",
+                    help="list every field a projection carries and flag anything "
+                         "payout-shaped. The multiplier table in the Parlays tab is a "
+                         "published default that cannot be fetched; this says whether "
+                         "the provider ships the real number.")
     ap.add_argument("--names", type=int, default=0, metavar="N",
                     help="also list N player names per league. The fastest way "
                          "to tell 'the roster file is broken' from 'this slate "
@@ -54,10 +59,73 @@ def main():
     return inspect(args.payload[0], args)
 
 
+# Anything whose NAME suggests it prices an entry. Deliberately generous: a
+# false positive costs one line of output and a false negative costs the whole
+# reason for looking.
+PAYOUT_HINTS = ("payout", "multiplier", "multip", "odds", "price", "juice",
+                "vig", "return", "flex", "power", "boost", "demon", "goblin",
+                "discount", "adjusted")
+
+
+def report_payout_fields(payload, show):
+    """Every field a projection carries, and which of them look like a price.
+
+    scrape_props.py keeps nine fields per projection and discards the rest, so
+    a payout sitting in the payload would never reach props.json and nobody
+    would know. The parlay view's multiplier table is currently a published
+    default that cannot be verified from any feed -- if the provider ships the
+    number, it should be read rather than assumed, and this is what says whether
+    it does.
+    """
+    seen = collections.Counter()
+    examples = {}
+    for item in payload.get("data") or []:
+        if item.get("type") != "projection":
+            continue
+        for key, value in (item.get("attributes") or {}).items():
+            seen[key] += 1
+            if key not in examples and value is not None:
+                examples[key] = value
+        for key in (item.get("relationships") or {}):
+            seen[f"relationships.{key}"] += 1
+    if not seen:
+        print("  no projections in this payload, so nothing to say about payouts")
+        return
+
+    print(f"  {len(seen)} distinct field(s) across every projection:")
+    for key, count in seen.most_common(show):
+        sample = examples.get(key)
+        shown = "" if sample is None else f"  e.g. {str(sample)[:48]!r}"
+        print(f"    {key:34s} on {count:5d}{shown}")
+
+    hits = [k for k in seen if any(h in k.lower() for h in PAYOUT_HINTS)]
+    print()
+    if hits:
+        print(f"  PAYOUT-SHAPED FIELD(S): {sorted(hits)}")
+        print("  If one of these carries the entry multiplier, PAYOUT_MULTIPLIERS in")
+        print("  src/app.jsx should be read from it instead of defaulted.")
+    else:
+        print("  No payout-shaped field on any projection. The multiplier table cannot be")
+        print("  derived from this payload and has to be entered by hand -- which the")
+        print("  Parlays tab lets you do, per entry size, kept in the browser.")
+
+    # The included side too: a league or a board object sometimes carries the
+    # payout structure rather than the projection.
+    other = collections.Counter()
+    for item in payload.get("included") or []:
+        kind = item.get("type")
+        for key in (item.get("attributes") or {}):
+            if any(h in key.lower() for h in PAYOUT_HINTS):
+                other[f"{kind}.{key}"] += 1
+    if other:
+        print(f"  and on the included side: {dict(other)}")
+
+
 def inspect(path, args):
     with open(path) as f:
         payload = json.load(f)
-    args = argparse.Namespace(payload=path, show=args.show, names=args.names)
+    args = argparse.Namespace(payload=path, show=args.show, names=args.names,
+                              payouts=getattr(args, "payouts", False))
 
     players, player_info = {}, {}
     for item in payload.get("included") or []:
@@ -74,6 +142,10 @@ def inspect(path, args):
                    if i.get("type") == "projection"]
     print(f"{args.payload}: {Path(args.payload).stat().st_size:,} bytes, "
           f"{len(projections):,} projections, {len(players):,} players\n")
+
+    if args.payouts:
+        report_payout_fields(payload, args.show)
+        print()
 
     leagues = collections.Counter()
     per_league_stats = collections.defaultdict(collections.Counter)

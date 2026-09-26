@@ -43,6 +43,7 @@ const EXPORTS = [
   "rankingIsInformative", "pointInTimeCS2CareerRate", "offeredStats", "postedLineCounts",
   "withBoardFixtures", "ParlaysTab", "buildParlays", "parlayEvidence",
   "jointHitProbability", "standardisedEdge", "residualScale", "breakEvenPerLeg",
+  "payoutTableFrom", "payoutTableIsDefault", "PAYOUT_MULTIPLIERS", "legIsStandardPriced",
 ];
 const available = EXPORTS.filter((name) =>
   new RegExp(`(function|const)\\s+${name}\\b`).test(body));
@@ -1378,9 +1379,13 @@ if (app.ParlaysTab && app.buildParlays && app.parlayEvidence) {
     date: `2026-0${i + 1}-01`, teamA: "T1", teamB: "GEN", maps_counted: 2,
     actual: { T1: { Faker: { k: 20 + i, d: 2, a: 5 } },
               GEN: { Chovy: { k: 18 + i, d: 3, a: 6 } } } }));
+  /* Keyed LCS, not R. ParlaysTab iterates GAMES[game].regionList rather than
+     the keys it was handed, so a made-up region name makes the component find
+     nothing and render its empty state -- which is what the first version of
+     this test did, passing while exercising none of the ladder. */
   const twoTeams = {
-    R: { teams: { T1: rostered, GEN: opposition2 }, past_matches: shared,
-         upcoming_matches: [fixture("T1", "GEN")] },
+    LCS: { teams: { T1: rostered, GEN: opposition2 }, past_matches: shared,
+           upcoming_matches: [fixture("T1", "GEN")] },
   };
   const board = {
     fetched_at: new Date().toISOString(), source: "test",
@@ -1397,9 +1402,15 @@ if (app.ParlaysTab && app.buildParlays && app.parlayEvidence) {
   }), props);
 
   renders("parlays with a board to build from", parlays({ lol: twoTeams }, board));
+  containsText("and the ladder actually renders a rung rather than the empty state",
+               parlays({ lol: twoTeams }, board), "needs");
+  containsText("naming where the unverified multipliers came from",
+               parlays({ lol: twoTeams }, board), "cannot be checked against your board");
+  containsText("and offering somewhere to put your own",
+               parlays({ lol: twoTeams }, board), "What your board pays");
   renders("parlays with no board at all", parlays({ lol: twoTeams }, null));
   renders("parlays with a board and no fixtures",
-          parlays({ lol: { R: { ...twoTeams.R, upcoming_matches: [] } } }, board));
+          parlays({ lol: { LCS: { ...twoTeams.LCS, upcoming_matches: [] } } }, board));
   renders("parlays with no data for any game", parlays({}, board));
   containsText("and says so when there is no board",
                parlays({ lol: twoTeams }, null), "nothing to build");
@@ -1448,8 +1459,87 @@ if (app.ParlaysTab && app.buildParlays && app.parlayEvidence) {
       + `\n        ${err.message}`);
   }
 
+  /* A demon or a goblin must never reach a rung priced by the standard table.
+     A demon raises an entry's payout and a goblin lowers it, so the multiplier
+     shown beside one would not be its multiplier. No rung on the real board
+     picked one, which is luck rather than design -- 9 of 180 candidates were
+     non-standard -- so it is asserted rather than left to luck. */
   try {
-    const rows = app.collectEdges(twoTeams, ["R"], board, weights, "kills", "lol");
+    const mixed = {
+      fetched_at: new Date().toISOString(), source: "test",
+      props: { lol: {
+        Faker: [{ player: "Faker", stat: "kills", maps: 2, line: 8.5,
+                  odds_type: "demon", team: "T1", start_time: SOON_ISO }],
+        Chovy: [{ player: "Chovy", stat: "kills", maps: 2, line: 7.5,
+                  odds_type: "goblin", team: "GEN", start_time: SOON_ISO }] } },
+    };
+    const rows = app.collectEdges(twoTeams, ["LCS"], mixed, weights, "kills", "lol");
+    if (!rows.length) throw new Error("no rows off the mixed board at all");
+    const ladder = app.buildParlays(rows);
+    if (ladder.length) {
+      throw new Error(`built ${ladder.length} rung(s) entirely from demon and goblin legs`);
+    }
+    if (!ladder.skippedOddsTypes || !ladder.skippedOddsTypes.demon
+        || !ladder.skippedOddsTypes.goblin) {
+      throw new Error(`the skipped tally does not name them: `
+        + JSON.stringify(ladder.skippedOddsTypes));
+    }
+    // A line with no odds type stated is treated as standard, which is what
+    // propsFor's own market-line preference already assumes.
+    const untyped = {
+      ...mixed,
+      props: { lol: { Faker: [{ player: "Faker", stat: "kills", maps: 2, line: 8.5,
+                               team: "T1", start_time: SOON_ISO }],
+                      Chovy: [{ player: "Chovy", stat: "kills", maps: 2, line: 7.5,
+                               team: "GEN", start_time: SOON_ISO }] } },
+    };
+    const untypedRows = app.collectEdges(twoTeams, ["LCS"], untyped, weights, "kills", "lol");
+    if (!app.buildParlays(untypedRows).length) {
+      throw new Error("a line with no odds type was excluded rather than treated as standard");
+    }
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  a demon or goblin never reaches a standard-priced rung`
+      + `\n        ${err.message}`);
+  }
+
+  /* The table is overridable, and everything downstream has to move with it. */
+  try {
+    const rows = app.collectEdges(twoTeams, ["LCS"], board, weights, "kills", "lol");
+    const mine = app.buildParlays(rows, { multipliers: { 2: 4 } });
+    const two = mine.find((r) => r.size === 2);
+    if (!two) throw new Error("no two-leg rung to price");
+    if (two.multiplier !== 4) throw new Error(`multiplier stayed at ${two.multiplier}`);
+    const want = Math.sqrt(1 / 4);
+    if (Math.abs(two.breakEven - want) > 1e-12) {
+      throw new Error(`break-even ${two.breakEven} did not follow the multiplier to ${want}`);
+    }
+    if (app.payoutTableIsDefault({ 2: 4 })) {
+      throw new Error("an overridden table still reports as the default");
+    }
+    if (!app.payoutTableIsDefault({})) throw new Error("an empty override is not the default");
+    if (!app.payoutTableIsDefault({ 2: "" })) {
+      throw new Error("a blank field is not the default");
+    }
+    if (app.payoutTableFrom({ 2: "nonsense" })[2] !== app.PAYOUT_MULTIPLIERS[2]) {
+      throw new Error("unparseable input did not fall back to the default");
+    }
+    if (app.payoutTableFrom({ 2: 0.5 })[2] !== app.PAYOUT_MULTIPLIERS[2]) {
+      throw new Error("a multiplier at or below 1 was accepted");
+    }
+    // One size given must not lose the others.
+    if (app.payoutTableFrom({ 2: 4 })[5] !== app.PAYOUT_MULTIPLIERS[5]) {
+      throw new Error("giving one size dropped the rest");
+    }
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  the payout table is overridable per size\n        ${err.message}`);
+  }
+
+  try {
+    const rows = app.collectEdges(twoTeams, ["LCS"], board, weights, "kills", "lol");
     if (!rows.length) throw new Error("no edges to build a ladder from");
     const ladder = app.buildParlays(rows);
     for (const rung of ladder) {

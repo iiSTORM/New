@@ -821,17 +821,56 @@ function jointHitProbability(legs, rhoTeam = SAME_TEAM_CORRELATION,
 /* ---------- What the board pays ------------------------------------------
 
    props.json carries no price. The provider posts a line and an odds_type and
-   nothing about the payout, so these are the published PrizePicks Power Play
-   multipliers and they are NOT measured from anything this app fetches. They
-   move, they differ by entry type, and they differ by jurisdiction.
+   nothing about the payout, and the provider refuses server-side requests from
+   every network -- so these CANNOT be verified from anything this app fetches.
+   They are the published PrizePicks Power Play defaults, they move, and they
+   differ by entry type and jurisdiction.
 
-   TREAT THEM AS A DEFAULT TO CHECK, not as a fact. The number beside them
-   that IS a fact is the break-even below, which is arithmetic on whatever
-   multiplier is in force: a payout of M over n legs needs each leg to land
-   (1/M)^(1/n) of the time before the bet is worth making. That is the figure
-   worth reading, and it does not depend on this table being current -- put
-   your own board's multiplier in and it recomputes. */
+   So they are a DEFAULT TO REPLACE, not a fact, and the Parlays tab lets you
+   type your own board's numbers over them (kept in this browser, like the
+   weights). Everything recomputes: the break-even is arithmetic on whatever is
+   in force -- a payout of M over n legs needs each leg to land (1/M)^(1/n) --
+   and that figure does not depend on this table being current.
+
+   AND A FLAT TABLE KEYED ON LEG COUNT IS ONLY RIGHT FOR STANDARD LEGS. The
+   live board carries 291 standard, 23 demon and 18 goblin lines, and the
+   graded history 1,174 / 152 / 22. A demon raises an entry's payout and a
+   goblin lowers it, so a rung containing either is not priced by this table at
+   all. buildParlays therefore takes standard legs only, and says so rather
+   than quietly mispricing one: no rung on today's board picked a demon, which
+   was luck rather than design. */
 const PAYOUT_MULTIPLIERS = { 2: 3, 3: 5, 4: 10, 5: 20, 6: 37.5 };
+const PAYOUT_TABLE_SOURCE = "PrizePicks Power Play defaults — not fetched, replace with yours";
+
+/* Only the odds type the table above describes. propsFor already prefers a
+   standard line where a player has several, so this excludes the players whose
+   ONLY posted line is a demon or a goblin. */
+const STANDARD_ODDS_TYPE = "standard";
+
+function legIsStandardPriced(row) {
+  const type = row && row.prop && row.prop.odds_type;
+  // A line with no odds type stated is treated as standard, which is what
+  // propsFor's own market-line preference already assumes about it.
+  return type === undefined || type === null || type === STANDARD_ODDS_TYPE;
+}
+
+/* A payout table from user input, falling back per size rather than wholesale:
+   someone who knows their 2-pick and 3-pick and not the rest should not lose
+   the rest. */
+function payoutTableFrom(overrides) {
+  const out = { ...PAYOUT_MULTIPLIERS };
+  for (const size of Object.keys(out)) {
+    const given = overrides && Number(overrides[size]);
+    if (isFinite(given) && given > 1) out[size] = given;
+  }
+  return out;
+}
+
+function payoutTableIsDefault(overrides) {
+  const table = payoutTableFrom(overrides);
+  return Object.keys(PAYOUT_MULTIPLIERS).every(
+    (size) => table[size] === PAYOUT_MULTIPLIERS[size]);
+}
 
 function breakEvenPerLeg(multiplier, legs) {
   if (!multiplier || multiplier <= 1 || !legs || legs < 1) return null;
@@ -926,8 +965,18 @@ function parlayEvidence(recordRows) {
      unranked thing on the list. */
 function buildParlays(rows, { sizes = [2, 3, 4, 5, 6], multipliers = PAYOUT_MULTIPLIERS,
                               shapes = ["spread", "fixture", "team"] } = {}) {
-  const usable = (rows || []).filter(
+  const priced = (rows || []).filter(
     (r) => typeof r.edge === "number" && r.prop && typeof standardisedEdge(r) === "number");
+  // Standard legs only. The multiplier table describes a standard entry and
+  // nothing else, so a demon or goblin leg would be shown beside a payout that
+  // is not its payout.
+  const usable = priced.filter(legIsStandardPriced);
+  const skippedOddsTypes = {};
+  for (const row of priced) {
+    if (legIsStandardPriced(row)) continue;
+    const type = String(row.prop.odds_type);
+    skippedOddsTypes[type] = (skippedOddsTypes[type] || 0) + 1;
+  }
   const ranked = [...usable].sort(
     (a, b) => Math.abs(standardisedEdge(b)) - Math.abs(standardisedEdge(a)));
 
@@ -1019,6 +1068,9 @@ function buildParlays(rows, { sizes = [2, 3, 4, 5, 6], multipliers = PAYOUT_MULT
       });
     }
   }
+  // Attached to the list rather than each rung: it is a fact about the board,
+  // not about any one entry.
+  out.skippedOddsTypes = skippedOddsTypes;
   return out;
 }
 
@@ -4765,6 +4817,16 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
   const theme = useTheme();
   const results = useGradedResults();
 
+  /* Your board's numbers, not mine. The provider refuses server-side requests
+     from every network, so the shipped table cannot be verified from any feed
+     and the only honest way to get it right is to let you type it. Kept in this
+     browser, same as the weights. */
+  const [payoutOverrides, setPayoutOverrides] = useState(
+    () => loadStored("kp.payoutMultipliers", {}));
+  useEffect(() => saveStored("kp.payoutMultipliers", payoutOverrides), [payoutOverrides]);
+  const multipliers = useMemo(() => payoutTableFrom(payoutOverrides), [payoutOverrides]);
+  const usingDefaults = payoutTableIsDefault(payoutOverrides);
+
   /* Every live line on every game, each with a fixture behind it, ranked in
      error units. The board inference runs here too, so a line whose fixture
      the schedule has not published still reaches the ladder. */
@@ -4813,7 +4875,7 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
 
   const evidence = useMemo(
     () => (recordRows.length ? parlayEvidence(recordRows) : null), [recordRows]);
-  const ladder = useMemo(() => buildParlays(rows), [rows]);
+  const ladder = useMemo(() => buildParlays(rows, { multipliers }), [rows, multipliers]);
 
   const shell = (children) => (
     <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`,
@@ -4858,6 +4920,55 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
           </>
         ) : (
           <div>The graded record has not loaded, so nothing here has been checked against it.</div>
+        )}
+      </div>
+
+      {/* What the board pays. Editable because it cannot be fetched. */}
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`,
+                    ...cardShape(theme.cornerStyle), ...elevation(), padding: "14px 16px",
+                    marginBottom: 14, fontSize: 12.5, color: theme.textDim }}>
+        <div style={{ color: theme.text, fontWeight: 600, marginBottom: 2 }}>
+          What your board pays
+        </div>
+        <div style={{ marginBottom: 10, color: theme.textFaint, fontSize: 11.5 }}>
+          {usingDefaults
+            ? `Currently the ${PAYOUT_TABLE_SOURCE}. The provider refuses requests from `
+              + `this app, so these cannot be checked against your board from here — put `
+              + `your own in and every break-even and return below recomputes.`
+            : "Using your numbers. Every break-even and return below is computed from them."}
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-end" }}>
+          {Object.keys(PAYOUT_MULTIPLIERS).map((size) => (
+            <label key={size} style={{ display: "flex", flexDirection: "column", gap: 3,
+                                       fontSize: 11.5, color: theme.textDim }}>
+              <span>{size} picks</span>
+              <input type="number" step="0.5" min="1"
+                     value={payoutOverrides[size] !== undefined && payoutOverrides[size] !== ""
+                       ? payoutOverrides[size] : ""}
+                     placeholder={String(PAYOUT_MULTIPLIERS[size])}
+                     onChange={(e) => setPayoutOverrides(
+                       (prev) => ({ ...prev, [size]: e.target.value }))}
+                     style={{ width: 74, padding: "5px 7px", fontSize: 12.5,
+                              background: theme.void, color: theme.text,
+                              border: `1px solid ${theme.steel}`, borderRadius: 3 }} />
+            </label>
+          ))}
+          {!usingDefaults && (
+            <button className="kp-btn" onClick={() => setPayoutOverrides({})}
+                    style={{ fontSize: 11.5, padding: "6px 10px" }}>
+              Back to defaults
+            </button>
+          )}
+        </div>
+        {ladder.skippedOddsTypes && Object.keys(ladder.skippedOddsTypes).length > 0 && (
+          <div style={{ marginTop: 10, fontSize: 11.5, color: theme.textFaint }}>
+            Left out of every rung:{" "}
+            {Object.entries(ladder.skippedOddsTypes)
+              .map(([type, n]) => `${n} ${type}`).join(", ")}{" "}
+            line(s). A demon raises an entry's payout and a goblin lowers it, so a table
+            keyed on leg count does not price them — showing one beside these multipliers
+            would be showing a payout that is not its payout.
+          </div>
         )}
       </div>
 
@@ -4988,10 +5099,13 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
       })}
 
       <div style={{ fontSize: 11.5, color: theme.textFaint, lineHeight: 1.6, marginTop: 4 }}>
-        Multipliers are the published PrizePicks Power Play defaults and are not read from
-        any feed — they move, and they differ by entry type and jurisdiction. Check them
-        against your own board; the break-even beside each one recomputes from whatever is
-        in force.
+        {usingDefaults
+          ? "Multipliers are the published PrizePicks Power Play defaults and are not read "
+            + "from any feed — the provider refuses requests from this app, so they cannot "
+            + "be verified here. Enter your board's above and everything recomputes."
+          : "Multipliers are the ones you entered above."}
+        {" "}Every rung is standard legs only, because that is what a table keyed on leg
+        count describes.
         {" "}Legs are not combined by multiplying. Two on one roster land the same way 57.1%
         of the time and two on opposing sides of a fixture 52.2%, against 50.0% across
         fixtures — so correlation is applied at two levels, measured from this app's own
