@@ -69,6 +69,18 @@ jobs:
       - name: Merge LoL data into final data.json
         run: python scripts/merge.py
 
+      # After the fixture list is final and before it is checked. The board
+      # carries fixtures the schedule provider has not published yet -- a
+      # playoff bracket slot still marked TBD, or a region's round missing
+      # entirely -- and a posted line with no fixture to sit on is invisible
+      # in the app however good the projection behind it is. Additive and
+      # never fatal: see scripts/board_fixtures.py for why it refuses to
+      # pair two teams off a shared kickoff.
+      - name: Add fixtures the posted board implies (LoL)
+        id: board_fixtures
+        run: python scripts/infer_fixtures.py lol
+        continue-on-error: true
+
       # Deliberately NOT continue-on-error, and deliberately before the
       # commit step: if the data is stale or gutted, the run goes red and
       # the bad snapshot never reaches main.
@@ -84,7 +96,8 @@ jobs:
           degraded=0
           for step in "schedule:${{ steps.schedule.outcome }}" \
                       "career:${{ steps.career.outcome }}" \
-                      "champion_stats:${{ steps.champion_stats.outcome }}"; do
+                      "champion_stats:${{ steps.champion_stats.outcome }}" \
+                      "board_fixtures:${{ steps.board_fixtures.outcome }}"; do
             name=${step%%:*}; outcome=${step#*:}
             if [ "$outcome" != "success" ]; then
               echo "::warning title=Degraded LoL data::'$name' step did not succeed (outcome: $outcome) — data.json was still built, but that tier is now stale"
@@ -196,8 +209,30 @@ jobs:
         # CS2 jobs from committing — which is what continue-on-error was
         # originally protecting against.
 
+      # As in the LoL job: the board carries fixtures the schedule provider
+      # has not published yet, and a posted line with no fixture to sit on is
+      # invisible in the app. Additive and never fatal -- see
+      # scripts/board_fixtures.py.
+      - name: Add fixtures the posted board implies (Valorant)
+        id: board_fixtures
+        run: python scripts/infer_fixtures.py valorant
+        continue-on-error: true
+
       - name: Check valorant_data.json is fresh and complete
         run: python scripts/check_data.py valorant
+
+      # The board-fixture step above is continue-on-error, and this job had
+      # nowhere for a tolerated failure to surface. Same shape as the LoL and
+      # CS2 jobs so it cannot go unnoticed here alone.
+      - name: Report degraded steps
+        if: always()
+        run: |
+          if [ "${{ steps.board_fixtures.outcome }}" != "success" ]; then
+            echo "::warning title=Degraded Valorant data::board-fixture step did not succeed (outcome: ${{ steps.board_fixtures.outcome }}) — valorant_data.json was still built, but lines on teams the schedule has not published are invisible in the app"
+          else
+            echo "Valorant board-fixture step succeeded"
+          fi
+          exit 0
 
       - name: Commit valorant_data.json
         run: |
@@ -288,6 +323,15 @@ jobs:
         # while the run reported success. The career step above stays
         # tolerated, since stale career data is handled by design.
 
+      # As in the LoL job: the board carries fixtures the schedule provider
+      # has not published yet, and a posted line with no fixture to sit on is
+      # invisible in the app. Additive and never fatal -- see
+      # scripts/board_fixtures.py.
+      - name: Add fixtures the posted board implies (CS2)
+        id: board_fixtures
+        run: python scripts/infer_fixtures.py cs2
+        continue-on-error: true
+
       - name: Check cs2_data.json is fresh and complete
         run: python scripts/check_data.py cs2
 
@@ -298,6 +342,9 @@ jobs:
             echo "::warning title=Degraded CS2 data::career step did not succeed (outcome: ${{ steps.cs2_career.outcome }}) — cs2_data.json was still built, but the career tier is now stale"
           else
             echo "CS2 career step succeeded"
+          fi
+          if [ "${{ steps.board_fixtures.outcome }}" != "success" ]; then
+            echo "::warning title=Degraded CS2 data::board-fixture step did not succeed (outcome: ${{ steps.board_fixtures.outcome }}) — cs2_data.json was still built, but lines on teams the schedule has not published are invisible in the app"
           fi
           exit 0
 

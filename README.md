@@ -19,6 +19,7 @@ index.html                     GENERATED — do not edit by hand
 .github/workflows/tests.yml    pytest + the index.html staleness check
 scripts/                       production scrapers — run by the workflow
 scripts/check_data.py          pre-commit validation of a scraped file
+scripts/infer_fixtures.py      adds fixtures the posted board implies
 scripts/dev/                   investigation tooling — never run by the workflow
 tests/                         unit tests (no network, stdlib only)
 playoffs_and_international_roadmap.md  design notes
@@ -428,6 +429,7 @@ different files, so they don't depend on each other.
 | 3 | `scrape_career.py` | gol.gg (multi-season, cached) | `career_data.json` |
 | 4 | `aggregate_champion_stats.py` | `data.json` | `champion_stats.json` |
 | 5 | `merge.py` | `data.json`, `schedule.json`, `career_data.json` | `data.json` |
+| 6 | `infer_fixtures.py` | `data.json`, `props.json` | `data.json` |
 
 **Valorant** (`scrape-valorant`): `scrape_valorant.py` → `valorant_data.json`
 
@@ -437,6 +439,39 @@ deliberately: the two are circularly dependent (career reads the roster out
 of `cs2_data.json`, while `scrape_cs2.py` folds the career file into its
 output), so one of them has to be a run stale. A stale roster is much less
 harmful than stale career data.
+
+Every job then runs `infer_fixtures.py` as its last step before validation.
+
+### Fixtures inferred from the board
+
+A posted line with no fixture to sit on is invisible: the Edges view walks
+`upcoming_matches` and nothing else, so a player the schedule does not have
+playing produces no row however good the projection behind them is. That is
+not a rare edge. On the board of 2026-09-26 it hid 23 of 70 LoL lines and 82
+of 246 CS2 lines — a playoff bracket slot the LoL Esports API still had as
+TBD, a TCL round it had not published at all, and eight CS2 teams bo3.gg's
+fixture feed did not cover. Every one of those teams was already rostered,
+with history already scraped.
+
+`infer_fixtures.py` reads `props.json` and adds what the board implies. It
+identifies a team by the *player* the line is on rather than by the team name
+the board prints, which is how 'The Huns' meets the roster's 'The Huns
+Esports' with no name map to maintain, and it settles a handle that is on two
+rosters (`tatu` is on both paiN and paiN Academy) by the team the board
+states, refusing when that names neither.
+
+What it will not do is decide who a team plays. The board carries no opponent
+and no match id, so the only pairing evidence is a shared kickoff — and a
+kickoff routinely holds several concurrent games: the CS2 slot at 09:00-04:00
+that day held six teams. So it fills an undecided side only where the
+schedule already asserts the fixture exists and the board leaves exactly one
+candidate; otherwise it publishes `team vs TBD`, which the app handles by
+design (only the player's own team has to be rostered, and the opponent term
+falls back to neutral). Anything it adds or changes is stamped `inferred` in
+`upcoming_matches`.
+
+It is additive and `continue-on-error`: a board that adds nothing is the
+normal state once the schedule provider catches up.
 
 Regions currently covered: LCS, LEC, LCK, LPL, LCP, CBLOL, TCL (LoL);
 VCT Americas / EMEA / Pacific / China; CS2 (single pool).
@@ -497,10 +532,13 @@ pip install cs2api aiohttp            # CS2
 
 python scripts/scrape_lcs.py          # scripts expect the repo root as cwd
 python scripts/merge.py
+python scripts/infer_fixtures.py --dry-run   # what the board would add, writes nothing
 ```
 
-`merge.py` and `aggregate_champion_stats.py` need no network — they only read
-files already in the repo, which makes them the easiest things to test.
+`merge.py`, `aggregate_champion_stats.py` and `infer_fixtures.py` need no
+network — they only read files already in the repo, which makes them the
+easiest things to test. `infer_fixtures.py` rewrites the data file in place,
+so `--dry-run` is the one to reach for while looking.
 
 Open `index.html` in a browser to view the app. Note that it loads data from
 `main` on GitHub, not from your local files.
