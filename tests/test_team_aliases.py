@@ -46,6 +46,11 @@ class TestAliasKey:
         # "AIM Club" from "AIMCLUB", which is the spelling the source uses.
         ("AIM Club", "AIMCLUB"),
         ("Some Team e-sports", "Some Team"),
+        ("Some Team E-Sports", "Some Team"),
+        # An identifier the source glued on. Confirmed by bo3.gg's own match
+        # slugs for the suffixed entry's games -- 'bebop-vs-wbt-academy' and
+        # 'a-great-chaos-vs-wbt-academy' -- which carry no suffix at all.
+        ("WBT Academy_2NMK3fBkP7gb7JK1", "WBT Academy"),
     ])
     def test_spellings_of_one_team_reduce_alike(self, a, b):
         assert ta.alias_key(a) == ta.alias_key(b) != ""
@@ -69,11 +74,13 @@ class TestAliasKey:
         # A qualifier that may be a real distinction.
         ("Orgless", "Orgless (Aus)"),
         ("Banda Chuya", "Banda chuya LFO"),
-        # An id leaking into a team name, which needs its own fix.
-        ("WBT Academy", "WBT Academy_2NMK3fBkP7gb7JK1"),
         # Genuinely different teams that merely look alike.
         ("Team Liquid", "Team Secret"),
         ("paiN", "paiN Academy"),
+        # Same org, different squad. The id strip must not reach this far:
+        # WBT and WBT Academy are five different players each.
+        ("WBT", "WBT Academy"),
+        ("WBT", "WBT Academy_2NMK3fBkP7gb7JK1"),
     ])
     def test_refuses_what_is_not_a_respelling(self, a, b):
         assert ta.alias_key(a) != ta.alias_key(b)
@@ -86,6 +93,62 @@ class TestAliasKey:
     @pytest.mark.parametrize("raw", [None, "", "   ", "!!!", 0])
     def test_survives_a_name_that_is_not_one(self, raw):
         assert ta.alias_key(raw) == ""
+
+
+class TestLooksLikeOpaqueId:
+    def test_recognises_the_identifier_the_source_glues_on(self):
+        assert ta.looks_like_opaque_id("2NMK3fBkP7gb7JK1")
+
+    @pytest.mark.parametrize("token", [
+        "Academy",          # too short
+        "Quintessencia",    # long enough, no digits
+        "MARKandLARRY",     # long enough, mixed case, no digits
+        "Team100Thieves",   # long, mixed case, digits -- but ONE run of them
+        "2NMK3FBKP7GB7JK1", # one case only
+        "2nmk3fbkp7gb7jk1", # the same, lowercased
+        # Short, two runs of digits, both cases -- and exactly the shape of a
+        # real esports tag. This is what the length floor is for: without it
+        # the digits-and-case conditions alone would eat one.
+        "W7M2k",
+        "",
+    ])
+    def test_refuses_a_token_that_could_be_part_of_a_name(self, token):
+        assert not ta.looks_like_opaque_id(token)
+
+    def test_a_short_tag_is_kept_as_part_of_the_name(self):
+        assert ta.alias_key("Fluxo W7M2k") != ta.alias_key("Fluxo")
+        assert ta.alias_key("Fluxo W7M2k") == "fluxow7m2k"
+
+    def test_a_name_that_is_only_an_identifier_keeps_it(self):
+        """There would be nothing left to compare, and an empty key groups
+        every such entry together."""
+        assert ta.alias_key("2NMK3fBkP7gb7JK1") == "2nmk3fbkp7gb7jk1"
+
+    def test_the_threshold_is_not_balanced_on_one_number(self):
+        """Measured against all 401 real team names, every length from 10 up
+        picks out exactly the one intended. If a shorter threshold ever starts
+        catching real names, this is where it will show."""
+        assert ta.OPAQUE_ID_MIN_LENGTH >= 10
+
+
+class TestPreferARealName:
+    def test_puts_an_id_suffixed_variant_last(self):
+        assert ta.prefer_a_real_name(
+            ["WBT Academy_2NMK3fBkP7gb7JK1", "WBT Academy"])[0] == "WBT Academy"
+
+    def test_otherwise_keeps_the_order_it_was_given(self):
+        """The caller's choice is "the first clan_name seen for this id", and
+        this is only meant to stop an identifier winning that race."""
+        names = ["Arcade", "Arcade Esports", "ARCADE"]
+        assert ta.prefer_a_real_name(names) == names
+
+    def test_falls_back_to_the_suffixed_name_when_it_is_all_there_is(self):
+        """A name is better than none."""
+        only = ["WBT Academy_2NMK3fBkP7gb7JK1"]
+        assert ta.prefer_a_real_name(only) == only
+
+    def test_an_empty_list_stays_empty(self):
+        assert ta.prefer_a_real_name([]) == []
 
 
 class TestAliasGroups:
@@ -268,6 +331,47 @@ class TestApplyAliases:
         assert set(m["actual"]) == {"MISA"}
 
 
+class TestTheScraperIsWired:
+    """That scrape_cs2.py's name reconciliation actually consults it.
+
+    The call site is inside build_region_payload, mid-way through an async
+    run against two live endpoints, so nothing here can reach it. And the
+    failure mode is silent: reverting to names[0] produces no exception, no
+    empty result, and a plausible log line -- the same team simply acquires a
+    second entry again some weeks later, under a name with an identifier on
+    it. The only thing that distinguishes the two is the shape of the code.
+    """
+
+    @staticmethod
+    def tree():
+        import ast
+        return ast.parse((REPO_ROOT / "scripts" / "scrape_cs2.py").read_text())
+
+    def test_the_canonical_name_is_chosen_through_prefer_a_real_name(self):
+        import ast
+        assigns = [n for n in ast.walk(self.tree())
+                   if isinstance(n, ast.Assign)
+                   and any(isinstance(t, ast.Subscript)
+                           and getattr(t.value, "id", "") == "canonical_name_by_id"
+                           for t in n.targets)]
+        assert assigns, "canonical_name_by_id is no longer assigned per team id"
+        for node in assigns:
+            called = {getattr(c.func, "id", getattr(c.func, "attr", ""))
+                      for c in ast.walk(node) if isinstance(c, ast.Call)}
+            assert "prefer_a_real_name" in called, (
+                "the fallback for a team id the schedule endpoint never named is "
+                "back to taking a variant unfiltered, so an identifier-suffixed "
+                "clan_name can win the race again")
+
+    def test_it_is_imported_rather_than_reimplemented(self):
+        import ast
+        imported = {alias.name for node in ast.walk(self.tree())
+                    if isinstance(node, ast.ImportFrom) and node.module == "team_aliases"
+                    for alias in node.names}
+        assert {"prefer_a_real_name", "reconcile"} <= imported, (
+            f"scrape_cs2 imports {sorted(imported)} from team_aliases")
+
+
 class TestTheCommittedFile:
     """Run against the real cs2_data.json, because the shapes that made this
     necessary are ones nobody would have invented."""
@@ -303,6 +407,31 @@ class TestTheCommittedFile:
                 if isinstance(block, dict):
                     assert not (set(block) & set(renames)), \
                         f"stats still keyed by a folded name: {sorted(set(block) & set(renames))}"
+
+    def test_the_source_own_match_slugs_confirm_the_id_suffix_fold(self):
+        """The evidence, not the heuristic.
+
+        bo3.gg builds match_id as a slug of both team names. For the suffixed
+        entry's own matches that slug says 'wbt-academy' and nothing more,
+        which is the source stating the two are one team -- rather than this
+        being inferred from a character rule and a shared roster.
+        """
+        region = self.region()
+        groups = ta.alias_groups(region["teams"], region["past_matches"])
+        renames = ta.rename_map(groups)
+        suffixed = [name for name in renames
+                    if ta.looks_like_opaque_id(name.split("_")[-1])]
+        assert suffixed, "no id-suffixed team name in the committed file any more"
+        for name in suffixed:
+            canonical = renames[name]
+            slug = canonical.lower().replace(" ", "-")
+            theirs = [m for m in region["past_matches"]
+                      if name in (m.get("teamA"), m.get("teamB"))]
+            assert theirs, f"{name!r} has no matches to check"
+            for m in theirs:
+                assert slug in (m.get("match_id") or ""), (
+                    f"{name!r} folds into {canonical!r}, but its match "
+                    f"{m.get('match_id')!r} does not carry {slug!r}")
 
     def test_it_recovers_the_history_it_set_out_to(self):
         region = self.region()

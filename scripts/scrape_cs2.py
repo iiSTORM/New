@@ -52,7 +52,7 @@ from cs2api import CS2
 # score_props imports nothing but the standard library.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from score_props import window_is_covered
-from team_aliases import reconcile
+from team_aliases import prefer_a_real_name, reconcile
 
 BO3_BASE = "https://api.bo3.gg/api/v1"
 HEADERS = {
@@ -930,7 +930,15 @@ async def build_region_payload(cs2, session):
     # match history. ----
     canonical_name_by_id = {}
     for tid, names in names_seen_by_id.items():
-        canonical_name_by_id[tid] = short_name_by_team_id.get(tid, names[0])
+        # prefer_a_real_name, not names[0]: the fallback is "the first
+        # clan_name seen for this id", and bo3.gg sometimes hands one back
+        # with an identifier glued on ('WBT Academy_2NMK3fBkP7gb7JK1'). When
+        # that arrived first it became the team's name for the run and then
+        # for the committed file. A clean spelling seen for the same id wins;
+        # if every variant carries one, the first is still used, because a
+        # name is better than none.
+        canonical_name_by_id[tid] = short_name_by_team_id.get(
+            tid, prefer_a_real_name(names)[0])
 
     name_rename_map = {}
     for tid, names in names_seen_by_id.items():

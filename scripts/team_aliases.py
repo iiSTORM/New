@@ -46,6 +46,29 @@ import unicodedata
 ORG_WORDS = {"esports", "esport", "gaming"}
 LEADING_WORDS = {"team"}
 
+# bo3.gg sometimes hands back a team name with one of its own identifiers
+# glued on the end: 'WBT Academy_2NMK3fBkP7gb7JK1' and 'WBT Academy' are the
+# same five players, and the source's own match slugs for the suffixed
+# entry's games say 'wbt-academy' with nothing after it.
+#
+# Measured against every team name in all three games -- 401 of them -- this
+# test fires on exactly that one, and goes on firing on exactly that one at
+# every length threshold from 10 upward, so it is not balanced on a delicate
+# number. The two-digit-runs condition is what separates an identifier from a
+# name that merely contains digits: a hypothetical "Team100Thieves" has one
+# run, "2NMK3fBkP7gb7JK1" has five.
+OPAQUE_ID_MIN_LENGTH = 12
+OPAQUE_ID_MIN_DIGIT_RUNS = 2
+
+
+def looks_like_opaque_id(token):
+    """Is this trailing token one of the source's identifiers, not a name?"""
+    if len(token) < OPAQUE_ID_MIN_LENGTH:
+        return False
+    if len(re.findall(r"\d+", token)) < OPAQUE_ID_MIN_DIGIT_RUNS:
+        return False
+    return any(c.islower() for c in token) and any(c.isupper() for c in token)
+
 # Rewritten wherever a team name appears in a region payload. per_game is a
 # LIST of per-map dicts, each keyed by team, which is the one that would be
 # missed by a rewrite that only looked at the obvious fields.
@@ -61,19 +84,40 @@ def alias_key(name):
     # An explicit combining-mark filter here was doing nothing the tokeniser
     # was not already doing. Without the NFKD, though, a precomposed ê is
     # itself dropped and "Grêmio" reduces to "grmio".
-    folded = unicodedata.normalize("NFKD", str(name or "")).lower()
+    folded = unicodedata.normalize("NFKD", str(name or ""))
     # Before tokenising, because splitting on punctuation would turn
     # "e-sports" into "e" + "sports" and neither is an org word on its own.
-    folded = re.sub(r"\be[\s\-_]?sports\b", "esports", folded)
+    folded = re.sub(r"\be[\s\-_]?sports\b", "esports", folded, flags=re.I)
     # Tokenised on ANY non-alphanumeric, not just whitespace: the source
     # writes "G2!Esports" with no space in it, and a whitespace-only split
-    # leaves that as one token where no org word can come off the end.
-    tokens = [t for t in re.split(r"[^0-9a-z]+", folded) if t]
+    # leaves that as one token where no org word can come off the end. Case is
+    # kept until after the identifier test below, which needs it.
+    tokens = [t for t in re.split(r"[^0-9A-Za-z]+", folded) if t]
+    # An identifier the source glued on, and only while a name remains: a
+    # single token that looks like one is all there is to go on and dropping
+    # it would leave nothing to compare.
+    while len(tokens) > 1 and looks_like_opaque_id(tokens[-1]):
+        tokens = tokens[:-1]
+    tokens = [t.lower() for t in tokens]
     while tokens and tokens[0] in LEADING_WORDS:
         tokens = tokens[1:]
     while tokens and tokens[-1] in ORG_WORDS:
         tokens = tokens[:-1]
     return "".join(tokens)
+
+
+def prefer_a_real_name(names):
+    """The variants worth treating as this team's name, id-suffixed ones last.
+
+    Order is otherwise preserved, so a caller that wanted "the first seen"
+    still gets the first seen -- just not the one with an identifier glued on
+    when a clean spelling was also available. That is how 'WBT
+    Academy_2NMK3fBkP7gb7JK1' became a team of its own: the reconciliation in
+    scrape_cs2.py took the first clan_name it saw for the id, and in one run
+    that was the suffixed one.
+    """
+    clean = [n for n in names if not looks_like_opaque_id(str(n).split("_")[-1])]
+    return clean or list(names)
 
 
 def match_counts(matches):
