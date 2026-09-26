@@ -44,6 +44,8 @@ const EXPORTS = [
   "withBoardFixtures", "ParlaysTab", "buildParlays", "parlayEvidence",
   "jointHitProbability", "standardisedEdge", "residualScale", "breakEvenPerLeg",
   "payoutTableFrom", "payoutTableIsDefault", "PAYOUT_MULTIPLIERS", "legIsStandardPriced",
+  "oddsTypeOf", "oddsFactorsFrom", "rungMultiplier", "ODDS_TYPE_FACTORS",
+  "NON_STANDARD_ODDS_TYPES",
 ];
 const available = EXPORTS.filter((name) =>
   new RegExp(`(function|const)\\s+${name}\\b`).test(body));
@@ -1459,11 +1461,12 @@ if (app.ParlaysTab && app.buildParlays && app.parlayEvidence) {
       + `\n        ${err.message}`);
   }
 
-  /* A demon or a goblin must never reach a rung priced by the standard table.
-     A demon raises an entry's payout and a goblin lowers it, so the multiplier
-     shown beside one would not be its multiplier. No rung on the real board
-     picked one, which is luck rather than design -- 9 of 180 candidates were
-     non-standard -- so it is asserted rather than left to luck. */
+  /* A demon and a goblin are PICKABLE and ranked exactly like any other leg --
+     the ranking is standardised edge and has no odds-type term. What differs is
+     the price: a demon raises an entry's payout per pick and a goblin lowers it,
+     neither factor can be verified from any feed, so a rung containing one is
+     unpriced until the factor is entered rather than priced as though it were
+     standard. */
   try {
     const mixed = {
       fetched_at: new Date().toISOString(), source: "test",
@@ -1475,33 +1478,102 @@ if (app.ParlaysTab && app.buildParlays && app.parlayEvidence) {
     };
     const rows = app.collectEdges(twoTeams, ["LCS"], mixed, weights, "kills", "lol");
     if (!rows.length) throw new Error("no rows off the mixed board at all");
+
     const ladder = app.buildParlays(rows);
-    if (ladder.length) {
-      throw new Error(`built ${ladder.length} rung(s) entirely from demon and goblin legs`);
+    if (!ladder.length) throw new Error("a demon and a goblin produced no rung at all");
+    for (const rung of ladder) {
+      if (rung.multiplier !== null) {
+        throw new Error(`a rung of unpriced odds types reports ${rung.multiplier}x`);
+      }
+      if (rung.breakEven !== null) {
+        throw new Error(`an unpriced rung has a break-even of ${rung.breakEven}`);
+      }
+      if (!rung.unpricedTypes.includes("demon") || !rung.unpricedTypes.includes("goblin")) {
+        throw new Error(`the rung does not name what is unpriced: `
+          + JSON.stringify(rung.unpricedTypes));
+      }
+      if (rung.oddsTypes.demon !== 1 || rung.oddsTypes.goblin !== 1) {
+        throw new Error(`the rung miscounts its odds types: ${JSON.stringify(rung.oddsTypes)}`);
+      }
     }
-    if (!ladder.skippedOddsTypes || !ladder.skippedOddsTypes.demon
-        || !ladder.skippedOddsTypes.goblin) {
-      throw new Error(`the skipped tally does not name them: `
-        + JSON.stringify(ladder.skippedOddsTypes));
+    if (!ladder.availableOddsTypes || ladder.availableOddsTypes.demon !== 1
+        || ladder.availableOddsTypes.goblin !== 1) {
+      throw new Error(`the board tally is wrong: ${JSON.stringify(ladder.availableOddsTypes)}`);
     }
-    // A line with no odds type stated is treated as standard, which is what
-    // propsFor's own market-line preference already assumes.
-    const untyped = {
-      ...mixed,
-      props: { lol: { Faker: [{ player: "Faker", stat: "kills", maps: 2, line: 8.5,
-                               team: "T1", start_time: SOON_ISO }],
-                      Chovy: [{ player: "Chovy", stat: "kills", maps: 2, line: 7.5,
-                               team: "GEN", start_time: SOON_ISO }] } },
-    };
-    const untypedRows = app.collectEdges(twoTeams, ["LCS"], untyped, weights, "kills", "lol");
-    if (!app.buildParlays(untypedRows).length) {
-      throw new Error("a line with no odds type was excluded rather than treated as standard");
+
+    // Enter the factors and the same rung prices, multiplicatively.
+    const priced = app.buildParlays(rows, { oddsFactors: { standard: 1, demon: 2, goblin: 0.5 } });
+    const two = priced.find((r) => r.size === 2);
+    if (!two) throw new Error("no two-leg rung once the factors were entered");
+    const want = app.PAYOUT_MULTIPLIERS[2] * 2 * 0.5;
+    if (Math.abs(two.multiplier - want) > 1e-12) {
+      throw new Error(`priced at ${two.multiplier}, wanted ${want} (base x demon x goblin)`);
+    }
+    if (two.unpricedTypes.length) {
+      throw new Error(`still reports unpriced types: ${two.unpricedTypes}`);
+    }
+    if (Math.abs(two.breakEven - Math.sqrt(1 / want)) > 1e-12) {
+      throw new Error("the break-even did not follow the adjusted multiplier");
+    }
+
+    /* The ranking must be identical with and without odds types in play. Same
+       legs, same order, whatever they are priced at -- that is the whole of
+       "ranked the same way as the standard ones". */
+    const asStandard = rows.map((r) => ({ ...r, prop: { ...r.prop, odds_type: "standard" } }));
+    const orderMixed = app.buildParlays(rows).map((r) => r.legs.map((l) => l.name).join(","));
+    const orderPlain = app.buildParlays(asStandard).map((r) => r.legs.map((l) => l.name).join(","));
+    if (JSON.stringify(orderMixed) !== JSON.stringify(orderPlain)) {
+      throw new Error(`odds type changed the order: ${JSON.stringify(orderMixed)} vs `
+        + JSON.stringify(orderPlain));
+    }
+
+    // An odds type nobody has heard of is unpriced, not silently standard.
+    const exotic = app.buildParlays(
+      rows.map((r) => ({ ...r, prop: { ...r.prop, odds_type: "wizard" } })));
+    if (exotic.some((r) => r.multiplier !== null)) {
+      throw new Error("an unknown odds type was priced as though it were standard");
+    }
+
+    // A line with no odds type stated IS standard, which is what propsFor's own
+    // market-line preference already assumes about it.
+    const untyped = app.buildParlays(
+      rows.map((r) => ({ ...r, prop: { ...r.prop, odds_type: undefined } })));
+    if (!untyped.length || untyped.some((r) => r.multiplier === null)) {
+      throw new Error("an untyped line was not treated as standard");
+    }
+    if (app.oddsTypeOf({ prop: {} }) !== "standard"
+        || app.oddsTypeOf({ prop: { odds_type: "" } }) !== "standard") {
+      throw new Error("a missing or blank odds type is not reported as standard");
     }
     pass++;
   } catch (err) {
     fail++;
-    console.error(`FAIL  a demon or goblin never reaches a standard-priced rung`
+    console.error(`FAIL  demons and goblins are pickable, ranked alike, priced only when known`
       + `\n        ${err.message}`);
+  }
+
+  /* The marker. A row that does not say which kind of line it is, is a row you
+     could stake the wrong money on. */
+  try {
+    const mixedBoard = {
+      fetched_at: new Date().toISOString(), source: "test",
+      props: { lol: {
+        Faker: [{ player: "Faker", stat: "kills", maps: 2, line: 8.5,
+                  odds_type: "demon", team: "T1", start_time: SOON_ISO }],
+        Chovy: [{ player: "Chovy", stat: "kills", maps: 2, line: 7.5,
+                  odds_type: "goblin", team: "GEN", start_time: SOON_ISO }] } },
+    };
+    const html = renderToStaticMarkup(parlays({ lol: twoTeams }, mixedBoard));
+    for (const want of ["demon", "goblin"]) {
+      if (!html.includes(want)) throw new Error(`the rendered rung never says "${want}"`);
+    }
+    if (!/payout unknown/.test(html)) {
+      throw new Error("an unpriced rung does not say its payout is unknown");
+    }
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  a non-standard leg is marked as one on screen\n        ${err.message}`);
   }
 
   /* The table is overridable, and everything downstream has to move with it. */

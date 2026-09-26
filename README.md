@@ -496,12 +496,30 @@ browser like the weights. Every break-even and every return recomputes from
 whatever is in it, and the view says which of the two it is using. One size
 entered does not lose the others.
 
-**A flat table keyed on leg count only prices standard legs.** The live board
-carries 291 standard, 23 demon and 18 goblin lines and the graded history
-1,174 / 152 / 22. A demon raises an entry's payout and a goblin lowers it, so a
-rung containing either is not priced by this table at all. `buildParlays` takes
-standard legs only and reports what it left out — no rung on the board this was
-written against picked a demon, which was luck rather than design.
+**Demons and goblins are pickable and ranked identically; only the price
+differs.** The live board carries 291 standard, 23 demon and 18 goblin lines and
+the graded history 1,174 / 152 / 22. The ranking is standardised edge and has no
+odds-type term, so they compete on exactly the same footing as anything else —
+and each leg is marked on screen, because a row that does not say which kind of
+line it is, is a row you could stake the wrong money on.
+
+What a demon or goblin changes is the payout, one factor per pick on the entry.
+Both default to **unknown rather than 1.0**, since guessing there would be the
+one invented number in the file: a rung's multiplier is the base for its leg
+count times the product of its legs' factors, and a rung containing an unpriced
+type shows its legs, keeps its landing probability, and withholds its break-even
+and return until you enter the factor. An odds type nobody has heard of is
+unpriced too, rather than silently treated as standard; a line with **no** odds
+type stated is standard, which is what `propsFor`'s own market-line preference
+already assumes about it.
+
+Worth knowing while reading the order: a goblin's line is *lowered*, which
+inflates its edge while it pays less, and a demon's is raised, which deflates
+its edge while it pays more — so edge order is not value order for these, and
+the tab says so. On the board this was written against no demon or goblin won a
+slot: the best demon ranks 8th and was skipped by the one-leg-per-fixture rule
+rather than by its odds type, which is the mechanism working rather than the
+feature being absent.
 
 **Check whether the payout is in the capture.** `scrape_props.py` keeps nine
 fields per projection and discards the rest, so a payout sitting in the payload
