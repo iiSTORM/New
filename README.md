@@ -410,6 +410,29 @@ less-confident band's point estimate, on at least 30 rows a side, clustered on
 the match. It clears itself — the day the record separates, the numbers appear,
 with no code change and no flag to remember.
 
+`scripts/dev/decile_test.py` is that same gate on the command line, so the
+answer can be re-checked rather than re-argued:
+
+```
+python scripts/dev/decile_test.py            # the table and the verdict
+python scripts/dev/decile_test.py --json decile.json --quiet
+```
+
+It keeps no copy of the thresholds — `PARLAY_TIER_THRESHOLD`,
+`PARLAY_MIN_ROWS_PER_BAND`, `RESIDUAL_SCALE` and its exponent are read out of
+`src/app.jsx`, so what it reports is what the tab will do rather than an
+approximation of it. `tests/test_decile_gate.py` covers the extraction, because
+a regex over JavaScript source is exactly the thing that fails quietly when a
+constant is renamed or a literal reformatted.
+
+It exits **1** while the ranking does not separate. That is the honest answer,
+not a broken script, and it means a scheduled run can be read without parsing
+the output. As of 1,328 graded props across 82 matches the confident half
+realises 42.3% against the rest at 49.4% — below, not above — so the gate stays
+shut. Separating a genuine 54% from 50% at today's per-match spread needs a few
+hundred more graded matches, which is why re-running it is a scheduled check-in
+rather than something to watch.
+
 What is shown regardless, because none of it depends on the model being right:
 
 | | |
