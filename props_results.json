@@ -1,22 +1,31 @@
 {
   "summary": {
     "all": {
-      "graded": 1221,
-      "pushes": 27,
-      "over": 581,
-      "under": 613,
-      "over_rate": 0.4866,
-      "mean_margin": 0.21,
+      "graded": 1349,
+      "pushes": 32,
+      "over": 633,
+      "under": 684,
+      "over_rate": 0.4806,
+      "mean_margin": 0.085,
       "median_margin": -0.5
     },
     "cs2": {
-      "graded": 1141,
-      "pushes": 26,
-      "over": 563,
-      "under": 552,
-      "over_rate": 0.5049,
-      "mean_margin": 0.499,
+      "graded": 1241,
+      "pushes": 31,
+      "over": 608,
+      "under": 602,
+      "over_rate": 0.5025,
+      "mean_margin": 0.405,
       "median_margin": 0.0
+    },
+    "lol": {
+      "graded": 28,
+      "pushes": 0,
+      "over": 7,
+      "under": 21,
+      "over_rate": 0.25,
+      "mean_margin": -2.661,
+      "median_margin": -2.5
     },
     "valorant": {
       "graded": 80,
@@ -32,22 +41,32 @@
     "cs2 map 1": {
       "game": "cs2",
       "maps": 1,
-      "graded": 342,
+      "graded": 351,
       "pushes": 16,
-      "over": 172,
-      "under": 154,
-      "over_rate": 0.5276,
-      "mean_margin": 1.032
+      "over": 179,
+      "under": 156,
+      "over_rate": 0.5343,
+      "mean_margin": 0.939
     },
     "cs2 maps 1-2": {
       "game": "cs2",
       "maps": 2,
-      "graded": 799,
-      "pushes": 10,
-      "over": 391,
-      "under": 398,
-      "over_rate": 0.4956,
-      "mean_margin": 0.27
+      "graded": 890,
+      "pushes": 15,
+      "over": 429,
+      "under": 446,
+      "over_rate": 0.4903,
+      "mean_margin": 0.194
+    },
+    "lol maps 1-3": {
+      "game": "lol",
+      "maps": 3,
+      "graded": 28,
+      "pushes": 0,
+      "over": 7,
+      "under": 21,
+      "over_rate": 0.25,
+      "mean_margin": -2.661
     },
     "valorant map 1": {
       "game": "valorant",
@@ -3219,7 +3238,7 @@
       "margin": 1.5,
       "result": "over",
       "match_date": "2026-09-23",
-      "opponent": "Gremio"
+      "opponent": "Gr\u00eamio"
     },
     {
       "game": "cs2",
@@ -3237,7 +3256,7 @@
       "margin": 0.5,
       "result": "over",
       "match_date": "2026-09-23",
-      "opponent": "Gremio"
+      "opponent": "Gr\u00eamio"
     },
     {
       "game": "cs2",
@@ -3255,7 +3274,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-09-23",
-      "opponent": "Gremio"
+      "opponent": "Gr\u00eamio"
     },
     {
       "game": "cs2",
@@ -3273,7 +3292,7 @@
       "margin": 0.5,
       "result": "over",
       "match_date": "2026-09-23",
-      "opponent": "Gremio"
+      "opponent": "Gr\u00eamio"
     },
     {
       "game": "cs2",
@@ -3291,7 +3310,7 @@
       "margin": 8.5,
       "result": "over",
       "match_date": "2026-09-23",
-      "opponent": "Gremio"
+      "opponent": "Gr\u00eamio"
     },
     {
       "game": "cs2",
@@ -3309,7 +3328,7 @@
       "margin": 1.5,
       "result": "over",
       "match_date": "2026-09-23",
-      "opponent": "Gremio"
+      "opponent": "Gr\u00eamio"
     },
     {
       "game": "cs2",
@@ -3327,7 +3346,7 @@
       "margin": 5.5,
       "result": "over",
       "match_date": "2026-09-23",
-      "opponent": "Gremio"
+      "opponent": "Gr\u00eamio"
     },
     {
       "game": "cs2",
@@ -3345,7 +3364,7 @@
       "margin": 2.5,
       "result": "over",
       "match_date": "2026-09-23",
-      "opponent": "Gremio"
+      "opponent": "Gr\u00eamio"
     },
     {
       "game": "cs2",
@@ -4965,7 +4984,7 @@
       "margin": 1.5,
       "result": "over",
       "match_date": "2026-09-23",
-      "opponent": "Arcade Esports"
+      "opponent": "Arcade"
     },
     {
       "game": "cs2",
@@ -4983,7 +5002,7 @@
       "margin": 3.0,
       "result": "over",
       "match_date": "2026-09-23",
-      "opponent": "Arcade Esports"
+      "opponent": "Arcade"
     },
     {
       "game": "cs2",
@@ -5001,7 +5020,7 @@
       "margin": 1.0,
       "result": "over",
       "match_date": "2026-09-23",
-      "opponent": "Arcade Esports"
+      "opponent": "Arcade"
     },
     {
       "game": "cs2",
@@ -5019,7 +5038,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-09-23",
-      "opponent": "Arcade Esports"
+      "opponent": "Arcade"
     },
     {
       "game": "cs2",
@@ -5037,7 +5056,7 @@
       "margin": 9.0,
       "result": "over",
       "match_date": "2026-09-23",
-      "opponent": "Arcade Esports"
+      "opponent": "Arcade"
     },
     {
       "game": "cs2",
@@ -5055,7 +5074,7 @@
       "margin": -5.0,
       "result": "under",
       "match_date": "2026-09-23",
-      "opponent": "Arcade Esports"
+      "opponent": "Arcade"
     },
     {
       "game": "cs2",
@@ -5073,7 +5092,7 @@
       "margin": -2.0,
       "result": "under",
       "match_date": "2026-09-23",
-      "opponent": "Arcade Esports"
+      "opponent": "Arcade"
     },
     {
       "game": "cs2",
@@ -6257,11 +6276,11 @@
       "start_time": "2026-09-23T09:00:00.000-04:00",
       "stat": "kills",
       "team": "Gr\u00eamio",
-      "actual": 33,
-      "margin": 5.5,
-      "result": "over",
+      "actual": 24,
+      "margin": -3.5,
+      "result": "under",
       "match_date": "2026-09-23",
-      "opponent": "Isurus"
+      "opponent": "ALKA"
     },
     {
       "game": "cs2",
@@ -6275,11 +6294,11 @@
       "start_time": "2026-09-23T09:00:00.000-04:00",
       "stat": "kills",
       "team": "Gr\u00eamio",
-      "actual": 25,
-      "margin": 0.5,
+      "actual": 28,
+      "margin": 3.5,
       "result": "over",
       "match_date": "2026-09-23",
-      "opponent": "Isurus"
+      "opponent": "ALKA"
     },
     {
       "game": "cs2",
@@ -6293,11 +6312,11 @@
       "start_time": "2026-09-23T09:00:00.000-04:00",
       "stat": "headshots",
       "team": "Gr\u00eamio",
-      "actual": 16,
-      "margin": 2.5,
+      "actual": 25,
+      "margin": 11.5,
       "result": "over",
       "match_date": "2026-09-23",
-      "opponent": "Isurus"
+      "opponent": "ALKA"
     },
     {
       "game": "cs2",
@@ -6311,11 +6330,11 @@
       "start_time": "2026-09-23T09:00:00.000-04:00",
       "stat": "kills",
       "team": "Gr\u00eamio",
-      "actual": 17,
-      "margin": -10.5,
+      "actual": 26,
+      "margin": -1.5,
       "result": "under",
       "match_date": "2026-09-23",
-      "opponent": "Isurus"
+      "opponent": "ALKA"
     },
     {
       "game": "cs2",
@@ -6329,11 +6348,11 @@
       "start_time": "2026-09-23T09:00:00.000-04:00",
       "stat": "headshots",
       "team": "Gr\u00eamio",
-      "actual": 9,
-      "margin": -5.5,
+      "actual": 12,
+      "margin": -2.5,
       "result": "under",
       "match_date": "2026-09-23",
-      "opponent": "Isurus"
+      "opponent": "ALKA"
     },
     {
       "game": "cs2",
@@ -7575,7 +7594,7 @@
       "margin": -0.5,
       "result": "under",
       "match_date": "2026-09-23",
-      "opponent": "Team XDM"
+      "opponent": "XDM"
     },
     {
       "game": "cs2",
@@ -7593,7 +7612,7 @@
       "margin": -3.0,
       "result": "under",
       "match_date": "2026-09-23",
-      "opponent": "Team XDM"
+      "opponent": "XDM"
     },
     {
       "game": "cs2",
@@ -7611,7 +7630,7 @@
       "margin": 1.0,
       "result": "over",
       "match_date": "2026-09-23",
-      "opponent": "Team XDM"
+      "opponent": "XDM"
     },
     {
       "game": "cs2",
@@ -7629,7 +7648,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-09-23",
-      "opponent": "Team XDM"
+      "opponent": "XDM"
     },
     {
       "game": "cs2",
@@ -7647,7 +7666,7 @@
       "margin": -1.0,
       "result": "under",
       "match_date": "2026-09-23",
-      "opponent": "Team XDM"
+      "opponent": "XDM"
     },
     {
       "game": "cs2",
@@ -7665,7 +7684,7 @@
       "margin": -2.0,
       "result": "under",
       "match_date": "2026-09-23",
-      "opponent": "Team XDM"
+      "opponent": "XDM"
     },
     {
       "game": "cs2",
@@ -7683,7 +7702,7 @@
       "margin": 0.0,
       "result": "push",
       "match_date": "2026-09-23",
-      "opponent": "Team XDM"
+      "opponent": "XDM"
     },
     {
       "game": "cs2",
@@ -7701,7 +7720,7 @@
       "margin": -2.0,
       "result": "under",
       "match_date": "2026-09-23",
-      "opponent": "Team XDM"
+      "opponent": "XDM"
     },
     {
       "game": "cs2",
@@ -9573,7 +9592,7 @@
       "margin": -4.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Team XDM"
+      "opponent": "XDM"
     },
     {
       "game": "cs2",
@@ -9591,7 +9610,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Team XDM"
+      "opponent": "XDM"
     },
     {
       "game": "cs2",
@@ -9609,7 +9628,7 @@
       "margin": 2.5,
       "result": "over",
       "match_date": "2026-09-24",
-      "opponent": "Team XDM"
+      "opponent": "XDM"
     },
     {
       "game": "cs2",
@@ -9627,7 +9646,7 @@
       "margin": -5.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Team XDM"
+      "opponent": "XDM"
     },
     {
       "game": "cs2",
@@ -9645,7 +9664,7 @@
       "margin": 11.0,
       "result": "over",
       "match_date": "2026-09-24",
-      "opponent": "bLight!blue"
+      "opponent": "bLight blue"
     },
     {
       "game": "cs2",
@@ -9663,7 +9682,7 @@
       "margin": 11.5,
       "result": "over",
       "match_date": "2026-09-24",
-      "opponent": "bLight!blue"
+      "opponent": "bLight blue"
     },
     {
       "game": "cs2",
@@ -9681,7 +9700,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "bLight!blue"
+      "opponent": "bLight blue"
     },
     {
       "game": "cs2",
@@ -9699,7 +9718,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "bLight!blue"
+      "opponent": "bLight blue"
     },
     {
       "game": "cs2",
@@ -9717,7 +9736,7 @@
       "margin": 4.0,
       "result": "over",
       "match_date": "2026-09-24",
-      "opponent": "bLight!blue"
+      "opponent": "bLight blue"
     },
     {
       "game": "cs2",
@@ -9735,7 +9754,7 @@
       "margin": 3.0,
       "result": "over",
       "match_date": "2026-09-24",
-      "opponent": "bLight!blue"
+      "opponent": "bLight blue"
     },
     {
       "game": "cs2",
@@ -9753,7 +9772,7 @@
       "margin": -5.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "bLight!blue"
+      "opponent": "bLight blue"
     },
     {
       "game": "cs2",
@@ -9771,7 +9790,7 @@
       "margin": -4.0,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "bLight!blue"
+      "opponent": "bLight blue"
     },
     {
       "game": "cs2",
@@ -9789,7 +9808,7 @@
       "margin": 13.5,
       "result": "over",
       "match_date": "2026-09-24",
-      "opponent": "bLight!blue"
+      "opponent": "bLight blue"
     },
     {
       "game": "cs2",
@@ -9807,7 +9826,7 @@
       "margin": 10.0,
       "result": "over",
       "match_date": "2026-09-24",
-      "opponent": "bLight!blue"
+      "opponent": "bLight blue"
     },
     {
       "game": "cs2",
@@ -11661,7 +11680,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Yawara Esports"
+      "opponent": "Yawara"
     },
     {
       "game": "cs2",
@@ -11679,7 +11698,7 @@
       "margin": -3.0,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Yawara Esports"
+      "opponent": "Yawara"
     },
     {
       "game": "cs2",
@@ -11733,7 +11752,7 @@
       "margin": -1.0,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Yawara Esports"
+      "opponent": "Yawara"
     },
     {
       "game": "cs2",
@@ -11751,7 +11770,7 @@
       "margin": 0.5,
       "result": "over",
       "match_date": "2026-09-24",
-      "opponent": "Yawara Esports"
+      "opponent": "Yawara"
     },
     {
       "game": "cs2",
@@ -11805,7 +11824,7 @@
       "margin": -0.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Yawara Esports"
+      "opponent": "Yawara"
     },
     {
       "game": "cs2",
@@ -11823,7 +11842,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Yawara Esports"
+      "opponent": "Yawara"
     },
     {
       "game": "cs2",
@@ -11877,7 +11896,7 @@
       "margin": 3.5,
       "result": "over",
       "match_date": "2026-09-24",
-      "opponent": "Yawara Esports"
+      "opponent": "Yawara"
     },
     {
       "game": "cs2",
@@ -11895,7 +11914,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Yawara Esports"
+      "opponent": "Yawara"
     },
     {
       "game": "cs2",
@@ -11949,7 +11968,7 @@
       "margin": -0.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Yawara Esports"
+      "opponent": "Yawara"
     },
     {
       "game": "cs2",
@@ -11967,7 +11986,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Yawara Esports"
+      "opponent": "Yawara"
     },
     {
       "game": "cs2",
@@ -13389,7 +13408,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Team XDM"
+      "opponent": "XDM"
     },
     {
       "game": "cs2",
@@ -13407,7 +13426,7 @@
       "margin": 0.0,
       "result": "push",
       "match_date": "2026-09-24",
-      "opponent": "Team XDM"
+      "opponent": "XDM"
     },
     {
       "game": "cs2",
@@ -13425,7 +13444,7 @@
       "margin": 1.0,
       "result": "over",
       "match_date": "2026-09-24",
-      "opponent": "Team XDM"
+      "opponent": "XDM"
     },
     {
       "game": "cs2",
@@ -13443,7 +13462,7 @@
       "margin": 0.0,
       "result": "push",
       "match_date": "2026-09-24",
-      "opponent": "Team XDM"
+      "opponent": "XDM"
     },
     {
       "game": "cs2",
@@ -13461,7 +13480,7 @@
       "margin": -1.0,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Team XDM"
+      "opponent": "XDM"
     },
     {
       "game": "cs2",
@@ -13479,7 +13498,7 @@
       "margin": 10.0,
       "result": "over",
       "match_date": "2026-09-24",
-      "opponent": "bLight!blue"
+      "opponent": "bLight blue"
     },
     {
       "game": "cs2",
@@ -13497,7 +13516,7 @@
       "margin": 5.5,
       "result": "over",
       "match_date": "2026-09-24",
-      "opponent": "bLight!blue"
+      "opponent": "bLight blue"
     },
     {
       "game": "cs2",
@@ -13515,7 +13534,7 @@
       "margin": -5.0,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "bLight!blue"
+      "opponent": "bLight blue"
     },
     {
       "game": "cs2",
@@ -13533,7 +13552,7 @@
       "margin": -5.0,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "bLight!blue"
+      "opponent": "bLight blue"
     },
     {
       "game": "cs2",
@@ -13551,7 +13570,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "bLight!blue"
+      "opponent": "bLight blue"
     },
     {
       "game": "cs2",
@@ -13569,7 +13588,7 @@
       "margin": 1.5,
       "result": "over",
       "match_date": "2026-09-24",
-      "opponent": "bLight!blue"
+      "opponent": "bLight blue"
     },
     {
       "game": "cs2",
@@ -13587,7 +13606,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "bLight!blue"
+      "opponent": "bLight blue"
     },
     {
       "game": "cs2",
@@ -13605,7 +13624,7 @@
       "margin": 0.0,
       "result": "push",
       "match_date": "2026-09-24",
-      "opponent": "bLight!blue"
+      "opponent": "bLight blue"
     },
     {
       "game": "cs2",
@@ -13623,7 +13642,7 @@
       "margin": 4.5,
       "result": "over",
       "match_date": "2026-09-24",
-      "opponent": "bLight!blue"
+      "opponent": "bLight blue"
     },
     {
       "game": "cs2",
@@ -13641,7 +13660,7 @@
       "margin": 2.5,
       "result": "over",
       "match_date": "2026-09-24",
-      "opponent": "bLight!blue"
+      "opponent": "bLight blue"
     },
     {
       "game": "cs2",
@@ -17043,7 +17062,7 @@
       "margin": -0.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Quintessencia"
+      "opponent": "QUINTESS\u00caNCIA"
     },
     {
       "game": "cs2",
@@ -17061,7 +17080,7 @@
       "margin": 0.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Quintessencia"
+      "opponent": "QUINTESS\u00caNCIA"
     },
     {
       "game": "cs2",
@@ -17079,7 +17098,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Quintessencia"
+      "opponent": "QUINTESS\u00caNCIA"
     },
     {
       "game": "cs2",
@@ -17097,7 +17116,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Quintessencia"
+      "opponent": "QUINTESS\u00caNCIA"
     },
     {
       "game": "cs2",
@@ -17115,7 +17134,7 @@
       "margin": 7.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Quintessencia"
+      "opponent": "QUINTESS\u00caNCIA"
     },
     {
       "game": "cs2",
@@ -17133,7 +17152,7 @@
       "margin": 6.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Quintessencia"
+      "opponent": "QUINTESS\u00caNCIA"
     },
     {
       "game": "cs2",
@@ -17151,7 +17170,367 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Quintessencia"
+      "opponent": "QUINTESS\u00caNCIA"
+    },
+    {
+      "game": "cs2",
+      "line": 32.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "tENZY",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "kills",
+      "team": "magic",
+      "actual": 26,
+      "margin": -6.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "EYEBALLERS"
+    },
+    {
+      "game": "cs2",
+      "line": 20.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "tENZY",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "magic",
+      "actual": 13,
+      "margin": -7.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "EYEBALLERS"
+    },
+    {
+      "game": "cs2",
+      "line": 29.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "mo0n",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "kills",
+      "team": "magic",
+      "actual": 19,
+      "margin": -10.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "EYEBALLERS"
+    },
+    {
+      "game": "cs2",
+      "line": 12.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "mo0n",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "magic",
+      "actual": 10,
+      "margin": -2.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "EYEBALLERS"
+    },
+    {
+      "game": "cs2",
+      "line": 28.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "AW",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "kills",
+      "team": "magic",
+      "actual": 19,
+      "margin": -9.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "EYEBALLERS"
+    },
+    {
+      "game": "cs2",
+      "line": 17.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "AW",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "magic",
+      "actual": 10,
+      "margin": -7.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "EYEBALLERS"
+    },
+    {
+      "game": "cs2",
+      "line": 28.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "MaSvAl",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "kills",
+      "team": "magic",
+      "actual": 23,
+      "margin": -5.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "EYEBALLERS"
+    },
+    {
+      "game": "cs2",
+      "line": 17.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "MaSvAl",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "magic",
+      "actual": 17,
+      "margin": 0.0,
+      "result": "push",
+      "match_date": "2026-09-25",
+      "opponent": "EYEBALLERS"
+    },
+    {
+      "game": "cs2",
+      "line": 27.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "sFade8",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "kills",
+      "team": "magic",
+      "actual": 21,
+      "margin": -6.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "EYEBALLERS"
+    },
+    {
+      "game": "cs2",
+      "line": 16.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "sFade8",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "magic",
+      "actual": 10,
+      "margin": -6.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "EYEBALLERS"
+    },
+    {
+      "game": "cs2",
+      "line": 29.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "maxster",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "kills",
+      "team": "EYEBALLERS",
+      "actual": 32,
+      "margin": 3.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "magic"
+    },
+    {
+      "game": "cs2",
+      "line": 17.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "maxster",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "EYEBALLERS",
+      "actual": 24,
+      "margin": 7.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "magic"
+    },
+    {
+      "game": "cs2",
+      "line": 27.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "KRIMZ",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "kills",
+      "team": "EYEBALLERS",
+      "actual": 24,
+      "margin": -3.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "magic"
+    },
+    {
+      "game": "cs2",
+      "line": 13.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "KRIMZ",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "EYEBALLERS",
+      "actual": 11,
+      "margin": -2.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "magic"
+    },
+    {
+      "game": "cs2",
+      "line": 27.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "dex",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "kills",
+      "team": "EYEBALLERS",
+      "actual": 27,
+      "margin": -0.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "magic"
+    },
+    {
+      "game": "cs2",
+      "line": 14.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "dex",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "EYEBALLERS",
+      "actual": 12,
+      "margin": -2.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "magic"
+    },
+    {
+      "game": "cs2",
+      "line": 26.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "JW",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "kills",
+      "team": "EYEBALLERS",
+      "actual": 29,
+      "margin": 2.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "magic"
+    },
+    {
+      "game": "cs2",
+      "line": 9.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "JW",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "EYEBALLERS",
+      "actual": 8,
+      "margin": -1.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "magic"
+    },
+    {
+      "game": "cs2",
+      "line": 25.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "Ro1f",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "kills",
+      "team": "EYEBALLERS",
+      "actual": 31,
+      "margin": 6.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "magic"
+    },
+    {
+      "game": "cs2",
+      "line": 14.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "Ro1f",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "EYEBALLERS",
+      "actual": 14,
+      "margin": 0.0,
+      "result": "push",
+      "match_date": "2026-09-25",
+      "opponent": "magic"
     },
     {
       "game": "cs2",
@@ -18702,6 +19081,1554 @@
       "opponent": "Sashi"
     },
     {
+      "game": "cs2",
+      "line": 33.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "FL4MUS",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "kills",
+      "team": "GamerLegion",
+      "actual": 35,
+      "margin": 2.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "K27"
+    },
+    {
+      "game": "cs2",
+      "line": 20.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "FL4MUS",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "GamerLegion",
+      "actual": 25,
+      "margin": 5.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "K27"
+    },
+    {
+      "game": "cs2",
+      "line": 32.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "REZ",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "kills",
+      "team": "GamerLegion",
+      "actual": 35,
+      "margin": 3.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "K27"
+    },
+    {
+      "game": "cs2",
+      "line": 16.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "REZ",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "GamerLegion",
+      "actual": 21,
+      "margin": 4.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "K27"
+    },
+    {
+      "game": "cs2",
+      "line": 28.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "Tauson",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "kills",
+      "team": "GamerLegion",
+      "actual": 32,
+      "margin": 4.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "K27"
+    },
+    {
+      "game": "cs2",
+      "line": 15.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "Tauson",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "GamerLegion",
+      "actual": 22,
+      "margin": 6.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "K27"
+    },
+    {
+      "game": "cs2",
+      "line": 28.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "hypex",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "kills",
+      "team": "GamerLegion",
+      "actual": 23,
+      "margin": -5.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "K27"
+    },
+    {
+      "game": "cs2",
+      "line": 10.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "hypex",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "GamerLegion",
+      "actual": 9,
+      "margin": -1.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "K27"
+    },
+    {
+      "game": "cs2",
+      "line": 25.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "Snax",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "kills",
+      "team": "GamerLegion",
+      "actual": 32,
+      "margin": 7.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "K27"
+    },
+    {
+      "game": "cs2",
+      "line": 11.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "Snax",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "GamerLegion",
+      "actual": 11,
+      "margin": -0.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "K27"
+    },
+    {
+      "game": "cs2",
+      "line": 30.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "XeeDo",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "kills",
+      "team": "K27",
+      "actual": 32,
+      "margin": 1.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "GamerLegion"
+    },
+    {
+      "game": "cs2",
+      "line": 16.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "XeeDo",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "K27",
+      "actual": 18,
+      "margin": 1.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "GamerLegion"
+    },
+    {
+      "game": "cs2",
+      "line": 28.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "clax",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "kills",
+      "team": "K27",
+      "actual": 21,
+      "margin": -7.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "GamerLegion"
+    },
+    {
+      "game": "cs2",
+      "line": 15.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "clax",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "K27",
+      "actual": 13,
+      "margin": -2.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "GamerLegion"
+    },
+    {
+      "game": "cs2",
+      "line": 28.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "kashl1d",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "kills",
+      "team": "K27",
+      "actual": 28,
+      "margin": 0.0,
+      "result": "push",
+      "match_date": "2026-09-25",
+      "opponent": "GamerLegion"
+    },
+    {
+      "game": "cs2",
+      "line": 9.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "kashl1d",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "K27",
+      "actual": 5,
+      "margin": -4.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "GamerLegion"
+    },
+    {
+      "game": "cs2",
+      "line": 27.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "X5G7V",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "kills",
+      "team": "K27",
+      "actual": 30,
+      "margin": 2.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "GamerLegion"
+    },
+    {
+      "game": "cs2",
+      "line": 15.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "X5G7V",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "K27",
+      "actual": 15,
+      "margin": 0.0,
+      "result": "push",
+      "match_date": "2026-09-25",
+      "opponent": "GamerLegion"
+    },
+    {
+      "game": "cs2",
+      "line": 27.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "qw1nk1",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "kills",
+      "team": "K27",
+      "actual": 23,
+      "margin": -4.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "GamerLegion"
+    },
+    {
+      "game": "cs2",
+      "line": 17.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "qw1nk1",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "K27",
+      "actual": 19,
+      "margin": 2.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "GamerLegion"
+    },
+    {
+      "game": "cs2",
+      "line": 32.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "slaxz",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "M80",
+      "actual": 37,
+      "margin": 5.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "BESTIA"
+    },
+    {
+      "game": "cs2",
+      "line": 11.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "slaxz",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "M80",
+      "actual": 12,
+      "margin": 1.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "BESTIA"
+    },
+    {
+      "game": "cs2",
+      "line": 32.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "lake",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "M80",
+      "actual": 33,
+      "margin": 1.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "BESTIA"
+    },
+    {
+      "game": "cs2",
+      "line": 15.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "lake",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "M80",
+      "actual": 13,
+      "margin": -2.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "BESTIA"
+    },
+    {
+      "game": "cs2",
+      "line": 29.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "JBa",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "M80",
+      "actual": 32,
+      "margin": 2.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "BESTIA"
+    },
+    {
+      "game": "cs2",
+      "line": 17.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "JBa",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "M80",
+      "actual": 21,
+      "margin": 3.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "BESTIA"
+    },
+    {
+      "game": "cs2",
+      "line": 27.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "s1n",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "M80",
+      "actual": 29,
+      "margin": 2.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "BESTIA"
+    },
+    {
+      "game": "cs2",
+      "line": 14.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "s1n",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "M80",
+      "actual": 19,
+      "margin": 4.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "BESTIA"
+    },
+    {
+      "game": "cs2",
+      "line": 27.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "Swisher",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "M80",
+      "actual": 20,
+      "margin": -7.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "BESTIA"
+    },
+    {
+      "game": "cs2",
+      "line": 13.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "Swisher",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "M80",
+      "actual": 12,
+      "margin": -1.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "BESTIA"
+    },
+    {
+      "game": "cs2",
+      "line": 24.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "kauez",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "BESTIA",
+      "actual": 22,
+      "margin": -2.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "M80"
+    },
+    {
+      "game": "cs2",
+      "line": 14.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "kauez",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "BESTIA",
+      "actual": 14,
+      "margin": 0.0,
+      "result": "push",
+      "match_date": "2026-09-25",
+      "opponent": "M80"
+    },
+    {
+      "game": "cs2",
+      "line": 25.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "timo",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "BESTIA",
+      "actual": 29,
+      "margin": 4.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "M80"
+    },
+    {
+      "game": "cs2",
+      "line": 14.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "timo",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "BESTIA",
+      "actual": 20,
+      "margin": 5.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "M80"
+    },
+    {
+      "game": "cs2",
+      "line": 25.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "drop",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "BESTIA",
+      "actual": 17,
+      "margin": -8.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "M80"
+    },
+    {
+      "game": "cs2",
+      "line": 16.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "drop",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "BESTIA",
+      "actual": 13,
+      "margin": -3.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "M80"
+    },
+    {
+      "game": "cs2",
+      "line": 25.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "cass1n",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "BESTIA",
+      "actual": 24,
+      "margin": -1.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "M80"
+    },
+    {
+      "game": "cs2",
+      "line": 9.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "cass1n",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "BESTIA",
+      "actual": 13,
+      "margin": 3.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "M80"
+    },
+    {
+      "game": "cs2",
+      "line": 24.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "buda",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "BESTIA",
+      "actual": 18,
+      "margin": -6.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "M80"
+    },
+    {
+      "game": "cs2",
+      "line": 12.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "buda",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "BESTIA",
+      "actual": 8,
+      "margin": -4.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "M80"
+    },
+    {
+      "game": "cs2",
+      "line": 32.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "doc",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "DENDELE",
+      "actual": 40,
+      "margin": 7.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "Voca"
+    },
+    {
+      "game": "cs2",
+      "line": 19.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "doc",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "DENDELE",
+      "actual": 24,
+      "margin": 4.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "Voca"
+    },
+    {
+      "game": "cs2",
+      "line": 30.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "koala",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "DENDELE",
+      "actual": 29,
+      "margin": -1.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "Voca"
+    },
+    {
+      "game": "cs2",
+      "line": 14.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "koala",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "DENDELE",
+      "actual": 18,
+      "margin": 3.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "Voca"
+    },
+    {
+      "game": "cs2",
+      "line": 29.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "maxxkor",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "DENDELE",
+      "actual": 36,
+      "margin": 7.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "Voca"
+    },
+    {
+      "game": "cs2",
+      "line": 10.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "maxxkor",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "DENDELE",
+      "actual": 9,
+      "margin": -1.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "Voca"
+    },
+    {
+      "game": "cs2",
+      "line": 29.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "rdnzao",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "DENDELE",
+      "actual": 26,
+      "margin": -3.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "Voca"
+    },
+    {
+      "game": "cs2",
+      "line": 16.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "rdnzao",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "DENDELE",
+      "actual": 15,
+      "margin": -1.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "Voca"
+    },
+    {
+      "game": "cs2",
+      "line": 26.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "gafolo",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "DENDELE",
+      "actual": 29,
+      "margin": 3.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "Voca"
+    },
+    {
+      "game": "cs2",
+      "line": 13.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "gafolo",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "DENDELE",
+      "actual": 9,
+      "margin": -4.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "Voca"
+    },
+    {
+      "game": "cs2",
+      "line": 27.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "junior",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Voca",
+      "actual": 25,
+      "margin": -2.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "DENDELE"
+    },
+    {
+      "game": "cs2",
+      "line": 9.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "junior",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "Voca",
+      "actual": 12,
+      "margin": 2.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "DENDELE"
+    },
+    {
+      "game": "cs2",
+      "line": 27.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "dare",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Voca",
+      "actual": 16,
+      "margin": -11.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "DENDELE"
+    },
+    {
+      "game": "cs2",
+      "line": 14.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "dare",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "Voca",
+      "actual": 6,
+      "margin": -8.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "DENDELE"
+    },
+    {
+      "game": "cs2",
+      "line": 26.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "snav",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Voca",
+      "actual": 18,
+      "margin": -8.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "DENDELE"
+    },
+    {
+      "game": "cs2",
+      "line": 13.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "snav",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "Voca",
+      "actual": 7,
+      "margin": -6.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "DENDELE"
+    },
+    {
+      "game": "cs2",
+      "line": 26.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "MarKE",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Voca",
+      "actual": 39,
+      "margin": 13.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "DENDELE"
+    },
+    {
+      "game": "cs2",
+      "line": 15.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "MarKE",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "Voca",
+      "actual": 27,
+      "margin": 11.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "DENDELE"
+    },
+    {
+      "game": "cs2",
+      "line": 25.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "nosraC",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Voca",
+      "actual": 20,
+      "margin": -5.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "DENDELE"
+    },
+    {
+      "game": "cs2",
+      "line": 12.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "nosraC",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "Voca",
+      "actual": 7,
+      "margin": -5.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "DENDELE"
+    },
+    {
+      "game": "lol",
+      "line": 10.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "demon",
+      "player": "Gakgos",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 7,
+      "margin": -3.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "Shopify Rebellion"
+    },
+    {
+      "game": "lol",
+      "line": 8.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "Gakgos",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 7,
+      "margin": -1.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "Shopify Rebellion"
+    },
+    {
+      "game": "lol",
+      "line": 6.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "goblin",
+      "player": "Gakgos",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 7,
+      "margin": 0.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "Shopify Rebellion"
+    },
+    {
+      "game": "lol",
+      "line": 14.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "demon",
+      "player": "Gryffinn",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 8,
+      "margin": -6.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "Shopify Rebellion"
+    },
+    {
+      "game": "lol",
+      "line": 12.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "Gryffinn",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 8,
+      "margin": -4.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "Shopify Rebellion"
+    },
+    {
+      "game": "lol",
+      "line": 10.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "goblin",
+      "player": "Gryffinn",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 8,
+      "margin": -2.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "Shopify Rebellion"
+    },
+    {
+      "game": "lol",
+      "line": 14.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "demon",
+      "player": "Quad",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 9,
+      "margin": -5.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "Shopify Rebellion"
+    },
+    {
+      "game": "lol",
+      "line": 11.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "Quad",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 9,
+      "margin": -2.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "Shopify Rebellion"
+    },
+    {
+      "game": "lol",
+      "line": 8.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "goblin",
+      "player": "Quad",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 9,
+      "margin": 0.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "Shopify Rebellion"
+    },
+    {
+      "game": "lol",
+      "line": 18.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "demon",
+      "player": "Massu",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 10,
+      "margin": -8.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "Shopify Rebellion"
+    },
+    {
+      "game": "lol",
+      "line": 15.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "Massu",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 10,
+      "margin": -5.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "Shopify Rebellion"
+    },
+    {
+      "game": "lol",
+      "line": 12.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "goblin",
+      "player": "Massu",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 10,
+      "margin": -2.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "Shopify Rebellion"
+    },
+    {
+      "game": "lol",
+      "line": 2.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "demon",
+      "player": "Cryogen",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 3,
+      "margin": 0.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "Shopify Rebellion"
+    },
+    {
+      "game": "lol",
+      "line": 9.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "demon",
+      "player": "Fudge",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Shopify Rebellion",
+      "actual": 4,
+      "margin": -5.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "FlyQuest"
+    },
+    {
+      "game": "lol",
+      "line": 7.0,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "Fudge",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Shopify Rebellion",
+      "actual": 4,
+      "margin": -3.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "FlyQuest"
+    },
+    {
+      "game": "lol",
+      "line": 5.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "goblin",
+      "player": "Fudge",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Shopify Rebellion",
+      "actual": 4,
+      "margin": -1.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "FlyQuest"
+    },
+    {
+      "game": "lol",
+      "line": 9.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "demon",
+      "player": "Contractz",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Shopify Rebellion",
+      "actual": 11,
+      "margin": 1.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "FlyQuest"
+    },
+    {
+      "game": "lol",
+      "line": 7.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "Contractz",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Shopify Rebellion",
+      "actual": 11,
+      "margin": 3.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "FlyQuest"
+    },
+    {
+      "game": "lol",
+      "line": 5.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "goblin",
+      "player": "Contractz",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Shopify Rebellion",
+      "actual": 11,
+      "margin": 5.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "FlyQuest"
+    },
+    {
+      "game": "lol",
+      "line": 11.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "demon",
+      "player": "Zinie",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Shopify Rebellion",
+      "actual": 5,
+      "margin": -6.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "FlyQuest"
+    },
+    {
+      "game": "lol",
+      "line": 8.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "Zinie",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Shopify Rebellion",
+      "actual": 5,
+      "margin": -3.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "FlyQuest"
+    },
+    {
+      "game": "lol",
+      "line": 5.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "goblin",
+      "player": "Zinie",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Shopify Rebellion",
+      "actual": 5,
+      "margin": -0.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "FlyQuest"
+    },
+    {
+      "game": "lol",
+      "line": 13.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "demon",
+      "player": "Bvoy",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Shopify Rebellion",
+      "actual": 4,
+      "margin": -9.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "FlyQuest"
+    },
+    {
+      "game": "lol",
+      "line": 10.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "standard",
+      "player": "Bvoy",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Shopify Rebellion",
+      "actual": 4,
+      "margin": -6.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "FlyQuest"
+    },
+    {
+      "game": "lol",
+      "line": 7.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "goblin",
+      "player": "Bvoy",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Shopify Rebellion",
+      "actual": 4,
+      "margin": -3.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "FlyQuest"
+    },
+    {
+      "game": "lol",
+      "line": 1.5,
+      "maps": 3,
+      "observed_at": "2026-09-25T00:06:25.794948+00:00",
+      "odds_type": "goblin",
+      "player": "Zeyzal",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Shopify Rebellion",
+      "actual": 0,
+      "margin": -1.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "FlyQuest"
+    },
+    {
       "game": "valorant",
       "line": 32.5,
       "maps": 2,
@@ -19959,7 +21886,7 @@
       "margin": 1.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "The Huns Esports"
+      "opponent": "The Huns"
     },
     {
       "game": "cs2",
@@ -19977,7 +21904,7 @@
       "margin": 2.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "The Huns Esports"
+      "opponent": "The Huns"
     },
     {
       "game": "cs2",
@@ -19995,7 +21922,7 @@
       "margin": 7.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "The Huns Esports"
+      "opponent": "The Huns"
     },
     {
       "game": "cs2",
@@ -20013,7 +21940,7 @@
       "margin": 11.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "The Huns Esports"
+      "opponent": "The Huns"
     },
     {
       "game": "cs2",
@@ -20031,7 +21958,7 @@
       "margin": 7.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "The Huns Esports"
+      "opponent": "The Huns"
     },
     {
       "game": "cs2",
@@ -20049,7 +21976,7 @@
       "margin": 2.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "The Huns Esports"
+      "opponent": "The Huns"
     },
     {
       "game": "cs2",
@@ -20067,7 +21994,7 @@
       "margin": 2.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "The Huns Esports"
+      "opponent": "The Huns"
     },
     {
       "game": "cs2",
@@ -20085,7 +22012,7 @@
       "margin": 6.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "The Huns Esports"
+      "opponent": "The Huns"
     },
     {
       "game": "cs2",
@@ -20121,7 +22048,7 @@
       "margin": -6.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "The Huns Esports"
+      "opponent": "The Huns"
     },
     {
       "game": "cs2",
@@ -20139,7 +22066,7 @@
       "margin": -4.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "The Huns Esports"
+      "opponent": "The Huns"
     },
     {
       "game": "cs2",
@@ -20301,7 +22228,7 @@
       "margin": 6.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Betclic"
+      "opponent": "Betclic Apogee"
     },
     {
       "game": "cs2",
@@ -20319,7 +22246,7 @@
       "margin": -0.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Betclic"
+      "opponent": "Betclic Apogee"
     },
     {
       "game": "cs2",
@@ -20337,7 +22264,7 @@
       "margin": 1.0,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Betclic"
+      "opponent": "Betclic Apogee"
     },
     {
       "game": "cs2",
@@ -20355,7 +22282,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Betclic"
+      "opponent": "Betclic Apogee"
     },
     {
       "game": "cs2",
@@ -20373,7 +22300,7 @@
       "margin": 2.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Betclic"
+      "opponent": "Betclic Apogee"
     },
     {
       "game": "cs2",
@@ -20391,7 +22318,7 @@
       "margin": 8.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Betclic"
+      "opponent": "Betclic Apogee"
     },
     {
       "game": "cs2",
@@ -20409,7 +22336,7 @@
       "margin": -0.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Betclic"
+      "opponent": "Betclic Apogee"
     },
     {
       "game": "cs2",
@@ -20427,7 +22354,7 @@
       "margin": 9.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Betclic"
+      "opponent": "Betclic Apogee"
     },
     {
       "game": "cs2",
@@ -20445,187 +22372,7 @@
       "margin": 4.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Betclic"
-    },
-    {
-      "game": "cs2",
-      "line": 24.5,
-      "maps": 2,
-      "observed_at": "2026-09-25T09:23:46.674773+00:00",
-      "odds_type": "standard",
-      "player": "Demho",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-09-25T10:00:00.000-04:00",
-      "stat": "kills",
-      "team": "Betclic",
-      "actual": 36,
-      "margin": 11.5,
-      "result": "over",
-      "match_date": "2026-09-25",
-      "opponent": "Astralis"
-    },
-    {
-      "game": "cs2",
-      "line": 11.5,
-      "maps": 2,
-      "observed_at": "2026-09-25T09:23:46.674773+00:00",
-      "odds_type": "standard",
-      "player": "Demho",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-09-25T10:00:00.000-04:00",
-      "stat": "headshots",
-      "team": "Betclic",
-      "actual": 18,
-      "margin": 6.5,
-      "result": "over",
-      "match_date": "2026-09-25",
-      "opponent": "Astralis"
-    },
-    {
-      "game": "cs2",
-      "line": 27.5,
-      "maps": 2,
-      "observed_at": "2026-09-25T09:23:46.674773+00:00",
-      "odds_type": "standard",
-      "player": "Prism",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-09-25T10:00:00.000-04:00",
-      "stat": "kills",
-      "team": "Betclic",
-      "actual": 33,
-      "margin": 5.5,
-      "result": "over",
-      "match_date": "2026-09-25",
-      "opponent": "Astralis"
-    },
-    {
-      "game": "cs2",
-      "line": 13.5,
-      "maps": 2,
-      "observed_at": "2026-09-25T09:23:46.674773+00:00",
-      "odds_type": "standard",
-      "player": "Prism",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-09-25T10:00:00.000-04:00",
-      "stat": "headshots",
-      "team": "Betclic",
-      "actual": 18,
-      "margin": 4.5,
-      "result": "over",
-      "match_date": "2026-09-25",
-      "opponent": "Astralis"
-    },
-    {
-      "game": "cs2",
-      "line": 29.5,
-      "maps": 2,
-      "observed_at": "2026-09-25T09:23:46.674773+00:00",
-      "odds_type": "standard",
-      "player": "Ex1st",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-09-25T10:00:00.000-04:00",
-      "stat": "kills",
-      "team": "Betclic",
-      "actual": 40,
-      "margin": 10.5,
-      "result": "over",
-      "match_date": "2026-09-25",
-      "opponent": "Astralis"
-    },
-    {
-      "game": "cs2",
-      "line": 16.5,
-      "maps": 2,
-      "observed_at": "2026-09-25T09:23:46.674773+00:00",
-      "odds_type": "standard",
-      "player": "Ex1st",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-09-25T10:00:00.000-04:00",
-      "stat": "headshots",
-      "team": "Betclic",
-      "actual": 18,
-      "margin": 1.5,
-      "result": "over",
-      "match_date": "2026-09-25",
-      "opponent": "Astralis"
-    },
-    {
-      "game": "cs2",
-      "line": 27.5,
-      "maps": 2,
-      "observed_at": "2026-09-25T09:23:46.674773+00:00",
-      "odds_type": "standard",
-      "player": "Qlocuu",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-09-25T10:00:00.000-04:00",
-      "stat": "kills",
-      "team": "Betclic",
-      "actual": 26,
-      "margin": -1.5,
-      "result": "under",
-      "match_date": "2026-09-25",
-      "opponent": "Astralis"
-    },
-    {
-      "game": "cs2",
-      "line": 14.5,
-      "maps": 2,
-      "observed_at": "2026-09-25T09:23:46.674773+00:00",
-      "odds_type": "standard",
-      "player": "Qlocuu",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-09-25T10:00:00.000-04:00",
-      "stat": "headshots",
-      "team": "Betclic",
-      "actual": 10,
-      "margin": -4.5,
-      "result": "under",
-      "match_date": "2026-09-25",
-      "opponent": "Astralis"
-    },
-    {
-      "game": "cs2",
-      "line": 27.5,
-      "maps": 2,
-      "observed_at": "2026-09-25T09:23:46.674773+00:00",
-      "odds_type": "standard",
-      "player": "ultimate",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-09-25T10:00:00.000-04:00",
-      "stat": "kills",
-      "team": "Betclic",
-      "actual": 26,
-      "margin": -1.5,
-      "result": "under",
-      "match_date": "2026-09-25",
-      "opponent": "Astralis"
-    },
-    {
-      "game": "cs2",
-      "line": 9.5,
-      "maps": 2,
-      "observed_at": "2026-09-25T09:23:46.674773+00:00",
-      "odds_type": "standard",
-      "player": "ultimate",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-09-25T10:00:00.000-04:00",
-      "stat": "headshots",
-      "team": "Betclic",
-      "actual": 14,
-      "margin": 4.5,
-      "result": "over",
-      "match_date": "2026-09-25",
-      "opponent": "Astralis"
+      "opponent": "Betclic Apogee"
     },
     {
       "game": "cs2",
@@ -20643,7 +22390,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Omega"
+      "opponent": "OMEGA"
     },
     {
       "game": "cs2",
@@ -20661,7 +22408,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Omega"
+      "opponent": "OMEGA"
     },
     {
       "game": "cs2",
@@ -20679,7 +22426,7 @@
       "margin": 3.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Omega"
+      "opponent": "OMEGA"
     },
     {
       "game": "cs2",
@@ -20697,7 +22444,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Omega"
+      "opponent": "OMEGA"
     },
     {
       "game": "cs2",
@@ -20715,7 +22462,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Omega"
+      "opponent": "OMEGA"
     },
     {
       "game": "cs2",
@@ -20733,7 +22480,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Omega"
+      "opponent": "OMEGA"
     },
     {
       "game": "cs2",
@@ -20751,7 +22498,7 @@
       "margin": 4.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Omega"
+      "opponent": "OMEGA"
     },
     {
       "game": "cs2",
@@ -20769,7 +22516,97 @@
       "margin": -5.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Omega"
+      "opponent": "OMEGA"
+    },
+    {
+      "game": "cs2",
+      "line": 33.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "tENZY",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "kills",
+      "team": "magic",
+      "actual": 26,
+      "margin": -7.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "EYEBALLERS"
+    },
+    {
+      "game": "cs2",
+      "line": 21.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "tENZY",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "magic",
+      "actual": 13,
+      "margin": -8.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "EYEBALLERS"
+    },
+    {
+      "game": "cs2",
+      "line": 18.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "MaSvAl",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "magic",
+      "actual": 17,
+      "margin": -1.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "EYEBALLERS"
+    },
+    {
+      "game": "cs2",
+      "line": 16.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "maxster",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "EYEBALLERS",
+      "actual": 24,
+      "margin": 8.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "magic"
+    },
+    {
+      "game": "cs2",
+      "line": 13.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "Ro1f",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T11:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "EYEBALLERS",
+      "actual": 14,
+      "margin": 1.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "magic"
     },
     {
       "game": "cs2",
@@ -20855,11 +22692,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "ALKA",
-      "actual": 13,
-      "margin": -2.5,
+      "actual": 14,
+      "margin": -1.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -20873,11 +22710,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "ALKA",
-      "actual": 13,
-      "margin": -1.5,
+      "actual": 14,
+      "margin": -0.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -20891,11 +22728,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "ALKA",
-      "actual": 13,
-      "margin": -0.5,
-      "result": "under",
+      "actual": 14,
+      "margin": 0.5,
+      "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -20909,11 +22746,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "ALKA",
-      "actual": 6,
-      "margin": -1.5,
-      "result": "under",
+      "actual": 11,
+      "margin": 3.5,
+      "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -20927,11 +22764,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "ALKA",
-      "actual": 31,
-      "margin": 1.5,
+      "actual": 39,
+      "margin": 9.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -20945,11 +22782,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "ALKA",
-      "actual": 14,
-      "margin": -1.5,
-      "result": "under",
+      "actual": 23,
+      "margin": 7.5,
+      "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -20963,11 +22800,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "ALKA",
-      "actual": 14,
-      "margin": -1.5,
+      "actual": 12,
+      "margin": -3.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -20981,11 +22818,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "ALKA",
-      "actual": 14,
-      "margin": -0.5,
+      "actual": 12,
+      "margin": -2.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -20999,11 +22836,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "ALKA",
-      "actual": 14,
-      "margin": 0.5,
-      "result": "over",
+      "actual": 12,
+      "margin": -1.5,
+      "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -21017,11 +22854,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "ALKA",
-      "actual": 26,
-      "margin": -4.5,
-      "result": "under",
+      "actual": 39,
+      "margin": 8.5,
+      "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -21035,11 +22872,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "ALKA",
-      "actual": 12,
-      "margin": -3.5,
-      "result": "under",
+      "actual": 17,
+      "margin": 1.5,
+      "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -21089,11 +22926,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "ALKA",
-      "actual": 19,
-      "margin": 5.5,
+      "actual": 15,
+      "margin": 1.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -21107,11 +22944,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "ALKA",
-      "actual": 19,
-      "margin": 6.5,
+      "actual": 15,
+      "margin": 2.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -21125,11 +22962,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "ALKA",
-      "actual": 19,
-      "margin": 7.5,
+      "actual": 15,
+      "margin": 3.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -21143,11 +22980,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "ALKA",
-      "actual": 35,
-      "margin": 10.5,
+      "actual": 30,
+      "margin": 5.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -21165,7 +23002,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -21183,7 +23020,7 @@
       "margin": -4.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -21201,7 +23038,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -21219,7 +23056,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -21233,11 +23070,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "ALKA",
-      "actual": 23,
-      "margin": -7.5,
+      "actual": 29,
+      "margin": -1.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -21251,11 +23088,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "ALKA",
-      "actual": 15,
-      "margin": -1.5,
+      "actual": 12,
+      "margin": -4.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "BORRACHEIROS"
+      "opponent": "MEIA NOITE"
     },
     {
       "game": "cs2",
@@ -21341,11 +23178,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 10,
-      "margin": -1.5,
-      "result": "under",
+      "actual": 15,
+      "margin": 3.5,
+      "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Keyd Stars"
+      "opponent": "METANOIA Wolves"
     },
     {
       "game": "cs2",
@@ -21359,11 +23196,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "Galorys",
-      "actual": 5,
-      "margin": -1.5,
-      "result": "under",
+      "actual": 7,
+      "margin": 0.5,
+      "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Keyd Stars"
+      "opponent": "METANOIA Wolves"
     },
     {
       "game": "cs2",
@@ -21377,11 +23214,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 17,
-      "margin": -8.5,
+      "actual": 24,
+      "margin": -1.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Keyd Stars"
+      "opponent": "METANOIA Wolves"
     },
     {
       "game": "cs2",
@@ -21395,11 +23232,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "Galorys",
-      "actual": 10,
-      "margin": -4.5,
+      "actual": 13,
+      "margin": -1.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Keyd Stars"
+      "opponent": "METANOIA Wolves"
     },
     {
       "game": "cs2",
@@ -21417,7 +23254,7 @@
       "margin": -0.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Keyd Stars"
+      "opponent": "METANOIA Wolves"
     },
     {
       "game": "cs2",
@@ -21431,11 +23268,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 28,
-      "margin": -1.5,
+      "actual": 24,
+      "margin": -5.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Keyd Stars"
+      "opponent": "METANOIA Wolves"
     },
     {
       "game": "cs2",
@@ -21449,11 +23286,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 24,
-      "margin": 7.5,
-      "result": "over",
+      "actual": 15,
+      "margin": -1.5,
+      "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Keyd Stars"
+      "opponent": "METANOIA Wolves"
     },
     {
       "game": "cs2",
@@ -21467,11 +23304,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 24,
-      "margin": 8.5,
-      "result": "over",
+      "actual": 15,
+      "margin": -0.5,
+      "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Keyd Stars"
+      "opponent": "METANOIA Wolves"
     },
     {
       "game": "cs2",
@@ -21485,11 +23322,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 24,
-      "margin": 9.5,
+      "actual": 15,
+      "margin": 0.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Keyd Stars"
+      "opponent": "METANOIA Wolves"
     },
     {
       "game": "cs2",
@@ -21503,11 +23340,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 45,
-      "margin": 13.5,
+      "actual": 36,
+      "margin": 4.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Keyd Stars"
+      "opponent": "METANOIA Wolves"
     },
     {
       "game": "cs2",
@@ -21521,11 +23358,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "Galorys",
-      "actual": 24,
-      "margin": 7.5,
+      "actual": 23,
+      "margin": 6.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Keyd Stars"
+      "opponent": "METANOIA Wolves"
     },
     {
       "game": "cs2",
@@ -21539,11 +23376,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 18,
-      "margin": 2.5,
+      "actual": 20,
+      "margin": 4.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Keyd Stars"
+      "opponent": "METANOIA Wolves"
     },
     {
       "game": "cs2",
@@ -21557,11 +23394,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 34,
-      "margin": 2.5,
+      "actual": 44,
+      "margin": 12.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Keyd Stars"
+      "opponent": "METANOIA Wolves"
     },
     {
       "game": "cs2",
@@ -21575,11 +23412,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "Galorys",
-      "actual": 19,
-      "margin": 3.5,
+      "actual": 24,
+      "margin": 8.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Keyd Stars"
+      "opponent": "METANOIA Wolves"
     },
     {
       "game": "cs2",
@@ -21611,11 +23448,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 15,
-      "margin": -0.5,
+      "actual": 9,
+      "margin": -6.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Keyd Stars"
+      "opponent": "METANOIA Wolves"
     },
     {
       "game": "cs2",
@@ -21629,11 +23466,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 15,
-      "margin": 0.5,
-      "result": "over",
+      "actual": 9,
+      "margin": -5.5,
+      "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Keyd Stars"
+      "opponent": "METANOIA Wolves"
     },
     {
       "game": "cs2",
@@ -21647,11 +23484,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 15,
-      "margin": 1.5,
-      "result": "over",
+      "actual": 9,
+      "margin": -4.5,
+      "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Keyd Stars"
+      "opponent": "METANOIA Wolves"
     },
     {
       "game": "cs2",
@@ -21665,11 +23502,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 37,
-      "margin": 7.5,
-      "result": "over",
+      "actual": 28,
+      "margin": -1.5,
+      "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Keyd Stars"
+      "opponent": "METANOIA Wolves"
     },
     {
       "game": "cs2",
@@ -21683,11 +23520,11 @@
       "start_time": "2026-09-25T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "Galorys",
-      "actual": 18,
-      "margin": 3.5,
-      "result": "over",
+      "actual": 11,
+      "margin": -3.5,
+      "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Keyd Stars"
+      "opponent": "METANOIA Wolves"
     },
     {
       "game": "cs2",
@@ -22014,6 +23851,492 @@
       "opponent": "Sangal"
     },
     {
+      "game": "cs2",
+      "line": 17.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "REZ",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "GamerLegion",
+      "actual": 21,
+      "margin": 4.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "K27"
+    },
+    {
+      "game": "cs2",
+      "line": 31.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "XeeDo",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T14:00:00.000-04:00",
+      "stat": "kills",
+      "team": "K27",
+      "actual": 32,
+      "margin": 0.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "GamerLegion"
+    },
+    {
+      "game": "cs2",
+      "line": 15.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "kauez",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "BESTIA",
+      "actual": 14,
+      "margin": -1.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "M80"
+    },
+    {
+      "game": "cs2",
+      "line": 24.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "drop",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "BESTIA",
+      "actual": 17,
+      "margin": -7.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "M80"
+    },
+    {
+      "game": "cs2",
+      "line": 19.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "doc",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "DENDELE",
+      "actual": 24,
+      "margin": 5.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "Voca"
+    },
+    {
+      "game": "cs2",
+      "line": 26.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "dare",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Voca",
+      "actual": 16,
+      "margin": -10.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "DENDELE"
+    },
+    {
+      "game": "cs2",
+      "line": 13.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "dare",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "Voca",
+      "actual": 6,
+      "margin": -7.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "DENDELE"
+    },
+    {
+      "game": "cs2",
+      "line": 24.0,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "nosraC",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Voca",
+      "actual": 20,
+      "margin": -4.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "DENDELE"
+    },
+    {
+      "game": "cs2",
+      "line": 16.5,
+      "maps": 1,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "demon",
+      "player": "nyezin",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T17:00:00.000-04:00",
+      "stat": "kills",
+      "team": "MEIA NOITE",
+      "actual": 18,
+      "margin": 1.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "ALKA"
+    },
+    {
+      "game": "cs2",
+      "line": 15.5,
+      "maps": 1,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "nyezin",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T17:00:00.000-04:00",
+      "stat": "kills",
+      "team": "MEIA NOITE",
+      "actual": 18,
+      "margin": 2.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "ALKA"
+    },
+    {
+      "game": "cs2",
+      "line": 14.5,
+      "maps": 1,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "goblin",
+      "player": "nyezin",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T17:00:00.000-04:00",
+      "stat": "kills",
+      "team": "MEIA NOITE",
+      "actual": 18,
+      "margin": 3.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "ALKA"
+    },
+    {
+      "game": "cs2",
+      "line": 31.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "nyezin",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T17:00:00.000-04:00",
+      "stat": "kills",
+      "team": "MEIA NOITE",
+      "actual": 30,
+      "margin": -1.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "ALKA"
+    },
+    {
+      "game": "cs2",
+      "line": 14.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "nyezin",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T17:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "MEIA NOITE",
+      "actual": 17,
+      "margin": 2.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "ALKA"
+    },
+    {
+      "game": "cs2",
+      "line": 15.5,
+      "maps": 1,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "demon",
+      "player": "abr",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T17:00:00.000-04:00",
+      "stat": "kills",
+      "team": "MEIA NOITE",
+      "actual": 13,
+      "margin": -2.5,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "ALKA"
+    },
+    {
+      "game": "cs2",
+      "line": 7.5,
+      "maps": 1,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "abr",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T17:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "MEIA NOITE",
+      "actual": 8,
+      "margin": 0.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "ALKA"
+    },
+    {
+      "game": "cs2",
+      "line": 29.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "abr",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T17:00:00.000-04:00",
+      "stat": "kills",
+      "team": "MEIA NOITE",
+      "actual": 33,
+      "margin": 3.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "ALKA"
+    },
+    {
+      "game": "cs2",
+      "line": 15.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "abr",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T17:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "MEIA NOITE",
+      "actual": 21,
+      "margin": 5.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "ALKA"
+    },
+    {
+      "game": "cs2",
+      "line": 15.5,
+      "maps": 1,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "demon",
+      "player": "bsd",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T17:00:00.000-04:00",
+      "stat": "kills",
+      "team": "MEIA NOITE",
+      "actual": 19,
+      "margin": 3.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "ALKA"
+    },
+    {
+      "game": "cs2",
+      "line": 14.5,
+      "maps": 1,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "bsd",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T17:00:00.000-04:00",
+      "stat": "kills",
+      "team": "MEIA NOITE",
+      "actual": 19,
+      "margin": 4.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "ALKA"
+    },
+    {
+      "game": "cs2",
+      "line": 13.5,
+      "maps": 1,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "goblin",
+      "player": "bsd",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T17:00:00.000-04:00",
+      "stat": "kills",
+      "team": "MEIA NOITE",
+      "actual": 19,
+      "margin": 5.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "ALKA"
+    },
+    {
+      "game": "cs2",
+      "line": 4.5,
+      "maps": 1,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "bsd",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T17:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "MEIA NOITE",
+      "actual": 8,
+      "margin": 3.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "ALKA"
+    },
+    {
+      "game": "cs2",
+      "line": 29.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "bsd",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T17:00:00.000-04:00",
+      "stat": "kills",
+      "team": "MEIA NOITE",
+      "actual": 41,
+      "margin": 11.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "ALKA"
+    },
+    {
+      "game": "cs2",
+      "line": 10.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "bsd",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T17:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "MEIA NOITE",
+      "actual": 12,
+      "margin": 1.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "ALKA"
+    },
+    {
+      "game": "cs2",
+      "line": 26.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "Jerr1",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T17:00:00.000-04:00",
+      "stat": "kills",
+      "team": "MEIA NOITE",
+      "actual": 28,
+      "margin": 1.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "ALKA"
+    },
+    {
+      "game": "cs2",
+      "line": 13.5,
+      "maps": 2,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "Jerr1",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-25T17:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "MEIA NOITE",
+      "actual": 14,
+      "margin": 0.5,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "ALKA"
+    },
+    {
+      "game": "lol",
+      "line": 7.0,
+      "maps": 3,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "Contractz",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Shopify Rebellion",
+      "actual": 11,
+      "margin": 4.0,
+      "result": "over",
+      "match_date": "2026-09-25",
+      "opponent": "FlyQuest"
+    },
+    {
+      "game": "lol",
+      "line": 10.0,
+      "maps": 3,
+      "observed_at": "2026-09-25T09:23:46.674773+00:00",
+      "odds_type": "standard",
+      "player": "Bvoy",
+      "provider": "prizepicks",
+      "region": "LCS",
+      "start_time": "2026-09-25T16:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Shopify Rebellion",
+      "actual": 4,
+      "margin": -6.0,
+      "result": "under",
+      "match_date": "2026-09-25",
+      "opponent": "FlyQuest"
+    },
+    {
       "game": "valorant",
       "line": 34.0,
       "maps": 2,
@@ -22051,9 +24374,9 @@
     }
   ],
   "refused": {
-    "no completed match on that date": 635,
-    "player missing from the box score": 4,
-    "player missing from a map's box score": 15,
+    "no completed match on that date": 507,
+    "player missing from the box score": 2,
+    "player missing from a map's box score": 17,
     "team played more than once that day": 1
   }
 }
