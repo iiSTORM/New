@@ -832,26 +832,81 @@ function jointHitProbability(legs, rhoTeam = SAME_TEAM_CORRELATION,
    in force -- a payout of M over n legs needs each leg to land (1/M)^(1/n) --
    and that figure does not depend on this table being current.
 
-   AND A FLAT TABLE KEYED ON LEG COUNT IS ONLY RIGHT FOR STANDARD LEGS. The
-   live board carries 291 standard, 23 demon and 18 goblin lines, and the
-   graded history 1,174 / 152 / 22. A demon raises an entry's payout and a
-   goblin lowers it, so a rung containing either is not priced by this table at
-   all. buildParlays therefore takes standard legs only, and says so rather
-   than quietly mispricing one: no rung on today's board picked a demon, which
-   was luck rather than design. */
+   AND A FLAT TABLE KEYED ON LEG COUNT ONLY PRICES STANDARD LEGS. The live
+   board carries 291 standard, 23 demon and 18 goblin lines, and the graded
+   history 1,174 / 152 / 22. A demon raises an entry's payout per pick and a
+   goblin lowers it, so a rung containing either pays something this table does
+   not describe.
+
+   Those legs are still PICKABLE and ranked exactly like any other -- the
+   ranking is standardised edge and it has no opinion about odds type. What
+   changes is only the price: a rung's multiplier is the base for its leg count
+   times the product of its legs' own factors, and a factor nobody has entered
+   is UNKNOWN rather than 1.0. An unpriced rung shows its legs and withholds its
+   break-even, which is the same discipline as everything else here: the thing
+   that cannot be verified is the thing that is not shown. */
 const PAYOUT_MULTIPLIERS = { 2: 3, 3: 5, 4: 10, 5: 20, 6: 37.5 };
 const PAYOUT_TABLE_SOURCE = "PrizePicks Power Play defaults — not fetched, replace with yours";
 
-/* Only the odds type the table above describes. propsFor already prefers a
-   standard line where a player has several, so this excludes the players whose
-   ONLY posted line is a demon or a goblin. */
 const STANDARD_ODDS_TYPE = "standard";
 
-function legIsStandardPriced(row) {
+/* Per-leg factors on the entry's payout. standard is 1 by definition; the other
+   two are null because I have no way to check them and a guess here would be
+   the one number in this file that is invented. Enter yours in the Parlays tab.
+
+   The structure assumed is multiplicative on the entry, one factor per pick,
+   which is how the provider's demons and goblins are usually described. If
+   yours combines differently the rung's payout will be wrong -- which is why
+   the rung says which of its legs are non-standard rather than hiding it. */
+const ODDS_TYPE_FACTORS = { [STANDARD_ODDS_TYPE]: 1, demon: null, goblin: null };
+const NON_STANDARD_ODDS_TYPES = Object.keys(ODDS_TYPE_FACTORS)
+  .filter((type) => type !== STANDARD_ODDS_TYPE);
+
+function oddsTypeOf(row) {
   const type = row && row.prop && row.prop.odds_type;
   // A line with no odds type stated is treated as standard, which is what
   // propsFor's own market-line preference already assumes about it.
-  return type === undefined || type === null || type === STANDARD_ODDS_TYPE;
+  return type === undefined || type === null || type === "" ? STANDARD_ODDS_TYPE : String(type);
+}
+
+function legIsStandardPriced(row) {
+  return oddsTypeOf(row) === STANDARD_ODDS_TYPE;
+}
+
+function oddsFactorsFrom(overrides) {
+  const out = { ...ODDS_TYPE_FACTORS };
+  for (const type of NON_STANDARD_ODDS_TYPES) {
+    const given = overrides && Number(overrides[type]);
+    if (isFinite(given) && given > 0) out[type] = given;
+  }
+  return out;
+}
+
+/* What a rung pays: the base for its leg count, times one factor per leg.
+
+   null when any leg's factor is unknown -- not 1.0, which would quietly price
+   a demon as though it were standard. Also null for an odds type nobody has
+   heard of, which is the right answer for a type the provider added since. */
+function rungMultiplier(legs, baseTable = PAYOUT_MULTIPLIERS, factors = ODDS_TYPE_FACTORS) {
+  const base = baseTable[legs.length];
+  if (!base) return null;
+  let multiplier = base;
+  for (const leg of legs) {
+    const factor = factors[oddsTypeOf(leg)];
+    if (typeof factor !== "number" || !(factor > 0)) return null;
+    multiplier *= factor;
+  }
+  return multiplier;
+}
+
+/* Which odds types a rung leans on, so it can say so. */
+function rungOddsTypes(legs) {
+  const counts = {};
+  for (const leg of legs) {
+    const type = oddsTypeOf(leg);
+    counts[type] = (counts[type] || 0) + 1;
+  }
+  return counts;
 }
 
 /* A payout table from user input, falling back per size rather than wholesale:
@@ -964,18 +1019,23 @@ function parlayEvidence(recordRows) {
    - refuses a rung it cannot fill, rather than padding it with the next
      unranked thing on the list. */
 function buildParlays(rows, { sizes = [2, 3, 4, 5, 6], multipliers = PAYOUT_MULTIPLIERS,
+                              oddsFactors = ODDS_TYPE_FACTORS,
                               shapes = ["spread", "fixture", "team"] } = {}) {
-  const priced = (rows || []).filter(
+  /* Every odds type competes. The ranking is standardised edge and it has no
+     opinion about demons or goblins -- what a leg's odds type changes is the
+     PRICE, handled by rungMultiplier below, and withheld rather than guessed
+     when its factor is unknown.
+
+     Worth knowing while reading the order: a goblin's line is LOWERED, which
+     inflates its edge while it pays less, and a demon's is raised, which
+     deflates its edge while it pays more. So edge order is not value order for
+     a non-standard leg, and the view says so. */
+  const usable = (rows || []).filter(
     (r) => typeof r.edge === "number" && r.prop && typeof standardisedEdge(r) === "number");
-  // Standard legs only. The multiplier table describes a standard entry and
-  // nothing else, so a demon or goblin leg would be shown beside a payout that
-  // is not its payout.
-  const usable = priced.filter(legIsStandardPriced);
-  const skippedOddsTypes = {};
-  for (const row of priced) {
-    if (legIsStandardPriced(row)) continue;
-    const type = String(row.prop.odds_type);
-    skippedOddsTypes[type] = (skippedOddsTypes[type] || 0) + 1;
+  const availableOddsTypes = {};
+  for (const row of usable) {
+    const type = oddsTypeOf(row);
+    availableOddsTypes[type] = (availableOddsTypes[type] || 0) + 1;
   }
   const ranked = [...usable].sort(
     (a, b) => Math.abs(standardisedEdge(b)) - Math.abs(standardisedEdge(a)));
@@ -1023,7 +1083,6 @@ function buildParlays(rows, { sizes = [2, 3, 4, 5, 6], multipliers = PAYOUT_MULT
   };
 
   for (const size of sizes) {
-    const multiplier = multipliers[size] || null;
     const candidates = [];
     if (shapes.includes("spread")) {
       // One leg per fixture, then fill from fixtures already used rather than
@@ -1054,12 +1113,16 @@ function buildParlays(rows, { sizes = [2, 3, 4, 5, 6], multipliers = PAYOUT_MULT
     for (const [shape, legs] of candidates) {
       const fixtures = new Set(legs.map(parlayMatchKey));
       const teams = new Set(legs.map(parlayTeamKey));
+      const oddsTypes = rungOddsTypes(legs);
+      const priced = rungMultiplier(legs, multipliers, oddsFactors);
+      const unpricedTypes = Object.keys(oddsTypes).filter(
+        (type) => typeof oddsFactors[type] !== "number" || !(oddsFactors[type] > 0));
       // A "fixture" rung that happens to have landed on one roster is a team
       // rung, and would otherwise be offered twice under two labels.
       if (shape === "fixture" && teams.size === 1) continue;
       out.push({
-        size, legs, multiplier, shape,
-        breakEven: breakEvenPerLeg(multiplier, size),
+        size, legs, multiplier: priced, shape, oddsTypes, unpricedTypes,
+        breakEven: breakEvenPerLeg(priced, size),
         matches: fixtures.size,
         sides: teams.size,
         sharesAMatch: fixtures.size < size,
@@ -1068,9 +1131,9 @@ function buildParlays(rows, { sizes = [2, 3, 4, 5, 6], multipliers = PAYOUT_MULT
       });
     }
   }
-  // Attached to the list rather than each rung: it is a fact about the board,
-  // not about any one entry.
-  out.skippedOddsTypes = skippedOddsTypes;
+  // Attached to the list rather than each rung: a fact about the board, not
+  // about any one entry.
+  out.availableOddsTypes = availableOddsTypes;
   return out;
 }
 
@@ -4827,6 +4890,14 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
   const multipliers = useMemo(() => payoutTableFrom(payoutOverrides), [payoutOverrides]);
   const usingDefaults = payoutTableIsDefault(payoutOverrides);
 
+  /* And what a demon or a goblin does to an entry's payout, per pick. Unknown
+     until entered: a demon leg is pickable and ranked like any other, but a
+     rung containing one is not priced until you say what it pays. */
+  const [oddsOverrides, setOddsOverrides] = useState(
+    () => loadStored("kp.oddsTypeFactors", {}));
+  useEffect(() => saveStored("kp.oddsTypeFactors", oddsOverrides), [oddsOverrides]);
+  const oddsFactors = useMemo(() => oddsFactorsFrom(oddsOverrides), [oddsOverrides]);
+
   /* Every live line on every game, each with a fixture behind it, ranked in
      error units. The board inference runs here too, so a line whose fixture
      the schedule has not published still reaches the ladder. */
@@ -4875,7 +4946,8 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
 
   const evidence = useMemo(
     () => (recordRows.length ? parlayEvidence(recordRows) : null), [recordRows]);
-  const ladder = useMemo(() => buildParlays(rows, { multipliers }), [rows, multipliers]);
+  const ladder = useMemo(() => buildParlays(rows, { multipliers, oddsFactors }),
+                         [rows, multipliers, oddsFactors]);
 
   const shell = (children) => (
     <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`,
@@ -4960,14 +5032,40 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
             </button>
           )}
         </div>
-        {ladder.skippedOddsTypes && Object.keys(ladder.skippedOddsTypes).length > 0 && (
-          <div style={{ marginTop: 10, fontSize: 11.5, color: theme.textFaint }}>
-            Left out of every rung:{" "}
-            {Object.entries(ladder.skippedOddsTypes)
-              .map(([type, n]) => `${n} ${type}`).join(", ")}{" "}
-            line(s). A demon raises an entry's payout and a goblin lowers it, so a table
-            keyed on leg count does not price them — showing one beside these multipliers
-            would be showing a payout that is not its payout.
+        {NON_STANDARD_ODDS_TYPES.some((t) => (ladder.availableOddsTypes || {})[t]) && (
+          <div style={{ marginTop: 12, borderTop: `1px solid ${theme.steel}`, paddingTop: 10 }}>
+            <div style={{ fontSize: 11.5, color: theme.textFaint, marginBottom: 8 }}>
+              This board also carries{" "}
+              {NON_STANDARD_ODDS_TYPES
+                .filter((t) => (ladder.availableOddsTypes || {})[t])
+                .map((t) => `${ladder.availableOddsTypes[t]} ${t}`).join(" and ")}{" "}
+              line(s). They are pickable and ranked exactly like any other leg — what
+              differs is the payout, one factor per pick on the entry. I have no way to
+              check either figure, so a rung containing one stays unpriced until you enter
+              it.
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-end" }}>
+              {NON_STANDARD_ODDS_TYPES.map((type) => (
+                <label key={type} style={{ display: "flex", flexDirection: "column", gap: 3,
+                                           fontSize: 11.5, color: theme.textDim }}>
+                  <span>{type} × per pick</span>
+                  <input type="number" step="0.05" min="0"
+                         value={oddsOverrides[type] !== undefined ? oddsOverrides[type] : ""}
+                         placeholder="not set"
+                         onChange={(e) => setOddsOverrides(
+                           (prev) => ({ ...prev, [type]: e.target.value }))}
+                         style={{ width: 88, padding: "5px 7px", fontSize: 12.5,
+                                  background: theme.void, color: theme.text,
+                                  border: `1px solid ${theme.steel}`, borderRadius: 3 }} />
+                </label>
+              ))}
+            </div>
+            <div style={{ marginTop: 8, fontSize: 11.5, color: theme.textFaint }}>
+              Assumed multiplicative on the entry, one factor per pick. And worth knowing
+              while reading the order: a goblin's line is <em>lowered</em>, which inflates
+              its edge while it pays less, and a demon's is raised, which deflates its edge
+              while it pays more — so edge order is not value order for these.
+            </div>
           </div>
         )}
       </div>
@@ -5007,7 +5105,11 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
                 {shapeLabel}
               </span>
               <span style={{ color: theme.textDim, fontSize: 12 }}>
-                {rung.multiplier ? `pays ${rung.multiplier}x` : "no multiplier on file"}
+                {rung.multiplier
+                  ? `pays ${Number(rung.multiplier.toFixed(2))}x`
+                  : rung.unpricedTypes && rung.unpricedTypes.length
+                    ? `payout unknown — enter what a ${rung.unpricedTypes.join(" and a ")} pays`
+                    : "no multiplier on file"}
               </span>
               {rung.breakEven !== null && (
                 <span style={{ color: theme.textDim, fontSize: 12 }}>
@@ -5037,23 +5139,38 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
             </div>
 
             <div style={{ display: "grid", gap: 4, marginBottom: 10 }}>
-              {rung.legs.map((leg, i) => (
-                <div key={i} style={{ display: "flex", flexWrap: "wrap", gap: 8,
-                                      fontSize: 12, color: theme.textDim }}>
-                  <span style={{ color: theme.text, minWidth: 110 }}>{leg.name}</span>
-                  <span>{leg.team} vs {leg.opponent}</span>
-                  <span>{STAT_TYPES[leg.statType].label} maps 1-{leg.maps}</span>
-                  <span>
-                    line {leg.prop.line} · we say {leg.projection.toFixed(1)}
-                    {" "}<strong style={{ color: theme.text }}>
-                      {leg.projection > leg.prop.line ? "OVER" : "UNDER"}
-                    </strong>
-                  </span>
-                  <span style={{ color: theme.textFaint }}>
-                    {Math.abs(standardisedEdge(leg)).toFixed(2)} error-widths
-                  </span>
-                </div>
-              ))}
+              {rung.legs.map((leg, i) => {
+                const type = oddsTypeOf(leg);
+                const nonStandard = type !== STANDARD_ODDS_TYPE;
+                return (
+                  <div key={i} style={{ display: "flex", flexWrap: "wrap", gap: 8,
+                                        fontSize: 12, color: theme.textDim }}>
+                    <span style={{ color: theme.text, minWidth: 110 }}>{leg.name}</span>
+                    {/* The marker. A demon and a goblin are different bets at
+                        different prices and a row that does not say which is a
+                        row you could stake the wrong money on. */}
+                    {nonStandard && (
+                      <span style={{ fontSize: 10, letterSpacing: 0.4, padding: "1px 5px",
+                                     borderRadius: 3, textTransform: "uppercase",
+                                     border: `1px solid ${type === "demon" ? theme.bad : theme.good}`,
+                                     color: type === "demon" ? theme.bad : theme.good }}>
+                        {type}
+                      </span>
+                    )}
+                    <span>{leg.team} vs {leg.opponent}</span>
+                    <span>{STAT_TYPES[leg.statType].label} maps 1-{leg.maps}</span>
+                    <span>
+                      line {leg.prop.line} · we say {leg.projection.toFixed(1)}
+                      {" "}<strong style={{ color: theme.text }}>
+                        {leg.projection > leg.prop.line ? "OVER" : "UNDER"}
+                      </strong>
+                    </span>
+                    <span style={{ color: theme.textFaint }}>
+                      {Math.abs(standardisedEdge(leg)).toFixed(2)} error-widths
+                    </span>
+                  </div>
+                );
+              })}
             </div>
 
             <div style={{ borderTop: `1px solid ${theme.steel}`, paddingTop: 8,
@@ -5065,7 +5182,15 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
                   not been shown to separate, so a number here would be a label with nothing
                   behind it.</span>
               )}
-              {atMeasured !== null && (
+              {atMeasured !== null && rung.multiplier === null && (
+                <div style={{ marginTop: 4 }}>
+                  At the {(perLeg * 100).toFixed(1)}% we have actually measured, this rung lands{" "}
+                  <strong style={{ color: theme.text }}>{(atMeasured * 100).toFixed(1)}%</strong>
+                  {" "}of the time. What it returns depends on what your board pays for
+                  {" "}{rung.unpricedTypes.join(" and ")} legs, which is not entered.
+                </div>
+              )}
+              {atMeasured !== null && rung.multiplier !== null && (
                 <div style={{ marginTop: 4 }}>
                   At the {(perLeg * 100).toFixed(1)}% we have actually measured, this rung lands{" "}
                   <strong style={{ color: theme.text }}>{(atMeasured * 100).toFixed(1)}%</strong>

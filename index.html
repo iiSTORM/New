@@ -830,9 +830,47 @@ try {
   };
   const PAYOUT_TABLE_SOURCE = "PrizePicks Power Play defaults — not fetched, replace with yours";
   const STANDARD_ODDS_TYPE = "standard";
-  function legIsStandardPriced(row) {
+  const ODDS_TYPE_FACTORS = {
+    [STANDARD_ODDS_TYPE]: 1,
+    demon: null,
+    goblin: null
+  };
+  const NON_STANDARD_ODDS_TYPES = Object.keys(ODDS_TYPE_FACTORS).filter(type => type !== STANDARD_ODDS_TYPE);
+  function oddsTypeOf(row) {
     const type = row && row.prop && row.prop.odds_type;
-    return type === undefined || type === null || type === STANDARD_ODDS_TYPE;
+    return type === undefined || type === null || type === "" ? STANDARD_ODDS_TYPE : String(type);
+  }
+  function legIsStandardPriced(row) {
+    return oddsTypeOf(row) === STANDARD_ODDS_TYPE;
+  }
+  function oddsFactorsFrom(overrides) {
+    const out = {
+      ...ODDS_TYPE_FACTORS
+    };
+    for (const type of NON_STANDARD_ODDS_TYPES) {
+      const given = overrides && Number(overrides[type]);
+      if (isFinite(given) && given > 0) out[type] = given;
+    }
+    return out;
+  }
+  function rungMultiplier(legs, baseTable = PAYOUT_MULTIPLIERS, factors = ODDS_TYPE_FACTORS) {
+    const base = baseTable[legs.length];
+    if (!base) return null;
+    let multiplier = base;
+    for (const leg of legs) {
+      const factor = factors[oddsTypeOf(leg)];
+      if (typeof factor !== "number" || !(factor > 0)) return null;
+      multiplier *= factor;
+    }
+    return multiplier;
+  }
+  function rungOddsTypes(legs) {
+    const counts = {};
+    for (const leg of legs) {
+      const type = oddsTypeOf(leg);
+      counts[type] = (counts[type] || 0) + 1;
+    }
+    return counts;
   }
   function payoutTableFrom(overrides) {
     const out = {
@@ -900,15 +938,14 @@ try {
   function buildParlays(rows, {
     sizes = [2, 3, 4, 5, 6],
     multipliers = PAYOUT_MULTIPLIERS,
+    oddsFactors = ODDS_TYPE_FACTORS,
     shapes = ["spread", "fixture", "team"]
   } = {}) {
-    const priced = (rows || []).filter(r => typeof r.edge === "number" && r.prop && typeof standardisedEdge(r) === "number");
-    const usable = priced.filter(legIsStandardPriced);
-    const skippedOddsTypes = {};
-    for (const row of priced) {
-      if (legIsStandardPriced(row)) continue;
-      const type = String(row.prop.odds_type);
-      skippedOddsTypes[type] = (skippedOddsTypes[type] || 0) + 1;
+    const usable = (rows || []).filter(r => typeof r.edge === "number" && r.prop && typeof standardisedEdge(r) === "number");
+    const availableOddsTypes = {};
+    for (const row of usable) {
+      const type = oddsTypeOf(row);
+      availableOddsTypes[type] = (availableOddsTypes[type] || 0) + 1;
     }
     const ranked = [...usable].sort((a, b) => Math.abs(standardisedEdge(b)) - Math.abs(standardisedEdge(a)));
     const out = [];
@@ -937,7 +974,6 @@ try {
       return legs.length === size ? legs : null;
     };
     for (const size of sizes) {
-      const multiplier = multipliers[size] || null;
       const candidates = [];
       if (shapes.includes("spread")) {
         const legs = [],
@@ -970,13 +1006,18 @@ try {
       for (const [shape, legs] of candidates) {
         const fixtures = new Set(legs.map(parlayMatchKey));
         const teams = new Set(legs.map(parlayTeamKey));
+        const oddsTypes = rungOddsTypes(legs);
+        const priced = rungMultiplier(legs, multipliers, oddsFactors);
+        const unpricedTypes = Object.keys(oddsTypes).filter(type => typeof oddsFactors[type] !== "number" || !(oddsFactors[type] > 0));
         if (shape === "fixture" && teams.size === 1) continue;
         out.push({
           size,
           legs,
-          multiplier,
+          multiplier: priced,
           shape,
-          breakEven: breakEvenPerLeg(multiplier, size),
+          oddsTypes,
+          unpricedTypes,
+          breakEven: breakEvenPerLeg(priced, size),
           matches: fixtures.size,
           sides: teams.size,
           sharesAMatch: fixtures.size < size,
@@ -985,7 +1026,7 @@ try {
         });
       }
     }
-    out.skippedOddsTypes = skippedOddsTypes;
+    out.availableOddsTypes = availableOddsTypes;
     return out;
   }
   function parlayMatchKey(row) {
@@ -4584,6 +4625,9 @@ try {
     useEffect(() => saveStored("kp.payoutMultipliers", payoutOverrides), [payoutOverrides]);
     const multipliers = useMemo(() => payoutTableFrom(payoutOverrides), [payoutOverrides]);
     const usingDefaults = payoutTableIsDefault(payoutOverrides);
+    const [oddsOverrides, setOddsOverrides] = useState(() => loadStored("kp.oddsTypeFactors", {}));
+    useEffect(() => saveStored("kp.oddsTypeFactors", oddsOverrides), [oddsOverrides]);
+    const oddsFactors = useMemo(() => oddsFactorsFrom(oddsOverrides), [oddsOverrides]);
     const rows = useMemo(() => {
       const all = [];
       for (const gameId of GAME_LIST) {
@@ -4624,8 +4668,9 @@ try {
     }, [results, dataByGame, weightsByGameAndStat]);
     const evidence = useMemo(() => recordRows.length ? parlayEvidence(recordRows) : null, [recordRows]);
     const ladder = useMemo(() => buildParlays(rows, {
-      multipliers
-    }), [rows, multipliers]);
+      multipliers,
+      oddsFactors
+    }), [rows, multipliers, oddsFactors]);
     const shell = children => React.createElement("div", {
       style: {
         background: theme.graphite,
@@ -4735,13 +4780,60 @@ try {
         fontSize: 11.5,
         padding: "6px 10px"
       }
-    }, "Back to defaults")), ladder.skippedOddsTypes && Object.keys(ladder.skippedOddsTypes).length > 0 && React.createElement("div", {
+    }, "Back to defaults")), NON_STANDARD_ODDS_TYPES.some(t => (ladder.availableOddsTypes || {})[t]) && React.createElement("div", {
       style: {
-        marginTop: 10,
+        marginTop: 12,
+        borderTop: `1px solid ${theme.steel}`,
+        paddingTop: 10
+      }
+    }, React.createElement("div", {
+      style: {
+        fontSize: 11.5,
+        color: theme.textFaint,
+        marginBottom: 8
+      }
+    }, "This board also carries", " ", NON_STANDARD_ODDS_TYPES.filter(t => (ladder.availableOddsTypes || {})[t]).map(t => `${ladder.availableOddsTypes[t]} ${t}`).join(" and "), " ", "line(s). They are pickable and ranked exactly like any other leg \u2014 what differs is the payout, one factor per pick on the entry. I have no way to check either figure, so a rung containing one stays unpriced until you enter it."), React.createElement("div", {
+      style: {
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 12,
+        alignItems: "flex-end"
+      }
+    }, NON_STANDARD_ODDS_TYPES.map(type => React.createElement("label", {
+      key: type,
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 3,
+        fontSize: 11.5,
+        color: theme.textDim
+      }
+    }, React.createElement("span", null, type, " \xD7 per pick"), React.createElement("input", {
+      type: "number",
+      step: "0.05",
+      min: "0",
+      value: oddsOverrides[type] !== undefined ? oddsOverrides[type] : "",
+      placeholder: "not set",
+      onChange: e => setOddsOverrides(prev => ({
+        ...prev,
+        [type]: e.target.value
+      })),
+      style: {
+        width: 88,
+        padding: "5px 7px",
+        fontSize: 12.5,
+        background: theme.void,
+        color: theme.text,
+        border: `1px solid ${theme.steel}`,
+        borderRadius: 3
+      }
+    })))), React.createElement("div", {
+      style: {
+        marginTop: 8,
         fontSize: 11.5,
         color: theme.textFaint
       }
-    }, "Left out of every rung:", " ", Object.entries(ladder.skippedOddsTypes).map(([type, n]) => `${n} ${type}`).join(", "), " ", "line(s). A demon raises an entry's payout and a goblin lowers it, so a table keyed on leg count does not price them \u2014 showing one beside these multipliers would be showing a payout that is not its payout.")), ladder.map(rung => {
+    }, "Assumed multiplicative on the entry, one factor per pick. And worth knowing while reading the order: a goblin's line is ", React.createElement("em", null, "lowered"), ", which inflates its edge while it pays less, and a demon's is raised, which deflates its edge while it pays more \u2014 so edge order is not value order for these."))), ladder.map(rung => {
       const perLeg = measured ? measured.mean : null;
       const range = perLeg === null ? null : parlayProbabilityRange(rung, () => perLeg);
       const atMeasured = range && range.mid;
@@ -4792,7 +4884,7 @@ try {
           color: theme.textDim,
           fontSize: 12
         }
-      }, rung.multiplier ? `pays ${rung.multiplier}x` : "no multiplier on file"), rung.breakEven !== null && React.createElement("span", {
+      }, rung.multiplier ? `pays ${Number(rung.multiplier.toFixed(2))}x` : rung.unpricedTypes && rung.unpricedTypes.length ? `payout unknown — enter what a ${rung.unpricedTypes.join(" and a ")} pays` : "no multiplier on file"), rung.breakEven !== null && React.createElement("span", {
         style: {
           color: theme.textDim,
           fontSize: 12
@@ -4818,36 +4910,58 @@ try {
           gap: 4,
           marginBottom: 10
         }
-      }, rung.legs.map((leg, i) => React.createElement("div", {
-        key: i,
-        style: {
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 8,
-          fontSize: 12,
-          color: theme.textDim
-        }
-      }, React.createElement("span", {
-        style: {
-          color: theme.text,
-          minWidth: 110
-        }
-      }, leg.name), React.createElement("span", null, leg.team, " vs ", leg.opponent), React.createElement("span", null, STAT_TYPES[leg.statType].label, " maps 1-", leg.maps), React.createElement("span", null, "line ", leg.prop.line, " \xB7 we say ", leg.projection.toFixed(1), " ", React.createElement("strong", {
-        style: {
-          color: theme.text
-        }
-      }, leg.projection > leg.prop.line ? "OVER" : "UNDER")), React.createElement("span", {
-        style: {
-          color: theme.textFaint
-        }
-      }, Math.abs(standardisedEdge(leg)).toFixed(2), " error-widths")))), React.createElement("div", {
+      }, rung.legs.map((leg, i) => {
+        const type = oddsTypeOf(leg);
+        const nonStandard = type !== STANDARD_ODDS_TYPE;
+        return React.createElement("div", {
+          key: i,
+          style: {
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 8,
+            fontSize: 12,
+            color: theme.textDim
+          }
+        }, React.createElement("span", {
+          style: {
+            color: theme.text,
+            minWidth: 110
+          }
+        }, leg.name), nonStandard && React.createElement("span", {
+          style: {
+            fontSize: 10,
+            letterSpacing: 0.4,
+            padding: "1px 5px",
+            borderRadius: 3,
+            textTransform: "uppercase",
+            border: `1px solid ${type === "demon" ? theme.bad : theme.good}`,
+            color: type === "demon" ? theme.bad : theme.good
+          }
+        }, type), React.createElement("span", null, leg.team, " vs ", leg.opponent), React.createElement("span", null, STAT_TYPES[leg.statType].label, " maps 1-", leg.maps), React.createElement("span", null, "line ", leg.prop.line, " \xB7 we say ", leg.projection.toFixed(1), " ", React.createElement("strong", {
+          style: {
+            color: theme.text
+          }
+        }, leg.projection > leg.prop.line ? "OVER" : "UNDER")), React.createElement("span", {
+          style: {
+            color: theme.textFaint
+          }
+        }, Math.abs(standardisedEdge(leg)).toFixed(2), " error-widths"));
+      })), React.createElement("div", {
         style: {
           borderTop: `1px solid ${theme.steel}`,
           paddingTop: 8,
           fontSize: 12,
           color: theme.textDim
         }
-      }, validated ? React.createElement("span", null, "Our chance: shown once wired to per-leg probabilities.") : React.createElement("span", null, "Our chance of this landing: ", React.createElement("strong", null, "withheld"), " \u2014 the ranking has not been shown to separate, so a number here would be a label with nothing behind it."), atMeasured !== null && React.createElement("div", {
+      }, validated ? React.createElement("span", null, "Our chance: shown once wired to per-leg probabilities.") : React.createElement("span", null, "Our chance of this landing: ", React.createElement("strong", null, "withheld"), " \u2014 the ranking has not been shown to separate, so a number here would be a label with nothing behind it."), atMeasured !== null && rung.multiplier === null && React.createElement("div", {
+        style: {
+          marginTop: 4
+        }
+      }, "At the ", (perLeg * 100).toFixed(1), "% we have actually measured, this rung lands", " ", React.createElement("strong", {
+        style: {
+          color: theme.text
+        }
+      }, (atMeasured * 100).toFixed(1), "%"), " ", "of the time. What it returns depends on what your board pays for", " ", rung.unpricedTypes.join(" and "), " legs, which is not entered."), atMeasured !== null && rung.multiplier !== null && React.createElement("div", {
         style: {
           marginTop: 4
         }
