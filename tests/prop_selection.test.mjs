@@ -280,6 +280,30 @@ const collectEdges = new Function(`
   return collectEdges;
 `)();
 const rankEdges = new Function(slice + "\nreturn rankEdges;")();
+const standardisedEdge = new Function(slice + "\nreturn standardisedEdge;")();
+const residualScale = new Function(slice + "\nreturn residualScale;")();
+
+/* The unit the board now sorts in. Measured per game, stat and window by
+   scripts/dev/hit_probability.py, and the reason a kills edge and a headshots
+   edge can be compared at all. */
+check("a measured window returns its own scale", residualScale("cs2", "kills", 2), 7.70);
+check("cs2 kills is wider than cs2 headshots, which is the whole point",
+      residualScale("cs2", "kills", 2) > residualScale("cs2", "headshots", 2), true);
+check("an unmeasured window is stretched from the nearest measured one",
+      Math.abs(residualScale("cs2", "kills", 3) - 7.70 * Math.pow(3 / 2, 0.63)) < 1e-9, true);
+check("a game with no table falls back rather than throwing",
+      residualScale("quake", "kills", 2), null);
+check("a window of zero or nonsense has no scale",
+      [residualScale("cs2", "kills", 0), residualScale("cs2", "kills", null)], [null, null]);
+check("standardising divides the adjusted edge by that scale",
+      Math.abs(standardisedEdge({ game: "cs2", statType: "kills", maps: 2, edge: 7.70,
+                                  adjustedEdge: 7.70 }) - 1) < 1e-12, true);
+check("a row with no scale keeps its raw edge rather than dropping off the board",
+      standardisedEdge({ game: "quake", statType: "kills", maps: 2, edge: 3, adjustedEdge: 3 }), 3);
+check("+3 headshots outranks +4 kills once both are in error units",
+      Math.abs(standardisedEdge({ game: "cs2", statType: "headshots", maps: 2, edge: 3, adjustedEdge: 3 }))
+      > Math.abs(standardisedEdge({ game: "cs2", statType: "kills", maps: 2, edge: 4, adjustedEdge: 4 })),
+      true);
 
 check("ranked by edge SIZE, so a big under outranks a small over",
       rankEdges([{ edge: 0.4 }, { edge: -7.1 }, { edge: 2.2 }]).map((r) => r.edge),
@@ -340,13 +364,27 @@ if (realProps) {
       + `current fixture — props.json is dated ${String(realProps.fetched_at).slice(0, 16)} `
       + `and is refreshed by hand, so this is staleness, not a defect)`);
   } else {
-  // The ADJUSTED edge, which is what the board is ordered by. Every row
-  // here carries the same stub evidence, so this is also the raw order --
-  // the point is that the assertion names the quantity the sort uses.
+  /* The STANDARDISED edge, which is what the board is ordered by now.
+     It used to be the adjusted edge in raw kills, and every row here carries
+     the same stub evidence, so that was also the raw order. It stopped being
+     monotone in raw kills the moment the sort started dividing by the model's
+     own error, because this board mixes map-1 and maps-1-2 lines and the error
+     is 4.66 wide on one and 7.70 on the other -- so +4 over one map outranks
+     +5 over two, correctly. The assertion still names the quantity the sort
+     uses, which was the point of it. */
   const sizes = edges.filter((e) => e.edge !== null)
-                     .map((e) => Math.abs(e.adjustedEdge !== null ? e.adjustedEdge : e.edge));
-  check("and returns them largest-edge first",
-        sizes.every((v, i) => i === 0 || sizes[i - 1] >= v), true);
+                     .map((e) => Math.abs(standardisedEdge(e)));
+  check("and returns them largest-edge first, in units of the model's own error",
+        sizes.every((v, i) => i === 0 || sizes[i - 1] >= v - 1e-12), true);
+  check("and that is NOT the same order as raw kills on a mixed-window board",
+        (() => {
+          const windows = new Set(edges.map((e) => e.prop.maps));
+          if (windows.size < 2) return "single-window board, nothing to distinguish";
+          const raw = edges.filter((e) => e.edge !== null)
+                           .map((e) => Math.abs(e.adjustedEdge !== null ? e.adjustedEdge : e.edge));
+          return raw.every((v, i) => i === 0 || raw[i - 1] >= v - 1e-12)
+            ? "raw order happens to agree" : "orders differ";
+        })(), "orders differ");
   check("every row is projected over its own line's window",
         edges.every((e) => Math.abs(e.projection - PER_MAP * e.prop.maps) < 1e-9), true);
   check("every row carries the fixture it belongs to",

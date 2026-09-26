@@ -60,6 +60,14 @@ jobs:
       - name: Check prop selection
         run: node tests/prop_selection.test.mjs
 
+      # The one piece of arithmetic here that becomes a number someone stakes
+      # money on, and it is not a product of probabilities: two legs on one
+      # match land the same way 55.2% of the time against 50.0% across
+      # matches, so within a match they share a factor. A five-leg same-match
+      # parlay comes out at 0.112 where multiplying says 0.078.
+      - name: Check the parlay engine and its Python port agree
+        run: node tests/parlay_parity.test.mjs
+
       # The board-fixture inference runs twice, in two languages: in the
       # scrape workflow so the fixtures are committed and auditable, and at
       # read time so a line posted since the last scrape is visible while it
