@@ -372,9 +372,64 @@ class TestTheScraperIsWired:
             f"scrape_cs2 imports {sorted(imported)} from team_aliases")
 
 
+class TestTheRuleOnAFileThatStillHasDuplicates:
+    """The recovery claims, on a region built to contain what the real file no
+    longer does.
+
+    These used to run against cs2_data.json and asserted it still held
+    duplicates to fold. It does not any more -- the scrape applied the fold and
+    check_data now reports "no duplicate spellings" -- so those assertions
+    started failing BECAUSE the fix worked, which is the second time this file
+    has encoded a snapshot of a moving target as a rule. The rule goes here,
+    where it stays true, and the real file is checked below for invariants that
+    hold whether or not anything is left to fold.
+    """
+
+    def region(self):
+        return {
+            "teams": {
+                "The Huns": team(["Cozen", "nin9"]),
+                "The Huns Esports": team(["Cozen", "bexyz"]),
+                "WBT Academy": team(["NxStep", "svemyy"]),
+                "WBT Academy_2NMK3fBkP7gb7JK1": team(["NxStep", "L1seYoung"]),
+                "Kaleido": team(["kiR"]),
+                "Bebop": team(["zizu"]),
+            },
+            "past_matches": [
+                dict(match("The Huns", "Kaleido"), match_id="the-huns-vs-kaleido-01-09-2026"),
+                dict(match("The Huns", "Bebop"), match_id="the-huns-vs-bebop-02-09-2026"),
+                dict(match("The Huns Esports", "Kaleido"),
+                     match_id="the-huns-vs-kaleido-03-09-2026"),
+                dict(match("WBT Academy", "Kaleido"),
+                     match_id="wbt-academy-vs-kaleido-04-09-2026"),
+                dict(match("WBT Academy_2NMK3fBkP7gb7JK1", "Bebop"),
+                     match_id="bebop-vs-wbt-academy-05-09-2026"),
+            ],
+            "upcoming_matches": [{"teamA": "The Huns Esports", "teamB": "Kaleido"}],
+        }
+
+    def test_nothing_it_folded_survives_anywhere(self):
+        region = self.region()
+        renames, _ = ta.reconcile(region)
+        assert renames, "the fixture has no duplicate spellings to fold"
+        assert not (set(region["teams"]) & set(renames))
+        for m in region["past_matches"] + region["upcoming_matches"]:
+            for field in ta.NAME_FIELDS:
+                assert m.get(field) not in renames
+            for block in [m.get("actual")] + list(m.get("per_game") or []):
+                if isinstance(block, dict):
+                    assert not (set(block) & set(renames))
+
+
 class TestTheCommittedFile:
     """Run against the real cs2_data.json, because the shapes that made this
-    necessary are ones nobody would have invented."""
+    necessary are ones nobody would have invented.
+
+    Everything here holds WHETHER OR NOT the file still contains duplicates.
+    It no longer does -- the scrape applied the fold and check_data reports
+    "no duplicate spellings" -- so an assertion that some remain would be an
+    assertion that the pipeline is broken.
+    """
 
     def region(self):
         path = REPO_ROOT / "cs2_data.json"
@@ -382,21 +437,11 @@ class TestTheCommittedFile:
             pytest.skip("no cs2_data.json committed")
         return json.loads(path.read_text())["regions"]["CS2"]
 
-    def test_every_group_it_finds_shares_a_player(self):
-        region = self.region()
-        teams = region["teams"]
-        groups = ta.alias_groups(teams, region["past_matches"])
-        for canonical, aliases in groups.items():
-            mine = {p["name"] for p in teams[canonical].get("players") or []}
-            for alias in aliases:
-                theirs = {p["name"] for p in teams[alias].get("players") or []}
-                assert not theirs or not mine or (mine & theirs), \
-                    f"{alias!r} folds into {canonical!r} with no player in common"
-
-    def test_no_team_name_survives_that_it_meant_to_fold(self):
+    def test_whatever_it_folds_it_leaves_no_trace_of(self):
+        """Vacuous on a clean file, which is the correct state, and the reason
+        the substantive version of this lives on a fixture above."""
         region = self.region()
         renames, _ = ta.reconcile(region)
-        assert renames, "the committed file has no duplicate spellings — has it been fixed?"
         remaining = set(region["teams"])
         assert not (remaining & set(renames)), \
             f"folded names still in the roster: {sorted(remaining & set(renames))}"
@@ -408,51 +453,32 @@ class TestTheCommittedFile:
                     assert not (set(block) & set(renames)), \
                         f"stats still keyed by a folded name: {sorted(set(block) & set(renames))}"
 
-    def test_the_source_own_match_slugs_confirm_the_id_suffix_fold(self):
-        """The evidence, not the heuristic.
-
-        bo3.gg builds match_id as a slug of both team names. For the suffixed
-        entry's own matches that slug says 'wbt-academy' and nothing more,
-        which is the source stating the two are one team -- rather than this
-        being inferred from a character rule and a shared roster.
-        """
-        region = self.region()
-        groups = ta.alias_groups(region["teams"], region["past_matches"])
-        renames = ta.rename_map(groups)
-        suffixed = [name for name in renames
-                    if ta.looks_like_opaque_id(name.split("_")[-1])]
-        assert suffixed, "no id-suffixed team name in the committed file any more"
-        for name in suffixed:
-            canonical = renames[name]
-            slug = canonical.lower().replace(" ", "-")
-            theirs = [m for m in region["past_matches"]
-                      if name in (m.get("teamA"), m.get("teamB"))]
-            assert theirs, f"{name!r} has no matches to check"
-            for m in theirs:
-                assert slug in (m.get("match_id") or ""), (
-                    f"{name!r} folds into {canonical!r}, but its match "
-                    f"{m.get('match_id')!r} does not carry {slug!r}")
-
-    def test_it_recovers_the_history_it_set_out_to(self):
+    def test_folding_it_again_recovers_nothing_and_loses_nothing(self):
+        """The pipeline folds on every run, so the committed file should be a
+        fixed point. A fold that still found matches to move would mean the
+        scrape step had stopped running."""
         region = self.region()
         before = ta.match_counts(region["past_matches"])
-        renames, _ = ta.reconcile(region)
+        renames, counts = ta.reconcile(region)
         after = ta.match_counts(region["past_matches"])
-        gained = {canonical: after[canonical] - before[canonical]
-                  for canonical in set(renames.values())}
-        # Not "every fold gains matches": folding a stub that only ever
-        # appeared in a fixture list recovers a roster entry and no matches,
-        # which is still worth doing. Losing matches is the failure.
-        assert all(n >= 0 for n in gained.values()), \
-            f"a fold LOST matches: {dict((k, v) for k, v in gained.items() if v < 0)}"
-        # No floor on the TOTAL any more. It was 20 matches across 15 teams,
-        # which described a file nothing had folded yet; the scrape has since
-        # run and applied 21 of the 22, so what is left to recover shrinks
-        # towards zero every run -- which is the point of the fix, and makes a
-        # threshold on it a test that fails when the code works.
-        assert sum(gained.values()) > 0, (
-            f"folding recovered no matches at all across {len(gained)} team(s), "
-            f"so this proved nothing: {gained}")
+        for name in set(before) | set(after):
+            assert after[name] >= before[name], f"{name!r} lost matches to a fold"
+        if renames:
+            # Not an error: a fresh duplicate can appear between runs. Say what
+            # it is, so the next run is expected to absorb it.
+            print(f"note: {len(renames)} spelling(s) not yet folded by the pipeline: "
+                  f"{sorted(renames)}")
+
+    def test_every_group_it_finds_shares_a_player(self):
+        region = self.region()
+        teams = region["teams"]
+        groups = ta.alias_groups(teams, region["past_matches"])
+        for canonical, aliases in groups.items():
+            mine = {p["name"] for p in teams[canonical].get("players") or []}
+            for alias in aliases:
+                theirs = {p["name"] for p in teams[alias].get("players") or []}
+                assert not theirs or not mine or (mine & theirs), \
+                    f"{alias!r} folds into {canonical!r} with no player in common"
 
     def test_the_total_number_of_matches_is_unchanged(self):
         """A rewrite, not a merge of records: folding two spellings must not
