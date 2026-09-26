@@ -387,6 +387,77 @@ CS2 and Valorant, which licensed odds APIs largely do not. Its projections
 endpoint is undocumented and carries no stability guarantee, which is what
 `PROVIDERS` exists to make replaceable.
 
+### Parlays, and what is withheld
+
+The Parlays tab stacks posted lines into a ladder from two legs to six, across
+every game at once — the legs are ranked in units of the model's own error,
+which is what makes a CS2 kills line and a LoL kills line comparable, so there
+is no reason to keep them on separate boards. Each rung takes the
+highest-confidence legs available, never two on one player, preferring one leg
+per fixture.
+
+**The per-leg probability is withheld, on purpose.** Measured on 1,194 graded
+props, the model's confidence does not sort by outcome: deciles of its own
+confidence realise 44.5% to 58.0% with every interval straddling 50%, the top
+fifth beats the bottom fifth by 0.6 points (z = +0.14), and the Brier score is
+0.2589 against the 0.25 you get by answering "50%" to everything. The 70–80%
+band realised 39.5%. Labelling a rung "safe" off that would be worse than not
+building one — the tier with the best label measured the worst.
+
+`parlayEvidence` applies the same test `rankingIsInformative` applies to the
+record: the more-confident band's clustered interval has to clear the
+less-confident band's point estimate, on at least 30 rows a side, clustered on
+the match. It clears itself — the day the record separates, the numbers appear,
+with no code change and no flag to remember.
+
+What is shown regardless, because none of it depends on the model being right:
+
+| | |
+| --- | --- |
+| the legs | a fact about the board |
+| the multiplier | a fact about the board (check it against yours) |
+| the break-even | arithmetic: a payout of M over n legs needs `(1/M)^(1/n)` a leg |
+| return at the **measured** rate | arithmetic on the hit rate actually recorded |
+
+That last one is the reason to ship this before the model can rank. At the
+49.7% per leg measured over 75 graded matches, every rung returns between −26%
+and −43% per unit staked, and a reader can see exactly how far short that falls
+of the 54.7–58.5% the payouts require.
+
+**Legs are not combined by multiplying.** Two legs on one match share the map's
+rounds and pace, and the graded record says so: two legs in the same match land
+the same way 55.2% of the time (12,578 pairs) against 50.0% across matches
+(200,000 sampled), where independence predicts 50.0%. Per-match outcome
+variance runs 3.1× what independence implies. At an even base rate that is
+ρ = 0.10, applied through a one-factor model where legs within a match share a
+factor and legs across matches do not — the same formula reduces exactly to the
+product at ρ = 0, so there is one code path rather than two.
+`scripts/dev/parlay_math.py` is a second implementation whose only job is to
+disagree if the first is wrong; `tests/parlay_parity.test.mjs` compares 244
+cases and `tests/test_parlay_math.py` checks the approximations against an
+exact normal.
+
+Payout multipliers are the published PrizePicks Power Play defaults and are
+**not** read from any feed — `props.json` carries a line and an odds type and
+no price at all. They move, and differ by entry type and jurisdiction. Treat
+them as a default to check; the break-even recomputes from whatever is in
+force.
+
+### Ranking in units of the model's own error
+
+A +3 kills edge and a +3 headshots edge are not the same bet, and the Edges tab
+ranked them as though they were. The model's error is 7.70 wide on CS2 maps-1-2
+kills and 4.93 on headshots, so +3 headshots is the larger disagreement by the
+only measure that compares them. `RESIDUAL_SCALE` carries the robust spread
+(1.4826 × MAD, so one forty-kill map cannot set the scale) of actual minus
+point-in-time projection, per game, stat and window, measured by
+`scripts/dev/hit_probability.py`. A window never observed is reached by
+stretching the nearest measured one at an exponent of 0.63 — measured, because
+the scale grows neither linearly with the window nor with its square root.
+
+Nothing in that table is a probability. It is a unit, and a unit is all a
+ranking needs.
+
 ## The frontend
 
 `index.html` is a single self-contained page: React from a CDN, everything

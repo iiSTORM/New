@@ -510,6 +510,386 @@ function projectionOverWindow(breakdown, prop) {
   return breakdown.perGame * prop.maps;
 }
 
+/* ---------- How far wrong is this model, in its own units? -----------------
+
+   A +3 kills edge and a +3 headshots edge are not the same bet and the board
+   ranked them as though they were. The model's own error is half again as wide
+   on CS2 kills as on CS2 headshots, so +3 clears the line about as often on
+   headshots as +4.7 does on kills, and sorting by raw magnitude mixed the two
+   units together on one list.
+
+   These are measured, not assumed: the robust spread (1.4826 * MAD, so one
+   forty-kill map cannot set the scale) of actual minus point-in-time
+   projection, per game, stat and map window, over every scoreable row in the
+   committed data. Regenerate with:
+
+     python scripts/dev/hit_probability.py
+
+   MAD rather than a standard deviation because the tail of this distribution
+   is exactly where an sd would be fitted to the outliers instead of to the
+   body it has to describe.
+
+   Nothing here is a probability. It is a unit, and a unit is all the board
+   needs to stop comparing kills against headshots. What a probability would
+   additionally need -- that the resulting ranking sorts by OUTCOME -- is
+   measured in ParlaysTab and is not currently true. */
+const RESIDUAL_SCALE = {
+  cs2: {
+    kills:     { 1: 4.66, 2: 7.70 },
+    deaths:    { 1: 3.27, 2: 5.48 },
+    assists:   { 1: 2.51, 2: 3.61 },
+    headshots: { 1: 3.13, 2: 4.93 },
+  },
+  lol: {
+    kills:   { 1: 1.84, 2: 2.89, 3: 3.69 },
+    deaths:  { 1: 1.94, 2: 2.78, 3: 3.45 },
+    assists: { 1: 4.00, 2: 5.96, 3: 7.38 },
+  },
+  valorant: {
+    kills:   { 2: 7.49 },
+    deaths:  { 2: 5.17 },
+    assists: { 2: 4.31 },
+  },
+};
+
+/* How the scale grows with the window, for a window never observed.
+
+   Not linear and not its square root. Over LoL kills the measured scale runs
+   1.84 / 2.89 / 3.69 for one, two and three maps, where linear would predict
+   1.84 / 3.68 / 5.52 and independent maps would give 1.84 / 2.60 / 3.19. Maps
+   are positively correlated -- a team winning fast plays short ones -- so the
+   truth sits between, at an exponent of 0.63 across the seven game/stat pairs
+   where both ends are observed (0.52 to 0.75). Used only to reach a window
+   with no measurement of its own: CS2 and Valorant have never had a maps-1-3
+   line settled, and LoL's are measured directly. */
+const RESIDUAL_SCALE_EXPONENT = 0.63;
+
+function residualScale(game, statType, maps) {
+  const byWindow = (RESIDUAL_SCALE[game] || {})[statType];
+  if (!byWindow || typeof maps !== "number" || maps <= 0) return null;
+  const exact = byWindow[maps];
+  if (typeof exact === "number") return exact;
+  // The nearest measured window, stretched. Nearest rather than always the
+  // one-map anchor, because two maps is what almost everything is measured at.
+  const windows = Object.keys(byWindow).map(Number).filter((w) => w > 0);
+  if (!windows.length) return null;
+  const near = windows.reduce((a, b) => (Math.abs(b - maps) < Math.abs(a - maps) ? b : a));
+  return byWindow[near] * Math.pow(maps / near, RESIDUAL_SCALE_EXPONENT);
+}
+
+/* The edge in units of the model's own error.
+
+   adjustedEdge first, because the evidence shrink and the unit conversion
+   answer different questions and the board wants both: how much of this
+   disagreement should we believe (evidence), and how big is it compared with
+   how wrong we usually are (scale). Falls back to the raw edge where no scale
+   has been measured, so an unmeasured game still ranks rather than vanishing. */
+function standardisedEdge(row) {
+  if (!row) return null;
+  const edge = row.adjustedEdge !== null && row.adjustedEdge !== undefined
+    ? row.adjustedEdge : row.edge;
+  if (typeof edge !== "number") return null;
+  const scale = residualScale(row.game || (row.prop && row.prop.game), row.statType, row.maps);
+  return scale ? edge / scale : edge;
+}
+
+/* ---------- Combining legs into a parlay -----------------------------------
+
+   Two legs on one match are not two independent bets. They share the map's
+   rounds, its pace and how long it ran, and the graded record says so:
+
+     two legs in the SAME match land the same way    55.2%  (12,578 pairs)
+     two legs in DIFFERENT matches                   50.0%  (200,000 sampled)
+     independence would predict                      50.0%
+
+   and the per-match spread of outcomes runs 3.1x the variance independence
+   implies. Multiplying leg probabilities together, which is what a parlay
+   calculator normally does, therefore understates a same-match parlay's
+   chance of winning AND its chance of losing outright -- it throws away the
+   part where the whole map goes one way and takes every leg with it.
+
+   For two-outcome legs at about even money, P(agree) = 1 - 2p(1-p)(1 - rho),
+   so 55.2% is rho = 0.10. Measured, on the rows this app has graded.
+
+   The combining rule is the standard one-factor model: each leg clears if a
+   latent normal beats its own threshold, and within a match the latents share
+   a common factor with loading sqrt(rho). Independent legs fall out of the
+   same formula at rho = 0, where it reduces exactly to the product -- so
+   there is one code path and not two. */
+const SAME_MATCH_CORRELATION = 0.104;
+
+// Simpson's rule over the shared factor. Fixed grid rather than an adaptive
+// one so the Python port in scripts/dev/parlay_math.py produces the same
+// number to the last place and tests/parlay_parity.test.mjs can say so.
+const FACTOR_INTEGRATION_LIMIT = 8;     // standard deviations either side
+const FACTOR_INTEGRATION_STEPS = 400;   // even, for Simpson
+
+function standardNormalPdf(z) {
+  return Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI);
+}
+
+function standardNormalCdf(z) {
+  // Abramowitz & Stegun 7.1.26 via erf is not available in JS, so this is the
+  // Zelen & Severo rational approximation, |error| < 7.5e-8 -- three orders
+  // finer than any probability this displays.
+  const t = 1 / (1 + 0.2316419 * Math.abs(z));
+  const poly = t * (0.319381530 + t * (-0.356563782 + t * (1.781477937
+    + t * (-1.821255978 + t * 1.330274429))));
+  const upper = standardNormalPdf(z) * poly;
+  return z >= 0 ? 1 - upper : upper;
+}
+
+/* The inverse, by Acklam's rational approximation (|relative error| < 1.15e-9).
+   Needed to turn a leg's probability into the threshold its latent has to
+   clear, which is the only way the shared factor can be applied to it. */
+const ACKLAM_A = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02,
+                  1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
+const ACKLAM_B = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02,
+                  6.680131188771972e+01, -1.328068155288572e+01];
+const ACKLAM_C = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00,
+                  -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
+const ACKLAM_D = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00,
+                  3.754408661907416e+00];
+
+function standardNormalQuantile(p) {
+  if (!(p > 0 && p < 1)) return p <= 0 ? -Infinity : Infinity;
+  const low = 0.02425;
+  if (p < low) {
+    const q = Math.sqrt(-2 * Math.log(p));
+    return (((((ACKLAM_C[0] * q + ACKLAM_C[1]) * q + ACKLAM_C[2]) * q + ACKLAM_C[3]) * q
+      + ACKLAM_C[4]) * q + ACKLAM_C[5])
+      / ((((ACKLAM_D[0] * q + ACKLAM_D[1]) * q + ACKLAM_D[2]) * q + ACKLAM_D[3]) * q + 1);
+  }
+  if (p > 1 - low) return -standardNormalQuantile(1 - p);
+  const q = p - 0.5, r = q * q;
+  return (((((ACKLAM_A[0] * r + ACKLAM_A[1]) * r + ACKLAM_A[2]) * r + ACKLAM_A[3]) * r
+    + ACKLAM_A[4]) * r + ACKLAM_A[5]) * q
+    / (((((ACKLAM_B[0] * r + ACKLAM_B[1]) * r + ACKLAM_B[2]) * r + ACKLAM_B[3]) * r
+    + ACKLAM_B[4]) * r + 1);
+}
+
+/* P(every leg in one match lands), given each leg's own probability.
+
+   At rho = 0 this is the product. Above it, the shared factor makes the group
+   more likely to go all-one-way than independence would have it -- which is
+   the behaviour the 55.2% figure describes. */
+function groupHitProbability(probabilities, rho) {
+  const ps = probabilities.filter((p) => typeof p === "number" && p > 0 && p < 1);
+  if (ps.length !== probabilities.length) return null;
+  if (!ps.length) return 1;
+  if (!rho) return ps.reduce((a, b) => a * b, 1);
+  if (ps.length === 1) return ps[0];
+
+  const thresholds = ps.map((p) => standardNormalQuantile(1 - p));
+  const root = Math.sqrt(rho), rest = Math.sqrt(1 - rho);
+  const lo = -FACTOR_INTEGRATION_LIMIT, hi = FACTOR_INTEGRATION_LIMIT;
+  const h = (hi - lo) / FACTOR_INTEGRATION_STEPS;
+  const at = (z) => {
+    let product = 1;
+    for (const t of thresholds) product *= 1 - standardNormalCdf((t - root * z) / rest);
+    return standardNormalPdf(z) * product;
+  };
+  let total = at(lo) + at(hi);
+  for (let i = 1; i < FACTOR_INTEGRATION_STEPS; i++) {
+    total += at(lo + i * h) * (i % 2 ? 4 : 2);
+  }
+  return Math.min(1, Math.max(0, (h / 3) * total));
+}
+
+/* P(the whole parlay lands). Legs group by match; groups are independent,
+   which the 50.0% cross-match figure is the measurement of. */
+function jointHitProbability(legs, rho = SAME_MATCH_CORRELATION) {
+  if (!legs || !legs.length) return null;
+  const byMatch = new Map();
+  for (const leg of legs) {
+    // Anything without a match key is its own group, which is the
+    // conservative reading: it cannot be assumed to share a map with another.
+    const key = leg.matchKey || `__${byMatch.size}`;
+    if (!byMatch.has(key)) byMatch.set(key, []);
+    byMatch.get(key).push(leg.p);
+  }
+  let joint = 1;
+  for (const probabilities of byMatch.values()) {
+    const group = groupHitProbability(probabilities, rho);
+    if (group === null) return null;
+    joint *= group;
+  }
+  return joint;
+}
+
+/* ---------- What the board pays ------------------------------------------
+
+   props.json carries no price. The provider posts a line and an odds_type and
+   nothing about the payout, so these are the published PrizePicks Power Play
+   multipliers and they are NOT measured from anything this app fetches. They
+   move, they differ by entry type, and they differ by jurisdiction.
+
+   TREAT THEM AS A DEFAULT TO CHECK, not as a fact. The number beside them
+   that IS a fact is the break-even below, which is arithmetic on whatever
+   multiplier is in force: a payout of M over n legs needs each leg to land
+   (1/M)^(1/n) of the time before the bet is worth making. That is the figure
+   worth reading, and it does not depend on this table being current -- put
+   your own board's multiplier in and it recomputes. */
+const PAYOUT_MULTIPLIERS = { 2: 3, 3: 5, 4: 10, 5: 20, 6: 37.5 };
+
+function breakEvenPerLeg(multiplier, legs) {
+  if (!multiplier || multiplier <= 1 || !legs || legs < 1) return null;
+  return Math.pow(1 / multiplier, 1 / legs);
+}
+
+/* Expected value per unit staked: pays M when every leg lands, nothing
+   otherwise. Positive means the bet is worth making, and at the hit rates
+   this app has actually measured nothing here is. */
+function parlayExpectedValue(joint, multiplier) {
+  if (typeof joint !== "number" || !multiplier) return null;
+  return joint * multiplier - 1;
+}
+
+/* ---------- Is any of this worth showing yet? ------------------------------
+
+   The parlay view is built and its probabilities are WITHHELD, on purpose, and
+   this is the function that decides when they stop being.
+
+   A parlay's chance of landing is the product (adjusted for correlation) of
+   its legs' chances, so it inherits everything wrong with a leg's chance. And
+   measured on 1,194 graded props the model's confidence does not sort by
+   outcome at all: deciles of its own confidence realise 44.5% to 58.0% with
+   every interval straddling 50%, the top fifth beats the bottom fifth by 0.6
+   points (z = +0.14), and the Brier score is 0.2589 against the 0.25 you get
+   by saying "50%" to everything. The 70-80% band realised 39.5%.
+
+   Labelling a parlay "safe" off that would be worse than not building one. The
+   tier with the best label measured the worst.
+
+   So the test is the one rankingIsInformative already applies to the record:
+   the top band's clustered interval has to clear the bottom band's point
+   estimate, on at least 30 rows a side, clustered on the MATCH because ten
+   props off one map are not ten observations. Applied here to the quantity the
+   ladder actually ranks by -- the standardised edge -- rather than to raw
+   kills.
+
+   It clears itself. No code change, no flag to remember: the day the record
+   separates, the numbers appear. */
+const PARLAY_TIER_THRESHOLD = 0.5;   // standardised edge; about half the model's own error
+const PARLAY_MIN_ROWS_PER_BAND = 30;
+
+function parlayEvidence(recordRows) {
+  const decided = (recordRows || []).filter(
+    (r) => r.result !== "push" && typeof r.edge === "number" && typeof r.won === "boolean");
+  const withScale = decided.map((r) => ({ ...r, z: Math.abs(standardisedEdge(r)) }))
+                           .filter((r) => typeof r.z === "number" && isFinite(r.z));
+  const big = withScale.filter((r) => r.z >= PARLAY_TIER_THRESHOLD);
+  const small = withScale.filter((r) => r.z < PARLAY_TIER_THRESHOLD);
+  const rate = (set) => clusteredMean(
+    groupByMatch(set).map((m) => m.filter((r) => r.won).length / m.length));
+  const overall = rate(withScale);
+
+  if (big.length < PARLAY_MIN_ROWS_PER_BAND || small.length < PARLAY_MIN_ROWS_PER_BAND) {
+    return {
+      validated: false, overall, big: null, small: null,
+      reason: `only ${big.length} graded prop(s) above the confidence threshold and `
+        + `${small.length} below it; ${PARLAY_MIN_ROWS_PER_BAND} a side is the floor`,
+    };
+  }
+  const bigRate = rate(big), smallRate = rate(small);
+  if (!bigRate || !smallRate) {
+    return { validated: false, overall, big: bigRate, small: smallRate,
+             reason: "not enough distinct matches to cluster on" };
+  }
+  const validated = bigRate.lo > smallRate.mean;
+  return {
+    validated, overall, big: bigRate, small: smallRate,
+    reason: validated
+      ? `the more confident half realises ${(bigRate.mean * 100).toFixed(1)}% `
+        + `(interval from ${(bigRate.lo * 100).toFixed(1)}%), clear of the less confident `
+        + `half's ${(smallRate.mean * 100).toFixed(1)}%`
+      : `the more confident half realises ${(bigRate.mean * 100).toFixed(1)}% `
+        + `(${(bigRate.lo * 100).toFixed(1)}-${(bigRate.hi * 100).toFixed(1)}%) against the less `
+        + `confident half's ${(smallRate.mean * 100).toFixed(1)}% — ordered, but not separated`,
+  };
+}
+
+/* ---------- The ladder ----------------------------------------------------
+
+   Safe to dangerous is entry SIZE: more legs pays more and lands less, and
+   that is the axis a board actually offers. Each rung takes the
+   highest-confidence legs available, and:
+
+   - never two legs on one player. Two lines on the same player in the same
+     match are near the same bet, and a provider will not pair them anyway.
+   - prefers legs from DIFFERENT matches, because same-match legs are
+     correlated (rho 0.10 measured) and a rung built inside one map is a bet on
+     that map rather than on five reads. Where the board cannot supply enough
+     matches the rung says so instead of quietly stacking one fixture.
+   - refuses a rung it cannot fill, rather than padding it with the next
+     unranked thing on the list. */
+function buildParlays(rows, { sizes = [2, 3, 4, 5, 6], multipliers = PAYOUT_MULTIPLIERS,
+                              correlation = SAME_MATCH_CORRELATION } = {}) {
+  const usable = (rows || []).filter(
+    (r) => typeof r.edge === "number" && r.prop && typeof standardisedEdge(r) === "number");
+  const ranked = [...usable].sort(
+    (a, b) => Math.abs(standardisedEdge(b)) - Math.abs(standardisedEdge(a)));
+
+  const out = [];
+  for (const size of sizes) {
+    const legs = [];
+    const takenPlayers = new Set();
+    const takenMatches = new Set();
+    // First pass takes one leg per match, which is the shape worth having.
+    for (const row of ranked) {
+      if (legs.length >= size) break;
+      const matchKey = parlayMatchKey(row);
+      if (takenPlayers.has(row.name) || takenMatches.has(matchKey)) continue;
+      legs.push(row);
+      takenPlayers.add(row.name);
+      takenMatches.add(matchKey);
+    }
+    let spread = legs.length;
+    // Second pass fills from matches already used, still one leg per player.
+    for (const row of ranked) {
+      if (legs.length >= size) break;
+      if (takenPlayers.has(row.name)) continue;
+      legs.push(row);
+      takenPlayers.add(row.name);
+    }
+    if (legs.length < size) continue;
+
+    const multiplier = multipliers[size] || null;
+    const legInputs = legs.map((row) => ({ p: null, matchKey: parlayMatchKey(row) }));
+    const matches = new Set(legInputs.map((l) => l.matchKey)).size;
+    out.push({
+      size, legs, multiplier,
+      breakEven: breakEvenPerLeg(multiplier, size),
+      matches,
+      sharesAMatch: matches < size,
+      // Filled in by the view only when parlayEvidence says the numbers may
+      // be shown; the ladder itself is computable without them and is what
+      // makes the view useful while they are withheld.
+      legInputs,
+      spread,
+      weakestLeg: Math.min(...legs.map((r) => Math.abs(standardisedEdge(r)))),
+    });
+  }
+  return out;
+}
+
+/* One key per fixture, so two legs on the same match group together whichever
+   side they are on. Same construction as groupByMatch uses on the record. */
+function parlayMatchKey(row) {
+  const pair = [row.team, row.opponent].map((t) => String(t || "")).sort().join(" vs ");
+  return `${row.game || ""}|${String(row.when || "").slice(0, 16)}|${pair}`;
+}
+
+/* The parlay's chance of landing, given a per-leg probability for each leg.
+   Separate from buildParlays because the ladder is shown either way and this
+   is the part that waits for evidence. */
+function parlayProbability(rung, probabilityOf, correlation = SAME_MATCH_CORRELATION) {
+  if (!rung || !rung.legs) return null;
+  const legs = rung.legs.map((row) => ({ p: probabilityOf(row), matchKey: parlayMatchKey(row) }));
+  if (legs.some((l) => typeof l.p !== "number")) return null;
+  return jointHitProbability(legs, correlation);
+}
+
 /* ---------- Fixtures the posted board implies ------------------------------
 
    The read-time half of scripts/board_fixtures.py, and the reason there are
@@ -892,6 +1272,11 @@ function collectEdges(regionsData, regionList, propsData, weights, statType, gam
             rows.push({
               region: regionKey, name: player.name, role: player.role,
               team, opponent, when, prop, projection, breakdown, oppKnown,
+              // Carried so a row can be put in units of the model's own error
+              // (residualScale) without the caller's arguments coming with it.
+              // The parlay builder mixes rows from every game on one list and
+              // has nothing else to ask.
+              game, statType,
               // The window this row is about, lifted out of the prop so the
               // board can section on it without reaching back through.
               maps: prop.maps,
@@ -936,8 +1321,13 @@ function collectEdges(regionsData, regionList, propsData, weights, statType, gam
    it promoted the rows the model was least sure of, precisely because
    being unsure produces bigger disagreements. */
 function rankEdges(rows) {
-  const key = (r) => (r.adjustedEdge !== null && r.adjustedEdge !== undefined
-    ? r.adjustedEdge : r.edge);
+  /* In units of the model's own error, not raw kills.
+     The raw sort put a +3 CS2 kills edge above a +2.8 headshots one, and the
+     model's error is 7.7 wide on the first and 4.9 on the second -- so the
+     second is the larger disagreement by the only measure that compares them.
+     A whole column of the board was sorted by which stat happened to have the
+     bigger numbers. */
+  const key = (r) => standardisedEdge(r);
   return [...rows].sort((a, b) => {
     const ka = key(a), kb = key(b);
     if ((ka === null) !== (kb === null)) return ka === null ? 1 : -1;
@@ -4168,6 +4558,230 @@ function rankingIsInformative(rows, threshold = 2) {
   };
 }
 
+/* ---------- The parlay ladder, on screen -----------------------------------
+
+   Cross-game on purpose: the legs are ranked in units of the model's own
+   error, which is what makes a CS2 kills line and a LoL kills line comparable
+   at all, so there is no reason to keep them on separate boards.
+
+   WHAT IS WITHHELD AND WHAT IS NOT. The per-prop probability is withheld until
+   parlayEvidence says the ranking separates -- see the long note there. What is
+   shown regardless:
+
+     the legs            a fact about the board
+     the multiplier      a fact about the board (check it against yours)
+     the break-even      arithmetic on the multiplier: (1/M)^(1/n)
+     EV at the MEASURED rate   arithmetic on the hit rate this app has actually
+                               recorded, clustered on the match. Not a model
+                               claim. It is the most useful number here and it
+                               is currently negative at every entry size.
+
+   That last one is the point of shipping this now rather than later. A reader
+   can see exactly what the model would have to reach before any rung is worth
+   playing, and exactly how far short it currently falls. */
+function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) {
+  const theme = useTheme();
+  const results = useGradedResults();
+
+  /* Every live line on every game, each with a fixture behind it, ranked in
+     error units. The board inference runs here too, so a line whose fixture
+     the schedule has not published still reaches the ladder. */
+  const rows = useMemo(() => {
+    const all = [];
+    for (const gameId of GAME_LIST) {
+      const cfg = GAMES[gameId];
+      const scraped = (dataByGame && dataByGame[gameId]) || cfg.fallbackRegions;
+      const regions = withBoardFixtures(scraped, propsData, gameId);
+      for (const [statType] of statsForGame(gameId)) {
+        const weights = (weightsByGameAndStat[gameId] || {})[statType];
+        if (!weights) continue;
+        for (const row of collectEdges(regions, cfg.regionList, propsData, weights,
+                                       statType, gameId)) {
+          // A line on a match that has started is not a bet any more.
+          if (!propIsLive(row.prop)) continue;
+          // Several lines with no market one named is a refusal upstream, and
+          // a rung must not be built on a payout nobody quoted.
+          if (row.edge === null) continue;
+          all.push(row);
+        }
+      }
+    }
+    return all;
+  }, [dataByGame, propsData, weightsByGameAndStat]);
+
+  /* The record, across every game and stat, for the gate. Same re-projection
+     the Record tab does, pooled rather than per stat, because the question
+     "does our ranking separate" is about the ranking and not about kills. */
+  const recordRows = useMemo(() => {
+    if (!results) return [];
+    const all = [];
+    for (const gameId of GAME_LIST) {
+      const cfg = GAMES[gameId];
+      const regions = (dataByGame && dataByGame[gameId]) || cfg.fallbackRegions;
+      for (const [statType] of statsForGame(gameId)) {
+        const weights = (weightsByGameAndStat[gameId] || {})[statType];
+        if (!weights) continue;
+        for (const row of modelRecord(regions, cfg.regionList, results, weights, statType)) {
+          all.push({ ...row, game: gameId, statType });
+        }
+      }
+    }
+    return all;
+  }, [results, dataByGame, weightsByGameAndStat]);
+
+  const evidence = useMemo(
+    () => (recordRows.length ? parlayEvidence(recordRows) : null), [recordRows]);
+  const ladder = useMemo(() => buildParlays(rows), [rows]);
+
+  const shell = (children) => (
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`,
+                  ...cardShape(theme.cornerStyle), ...elevation(), padding: "18px 20px",
+                  fontSize: 12.5, color: theme.textFaint, lineHeight: 1.65 }}>
+      {children}
+    </div>
+  );
+
+  if (!propsData) return shell("No posted lines loaded, so there is nothing to build a parlay from.");
+  if (!ladder.length) {
+    return shell(`${rows.length} live line(s) across every game, which is not enough distinct `
+      + `players to fill even a two-leg entry. The ladder needs one leg per player.`);
+  }
+
+  const measured = evidence && evidence.overall;
+  const validated = !!(evidence && evidence.validated);
+
+  return (
+    <div>
+      {/* The honest headline, above everything, because it decides how to read
+          every row below it. */}
+      <div style={{ background: theme.graphite, border: `1px solid ${validated ? theme.steel : theme.steelSoft || theme.steel}`,
+                    ...cardShape(theme.cornerStyle), ...elevation(), padding: "14px 16px",
+                    marginBottom: 14, fontSize: 12.5, color: theme.textDim, lineHeight: 1.6 }}>
+        <div style={{ color: theme.text, fontWeight: 600, marginBottom: 6 }}>
+          {validated ? "Our per-leg probabilities are shown"
+                     : "Our per-leg probabilities are withheld"}
+        </div>
+        {evidence ? (
+          <>
+            <div>{evidence.reason}.</div>
+            {measured && (
+              <div style={{ marginTop: 6 }}>
+                Across {measured.n} graded match{measured.n === 1 ? "" : "es"} our picks have
+                landed <strong style={{ color: theme.text }}>{(measured.mean * 100).toFixed(1)}%</strong>
+                {" "}of the time ({(measured.lo * 100).toFixed(1)}–{(measured.hi * 100).toFixed(1)}%,
+                clustered on the match). Every rung below is priced against that rate, not
+                against a model number.
+              </div>
+            )}
+          </>
+        ) : (
+          <div>The graded record has not loaded, so nothing here has been checked against it.</div>
+        )}
+      </div>
+
+      {ladder.map((rung) => {
+        const perLeg = measured ? measured.mean : null;
+        // EV at the rate actually measured, with same-match correlation applied
+        // where the rung shares a fixture. Arithmetic on a measurement.
+        const atMeasured = perLeg === null ? null
+          : parlayProbability(rung, () => perLeg);
+        const evAtMeasured = parlayExpectedValue(atMeasured, rung.multiplier);
+        const shortfall = perLeg !== null && rung.breakEven !== null
+          ? rung.breakEven - perLeg : null;
+        return (
+          <div key={rung.size}
+               style={{ background: theme.graphite, border: `1px solid ${theme.steel}`,
+                        ...cardShape(theme.cornerStyle), ...elevation(), marginBottom: 10,
+                        padding: "14px 16px" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline",
+                          gap: 10, marginBottom: 10 }}>
+              <span style={{ color: theme.text, fontWeight: 700, fontSize: 14 }}>
+                {rung.size} legs
+              </span>
+              <span style={{ color: theme.textDim, fontSize: 12 }}>
+                {rung.multiplier ? `pays ${rung.multiplier}x` : "no multiplier on file"}
+              </span>
+              {rung.breakEven !== null && (
+                <span style={{ color: theme.textDim, fontSize: 12 }}>
+                  · needs <strong style={{ color: theme.text }}>
+                    {(rung.breakEven * 100).toFixed(1)}%
+                  </strong> a leg
+                </span>
+              )}
+              {shortfall !== null && (
+                <span style={{ fontSize: 12,
+                               color: shortfall > 0 ? theme.bad : theme.good }}>
+                  · {shortfall > 0
+                      ? `${(shortfall * 100).toFixed(1)} points short of that`
+                      : `${(-shortfall * 100).toFixed(1)} points clear of that`}
+                </span>
+              )}
+            </div>
+
+            <div style={{ fontSize: 12, color: theme.textDim, marginBottom: 8 }}>
+              {rung.sharesAMatch
+                ? `${rung.matches} fixture(s) for ${rung.size} legs — some legs share a match, `
+                  + `so they are correlated and priced that way`
+                : `${rung.matches} different fixtures, so the legs are independent`}
+            </div>
+
+            <div style={{ display: "grid", gap: 4, marginBottom: 10 }}>
+              {rung.legs.map((leg, i) => (
+                <div key={i} style={{ display: "flex", flexWrap: "wrap", gap: 8,
+                                      fontSize: 12, color: theme.textDim }}>
+                  <span style={{ color: theme.text, minWidth: 110 }}>{leg.name}</span>
+                  <span>{leg.team} vs {leg.opponent}</span>
+                  <span>{STAT_TYPES[leg.statType].label} maps 1-{leg.maps}</span>
+                  <span>
+                    line {leg.prop.line} · we say {leg.projection.toFixed(1)}
+                    {" "}<strong style={{ color: theme.text }}>
+                      {leg.projection > leg.prop.line ? "OVER" : "UNDER"}
+                    </strong>
+                  </span>
+                  <span style={{ color: theme.textFaint }}>
+                    {Math.abs(standardisedEdge(leg)).toFixed(2)} error-widths
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ borderTop: `1px solid ${theme.steel}`, paddingTop: 8,
+                          fontSize: 12, color: theme.textDim }}>
+              {validated ? (
+                <span>Our chance: shown once wired to per-leg probabilities.</span>
+              ) : (
+                <span>Our chance of this landing: <strong>withheld</strong> — the ranking has
+                  not been shown to separate, so a number here would be a label with nothing
+                  behind it.</span>
+              )}
+              {atMeasured !== null && (
+                <div style={{ marginTop: 4 }}>
+                  At the {(perLeg * 100).toFixed(1)}% we have actually measured, this rung lands{" "}
+                  <strong style={{ color: theme.text }}>{(atMeasured * 100).toFixed(1)}%</strong>
+                  {" "}of the time and returns{" "}
+                  <strong style={{ color: evAtMeasured >= 0 ? theme.good : theme.bad }}>
+                    {evAtMeasured >= 0 ? "+" : ""}{(evAtMeasured * 100).toFixed(0)}%
+                  </strong>
+                  {" "}per unit staked.
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+
+      <div style={{ fontSize: 11.5, color: theme.textFaint, lineHeight: 1.6, marginTop: 4 }}>
+        Multipliers are the published PrizePicks Power Play defaults and are not read from
+        any feed — they move, and they differ by entry type and jurisdiction. Check them
+        against your own board; the break-even beside each one recomputes from whatever is
+        in force. Same-match legs are priced with the correlation measured from this app's
+        own graded record (two legs on one match land the same way 55.2% of the time against
+        50.0% across matches), not as independent bets.
+      </div>
+    </div>
+  );
+}
+
 function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
   const theme = useTheme();
   const cfg = STAT_TYPES[statType];
@@ -5935,7 +6549,10 @@ function TopNav({ theme, gameCfg, game, region, setRegion, tab, setTab, statType
   // is actually posting instead of offering four tabs equally when two
   // of them lead nowhere.
   const propsData = useProps();
-  const TABS = [["future", "Future"], ["edges", "Edges"], ["record", "Record"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
+  // Parlays sits next to Edges because it is the same board read a different
+  // way: Edges ranks single lines, Parlays stacks them. It is cross-game, so
+  // the region and stat selectors above do not apply to it.
+  const TABS = [["future", "Future"], ["edges", "Edges"], ["parlays", "Parlays"], ["record", "Record"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
   return (
     <div style={{ marginBottom: isDesktop ? 22 : 14 }}>
       {/* Region picker. Seven regions wrapped onto two rows on a phone,
@@ -6579,6 +7196,9 @@ function KillProjector() {
             ) : tab === "edges" ? (
               <EdgesTab regionsData={regionsData} regionList={gameCfg.regionList} regionLabels={gameCfg.regionLabels}
                         weights={weights} statType={statType} game={game} isDesktop={isDesktop} />
+            ) : tab === "parlays" ? (
+              <ParlaysTab dataByGame={dataByGame} propsData={propsData}
+                          weightsByGameAndStat={weightsByGameAndStat} isDesktop={isDesktop} />
             ) : tab === "record" ? (
               <RecordTab regionsData={regionsData} regionList={gameCfg.regionList}
                          weights={weights} statType={statType} isDesktop={isDesktop} />

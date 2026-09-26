@@ -41,7 +41,8 @@ const EXPORTS = [
   "EvidenceChip", "evidenceTier", "windowSections", "projectionOverWindow",
   "DataStatus", "oldestRegion", "recordVsLine", "calibration", "clusteredMean",
   "rankingIsInformative", "pointInTimeCS2CareerRate", "offeredStats", "postedLineCounts",
-  "withBoardFixtures",
+  "withBoardFixtures", "ParlaysTab", "buildParlays", "parlayEvidence",
+  "jointHitProbability", "standardisedEdge", "residualScale", "breakEvenPerLeg",
 ];
 const available = EXPORTS.filter((name) =>
   new RegExp(`(function|const)\\s+${name}\\b`).test(body));
@@ -1357,6 +1358,122 @@ if (app.EvidenceChip) {
     pass++;
   } catch (err) {
     fail++; console.error(`FAIL  a borrowed chip does not show a map count\n        ${err.message}`);
+  }
+}
+
+/* ---------- The parlay ladder ----------------------------------------------
+ *
+ * Mounted for the reason every other case here is: a throw inside JSX unmounts
+ * the whole tree, so the page goes blank rather than one number going missing.
+ * This tab reaches into more shapes than any other -- every game at once, the
+ * graded record, a payout table -- so an empty board, a board with no fixtures
+ * and a board with no games each get a mount.
+ *
+ * And the gate is asserted rather than eyeballed. A parlay view that starts
+ * printing probabilities because a helper returned undefined instead of false
+ * is the failure that costs someone money. */
+if (app.ParlaysTab && app.buildParlays && app.parlayEvidence) {
+  const opposition2 = { color: "#4488cc", players: [player("Chovy", 5)] };
+  const shared = Array.from({ length: 8 }, (_, i) => ({
+    date: `2026-0${i + 1}-01`, teamA: "T1", teamB: "GEN", maps_counted: 2,
+    actual: { T1: { Faker: { k: 20 + i, d: 2, a: 5 } },
+              GEN: { Chovy: { k: 18 + i, d: 3, a: 6 } } } }));
+  const twoTeams = {
+    R: { teams: { T1: rostered, GEN: opposition2 }, past_matches: shared,
+         upcoming_matches: [fixture("T1", "GEN")] },
+  };
+  const board = {
+    fetched_at: new Date().toISOString(), source: "test",
+    props: { lol: {
+      Faker: [{ player: "Faker", stat: "kills", maps: 2, line: 8.5,
+                odds_type: "standard", team: "T1", start_time: SOON_ISO }],
+      Chovy: [{ player: "Chovy", stat: "kills", maps: 2, line: 7.5,
+                odds_type: "standard", team: "GEN", start_time: SOON_ISO }] } },
+  };
+  const parlays = (data, props) => wrap(React.createElement(app.ParlaysTab, {
+    dataByGame: data, propsData: props,
+    weightsByGameAndStat: { lol: { kills: weights, deaths: weights, assists: weights } },
+    isDesktop: true,
+  }), props);
+
+  renders("parlays with a board to build from", parlays({ lol: twoTeams }, board));
+  renders("parlays with no board at all", parlays({ lol: twoTeams }, null));
+  renders("parlays with a board and no fixtures",
+          parlays({ lol: { R: { ...twoTeams.R, upcoming_matches: [] } } }, board));
+  renders("parlays with no data for any game", parlays({}, board));
+  containsText("and says so when there is no board",
+               parlays({ lol: twoTeams }, null), "nothing to build");
+
+  try {
+    const one = app.parlayEvidence([
+      { result: "over", edge: 3, won: true, game: "cs2", statType: "kills", maps: 2,
+        team: "A", opponent: "B", date: "2026-09-01" }]);
+    if (one.validated !== false) {
+      throw new Error(`one graded row validated the ranking: ${JSON.stringify(one)}`);
+    }
+    if (typeof one.validated !== "boolean") {
+      throw new Error("validated is not a boolean, so a falsy check could let it through");
+    }
+    if (!/floor/.test(one.reason)) throw new Error(`the refusal does not say why: ${one.reason}`);
+
+    // Ordered but not separated: both bands at the same rate, across enough
+    // matches to pass the floor. This must STILL refuse.
+    const flat = [];
+    for (let i = 0; i < 120; i++) {
+      flat.push({ result: "over", edge: i % 2 ? 6 : 0.5, won: i % 4 === 0,
+                  game: "cs2", statType: "kills", maps: 2,
+                  team: `A${i}`, opponent: `B${i}`, date: `2026-09-${(i % 28) + 1}` });
+    }
+    const even = app.parlayEvidence(flat);
+    if (even.validated !== false) {
+      throw new Error(`two bands at one rate validated: ${JSON.stringify(even)}`);
+    }
+    // And a record that DOES separate must pass, or the gate never opens.
+    const separated = [];
+    for (let i = 0; i < 120; i++) {
+      const big = i % 2 === 1;
+      separated.push({ result: "over", edge: big ? 6 : 0.5, won: big ? true : i % 5 === 0,
+                       game: "cs2", statType: "kills", maps: 2,
+                       team: `A${i}`, opponent: `B${i}`, date: `2026-09-${(i % 28) + 1}` });
+    }
+    const open = app.parlayEvidence(separated);
+    if (open.validated !== true) {
+      throw new Error(`a record that separates cleanly did not open the gate: `
+        + JSON.stringify(open));
+    }
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  the gate refuses an unvalidated record and opens on a real one`
+      + `\n        ${err.message}`);
+  }
+
+  try {
+    const rows = app.collectEdges(twoTeams, ["R"], board, weights, "kills", "lol");
+    if (!rows.length) throw new Error("no edges to build a ladder from");
+    const ladder = app.buildParlays(rows);
+    for (const rung of ladder) {
+      const names = rung.legs.map((l) => l.name);
+      if (new Set(names).size !== names.length) throw new Error(`a rung repeats a player: ${names}`);
+      if (rung.legs.length !== rung.size) {
+        throw new Error(`a ${rung.size}-leg rung carries ${rung.legs.length} legs`);
+      }
+      if (rung.breakEven !== null && !(rung.breakEven > 0 && rung.breakEven < 1)) {
+        throw new Error(`break-even of ${rung.breakEven} is not a rate`);
+      }
+    }
+    if (ladder.some((r) => r.size > rows.length)) {
+      throw new Error(`built a rung larger than the ${rows.length} line(s) available`);
+    }
+    const two = ladder.find((r) => r.size === 2);
+    if (two && (two.matches !== 1 || !two.sharesAMatch)) {
+      throw new Error(`two legs on one fixture reported ${two.matches} fixture(s), `
+        + `sharesAMatch=${two.sharesAMatch}`);
+    }
+    pass++;
+  } catch (err) {
+    fail++;
+    console.error(`FAIL  the ladder's construction rules hold\n        ${err.message}`);
   }
 }
 
