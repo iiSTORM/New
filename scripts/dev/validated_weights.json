@@ -1,0 +1,186 @@
+{
+  "cs2": {
+    "assists": {
+      "weights": {
+        "history": 0.0,
+        "opponent": 0.0,
+        "kp": 0.0,
+        "recencyHalfLife": 20,
+        "patchDiscount": 0.0,
+        "career": 1.0,
+        "share": 0.0,
+        "shrink": 4.0
+      },
+      "measured": "MAE 3.051 -> 2.891 after the maps_counted fix.",
+      "validated": "2026-09-26",
+      "command": "python scripts/dev/optimize_weights.py --game cs2 --validate"
+    },
+    "deaths": {
+      "weights": {
+        "history": 0.0,
+        "opponent": 0.0,
+        "kp": 0.0,
+        "recencyHalfLife": 20,
+        "patchDiscount": 0.0,
+        "career": 1.0,
+        "share": 0.4,
+        "shrink": 3.0
+      },
+      "measured": "MAE 5.455 -> 4.714 after the maps_counted fix. shrink 6 -> 3 reversed once career was on, for the reason above.",
+      "validated": "2026-09-26",
+      "command": "python scripts/dev/optimize_weights.py --game cs2 --validate"
+    },
+    "headshots": {
+      "weights": {
+        "history": 0.0,
+        "opponent": 0.0,
+        "kp": 0.0,
+        "recencyHalfLife": 20,
+        "patchDiscount": 0.0,
+        "career": 0.8,
+        "share": 0.0,
+        "shrink": 3.0
+      },
+      "measured": "MAE 4.441 -> 3.943. career 0.8: the tier had been locked out entirely by `g[statKey] || 0`, so an earlier '+149.84% for career 1.0' was an artifact of the lockout, not a measurement. Worth +2.80% when off, measured after the fix, against a career-games migration that has plateaued at 88% coverage.",
+      "validated": "2026-09-26",
+      "command": "python scripts/dev/optimize_weights.py --game cs2 --validate"
+    },
+    "kills": {
+      "weights": {
+        "history": 0.0,
+        "opponent": 0.0,
+        "kp": 0.5,
+        "recencyHalfLife": 6,
+        "patchDiscount": 0.0,
+        "career": 1.0,
+        "share": 0.2,
+        "shrink": 8.0
+      },
+      "measured": "Re-derived after the maps_counted bug was fixed (the window defaulted to 2 in ~15 places and CS2 never wrote it): MAE 6.819 -> 6.192. career 1.0 and shrink 8.0 were measured together -- shrink was +9.85% with career off and +0.60% with it on, which is why the whole set is recorded and not the single weight.",
+      "validated": "2026-09-26",
+      "command": "python scripts/dev/optimize_weights.py --game cs2 --validate"
+    }
+  },
+  "lol": {
+    "assists": {
+      "weights": {
+        "history": 0.8,
+        "opponent": 0.4,
+        "kp": 0.0,
+        "recencyHalfLife": 8,
+        "patchDiscount": 0.0,
+        "career": 0.6,
+        "share": 0.0,
+        "shrink": 0.0
+      },
+      "measured": "Same shared set: -0.64% (5/6 folds), 7/7 regions.",
+      "validated": "2026-09-22",
+      "command": "python scripts/dev/optimize_weights.py --game lol --validate"
+    },
+    "deaths": {
+      "weights": {
+        "history": 0.8,
+        "opponent": 0.4,
+        "kp": 0.0,
+        "recencyHalfLife": 8,
+        "patchDiscount": 0.0,
+        "career": 0.6,
+        "share": 0.0,
+        "shrink": 0.0
+      },
+      "measured": "Same shared set: -1.00% (5/6 folds), 5/7 regions.",
+      "validated": "2026-09-22",
+      "command": "python scripts/dev/optimize_weights.py --game lol --validate"
+    },
+    "headshots": {
+      "weights": {
+        "history": 0.0,
+        "opponent": 0.0,
+        "kp": 0.0,
+        "recencyHalfLife": 20,
+        "patchDiscount": 0.0,
+        "career": 0.0,
+        "share": 0.0,
+        "shrink": 0.0
+      },
+      "measured": "Unreachable: STAT_TYPES.headshots is CS2-only. Present so the per-game lookup never returns undefined, so there is nothing to validate.",
+      "unreachable": true
+    },
+    "kills": {
+      "weights": {
+        "history": 0.8,
+        "opponent": 0.4,
+        "kp": 0.0,
+        "recencyHalfLife": 8,
+        "patchDiscount": 0.0,
+        "career": 0.6,
+        "share": 0.0,
+        "shrink": 0.0
+      },
+      "measured": "One shared set across all three stats, out-of-sample over 6 walk-forward folds: -0.40% (4/6 folds), and 6/7 regions. Holds on the earliest quarter of the season, which no fold selection touched.",
+      "validated": "2026-09-22",
+      "command": "python scripts/dev/optimize_weights.py --game lol --validate"
+    }
+  },
+  "valorant": {
+    "assists": {
+      "weights": {
+        "history": 0.3,
+        "opponent": 0.0,
+        "kp": 0.0,
+        "recencyHalfLife": 6,
+        "patchDiscount": 1.0,
+        "career": 0.0,
+        "share": 0.5,
+        "shrink": 4.0
+      },
+      "measured": "share 0.5 worth -1.60% over 6 folds (5/6).",
+      "validated": "2026-09-23",
+      "command": "python scripts/dev/optimize_weights.py --game valorant --validate"
+    },
+    "deaths": {
+      "weights": {
+        "history": 0.7,
+        "opponent": 0.0,
+        "kp": 0.0,
+        "recencyHalfLife": 6,
+        "patchDiscount": 0.3,
+        "career": 0.0,
+        "share": 0.7,
+        "shrink": 0.0
+      },
+      "measured": "share 0.7 worth -4.10% over 6 folds (6/6), and moves calibration from 0.996x to 1.000x.",
+      "validated": "2026-09-23",
+      "command": "python scripts/dev/optimize_weights.py --game valorant --validate"
+    },
+    "headshots": {
+      "weights": {
+        "history": 0.0,
+        "opponent": 0.0,
+        "kp": 0.0,
+        "recencyHalfLife": 20,
+        "patchDiscount": 0.0,
+        "career": 0.0,
+        "share": 0.0,
+        "shrink": 0.0
+      },
+      "measured": "Unreachable: STAT_TYPES.headshots is CS2-only. Nothing to validate.",
+      "unreachable": true
+    },
+    "kills": {
+      "weights": {
+        "history": 0.7,
+        "opponent": 0.0,
+        "kp": 0.0,
+        "recencyHalfLife": 8,
+        "patchDiscount": 0.0,
+        "career": 0.0,
+        "share": 0.4,
+        "shrink": 4.0
+      },
+      "measured": "share 0.4 worth -1.41% over 6 folds (5/6). Re-measured after kp was found structurally inert for this game (scrape_valorant wrote a literal 0), so the previously shipped kp 0.3 had been fitted around a dead parameter.",
+      "validated": "2026-09-23",
+      "command": "python scripts/dev/optimize_weights.py --game valorant --validate"
+    }
+  }
+}

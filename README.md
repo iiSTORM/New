@@ -444,6 +444,37 @@ harmful than stale career data.
 
 Every job then runs `infer_fixtures.py` as its last step before validation.
 
+### Why a weight is the weight it is
+
+A weight measured against one tier configuration is invalidated when another
+tier changes underneath it. CS2's `shrink` was worth +9.85% with the career
+tier off and +0.60% with it on — the same number meaning two different things.
+The same shape appeared twice more: a `+149.84%` for `career 1.0` on headshots
+that turned out to be an artifact of that tier being locked out entirely by
+`g[statKey] || 0`, and a Valorant `kp` weight fitted around a parameter the
+scraper wrote as a literal `0` for every player.
+
+`src/app.jsx` explains all of that in prose, and nothing can check prose. So
+`scripts/dev/validated_weights.json` records, per game and stat, the **full
+weight set** as it stood when it was last validated, with what the measurement
+bought and the command that reproduces it. `tests/test_weight_provenance.py`
+fails while the shipped weights differ from a recorded set, naming the weight —
+which forces a re-run or a revert rather than a quiet edit. Recording the set
+rather than a per-weight list of companions is the point: "which other weights
+were in force" is exactly "all of them", and a set either was measured together
+or was not.
+
+```bash
+python scripts/dev/record_validated_weights.py --check   # what has drifted
+python scripts/dev/record_validated_weights.py --game cs2 --stat kills \
+    --note "what the measurement bought, and over how many folds"
+```
+
+The recorder reads the live weights out of `src/app.jsx` and never invents a
+measurement, which is why `--note` is required. Three copies of the weights
+have to agree: `src/app.jsx`, `SHIPPED_WEIGHTS` in `optimize_weights.py` (the
+Python port's hand-mirrored table) and this record.
+
 ### Team names across two sources
 
 gol.gg and the LoL Esports API spell the same team differently in two ways,
