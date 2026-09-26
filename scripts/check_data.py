@@ -28,9 +28,13 @@ printed as warnings and do not fail the run.
 """
 import argparse
 import json
+import os
 import subprocess
 import sys
 from datetime import datetime, timezone
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import team_aliases
 
 # The primary output of each scrape job. These are the files the frontend
 # actually fetches, so they are the ones worth failing a run over. The
@@ -174,6 +178,34 @@ def check_career_merged(game, current, baseline, max_drop_pct, errors):
             f"otherwise run with the career tier pointed at nothing"
         )
 
+def report_team_aliases(data):
+    """Names a team holding two entries. A warning, not an error.
+
+    CS2 has this fixed at the source -- scrape_cs2.py folds the spellings
+    before writing -- so anything printed here is either a shape the rule
+    refuses on purpose (a rebrand, an abbreviation) or the same problem
+    appearing in a game that has no fold step. gol.gg and vlr.gg were clean
+    when this was added, and nothing would have said so if they stopped
+    being: a split team does not fail anything, it just projects off half its
+    history.
+    """
+    found = []
+    for region_key, region in (data.get("regions") or {}).items():
+        groups = team_aliases.alias_groups(region.get("teams") or {},
+                                          region.get("past_matches") or ())
+        for canonical, aliases in sorted(groups.items()):
+            found.append(f"{region_key}: {canonical} <- {', '.join(aliases)}")
+    if not found:
+        print("  team names   : no duplicate spellings")
+        return
+    print(f"  team names   : WARNING {len(found)} team(s) hold two entries, so each "
+          f"projects off part of its history:")
+    for line in found[:10]:
+        print(f"                 {line}")
+    if len(found) > 10:
+        print(f"                 ... (+{len(found) - 10} more)")
+
+
 def counts(data):
     """Total teams, players and past matches across every region."""
     teams = players = past = upcoming = 0
@@ -302,6 +334,7 @@ def main():
 
     now = counts(current)
     print("  contents     : " + ", ".join(f"{v} {k}" for k, v in now.items()))
+    report_team_aliases(current)
 
     check_aux_files(args.game, args.max_drop_pct, args.baseline_ref, errors)
 

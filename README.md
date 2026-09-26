@@ -20,6 +20,7 @@ index.html                     GENERATED — do not edit by hand
 .github/workflows/tests.yml    pytest + the index.html staleness check
 scripts/                       production scrapers — run by the workflow
 scripts/check_data.py          pre-commit validation of a scraped file
+scripts/team_aliases.py        folds duplicate team spellings into one team
 scripts/infer_fixtures.py      adds fixtures the posted board implies
 scripts/dev/                   investigation tooling — never run by the workflow
 tests/                         unit tests (no network, stdlib only)
@@ -442,6 +443,34 @@ output), so one of them has to be a run stale. A stale roster is much less
 harmful than stale career data.
 
 Every job then runs `infer_fixtures.py` as its last step before validation.
+
+### One team, one name
+
+bo3.gg does not spell a team the same way twice, and `cs2_data.json`
+accumulates across runs, so the committed file had reached 22 teams holding
+two entries each — about one CS2 team in eight — with their match history
+divided between them. `The Huns` had six matches and `The Huns Esports` two,
+same six players. Rosters, history pools, league rates and standings are all
+keyed by team *name*, so a split team projects off half its games.
+
+The scraper had been reporting this for a while as a `[debug]` line and then
+writing both spellings anyway. `scrape_cs2.py` now folds them before writing,
+using `team_aliases.py`, which treats two entries as one team only when their
+names reduce to the same key (case, accents, punctuation, a leading `Team` or
+a trailing `Esports`/`Gaming` are spelling, not identity) **and** their
+rosters actually overlap. Requiring both is what stops a normalisation
+collision between two different orgs from pooling their histories.
+
+It therefore leaves alone the things it can also see but cannot judge:
+`BBL`/`Echo` and `A Great Chaos`/`FAFO` (rebrands), `MARKandLARRY`/
+`MARKnLARRY` and `NemNemesis`/`Nemesis` (typos), `5STR`/`5star` and
+`NT`/`Nice Try` (abbreviations), `Orgless`/`Orgless (Aus)` (possibly a real
+distinction), and `WBT Academy_2NMK3fBkP7gb7JK1` (an id leaking into a team
+name, which needs its own fix). Those stay in the report.
+
+`check_data.py` prints any team holding two entries, for every game, as a
+warning. gol.gg and vlr.gg were clean when this was written, and nothing
+would have said so if they stopped being.
 
 ### Fixtures inferred from the board
 

@@ -37,6 +37,7 @@ the way LoL has Spring/Summer — "hist" is left null for every player
 rather than forcing a fake historical window.
 """
 import asyncio
+import collections
 import json
 import os
 import sys
@@ -51,6 +52,7 @@ from cs2api import CS2
 # score_props imports nothing but the standard library.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from score_props import window_is_covered
+from team_aliases import reconcile
 
 BO3_BASE = "https://api.bo3.gg/api/v1"
 HEADERS = {
@@ -1222,6 +1224,27 @@ async def main():
         payload = await build_region_payload(cs2, session)
 
     merge_cs2_career_data(payload)
+
+    # One team, one name. bo3.gg spells a team differently across its own
+    # endpoints and across runs -- this script already reported that as a
+    # [debug] line above and then wrote both spellings anyway, so the
+    # committed file had accumulated 22 teams holding two entries each with
+    # their match history divided between them. Every projection reads history
+    # by team NAME, so a split team projects off half its games. Run here, on
+    # the merged payload, so it heals what is already in the file as well as
+    # what this run added. See team_aliases.py for why the rule refuses the
+    # rebrands and abbreviations it can also see.
+    renames, alias_counts = reconcile(payload)
+    if renames:
+        folded = collections.defaultdict(list)
+        for old_name, new_name in sorted(renames.items()):
+            folded[new_name].append(old_name)
+        print(f"\nFolded {len(renames)} duplicate team spelling(s) into "
+              f"{len(folded)} team(s):")
+        for new_name, olds in sorted(folded.items()):
+            print(f"  {new_name} <- {', '.join(olds)}")
+        print(f"  ({alias_counts['players_moved']} player(s) moved, "
+              f"{alias_counts['fields_rewritten']} match field(s) rewritten)")
 
     # refreshed_at mirrors generated_at here, and that is the true
     # answer rather than a shortcut: this scraper has no partial-outage
