@@ -323,8 +323,18 @@ for (const [game, file] of Object.entries({ valorant: "valorant_data.json", cs2:
         W.cs2.headshots.career, 0.8);
   check("and every CS2 stat is career-backed",
         [W.cs2.kills.career, W.cs2.deaths.career, W.cs2.assists.career].every((v) => v === 1.0), true);
-  check("CS2 shrinks every career-backed stat hard, since its roster is full of thin histories",
-        [W.cs2.kills.shrink, W.cs2.deaths.shrink, W.cs2.assists.shrink], [8, 3, 4]);
+  /* KILLS CAME DOWN FROM 8, and not because MAE asked it to.
+     k=8 sat against a median of six prior series per player, so 8/(6+8) =
+     57% of every kills projection was the league average, and the model's
+     between-player spread was 0.47 of the spread that exists. On 616 graded
+     lines across 71 matches it projected over on 37% of a 52/48 market. Every
+     k from 2 to 12 won 6/6 folds when shrink was first adopted -- the note
+     below already calls it a plateau -- so 8 was the top of a flat region and
+     4 costs +0.01% MAE. See tests/test_model_spread.py for the floor that now
+     holds this, and scripts/dev/spread_check.py for the measurement MAE
+     cannot make. */
+  check("CS2 still shrinks its career-backed stats, but not past half the projection",
+        [W.cs2.kills.shrink, W.cs2.deaths.shrink, W.cs2.assists.shrink], [4, 3, 4]);
   /* And then came back DOWN to 3 -- the value it started at -- once
      headshots got a career tier. Not a reversal of the measurement; a
      reversal of what the measurement was measuring.

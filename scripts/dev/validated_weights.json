@@ -54,9 +54,9 @@
         "patchDiscount": 0.0,
         "career": 1.0,
         "share": 0.2,
-        "shrink": 8.0
+        "shrink": 4.0
       },
-      "measured": "Re-derived after the maps_counted bug was fixed (the window defaulted to 2 in ~15 places and CS2 never wrote it): MAE 6.819 -> 6.192. career 1.0 and shrink 8.0 were measured together -- shrink was +9.85% with career off and +0.60% with it on, which is why the whole set is recorded and not the single weight.",
+      "measured": "shrink lowered 8 -> 4 for SPREAD, not MAE. Every k from 2 to 12 won 6/6 folds when shrink was first adopted, so 8 came off the top of a plateau; k=4 measures 4/6 folds at +0.01% MAE, i.e. nothing traded. What it buys: sd(projection)/sd(player long-run means) 0.47 -> 0.61 over 5692 point-in-time rows, and on 616 graded lines across 71 matches the model's projections go from sitting above the line on 37% of a 52/48 market to 42%. k=0 reaches ratio 1.00 exactly but costs +2.72% MAE at 0/6 folds and was not taken. recencyHalfLife swept alongside and moves neither ratio nor pick balance at 6, 10, 14 or 20.",
       "validated": "2026-09-26",
       "command": "python scripts/dev/optimize_weights.py --game cs2 --validate"
     }

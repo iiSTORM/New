@@ -2992,7 +2992,49 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // A share weight for kills came out of the same sweep at 4/6 and was
     // REJECTED: 1/4 at four folds and 4/8 at eight, which is fold-
     // boundary luck rather than signal.
-    kills: { history: 0.0, opponent: 0.0, kp: 0.5, recencyHalfLife: 6, patchDiscount: 0.0, career: 1.0, share: 0.2, shrink: 8.0 },
+    // SHRINK LOWERED 8 -> 4, and the reason is not MAE.
+    //
+    // The note above already says every k from 2 to 12 won 6/6 folds -- "a
+    // plateau rather than a point" -- so 8 was picked from the top of a flat
+    // region. What nobody measured is what sitting up there costs, because
+    // MAE cannot see it: pulling a projection toward the league mean always
+    // lowers absolute error when the signal is noisy. That is what shrinkage
+    // is FOR. So a search that only minimises MAE will happily flatten the
+    // model until it barely distinguishes players, and report an improvement
+    // the whole way.
+    //
+    // It had. Measured per map over 5,692 point-in-time rows:
+    //
+    //   sd(projection)                    0.906
+    //   sd(each player's own long-run mean)  1.914   <- the spread that exists
+    //   ratio                              0.47
+    //
+    // CS2 has about 5.4 series per team on record, so priorGames sits near 6,
+    // and k=8 pulls 8/(6+8) = 57% of every projection to the league average.
+    // More than half the number was the league, not the player.
+    //
+    // That is fatal for this app's actual job. Ranking props is ENTIRELY a
+    // question of between-player spread: with none, the projection is a
+    // constant, the "edge" is just the line's own deviation from average, and
+    // ranking by edge ranks the market's information rather than ours. On 616
+    // graded CS2 kills lines across 71 matches the market split 52/48 over,
+    // and this model projected OVER on 37% of them -- a fifteen-point
+    // directional bias, on the stat that is 47% of the market.
+    //
+    //   k=4: 4/6 folds, MAE +0.01% (nothing), ratio 0.47 -> 0.61,
+    //        projects over 37% -> 42%, picks right 51% -> 52%
+    //   k=2: ratio 0.73 but only 3/6 folds, which fails the majority rule
+    //   k=0: ratio 1.00 exactly, and 0/6 folds at +2.72% -- a real trade,
+    //        not taken here, and recorded in scripts/dev/spread_check.py
+    //
+    // recencyHalfLife was swept alongside it and moves neither the ratio nor
+    // the pick balance (0.61 and 42% at 6, 10, 14 and 20), so this is one
+    // weight's problem and not the pair's.
+    //
+    // scripts/dev/spread_check.py measures all three numbers together and
+    // tests/test_model_spread.py holds every stat with a posted market to a
+    // floor, so the next MAE-driven sweep cannot quietly flatten it again.
+    kills: { history: 0.0, opponent: 0.0, kp: 0.5, recencyHalfLife: 6, patchDiscount: 0.0, career: 1.0, share: 0.2, shrink: 4.0 },
     // deaths' share weight is UNDER REVIEW rather than settled. It was
     // adopted at -3.97% on 795 rows winning 4/6 folds; on the 911 rows
     // there are now, removing it measures -2.74%, which would make it
