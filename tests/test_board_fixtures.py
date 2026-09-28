@@ -34,6 +34,24 @@ def region(teams, upcoming=()):
     }
 
 
+def live_stamp(hours):
+    """A timestamp relative to the REAL clock, not to NOW.
+
+    infer_fixtures.main() reads the system clock, so a fixture pinned to NOW is
+    fresh on the day NOW names and stale for ever after: these tests passed on
+    2026-09-26 and began failing on the 28th, with the board 59.8 hours old and
+    every slot in the past. Anything that goes through main() has to be built
+    against the same clock main() uses.
+    """
+    return (datetime.now(timezone.utc) + timedelta(hours=hours)).isoformat()
+
+
+def live_board(rows, game="lol"):
+    payload = board(rows, game=game)
+    payload["fetched_at"] = datetime.now(timezone.utc).isoformat()
+    return payload
+
+
 def board(rows, fetched_at=None, game="lol"):
     by_player = {}
     for row in rows:
@@ -490,6 +508,7 @@ class TestIdempotence:
             pytest.skip("no props.json committed")
         props = json.loads(props_path.read_text())
         captured = bf.parse_stamp(props.get("fetched_at")) or NOW
+        proved = []
         # Judged from when the board was captured, so a board that has since
         # gone past MAX_BOARD_AGE_DAYS does not turn this into a no-op that
         # passes by doing nothing.
@@ -510,8 +529,18 @@ class TestIdempotence:
             assert not second.get("filled") and not second.get("added"), \
                 f"{game}: a second pass changed {dict(second)}"
             assert before == after, f"{game}: a second pass rewrote the fixture list"
-            assert first.get("added") or first.get("filled") or first.get("already_covered"), \
-                f"{game}: the first pass did nothing, so this proved nothing"
+            if first.get("added") or first.get("filled") or first.get("already_covered"):
+                proved.append(game)
+            else:
+                # A league with nothing posted is ordinary -- LoL had an empty
+                # board on 2026-09-28 -- so it cannot be a failure. It is only
+                # a failure if NO game had anything, because then the loop above
+                # compared two no-ops and proved nothing at all.
+                waiting = sum(len(v) for v in slots.values())
+                assert not waiting, f"{game}: {waiting} slot(s) but no action taken"
+        if not proved:
+            pytest.skip("no game has a live board right now, so idempotence over "
+                        "the real files is untested — the synthetic case covers it")
 
 
 class TestAugmentRegionsHousekeeping:
@@ -626,7 +655,8 @@ class TestMain:
     def test_dry_run_leaves_the_file_alone(self, tmp_path, monkeypatch, capsys):
         data = {"regions": {"TCL": region({"SU Esports": ["Zeitnot"]})}}
         (tmp_path / "data.json").write_text(json.dumps(data))
-        props = board([row("Zeitnot", "SU Esports", stamp(3), region_name="TCL")])
+        props = live_board([row("Zeitnot", "SU Esports", live_stamp(3),
+                                region_name="TCL")])
         (tmp_path / "props.json").write_text(json.dumps(props))
         monkeypatch.chdir(tmp_path)
         assert infer_fixtures.main(["lol", "--dry-run"]) == 0
@@ -636,7 +666,8 @@ class TestMain:
     def test_writes_the_file_when_not_a_dry_run(self, tmp_path, monkeypatch):
         data = {"regions": {"TCL": region({"SU Esports": ["Zeitnot"]})}}
         (tmp_path / "data.json").write_text(json.dumps(data))
-        props = board([row("Zeitnot", "SU Esports", stamp(3), region_name="TCL")])
+        props = live_board([row("Zeitnot", "SU Esports", live_stamp(3),
+                                region_name="TCL")])
         (tmp_path / "props.json").write_text(json.dumps(props))
         monkeypatch.chdir(tmp_path)
         assert infer_fixtures.main(["lol"]) == 0
