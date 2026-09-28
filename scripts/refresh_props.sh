@@ -32,8 +32,8 @@
 #   - a failed fetch leaves the existing props.json alone rather than
 #     replacing good lines with nothing;
 #   - overlapping runs are impossible, so a slow run cannot race the next.
-#
-#   ./scripts/refresh_props.sh            # fetch, commit and push if changed
+#./scripts/refresh_props.sh
+#               # fetch, commit and push if changed
 #   ./scripts/refresh_props.sh --dry-run  # fetch and report, change nothing
 set -euo pipefail
 
