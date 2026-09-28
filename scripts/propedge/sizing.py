@@ -17,6 +17,14 @@ match share the game's pace, and that raises the variance of the joint
 outcome. That is the parlay builder's problem (phase 3), it makes this
 function's estimate optimistic, and `independent=True` on the result is there
 so nothing downstream can forget it.
+
+Against reference/kelly.py, which solves the same problem: that one takes GROSS
+return multiples (3.0 means $1 comes back as $3) and this one takes NET
+(+2.0 for the same slip), so a table moved between them needs r -> r - 1. Its
+`kelly_joint` optimises several slips at once, which is strictly better than
+this module's per-slip solve minus the night's remaining budget; that belongs
+with the builder in phase 3, and the caps here are the conservative version of
+the same constraint.
 """
 import itertools
 import math
@@ -169,16 +177,26 @@ def recommend(outcomes, bankroll_cents, staked_tonight_cents=0, stress_width=0.0
                        "nightly budget is left")
 
     if stake < min_stake_cents:
-        # The minimum entry is a floor from PrizePicks, not from Kelly. Taking
-        # it means overbetting, so it is only allowed while it still sits
-        # inside the per-slip cap and the night's remaining room.
-        if min_stake_cents <= slip_cap and min_stake_cents <= night_room:
+        # The $1 minimum is PrizePicks' floor, not Kelly's, so taking it
+        # overbets. How far is allowed to matter: staking more than FULL Kelly
+        # turns expected log growth down, and more than twice full Kelly turns
+        # it negative. reference/kelly.py draws the line at full Kelly (it
+        # skips when the half-Kelly stake is under half the minimum, which is
+        # the same test), and that is the line kept here.
+        full_kelly_cents = int(bankroll_cents * fraction)
+        if (min_stake_cents <= full_kelly_cents and min_stake_cents <= slip_cap
+                and min_stake_cents <= night_room):
             reasons.append(f"Kelly wanted {stake} cents, under the $1 minimum "
-                           "entry, so $1 it is — slightly more than Kelly asks")
+                           f"entry, so $1 it is — more than half Kelly asks but "
+                           f"still inside full Kelly ({full_kelly_cents} cents)")
             return Stake(min_stake_cents, True, fraction, applied, expected,
                          "minimum entry", reasons=tuple(reasons), outcomes=outcomes)
-        reasons.append(f"the $1 minimum entry is more than the caps allow on a "
-                       f"{bankroll_cents}-cent bankroll — skip this one")
+        why = ("more than full Kelly" if min_stake_cents > full_kelly_cents
+               else "more than the caps allow")
+        reasons.append(f"the $1 minimum entry is {why} on a "
+                       f"{bankroll_cents}-cent bankroll (full Kelly is "
+                       f"{full_kelly_cents} cents) — skip this one rather than "
+                       "overbet it")
         return Stake(0, False, fraction, applied, expected, "below minimum",
                      reasons=tuple(reasons), outcomes=outcomes)
 

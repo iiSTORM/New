@@ -62,3 +62,16 @@ request_counts.txt
 # drop location (a codespace browser downloads to a different machine),
 # so these must never be committable.
 prizepicks-payload.json
+
+# PropEdge: the bankroll and bet history. The store lives at $PROPEDGE_DATA,
+# or ~/.propedge/store.json — outside any checkout, so normally there is
+# nothing here to ignore. These patterns are the second layer: propedge/store.py
+# refuses to write inside a git work tree at all (see its PrivacyError), and
+# these catch a file put here by hand anyway. This repo is public and serves
+# its data files off raw.githubusercontent.com; a bet history committed here
+# is published.
+propedge_store*.json
+bets.json
+bankroll.json
+seed_*.py
+private/

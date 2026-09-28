@@ -143,12 +143,33 @@ def test_no_edge_means_no_bet():
     assert (got.bet, got.stake_cents, got.binding) == (False, 0, "no edge")
 
 
-def test_a_thin_edge_on_a_small_bankroll_takes_the_minimum_and_says_so():
-    """The $1 floor is PrizePicks', not Kelly's, so taking it is overbetting."""
+def test_the_minimum_is_taken_when_it_still_fits_inside_full_kelly():
+    """$1 is PrizePicks' floor, not Kelly's, so taking it overbets half Kelly.
+
+    That is allowed up to FULL Kelly, past which expected log growth turns
+    down. Here half Kelly wants 88 cents and full Kelly 176, so $1 is fine.
+    """
+    got = recommend(outcome_table([(0.65, 0.0), (0.65, 0.0)], "power", "3"), 1319)
+    assert (got.stake_cents, got.bet, got.binding) == (100, True, "minimum entry")
+    assert any("still inside full Kelly" in r for r in got.reasons)
+
+
+def test_a_thin_edge_on_a_small_bankroll_is_skipped_not_overbet():
+    """The rule reference/kelly.py settled on: rather than stake $1 when Kelly
+    wants 8 cents, do not play. A 12x overbet of Kelly loses money in the long
+    run even on a genuine edge."""
     thin = outcome_table([(0.58, 0.02), (0.57, 0.0)], "power", "3")
     got = recommend(thin, 1319)
-    assert (got.stake_cents, got.bet, got.binding) == (100, True, "minimum entry")
-    assert any("slightly more than Kelly asks" in r for r in got.reasons)
+    assert (got.stake_cents, got.bet, got.binding) == (0, False, "below minimum")
+    assert any("more than full Kelly" in r for r in got.reasons)
+
+
+def test_the_full_kelly_line_is_where_the_minimum_starts_being_allowed():
+    """On a $13.19 bankroll the $1 minimum needs full Kelly >= 7.58%."""
+    below = recommend(outcome_table([(0.60, 0.0), (0.60, 0.0)], "power", "3"), 1319)
+    above = recommend(outcome_table([(0.65, 0.0), (0.65, 0.0)], "power", "3"), 1319)
+    assert below.kelly_fraction < 100 / 1319 < above.kelly_fraction
+    assert (below.bet, above.bet) == (False, True)
 
 
 def test_the_minimum_is_refused_when_it_breaks_the_per_slip_cap():
@@ -156,6 +177,7 @@ def test_the_minimum_is_refused_when_it_breaks_the_per_slip_cap():
     got = recommend(good_slip(), 500)
     assert (got.bet, got.stake_cents) == (False, 0)
     assert got.binding == "below minimum"
+    assert any("more than the caps allow" in r for r in got.reasons)
 
 
 def test_the_stake_shrinks_with_the_bankroll():
@@ -171,3 +193,49 @@ def test_the_independence_caveat_is_carried_on_the_result():
 
 def test_the_minimum_is_the_prizepicks_minimum():
     assert MIN_STAKE_CENTS == 100
+
+
+# ------------------------------------------- agreement with the prototype
+
+def test_the_reference_examples_own_slip_solves_by_hand():
+    """reference/kelly.py's worked example, converted gross -> net.
+
+    [(0.39, 3.0), (0.25, 1.0), (0.36, 0.0)] gross is the same slip as
+    [(0.39, +2), (0.25, 0), (0.36, -1)] net, and the optimum is exact:
+
+        0.78/(1 + 2f) = 0.36/(1 - f)  ->  0.42 = 1.5f  ->  f = 0.28
+
+    A refund 25% of the time is worth 8 points of bankroll here against the
+    same slip with that mass moved to the loss -- which is the reason the
+    outcome table is enumerated rather than collapsed to a hit rate.
+    """
+    table = [Outcome(0.39, 2.0, "win"), Outcome(0.25, 0.0, "refund"),
+             Outcome(0.36, -1.0, "loss")]
+    assert kelly_fraction(table) == pytest.approx(0.28, abs=1e-6)
+    no_refund = [Outcome(0.39, 2.0, "win"), Outcome(0.61, -1.0, "loss")]
+    assert kelly_fraction(no_refund) == pytest.approx(0.085, abs=1e-6)
+
+
+def test_the_solver_agrees_with_the_reference_implementation():
+    """Same answer as reference/kelly.py, which solves it with scipy.
+
+    Skipped where numpy and scipy are not installed -- they are not test
+    dependencies of this repo, and this module deliberately has none.
+    """
+    pytest.importorskip("numpy")
+    pytest.importorskip("scipy")
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "reference"))
+    import kelly as reference
+
+    gross_tables = [
+        [(0.39, 3.0), (0.25, 1.0), (0.36, 0.0)],
+        [(0.60, 2.0), (0.40, 0.0)],
+        [(0.3306, 3.0), (0.02, 1.0), (0.6494, 0.0)],
+        [(0.20, 6.0), (0.05, 1.0), (0.75, 0.0)],
+    ]
+    for gross in gross_tables:
+        mine = kelly_fraction([Outcome(p, r - 1) for p, r in gross])
+        theirs = reference.kelly(gross, fraction=1.0, cap=1.0)
+        assert mine == pytest.approx(theirs, abs=2e-3), gross

@@ -23,6 +23,9 @@ scripts/check_data.py          pre-commit validation of a scraped file
 scripts/team_aliases.py        folds duplicate team spellings into one team
 scripts/infer_fixtures.py      adds fixtures the posted board implies
 scripts/dev/                   investigation tooling — never run by the workflow
+scripts/propedge/              slips, bankroll and stakes — PRIVATE data, see below
+scripts/propedge_cli.py        entry point for it
+reference/                     prototypes built in chat, to be ported — not run
 tests/                         unit tests (no network, stdlib only)
 playoffs_and_international_roadmap.md  design notes
 ```
@@ -826,6 +829,88 @@ steps (schedule, career, champion stats) and the CS2 career step remain
 `continue-on-error`, because the model handles those being stale by design —
 when one of them fails the run still goes green, but a `::warning::`
 annotation is attached to it rather than the failure passing unnoticed.
+
+## PropEdge — slips, bankroll and stakes
+
+`scripts/propedge/` is the private side of the project: a log of slips placed by
+hand on PrizePicks, a bankroll ledger, and a stake calculator. It places no
+bets, talks to no betting API and scrapes no logged-in page. Phase 1 of the
+build plan is here; the phone form, the analytics and the slip builder are not.
+
+**The bets are not in this repo, and cannot be.** This repo is public and serves
+its data files straight off `raw.githubusercontent.com`. The store lives at
+`$PROPEDGE_DATA`, defaulting to `~/.propedge/store.json` — outside any
+checkout. `propedge/store.py` refuses to write anywhere inside a git work tree
+unless `PROPEDGE_ALLOW_REPO_PATH=1` says the checkout is private, and
+`.gitignore` catches the obvious filenames as a second layer. The guard's first
+version had a hole (it checked a path's parents but not the path itself, so a
+store written to the repo ROOT looked clean); the test for that case is in
+`tests/test_propedge_store.py`.
+
+```
+python scripts/propedge_cli.py deposit 19.19 --note "starting bankroll"
+python scripts/propedge_cli.py place --mode power --stake 1 --multiplier 3 \
+    --leg "sport=cs2 player=fuzenko team=regain stat=headshots line=15.5 side=over maps=2" \
+    --leg "sport=cs2 player=djay team=LAG stat=headshots line=15 side=under maps=2"
+python scripts/propedge_cli.py autograde          # esports legs, from props_results.json
+python scripts/propedge_cli.py grade <slip> --player Raymond --actual 3
+python scripts/propedge_cli.py settle <slip> --payout 6.00
+python scripts/propedge_cli.py size --prob 0.62 --prob 0.60,0.03 --multiplier 3
+python scripts/propedge_cli.py balance
+```
+
+### What the rules module actually enforces
+
+| | |
+| --- | --- |
+| two teams | a slip needs players from ≥ 2 teams; in tennis each player IS their own team |
+| one prop per player | the same name in two sports is two players |
+| push | a **whole-number** line landing exactly removes the leg and the slip shrinks: a 3-pick pays as a 2-pick |
+| refund | a slip shrunk to one leg is refunded, whatever that leg did |
+| DNP | removed, never a loss |
+| paid once | the ledger refuses a second stake or a second payout on the same slip |
+
+A shrunk slip is the case with no printed multiplier anywhere — a 3-pick that
+becomes a 2-pick never showed a 2-pick price — so the payout is taken off the
+table, marked `estimated`, and replaced by the real number the moment it is
+known (`settle --payout`). Where they disagree the settlement says so.
+
+### The payout table, and a number that needs settling
+
+`propedge/payouts.py` defaults to power **2-pick 3x, 3-pick 6x**, 4-pick 10x,
+5-pick 20x, 6-pick 37.5x, with configurable flex tables. **`src/app.jsx`'s
+`PAYOUT_MULTIPLIERS` says 3-pick 5x for the same thing.** PrizePicks has run
+both; 6x is what a real slip showed on 2026-09-28, which is why the tracker
+defaults to it. Two different numbers for one multiplier in one repo is a bug
+waiting to be believed — the public app's break-even figures come off its
+table. Pick one.
+
+### Stakes
+
+Fractional Kelly on the slip's **whole outcome table**, not on a hit rate. Each
+leg is won / pushed / lost and every combination is enumerated (at most 3⁶ =
+729) and priced through the same payout table that settles the slip, so the
+sizing and the settlement cannot disagree about what a shrunk slip pays.
+Refunds matter to Kelly: they cut the downside without touching the upside, so
+a chance of a push makes a slip worth *more*, and a two-outcome approximation
+cannot see it.
+
+Half Kelly by default, quarter when a leg's stress range is wide, capped at 10%
+of the bankroll per slip and 25% per night, recomputed from the current balance
+every time. The night is a **local** calendar day, not a UTC one: 9pm Eastern is
+already tomorrow in UTC, and a UTC day would split one evening across two caps
+and hand the late slips a fresh budget.
+
+The $1 minimum entry is PrizePicks' floor, not Kelly's, so taking it overbets.
+It is allowed only while it stays inside **full** Kelly, past which expected log
+growth turns down — the rule `reference/kelly.py` arrived at. On a small
+bankroll this is the constraint that bites: at $13.19 a 2-pick needs a full
+Kelly fraction above 7.6% before $1 is even playable, and the honest answer to
+most slips is no bet.
+
+Legs are priced as independent, which they are not — two legs on one match share
+its pace. That makes every number here optimistic, `Stake.independent` carries
+the caveat, and the joint pricing belongs with the builder.
 
 ## Running locally
 
