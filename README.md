@@ -1249,10 +1249,49 @@ Where it stands, clustered on the match:
 | cs2 headshots | 727 | 3.75 | 3.63 | +0.11 | −0.01 to +0.23 |
 | valorant kills | 136 | 6.08 | 5.67 | **+0.45** | +0.09 to +0.81 |
 
-**Behind in every cell**, significantly so in two. It is close — 2–7% — and the
-single-map cells are nearly level (+0.01, +0.02), with the gap concentrated in
-the two-map windows. That is a closable target, not a dead end, and it is the
-precondition for calling anything an edge.
+**Behind in every cell**, significantly so in two.
+
+### Can that gap be closed? Four tests say no, with this data
+
+`python scripts/dev/can_we_beat_the_line.py`
+
+The obvious response to being 0.20 behind is to improve the model. That script
+is the investigation of whether that is possible at all here, kept in the repo
+because the answer is a negative and a negative that lives only in a chat log
+gets re-litigated every few weeks.
+
+1. **Blend** the model with the line at every weight. **Zero weight on the model
+   is optimal in all three cells** — any amount makes it worse.
+2. **Regress** the actual on the line and the model together, which lets the
+   model be rescaled and re-centred first. Model coefficient **−0.06 (t −0.47)**
+   for CS2 kills, +0.09 (t +0.58) headshots, −0.53 (t −1.81) Valorant. Nothing,
+   and negative twice. The line's own coefficient is **1.014, t +7.94**.
+3. **Raw features**, because a bad function can destroy a good signal — recent
+   form at three and ten series, kills per round, team and opponent scoring,
+   team and opponent pace, share, history length. Three looked significant in
+   sample (opponent pace t +3.28, opponent scoring t +2.88, history t −3.57) and
+   **none survived walk-forward**. Even "line + opponent pace" scored 5.40
+   against the line's 5.37 out of sample.
+4. **Per-map features** from `per_game`, which carries per-map player lines for
+   570 of 877 matches and which the shipped model has never read. **Nothing, in
+   sample or out** — no feature reached t 1.96.
+
+So this market is efficient with respect to every piece of information in this
+repository. The gap is not closable by better modelling of this data.
+
+**What would actually close it** — none of it here today, cheapest first:
+
+- **Map odds.** vlr.gg and HLTV publish per-map odds on pages the scrapers
+  already visit. Round count is 25% of kills variance and is *unpredictable*
+  from team form (correlation −0.10); odds are the market's own forecast of
+  exactly that.
+- **Map pool and veto.** Kills per round differ by map and the veto is known
+  beforehand. This dataset has no map names at all.
+- **Roster changes and stand-ins** — the biggest shock to a player's share, and
+  `actual` cannot tell a stand-in from a regular.
+- **Role.** An AWPer and an entry fragger have different kill distributions and
+  nothing here records which is which.
+- **Rest and travel**, LAN against online, tournament stage.
 
 ### Why the weights are now searched against outcomes
 

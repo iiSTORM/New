@@ -67,3 +67,34 @@ def test_the_real_tables_are_shaped_as_expected():
                 assert int(window) > 0 and float(value) > 0
     table = jsconfig.obj("PAYOUT_MULTIPLIERS")
     assert table["2"] == 3 and table["3"] == 6
+
+
+def test_the_research_scripts_import_and_answer():
+    """beat_the_line and can_we_beat_the_line are the two numbers this project
+    should be judged by, so they have to keep running as the data grows.
+
+    Only that they import and expose their entry points -- running them takes
+    minutes and needs the full data files, which is a job for a person and not
+    for every test run.
+    """
+    import importlib
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts" / "dev"))
+    for name in ("beat_the_line", "can_we_beat_the_line", "search_weights_by_outcome"):
+        module = importlib.import_module(name)
+        assert callable(module.main), name
+    ols = importlib.import_module("can_we_beat_the_line").ols
+    # y = 3 + 2x exactly: the coefficients must come back, or every t in that
+    # script is meaningless.
+    beta, errors = ols([5.0, 7.0, 9.0, 11.0], [[1.0, 2.0, 3.0, 4.0]])
+    assert beta is not None
+    assert abs(beta[0] - 3.0) < 1e-6 and abs(beta[1] - 2.0) < 1e-6
+
+
+def test_the_regression_refuses_a_singular_design():
+    import importlib
+    ols = importlib.import_module("can_we_beat_the_line").ols
+    beta, _ = ols([1.0, 2.0, 3.0], [[1.0, 1.0, 1.0]])   # constant column
+    assert beta is None
