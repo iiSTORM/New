@@ -91,12 +91,27 @@ def main():
         if present:
             accepted.append(name)
 
-    # Everything a match record carries with no expansion at all: a field
-    # that is already there needs no `with=` and no second request.
-    code, rows = fetch("finished", [], limit=1)
-    if rows:
-        print(f"\nbare match record, {len(rows[0])} keys:")
+    # Everything a match record carries with no expansion at all. Run 3
+    # found bet_updates HERE, on the bare record -- which is also why
+    # `with=bet_updates` answers 422: it is a field, not a relation, and
+    # scrape_cs2.py has been receiving it on every call and ignoring it.
+    for status in ("finished", "upcoming"):
+        code, rows = fetch(status, [], limit=10)
+        if not rows:
+            print(f"\nbare {status} record: nothing came back")
+            continue
+        print(f"\nbare {status} record, {len(rows[0])} keys:")
         print("  " + ", ".join(sorted(rows[0])))
+        present = sum(1 for r in rows if r.get("bet_updates") not in (None, [], {}))
+        print(f"  bet_updates present on {present}/{len(rows)}")
+        sample = next((r["bet_updates"] for r in rows if r.get("bet_updates")), None)
+        print(shape(sample))
+        # One full value as well as the sketch: odds are numbers whose
+        # MEANING (decimal, American, implied) cannot be read off a type.
+        print("  raw: " + json.dumps(sample, default=str)[:900])
+        for field in ("bo_type", "stars", "status", "start_date"):
+            print(f"  {field}: "
+                  + ", ".join(json.dumps(r.get(field), default=str) for r in rows[:5]))
 
     for name in accepted:
         if name in KNOWN_GOOD:
