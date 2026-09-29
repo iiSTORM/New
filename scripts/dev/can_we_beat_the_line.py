@@ -812,8 +812,12 @@ def main(argv=None):
 #     provider never says "stand-in". Every churn feature was insignificant,
 #     and walk-forward all of them together were worse than the line alone.
 #   * REST AND TRAVEL. RULED OUT for rest, test 5: days since the last match
-#     reached t +1.46 and lost out of sample. LAN against online is still
-#     unmeasured -- no event field is scraped for either game.
+#     reached t +1.46 and lost out of sample. LAN against online is NOT
+#     AVAILABLE, which is a different answer from untested: bo3.gg's whole
+#     tournament object is seven fields (id, name, slug, image_url, prize,
+#     status, tier_rank) and none of them says where a match is played, and
+#     vlr.gg's header carries a countdown rather than a venue. Nothing short
+#     of a different provider closes this one.
 #   * MAP POOL AND VETO. NOW COLLECTED for Valorant, not yet testable, and
 #     bounded in a way that matters: vlr.gg publishes the whole veto with map
 #     names and pick order, but only AFTER it happens, minutes before the
@@ -823,7 +827,13 @@ def main(argv=None):
 #     opening share are what separates an entry fragger from an AWPer and all
 #     three were insignificant.
 #   * TOURNAMENT STAGE. NOW COLLECTED for Valorant ("Group Stage: Opening (A)")
-#     and untested.
+#     and untested. NOT AVAILABLE for CS2 for the same reason as the venue.
+#     What bo3.gg does carry and nothing reads is the tournament's PRIZE POOL,
+#     which is a stakes proxy rather than a stage -- and a close cousin of
+#     tier_rank, which the line already knows about.
+#   * MAP POOL for CS2. NOT AVAILABLE either. `with=match_maps` is accepted by
+#     the API and came back empty on every row tried, so the CS2 half of the
+#     veto question cannot be answered from this provider at all.
 #
 # What is left is thin, and that is the finding. Six of seven tests are in,
 # five of them negative, and the one still open is the only one that was ever

@@ -1332,8 +1332,18 @@ hundred. It is not answered yet.
 - **Map pool and veto** — now collected for Valorant, and bounded: the veto is
   published only *after* it happens, minutes before the first map. Backtestable,
   not projectable, so it is a way to understand the residual rather than a
-  feature.
-- **Tournament stage** — now collected for Valorant, untested.
+  feature. **Not available for CS2 at all** — bo3.gg accepts `with=match_maps`
+  and returns it empty on every row.
+- **Tournament stage** — now collected for Valorant, untested. **Not available
+  for CS2.**
+- **LAN against online** — **not available for either game**, which is a
+  different answer from untested. bo3.gg's entire tournament object is seven
+  fields (`id`, `name`, `slug`, `image_url`, `prize`, `status`, `tier_rank`)
+  and none of them says where a match is played; vlr.gg's header carries a
+  countdown, not a venue. Nothing short of a different provider closes it.
+
+That is the whole list. Five items answered by measurement, one collected and
+waiting on data, three closed off as unreachable from the providers in use.
 
 ### Why the weights are now searched against outcomes
 
