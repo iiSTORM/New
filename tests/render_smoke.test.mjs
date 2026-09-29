@@ -42,6 +42,7 @@ const EXPORTS = [
   "DataStatus", "oldestRegion", "recordVsLine", "calibration", "clusteredMean",
   "rankingIsInformative", "pointInTimeCS2CareerRate", "offeredStats", "postedLineCounts",
   "withBoardFixtures", "ParlaysTab", "buildParlays", "parlayEvidence",
+  "ProjectionsTab",
   "jointHitProbability", "standardisedEdge", "residualScale", "breakEvenPerLeg",
   "payoutTableFrom", "payoutTableIsDefault", "PAYOUT_MULTIPLIERS", "legIsStandardPriced",
   "oddsTypeOf", "oddsFactorsFrom", "rungMultiplier", "ODDS_TYPE_FACTORS",
@@ -1375,6 +1376,22 @@ if (app.EvidenceChip) {
  * And the gate is asserted rather than eyeballed. A parlay view that starts
  * printing probabilities because a helper returned undefined instead of false
  * is the failure that costs someone money. */
+if (app.ProjectionsTab) {
+  /* The Projections tab fetches its own data, so here it renders its loading
+     state and then its empty state when the fetch fails. Both are real branches
+     and a throw in either blanks the whole page, which is what this suite is
+     for. Worth mounting for a second reason: the tab was first written against
+     theme tokens that do not exist -- dim, panel and border rather than
+     textDim, graphite and steel -- and rendered perfectly while looking wrong,
+     because an undefined colour is not an error. */
+  renders("projections while loading", wrap(React.createElement(app.ProjectionsTab, {
+    isDesktop: true,
+  })));
+  renders("projections on a phone", wrap(React.createElement(app.ProjectionsTab, {
+    isDesktop: false,
+  })));
+}
+
 if (app.ParlaysTab && app.buildParlays && app.parlayEvidence) {
   const opposition2 = { color: "#4488cc", players: [player("Chovy", 5)] };
   const shared = Array.from({ length: 8 }, (_, i) => ({

@@ -67,6 +67,20 @@ jobs:
         # is gone from the only routes that are actually in use.
         run: python scripts/scrape_props.py
 
+      # The model's own projections for whatever was just posted, so the app
+      # has something to show. continue-on-error because a projection failure
+      # must never cost us the board itself: props.json is the scarce thing
+      # here (it can only be captured from a logged-in browser), and
+      # model_projections.json can be regenerated from it at any time.
+      - name: Project the board
+        id: projections
+        run: python scripts/publish_projections.py
+        continue-on-error: true
+
+      - name: Say so if the projections did not run
+        if: steps.projections.outcome == 'failure'
+        run: echo "::warning::publish_projections.py failed; the board was still committed and the Projections tab will show the previous run's file"
+
       - name: Commit props.json
         run: |
           git config user.name "esports-data-bot"
@@ -76,6 +90,7 @@ jobs:
             exit 0
           fi
           git add props.json
+          [ -f model_projections.json ] && git add model_projections.json
           if git diff --quiet --cached; then
             echo "Lines unchanged since the last run"
             exit 0
@@ -89,10 +104,13 @@ jobs:
             git push && exit 0
             echo "Push rejected ($i/3) — resetting to latest remote and reapplying..."
             cp props.json /tmp/props.json.new
+            [ -f model_projections.json ] && cp model_projections.json /tmp/model_projections.json.new
             git fetch origin main
             git reset --hard origin/main
             cp /tmp/props.json.new props.json
+            [ -f /tmp/model_projections.json.new ] && cp /tmp/model_projections.json.new model_projections.json
             git add props.json
+            [ -f model_projections.json ] && git add model_projections.json
             if git diff --quiet --cached; then
               echo "Remote already has this snapshot"
               exit 0

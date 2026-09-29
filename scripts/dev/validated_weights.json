@@ -38,17 +38,17 @@
         "recencyHalfLife": 20,
         "patchDiscount": 0.0,
         "career": 0.8,
-        "share": 0.0,
+        "share": 0.3,
         "shrink": 3.0
       },
-      "measured": "MAE 4.441 -> 3.943. career 0.8: the tier had been locked out entirely by `g[statKey] || 0`, so an earlier '+149.84% for career 1.0' was an artifact of the lockout, not a measurement. Worth +2.80% when off, measured after the fix, against a career-games migration that has plateaued at 88% coverage.",
-      "validated": "2026-09-26",
-      "command": "python scripts/dev/optimize_weights.py --game cs2 --validate"
+      "measured": "share 0.0 -> 0.3, chosen by scripts/dev/search_weights_by_outcome.py against outcomes over 727 graded props, 3 folds, fold majority. Held-out log-loss 0.7312 -> 0.7228, picks land 44.1% -> 47.2%, prediction MAE 3.75 -> 3.71. Team share is real information about how many headshots a player gets; the MAE search zeroed it for the same spread-versus-error reason it zeroed opponent on kills.",
+      "validated": "2026-09-29",
+      "command": "python scripts/dev/search_weights_by_outcome.py --game cs2 --stat headshots"
     },
     "kills": {
       "weights": {
         "history": 0.0,
-        "opponent": 0.0,
+        "opponent": 0.2,
         "kp": 0.5,
         "recencyHalfLife": 6,
         "patchDiscount": 0.0,
@@ -56,9 +56,9 @@
         "share": 0.2,
         "shrink": 4.0
       },
-      "measured": "shrink lowered 8 -> 4 for SPREAD, not MAE. Every k from 2 to 12 won 6/6 folds when shrink was first adopted, so 8 came off the top of a plateau; k=4 measures 4/6 folds at +0.01% MAE, i.e. nothing traded. What it buys: sd(projection)/sd(player long-run means) 0.47 -> 0.61 over 5692 point-in-time rows, and on 616 graded lines across 71 matches the model's projections go from sitting above the line on 37% of a 52/48 market to 42%. k=0 reaches ratio 1.00 exactly but costs +2.72% MAE at 0/6 folds and was not taken. recencyHalfLife swept alongside and moves neither ratio nor pick balance at 6, 10, 14 or 20.",
-      "validated": "2026-09-26",
-      "command": "python scripts/dev/optimize_weights.py --game cs2 --validate"
+      "measured": "opponent 0.0 -> 0.2, chosen by scripts/dev/search_weights_by_outcome.py against OUTCOMES rather than MAE: 3 chronological folds, point-in-time replay of 836 graded props, adopted on fold majority. Held-out log-loss 0.7243 -> 0.7208 and prediction MAE 5.34 -> 5.30, so it improves both objectives. The MAE search had pinned opponent at 0.0 because an opponent adjustment spreads projections apart, which costs absolute error while helping ranking. shrink 4 -> 12 was also found and NOT taken: it cuts the between-player spread the floor test protects, and over-confidence belongs in the residual scale.",
+      "validated": "2026-09-29",
+      "command": "python scripts/dev/search_weights_by_outcome.py --game cs2 --stat kills"
     }
   },
   "lol": {

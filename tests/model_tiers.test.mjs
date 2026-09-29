@@ -520,8 +520,17 @@ for (const [game, file] of Object.entries({ valorant: "valorant_data.json", cs2:
   const W = app.DEFAULT_WEIGHTS_BY_GAME_AND_STAT;
   check("every game carries a headshots entry, so the lookup never returns undefined",
         ["lol", "valorant", "cs2"].every((g) => typeof W[g].headshots === "object"), true);
-  check("headshots carries no share weight in any game — the knockout calls it inert",
-        [W.lol.headshots.share, W.valorant.headshots.share, W.cs2.headshots.share], [0, 0, 0]);
+  // CS2 headshots carried share 0 until the weights were searched against
+  // OUTCOMES rather than absolute error, which chose 0.3: over 727 graded props
+  // across three folds it moved picks from 44.1% to 47.2% and cut prediction
+  // error 3.75 -> 3.71. The MAE knockout had called it inert for the same
+  // reason it zeroed `opponent` on kills -- team share spreads projections
+  // apart, and spread costs absolute error while it is the whole of ranking.
+  // LoL and Valorant headshots are unreachable entries (headshots is CS2-only)
+  // and stay at zero.
+  check("headshots share is live on CS2 only; the other two are unreachable stubs",
+        [W.lol.headshots.share, W.valorant.headshots.share, W.cs2.headshots.share],
+        [0, 0, 0.3]);
   check("CS2 is the only game with a non-zero headshots parameter at all",
         [W.lol.headshots.shrink, W.valorant.headshots.shrink, W.cs2.headshots.shrink], [0, 0, 3.0]);
 }

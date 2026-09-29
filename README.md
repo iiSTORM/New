@@ -1227,6 +1227,92 @@ Each player is their own team, which the slip rules already knew: a slip on both
 players of one match is legal on PrizePicks **and** is two legs on one fixture,
 so it gets the same-match correlation automatically.
 
+### Is the model any good? The only benchmark that matters
+
+`python scripts/dev/beat_the_line.py`
+
+Not "does it make money" and not "do its confident picks land" — both can look
+fine for the wrong reason. Just: **whose number lands closer to what the player
+actually did, ours or the book's?**
+
+A model that cannot beat the line as a *predictor* has no information the market
+lacks. Every edge it reports is then one of two things: noise, or the market's
+own systematic bias reflected back. The second is real money and it is also not
+a projection of anything — it is the observation that this book posts esports
+lines high, which needs no model and says nothing about the player.
+
+Where it stands, clustered on the match:
+
+| cell | n | model | line | gap | 95% on the gap |
+| --- | --- | --- | --- | --- | --- |
+| cs2 kills | 836 | 5.34 | 5.15 | **+0.20** | +0.07 to +0.33 |
+| cs2 headshots | 727 | 3.75 | 3.63 | +0.11 | −0.01 to +0.23 |
+| valorant kills | 136 | 6.08 | 5.67 | **+0.45** | +0.09 to +0.81 |
+
+**Behind in every cell**, significantly so in two. It is close — 2–7% — and the
+single-map cells are nearly level (+0.01, +0.02), with the gap concentrated in
+the two-map windows. That is a closable target, not a dead end, and it is the
+precondition for calling anything an edge.
+
+### Why the weights are now searched against outcomes
+
+`scripts/dev/search_weights_by_outcome.py` replaces MAE as the objective with
+**log-loss on what actually happened** — which is the same objective as the
+staking, since minimising log-loss is maximising expected log growth, and that
+is what Kelly maximises.
+
+MAE was actively choosing a worse model. Pulling a projection toward the league
+mean always lowers absolute error when the signal is noisy; that is what
+shrinkage is for. But ranking props is *entirely* a question of between-player
+spread. Look at what the MAE search had chosen: `opponent: 0.0` on every CS2 and
+Valorant stat. The model did not know who you were playing, because knowing
+spreads projections apart and spread costs absolute error.
+
+Searched against outcomes instead — 3 chronological folds, point-in-time replay,
+adopted on fold majority — two changes earn their place, and both improve
+*prediction accuracy as well as* picks:
+
+- **cs2 kills `opponent` 0.0 → 0.2**: log-loss 0.7243 → 0.7208, MAE 5.34 → 5.30
+- **cs2 headshots `share` 0.0 → 0.3**: log-loss 0.7312 → 0.7228, picks 44.1% →
+  47.2%, MAE 3.75 → 3.71
+
+Two the search also found and were **not** taken: raising `shrink` (it buys
+log-loss by cutting the spread the floor test protects — over-confidence belongs
+in the residual scale, not in flattening the model), and the Valorant changes
+(136 props across 8 matches is too thin to retune on).
+
+### Two things measured and reported as dead ends
+
+**Round count.** Kills scale with rounds played, and rounds explain **25%** of
+kills variance — a large, unused signal. But rounds are *not predictable*: from
+both teams' prior form the correlation is −0.10, and predicting from team form
+is **worse** than predicting the league mean (MAE 5.79 against 4.81). So that
+quarter of the variance is irreducible noise, which is a substantial part of why
+there is no edge to find.
+
+**Per-cell bias correction.** The model runs high, so correcting its level looks
+attractive. On Valorant it lifts picks from 39% to 63% — and log-loss gets
+*worse*, and the bottom fifth (80.6%) beats the top (64.8%). Shifting every
+projection down 4.79 kills simply turns every pick into an under, which is the
+market bias wearing a different hat. Rejected.
+
+### Seeing any of it: the Projections tab
+
+Everything above ran in a Python CLI and was invisible in the app.
+`scripts/publish_projections.py` writes `model_projections.json` — projections,
+lines, disagreements and **the benchmark above, in the same file** — the props
+workflow commits it, and the app's **Projections** tab reads it like any other
+data file.
+
+The benchmark sits at the top of that tab and is not decoration. While the model
+is behind the line, a disagreement between the two is not evidence the line is
+wrong, and showing the projections without showing that would be selling an edge
+the measurement does not support.
+
+No stake, no bankroll and no bet appear in that file — the build plan allows
+model outputs to be public and those are not model outputs. They stay in the
+private store.
+
 ## Running locally
 
 ```bash

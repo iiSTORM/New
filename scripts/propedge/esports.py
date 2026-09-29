@@ -86,9 +86,19 @@ INTERNATIONAL_REGIONS = {"valorant": ("VCT Champions",)}
 #: choice can be seen to be a choice among near-ties rather than a peak.
 SHRINK_MAPS = 4.0
 #: How much of the final probability comes from the market-bias prior rather
-#: than from the projection. Measured the same way, and it is high for a reason
-#: the module docstring does not soften: the prior is what separates.
-PRIOR_WEIGHT = 0.50
+#: than from the projection. ZERO: this is a projection tool, and a number that
+#: is half "lines run high" is not a projection of anything.
+#:
+#: The backtest that chose 0.50 was answering "what scores best", and the honest
+#: reading of its answer was that the market bias was doing all the work. Baking
+#: it in made the tool better at betting and worse at its job -- every slate came
+#: out unders, and none of it was about the players. The bias has not gone away
+#: and is not hidden: it is measured, displayed against every pick as agreement
+#: or disagreement, and left for you to weigh. What it no longer does is quietly
+#: become the answer.
+#:
+#: Raise it if you want the old behaviour back; nothing else changes.
+PRIOR_WEIGHT = 0.0
 #: Graded props at which a measured under-rate is taken at half strength,
 #: shrinking it toward 50% when the sample is thin.
 PRIOR_SHRINK_N = 150.0
@@ -406,10 +416,16 @@ class EsportsModel:
         p_over, p_push, p_under, detail = priced
         side = "over" if p_over >= p_under else "under"
         p_win = p_over if side == "over" else p_under
-        scenarios = {"projection": self._unblended(detail, side, p_push),
-                     "market": self._prior_only(detail, side, p_push)}
-        if scenarios["market"] is None:
-            scenarios = {"projection": scenarios["projection"]}
+        # Both worlds are the MODEL's, stressed by its own error rather than by
+        # the market's opinion: the projection at the measured residual scale,
+        # and the same projection at a scale half again as wide. A model that
+        # only clears the bar while it is certain of its own accuracy should be
+        # ranked by the version that is not.
+        scenarios = {"projection": p_win,
+                     "wider_error": self._at_wider_scale(game, stat, maps, detail,
+                                                         line, side)}
+        if scenarios["wider_error"] is None:
+            scenarios = {"projection": p_win}
         return Projection(
             prop_id=prop_id or self.prop_id(prop), sport=game,
             player=prop.get("player"), team=prop.get("team") or "",
@@ -439,21 +455,17 @@ class EsportsModel:
                 f"{prop.get('odds_type') or 'standard'}:"
                 f"{prop.get('start_time') or ''}")
 
-    @staticmethod
-    def _unblended(detail, side, p_push):
-        """The projection's own probability, with no market prior in it."""
-        decided = 1 - p_push
-        p_under = detail.p_model
-        return p_under if side == "under" else max(0.0, decided - p_under)
+    WIDER_SCALE = 1.5
 
-    @staticmethod
-    def _prior_only(detail, side, p_push):
-        """What the market's measured bias alone says, ignoring the player."""
-        if detail.p_prior is None:
+    def _at_wider_scale(self, game, stat, maps, detail, line, side):
+        """The same projection, priced as if the model's error were half again
+        as wide. Not a different opinion -- the same one, held less tightly."""
+        split = outcome_probabilities(detail.shrunk, detail.sigma * self.WIDER_SCALE,
+                                      line)
+        if split is None:
             return None
-        decided = 1 - p_push
-        return (detail.p_prior * decided if side == "under"
-                else (1 - detail.p_prior) * decided)
+        p_over, _, p_under = split
+        return p_over if side == "over" else p_under
 
     @staticmethod
     def confidence(maps_of_evidence):
@@ -470,9 +482,20 @@ class EsportsModel:
                f"of it",
                f"the model's own error at this window is {detail.sigma:.1f}"]
         if detail.p_prior is not None:
-            out.append(f"graded record: {detail.p_prior:.0%} of these went under "
-                       f"over {detail.prior_n} props (shrunk toward 50%), "
-                       f"weighted {detail.prior_weight:.0%}")
+            # Shown AGAINST the pick rather than folded into it: the market's
+            # bias is a fact about the board worth knowing, and it is not a
+            # projection of this player.
+            leans = "under" if detail.p_prior > 0.5 else "over"
+            agrees = (leans == side)
+            out.append(
+                f"the graded record leans {leans} in this cell "
+                f"({max(detail.p_prior, 1 - detail.p_prior):.0%} over "
+                f"{detail.prior_n} props)"
+                + (" — the same way as this pick" if agrees else
+                   f" — the OPPOSITE way to this {side} pick, which is the whole "
+                   "of the disagreement you are betting on")
+                + (f", weighted {detail.prior_weight:.0%} into the number"
+                   if detail.prior_weight else ", and is not in the number"))
         return tuple(out)
 
     def project_board(self, props, as_of=None):

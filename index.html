@@ -1545,6 +1545,7 @@ try {
   const DATA_URL_CHAMPION_STATS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/champion_stats.json";
   const DATA_URL_PROPS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props.json";
   const DATA_URL_RESULTS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props_results.json";
+  const DATA_URL_PROJECTIONS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/model_projections.json";
   const PROPS_MAX_AGE_MINUTES = 90;
   const FALLBACK_TEAMS = {
     LYON: {
@@ -3368,7 +3369,7 @@ try {
     cs2: {
       kills: {
         history: 0.0,
-        opponent: 0.0,
+        opponent: 0.2,
         kp: 0.5,
         recencyHalfLife: 6,
         patchDiscount: 0.0,
@@ -3403,7 +3404,7 @@ try {
         recencyHalfLife: 20,
         patchDiscount: 0.0,
         career: 0.8,
-        share: 0.0,
+        share: 0.3,
         shrink: 3.0
       }
     }
@@ -4612,6 +4613,369 @@ try {
       threshold,
       informative: bigRate.lo > smallRate.mean
     };
+  }
+  function useModelProjections() {
+    const [payload, setPayload] = useState(undefined);
+    useEffect(() => {
+      let live = true;
+      fetch(DATA_URL_PROJECTIONS, {
+        cache: "no-store"
+      }).then(res => res.ok ? res.json() : null).then(data => {
+        if (live) setPayload(data);
+      }).catch(() => {
+        if (live) setPayload(null);
+      });
+      return () => {
+        live = false;
+      };
+    }, []);
+    return payload;
+  }
+  function ProjectionsTab({
+    isDesktop
+  }) {
+    const theme = useTheme();
+    const payload = useModelProjections();
+    const [game, setGame] = useState("all");
+    const [sort, setSort] = useState("disagreement");
+    const [minConfidence, setMinConfidence] = useState("low");
+    const rows = useMemo(() => {
+      const all = payload && payload.projections || [];
+      const rank = {
+        low: 0,
+        medium: 1,
+        high: 2
+      };
+      const kept = all.filter(r => (game === "all" || r.game === game) && rank[r.confidence] >= rank[minConfidence]);
+      const projectionOf = r => {
+        const said = (r.reasons || []).find(x => x.startsWith("projects "));
+        const found = said && said.match(/projects ([\d.]+) against a line of ([\d.]+)/);
+        return found ? {
+          projection: Number(found[1]),
+          line: Number(found[2])
+        } : null;
+      };
+      const withGap = kept.map(r => {
+        const got = projectionOf(r);
+        return {
+          ...r,
+          projection: got ? got.projection : null,
+          gap: got ? got.projection - r.line : null
+        };
+      });
+      withGap.sort((a, b) => {
+        if (sort === "confidence") return b.p_win - a.p_win;
+        if (sort === "start") return String(a.start_time).localeCompare(String(b.start_time));
+        const ga = a.gap === null ? -1 : Math.abs(a.gap);
+        const gb = b.gap === null ? -1 : Math.abs(b.gap);
+        return gb - ga;
+      });
+      return withGap;
+    }, [payload, game, sort, minConfidence]);
+    if (payload === undefined) {
+      return React.createElement("div", {
+        style: {
+          padding: 24,
+          color: theme.textDim
+        }
+      }, "Loading projections\u2026");
+    }
+    if (!payload || !(payload.projections || []).length) {
+      return React.createElement("div", {
+        style: {
+          padding: 24,
+          color: theme.textDim,
+          lineHeight: 1.6
+        }
+      }, "No projections published yet. They are written by", React.createElement("code", {
+        style: {
+          margin: "0 6px"
+        }
+      }, "scripts/publish_projections.py"), "and committed by the scrape workflow; the file appears once that has run.");
+    }
+    const benchmark = payload.benchmark || [];
+    const ahead = benchmark.filter(b => b.ahead).length;
+    const card = {
+      background: theme.graphite,
+      border: `1px solid ${theme.steel}`,
+      borderRadius: 10,
+      padding: isDesktop ? 16 : 12,
+      marginBottom: 14
+    };
+    return React.createElement("div", {
+      style: {
+        padding: isDesktop ? 16 : 10
+      }
+    }, React.createElement("div", {
+      style: card
+    }, React.createElement("div", {
+      style: {
+        fontWeight: 700,
+        marginBottom: 6
+      }
+    }, "How good is this model, really?"), React.createElement("div", {
+      style: {
+        color: theme.textDim,
+        fontSize: 13,
+        lineHeight: 1.6,
+        marginBottom: 10
+      }
+    }, "Mean error of the projection against what the player actually did, next to the same figure for the posted line, over ", payload.graded_props, " ", "graded props. A model that cannot beat the line as a predictor has no information the market lacks, so its disagreements are not edges."), benchmark.length === 0 ? React.createElement("div", {
+      style: {
+        color: theme.textDim,
+        fontSize: 13
+      }
+    }, "Not enough graded props yet to measure.") : React.createElement("table", {
+      style: {
+        width: "100%",
+        borderCollapse: "collapse",
+        fontSize: 13
+      }
+    }, React.createElement("thead", null, React.createElement("tr", {
+      style: {
+        color: theme.textDim,
+        textAlign: "left"
+      }
+    }, React.createElement("th", {
+      style: {
+        padding: "4px 6px"
+      }
+    }, "cell"), React.createElement("th", {
+      style: {
+        padding: "4px 6px",
+        textAlign: "right"
+      }
+    }, "props"), React.createElement("th", {
+      style: {
+        padding: "4px 6px",
+        textAlign: "right"
+      }
+    }, "model"), React.createElement("th", {
+      style: {
+        padding: "4px 6px",
+        textAlign: "right"
+      }
+    }, "line"), React.createElement("th", {
+      style: {
+        padding: "4px 6px",
+        textAlign: "right"
+      }
+    }, "gap"))), React.createElement("tbody", null, benchmark.map(b => React.createElement("tr", {
+      key: b.cell,
+      style: {
+        borderTop: `1px solid ${theme.steel}`
+      }
+    }, React.createElement("td", {
+      style: {
+        padding: "4px 6px"
+      }
+    }, b.cell), React.createElement("td", {
+      style: {
+        padding: "4px 6px",
+        textAlign: "right"
+      }
+    }, b.n), React.createElement("td", {
+      style: {
+        padding: "4px 6px",
+        textAlign: "right"
+      }
+    }, b.model_mae.toFixed(2)), React.createElement("td", {
+      style: {
+        padding: "4px 6px",
+        textAlign: "right"
+      }
+    }, b.line_mae.toFixed(2)), React.createElement("td", {
+      style: {
+        padding: "4px 6px",
+        textAlign: "right",
+        color: b.ahead ? theme.good : theme.bad,
+        fontWeight: 600
+      }
+    }, b.gap > 0 ? "+" : "", b.gap.toFixed(2)))))), React.createElement("div", {
+      style: {
+        marginTop: 10,
+        fontSize: 13,
+        fontWeight: 600,
+        color: ahead ? theme.good : theme.bad
+      }
+    }, ahead > 0 ? `Ahead of the line in ${ahead} of ${benchmark.length} cells.` : "Behind the line in every measured cell — treat these as projections, not as picks.")), React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 10,
+        flexWrap: "wrap",
+        marginBottom: 12
+      }
+    }, React.createElement("select", {
+      value: game,
+      onChange: e => setGame(e.target.value),
+      style: {
+        padding: 6,
+        background: theme.graphite,
+        color: theme.text,
+        border: `1px solid ${theme.steel}`,
+        borderRadius: 6
+      }
+    }, React.createElement("option", {
+      value: "all"
+    }, "every game"), GAME_LIST.map(g => React.createElement("option", {
+      key: g,
+      value: g
+    }, GAMES[g].label))), React.createElement("select", {
+      value: sort,
+      onChange: e => setSort(e.target.value),
+      style: {
+        padding: 6,
+        background: theme.graphite,
+        color: theme.text,
+        border: `1px solid ${theme.steel}`,
+        borderRadius: 6
+      }
+    }, React.createElement("option", {
+      value: "disagreement"
+    }, "biggest disagreement with the line"), React.createElement("option", {
+      value: "confidence"
+    }, "model's own confidence"), React.createElement("option", {
+      value: "start"
+    }, "soonest to lock")), React.createElement("select", {
+      value: minConfidence,
+      onChange: e => setMinConfidence(e.target.value),
+      style: {
+        padding: 6,
+        background: theme.graphite,
+        color: theme.text,
+        border: `1px solid ${theme.steel}`,
+        borderRadius: 6
+      }
+    }, React.createElement("option", {
+      value: "low"
+    }, "any amount of history"), React.createElement("option", {
+      value: "medium"
+    }, "8+ maps of history"), React.createElement("option", {
+      value: "high"
+    }, "20+ maps of history")), React.createElement("div", {
+      style: {
+        color: theme.textDim,
+        alignSelf: "center",
+        fontSize: 13
+      }
+    }, rows.length, " of ", payload.projections.length, " shown")), React.createElement("div", {
+      style: {
+        overflowX: "auto"
+      }
+    }, React.createElement("table", {
+      style: {
+        width: "100%",
+        borderCollapse: "collapse",
+        fontSize: 13
+      }
+    }, React.createElement("thead", null, React.createElement("tr", {
+      style: {
+        color: theme.textDim,
+        textAlign: "left"
+      }
+    }, React.createElement("th", {
+      style: {
+        padding: "6px 8px"
+      }
+    }, "player"), React.createElement("th", {
+      style: {
+        padding: "6px 8px"
+      }
+    }, "stat"), React.createElement("th", {
+      style: {
+        padding: "6px 8px",
+        textAlign: "right"
+      }
+    }, "line"), React.createElement("th", {
+      style: {
+        padding: "6px 8px",
+        textAlign: "right"
+      }
+    }, "projection"), React.createElement("th", {
+      style: {
+        padding: "6px 8px",
+        textAlign: "right"
+      }
+    }, "gap"), React.createElement("th", {
+      style: {
+        padding: "6px 8px"
+      }
+    }, "side"), React.createElement("th", {
+      style: {
+        padding: "6px 8px",
+        textAlign: "right"
+      }
+    }, "model says"), React.createElement("th", {
+      style: {
+        padding: "6px 8px"
+      }
+    }, "history"))), React.createElement("tbody", null, rows.slice(0, 200).map(r => React.createElement("tr", {
+      key: r.prop_id,
+      style: {
+        borderTop: `1px solid ${theme.steel}`
+      }
+    }, React.createElement("td", {
+      style: {
+        padding: "6px 8px",
+        fontWeight: 600
+      }
+    }, r.player, React.createElement("span", {
+      style: {
+        color: theme.textDim,
+        fontWeight: 400
+      }
+    }, " ", r.team), r.odds_type !== "standard" && React.createElement("span", {
+      style: {
+        color: theme.accent,
+        marginLeft: 6,
+        fontSize: 11
+      }
+    }, r.odds_type)), React.createElement("td", {
+      style: {
+        padding: "6px 8px",
+        color: theme.textDim
+      }
+    }, r.stat, " \xB7 maps 1-", r.maps), React.createElement("td", {
+      style: {
+        padding: "6px 8px",
+        textAlign: "right"
+      }
+    }, r.line), React.createElement("td", {
+      style: {
+        padding: "6px 8px",
+        textAlign: "right"
+      }
+    }, r.projection === null ? "—" : r.projection.toFixed(1)), React.createElement("td", {
+      style: {
+        padding: "6px 8px",
+        textAlign: "right",
+        fontWeight: 600
+      }
+    }, r.gap === null ? "—" : `${r.gap > 0 ? "+" : ""}${r.gap.toFixed(1)}`), React.createElement("td", {
+      style: {
+        padding: "6px 8px",
+        textTransform: "uppercase",
+        fontSize: 11,
+        letterSpacing: 0.5
+      }
+    }, r.side), React.createElement("td", {
+      style: {
+        padding: "6px 8px",
+        textAlign: "right"
+      }
+    }, (r.p_win * 100).toFixed(0), "%"), React.createElement("td", {
+      style: {
+        padding: "6px 8px",
+        color: theme.textDim
+      }
+    }, r.confidence)))))), React.createElement("div", {
+      style: {
+        color: theme.textDim,
+        fontSize: 12,
+        marginTop: 12,
+        lineHeight: 1.6
+      }
+    }, "Generated ", payload.generated_at, " from a board fetched", " ", payload.board_fetched_at, ". ", payload.caveat));
   }
   function ParlaysTab({
     dataByGame,
@@ -7589,7 +7953,7 @@ try {
     isDesktop
   }) {
     const propsData = useProps();
-    const TABS = [["future", "Future"], ["edges", "Edges"], ["parlays", "Parlays"], ["record", "Record"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
+    const TABS = [["future", "Future"], ["edges", "Edges"], ["projections", "Projections"], ["parlays", "Parlays"], ["record", "Record"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
     return React.createElement("div", {
       style: {
         marginBottom: isDesktop ? 22 : 14
@@ -8278,6 +8642,8 @@ try {
       weights: weights,
       statType: statType,
       game: game,
+      isDesktop: isDesktop
+    }) : tab === "projections" ? React.createElement(ProjectionsTab, {
       isDesktop: isDesktop
     }) : tab === "parlays" ? React.createElement(ParlaysTab, {
       dataByGame: dataByGame,

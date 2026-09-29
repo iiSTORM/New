@@ -1929,6 +1929,7 @@ const DATA_URL_CS2 = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/m
 const DATA_URL_CHAMPION_STATS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/champion_stats.json";
 const DATA_URL_PROPS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props.json";
 const DATA_URL_RESULTS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props_results.json";
+const DATA_URL_PROJECTIONS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/model_projections.json";
 
 // Lines move continuously and get pulled when news breaks, so an old one
 // can be misleading in the expensive direction — it still looks
@@ -3728,7 +3729,7 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // scripts/dev/spread_check.py measures all three numbers together and
     // tests/test_model_spread.py holds every stat with a posted market to a
     // floor, so the next MAE-driven sweep cannot quietly flatten it again.
-    kills: { history: 0.0, opponent: 0.0, kp: 0.5, recencyHalfLife: 6, patchDiscount: 0.0, career: 1.0, share: 0.2, shrink: 4.0 },
+    kills: { history: 0.0, opponent: 0.2, kp: 0.5, recencyHalfLife: 6, patchDiscount: 0.0, career: 1.0, share: 0.2, shrink: 4.0 },
     // deaths' share weight is UNDER REVIEW rather than settled. It was
     // adopted at -3.97% on 795 rows winning 4/6 folds; on the 911 rows
     // there are now, removing it measures -2.74%, which would make it
@@ -3798,7 +3799,7 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // a parameter whose removal costs nothing still ships a value fitted
     // to noise. Recency is likewise flat — 6, 12 and 20 sit within 0.3pp
     // — and pinned at the no-decay end.
-    headshots: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 0.8, share: 0.0, shrink: 3.0 },
+    headshots: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 0.8, share: 0.3, shrink: 3.0 },
   },
 };
 
@@ -4883,6 +4884,217 @@ function rankingIsInformative(rows, threshold = 2) {
    That last one is the point of shipping this now rather than later. A reader
    can see exactly what the model would have to reach before any rung is worth
    playing, and exactly how far short it currently falls. */
+function useModelProjections() {
+  const [payload, setPayload] = useState(undefined);
+  useEffect(() => {
+    let live = true;
+    fetch(DATA_URL_PROJECTIONS, { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (live) setPayload(data); })
+      .catch(() => { if (live) setPayload(null); });
+    return () => { live = false; };
+  }, []);
+  return payload;
+}
+
+/* The model's own projections for the posted board, written by
+   scripts/publish_projections.py and committed by the scrape workflow.
+
+   THE BENCHMARK SITS AT THE TOP AND IS NOT DECORATION. Every cell with enough
+   graded props says the same thing right now: the posted line predicts the
+   outcome slightly better than this model does. While that is true a
+   disagreement between the two is not evidence the line is wrong -- it is the
+   model being wrong in a direction that happens to be visible. Showing the
+   projections without showing that would be selling an edge the measurement
+   does not support, so they ship together and the losing cells are coloured
+   like losing cells.
+
+   No stake and no bankroll appear here. Those live in a private store; this
+   page is served from a public repo. */
+function ProjectionsTab({ isDesktop }) {
+  const theme = useTheme();
+  const payload = useModelProjections();
+  const [game, setGame] = useState("all");
+  const [sort, setSort] = useState("disagreement");
+  const [minConfidence, setMinConfidence] = useState("low");
+
+  const rows = useMemo(() => {
+    const all = (payload && payload.projections) || [];
+    const rank = { low: 0, medium: 1, high: 2 };
+    const kept = all.filter((r) => (game === "all" || r.game === game)
+      && rank[r.confidence] >= rank[minConfidence]);
+    const projectionOf = (r) => {
+      const said = (r.reasons || []).find((x) => x.startsWith("projects "));
+      const found = said && said.match(/projects ([\d.]+) against a line of ([\d.]+)/);
+      return found ? { projection: Number(found[1]), line: Number(found[2]) } : null;
+    };
+    const withGap = kept.map((r) => {
+      const got = projectionOf(r);
+      return { ...r, projection: got ? got.projection : null,
+               gap: got ? got.projection - r.line : null };
+    });
+    withGap.sort((a, b) => {
+      if (sort === "confidence") return b.p_win - a.p_win;
+      if (sort === "start") return String(a.start_time).localeCompare(String(b.start_time));
+      const ga = a.gap === null ? -1 : Math.abs(a.gap);
+      const gb = b.gap === null ? -1 : Math.abs(b.gap);
+      return gb - ga;
+    });
+    return withGap;
+  }, [payload, game, sort, minConfidence]);
+
+  if (payload === undefined) {
+    return <div style={{ padding: 24, color: theme.textDim }}>Loading projections…</div>;
+  }
+  if (!payload || !(payload.projections || []).length) {
+    return (
+      <div style={{ padding: 24, color: theme.textDim, lineHeight: 1.6 }}>
+        No projections published yet. They are written by
+        <code style={{ margin: "0 6px" }}>scripts/publish_projections.py</code>
+        and committed by the scrape workflow; the file appears once that has run.
+      </div>
+    );
+  }
+
+  const benchmark = payload.benchmark || [];
+  const ahead = benchmark.filter((b) => b.ahead).length;
+  const card = {
+    background: theme.graphite, border: `1px solid ${theme.steel}`,
+    borderRadius: 10, padding: isDesktop ? 16 : 12, marginBottom: 14,
+  };
+
+  return (
+    <div style={{ padding: isDesktop ? 16 : 10 }}>
+      <div style={card}>
+        <div style={{ fontWeight: 700, marginBottom: 6 }}>
+          How good is this model, really?
+        </div>
+        <div style={{ color: theme.textDim, fontSize: 13, lineHeight: 1.6, marginBottom: 10 }}>
+          Mean error of the projection against what the player actually did,
+          next to the same figure for the posted line, over {payload.graded_props}
+          {" "}graded props. A model that cannot beat the line as a predictor has
+          no information the market lacks, so its disagreements are not edges.
+        </div>
+        {benchmark.length === 0 ? (
+          <div style={{ color: theme.textDim, fontSize: 13 }}>
+            Not enough graded props yet to measure.
+          </div>
+        ) : (
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead>
+              <tr style={{ color: theme.textDim, textAlign: "left" }}>
+                <th style={{ padding: "4px 6px" }}>cell</th>
+                <th style={{ padding: "4px 6px", textAlign: "right" }}>props</th>
+                <th style={{ padding: "4px 6px", textAlign: "right" }}>model</th>
+                <th style={{ padding: "4px 6px", textAlign: "right" }}>line</th>
+                <th style={{ padding: "4px 6px", textAlign: "right" }}>gap</th>
+              </tr>
+            </thead>
+            <tbody>
+              {benchmark.map((b) => (
+                <tr key={b.cell} style={{ borderTop: `1px solid ${theme.steel}` }}>
+                  <td style={{ padding: "4px 6px" }}>{b.cell}</td>
+                  <td style={{ padding: "4px 6px", textAlign: "right" }}>{b.n}</td>
+                  <td style={{ padding: "4px 6px", textAlign: "right" }}>{b.model_mae.toFixed(2)}</td>
+                  <td style={{ padding: "4px 6px", textAlign: "right" }}>{b.line_mae.toFixed(2)}</td>
+                  <td style={{ padding: "4px 6px", textAlign: "right",
+                               color: b.ahead ? theme.good : theme.bad, fontWeight: 600 }}>
+                    {b.gap > 0 ? "+" : ""}{b.gap.toFixed(2)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        <div style={{ marginTop: 10, fontSize: 13, fontWeight: 600,
+                      color: ahead ? theme.good : theme.bad }}>
+          {ahead > 0
+            ? `Ahead of the line in ${ahead} of ${benchmark.length} cells.`
+            : "Behind the line in every measured cell — treat these as projections, not as picks."}
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
+        <select value={game} onChange={(e) => setGame(e.target.value)}
+                style={{ padding: 6, background: theme.graphite, color: theme.text,
+                         border: `1px solid ${theme.steel}`, borderRadius: 6 }}>
+          <option value="all">every game</option>
+          {GAME_LIST.map((g) => <option key={g} value={g}>{GAMES[g].label}</option>)}
+        </select>
+        <select value={sort} onChange={(e) => setSort(e.target.value)}
+                style={{ padding: 6, background: theme.graphite, color: theme.text,
+                         border: `1px solid ${theme.steel}`, borderRadius: 6 }}>
+          <option value="disagreement">biggest disagreement with the line</option>
+          <option value="confidence">model's own confidence</option>
+          <option value="start">soonest to lock</option>
+        </select>
+        <select value={minConfidence} onChange={(e) => setMinConfidence(e.target.value)}
+                style={{ padding: 6, background: theme.graphite, color: theme.text,
+                         border: `1px solid ${theme.steel}`, borderRadius: 6 }}>
+          <option value="low">any amount of history</option>
+          <option value="medium">8+ maps of history</option>
+          <option value="high">20+ maps of history</option>
+        </select>
+        <div style={{ color: theme.textDim, alignSelf: "center", fontSize: 13 }}>
+          {rows.length} of {payload.projections.length} shown
+        </div>
+      </div>
+
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <thead>
+            <tr style={{ color: theme.textDim, textAlign: "left" }}>
+              <th style={{ padding: "6px 8px" }}>player</th>
+              <th style={{ padding: "6px 8px" }}>stat</th>
+              <th style={{ padding: "6px 8px", textAlign: "right" }}>line</th>
+              <th style={{ padding: "6px 8px", textAlign: "right" }}>projection</th>
+              <th style={{ padding: "6px 8px", textAlign: "right" }}>gap</th>
+              <th style={{ padding: "6px 8px" }}>side</th>
+              <th style={{ padding: "6px 8px", textAlign: "right" }}>model says</th>
+              <th style={{ padding: "6px 8px" }}>history</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.slice(0, 200).map((r) => (
+              <tr key={r.prop_id} style={{ borderTop: `1px solid ${theme.steel}` }}>
+                <td style={{ padding: "6px 8px", fontWeight: 600 }}>
+                  {r.player}
+                  <span style={{ color: theme.textDim, fontWeight: 400 }}> {r.team}</span>
+                  {r.odds_type !== "standard" && (
+                    <span style={{ color: theme.accent, marginLeft: 6, fontSize: 11 }}>
+                      {r.odds_type}
+                    </span>
+                  )}
+                </td>
+                <td style={{ padding: "6px 8px", color: theme.textDim }}>
+                  {r.stat} · maps 1-{r.maps}
+                </td>
+                <td style={{ padding: "6px 8px", textAlign: "right" }}>{r.line}</td>
+                <td style={{ padding: "6px 8px", textAlign: "right" }}>
+                  {r.projection === null ? "—" : r.projection.toFixed(1)}
+                </td>
+                <td style={{ padding: "6px 8px", textAlign: "right", fontWeight: 600 }}>
+                  {r.gap === null ? "—" : `${r.gap > 0 ? "+" : ""}${r.gap.toFixed(1)}`}
+                </td>
+                <td style={{ padding: "6px 8px", textTransform: "uppercase",
+                             fontSize: 11, letterSpacing: 0.5 }}>{r.side}</td>
+                <td style={{ padding: "6px 8px", textAlign: "right" }}>
+                  {(r.p_win * 100).toFixed(0)}%
+                </td>
+                <td style={{ padding: "6px 8px", color: theme.textDim }}>{r.confidence}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div style={{ color: theme.textDim, fontSize: 12, marginTop: 12, lineHeight: 1.6 }}>
+        Generated {payload.generated_at} from a board fetched
+        {" "}{payload.board_fetched_at}. {payload.caveat}
+      </div>
+    </div>
+  );
+}
+
 function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) {
   const theme = useTheme();
   const results = useGradedResults();
@@ -7020,7 +7232,7 @@ function TopNav({ theme, gameCfg, game, region, setRegion, tab, setTab, statType
   // Parlays sits next to Edges because it is the same board read a different
   // way: Edges ranks single lines, Parlays stacks them. It is cross-game, so
   // the region and stat selectors above do not apply to it.
-  const TABS = [["future", "Future"], ["edges", "Edges"], ["parlays", "Parlays"], ["record", "Record"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
+  const TABS = [["future", "Future"], ["edges", "Edges"], ["projections", "Projections"], ["parlays", "Parlays"], ["record", "Record"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
   return (
     <div style={{ marginBottom: isDesktop ? 22 : 14 }}>
       {/* Region picker. Seven regions wrapped onto two rows on a phone,
@@ -7664,6 +7876,8 @@ function KillProjector() {
             ) : tab === "edges" ? (
               <EdgesTab regionsData={regionsData} regionList={gameCfg.regionList} regionLabels={gameCfg.regionLabels}
                         weights={weights} statType={statType} game={game} isDesktop={isDesktop} />
+            ) : tab === "projections" ? (
+              <ProjectionsTab isDesktop={isDesktop} />
             ) : tab === "parlays" ? (
               <ParlaysTab dataByGame={dataByGame} propsData={propsData}
                           weightsByGameAndStat={weightsByGameAndStat} isDesktop={isDesktop} />
