@@ -9,20 +9,13 @@ tournament stage. Three of them live on pages the existing scrapers
 already visit. None of them is in cs2_data.json or valorant_data.json
 today, and neither file records a map name at all.
 
-bo3.gg's /matches endpoint takes `with=` expansions. scrape_cs2.py
-already asks for teams, tournament, ai_predictions, games, streams and
-match_maps; a comment in it records that `bet_updates` was seen on 23 of
-29 upcoming matches, which is the only evidence anywhere in the repo that
-odds are reachable. That comment says nothing about the SHAPE of the
-field, which is what a scraper needs.
-
-So this prints, for a handful of real matches:
-  - every top-level key on a match record, with the type and a truncated
-    sample of each expansion asked for;
-  - whatever sits under bet_updates / match_maps / games, fully, for one
-    match, since that is the part a parser has to walk;
-  - whether a vlr.gg match page carries the odds and veto markup, tested
-    by candidate selector rather than assumed.
+Run 1 of this probe settled the Valorant half: a vlr.gg match page
+carries the odds module, the full veto line with map names and pick
+order, and the event series. It also showed bo3.gg answering 422 to a
+`with=` list containing every expansion at once, so the CS2 half is
+re-done here one expansion at a time -- scrape_cs2.py is known to use
+`teams,tournament,ai_predictions,games,streams` successfully, so at
+least one of `bet_updates` and `stage` is the name it will not take.
 
 Read-only, no logged-in pages, nothing placed. Run it from Actions
 (.github/workflows/probe.yml) -- the dev container's network policy
@@ -32,6 +25,7 @@ import json
 import re
 import sys
 import urllib.request
+from urllib.parse import urlencode
 
 BO3 = "https://api.bo3.gg/api/v1"
 VLR = "https://www.vlr.gg"
@@ -40,147 +34,154 @@ HEADERS = {
                   "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Accept": "application/json,text/html",
 }
-TRUNC = 400
+
+# Known-good from scrape_cs2.py, so a 422 on one of these would mean the
+# API changed rather than that the name is wrong.
+KNOWN_GOOD = ["teams", "tournament", "games", "match_maps", "ai_predictions",
+              "streams"]
+# The reason this probe exists.
+CANDIDATES = ["bet_updates", "bets", "odds", "stage", "tournament_stage",
+              "tournament_deep", "maps", "veto", "bans", "picks"]
 
 
 def get(url, params=None):
     if params:
-        from urllib.parse import urlencode
         url = f"{url}?{urlencode(params)}"
     req = urllib.request.Request(url, headers=HEADERS)
     try:
         with urllib.request.urlopen(req, timeout=25) as resp:
-            body = resp.read().decode("utf-8", "replace")
-            return resp.status, body
+            return resp.status, resp.read().decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        return e.code, ""
     except Exception as e:
         print(f"  ! GET {url} failed: {e}", file=sys.stderr)
         return None, ""
 
 
-def get_json(path, params=None):
-    status, body = get(f"{BO3}{path}", params)
-    if status != 200:
-        print(f"  ! {path} -> {status}")
-        return None
+def bo3_matches(status, expansions, limit=5):
+    params = {
+        "scope": "widget-matches",
+        "page[offset]": "0",
+        "page[limit]": str(limit),
+        "sort": "-start_date" if status == "finished" else "start_date",
+        "filter[matches.status][in]": status,
+    }
+    if expansions:
+        params["with"] = ",".join(expansions)
+    code, body = get(f"{BO3}/matches", params)
+    if code != 200:
+        return code, None
     try:
-        return json.loads(body)
-    except json.JSONDecodeError as e:
-        print(f"  ! {path} -> not JSON ({e})")
-        return None
-
-
-def brief(value):
-    text = json.dumps(value, default=str)
-    return text if len(text) <= TRUNC else text[:TRUNC] + f"... (+{len(text) - TRUNC} chars)"
-
-
-def describe_keys(record, label):
-    print(f"\n--- {label}: {len(record)} top-level keys ---")
-    for key in sorted(record):
-        value = record[key]
-        kind = type(value).__name__
-        if isinstance(value, list):
-            kind = f"list[{len(value)}]"
-        elif isinstance(value, dict):
-            kind = f"dict{sorted(value)[:8]}"
-        print(f"  {key:<28} {kind:<40} {brief(value) if not isinstance(value, (dict, list)) else ''}")
+        data = json.loads(body)
+    except json.JSONDecodeError:
+        return code, None
+    rows = data.get("results") if isinstance(data, dict) else data
+    return code, rows
 
 
 def probe_bo3():
     print("=" * 72)
-    print("bo3.gg /matches -- which expansions come back, and in what shape")
+    print("bo3.gg -- which `with=` expansions the API accepts, one at a time")
     print("=" * 72)
+    accepted = []
+    for name in KNOWN_GOOD + CANDIDATES:
+        code, rows = bo3_matches("finished", [name], limit=3)
+        tag = "ok " if code == 200 else f"{code}"
+        covered = ""
+        if rows:
+            present = sum(1 for r in rows if r.get(name) not in (None, [], {}))
+            covered = f"  present on {present}/{len(rows)}"
+            if present:
+                accepted.append(name)
+        print(f"  {tag:<5} with={name:<20}{covered}")
 
-    # Every expansion scrape_cs2.py knows about, plus the two this probe
-    # exists for. Asked for together first: if the API rejects an unknown
-    # name outright we learn that immediately rather than per-field.
-    wanted = "teams,tournament,games,match_maps,bet_updates,stage,ai_predictions"
-    for status, label in (("finished", "recent finished matches"),
-                          ("upcoming", "upcoming matches")):
-        data = get_json("/matches", {
-            "scope": "widget-matches",
-            "page[offset]": "0",
-            "page[limit]": "5",
-            "sort": "-start_date" if status == "finished" else "start_date",
-            "filter[matches.status][in]": status,
-            "with": wanted,
-        })
-        rows = (data or {}).get("results") if isinstance(data, dict) else data
-        if not rows:
-            print(f"\n  no rows for {label}")
+    print(f"\n  expansions that came back with content: {accepted or 'none'}")
+
+    # Whatever survived, dumped in full for one match -- the shape is what
+    # a parser needs, and coverage across a few rows is what decides
+    # whether it is worth parsing at all.
+    for name in accepted:
+        if name in ("teams", "streams", "ai_predictions"):
             continue
-        print(f"\n### {label}: {len(rows)} rows")
-        describe_keys(rows[0], f"{label}[0] ({rows[0].get('slug')})")
+        code, rows = bo3_matches("finished", [name], limit=10)
+        sample = next((r[name] for r in (rows or []) if r.get(name)), None)
+        present = sum(1 for r in (rows or []) if r.get(name) not in (None, [], {}))
+        print(f"\n--- {name}: present on {present}/{len(rows or [])} finished ---")
+        print(json.dumps(sample, indent=2, default=str)[:2500])
 
-        # Coverage matters more than one sample: a field present on one
-        # match and absent on the rest is not something to build on.
-        for field in ("bet_updates", "match_maps", "games", "stage",
-                      "tournament", "ai_predictions"):
-            present = sum(1 for r in rows if r.get(field))
-            print(f"  coverage {field:<16} {present}/{len(rows)}")
+    # Odds are only useful if they exist BEFORE the match. A field that
+    # only fills in afterwards backtests beautifully and is worthless.
+    for name in accepted:
+        code, rows = bo3_matches("upcoming", [name], limit=10)
+        present = sum(1 for r in (rows or []) if r.get(name) not in (None, [], {}))
+        print(f"  upcoming coverage {name:<18} {present}/{len(rows or [])}")
 
-        for field in ("bet_updates", "match_maps"):
-            sample = next((r[field] for r in rows if r.get(field)), None)
-            if sample is not None:
-                print(f"\n  FULL {field} for the first row that has it:")
-                print("   ", json.dumps(sample, indent=2, default=str)[:3000])
+    # One match on its own, with everything that was accepted: the widget
+    # scope trims, and a single fetch may carry more.
+    code, rows = bo3_matches("finished", accepted, limit=1)
+    print(f"\n  all accepted together -> HTTP {code}")
+    if rows:
+        print(f"  top-level keys: {sorted(rows[0])}")
 
-        # A single match fetched on its own may carry more than the list
-        # view does -- the list is a widget scope and widgets trim.
-        slug = rows[0].get("slug")
-        if slug:
-            one = get_json(f"/matches/{slug}", {"with": wanted})
-            record = (one or {}).get("results") if isinstance(one, dict) else one
-            if isinstance(record, list):
-                record = record[0] if record else None
-            if isinstance(record, dict):
-                describe_keys(record, f"/matches/{slug} (single fetch)")
+
+MARKERS = {
+    "match-bet-item": "odds block",
+    "match-header-note": "veto line",
+    "match-header-event-series": "stage",
+    "vm-stats-game-header": "per-map header",
+}
+
+
+def text_of(html):
+    return " ".join(re.sub(r"<[^>]+>", " ", html).split())
+
+
+def probe_vlr_page(path, label):
+    code, page = get(f"{VLR}{path}")
+    print(f"\n### {label} {path} -> {code}, {len(page)} bytes")
+    if code != 200:
+        return
+    for cls, what in MARKERS.items():
+        print(f"  {'YES' if cls in page else 'no ':<4} {cls:<28} {what}")
+
+    # The odds module in full: run 1 showed two bet items both naming the
+    # same team, which is either two bookmakers on one side or a regex
+    # that ran past its element. Printed raw so the parser can be written
+    # against the real markup.
+    block = re.search(r'(<div[^>]*class="[^"]*match-bet[^"]*".*?)(?=<div class="match-h)',
+                      page, re.S)
+    if block:
+        print("  --- odds markup ---")
+        print("  " + block.group(1)[:1800].replace("\n", "\n  "))
+
+    for cls in ("match-header-note", "match-header-event-series",
+                "match-header-vs-note"):
+        found = re.search(rf'class="[^"]*{cls}[^"]*"[^>]*>(.*?)</div>', page, re.S)
+        if found:
+            print(f"  {cls}: {text_of(found.group(1))[:300]}")
+
+    # Map names per game, which is what the veto line has to be checked
+    # against and what a per-map feature would key on.
+    for found in re.finditer(r'class="[^"]*map[^"]*"[^>]*>\s*<div[^>]*>(.*?)</div>',
+                             page, re.S):
+        got = text_of(found.group(1))
+        if got and len(got) < 60:
+            print(f"  map cell: {got}")
 
 
 def probe_vlr():
     print("\n" + "=" * 72)
-    print("vlr.gg -- does a match page carry odds and the veto?")
+    print("vlr.gg -- the odds module, the veto, and whether they exist pre-match")
     print("=" * 72)
-    status, html = get(f"{VLR}/matches/results")
-    if status != 200:
-        print(f"  ! results page -> {status}")
-        return
-    paths = re.findall(r'href="(/\d+/[a-z0-9\-]+)"', html)
-    if not paths:
-        print("  ! no match links found on the results page")
-        return
-    print(f"  {len(paths)} match links found; probing the first 2")
-    for path in paths[:2]:
-        status, page = get(f"{VLR}{path}")
-        print(f"\n### {path} -> {status}, {len(page)} bytes")
-        if status != 200:
+    for listing, label in (("/matches/results", "finished"), ("/matches", "upcoming")):
+        code, html = get(f"{VLR}{listing}")
+        if code != 200:
+            print(f"  ! {listing} -> {code}")
             continue
-        # Candidate markers rather than one assumed selector: the point is
-        # to learn which of these vlr.gg actually uses today.
-        markers = {
-            "match-bet-item": "odds block (bookmaker row)",
-            "match-bet-item-odds": "odds number",
-            "match-header-note": "veto / note line",
-            "vm-stats-game-header": "per-map stats header",
-            "map-name": "map name span",
-            "match-header-vs-note": "LAN/online + stage note",
-            "match-header-event-series": "event series (stage)",
-        }
-        for cls, what in markers.items():
-            print(f"  {'YES' if cls in page else 'no ':<4} {cls:<28} {what}")
-        for cls in ("match-header-note", "match-header-vs-note",
-                    "match-header-event-series"):
-            for match in re.finditer(
-                    rf'class="[^"]*{cls}[^"]*"[^>]*>(.*?)</div>', page, re.S):
-                text = re.sub(r"<[^>]+>", " ", match.group(1))
-                text = " ".join(text.split())
-                if text:
-                    print(f"    {cls}: {text[:300]}")
-                break
-        for match in re.finditer(r'class="[^"]*match-bet-item[^"]*"[^>]*>(.*?)</a>',
-                                 page, re.S):
-            text = " ".join(re.sub(r"<[^>]+>", " ", match.group(1)).split())
-            print(f"    match-bet-item: {text[:200]}")
+        paths = re.findall(r'href="(/\d+/[a-z0-9\-]+)"', html)
+        print(f"\n{label}: {len(paths)} match links")
+        for path in paths[:2]:
+            probe_vlr_page(path, label)
 
 
 if __name__ == "__main__":
