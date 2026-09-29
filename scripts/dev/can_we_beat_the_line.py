@@ -753,11 +753,21 @@ def main(argv=None):
     print(f"\n7. THE MARKET'S OWN PRICE — {len(priced)} props joined to a "
           "pre-match price.")
     if len(priced) < 100:
-        print("   not enough yet to conclude anything. Valorant fills in as the "
-              "scraper re-walks")
-        print("   the match pages it already visits; CS2 cannot be backfilled at "
-              "all and")
-        print("   accumulates from the run that first captured it. See "
+        try:
+            waiting = len(odds_store.load())
+        except Exception:
+            waiting = 0
+        print(f"   not enough to conclude anything. {waiting} match(es) captured "
+              "so far, each of")
+        print("   which counts once it has been played and graded. NEITHER "
+              "PROVIDER CAN BE")
+        print("   BACKFILLED: bo3.gg replaces a finished match's price with the "
+              "in-play one,")
+        print("   and vlr.gg replaces its two-way block with a settled-bet "
+              "message naming only")
+        print("   the winner, so having a price there IS having won. Both games "
+              "accumulate")
+        print("   forward at roughly two scrape runs a day. See "
               "scripts/odds_store.py.")
     else:
         names = ["win_prob", "mismatch"]
