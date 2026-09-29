@@ -73,13 +73,16 @@ WHAT IT FOUND, on 2026-09-29:
      significant, the best of them kast at t +1.27 and adr at t +0.62. The
      damage hypothesis is dead -- a cleaner read on form is still a read on
      form, and form is what the line already has.
-  7. Pending. The odds did not exist in this repository until 2026-09-29, and
-     only half of them can ever be recovered: vlr.gg keeps a finished match's
-     pre-match prices, so Valorant backfills itself as the scraper re-walks
-     pages it already visits, while bo3.gg replaces a CS2 match's price with
-     the in-play one the moment play starts. CS2 accumulates forward from here
-     and cannot be backfilled at all. The test prints how many props it could
-     join and declines to conclude below a hundred.
+  7. Pending, and NOTHING CAN BE BACKFILLED. Both providers stop serving a
+     usable pre-match price the moment a match starts, for different reasons:
+     bo3.gg replaces it with the in-play price, and vlr.gg swaps its two-way
+     block for a settled-bet message naming only the WINNER -- a real price,
+     genuinely pre-match, and unusable, because having one is the same
+     statement as having won. A feature built on it separates the data
+     perfectly in sample and knows nothing in advance. So both games
+     accumulate forward from 2026-09-29, and this test prints how many props
+     it could join and declines to conclude below a hundred. That is weeks
+     away, not minutes, and saying so is the point of writing it down.
 
 So the CS2 kills line is efficient with respect to every piece of information in
 this repository. The gap is not closable by better modelling of this data, and
@@ -801,12 +804,12 @@ def main(argv=None):
 # WHAT WOULD ACTUALLY HELP. The list as it stood on 2026-09-29, with what
 # happened to each item since:
 #
-#   * ODDS. DONE, and now test 7. scripts/map_context.py reads them off the
-#     pages the scrapers already download -- vlr.gg's odds module for
+#   * ODDS. COLLECTED, and now test 7. scripts/map_context.py reads them off
+#     the pages the scrapers already download -- vlr.gg's odds module for
 #     Valorant, and for CS2 a bet_updates field that was arriving on every
-#     bo3.gg response and being thrown away. Not yet answerable: Valorant
-#     needs one more scrape to backfill, CS2 cannot be backfilled and
-#     accumulates from here.
+#     bo3.gg response and being thrown away. Not answerable yet and not
+#     answerable soon: neither provider serves a usable pre-match price after
+#     the match, so both games accumulate forward rather than backfilling.
 #   * ROSTER CHANGES AND STAND-INS. RULED OUT, test 5. `actual` names the
 #     five players who appeared, so a lineup change is visible even though the
 #     provider never says "stand-in". Every churn feature was insignificant,

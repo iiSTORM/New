@@ -1308,18 +1308,28 @@ round-count finding said nothing here can predict.
   response the scraper already made and being thrown away. Two-way prices plus a
   dozen side markets, including the price on the series going past 2.5 maps.
 
-**The two are not symmetric, and it decides everything.** vlr.gg keeps a
-finished match's pre-match prices, so Valorant backfills itself the next time
-the scraper walks pages it walks anyway. bo3.gg replaces a CS2 match's price
-with the **in-play** price the moment play starts — a real finished sample read
-13.6 against 1.016 with both sides inactive, which is the scoreboard, not a
-forecast. So CS2 odds **cannot be backfilled**: they are captured while a match
-is upcoming and accumulated in `odds_history.json`, which is the one file here
-that is merged rather than regenerated, because a capture it drops is a price
-that no longer exists anywhere.
+**Neither of them can be backfilled**, and the two fail differently, which is
+worth knowing because one of them fails in a way that looks like success.
+
+- **bo3.gg** replaces a finished match's price with the **in-play** price. A
+  real sample read 13.6 against 1.016 with both sides inactive — the scoreboard,
+  not a forecast. Obvious once seen, and refused by three independent checks.
+- **vlr.gg** swaps its two-way block for a settled-bet message: *"$100 on 100
+  Thieves returned $140 at pre-match odds … 1.40"*. That number **is** the
+  pre-match price, which is exactly what makes it dangerous. It is shown for
+  100 Thieves because 100 Thieves won, and the loser's price is not on the page
+  at all. "Has a price" and "won" are the same statement, so a win-probability
+  feature built from a finished page separates the data perfectly in sample and
+  knows nothing in advance.
+
+So **both games accumulate forward** from 2026-09-29 into `odds_history.json`,
+the one file here that is merged rather than regenerated — a capture it drops
+is a price that no longer exists anywhere. The veto and the stage do come off a
+finished page and landed on all 254 past Valorant matches immediately; only the
+odds have to wait.
 
 Test 7 prints how many props it could join and declines to conclude below a
-hundred. It is not answered yet.
+hundred. That is weeks away, not minutes.
 
 **What is left on the list**, with what happened to each:
 

@@ -294,3 +294,57 @@ def test_a_match_with_no_side_markets_still_gives_the_two_way():
     got = mc.from_bet_updates({**UPCOMING, "additional_markets": []})
     assert got["prices"]["PCIFIC"] == 2.279
     assert "total_maps" not in got
+
+
+# ------------------------------------------- the settled layout, which leaks
+
+# Verbatim from scripts/dev/probe_vlr_finished_odds.py against a live finished
+# page on 2026-09-29. Note what is NOT here: the losing team. vlr.gg replaces
+# the two-way block with a settled-bet message naming only the winner.
+SETTLED = """
+<a href="/rr/bet/52119" class="wf-card mod-dark match-bet-item" rel="nofollow sponsored noopener" target="_blank">
+\t\t\t\t\t<div class="match-bet-item-half mod-1">
+\t\t\t\t\t\t<div><img src="/img/pd/rainbet.png" class="mod-rainbet"></div>
+\t\t\t\t\t</div>
+\t\t\t\t\t<div class="match-bet-item-return">
+\t\t\t\t\t\t<div class="match-bet-item-return-msg">
+\t\t\t\t\t\t\t<span class="match-bet-item-odds">$100</span> on
+\t\t\t\t\t\t\t<span class="match-bet-item-teamzzz">100 Thieves</span>
+\t\t\t\t\t\t\treturned <span class="match-bet-item-odds">$140</span>
+\t\t\t\t\t\t\tat pre-match odds
+\t\t\t\t\t\t</div>
+\t\t\t\t\t\t<div class="match-bet-item-return-short">
+\t\t\t\t\t\t\t<span class="match-bet-item-odds">1.40</span>
+\t\t\t\t\t\t\t<span class="match-bet-item-teamzzz">100T</span> odds pre-match
+\t\t\t\t\t\t</div>
+\t\t\t\t\t</div>
+\t\t\t\t\t<div class="match-bet-item-half mod-2"></div>
+\t\t\t\t</a>
+"""
+
+
+def test_a_settled_page_yields_no_odds_because_only_the_winner_is_priced():
+    """The correction that cost the Valorant backfill, and it is worth the cost.
+
+    1.40 really is the pre-match price, which is what makes this dangerous
+    rather than merely useless: the page shows it for 100 Thieves because 100
+    Thieves won. "Has a price" and "won" are the same statement here, so a
+    win-probability feature built from a finished page would separate the data
+    perfectly in sample and know nothing whatsoever in advance. Valorant
+    therefore accumulates forward exactly like CS2 does.
+    """
+    assert mc.parse_odds(SETTLED) == []
+    assert mc.context_from_page(SETTLED + VETO_LINE + SERIES).get("odds") is None
+
+
+def test_the_veto_and_stage_still_come_off_a_settled_page():
+    """Which is why a finished page is still worth parsing at all."""
+    got = mc.context_from_page(SETTLED + VETO_LINE + SERIES)
+    assert got["maps"] == ["Ascent", "Summit", "Split"]
+    assert got["stage"] == "Group Stage: Opening (A)"
+
+
+def test_a_settled_anchor_next_to_a_live_two_way_one_does_not_poison_it():
+    books = mc.parse_odds(SETTLED + anchor())
+    assert len(books) == 1
+    assert books[0]["prices"] == {"G2 Esports": 2.29, "Paper Rex": 1.58}

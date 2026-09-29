@@ -37,6 +37,7 @@ import requests
 from bs4 import BeautifulSoup
 
 import map_context
+import odds_store
 
 BASE = "https://www.vlr.gg"
 HEADERS = {
@@ -1012,6 +1013,42 @@ def main():
         if missing:
             print(f"  {len(missing)} team(s) not found in any region, so their "
                   f"fixtures stay unprojected: {missing}")
+
+    # Pre-match prices, captured forward. A finished vlr.gg page swaps its
+    # two-way odds block for a settled-bet message that names only the WINNER,
+    # so the price is there and cannot be used: "has a price" and "won" are
+    # the same statement, and a feature built on it would separate the data
+    # perfectly in sample and know nothing in advance. Valorant therefore
+    # accumulates exactly like CS2 does -- see scripts/odds_store.py.
+    #
+    # Never fatal: valorant_data.json is what the app reads, and this is a
+    # research tier alongside it.
+    try:
+        captured = odds_store.load()
+        seen = new_or_moved = 0
+        for region_key, region in payload["regions"].items():
+            for match in region.get("upcoming_matches") or []:
+                odds = ((match.get("context") or {}).get("odds")) or {}
+                if not odds:
+                    continue
+                seen += 1
+                # No vlr match id survives into the fixture record, so the key
+                # is the pair and the date. Two teams can meet twice in a day,
+                # which would collapse to one capture -- rare enough to accept
+                # and frequent enough to say out loud.
+                key = (f"valorant:{match.get('date')}:"
+                       f"{match.get('teamA')}:{match.get('teamB')}")
+                if odds_store.record(captured, key, odds, now_iso,
+                                     teamA=match.get("teamA"),
+                                     teamB=match.get("teamB"),
+                                     start_date=match.get("date"),
+                                     game="valorant", region=region_key):
+                    new_or_moved += 1
+        total = odds_store.save(captured, generated_at=now_iso)
+        print(f"\npre-match odds: {seen} upcoming matches priced this run, "
+              f"{new_or_moved} new or moved, {total} matches stored in total")
+    except Exception as e:
+        print(f"! could not store pre-match odds: {e}", file=sys.stderr)
 
     with open("valorant_data.json", "w") as f:
         # Written minified: these files are machine-generated and never read

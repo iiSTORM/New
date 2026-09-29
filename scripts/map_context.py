@@ -14,11 +14,17 @@ they sit on pages scrape_valorant.py already downloads.
 WHAT IS ACTUALLY ON THE PAGE, established by probe rather than assumed
 (scripts/dev/probe_map_context.py, run against live pages from a runner):
 
-  * ODDS. One <a class="match-bet-item"> per bookmaker, each carrying both
-    teams and a decimal price, and a note reading "Pre-match". Present on
-    upcoming matches as well as finished ones, which is the thing that matters:
-    a price that only appears once the match is over backtests beautifully and
-    is worth nothing.
+  * ODDS, on an UPCOMING match. One <a class="match-bet-item"> per bookmaker,
+    each carrying both teams and a decimal price, and a note reading
+    "Pre-match".
+  * ODDS, on a FINISHED match, in a different layout and USELESS. The page
+    swaps the two-way block for a settled-bet message -- "$100 on 100 Thieves
+    returned $140 at pre-match odds ... 1.40 100T odds pre-match" -- and that
+    is the WINNER's price and only the winner's. The loser's is not on the
+    page. The number really is the pre-match one, so it looks backfillable and
+    is not: a team having a price at all means it won, so any feature built
+    from it predicts the result perfectly in sample and knows nothing in
+    advance. This is refused deliberately; see parse_odds.
   * VETO. A single line -- "FUT ban Abyss; JDG ban Haven; FUT pick Ascent;
     JDG pick Summit; FUT ban Lotus; JDG ban Sunset; Split remains" -- naming
     every ban, every pick and the decider, by team tag, in order. Present on
@@ -38,6 +44,11 @@ _BOOK = re.compile(r'<img\s+src="/img/pd/([a-z0-9_.\-]+)\.png"', re.I)
 _ANCHOR = re.compile(r'<a\b[^>]*class="[^"]*\bmatch-bet-item\b[^"]*"[^>]*>(.*?)</a>',
                      re.S | re.I)
 _TEAM = re.compile(r'class="match-bet-item-team-name"\s*>\s*(.*?)\s*</span>', re.S | re.I)
+#: The settled layout's own marker. Its team spans are class "…-teamzzz" and
+#: it carries no "…-team-name" at all, so the two layouts cannot be confused --
+#: but a future layout change could, and a parser that silently accepted a
+#: one-sided market would leak the result rather than fail.
+_SETTLED = re.compile(r'class="match-bet-item-return', re.I)
 _PRICE = re.compile(r'class="match-bet-item-odds[^"]*"\s*>\s*([0-9]+(?:\.[0-9]+)?)\s*</span>',
                     re.S | re.I)
 _NOTE = re.compile(r'class="[^"]*match-bet-item-note[^"]*"[^>]*>(.*?)</div>', re.S | re.I)
@@ -69,6 +80,13 @@ def parse_odds(html):
     """
     books = []
     for anchor in _ANCHOR.findall(html or ""):
+        # A settled anchor names one team -- the winner -- and no other. Its
+        # price is genuinely the pre-match one, which is exactly what makes it
+        # dangerous: "this team has a price" is the same statement as "this
+        # team won", so a feature built on it is a perfect in-sample predictor
+        # that knows nothing before the match. Refused rather than salvaged.
+        if _SETTLED.search(anchor):
+            continue
         book = _BOOK.search(anchor)
         note = _text(_NOTE.search(anchor).group(1)) if _NOTE.search(anchor) else ""
         prices = {}

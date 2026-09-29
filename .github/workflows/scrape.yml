@@ -243,6 +243,18 @@ jobs:
             exit 0
           fi
           git add valorant_data.json
+          # odds_history.json ACCUMULATES and is shared with the CS2 job: a
+          # pre-match price exists only while the match is upcoming, on both
+          # providers, so a capture this job drops is gone. Merged with main
+          # rather than replacing it, same as the CS2 job does.
+          if [ -f odds_history.json ]; then
+            git fetch origin main || true
+            git show origin/main:odds_history.json > /tmp/odds_base.json 2>/dev/null || echo '{}' > /tmp/odds_base.json
+            if python scripts/merge_odds_history.py odds_history.json /tmp/odds_base.json /tmp/odds_merged.json; then
+              mv /tmp/odds_merged.json odds_history.json
+            fi
+            git add odds_history.json
+          fi
           if git diff --quiet --cached; then
             echo "No changes to commit"
             exit 0
@@ -257,9 +269,21 @@ jobs:
             git push && exit 0
             echo "Push rejected ($i/5) — resetting to latest remote and reapplying this run's snapshot..."
             cp valorant_data.json /tmp/valorant_data.json.new
+            if [ -f odds_history.json ]; then cp odds_history.json /tmp/odds_history.json.new; fi
             git fetch origin main
             git reset --hard origin/main
             cp /tmp/valorant_data.json.new valorant_data.json
+            # The reset just pulled in whatever the CS2 job captured while
+            # this one was working. Merged rather than overwritten.
+            if [ -f /tmp/odds_history.json.new ]; then
+              [ -f odds_history.json ] || echo '{}' > odds_history.json
+              if python scripts/merge_odds_history.py /tmp/odds_history.json.new odds_history.json /tmp/odds_merged.json; then
+                mv /tmp/odds_merged.json odds_history.json
+              else
+                cp /tmp/odds_history.json.new odds_history.json
+              fi
+              git add odds_history.json
+            fi
             git add valorant_data.json
             if git diff --quiet --cached; then
               echo "Remote already has this exact snapshot — nothing left to push"
