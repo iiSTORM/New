@@ -21,6 +21,7 @@ index.html                     GENERATED — do not edit by hand
 scripts/                       production scrapers — run by the workflow
 scripts/check_data.py          pre-commit validation of a scraped file
 scripts/team_aliases.py        folds duplicate team spellings into one team
+scripts/player_aliases.py      curated handle spellings, one player per row
 scripts/infer_fixtures.py      adds fixtures the posted board implies
 scripts/dev/                   investigation tooling — never run by the workflow
 scripts/propedge/              slips, bankroll and stakes — PRIVATE data, see below
@@ -710,6 +711,45 @@ trailing `Esports`/`Gaming`, or one of bo3.gg's own identifiers glued on the
 end are spelling, not identity) **and** their rosters actually overlap.
 Requiring both is what stops a normalisation collision between two different
 orgs from pooling their histories.
+
+### Player handles, which are a different problem
+
+Team spellings can be folded by rule. Player handles cannot. `normalize_name`
+strips case, accents and punctuation but **keeps digits**, because `sh1ro` and
+`shiro` could be two people and silently merging two players is how you get a
+confident, wrong number. Edit distance has the same problem one step out:
+`Kurama` and `Kuruma` differ by one character and are the same player, while
+`s1mple` and `simple` differ by one character and are not necessarily. No
+threshold separates those.
+
+So `scripts/player_aliases.py` is a hand-curated list where each row is a human
+saying *these two strings are this one player*, scoped to the team they play
+for, with a note recording how it was established. The funnel tells you when to
+add one: refused props are grouped by team and split into teams this app does
+not cover (expected, fix by scraping more) and **teams it does cover whose
+names are not lining up** — lines sitting right there, kept out by a spelling.
+
+The row's team is part of the lookup **key**, not a check on the result, so it
+can only ever fire for props naming that team. It is consulted when nobody
+matches *on the stated team*, not merely when nobody matches at all, and that
+distinction is the point. A unique handle is otherwise matched without regard
+to the stated team — deliberately, since team names differ between sources —
+so with Butterfly's `Kurama` and another org's `Kurama` on the board, Butterfly's
+line goes to the other org's player: silently, plausibly, and wrong. A scoped
+row is a human saying otherwise, and it outranks that. There is a test pinning
+exactly this, because the behaviour it corrects looks like success.
+
+A row that points at a name no roster carries any more is reported under its
+own reason rather than falling back to whatever else shares the handle — the
+row exists precisely to say that other player is the wrong one. `pytest
+tests/test_player_aliases.py` checks every row against the committed rosters; a
+failure means **prune the row**, not loosen the test. Each board run prints how
+many lines the table rescued, so a row that has stopped earning its place is
+visible rather than inferred.
+
+The first row is Butterfly's `Kuruma`, posted by the provider as `Kurama` on the
+2026-09-29 board. It was worth two props, and took CS2 from 86 of 88 matched to
+88 of 88.
 
 That last case is `WBT Academy_2NMK3fBkP7gb7JK1`, and bo3.gg's own match slugs
 for its games say `wbt-academy` with nothing after it — the source stating the

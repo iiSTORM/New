@@ -73,7 +73,8 @@ except ImportError:
     # is the only route that works.
     requests = None
 
-from props_match import build_roster_index, match_props, unmatched_by_team
+from props_match import (build_alias_index, build_roster_index, match_props,
+                         unmatched_by_team)
 
 OUTPUT_PATH = "props.json"
 
@@ -489,7 +490,24 @@ def main():
 
         raw = parse_prizepicks(payload, cfg["leagues"]) if payload else []
 
-        matched, unmatched = match_props(raw, index)
+        # Measured by running the board twice rather than tracked inside the
+        # matcher: what a reader wants to know is how many lines this table is
+        # worth today, and a row that has stopped rescuing anything is one to
+        # prune. See scripts/player_aliases.py.
+        matched, unmatched = match_props(raw, index, game=game)
+        without_aliases, _ = match_props(raw, index, game=game, alias_index={})
+        rescued = len(matched) - len(without_aliases)
+        if rescued:
+            print(f"{game}: {rescued} prop(s) matched only through "
+                  f"scripts/player_aliases.py", file=sys.stderr)
+        stale = [p for p in unmatched
+                 if p.get("reason", "").startswith("alias points at")]
+        if stale:
+            names = sorted({f"{p.get('team')}: {p.get('player_name')}"
+                            for p in stale})
+            print(f"{game}: {len(stale)} alias row(s) point at a name no "
+                  f"roster carries any more — prune them: {names}",
+                  file=sys.stderr)
         total_matched += len(matched)
         total_unmatched += len(unmatched)
 

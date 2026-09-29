@@ -20,6 +20,8 @@ projection, and getting any of them wrong produces a confident, wrong edge:
 import re
 import unicodedata
 
+from player_aliases import ALIASES
+
 # The stat names this app models, and the provider spellings seen for each.
 # Anything unrecognised is reported rather than guessed at — a mis-mapped
 # stat is worse than a missing one.
@@ -139,6 +141,36 @@ def unmodelled_stat(label):
     return None
 
 
+def build_alias_index(aliases=ALIASES):
+    """{(game, normalized team, normalized provider handle): normalized roster handle}
+
+    The table in player_aliases.py is written in readable spellings so a human
+    can check a row against a roster page; normalising happens here so there is
+    exactly one definition of what "the same handle" means.
+
+    A duplicate key is a contradiction rather than a last-one-wins, so it
+    raises: two rows claiming the same provider handle on the same team is one
+    of them being wrong, and picking either silently is how a line ends up on
+    the wrong player.
+    """
+    index = {}
+    for row in aliases or []:
+        game = str(row.get("game") or "").strip().lower()
+        team = normalize_name(row.get("team"))
+        provider = normalize_name(row.get("provider"))
+        roster = normalize_name(row.get("roster"))
+        if not (game and team and provider and roster):
+            raise ValueError(f"incomplete alias row: {row!r}")
+        if provider == roster:
+            raise ValueError(f"alias maps a handle to itself: {row!r}")
+        key = (game, team, provider)
+        if key in index and index[key] != roster:
+            raise ValueError(f"two aliases disagree about {key}: "
+                             f"{index[key]!r} and {roster!r}")
+        index[key] = roster
+    return index
+
+
 def build_roster_index(regions):
     """{normalized handle: [(region, team, real name), ...]} for every player.
 
@@ -204,14 +236,22 @@ def unmatched_by_team(unmatched, regions, reason="player not on any roster"):
     return sorted(tracked, key=key), sorted(untracked, key=key)
 
 
-def match_props(raw_props, roster_index):
+def match_props(raw_props, roster_index, game=None, alias_index=None):
     """Attach each prop to a rostered player.
 
     Returns (matched, unmatched). Nothing is dropped quietly: every prop
     that fails to match comes back with the reason, because a silent drop
     rate is indistinguishable from a provider outage.
+
+    `alias_index` is consulted ONLY when the provider's own spelling finds
+    nobody, and only for the game and team the prop names. That ordering is
+    the safety property: a curated row can rescue a handle the rosters do not
+    have, and can never redirect one they do.
     """
     matched, unmatched = [], []
+    if alias_index is None:
+        alias_index = build_alias_index()
+    game_key = str(game or "").strip().lower()
     for prop in raw_props or []:
         label = prop.get("stat_label")
         # Before anything else, and reported by its own name rather than as
@@ -232,6 +272,40 @@ def match_props(raw_props, roster_index):
         if window is None:
             unmatched.append({**prop, "reason": "map window not stated"})
             continue
+        # A curated alias may know that on THIS team the provider's spelling
+        # means a differently-spelled player -- see scripts/player_aliases.py
+        # for why this is a table and not a fuzzy match. The team is part of
+        # the key rather than a check on the result, so a row can only ever
+        # fire for props naming that team.
+        #
+        # It is consulted when nobody matches ON THE STATED TEAM, not merely
+        # when nobody matches at all, and that distinction is the whole point.
+        # A handle that exists on some OTHER roster is matched here without
+        # regard to the team, deliberately -- team names differ between
+        # sources, which is what team_aliases.py exists for. So a real board
+        # with Butterfly's "Kurama" and another org's "Kurama" would hand
+        # Butterfly's line to the other org's player, silently and
+        # plausibly. A row scoped to Butterfly is a human saying otherwise,
+        # and it has to outrank that.
+        aliased = alias_index.get(
+            (game_key, normalize_name(prop.get("team")), key))
+        if aliased:
+            stated = normalize_name(prop.get("team"))
+            on_stated_team = [e for e in (target or [])
+                              if normalize_name(e[1]) == stated]
+            if not on_stated_team:
+                target = roster_index.get(aliased)
+                if not target:
+                    # The row points at a name no roster carries any more, so
+                    # the alias is stale rather than the board being wrong.
+                    # Reported under its own reason so it can be pruned, and
+                    # NOT quietly fallen back to whatever else shares the
+                    # handle -- the row exists precisely to say that other
+                    # player is the wrong one.
+                    unmatched.append({**prop,
+                                      "reason": "alias points at a name that "
+                                                "is not on any roster"})
+                    continue
         if not target:
             unmatched.append({**prop, "reason": "player not on any roster"})
             continue
