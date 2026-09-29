@@ -247,3 +247,28 @@ def test_json_round_trips_a_slip_with_its_legs():
     back = Slip.from_json(original.as_json())
     assert back.as_json() == original.as_json()
     assert back.legs[0].odds_type == "goblin" and back.legs[0].maps == 2
+
+
+def test_the_two_payout_tables_do_not_drift():
+    """src/app.jsx and propedge/payouts.py must agree on the power table.
+
+    They did not, for a while: the app carried the published 3-pick default of
+    5x and the tracker the 6x a real entry paid. Two numbers for one multiplier
+    in one repo is a bug waiting to be believed -- the public app's break-even
+    figures come off its copy, the stake sizing off this one -- so the agreement
+    is a test rather than a comment asking nicely.
+    """
+    import re
+    from pathlib import Path
+
+    from propedge.payouts import POWER
+
+    source = (Path(__file__).resolve().parent.parent / "src" / "app.jsx").read_text(
+        encoding="utf-8")
+    found = re.search(r"const PAYOUT_MULTIPLIERS = \{([^}]*)\};", source)
+    assert found, "PAYOUT_MULTIPLIERS is no longer a flat literal in src/app.jsx"
+    from_app = {int(size): Decimal(value) for size, value in
+                re.findall(r"(\d+)\s*:\s*([\d.]+)", found.group(1))}
+    assert from_app, "no size: multiplier pairs parsed out of PAYOUT_MULTIPLIERS"
+    assert from_app == {size: Decimal(str(m)) for size, m in POWER.items()}, (
+        f"src/app.jsx has {from_app}, propedge/payouts.py has {dict(POWER)}")

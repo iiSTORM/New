@@ -845,8 +845,15 @@ function jointHitProbability(legs, rhoTeam = SAME_TEAM_CORRELATION,
    is UNKNOWN rather than 1.0. An unpriced rung shows its legs and withholds its
    break-even, which is the same discipline as everything else here: the thing
    that cannot be verified is the thing that is not shown. */
-const PAYOUT_MULTIPLIERS = { 2: 3, 3: 5, 4: 10, 5: 20, 6: 37.5 };
-const PAYOUT_TABLE_SOURCE = "PrizePicks Power Play defaults — not fetched, replace with yours";
+/* 3-pick is 6, not 5. PrizePicks has run both, the published default this
+   table was first built from said 5, and a real 3-pick entry on 2026-09-28
+   paid 6x. A slip beats a published default, so the slip wins. Nothing else
+   here is confirmed against an entry, which is what PAYOUT_TABLE_SOURCE is
+   for. scripts/propedge/payouts.py holds the same defaults for the tracker;
+   the two must not drift. */
+const PAYOUT_MULTIPLIERS = { 2: 3, 3: 6, 4: 10, 5: 20, 6: 37.5 };
+const PAYOUT_TABLE_SOURCE = "PrizePicks Power Play — 3-pick read off a real entry, "
+  + "the rest are published defaults; replace with yours";
 
 const STANDARD_ODDS_TYPE = "standard";
 

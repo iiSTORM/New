@@ -509,6 +509,11 @@ hit rate standing in for every leg.
 
 ### The payout table cannot be verified from here
 
+Except one figure, now: the **3-pick is 6x**, read off a real entry on
+2026-09-28, which replaced the 5x published default this table shipped with.
+Every other multiplier here is still unconfirmed, and the same table lives in
+`scripts/propedge/payouts.py` for the tracker — if you correct one, correct both.
+
 `props.json` carries a line and an odds type and **no price at all**, and the
 provider refuses server-side requests from every network — which is why the
 board is captured from a logged-in browser in the first place. So the shipped
@@ -878,12 +883,12 @@ known (`settle --payout`). Where they disagree the settlement says so.
 ### The payout table, and a number that needs settling
 
 `propedge/payouts.py` defaults to power **2-pick 3x, 3-pick 6x**, 4-pick 10x,
-5-pick 20x, 6-pick 37.5x, with configurable flex tables. **`src/app.jsx`'s
-`PAYOUT_MULTIPLIERS` says 3-pick 5x for the same thing.** PrizePicks has run
-both; 6x is what a real slip showed on 2026-09-28, which is why the tracker
-defaults to it. Two different numbers for one multiplier in one repo is a bug
-waiting to be believed — the public app's break-even figures come off its
-table. Pick one.
+5-pick 20x, 6-pick 37.5x, with configurable flex tables, and `src/app.jsx`'s
+`PAYOUT_MULTIPLIERS` now agrees. It did not: the app said 3-pick **5x**, which
+is the published default it was first built from, and a real 3-pick entry on
+2026-09-28 paid 6x. A slip beats a published default. The 3-pick is now the one
+figure in that table confirmed against an entry; the rest are still defaults,
+and the two files must not drift.
 
 ### Stakes
 
