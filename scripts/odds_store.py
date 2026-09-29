@@ -44,6 +44,22 @@ def load(path=PATH):
     return captured if isinstance(captured, dict) else {}
 
 
+def generated_at(path=PATH):
+    """When the stored file was last written, or None if there is no file.
+
+    Read separately from load() so a merge can carry the stamp forward. The
+    merge step in the workflow runs between a scraper writing the file and git
+    committing it, and without this the committed copy loses the only
+    provenance it has.
+    """
+    try:
+        with open(path) as handle:
+            stored = json.load(handle)
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return None
+    return stored.get("generated_at") if isinstance(stored, dict) else None
+
+
 def record(store, key, odds, when, **fields):
     """Add one sighting, keeping the first and the last.
 

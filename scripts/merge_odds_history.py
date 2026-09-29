@@ -60,9 +60,14 @@ def main(argv):
         return 2
     mine, theirs, out = argv[1], argv[2], argv[3]
     merged = merge(odds_store.load(mine), odds_store.load(theirs))
+    # The later of the two stamps, so the committed copy keeps the provenance
+    # of the run that produced it rather than losing it in the merge.
+    stamps = [s for s in (odds_store.generated_at(mine),
+                          odds_store.generated_at(theirs)) if s]
     # save() refuses to shrink, and the destination here is a scratch path
     # rather than either input, so it is written directly.
-    payload = {"generated_at": None, "captured": merged}
+    payload = {"generated_at": max(stamps) if stamps else None,
+               "captured": merged}
     with open(out, "w") as handle:
         json.dump(payload, handle, separators=(",", ":"), sort_keys=True)
     print(f"merged {len(odds_store.load(mine))} + {len(odds_store.load(theirs))} "

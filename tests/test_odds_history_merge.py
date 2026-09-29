@@ -75,3 +75,33 @@ def test_the_command_line_refuses_the_wrong_number_of_arguments():
                            os.path.join(ROOT, "scripts", "merge_odds_history.py")],
                           capture_output=True, text=True)
     assert done.returncode == 2
+
+
+def test_the_merge_keeps_the_later_stamp_rather_than_dropping_it(tmp_path):
+    """The committed file's only provenance runs through here.
+
+    The workflow merges between the scraper writing the file and git
+    committing it, so whatever this writes is what lands on main. The first
+    committed copy read "generated_at: null" for exactly this reason.
+    """
+    mine, theirs, out = (str(tmp_path / n) for n in ("a.json", "b.json", "c.json"))
+    json.dump({"generated_at": "2026-09-29T08:06:00Z",
+               "captured": {"a": entry("t1", "t1")}}, open(mine, "w"))
+    json.dump({"generated_at": "2026-09-28T21:00:00Z",
+               "captured": {"b": entry("t1", "t1")}}, open(theirs, "w"))
+    subprocess.run([sys.executable,
+                    os.path.join(ROOT, "scripts", "merge_odds_history.py"),
+                    mine, theirs, out], check=True, capture_output=True)
+    assert json.load(open(out))["generated_at"] == "2026-09-29T08:06:00Z"
+
+
+def test_a_merge_of_two_unstamped_files_is_still_written(tmp_path):
+    mine, theirs, out = (str(tmp_path / n) for n in ("a.json", "b.json", "c.json"))
+    json.dump({"captured": {"a": entry("t1", "t1")}}, open(mine, "w"))
+    json.dump({"captured": {"b": entry("t1", "t1")}}, open(theirs, "w"))
+    subprocess.run([sys.executable,
+                    os.path.join(ROOT, "scripts", "merge_odds_history.py"),
+                    mine, theirs, out], check=True, capture_output=True)
+    written = json.load(open(out))
+    assert written["generated_at"] is None
+    assert set(written["captured"]) == {"a", "b"}
