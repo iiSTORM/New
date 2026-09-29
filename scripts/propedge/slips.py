@@ -60,6 +60,10 @@ class Leg:
     closing_line: float = None
     actual: float = None
     result: str = PENDING
+    #: When the game locks, as the board posted it. Needed for two things: the
+    #: builder's early/late split, and closing-line value -- "did the line move
+    #: before lock" has no answer without knowing when lock was.
+    start_time: str = ""
     note: str = ""
 
     def __post_init__(self):

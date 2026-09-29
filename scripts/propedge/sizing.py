@@ -41,6 +41,12 @@ WIDE_STRESS = 0.10
 PER_SLIP_CAP = Decimal("0.10")     # of bankroll
 PER_NIGHT_CAP = Decimal("0.25")    # of bankroll, exposure not net
 MIN_STAKE_CENTS = 100              # PrizePicks minimum entry
+#: What replaces Kelly when the probabilities cannot be trusted. Kelly is a
+#: function of those probabilities: wrong by five points and the stake is wrong
+#: by roughly a factor of two, in the same direction, compounding. A flat
+#: fraction of the bankroll does not care whether 60% means 60%.
+FLAT_UNIT = Decimal("0.02")
+POLICIES = ("kelly", "flat")
 
 
 @dataclass
@@ -142,13 +148,22 @@ def kelly_fraction(outcomes):
 
 def recommend(outcomes, bankroll_cents, staked_tonight_cents=0, stress_width=0.0,
               per_slip_cap=PER_SLIP_CAP, per_night_cap=PER_NIGHT_CAP,
-              min_stake_cents=MIN_STAKE_CENTS):
+              min_stake_cents=MIN_STAKE_CENTS, policy="kelly", policy_reason=""):
     """A stake, or a refusal with the reason.
 
     The caps are not advice, they bind: 10% of the bankroll on one slip, 25%
     across the night, recomputed from the CURRENT balance every time so a loss
     shrinks the next stake automatically.
+
+    `policy` comes from analytics.sizing_policy, which measures whether the
+    probabilities feeding Kelly have been honest. Under "flat" the Kelly maths
+    still runs and is still reported -- the edge test below is what decides
+    whether to play at all -- but the SIZE becomes a fixed fraction of the
+    bankroll, because a mis-calibrated Kelly is not a smaller Kelly, it is a
+    bigger one.
     """
+    if policy not in POLICIES:
+        raise ValueError(f"policy must be one of {POLICIES}, not {policy!r}")
     reasons = []
     expected = sum(o.probability * o.net_return for o in outcomes)
     fraction = kelly_fraction(outcomes)
@@ -162,11 +177,15 @@ def recommend(outcomes, bankroll_cents, staked_tonight_cents=0, stress_width=0.0
                          f"expected return {expected:+.1%} per unit — no stake "
                          "has a positive edge here"]), outcomes=outcomes)
 
-    wanted = int(bankroll_cents * float(applied) * fraction)
+    if policy == "flat":
+        reasons.append(policy_reason or "flat units in force rather than Kelly")
+        wanted = int(bankroll_cents * float(FLAT_UNIT))
+    else:
+        wanted = int(bankroll_cents * float(applied) * fraction)
     slip_cap = int(bankroll_cents * float(per_slip_cap))
     night_room = int(bankroll_cents * float(per_night_cap)) - int(staked_tonight_cents)
 
-    stake, binding = wanted, "kelly"
+    stake, binding = wanted, ("flat units" if policy == "flat" else "kelly")
     if stake > slip_cap:
         stake, binding = slip_cap, "per-slip cap"
         reasons.append(f"Kelly wanted {wanted} cents; the {per_slip_cap:.0%} "
@@ -183,7 +202,10 @@ def recommend(outcomes, bankroll_cents, staked_tonight_cents=0, stress_width=0.0
         # it negative. reference/kelly.py draws the line at full Kelly (it
         # skips when the half-Kelly stake is under half the minimum, which is
         # the same test), and that is the line kept here.
-        full_kelly_cents = int(bankroll_cents * fraction)
+        # Under flat units Kelly is not the yardstick -- the whole point is that
+        # it cannot be trusted -- so the floor is judged against the caps alone.
+        full_kelly_cents = (bankroll_cents if policy == "flat"
+                            else int(bankroll_cents * fraction))
         if (min_stake_cents <= full_kelly_cents and min_stake_cents <= slip_cap
                 and min_stake_cents <= night_room):
             reasons.append(f"Kelly wanted {stake} cents, under the $1 minimum "

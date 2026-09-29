@@ -917,6 +917,59 @@ Legs are priced as independent, which they are not — two legs on one match sha
 its pace. That makes every number here optimistic, `Stake.independent` carries
 the caveat, and the joint pricing belongs with the builder.
 
+### Whether any of it is working
+
+`python scripts/propedge_cli.py report` answers three questions, and the first
+one decides how the stakes are set.
+
+**Calibration.** Legs bucketed by the probability the model claimed, against
+what actually landed, with Wilson intervals and a count of distinct *matches* as
+well as legs — ten legs off one map are one observation of that map. Nothing
+fills `model_prob` until the models arrive in phases 3 and 4, so today this
+reports zero legs and no verdict, which is the correct answer rather than a
+broken function.
+
+**The sizing rule, which has teeth.** Kelly is a function of the probabilities
+fed to it. Staking half Kelly on a number that claims 65% and realises 52% is
+not half Kelly — it is roughly double it, and it compounds. So when calibration
+is off by more than **5 points over at least 50 graded legs**,
+`analytics.sizing_policy` returns `flat` and `sizing.recommend` switches to flat
+**2% units** with the reason attached. Being *better* than claimed flips it too:
+a model that says 55% and hits 70% is also wrong about its own edge. Flat sizing
+changes only how much, never whether — a slip with no edge is still no bet.
+
+**ROI**, split by sport, entry size, stat and odds type. A slip's stake counts
+**whole against every bucket its legs touch** and the splits deliberately do not
+sum to the total: any single leg can bust a parlay, so a 3-pick with two CS2 legs
+and one LoL leg is a slip both sports could have lost. Dividing the stake three
+ways would imply each leg risked a third of it, which is the opposite of how a
+parlay fails.
+
+**Closing line value.** `props_history.jsonl` is the board snapshot log, and it
+is subtler than it looks: `scrape_props.archive_props` keys on the **line** and
+appends only what is new, so a prop with a single row is one whose line *never
+moved*, which is a measurement of zero rather than a missing one. 153 of 2,326
+posted props have moved.
+
+Two things that would otherwise produce confident nonsense:
+
+- The history is keyed by `(game, player, stat, maps, start_time)` — **the start
+  time matters.** Without it, the same player's kills line in Tuesday's match and
+  Friday's collapse into one series and a Tuesday bet gets closed by a Friday
+  number. Where a leg cannot be pinned to one match, it is reported as ambiguous
+  rather than resolved by picking one.
+- A leg is only measurable if the board was **captured again between placing and
+  lock**. That is the genuinely unknowable part: a capture in which no line
+  anywhere changed leaves no trace in the file, so captures are inferred from the
+  timestamps that did leave rows — across a board of hundreds of props a close
+  proxy, and stated rather than assumed. Every CLV figure is printed with its
+  coverage and the reason each unmeasured leg is unmeasured.
+
+Three clocks meet in that calculation — the history is UTC, a board start time
+carries the venue's offset, `placed_at` is local — so they are compared as
+instants and never as strings. `2026-09-28T23:00-04:00` sorts before
+`2026-09-29T01:00+00:00` and is two hours *later*.
+
 ## Running locally
 
 ```bash

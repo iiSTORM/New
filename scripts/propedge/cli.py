@@ -19,6 +19,7 @@ import argparse
 import sys
 from datetime import datetime
 
+from . import analytics
 from . import autograde as ag
 from .money import fmt, to_cents
 from .ledger import DEPOSIT, WITHDRAWAL
@@ -147,6 +148,11 @@ def cmd_settle(tracker, args):
     return 0
 
 
+def cmd_report(tracker, args):
+    print("\n".join(analytics.report(tracker, args.history)))
+    return 0
+
+
 def cmd_size(tracker, args):
     legs = []
     for spec in args.prob:
@@ -154,13 +160,23 @@ def cmd_size(tracker, args):
         legs.append((float(p_win), float(p_push or 0)))
     table = outcome_table(legs, args.mode, args.multiplier, tracker.table)
     bankroll = to_cents(args.bankroll) if args.bankroll is not None else tracker.balance()
-    got = recommend(table, bankroll, stress_width=args.stress)
+    # The record decides how the stake is set, not a flag: if the model's
+    # probabilities have not been honest, Kelly is the wrong instrument and
+    # asking for it does not make it right.
+    policy, why = analytics.sizing_policy(tracker.slips)
+    if args.policy:
+        policy, why = args.policy, f"forced with --policy {args.policy}"
+    got = recommend(table, bankroll, stress_width=args.stress,
+                    staked_tonight_cents=tracker.ledger.staked_on(
+                        datetime.now().astimezone().date()),
+                    policy=policy, policy_reason=why)
     print(f"bankroll {fmt(bankroll)}   {len(legs)} legs, {args.mode}")
     for outcome in table:
         print(f"  {outcome.label:<18} p={outcome.probability:6.2%}  "
               f"net {outcome.net_return:+.2f}")
     print(f"expected {got.expected_value:+.2%} per unit; full Kelly "
-          f"{got.kelly_fraction:.2%} of bankroll, at {got.applied_fraction}x")
+          f"{got.kelly_fraction:.2%} of bankroll, at {got.applied_fraction}x"
+          + (f"  [{policy} sizing]" if policy != "kelly" else ""))
     print(f"STAKE {fmt(got.stake_cents)}" if got.bet else "NO BET")
     for reason in got.reasons:
         print(f"  - {reason}")
@@ -211,7 +227,12 @@ def build_parser():
     settle.add_argument("slip")
     settle.add_argument("--payout", help="what actually paid; omit to estimate")
 
+    report = subs.add_parser("report", help="calibration, ROI, bankroll and CLV")
+    report.add_argument("--history", default="props_history.jsonl")
+
     size = subs.add_parser("size", help="stake a hypothetical slip")
+    size.add_argument("--policy", choices=("kelly", "flat"),
+                      help="override what the record says the sizing should be")
     size.add_argument("--prob", action="append", required=True,
                       help="p_win[,p_push] per leg")
     size.add_argument("--mode", choices=("power", "flex"), default="power")
@@ -224,7 +245,8 @@ def build_parser():
 
 HANDLERS = {"balance": cmd_balance, "deposit": cmd_money, "withdraw": cmd_money,
             "place": cmd_place, "list": cmd_list, "grade": cmd_grade,
-            "autograde": cmd_autograde, "settle": cmd_settle, "size": cmd_size}
+            "autograde": cmd_autograde, "settle": cmd_settle, "size": cmd_size,
+            "report": cmd_report}
 
 
 def main(argv=None):
