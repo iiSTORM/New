@@ -131,3 +131,24 @@ def test_entries_are_ordered_by_instant_not_by_wall_clock():
     book.add(DEPOSIT, 1000, at="2026-09-28T23:00:00-04:00")   # 03:00 UTC 9/29
     book.add(STAKE, 100, "s1", at="2026-09-29T01:00:00+00:00")  # two hours earlier
     assert [balance for _, balance in book.history()] == [-100, 900]
+
+
+def test_history_hands_back_the_entry_not_just_its_timestamp():
+    """Because a timestamp does not identify an entry.
+
+    `propedge balance` looked each row back up by its `at` and printed
+    whichever entry came first at that instant. A seeded bankroll puts a
+    deposit and two stakes on one timestamp, and all three printed as the
+    deposit -- a $1.50 stake and a $2.50 stake both shown as "$19.19 deposit",
+    with only the running balance giving it away.
+    """
+    book = Ledger()
+    same = "2026-09-28T15:00:00-04:00"
+    book.add(DEPOSIT, 1919, note="starting bankroll", at=same)
+    book.add(STAKE, 150, slip_id="slip_a", note="power 2-pick", at=same)
+    book.add(STAKE, 250, slip_id="slip_b", note="power 3-pick", at=same)
+
+    rows = book.history()
+    assert [e["kind"] for e, _ in rows] == [DEPOSIT, STAKE, STAKE]
+    assert [book.signed(e) for e, _ in rows] == [1919, -150, -250]
+    assert [balance for _, balance in rows] == [1919, 1769, 1519]

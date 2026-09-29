@@ -60,9 +60,9 @@ def show_balance(tracker):
 
 def cmd_balance(tracker, args):
     show_balance(tracker)
-    for at, running in tracker.ledger.history()[-args.tail:]:
-        entry = next(e for e in tracker.ledger.entries if e["at"] == at)
-        print(f"  {at}  {entry['kind']:<10} {fmt(tracker.ledger.signed(entry)):>9}"
+    for entry, running in tracker.ledger.history()[-args.tail:]:
+        print(f"  {entry['at']}  {entry['kind']:<10} "
+              f"{fmt(tracker.ledger.signed(entry)):>9}"
               f"  -> {fmt(running):>9}  {entry['note']}")
     return 0
 

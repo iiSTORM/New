@@ -98,11 +98,21 @@ class Ledger:
         return sum(self.signed(e) for e in self.entries if _instant(e) <= cutoff)
 
     def history(self):
-        """[(at, balance_after)] in order, for plotting."""
+        """[(entry, balance_after)] in order, for plotting and for listing.
+
+        The ENTRY rather than its timestamp, because a timestamp does not
+        identify an entry. Several land on the same one routinely -- a seeded
+        bankroll, two slips placed in the same minute, a stake and its payout
+        -- and a caller that had only the timestamp had to look the entry back
+        up by it, which returns whichever one came first. `propedge balance`
+        did exactly that and printed three different entries as three copies of
+        the first: a $1.50 stake and a $2.50 stake both shown as the $19.19
+        deposit, with only the running balance betraying it.
+        """
         out, running = [], 0
         for entry in sorted(self.entries, key=_instant):
             running += self.signed(entry)
-            out.append((entry["at"], running))
+            out.append((entry, running))
         return out
 
     def for_slip(self, slip_id):
