@@ -1170,6 +1170,63 @@ because that is precisely the bug that survives a careful reading.
 produces confident nonsense, which is why projections made from an uncalibrated
 one are marked low confidence and say why.
 
+### Tennis: exact where it can be, simulated where it cannot
+
+```
+python scripts/propedge_cli.py tennis --match match.json --board board.json
+```
+
+Two prototypes came in for this and they split cleanly by what each is good for.
+Games, sets, first-set and match-win props come from an **exact** best-of-three
+Markov chain — no Monte Carlo error at all, which matters because those are the
+props anchored to the market and a fit that chases sampling noise fits noise.
+Aces, double faults, break points and the fantasy score come from a point
+simulation, because they are properties of individual points the game chain has
+integrated away.
+
+Neither prototype's numpy is needed: a hold probability is closed form and the
+rest is small dynamic programmes over dictionaries.
+
+**What the chain is checked against.** Things that must be true, not a reference
+implementation: two equal players win a set *exactly* half the time and go to
+three sets *exactly* half the time, a hold at p=0.5 is *exactly* 0.5, and the
+distribution sums to one. It also agrees with a brute-force simulation sharing
+no code with it, to 0.003 games per set.
+
+**The model runs about two games long, and that is the known bias, not a bug.**
+Independent points overstate how often a server holds, so sets run to 6-4 and
+tiebreaks more often than they should. Your prototype wrote the warning down;
+this is what it looks like in numbers. Two consequences:
+
+- **A fitted serve level is a model parameter, not a serve statistic.** The fit
+  compensates by lowering serve levels until the totals match — a real ATP match
+  might fit at 0.547 rather than the 0.64 a player actually serves. Aces are
+  therefore priced from *given* serve rates, never from the fitted level.
+- **Break props are gated.** The bias understates breaks in a known direction,
+  so `break_rate_check` compares the model's breaks per match against a player's
+  real rate and **refuses to price the prop** when they disagree, rather than
+  shipping a number with a warning attached. No measured break rate means no
+  break prop.
+
+A fit that runs out of band says so and prices nothing: a total low enough to
+need more breaks than the tour's serve band allows is the market describing a
+match this model cannot represent. A match with only a total and no moneyline is
+refused outright — two very different matches produce the same number of games.
+
+**Form noise does not do what I assumed.** Uncertainty about the serve *level*
+fattens the tails, as expected; uncertainty about the *gap* makes the match more
+lopsided on average, and a lopsided match is a short one. The gap term is the
+larger, so the net effect of form noise is to *shorten* matches at every line.
+Both halves are pinned by tests.
+
+**Fantasy scoring is the plan's, not the prototype's** — played 10, game ±1, set
+±3, ace +1, double fault −1. `reference/tennis_model.py`'s docstring says half a
+point for an ace while its own code scores one, so it disagrees with itself.
+
+Each player is their own team, which the slip rules already knew: a slip on both
+players of one match is legal on PrizePicks **and** is two legs on one fixture,
+so it gets the same-match correlation automatically.
+
 ## Running locally
 
 ```bash

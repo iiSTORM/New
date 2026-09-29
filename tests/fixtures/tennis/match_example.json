@@ -1,0 +1,26 @@
+{
+ "tour": "ATP",
+ "anchors": [
+  {
+   "kind": "total_games",
+   "who": null,
+   "line": 23.5,
+   "probability": 0.5
+  },
+  {
+   "kind": "match_win",
+   "who": 0,
+   "line": null,
+   "probability": 0.62
+  }
+ ],
+ "ace_rates": [
+  0.085,
+  0.06
+ ],
+ "double_fault_rates": [
+  0.03,
+  0.038
+ ],
+ "observed_breaks": {}
+}

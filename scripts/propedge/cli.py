@@ -263,6 +263,52 @@ def cmd_nfl(tracker, args):
     return 0 if made else 1
 
 
+def cmd_tennis(tracker, args):
+    """Fit one match to the market, then price its board.
+
+    A tennis fit is entirely market-derived -- there is no usage model to
+    disagree with it -- so the anchors are the whole input, and a match without
+    a moneyline or a games-won line is refused rather than fitted to a total
+    that two very different matches would both produce.
+    """
+    from . import tennis
+
+    with open(args.match) as f:
+        blob = json.load(f)
+    anchors = []
+    for row in blob.get("anchors") or []:
+        anchors.append((row["kind"], row.get("who"), row.get("line"),
+                        row["probability"]))
+    fitted = tennis.fit(anchors, blob.get("tour", "ATP"))
+    print(f"fit: serve {fitted.p_a:.3f} against {fitted.p_b:.3f} "
+          f"(level {fitted.level:.3f}, gap {fitted.gap:+.3f}) over "
+          f"{fitted.anchors} anchor(s), squared error {fitted.error:.2e}")
+    if not fitted.usable:
+        print(f"! {fitted.why_not()}")
+        return 1
+
+    points = tennis.simulate_points(
+        fitted.p_a, fitted.p_b,
+        aces=tuple(blob.get("ace_rates") or (0.075, 0.075)),
+        double_faults=tuple(blob.get("double_fault_rates") or (0.03, 0.03)),
+        runs=args.runs, seed=args.seed)
+    with open(args.board) as f:
+        board = json.load(f)
+    made = tennis.projections_from(board, fitted, points,
+                                   observed_breaks=blob.get("observed_breaks"))
+    print(f"{len(made)} of {len(board)} board row(s) priced")
+    skipped = len(board) - len(made)
+    if skipped:
+        print(f"  {skipped} not priced — a break prop without a measured break "
+              "rate, a stat the model does not produce, or a row that does not "
+              "say which player it is")
+    with open(args.write_projections, "w") as f:
+        json.dump({"projections": [p.as_json() for p in made]}, f, indent=1)
+        f.write("\n")
+    print(f"wrote {args.write_projections}")
+    return 0 if made else 1
+
+
 def cmd_slate(tracker, args):
     if args.board:
         projections = project_board(args)
@@ -390,6 +436,17 @@ def build_parser():
     nfl.add_argument("--write-simulations", default="nfl_simulations.json")
     nfl.add_argument("--write-game", help="save the calibrated setup here")
 
+    tennis = subs.add_parser("tennis", help="fit a tennis match and price its board")
+    tennis.add_argument("--match", required=True,
+                        help='JSON: {"tour", "anchors": [{"kind","who","line",'
+                             '"probability"}], "ace_rates", "double_fault_rates",'
+                             ' "observed_breaks"}')
+    tennis.add_argument("--board", required=True,
+                        help="JSON board rows, each carrying who=0 or who=1")
+    tennis.add_argument("--runs", type=int, default=6000)
+    tennis.add_argument("--seed", type=int, default=1)
+    tennis.add_argument("--write-projections", default="tennis_projections.json")
+
     report = subs.add_parser("report", help="calibration, ROI, bankroll and CLV")
     report.add_argument("--history", default="props_history.jsonl")
 
@@ -409,7 +466,8 @@ def build_parser():
 HANDLERS = {"balance": cmd_balance, "deposit": cmd_money, "withdraw": cmd_money,
             "place": cmd_place, "list": cmd_list, "grade": cmd_grade,
             "autograde": cmd_autograde, "settle": cmd_settle, "size": cmd_size,
-            "report": cmd_report, "slate": cmd_slate, "nfl": cmd_nfl}
+            "report": cmd_report, "slate": cmd_slate, "nfl": cmd_nfl,
+            "tennis": cmd_tennis}
 
 
 def main(argv=None):
