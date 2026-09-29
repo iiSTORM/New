@@ -132,5 +132,37 @@ def main():
             print(shape(up_sample))
 
 
+def probe_tournament():
+    """What bo3.gg says about the EVENT, which is the last unmeasured item.
+
+    Rest and roster churn are ruled out (test 5 in can_we_beat_the_line.py) and
+    role largely so (test 6). LAN against online, and which stage of an event a
+    match belongs to, are the only things left on the list, and for CS2 nothing
+    is scraped about the event at all beyond a tournament_id. `with=tournament`
+    is accepted and carries content on every row, so whatever is in it is
+    already one expansion away from the scraper.
+    """
+    print("\n" + "=" * 68)
+    print("bo3.gg: what the tournament expansion carries")
+    print("=" * 68)
+    for status in ("finished", "upcoming"):
+        code, rows = fetch(status, ["tournament"], limit=5)
+        if not rows:
+            print(f"  {status}: nothing came back (HTTP {code})")
+            continue
+        sample = next((r["tournament"] for r in rows if r.get("tournament")), None)
+        print(f"\n--- {status} ---")
+        print(shape(sample))
+        # Any field naming a venue, a country, a stage or an online flag is
+        # the one worth having; printed across rows so a field that is null
+        # on four of five is visible as such.
+        if isinstance(sample, dict):
+            for key in sorted(sample):
+                values = [((r.get("tournament") or {}).get(key)) for r in rows]
+                print(f"  {key:<24} "
+                      + ", ".join(json.dumps(v, default=str)[:28] for v in values))
+
+
 if __name__ == "__main__":
     main()
+    probe_tournament()
