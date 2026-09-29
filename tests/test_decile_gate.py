@@ -37,35 +37,18 @@ APP_SOURCE = (REPO_ROOT / "src" / "app.jsx").read_text(encoding="utf-8")
 
 # ---------------------------------------------------------------- extraction
 
-def test_missing_constant_is_loud_not_silent():
-    """A rename must stop the script, not give it a default."""
-    with pytest.raises(SystemExit):
-        dt.js_number("PARLAY_TIER_THRESHOLD_RENAMED_BY_SOMEONE", APP_SOURCE)
+def test_the_gate_reads_through_the_shared_extractor():
+    """The regex over app.jsx moved to propedge/jsconfig.py when a second caller
+    needed it, and its own failure modes are covered there
+    (tests/test_propedge_jsconfig.py): a renamed constant raising rather than
+    defaulting, bare numeric keys, comments, trailing commas. What matters here
+    is only that the Gate goes through it rather than keeping a copy."""
+    import propedge.jsconfig as jsconfig
 
-
-def test_numeric_keys_survive():
-    """The bug this file exists for: bare integer keys are legal JS, not JSON."""
-    got = dt.js_object("SYNTHETIC", "const SYNTHETIC = {\n"
-                       "  cs2: { kills: { 1: 4.66, 2: 7.70 } },  // a comment\n"
-                       "};\n")
-    assert got == {"cs2": {"kills": {"1": 4.66, "2": 7.7}}}
-
-
-def test_trailing_commas_and_comments_survive():
-    got = dt.js_object("SYNTHETIC",
-                       "const SYNTHETIC = {\n"
-                       "  a: { b: 1, },  // trailing comma, inline comment\n"
-                       "  c: { d: 2 },\n"
-                       "};\n")
-    assert got == {"a": {"b": 1}, "c": {"d": 2}}
-
-
-def test_nesting_stops_at_the_matching_brace():
-    """The brace walk must not run on into whatever follows the literal."""
-    got = dt.js_object("SYNTHETIC",
-                       "const SYNTHETIC = { a: { b: 1 } };\n"
-                       "const OTHER = { c: { d: 2 } };\n")
-    assert got == {"a": {"b": 1}}
+    assert dt.jsconfig is jsconfig
+    gate = dt.Gate()
+    assert gate.exponent == jsconfig.number("RESIDUAL_SCALE_EXPONENT")
+    assert gate.scales == jsconfig.obj("RESIDUAL_SCALE")
 
 
 def test_every_number_in_the_literal_round_trips():

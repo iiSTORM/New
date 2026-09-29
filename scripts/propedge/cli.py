@@ -17,6 +17,7 @@ inside this repo: the repo is public.
 """
 import argparse
 import json
+import os
 import sys
 from datetime import datetime
 
@@ -177,8 +178,39 @@ def load_simulations(path):
     return sims
 
 
+def project_board(args):
+    """Project a posted board with the esports model, rather than reading rows.
+
+    Imported lazily: this pulls in the shipped projection model, and `balance`
+    should not pay for that.
+    """
+    from .esports import EsportsModel
+    with open(args.board) as f:
+        board = json.load(f)
+    graded = []
+    if args.results and os.path.exists(args.results):
+        with open(args.results) as f:
+            graded = json.load(f).get("graded") or []
+    model = EsportsModel.from_files(args.root, graded)
+    made = model.project_board(board)
+    print(f"projected {len(made)} of the board's props "
+          f"({len(graded)} graded props behind the market prior)")
+    if args.write_projections:
+        with open(args.write_projections, "w") as f:
+            json.dump({"projections": [p.as_json() for p in made]}, f, indent=1)
+            f.write("\n")
+        print(f"wrote {args.write_projections}")
+    return made
+
+
 def cmd_slate(tracker, args):
-    projections = load_projections(args.projections)
+    if args.board:
+        projections = project_board(args)
+        if not projections:
+            print("nothing on the board could be projected")
+            return 1
+    else:
+        projections = load_projections(args.projections)
     sims = load_simulations(args.simulations) if args.simulations else None
     slate = bld.build_slate(projections, tracker, sims,
                             sizes=tuple(args.sizes), mode=args.mode,
@@ -265,9 +297,18 @@ def build_parser():
     settle.add_argument("slip")
     settle.add_argument("--payout", help="what actually paid; omit to estimate")
 
-    slate = subs.add_parser("slate", help="tonight's ranked slips, from a model's rows")
-    slate.add_argument("--projections", required=True,
-                       help="JSON: a list of model rows, or {\"projections\": [...]}")
+    slate = subs.add_parser("slate", help="tonight's ranked slips")
+    source = slate.add_mutually_exclusive_group(required=True)
+    source.add_argument("--projections",
+                        help="JSON: a list of model rows, or {\"projections\": [...]}")
+    source.add_argument("--board",
+                        help="a props.json to project with the esports model")
+    slate.add_argument("--root", default=".",
+                       help="where the per-game data files live (with --board)")
+    slate.add_argument("--results", default="props_results.json",
+                       help="graded record behind the market prior (with --board)")
+    slate.add_argument("--write-projections",
+                       help="also save the projected rows here")
     slate.add_argument("--simulations",
                        help='JSON: {scenario: {prop_id: [value, ...]}}, one '
                             'simulated game per index')

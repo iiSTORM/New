@@ -1026,6 +1026,86 @@ command exits 0 only when something is actually placeable, which is not the same
 thing: on a small bankroll a slip can clear the EV bar and still be no bet,
 because the $1 minimum would exceed full Kelly.
 
+### The esports model, and how much of it to believe
+
+`propedge/esports.py` does not invent a projection. The model that produces a
+player's expected kills already exists, it is the one the app runs, and its
+Python form is pinned against `src/app.jsx` by `model_parity.test.mjs`. This
+module does the three things that one does not: turn an expected total into
+P(over)/P(push)/P(under) against a posted line, shrink the disagreement with the
+line by how much evidence there is, and blend in what the graded record says
+about the market's own bias.
+
+```
+python scripts/propedge_cli.py slate --board props.json
+python scripts/dev/backtest_esports.py          # the measurement that chose it
+```
+
+Pushes fall out rather than being assumed away: kills are integers, so the
+normal is integrated between half-integer boundaries and a line of 15 carries
+the mass between 14.5 and 15.5, while 15.5 carries none.
+
+**What the backtest found.** 1,791 graded props replayed point in time,
+parameters chosen on the first half and reported on the second:
+
+| | |
+| --- | --- |
+| calibration | off by **3.9%** on the held-out half — inside the 5 points that take Kelly away |
+| separation | most confident fifth **57.7%** against the least confident **39.8%**, clustered on the match |
+| Brier | 0.2488 against 0.25 for answering "50%" to everything |
+
+That separates, which nothing else in this project has managed. Three things
+stop it being good news:
+
+- **57.7% is exactly the break-even for a 2-pick at 3x.** The best fifth of
+  these picks is a coin flip against the payout, before correlation.
+- **At `prior_weight` 0 the ranking inverts** — most confident fifth 44.8%
+  against 56.6%. So the separation is the market-bias prior, not the player
+  projection.
+- **Within each cell, where the prior is constant, the projection shows
+  nothing**: −1.3% over 316 CS2 maps-2 kills and −6.5% over 306 headshots, the
+  two largest cells, against strong positives in cells of 75 and 83. Large
+  samples flat or negative with small samples strongly positive is the shape of
+  noise.
+
+So it ships as what it is — a measured market bias with a player model that has
+not earned its place — and emits **both** as scenarios, so the builder's worst
+case is priced on the projection's opinion, which is the pessimistic one.
+
+**One correlation it does not price.** Every leg on a real slate comes out
+`under`, because that is where the measured bias is. Those legs share an
+exposure the joint model knows nothing about: if the market stops posting high
+lines, they all lose together. Same-match correlation is measured and applied;
+this one is not, and it is the bigger of the two.
+
+**The priors are keyed on odds type**, which the plan's pooled figures are not,
+and it matters: a goblin's line is moved in your favour, so on the graded record
+CS2 goblins went under 35.3% against 54.3% for standard lines, and LoL 51.9%
+against 82.8%. Pooling the three gave the plan's LoL figure of 73.5% over 83
+props — nine points off the standard board and describing no product you can
+actually bet.
+
+**Three findings that cost real props**, each now a test:
+
+- The shipped model **already** divides by the maps each entry covers, so
+  applying the plan's "divide by 2 for maps 1-2" again halves every projection.
+- A player listed in their league *and* at an international event is one player,
+  not an ambiguity — treating it as one dropped **78 of 79** Valorant props, and
+  the fix is the one `reference/esports_projections.py` already had: fold
+  Champions into the league's history.
+- A prop's identity includes its **start time**. R4DYX had kills 16.5 on three
+  Sangal matches on one day, and without it all three share an id — which is
+  what the builder's one-leg-one-slip bookkeeping is keyed on.
+
+**Performance.** A real board projects ~230 legs, which is 1.95 million triples.
+Two changes make that tractable: the fixture integration is memoised (73,012
+hits against 92 misses on one board — 145s down to 2.5s), and the search caps
+its pool at the 40 best legs. That cap is a near-proof, not a proof: a slip's
+joint probability is bounded by its weakest leg, so a leg below the cap cannot
+beat the best slip of the same size built above it — except that a legal slip
+needs two teams and same-match legs get an uplift, so a cheap leg on the right
+fixture could in principle sneak past.
+
 ## Running locally
 
 ```bash

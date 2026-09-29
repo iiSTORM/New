@@ -22,6 +22,7 @@ approximation the JS has no way to make. The approximations' own accuracy is
 checked against statistics.NormalDist separately.
 """
 import math
+from functools import lru_cache
 
 SAME_MATCH_CORRELATION = 0.101
 # Two levels, measured separately: 57.1% agreement between legs on one roster
@@ -128,7 +129,20 @@ def fixture_hit_probability(sides, rho_team, rho_fixture):
     """P(every leg on one fixture lands), legs split by side.
 
     sides: [[p, ...], [p, ...]] -- one list per team.
+
+    Memoised, because the slip builder asks this the same way thousands of
+    times. A nested integration is 200x200 normal CDF evaluations -- about 19ms
+    -- and a board's worth of three-leg combinations reuses each fixture's legs
+    once per choice of the other leg, so the same two probabilities on the same
+    two teams are integrated again and again. The cache makes the search
+    tractable and cannot change an answer: the function is pure.
     """
+    return _fixture_cached(tuple(tuple(side) for side in sides),
+                           rho_team, rho_fixture)
+
+
+@lru_cache(maxsize=200_000)
+def _fixture_cached(sides, rho_team, rho_fixture):
     flat = [p for side in sides for p in side]
     if any(not (isinstance(p, (int, float)) and 0 < p < 1) for p in flat):
         return None

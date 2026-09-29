@@ -38,6 +38,17 @@ MIN_WORST_EV = 0.10
 #: multiplier grows slower than the joint probability falls once the legs are
 #: correlated, so they rarely clear the bar and they crowd the search.
 DEFAULT_SIZES = (2, 3)
+#: How many legs the search will combine, best worst-case probability first.
+#:
+#: Not a nicety. A real board projects around 230 legs, which is 1.95 million
+#: triples, and at the measured 19ms for a same-match triple that is ten hours.
+#: The cap is a near-proof rather than a proof: a slip's joint probability is
+#: bounded above by its weakest leg, so a slip containing a leg ranked below the
+#: cap cannot beat the best slip of the same size built from legs above it --
+#: EXCEPT that a legal slip needs two teams and same-match legs get a
+#: correlation uplift, so a cheap leg on the right fixture can in principle
+#: sneak past. 40 leaves 9,880 triples, which prices in seconds.
+MAX_LEGS_SEARCHED = 40
 #: A slip belongs to the early set if it locks before this hour, local time.
 LATE_CUTOFF_HOUR = 23
 
@@ -107,10 +118,44 @@ def scenarios_of(projections):
 
 
 def is_legal(projections, mode="power"):
-    """The PrizePicks rules, via the same Slip the tracker will record."""
-    trial = Slip(mode=mode, stake_cents=100,
-                 legs=[p.to_leg() for p in projections])
-    return trial.problems()
+    """The PrizePicks rules, checked on the projections directly.
+
+    The obvious implementation builds the Slip the tracker would record and asks
+    it -- and that is what test_is_legal_agrees_with_the_slip_it_would_build
+    pins this against. It is not what runs, because the search asks this
+    question a million times and building a Slip and a Leg per combination to
+    throw both away is most of the cost.
+    """
+    players, teams = set(), set()
+    for projection in projections:
+        players.add(projection.player_key)
+        teams.add(projection.team_key)
+    problems = []
+    if len(projections) < 2:
+        problems.append(f"a slip needs at least 2 legs, this has {len(projections)}")
+    if len(players) != len(projections):
+        problems.append("one prop per player per slip")
+    if "" in teams or any(key.endswith(":") for key in teams):
+        problems.append("every leg needs a team")
+    elif len(teams) < 2:
+        problems.append("a slip needs players from at least 2 different teams")
+    return problems
+
+
+def eligible(projections, multiplier, min_worst_ev, max_legs=MAX_LEGS_SEARCHED):
+    """Legs worth combining at this multiplier, best worst case first.
+
+    The bound is valid: a slip's joint probability cannot exceed its weakest
+    leg's, so a leg whose own worst-case probability times the multiplier does
+    not clear the bar cannot be in a qualifying slip at that size. It prunes
+    little on a 6x multiplier and everything on a thin board, which is the
+    right shape for it. The cap after it is the practical limit, documented at
+    MAX_LEGS_SEARCHED.
+    """
+    floor = (1 + min_worst_ev) / float(multiplier)
+    kept = [p for p in projections if p.stress_low >= floor]
+    kept.sort(key=lambda p: -p.stress_low)
+    return kept[:max_legs]
 
 
 def evaluate(projections, sims=None, mode="power", multiplier=None, table=None):
@@ -131,7 +176,7 @@ def evaluate(projections, sims=None, mode="power", multiplier=None, table=None):
 
 
 def search(projections, sims=None, sizes=DEFAULT_SIZES, mode="power",
-           table=None, min_worst_ev=MIN_WORST_EV):
+           table=None, min_worst_ev=MIN_WORST_EV, max_legs=MAX_LEGS_SEARCHED):
     """Every legal combination that clears the bar, best worst-case first."""
     table = table or DEFAULT_TABLE
     found = []
@@ -139,7 +184,8 @@ def search(projections, sims=None, sizes=DEFAULT_SIZES, mode="power",
         multiplier = table.multiplier(mode, size)
         if multiplier is None:
             continue
-        for combination in itertools.combinations(projections, size):
+        pool = eligible(projections, multiplier, min_worst_ev, max_legs)
+        for combination in itertools.combinations(pool, size):
             if is_legal(combination, mode):
                 continue
             candidate = evaluate(combination, sims, mode, multiplier, table)
@@ -232,7 +278,7 @@ def explain(candidate, bankroll_cents):
 
 def build_slate(projections, tracker=None, sims=None, sizes=DEFAULT_SIZES,
                 mode="power", min_worst_ev=MIN_WORST_EV, now=None, table=None,
-                bankroll_cents=None):
+                bankroll_cents=None, max_legs=MAX_LEGS_SEARCHED):
     """The night's slate: an early set and a late set, sized and explained."""
     table = table or (tracker.table if tracker else DEFAULT_TABLE)
     bankroll = (bankroll_cents if bankroll_cents is not None
@@ -242,7 +288,7 @@ def build_slate(projections, tracker=None, sims=None, sizes=DEFAULT_SIZES,
     policy, policy_reason = (sizing_policy(tracker.slips) if tracker
                              else ("kelly", "no record to judge calibration by"))
     ranked = take_disjoint(search(projections, sims, sizes, mode, table,
-                                  min_worst_ev))
+                                  min_worst_ev, max_legs))
     early, late = split_by_lock(ranked, now, LATE_CUTOFF_HOUR)
 
     staked = tracker.ledger.staked_on(now.date()) if tracker else 0

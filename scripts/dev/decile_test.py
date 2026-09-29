@@ -48,6 +48,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import optimize_weights as ow
 import hit_probability as hp
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from propedge import jsconfig  # noqa: E402
+
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 APP = os.path.join(REPO_ROOT, "src", "app.jsx")
 SOURCES = hp.SOURCES
@@ -56,35 +59,9 @@ SOURCES = hp.SOURCES
 # ============================================================
 # The app's own numbers, read rather than copied
 # ============================================================
-
-def js_number(name, source):
-    found = re.search(rf"const {name}\s*=\s*(-?\d+(?:\.\d+)?)", source)
-    if not found:
-        raise SystemExit(f"! {name} not found in src/app.jsx — has it been renamed?")
-    return float(found.group(1))
-
-
-def js_object(name, source):
-    """A flat nested object literal out of app.jsx, as JSON."""
-    start = source.index(f"const {name} = {{")
-    brace = source.index("{", start)
-    depth, end = 0, brace
-    for end in range(brace, len(source)):
-        if source[end] == "{":
-            depth += 1
-        elif source[end] == "}":
-            depth -= 1
-            if depth == 0:
-                break
-    body = source[brace:end + 1]
-    body = re.sub(r"//[^\n]*", "", body)
-    body = re.sub(r",(\s*[}\]])", r"\1", body)
-    # Identifier-like keys AND bare numeric ones: RESIDUAL_SCALE keys its windows
-    # by map count (`kills: { 1: 4.66, 2: 7.70 }`), which JSON will not take
-    # unquoted. Quoting them here is why residual_scale() looks windows up by
-    # str(maps).
-    body = re.sub(r"([{,]\s*)([A-Za-z_$][A-Za-z0-9_$]*|\d+)\s*:", r'\1"\2":', body)
-    return json.loads(body)
+#
+# The extraction itself is propedge/jsconfig.py -- it was here first, and it
+# moved when a second caller needed it. One regex over app.jsx, tested once.
 
 
 class Gate:
@@ -95,10 +72,10 @@ class Gate:
     def __init__(self):
         with open(APP, encoding="utf-8") as f:
             source = f.read()
-        self.threshold = js_number("PARLAY_TIER_THRESHOLD", source)
-        self.min_rows = int(js_number("PARLAY_MIN_ROWS_PER_BAND", source))
-        self.exponent = js_number("RESIDUAL_SCALE_EXPONENT", source)
-        self.scales = js_object("RESIDUAL_SCALE", source)
+        self.threshold = jsconfig.number("PARLAY_TIER_THRESHOLD", source)
+        self.min_rows = int(jsconfig.number("PARLAY_MIN_ROWS_PER_BAND", source))
+        self.exponent = jsconfig.number("RESIDUAL_SCALE_EXPONENT", source)
+        self.scales = jsconfig.obj("RESIDUAL_SCALE", source)
 
     def residual_scale(self, game, stat, maps):
         by_window = (self.scales.get(game) or {}).get(stat)

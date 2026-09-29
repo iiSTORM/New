@@ -303,3 +303,57 @@ def test_the_model_s_own_reasons_are_carried_through():
 def test_how_it_was_priced_is_stated():
     assert "measured same-match correlation" in breakdown_of(
         proj("a", "A", "Alpha", "Beta"), proj("b", "B", "Beta", "Alpha"))
+
+
+def test_is_legal_agrees_with_the_slip_it_would_build():
+    """The fast path has to give the same answer as the real Slip.
+
+    is_legal checks the projections directly because the search asks a million
+    times and building a Slip and its Legs per combination to throw both away is
+    most of the cost. That is only safe while the two agree, so they are
+    compared here on every shape that matters.
+    """
+    from propedge.slips import Slip
+
+    cases = [
+        [proj("a", "P", "Alpha", "Beta"), proj("b", "Q", "Beta", "Alpha")],
+        [proj("a", "P", "Alpha", "Beta"), proj("b", "Q", "Alpha", "Beta")],
+        [proj("a", "P", "Alpha", "Beta"), proj("b", "P", "Beta", "Alpha")],
+        [proj("a", "P", "Alpha", "Beta")],
+        [proj("a", "P", "", "Beta"), proj("b", "Q", "", "Alpha")],
+        [proj("a", "P", "Alpha", "Beta"), proj("b", "Q", "Beta", "Alpha"),
+         proj("c", "R", "Gamma", "Delta")],
+        [proj("a", "P", "Alpha", "Beta"), proj("b", "Q", "Beta", "Alpha"),
+         proj("c", "P", "Gamma", "Delta")],
+    ]
+    for projections in cases:
+        fast = bld.is_legal(projections)
+        slow = Slip(mode="power", stake_cents=100,
+                    legs=[p.to_leg() for p in projections]).problems()
+        assert bool(fast) == bool(slow), (
+            f"fast path says {fast!r}, the Slip says {slow!r}")
+
+
+def test_the_pool_is_pruned_by_a_valid_bound():
+    """A slip's joint probability cannot exceed its weakest leg's, so a leg that
+    cannot clear the bar on its own cannot be in a qualifying slip."""
+    legs = [proj("good", "A", "Alpha", "Beta", p=0.80),
+            proj("weak", "B", "Beta", "Alpha", p=0.20)]
+    # 2-pick at 3x with a +10% bar needs each leg above 1.10/3 = 36.7%
+    kept = bld.eligible(legs, 3, 0.10)
+    assert [p.prop_id for p in kept] == ["good"]
+
+
+def test_the_pool_is_capped_and_takes_the_best():
+    many = strong(8, p=0.70)
+    kept = bld.eligible(many, 6, 0.10, max_legs=3)
+    assert len(kept) == 3
+    assert all(p.stress_low >= kept[-1].stress_low for p in kept)
+
+
+def test_the_cap_keeps_the_search_finite():
+    """Without it a real board's 228 legs is 1.95 million triples."""
+    slate = bld.build_slate(strong(4), bankroll_cents=100_000, now=EVENING,
+                            max_legs=2, sizes=(2,))
+    offered = slate["early"] + slate["late"]
+    assert len(offered) == 1     # only one pair can be formed from two legs
