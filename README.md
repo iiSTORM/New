@@ -885,12 +885,51 @@ build plan is here; the phone form, the analytics and the slip builder are not.
 **The bets are not in this repo, and cannot be.** This repo is public and serves
 its data files straight off `raw.githubusercontent.com`. The store lives at
 `$PROPEDGE_DATA`, defaulting to `~/.propedge/store.json` — outside any
-checkout. `propedge/store.py` refuses to write anywhere inside a git work tree
-unless `PROPEDGE_ALLOW_REPO_PATH=1` says the checkout is private, and
-`.gitignore` catches the obvious filenames as a second layer. The guard's first
-version had a hole (it checked a path's parents but not the path itself, so a
-store written to the repo ROOT looked clean); the test for that case is in
-`tests/test_propedge_store.py`.
+checkout — and `propedge/store.py` refuses to write anywhere inside a git work
+tree without an explicit override. `.gitignore` catches the obvious filenames
+as a second layer. The guard's first version had a hole (it checked a path's
+parents but not the path itself, so a store written to the repo ROOT looked
+clean); the test for that case is in `tests/test_propedge_store.py`.
+
+### Keeping it in a private repo
+
+The store is one JSON file, so the durable home for it is a **private**
+repository, and `iiSTORM/propedge` is that. Set three variables and every
+command that changes the store commits and pushes it there by itself:
+
+```bash
+git clone https://github.com/iiSTORM/propedge.git ~/propedge
+export PROPEDGE_DATA=~/propedge/store.json
+export PROPEDGE_ALLOW_REPO_PATH=https://github.com/iiSTORM/propedge
+export PROPEDGE_SYNC=1
+```
+
+**`PROPEDGE_ALLOW_REPO_PATH` names the repository by URL, and that is the
+point.** A bare `1` is accepted only for a checkout with *no remote*, which has
+nowhere to publish to. Once a checkout has one, the override must match it —
+otherwise a single variable exported months ago for the private repo blesses
+every checkout on the machine, and the first mistyped path writes a bet history
+into the public one. Naming it turns that into an error:
+
+```
+PrivacyError: /home/user/New/store.json is inside a checkout of
+https://github.com/iiSTORM/New, but PROPEDGE_ALLOW_REPO_PATH names
+https://github.com/iiSTORM/propedge. Refusing to write a bet history into a
+repository the override does not name.
+```
+
+The comparison is on `host/owner/repo`, so `git@github.com:iiSTORM/propedge.git`
+and `https://github.com/iiSTORM/propedge` are one repository rather than a typo
+hunt. `.git` as a *file* — a linked worktree or submodule — is followed rather
+than ignored, since failing to read its config would find no remote and take
+the permissive branch.
+
+**`PROPEDGE_SYNC` only decides whether the commit and push happen.** The file on
+disk is written first and always, so the tracker keeps working offline and a
+failed push never costs a write — it prints `committed locally but NOT pushed`
+and the next command pushes both. Only `store.json` is ever staged, by name:
+the checkout is yours, and `git add -A` would take whatever else is sitting in
+it.
 
 ```
 python scripts/propedge_cli.py deposit 19.19 --note "starting bankroll"

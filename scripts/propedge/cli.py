@@ -29,7 +29,7 @@ from .money import fmt, to_cents
 from .ledger import DEPOSIT, WITHDRAWAL
 from .sizing import outcome_table, recommend
 from .slips import Leg, Slip
-from .store import Tracker
+from .store import Tracker, sync
 
 
 def parse_leg(spec):
@@ -58,6 +58,22 @@ def show_balance(tracker):
     return balance
 
 
+
+def save_and_sync(tracker, what):
+    """Write the store, then push it if PROPEDGE_SYNC says to.
+
+    Separate from Tracker.save() on purpose: save() is pure file I/O and is
+    what every test exercises, while this is the part that touches a network
+    and a credential. A sync that cannot run never costs you the write -- the
+    file on disk is already correct and this only reports whether the remote
+    has caught up.
+    """
+    tracker.save()
+    note = sync(tracker.path, f"propedge: {what}")
+    if note:
+        print(f"  {note}")
+
+
 def cmd_balance(tracker, args):
     show_balance(tracker)
     for entry, running in tracker.ledger.history()[-args.tail:]:
@@ -70,7 +86,7 @@ def cmd_balance(tracker, args):
 def cmd_money(tracker, args):
     kind = DEPOSIT if args.command == "deposit" else WITHDRAWAL
     tracker.ledger.add(kind, to_cents(args.amount), note=args.note)
-    tracker.save()
+    save_and_sync(tracker, f"{kind} {fmt(to_cents(args.amount))}")
     show_balance(tracker)
     return 0
 
@@ -89,7 +105,8 @@ def cmd_place(tracker, args):
             print("  (pass --force to log it anyway)")
             return 1
     tracker.place(slip, force=args.force)
-    tracker.save()
+    save_and_sync(tracker, f"place {slip.id} ({slip.mode} {slip.n_legs}-pick, "
+                           f"stake {fmt(slip.stake_cents)})")
     print(f"{slip.id}  {slip.mode} {slip.n_legs}-pick  stake {fmt(slip.stake_cents)}"
           + (f"  {slip.multiplier}x" if slip.multiplier else ""))
     show_balance(tracker)
@@ -120,7 +137,7 @@ def cmd_grade(tracker, args):
         raise SystemExit(f"! {args.player!r} matches {len(matches)} legs on {slip.id}")
     leg = matches[0]
     leg.grade(args.actual, dnp=args.dnp)
-    tracker.save()
+    save_and_sync(tracker, f"grade {leg.player} on {slip.id} -> {leg.result}")
     print(f"{leg.player} {leg.side} {leg.line:g} {leg.stat} -> {leg.result}")
     remaining = [l for l in slip.legs if l.result == "pending"]
     print(f"  {len(remaining)} leg(s) still pending on {slip.id}" if remaining
@@ -135,14 +152,14 @@ def cmd_autograde(tracker, args):
     for line in skipped:
         print(f"  left    {line}")
     if graded:
-        tracker.save()
+        save_and_sync(tracker, f"autograde {len(graded)} leg(s)")
     print(f"{len(graded)} leg(s) graded, {len(skipped)} left alone")
     return 0
 
 
 def cmd_settle(tracker, args):
     got = tracker.settle(args.slip, args.payout)
-    tracker.save()
+    save_and_sync(tracker, f"settle {args.slip} -> {got.status}")
     slip = tracker.find(args.slip)
     print(f"{slip.id}  {got.status}  payout {fmt(got.payout_cents)}"
           + ("  (estimated)" if got.estimated else ""))

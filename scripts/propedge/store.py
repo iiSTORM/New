@@ -14,6 +14,8 @@ a Supabase or private-repo backend replaces this and nothing above it changes.
 """
 import json
 import os
+import re
+import subprocess
 import tempfile
 from pathlib import Path
 
@@ -24,6 +26,11 @@ from .slips import Slip, settle
 VERSION = 1
 ENV_PATH = "PROPEDGE_DATA"
 ENV_ALLOW_REPO = "PROPEDGE_ALLOW_REPO_PATH"
+ENV_SYNC = "PROPEDGE_SYNC"
+
+#: Values of ENV_ALLOW_REPO that mean "yes" rather than naming a repository.
+#: Accepted only for a checkout with NO remote, which cannot publish anything.
+_FLAGS = {"1", "true", "yes", "on"}
 
 
 class PrivacyError(Exception):
@@ -48,6 +55,68 @@ def in_git_worktree(path):
         if (candidate / ".git").exists():
             return candidate
     return None
+
+
+def _git_dir(repo):
+    """The real .git directory for a checkout.
+
+    `.git` is a FILE in a linked worktree or a submodule, holding
+    "gitdir: <path>". Reading the config out of it blindly would find nothing
+    and silently conclude the checkout has no remote, which is the permissive
+    answer -- so the indirection is followed rather than ignored.
+    """
+    dot = Path(repo) / ".git"
+    if dot.is_dir():
+        return dot
+    try:
+        pointer = dot.read_text(encoding="utf-8", errors="replace").strip()
+    except OSError:
+        return None
+    if not pointer.startswith("gitdir:"):
+        return None
+    target = Path(pointer.split(":", 1)[1].strip())
+    if not target.is_absolute():
+        target = (Path(repo) / target).resolve()
+    return target if target.exists() else None
+
+
+def remote_of(repo):
+    """origin's URL for a checkout, or None if it has none.
+
+    Read out of .git/config rather than shelled out to `git remote`, so the
+    guard does not depend on a git binary being on PATH and cannot be slowed
+    or hung by one.
+    """
+    git_dir = _git_dir(repo)
+    if not git_dir:
+        return None
+    try:
+        config = (git_dir / "config").read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    found = re.search(r'\[remote\s+"origin"\]((?:[^\[]|\n)*)', config)
+    if not found:
+        return None
+    url = re.search(r"^\s*url\s*=\s*(\S+)", found.group(1), re.M)
+    return url.group(1) if url else None
+
+
+def canonical_remote(url):
+    """A remote URL reduced to host/owner/repo, for comparing two spellings.
+
+    git@github.com:iiSTORM/propedge.git, ssh://git@github.com/iiSTORM/propedge
+    and https://github.com/iiSTORM/propedge are one repository written three
+    ways, and a guard that only matched the exact string would send someone
+    looking for a typo instead of telling them the truth.
+    """
+    if not url:
+        return ""
+    text = str(url).strip().rstrip("/")
+    text = re.sub(r"\.git$", "", text)
+    text = re.sub(r"^[a-zA-Z][a-zA-Z0-9+.-]*://", "", text)   # scheme
+    text = re.sub(r"^[^/@]+@", "", text)                       # user@
+    text = text.replace(":", "/", 1) if "/" not in text.split(":")[0] else text
+    return re.sub(r"/+", "/", text).lower()
 
 
 class Tracker:
@@ -78,13 +147,35 @@ class Tracker:
     def save(self):
         repo = in_git_worktree(self.path.parent if self.path.parent.exists()
                                else self.path)
-        if repo and not os.environ.get(ENV_ALLOW_REPO):
-            raise PrivacyError(
-                f"{self.path} is inside the git work tree at {repo}. This repo is "
-                f"public — a bet history committed here is published. Set "
-                f"{ENV_PATH} to a path outside any checkout (the default, "
-                f"~/.propedge/store.json, is), or set {ENV_ALLOW_REPO}=1 if the "
-                f"checkout really is private.")
+        if repo:
+            allow = (os.environ.get(ENV_ALLOW_REPO) or "").strip()
+            if not allow:
+                raise PrivacyError(
+                    f"{self.path} is inside the git work tree at {repo}. That "
+                    f"repo may be public — a bet history committed there is "
+                    f"published. Set {ENV_PATH} to a path outside any checkout "
+                    f"(the default, ~/.propedge/store.json, is), or set "
+                    f"{ENV_ALLOW_REPO} to the remote URL of the private "
+                    f"repository this store belongs in.")
+            # A bare "1" permits ANY checkout, which is fine only where there
+            # is nothing to publish to. Once a checkout has a remote the
+            # override has to NAME it: otherwise one exported variable, set
+            # months ago for the private repo, silently blesses the public one
+            # the day a path is mistyped. Naming it turns that into an error.
+            remote = remote_of(repo)
+            if remote and allow.lower() in _FLAGS:
+                raise PrivacyError(
+                    f"{self.path} is inside a checkout of {remote}, and "
+                    f"{ENV_ALLOW_REPO} is set to {allow!r}. A bare flag is not "
+                    f"enough for a checkout that has a remote — it would bless "
+                    f"every repository on this machine. Set {ENV_ALLOW_REPO} to "
+                    f"that remote's URL so the override names the one "
+                    f"repository it permits.")
+            if remote and canonical_remote(allow) != canonical_remote(remote):
+                raise PrivacyError(
+                    f"{self.path} is inside a checkout of {remote}, but "
+                    f"{ENV_ALLOW_REPO} names {allow}. Refusing to write a bet "
+                    f"history into a repository the override does not name.")
         self.path.parent.mkdir(parents=True, exist_ok=True)
         blob = {"version": VERSION, "slips": [s.as_json() for s in self.slips],
                 "ledger": self.ledger.as_json(),
@@ -167,3 +258,45 @@ class Tracker:
     def exposure(self):
         """Cents currently at risk on unsettled slips."""
         return sum(s.stake_cents for s in self.pending())
+
+
+def sync(path, message, remote="origin"):
+    """Commit and push the store, so a private repo is the copy of record.
+
+    Off unless PROPEDGE_SYNC is set, because a git push is a network call with
+    a credential behind it and a tracker must keep working on a train. When it
+    is off, or when anything here fails, the store on disk is already written
+    and correct -- this only decides whether the remote has caught up -- so
+    nothing raises. It returns a line to print instead, and the caller says so.
+
+    Only the store file is staged, by name. Never `git add -A`: the checkout is
+    the user's and whatever else is sitting in it is not this tool's to commit.
+    """
+    if not os.environ.get(ENV_SYNC):
+        return None
+    path = Path(path).resolve()
+    repo = in_git_worktree(path.parent if path.parent.exists() else path)
+    if not repo:
+        return f"not syncing: {path} is not inside a checkout"
+
+    def git(*args):
+        return subprocess.run(("git", "-C", str(repo), *args), capture_output=True,
+                              text=True, timeout=120)
+
+    try:
+        relative = path.relative_to(Path(repo).resolve())
+        staged = git("add", "--", str(relative))
+        if staged.returncode != 0:
+            return f"not syncing: git add failed — {staged.stderr.strip()}"
+        if git("diff", "--quiet", "--cached", "--", str(relative)).returncode == 0:
+            return "nothing to sync: the stored file is unchanged"
+        done = git("commit", "-m", message, "--", str(relative))
+        if done.returncode != 0:
+            return f"not syncing: git commit failed — {done.stderr.strip()}"
+        pushed = git("push", remote, "HEAD")
+        if pushed.returncode != 0:
+            return (f"committed locally but NOT pushed — {pushed.stderr.strip()}. "
+                    f"Run `git -C {repo} push` when you have a connection.")
+        return f"synced to {remote}"
+    except (OSError, ValueError, subprocess.SubprocessError) as e:
+        return f"not syncing: {e.__class__.__name__}: {e}"

@@ -12,12 +12,15 @@ private seed script, not in this public file, for the same reason.
 import json
 import os
 
+import subprocess
+
 import pytest
 
 from propedge.ledger import DEPOSIT
 from propedge.money import to_cents
 from propedge.slips import Leg, Slip
-from propedge.store import ENV_ALLOW_REPO, PrivacyError, Tracker, in_git_worktree
+from propedge.store import (ENV_ALLOW_REPO, ENV_SYNC, PrivacyError, Tracker,
+                            canonical_remote, in_git_worktree, remote_of, sync)
 
 
 def leg(player, team, line=15.5, side="over", **kw):
@@ -42,12 +45,103 @@ def test_a_store_inside_a_git_worktree_is_refused(tmp_path):
     assert not (checkout / "store.json").exists()
 
 
-def test_the_repo_guard_can_be_overridden_for_a_private_checkout(tmp_path, monkeypatch):
+def test_a_flag_overrides_the_guard_only_where_there_is_no_remote(tmp_path, monkeypatch):
+    """A checkout with no remote has nowhere to publish to, so a bare yes is
+    enough. That is the only case it is enough for."""
     (tmp_path / ".git").mkdir()
     monkeypatch.setenv(ENV_ALLOW_REPO, "1")
     tracker = Tracker(tmp_path / "store.json")
     tracker.ledger.add(DEPOSIT, 2500)
     assert tracker.save().exists()
+
+
+def make_checkout(root, remote):
+    """A directory that looks like a checkout of `remote` to the guard."""
+    git = root / ".git"
+    git.mkdir()
+    (git / "config").write_text(
+        '[core]\n\trepositoryformatversion = 0\n'
+        f'[remote "origin"]\n\turl = {remote}\n'
+        '\tfetch = +refs/heads/*:refs/remotes/origin/*\n', encoding="utf-8")
+    return root
+
+
+PRIVATE = "https://github.com/iiSTORM/propedge"
+PUBLIC = "https://github.com/iiSTORM/New"
+
+
+def test_a_bare_flag_is_refused_once_the_checkout_has_a_remote(tmp_path, monkeypatch):
+    """The hole worth closing.
+
+    One PROPEDGE_ALLOW_REPO_PATH=1 exported months ago for the private repo
+    blesses every checkout on the machine, including the public one, the day a
+    path is mistyped. Requiring the override to NAME a repository turns that
+    from a silent publish into an error.
+    """
+    make_checkout(tmp_path, PUBLIC)
+    monkeypatch.setenv(ENV_ALLOW_REPO, "1")
+    tracker = Tracker(tmp_path / "store.json")
+    tracker.ledger.add(DEPOSIT, 2500)
+    with pytest.raises(PrivacyError, match="bare flag"):
+        tracker.save()
+    assert not (tmp_path / "store.json").exists()
+
+
+def test_the_override_must_name_the_checkout_it_is_used_in(tmp_path, monkeypatch):
+    make_checkout(tmp_path, PUBLIC)
+    monkeypatch.setenv(ENV_ALLOW_REPO, PRIVATE)
+    tracker = Tracker(tmp_path / "store.json")
+    tracker.ledger.add(DEPOSIT, 2500)
+    with pytest.raises(PrivacyError, match="does not name"):
+        tracker.save()
+    assert not (tmp_path / "store.json").exists()
+
+
+def test_naming_the_checkout_lets_it_through(tmp_path, monkeypatch):
+    make_checkout(tmp_path, PRIVATE)
+    monkeypatch.setenv(ENV_ALLOW_REPO, PRIVATE)
+    tracker = Tracker(tmp_path / "store.json")
+    tracker.ledger.add(DEPOSIT, 2500)
+    assert tracker.save().exists()
+
+
+@pytest.mark.parametrize("spelling", [
+    "git@github.com:iiSTORM/propedge.git",
+    "https://github.com/iiSTORM/propedge",
+    "https://github.com/iiSTORM/propedge.git",
+    "ssh://git@github.com/iiSTORM/propedge",
+    "https://github.com/iistorm/propedge/",
+])
+def test_the_same_repository_written_any_way_matches(tmp_path, monkeypatch, spelling):
+    """Otherwise the guard sends you hunting for a typo instead of the truth."""
+    make_checkout(tmp_path, "git@github.com:iiSTORM/propedge.git")
+    monkeypatch.setenv(ENV_ALLOW_REPO, spelling)
+    tracker = Tracker(tmp_path / "store.json")
+    tracker.ledger.add(DEPOSIT, 2500)
+    assert tracker.save().exists()
+
+
+def test_two_different_repositories_never_collapse_together():
+    assert canonical_remote(PRIVATE) != canonical_remote(PUBLIC)
+    assert canonical_remote("git@github.com:a/b.git") == canonical_remote(
+        "https://github.com/A/B")
+
+
+def test_a_worktree_pointer_file_is_followed_rather_than_ignored(tmp_path):
+    """.git is a FILE in a linked worktree. Failing to follow it would read no
+    config, find no remote, and take the permissive branch."""
+    real = tmp_path / "real"
+    real.mkdir()
+    make_checkout(real, PUBLIC)
+    linked = tmp_path / "linked"
+    linked.mkdir()
+    (linked / ".git").write_text(f"gitdir: {real / '.git'}\n", encoding="utf-8")
+    assert remote_of(linked) == PUBLIC
+
+
+def test_a_checkout_with_no_config_reads_as_having_no_remote(tmp_path):
+    (tmp_path / ".git").mkdir()
+    assert remote_of(tmp_path) is None
 
 
 def test_a_path_outside_any_checkout_saves(tmp_path):
@@ -213,3 +307,59 @@ def test_a_whole_night_adds_up(tmp_path):
     assert len(tracker.pending()) == 2
     tracker.save()
     assert Tracker.load(tmp_path / "store.json").balance() == to_cents("18.00")
+
+
+# ---------------------------------------------------------------------- sync
+
+def test_sync_is_off_unless_asked_for(tmp_path, monkeypatch):
+    """A tracker has to keep working on a train."""
+    monkeypatch.delenv(ENV_SYNC, raising=False)
+    assert sync(tmp_path / "store.json", "test") is None
+
+
+def test_sync_outside_a_checkout_says_so_rather_than_failing(tmp_path, monkeypatch):
+    monkeypatch.setenv(ENV_SYNC, "1")
+    assert "not inside a checkout" in sync(tmp_path / "store.json", "test")
+
+
+def test_sync_commits_and_reports_when_there_is_nothing_to_commit(tmp_path, monkeypatch):
+    """The store is written on every command; most of them change it, and the
+    ones that do not should say so instead of making an empty commit."""
+    monkeypatch.setenv(ENV_SYNC, "1")
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    subprocess.run(["git", "-C", str(repo), "config", "user.email", "t@t"], check=True)
+    subprocess.run(["git", "-C", str(repo), "config", "user.name", "t"], check=True)
+    store = repo / "store.json"
+    store.write_text("{}", encoding="utf-8")
+    subprocess.run(["git", "-C", str(repo), "add", "store.json"], check=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-qm", "first"], check=True)
+
+    assert "nothing to sync" in sync(store, "no change")
+
+    store.write_text('{"ledger": []}', encoding="utf-8")
+    note = sync(store, "a change")
+    # No remote is configured, so the push fails and the message says the
+    # commit survived -- which is the outcome that matters.
+    assert "NOT pushed" in note
+    log = subprocess.run(["git", "-C", str(repo), "log", "--oneline", "-1"],
+                         capture_output=True, text=True)
+    assert "a change" in log.stdout
+
+
+def test_sync_stages_only_the_store(tmp_path, monkeypatch):
+    """The checkout is the user's. Whatever else is sitting in it is not this
+    tool's to commit, and `git add -A` would take all of it."""
+    monkeypatch.setenv(ENV_SYNC, "1")
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    subprocess.run(["git", "-C", str(repo), "config", "user.email", "t@t"], check=True)
+    subprocess.run(["git", "-C", str(repo), "config", "user.name", "t"], check=True)
+    (repo / "store.json").write_text("{}", encoding="utf-8")
+    (repo / "private_notes.txt").write_text("not yours", encoding="utf-8")
+    sync(repo / "store.json", "first")
+    tracked = subprocess.run(["git", "-C", str(repo), "ls-files"],
+                             capture_output=True, text=True).stdout.split()
+    assert tracked == ["store.json"]
