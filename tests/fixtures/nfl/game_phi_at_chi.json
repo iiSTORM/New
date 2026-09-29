@@ -1,0 +1,106 @@
+{
+ "home": {
+  "code": "CHI",
+  "quarterback": "Case Keenum",
+  "plays": 60,
+  "plays_sd": 6,
+  "pass_rate": 0.47,
+  "script_k": 0.006,
+  "completion_rate": 0.625,
+  "sack_rate": 0.08,
+  "qb_rush_attempts": 1.5,
+  "qb_rush_ypc": 3.0,
+  "qb_pull_probability": 0.08,
+  "rushers": {
+   "D'Andre Swift": 0.57,
+   "Kyle Monangai": 0.37,
+   "other": 0.06
+  },
+  "targets": {
+   "Kalif Raymond": 0.18,
+   "Luther Burden III": 0.18,
+   "Rome Odunze": 0.15,
+   "D'Andre Swift": 0.12,
+   "Colston Loveland": 0.12,
+   "Cole Kmet": 0.065,
+   "Kyle Monangai": 0.055,
+   "other": 0.13
+  }
+ },
+ "away": {
+  "code": "PHI",
+  "quarterback": "Jalen Hurts",
+  "plays": 63,
+  "plays_sd": 6,
+  "pass_rate": 0.51,
+  "script_k": 0.006,
+  "completion_rate": 0.665,
+  "sack_rate": 0.07,
+  "qb_rush_attempts": 4.3,
+  "qb_rush_ypc": 4.8,
+  "qb_pull_probability": 0.0,
+  "rushers": {
+   "Saquon Barkley": 0.74,
+   "Tank Bigsby": 0.16,
+   "Will Shipley": 0.06,
+   "other": 0.04
+  },
+  "targets": {
+   "DeVonta Smith": 0.29,
+   "Dontayvion Wicks": 0.17,
+   "Makai Lemon": 0.13,
+   "Saquon Barkley": 0.08,
+   "Johnny Mundt": 0.07,
+   "Zach Ertz": 0.07,
+   "other": 0.19
+  }
+ },
+ "home_spread": -3.5,
+ "margin_sd": 13.0,
+ "concentration": 35.0,
+ "exit_probability": {
+  "DeVonta Smith": 0.08,
+  "Saquon Barkley": 0.08,
+  "Kyle Monangai": 0.08,
+  "D'Andre Swift": 0.04
+ },
+ "ypc": {
+  "D'Andre Swift": 4.3,
+  "Kyle Monangai": 4.5,
+  "Saquon Barkley": 4.4,
+  "Tank Bigsby": 4.0,
+  "Will Shipley": 4.0
+ },
+ "catch_rate": {
+  "Kalif Raymond": 0.85,
+  "Luther Burden III": 0.7,
+  "Rome Odunze": 0.6,
+  "D'Andre Swift": 0.8,
+  "Colston Loveland": 0.66,
+  "Cole Kmet": 0.72,
+  "Kyle Monangai": 0.8,
+  "DeVonta Smith": 0.69,
+  "Dontayvion Wicks": 0.6,
+  "Makai Lemon": 0.66,
+  "Saquon Barkley": 0.76,
+  "Johnny Mundt": 0.7,
+  "Zach Ertz": 0.68
+ },
+ "ypr": {
+  "Kalif Raymond": 8.8,
+  "Luther Burden III": 10.5,
+  "Rome Odunze": 14.2,
+  "D'Andre Swift": 6.8,
+  "Colston Loveland": 9.5,
+  "Cole Kmet": 9.0,
+  "Kyle Monangai": 7.5,
+  "DeVonta Smith": 13.6,
+  "Dontayvion Wicks": 15.5,
+  "Makai Lemon": 12.5,
+  "Saquon Barkley": 7.0,
+  "Johnny Mundt": 8.0,
+  "Zach Ertz": 9.0
+ },
+ "kneel_probability": 0.85,
+ "calibrated": false
+}

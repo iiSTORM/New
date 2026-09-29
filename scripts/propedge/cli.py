@@ -203,6 +203,66 @@ def project_board(args):
     return made
 
 
+def cmd_nfl(tracker, args):
+    """Simulate a game, optionally calibrate it to the book, and write the rows.
+
+    Kept separate from `slate` because it is the slow half -- tens of thousands
+    of simulated games, and calibration runs that many times over -- and because
+    its output is worth keeping: the same simulations price every slip shape,
+    so re-running them per slate would be paying twice for one answer.
+    """
+    from .nfl import GameSetup, calibrate, projections_from, simulate
+
+    with open(args.game) as f:
+        game = GameSetup.from_json(json.load(f))
+    with open(args.board) as f:
+        blob = json.load(f)
+    board = blob.get("props") if isinstance(blob, dict) else blob
+    if isinstance(board, dict):                      # {player: [rows]} like props.json
+        board = [row for rows in board.values() for row in rows]
+
+    usage = simulate(game, args.runs, seed=args.seed)
+    market_sims = None
+    if args.market:
+        with open(args.market) as f:
+            lines = [tuple(row) if isinstance(row, list) else
+                     (row["player"], row["stat"], row["line"])
+                     for row in json.load(f)]
+        print(f"calibrating to {len(lines)} book line(s)…")
+        tuned, history = calibrate(game, lines, rounds=args.rounds, runs=args.runs,
+                                  report=lambda r: print(
+                                      f"  round {r['round']:>2}  mean "
+                                      f"|P(over)-0.5| = {r['mean_error']:.3f}  "
+                                      f"max {r['max_error']:.3f}"))
+        market_sims = simulate(tuned, args.runs, seed=args.seed + 1000)
+        if args.write_game:
+            with open(args.write_game, "w") as f:
+                json.dump(tuned.as_json(), f, indent=1)
+                f.write("\n")
+            print(f"wrote the calibrated setup to {args.write_game}")
+    else:
+        print("no --market given, so nothing is calibrated: every prop will be "
+              "marked low confidence and say so")
+
+    made, sims = projections_from(board, usage, market_sims,
+                                  market_weight=args.market_weight)
+    print(f"{len(made)} projection(s) from {len(board)} board row(s), "
+          f"{args.runs} simulated games each")
+    unpriced = [p for p in made if p.confidence == "low"]
+    if unpriced:
+        print(f"  {len(unpriced)} have no market line — usage model only")
+    with open(args.write_projections, "w") as f:
+        json.dump({"projections": [p.as_json() for p in made]}, f, indent=1)
+        f.write("\n")
+    print(f"wrote {args.write_projections}")
+    if args.write_simulations:
+        with open(args.write_simulations, "w") as f:
+            json.dump(sims.by_scenario, f)
+            f.write("\n")
+        print(f"wrote {args.write_simulations}")
+    return 0 if made else 1
+
+
 def cmd_slate(tracker, args):
     if args.board:
         projections = project_board(args)
@@ -317,6 +377,19 @@ def build_parser():
     slate.add_argument("--min-ev", type=float, default=bld.MIN_WORST_EV,
                        dest="min_ev", help="worst-case EV bar (default %(default)s)")
 
+    nfl = subs.add_parser("nfl", help="simulate an NFL game into projection rows")
+    nfl.add_argument("--game", required=True, help="JSON GameSetup")
+    nfl.add_argument("--board", required=True, help="JSON board rows for that game")
+    nfl.add_argument("--market", help="JSON [[player, stat, line], ...] from a book")
+    nfl.add_argument("--runs", type=int, default=20_000)
+    nfl.add_argument("--rounds", type=int, default=12)
+    nfl.add_argument("--seed", type=int, default=1)
+    nfl.add_argument("--market-weight", type=float, default=0.6,
+                     dest="market_weight")
+    nfl.add_argument("--write-projections", default="nfl_projections.json")
+    nfl.add_argument("--write-simulations", default="nfl_simulations.json")
+    nfl.add_argument("--write-game", help="save the calibrated setup here")
+
     report = subs.add_parser("report", help="calibration, ROI, bankroll and CLV")
     report.add_argument("--history", default="props_history.jsonl")
 
@@ -336,7 +409,7 @@ def build_parser():
 HANDLERS = {"balance": cmd_balance, "deposit": cmd_money, "withdraw": cmd_money,
             "place": cmd_place, "list": cmd_list, "grade": cmd_grade,
             "autograde": cmd_autograde, "settle": cmd_settle, "size": cmd_size,
-            "report": cmd_report, "slate": cmd_slate}
+            "report": cmd_report, "slate": cmd_slate, "nfl": cmd_nfl}
 
 
 def main(argv=None):

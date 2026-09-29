@@ -1106,6 +1106,70 @@ beat the best slip of the same size built above it — except that a legal slip
 needs two teams and same-match legs get an uplift, so a cheap leg on the right
 fixture could in principle sneak past.
 
+### NFL: a game simulation, not a projection
+
+`propedge/nfl.py` is `reference/mnf_model_v2/model_v2.py` with the fixture taken
+out of it. The prototype baked in the teams, the quarterback who might be
+pulled, and the sign of the spread; this takes a `GameSetup` and runs for any
+game.
+
+```
+python scripts/propedge_cli.py nfl --game game.json --board board.json \
+    --market market.json --write-projections p.json --write-simulations s.json
+python scripts/propedge_cli.py slate --projections p.json --simulations s.json
+```
+
+**Why it matters that it simulates.** Everything else here prices a parlay
+through a measured correlation constant, because a kills projection is a number
+and a number cannot say how two legs move together. A simulation can: two
+receivers sharing one quarterback's attempts are evaluated in the same simulated
+game, so the slip is priced from the games where both got fed. Phase 3's builder
+already prefers `Simulations` where they exist — this is the first thing that
+produces them, and a real slate says `priced by: 20000 simulations` instead of
+`measured same-match correlation`.
+
+**Pure stdlib, deliberately.** The prototype is numpy and reads beautifully as
+vectorised code; this package has no dependencies and adding one for a model
+that has not proven itself is the wrong trade. The cost is sim count — 20,000
+runs rather than 100,000, which is a standard error of 0.35 of a point on a
+probability near one half against 0.16, both far below the error in the usage
+assumptions. It takes about 6 seconds.
+
+**Calibration.** A book's line *is* its 50/50 point, so `calibrate` nudges usage
+and efficiency until the model agrees with it, exactly as
+`reference/calibrate.py` does: multiplicative, per stat, step halved late, and
+deliberately not a gradient method because the objective is a Monte Carlo
+estimate whose noise would swamp any derivative. On the committed fixture the
+mean |P(over) − 0.5| goes from 0.092 to 0.015 in ten rounds. Both models are
+kept — usage and market-calibrated — as scenarios, so a prop they disagree about
+is ranked by the pessimistic one, and a prop they take **opposite sides** on says
+so in as many words: *"a coin flip dressed as a pick"*.
+
+A prop with no book line is flagged and dropped to low confidence rather than
+presented as if the market agreed: calibration never touched it.
+
+**Usage comes from nflverse** (`propedge/nflverse.py`), measured rather than
+hand-set — target share, carry share, catch rate, yards per reception and per
+carry from weekly player stats, shrunk toward a positional prior by sample size.
+Stdlib download, no new dependency. Two things it got wrong first, both now
+tests:
+
+- the pass rate must count **every** dropback, not the starter's: a team that
+  used two quarterbacks came out at a 34% pass rate, which is not a football
+  number;
+- "who threw the most over three weeks" is not the answer to "who is starting on
+  Sunday", so the quarterback is an override.
+
+**Two sign conventions that had to be reconciled.** The prototype's margin is
+positive when *that team* is winning; a book prints a spread negative when the
+*home* team is favoured. Porting one without the other had winning teams
+throwing more, which is backwards — `test_trailing_teams_throw_more` is there
+because that is precisely the bug that survives a careful reading.
+
+**Nothing here is calibrated out of the box.** A `GameSetup` built from guesses
+produces confident nonsense, which is why projections made from an uncalibrated
+one are marked low confidence and say why.
+
 ## Running locally
 
 ```bash
