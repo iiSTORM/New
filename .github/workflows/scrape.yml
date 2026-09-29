@@ -363,6 +363,21 @@ jobs:
           # Guarded with -f because that step is continue-on-error and
           # may legitimately not have produced a file.
           git add cs2_data.json
+          # odds_history.json ACCUMULATES for a harder reason than the career
+          # file does. bo3.gg serves a pre-match price only while a match is
+          # upcoming; once it starts, the same field holds the in-play price
+          # and the pre-match one is gone for good. So a capture this run
+          # discarded is not merely stale, it no longer exists anywhere.
+          # Merged with whatever is on main rather than replacing it, and
+          # never fatal: the snapshot is staged as-is if the merge cannot run.
+          if [ -f odds_history.json ]; then
+            git fetch origin main || true
+            git show origin/main:odds_history.json > /tmp/odds_base.json 2>/dev/null || echo '{}' > /tmp/odds_base.json
+            if python scripts/merge_odds_history.py odds_history.json /tmp/odds_base.json /tmp/odds_merged.json; then
+              mv /tmp/odds_merged.json odds_history.json
+            fi
+            git add odds_history.json
+          fi
           # The career file ACCUMULATES, so replacing what is committed
           # with this run's snapshot is wrong whenever this run started
           # from an older base -- later is not better, more is. Merged
@@ -399,6 +414,7 @@ jobs:
             echo "Push rejected ($i/5) — resetting to latest remote and reapplying this run's snapshot..."
             cp cs2_data.json /tmp/cs2_data.json.new
             if [ -f cs2_career_data.json ]; then cp cs2_career_data.json /tmp/cs2_career_data.json.new; fi
+            if [ -f odds_history.json ]; then cp odds_history.json /tmp/odds_history.json.new; fi
             git fetch origin main
             git reset --hard origin/main
             cp /tmp/cs2_data.json.new cs2_data.json
@@ -412,6 +428,18 @@ jobs:
               else
                 cp /tmp/cs2_career_data.json.new cs2_career_data.json
               fi
+            fi
+            # Same merge on the reapply path, and the one place where
+            # "last writer wins with their snapshot" would actually destroy
+            # data: the reset just pulled in another run's captures.
+            if [ -f /tmp/odds_history.json.new ]; then
+              [ -f odds_history.json ] || echo '{}' > odds_history.json
+              if python scripts/merge_odds_history.py /tmp/odds_history.json.new odds_history.json /tmp/odds_merged.json; then
+                mv /tmp/odds_merged.json odds_history.json
+              else
+                cp /tmp/odds_history.json.new odds_history.json
+              fi
+              git add odds_history.json
             fi
             git add cs2_data.json
             if [ -f cs2_career_data.json ]; then git add cs2_career_data.json; fi

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Can a better model close the gap to the posted line? Six tests, one answer.
+"""Can a better model close the gap to the posted line? Seven tests, one answer.
 
 scripts/dev/beat_the_line.py reports that the model is behind the book as a
 predictor -- +0.20 kills of mean absolute error on the biggest CS2 cell. The
@@ -8,7 +8,7 @@ that is possible with the data in this repository, kept as a script because the
 answer is a negative and a negative that lives only in a chat log gets
 re-litigated every few weeks.
 
-THE SIX TESTS, each able to find information the others would miss:
+THE SEVEN TESTS, each able to find information the others would miss:
 
   1. BLEND. Mix the model's projection with the line at every weight. If the
      model holds anything the line does not, some non-zero weight beats the line
@@ -42,6 +42,15 @@ THE SIX TESTS, each able to find information the others would miss:
      player who does the work and gets traded out of the frag still banks the
      damage, so adr ought to read his form more cleanly than kills do.
 
+  7. THE MARKET'S OWN PRICE, and the only one of the seven that is not a
+     read on form. Tests 3 to 6 all failed the same way -- a feature derived
+     from what a player has done is his form, and the line already has his
+     form. A bookmaker's pre-match price is a forecast of how the MATCH will
+     go: competitive or a walkover, which is the quarter of kill variance the
+     round-count finding said nothing here can predict. Devigged win
+     probability, distance from a coin flip, and where the provider posts it,
+     the price on the series going past two and a half maps.
+
 Everything is point in time, and anything that looks good in sample is then
 walk-forward tested, because at nine candidate features and 557 rows a t of 2
 is what noise looks like on its best day.
@@ -64,6 +73,13 @@ WHAT IT FOUND, on 2026-09-29:
      significant, the best of them kast at t +1.27 and adr at t +0.62. The
      damage hypothesis is dead -- a cleaner read on form is still a read on
      form, and form is what the line already has.
+  7. Pending. The odds did not exist in this repository until 2026-09-29, and
+     only half of them can ever be recovered: vlr.gg keeps a finished match's
+     pre-match prices, so Valorant backfills itself as the scraper re-walks
+     pages it already visits, while bo3.gg replaces a CS2 match's price with
+     the in-play one the moment play starts. CS2 accumulates forward from here
+     and cannot be backfilled at all. The test prints how many props it could
+     join and declines to conclude below a hundred.
 
 So the CS2 kills line is efficient with respect to every piece of information in
 this repository. The gap is not closable by better modelling of this data, and
@@ -88,6 +104,7 @@ sys.path.insert(0, os.path.dirname(HERE))
 
 import optimize_weights as ow                      # noqa: E402
 import search_weights_by_outcome as sw             # noqa: E402
+import odds_store                                  # noqa: E402
 
 BLEND_WEIGHTS = (0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 1.0)
 FOLDS = 4
@@ -457,6 +474,101 @@ def rich_rows(graded, data, index, maps=2, window=10):
     return out
 
 
+def odds_rows(game, stat, graded, data, index, maps=2):
+    """Props joined to the bookmakers' pre-match price on their own match.
+
+    THE ONE FEATURE THAT IS NOT FORM. Tests 3 to 6 all failed the same way: a
+    feature derived from what a player has done is a read on his form, and the
+    line already has his form. The market's price is not that. It is a forecast
+    of how the match itself will go -- whether it is competitive or a walkover
+    -- which is the quarter of kill variance the round-count finding said is
+    unpredictable from anything in this repository.
+
+    Two features come out of it:
+      * `win_prob`, the devigged probability that the player's own team wins.
+      * `mismatch`, how far that is from a coin flip. A blowout in either
+        direction is short, and short maps mean fewer rounds for everybody, so
+        the sign of the edge is not obvious and this deliberately does not
+        assume one.
+    And for CS2 a third, where the provider posts it: `implied_over`, the
+    market's own price on the series going past two and a half maps.
+
+    What is joinable is bounded by where the odds came from. Valorant's are on
+    vlr.gg's own match pages, which keep the pre-match prices after the fact,
+    so every past match carries them once the scraper has walked the pages
+    again. CS2's cannot be backfilled at all -- see scripts/odds_store.py --
+    so its rows only exist for matches captured since that started.
+    """
+    priced = {}
+    for region, blob in (data or {}).items():
+        for match in blob.get("past_matches") or []:
+            context = match.get("context") or {}
+            odds = context.get("odds") or {}
+            implied = odds.get("implied") or {}
+            if len(implied) != 2:
+                continue
+            for team in (match.get("teamA"), match.get("teamB")):
+                if team and team in implied:
+                    priced[(str(match.get("date") or ""), str(team))] = {
+                        "win_prob": implied[team],
+                        "stage": context.get("stage"),
+                        "maps": context.get("maps") or [],
+                    }
+
+    # The CS2 store is keyed on bo3.gg's slug rather than date and team,
+    # because that is the only identity two teams meeting twice in a day have.
+    captured = {}
+    if game == "cs2":
+        try:
+            captured = odds_store.load()
+        except Exception:
+            captured = {}
+    by_pair = {}
+    for entry in captured.values():
+        if not isinstance(entry, dict):
+            continue
+        odds = entry.get("last") or entry.get("first") or {}
+        implied = (odds or {}).get("implied") or {}
+        date = str(entry.get("start_date") or "")[:10]
+        for team in (entry.get("teamA"), entry.get("teamB")):
+            if team and team in implied:
+                by_pair[(date, str(team))] = {
+                    "win_prob": implied[team],
+                    "implied_over": ((odds.get("total_maps") or {})
+                                     .get("implied_over")),
+                    "stage": None, "maps": [],
+                }
+    priced.update(by_pair)
+    if not priced:
+        return []
+
+    rows_in = sw.cell_rows(graded, game, stat)
+    projected = {}
+    for row, mu, _ in sw.project_all(rows_in, data, index, game, stat,
+                                     ow.SHIPPED_WEIGHTS[game][stat]):
+        projected[id(row)] = mu
+
+    out = []
+    for row in rows_in:
+        if (maps and row.get("maps") != maps) or row.get("actual") is None:
+            continue
+        found = priced.get((str(row.get("match_date") or "")[:10],
+                            str(row.get("team") or "")))
+        if not found:
+            continue
+        made = {
+            "line": row["line"], "actual": row["actual"],
+            "model": projected.get(id(row)),
+            "win_prob": found["win_prob"],
+            "mismatch": abs(found["win_prob"] - 0.5),
+        }
+        if found.get("implied_over") is not None:
+            made["implied_over"] = found["implied_over"]
+        if made["model"] is not None:
+            out.append(made)
+    return out
+
+
 # ============================================================
 # The tests
 # ============================================================
@@ -634,6 +746,34 @@ def main(argv=None):
             report_walk_forward(scored, print)
             out["rich_walk_forward"] = scored
 
+    priced = odds_rows(args.game, args.stat, graded, data, index, args.maps)
+    print(f"\n7. THE MARKET'S OWN PRICE — {len(priced)} props joined to a "
+          "pre-match price.")
+    if len(priced) < 100:
+        print("   not enough yet to conclude anything. Valorant fills in as the "
+              "scraper re-walks")
+        print("   the match pages it already visits; CS2 cannot be backfilled at "
+              "all and")
+        print("   accumulates from the run that first captured it. See "
+              "scripts/odds_store.py.")
+    else:
+        names = ["win_prob", "mismatch"]
+        if all("implied_over" in r for r in priced):
+            names.append("implied_over")
+        out["odds_hits"] = test_features(priced, names, print, "")
+        variants = {"line alone": None,
+                    "line + win prob": lambda r: [r["line"], r["win_prob"]],
+                    "line + mismatch": lambda r: [r["line"], r["mismatch"]],
+                    "line + both": lambda r: [r["line"], r["win_prob"],
+                                              r["mismatch"]]}
+        if "implied_over" in names:
+            variants["line + series length"] = lambda r: [r["line"],
+                                                          r["implied_over"]]
+        scored = walk_forward(priced, variants)
+        report_walk_forward(scored, print)
+        out["odds_walk_forward"] = scored
+        out["odds_n"] = len(priced)
+
     beaten = (out["blend"]["best_weight"] > 0
               or any(v.get("t", 0) > 1.96 for k, v in out["regression"].items()
                      if k == "model")
@@ -658,23 +798,36 @@ def main(argv=None):
     return 0
 
 
-# WHAT WOULD ACTUALLY HELP, none of which is in this repository today:
+# WHAT WOULD ACTUALLY HELP. The list as it stood on 2026-09-29, with what
+# happened to each item since:
 #
-#   * MAP POOL AND VETO. Kills per round differ by map, and the veto is known
-#     before the match. A player on a team that vetoes into its best map is a
-#     different proposition, and this dataset has no map names at all.
-#   * ROSTER CHANGES AND STAND-INS. A stand-in is the single biggest shock to a
-#     player's share, and `actual` cannot distinguish one from a regular.
-#   * LIVE MAP ODDS. vlr.gg and HLTV publish per-map odds; the round-count
-#     finding says pace is a quarter of the variance and unpredictable from form,
-#     but odds are the market's own forecast of exactly that.
-#   * REST AND TRAVEL. Days since the last match, LAN against online, and which
-#     stage of a tournament it is.
-#   * ROLE. An AWPer and an entry fragger have different kill distributions, and
-#     nothing here records which is which.
+#   * ODDS. DONE, and now test 7. scripts/map_context.py reads them off the
+#     pages the scrapers already download -- vlr.gg's odds module for
+#     Valorant, and for CS2 a bet_updates field that was arriving on every
+#     bo3.gg response and being thrown away. Not yet answerable: Valorant
+#     needs one more scrape to backfill, CS2 cannot be backfilled and
+#     accumulates from here.
+#   * ROSTER CHANGES AND STAND-INS. RULED OUT, test 5. `actual` names the
+#     five players who appeared, so a lineup change is visible even though the
+#     provider never says "stand-in". Every churn feature was insignificant,
+#     and walk-forward all of them together were worse than the line alone.
+#   * REST AND TRAVEL. RULED OUT for rest, test 5: days since the last match
+#     reached t +1.46 and lost out of sample. LAN against online is still
+#     unmeasured -- no event field is scraped for either game.
+#   * MAP POOL AND VETO. NOW COLLECTED for Valorant, not yet testable, and
+#     bounded in a way that matters: vlr.gg publishes the whole veto with map
+#     names and pick order, but only AFTER it happens, minutes before the
+#     first map. So it can be backtested and cannot be projected from, which
+#     makes it a way to understand the residual rather than a feature.
+#   * ROLE. Partly ruled out, test 6: opening kills, opening deaths and
+#     opening share are what separates an entry fragger from an AWPer and all
+#     three were insignificant.
+#   * TOURNAMENT STAGE. NOW COLLECTED for Valorant ("Group Stage: Opening (A)")
+#     and untested.
 #
-# The cheapest of these is map odds, because it is already on the pages the
-# scrapers visit.
+# What is left is thin, and that is the finding. Six of seven tests are in,
+# five of them negative, and the one still open is the only one that was ever
+# about the match rather than about the player.
 
 if __name__ == "__main__":
     sys.exit(main())

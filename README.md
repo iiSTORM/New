@@ -1276,22 +1276,64 @@ gets re-litigated every few weeks.
    570 of 877 matches and which the shipped model has never read. **Nothing, in
    sample or out** — no feature reached t 1.96.
 
+5. **Context** — rest, congestion and roster churn, all of which turned out to
+   need no scraper: `actual` names the five players who appeared, so a lineup
+   change is visible even though the provider never says "stand-in". **Nothing.**
+   Days of rest was the strongest at t +1.46 and every variant was *worse* than
+   the line alone out of sample.
+6. **The fifteen stats the model ignores** — it reads `k` and nothing else,
+   while the record carries adr, kast, rating, opening duels, damage, clutches
+   and trades. **Nothing**, best kast at t +1.27. Damage was the strongest
+   hypothesis going in, being far less noisy than kills, and it is dead.
+
 So this market is efficient with respect to every piece of information in this
 repository. The gap is not closable by better modelling of this data.
 
-**What would actually close it** — none of it here today, cheapest first:
+Which leaves one thing that is not a read on form, and it is now collected.
 
-- **Map odds.** vlr.gg and HLTV publish per-map odds on pages the scrapers
-  already visit. Round count is 25% of kills variance and is *unpredictable*
-  from team form (correlation −0.10); odds are the market's own forecast of
-  exactly that.
-- **Map pool and veto.** Kills per round differ by map and the veto is known
-  beforehand. This dataset has no map names at all.
-- **Roster changes and stand-ins** — the biggest shock to a player's share, and
-  `actual` cannot tell a stand-in from a regular.
-- **Role.** An AWPer and an entry fragger have different kill distributions and
-  nothing here records which is which.
-- **Rest and travel**, LAN against online, tournament stage.
+### 7. The market's own price
+
+Tests 3 to 6 all fail the same way. A feature built from what a player has done
+is a read on his **form**, and the line already has his form. A bookmaker's
+pre-match price is not that: it is a forecast of how the **match** will go,
+competitive or a walkover — which is the quarter of kill variance the
+round-count finding said nothing here can predict.
+
+`scripts/map_context.py` reads it off pages the scrapers already download:
+
+- **vlr.gg** publishes one row per bookmaker with both decimal prices and a
+  "Pre-match" note, the **whole veto** with map names and pick order, and the
+  event stage.
+- **bo3.gg** puts CS2 odds in a `bet_updates` field that was arriving on every
+  response the scraper already made and being thrown away. Two-way prices plus a
+  dozen side markets, including the price on the series going past 2.5 maps.
+
+**The two are not symmetric, and it decides everything.** vlr.gg keeps a
+finished match's pre-match prices, so Valorant backfills itself the next time
+the scraper walks pages it walks anyway. bo3.gg replaces a CS2 match's price
+with the **in-play** price the moment play starts — a real finished sample read
+13.6 against 1.016 with both sides inactive, which is the scoreboard, not a
+forecast. So CS2 odds **cannot be backfilled**: they are captured while a match
+is upcoming and accumulated in `odds_history.json`, which is the one file here
+that is merged rather than regenerated, because a capture it drops is a price
+that no longer exists anywhere.
+
+Test 7 prints how many props it could join and declines to conclude below a
+hundred. It is not answered yet.
+
+**What is left on the list**, with what happened to each:
+
+- ~~**Roster changes and stand-ins**~~ — ruled out, test 5.
+- ~~**Rest**~~ — ruled out, test 5. LAN against online is still unmeasured; no
+  event field is scraped for either game.
+- ~~**Role**~~ — largely ruled out, test 6: opening kills, opening deaths and
+  opening share are exactly what separates an entry fragger from an AWPer, and
+  all three were insignificant.
+- **Map pool and veto** — now collected for Valorant, and bounded: the veto is
+  published only *after* it happens, minutes before the first map. Backtestable,
+  not projectable, so it is a way to understand the residual rather than a
+  feature.
+- **Tournament stage** — now collected for Valorant, untested.
 
 ### Why the weights are now searched against outcomes
 

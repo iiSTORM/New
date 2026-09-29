@@ -36,6 +36,8 @@ from datetime import datetime, timezone
 import requests
 from bs4 import BeautifulSoup
 
+import map_context
+
 BASE = "https://www.vlr.gg"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -204,10 +206,20 @@ def parse_match(match_id, match_path):
     patch_m = re.search(r"Patch\s+(\d+\.\d+)", html)
     patch = patch_m.group(1) if patch_m else None
 
+    # The bookmakers' prices, the veto and the event series, all of which
+    # are on this page and none of which anything has ever read. See
+    # scripts/map_context.py for what is really in the markup -- it was
+    # established by probe, not assumed. Set BEFORE the early return below
+    # so an upcoming match keeps its odds: those are the ones a projection
+    # could actually use, since the veto only appears once the match has
+    # started and the odds are on both.
+    context = map_context.context_from_page(html)
+
     result = {
         "match_id": match_id, "teamA": team_a, "teamB": team_b,
         "date": date_iso, "played": False, "patch": patch,
-        "scoreA": score_a, "scoreB": score_b, "actual": None, "per_game": None, "maps_played": None,
+        "scoreA": score_a, "scoreB": score_b, "actual": None, "per_game": None,
+        "maps_played": None, "context": context or None,
     }
 
     if not played or score_a is None or (score_a == 0 and score_b == 0):
@@ -589,6 +601,11 @@ def build_region_payload(region_key, current_event, historical_event):
             # total and stays one; this is what lets a map-1 line and a
             # maps-1-3 line each be graded over the maps they name.
             "per_game": m.get("per_game") or [],
+            # Odds, veto and stage. vlr.gg keeps the pre-match prices on a
+            # finished match's page, so this backfills itself: every match
+            # page is re-fetched each run, and the run after this one lands
+            # gives the whole record its odds without a single extra request.
+            "context": m.get("context") or None,
         }
 
     past_matches = [as_record(m) for m in cur_played]
@@ -610,7 +627,8 @@ def build_region_payload(region_key, current_event, historical_event):
     history_matches = [as_record(m) for m in hist_played]
 
     upcoming_matches = [
-        {"date": m["date"], "teamA": m["teamA"], "teamB": m["teamB"], "block": None}
+        {"date": m["date"], "teamA": m["teamA"], "teamB": m["teamB"], "block": None,
+         "context": m.get("context") or None}
         for m in cur_upcoming if m["teamA"] != "TBD" and m["teamB"] != "TBD"
     ]
 

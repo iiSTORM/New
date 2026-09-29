@@ -53,6 +53,8 @@ from cs2api import CS2
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from score_props import window_is_covered
 from team_aliases import prefer_a_real_name, reconcile
+import map_context
+import odds_store
 
 BO3_BASE = "https://api.bo3.gg/api/v1"
 HEADERS = {
@@ -820,7 +822,11 @@ async def build_region_payload(cs2, session):
     # disagree (e.g. "Team Falcons" vs "Falcons"). ----
     short_name_by_team_id = {}
     seen_upcoming_ids = set()
-    upcoming_stats = {"raw": 0, "duplicate": 0, "tbd_excluded": 0, "already_played": 0, "added": 0}
+    upcoming_stats = {"raw": 0, "duplicate": 0, "tbd_excluded": 0,
+                      "already_played": 0, "added": 0, "odds": 0, "odds_new": 0}
+    # Merged into, never replaced: this file is the only copy of a price that
+    # bo3.gg has already stopped serving.
+    captured_odds = odds_store.load()
 
     def add_upcoming(m):
         mid = m.get("id")
@@ -843,7 +849,22 @@ async def build_region_payload(cs2, session):
             return
         seen_upcoming_ids.add(mid)
         upcoming_stats["added"] += 1
-        upcoming_matches.append({"date": m.get("start_date") or m.get("date"), "teamA": team1, "teamB": team2, "block": None})
+        # The pre-match price, which exists for exactly as long as this match
+        # is upcoming. bo3.gg replaces it with the in-play price the moment
+        # play starts and never serves the pre-match one again, so a run that
+        # does not write it down loses it -- see scripts/odds_store.py.
+        odds = map_context.from_bet_updates(m.get("bet_updates"))
+        slug = m.get("slug")
+        if odds and slug:
+            upcoming_stats["odds"] += 1
+            if odds_store.record(captured_odds, slug, odds,
+                                 datetime.now(timezone.utc).isoformat(),
+                                 teamA=team1, teamB=team2,
+                                 start_date=m.get("start_date") or m.get("date")):
+                upcoming_stats["odds_new"] += 1
+        upcoming_matches.append({"date": m.get("start_date") or m.get("date"),
+                                 "teamA": team1, "teamB": team2, "block": None,
+                                 "odds": odds or None})
 
     print("Fetching today's global matches (tier or known-team filtered — see is_relevant_upcoming_match)...")
     try:
@@ -917,6 +938,18 @@ async def build_region_payload(cs2, session):
           f"{upcoming_stats['already_played']} already played, "
           f"{upcoming_stats['added']} added")
     print(f"  {len(upcoming_matches)} total upcoming matches (today's global feed + discovered teams' schedules)\n")
+
+    # Never fatal. A failure to store odds must not cost a run its stats:
+    # cs2_data.json is what the app reads, and this is a research tier on the
+    # side of it.
+    try:
+        total = odds_store.save(captured_odds,
+                                generated_at=datetime.now(timezone.utc).isoformat())
+        print(f"  pre-match odds: {upcoming_stats['odds']} upcoming matches priced "
+              f"this run, {upcoming_stats['odds_new']} new or moved, "
+              f"{total} matches stored in total\n")
+    except Exception as e:
+        print(f"  ! could not store pre-match odds: {e}", file=sys.stderr)
 
     # ---- Reconcile names BEFORE aggregating player stats, not after —
     # every name variant seen for a given team_id gets mapped to ONE
