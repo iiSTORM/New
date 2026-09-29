@@ -970,6 +970,62 @@ carries the venue's offset, `placed_at` is local — so they are compared as
 instants and never as strings. `2026-09-28T23:00-04:00` sorts before
 `2026-09-29T01:00+00:00` and is two hours *later*.
 
+### The model interface and the slip builder
+
+Every model emits the same row — `propedge/model.py`'s `Projection`: who, what
+line, which side, how likely, how confident, when it locks, and why. A CS2
+projection, an NFL simulation and a tennis Markov chain all reach the builder as
+the same thing and can sit on the same slip.
+
+Two conventions that are easy to get wrong, both fixed in the type:
+
+- `p_win` and `p_push` are **unconditional** and sum with the loss to 1.
+  `reference/evaluate_v2.py` reports the conditional figure instead —
+  `(over or under) / (1 - push)` — which is right for comparing against a
+  break-even and wrong in an outcome table. `Projection.from_conditional`
+  converts.
+- **A stress range is not a per-leg interval.** `reference/parlays_v2.py` has
+  this right: it runs the whole slate under a usage model and a market model and
+  takes `min(p_usage, p_market)` *for the slip*. Taking each leg's own low and
+  multiplying them is a corner no model produces — it assumes every model is
+  simultaneously at its worst and independently so. So a projection carries
+  named `scenarios`, and a slip is priced once per world with the worst one
+  ranking it.
+
+**Pricing.** Where a model hands over per-simulation outcomes (`Simulations`),
+legs are evaluated together one simulated game at a time and whatever
+correlation the simulator has comes through without being modelled twice.
+Otherwise the measured same-match correlation applies, via the same code the
+Parlays tab uses — `scripts/dev/parlay_math.py` moved to `propedge/joint.py` and
+is now the single implementation, still pinned against `src/app.jsx` by
+`tests/parlay_parity.test.mjs`. Set the correlation to zero and the copula path
+agrees exactly with phase 1's independent enumeration; that cross-check is a
+test, because two implementations of the same arithmetic that disagree would
+both still produce plausible-looking probabilities.
+
+```
+python scripts/propedge_cli.py slate --projections tonight.json [--simulations sims.json]
+```
+
+It searches 2- and 3-leg slips, enforces two-teams and one-prop-per-player
+before pricing anything, ranks by worst-case EV, and hands each leg to **at most
+one** slip — the 2026-09-28 lesson, where one goalkeeper leg sat on two entries
+and one number busted both. That is not two bets, it is one bet at twice the
+stake with the paperwork of two.
+
+Then an early set (locks before 23:00 local) and a late set. A slip locks when
+its **first** leg starts, because it is live from that moment; one with no start
+time at all is filed late, since the early set exists to be placed before going
+out. Each slip gets its stake from phase 1 and a breakdown: why each leg, what
+sinks it, which lines can push and what the slip shrinks to, and what to check
+before submitting.
+
+**Nothing clears +10% worst-case EV is a real answer**, printed as one. The
+alternative — always showing the best three — turns a slate into a habit. The
+command exits 0 only when something is actually placeable, which is not the same
+thing: on a small bankroll a slip can clear the EV bar and still be no bet,
+because the $1 minimum would exceed full Kelly.
+
 ## Running locally
 
 ```bash

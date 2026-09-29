@@ -16,11 +16,14 @@ The store lives at $PROPEDGE_DATA, or ~/.propedge/store.json. It is never
 inside this repo: the repo is public.
 """
 import argparse
+import json
 import sys
 from datetime import datetime
 
 from . import analytics
 from . import autograde as ag
+from . import builder as bld
+from .model import Projection, Simulations
 from .money import fmt, to_cents
 from .ledger import DEPOSIT, WITHDRAWAL
 from .sizing import outcome_table, recommend
@@ -153,6 +156,41 @@ def cmd_report(tracker, args):
     return 0
 
 
+def load_projections(path):
+    """A model's rows from JSON: either a bare list or {"projections": [...]}."""
+    with open(path) as f:
+        blob = json.load(f)
+    rows = blob.get("projections") if isinstance(blob, dict) else blob
+    if not rows:
+        raise SystemExit(f"! {path} holds no projections")
+    return [Projection.from_json(row) for row in rows]
+
+
+def load_simulations(path):
+    """{scenario: {prop_id: [value, ...]}} -- one simulated game per index."""
+    with open(path) as f:
+        blob = json.load(f)
+    sims = Simulations()
+    for scenario, by_prop in blob.items():
+        for prop_id, values in by_prop.items():
+            sims.add(scenario, prop_id, values)
+    return sims
+
+
+def cmd_slate(tracker, args):
+    projections = load_projections(args.projections)
+    sims = load_simulations(args.simulations) if args.simulations else None
+    slate = bld.build_slate(projections, tracker, sims,
+                            sizes=tuple(args.sizes), mode=args.mode,
+                            min_worst_ev=args.min_ev)
+    print("\n".join(bld.render(slate)))
+    # Exit 0 only when something is actually placeable. A slip that clears the
+    # EV bar but cannot be staked -- the $1 minimum over full Kelly on a small
+    # bankroll -- is information, not an instruction, and a scheduled run
+    # should be able to tell the two apart without parsing the output.
+    return 0 if any(c.stake.bet for c in slate["early"] + slate["late"]) else 1
+
+
 def cmd_size(tracker, args):
     legs = []
     for spec in args.prob:
@@ -227,6 +265,17 @@ def build_parser():
     settle.add_argument("slip")
     settle.add_argument("--payout", help="what actually paid; omit to estimate")
 
+    slate = subs.add_parser("slate", help="tonight's ranked slips, from a model's rows")
+    slate.add_argument("--projections", required=True,
+                       help="JSON: a list of model rows, or {\"projections\": [...]}")
+    slate.add_argument("--simulations",
+                       help='JSON: {scenario: {prop_id: [value, ...]}}, one '
+                            'simulated game per index')
+    slate.add_argument("--sizes", type=int, nargs="+", default=list(bld.DEFAULT_SIZES))
+    slate.add_argument("--mode", choices=("power", "flex"), default="power")
+    slate.add_argument("--min-ev", type=float, default=bld.MIN_WORST_EV,
+                       dest="min_ev", help="worst-case EV bar (default %(default)s)")
+
     report = subs.add_parser("report", help="calibration, ROI, bankroll and CLV")
     report.add_argument("--history", default="props_history.jsonl")
 
@@ -246,7 +295,7 @@ def build_parser():
 HANDLERS = {"balance": cmd_balance, "deposit": cmd_money, "withdraw": cmd_money,
             "place": cmd_place, "list": cmd_list, "grade": cmd_grade,
             "autograde": cmd_autograde, "settle": cmd_settle, "size": cmd_size,
-            "report": cmd_report}
+            "report": cmd_report, "slate": cmd_slate}
 
 
 def main(argv=None):

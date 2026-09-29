@@ -76,3 +76,38 @@ class PayoutTable:
 
 
 DEFAULT_TABLE = PayoutTable()
+
+#: What a leg can be when a slip is priced or settled.
+WON, PUSH, LOST = "won", "push", "lost"
+
+
+def net_return(states, mode, size, printed_multiplier=None, table=None):
+    """(net return per unit staked, label) for one pattern of leg results.
+
+    One function, because this is the same question three times over: what a
+    slip pays once its legs are decided (slips.settle), what each win/push/loss
+    combination is worth when sizing it (sizing.outcome_table), and what each
+    simulation pays when a model hands over per-simulation outcomes. Three
+    copies of "a push shrinks the slip and a shrink to one leg refunds" is three
+    chances for the sizing to disagree with the settlement about the same money.
+
+    `states` is one of WON / PUSH / LOST per leg. `size` is the slip as PLACED,
+    so a shrink can be detected: the printed multiplier describes the size that
+    was printed and nothing else.
+
+    Returns net, so -1.0 is a lost stake, 0.0 a refund and +2.0 a 3x payout.
+    """
+    table = table or DEFAULT_TABLE
+    active = [state for state in states if state != PUSH]
+    if len(active) <= 1:
+        return 0.0, "refund"
+    correct = sum(1 for state in active if state == WON)
+    shrunk = len(active) != size
+    if mode == "power" and not shrunk and printed_multiplier is not None:
+        multiplier = (Decimal(str(printed_multiplier)) if correct == len(active)
+                      else None)
+    else:
+        multiplier = table.multiplier(mode, len(active), correct)
+    if multiplier is None:
+        return -1.0, "loss"
+    return float(multiplier) - 1.0, f"{correct}/{len(active)} at {multiplier}x"

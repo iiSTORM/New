@@ -31,7 +31,7 @@ import math
 from dataclasses import dataclass, field
 from decimal import Decimal
 
-from .payouts import DEFAULT_TABLE
+from .payouts import DEFAULT_TABLE, net_return
 
 HALF_KELLY = Decimal("0.5")
 QUARTER_KELLY = Decimal("0.25")
@@ -91,23 +91,8 @@ def outcome_table(legs, mode="power", printed_multiplier=None, table=None):
         probability = math.prod(p for _, p in combo)
         if probability <= 0:
             continue
-        states = [state for state, _ in combo]
-        active = [s for s in states if s != "push"]
-        correct = sum(1 for s in active if s == "won")
-        if len(active) <= 1:
-            net, label = 0.0, "refund"
-        else:
-            shrunk = len(active) != size
-            if mode == "power" and not shrunk and printed_multiplier is not None:
-                multiplier = (Decimal(str(printed_multiplier))
-                              if correct == len(active) else None)
-            else:
-                multiplier = table.multiplier(mode, len(active), correct)
-            if multiplier is None:
-                net, label = -1.0, "loss"
-            else:
-                net = float(multiplier) - 1.0
-                label = f"{correct}/{len(active)} at {multiplier}x"
+        net, label = net_return([state for state, _ in combo], mode, size,
+                                printed_multiplier, table)
         merged[label] = merged.get(label, [0.0, net])
         merged[label][0] += probability
         merged[label][1] = net
