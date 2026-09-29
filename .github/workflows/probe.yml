@@ -1,0 +1,53 @@
+name: Run a dev probe
+
+# Dispatch-only, and deliberately so: nothing here is part of the data
+# pipeline. It exists because several research questions can only be
+# answered from a machine that can reach bo3.gg and vlr.gg, and the
+# development container's network policy refuses both. A runner can reach
+# them, so a probe runs here and prints what it found.
+#
+# Read-only by design -- no write permission, no secrets, no commit step.
+# A probe that needs to WRITE something belongs in the scrape workflow
+# alongside the scrapers it feeds, not here.
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: "Probe to run (a file in scripts/dev/, without the path)"
+        required: true
+        default: "probe_map_context.py"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4 aiohttp
+
+      # Resolved against scripts/dev/ and checked to be a file that is
+      # really in there: the input is a name, not a path, so a probe run
+      # cannot be pointed at something outside the directory it names.
+      - name: Run the probe
+        env:
+          PROBE: ${{ inputs.script }}
+        run: |
+          set -euo pipefail
+          case "$PROBE" in
+            */*|*..*) echo "script must be a bare filename in scripts/dev/"; exit 1 ;;
+          esac
+          target="scripts/dev/$PROBE"
+          if [ ! -f "$target" ]; then
+            echo "No such probe: $target"
+            ls scripts/dev/
+            exit 1
+          fi
+          python "$target"
