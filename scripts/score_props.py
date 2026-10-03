@@ -178,8 +178,12 @@ def window_is_covered(match, maps):
     return maps == total_window(match)
 
 
-def actual_over_window(match, team, player, stat, maps, game):
+def actual_over_window(match, team, player, stat, maps, game, first_map=1):
     """What the player actually did over exactly the line's maps.
+
+    `first_map` is where the window starts: 3 for a "MAP 3 Kills" line,
+    which covers map 3 alone and was being graded against map 1 before the
+    board recorded which map a single-map line is for.
 
     Returns (value, None) or (None, reason).
     """
@@ -193,15 +197,18 @@ def actual_over_window(match, team, player, stat, maps, game):
     # series total answers exactly one. A match that has both is graded
     # from the breakdown for the same reason: maps 1-3 and map 1 are
     # questions the total cannot be asked.
+    start = (first_map if isinstance(first_map, int) and first_map > 0 else 1) - 1
     per_game = match.get("per_game")
     if isinstance(per_game, list) and per_game:
-        if len(per_game) < maps:
+        if len(per_game) < start + maps:
             # Settling a maps-1-3 line on a 2-0 sweep would invent the
             # third map's zero. Counted under its own reason so the size
             # of the bucket is visible rather than assumed.
+            if start:
+                return None, f"series ran {len(per_game)} map(s), line was on map {start + 1}"
             return None, f"series ran {len(per_game)} map(s), line was over {maps}"
         total = 0
-        for game_stats in per_game[:maps]:
+        for game_stats in per_game[start:start + maps]:
             entry = ((game_stats or {}).get(team) or {}).get(player)
             if not isinstance(entry, dict):
                 return None, "player missing from a map's box score"
@@ -213,6 +220,8 @@ def actual_over_window(match, team, player, stat, maps, game):
     # No breakdown: one total, covering one window. Refused rather than
     # approximated for any other -- grading a map-1 line against a two-map
     # total would manufacture a losing record out of nothing.
+    if start:
+        return None, f"{game} result has no per-map breakdown, line was on map {start + 1}"
     covered = total_window(match)
     if maps != covered:
         return None, (f"{game} result is a maps 1-{covered} total with no per-map "
@@ -303,7 +312,7 @@ def grade(records, data_by_game):
             match = candidates[0]
         value, reason = actual_over_window(
             match, rec.get("team"), rec.get("player"),
-            rec.get("stat"), rec.get("maps"), game)
+            rec.get("stat"), rec.get("maps"), game, rec.get("map") or 1)
         if value is None:
             refused[reason] += 1
             continue
@@ -352,8 +361,11 @@ def summarise(graded):
     return out
 
 
-def window_label(maps):
-    return "map 1" if maps == 1 else f"maps 1-{maps}"
+def window_label(maps, first_map=1):
+    start = first_map if isinstance(first_map, int) and first_map > 0 else 1
+    if maps == 1:
+        return f"map {start}"
+    return f"maps {start}-{start + maps - 1}"
 
 
 def summarise_by_window(graded):
@@ -370,13 +382,13 @@ def summarise_by_window(graded):
     for row in graded:
         maps = row.get("maps")
         if isinstance(maps, int) and maps > 0:
-            by_key[(row["game"], maps)].append(row)
-    for (game, maps), rows in sorted(by_key.items()):
+            by_key[(row["game"], maps, row.get("map") or 1)].append(row)
+    for (game, maps, first), rows in sorted(by_key.items()):
         decided = [r for r in rows if r["result"] != "push"]
         overs = sum(1 for r in decided if r["result"] == "over")
         margins = [r["margin"] for r in rows]
-        out[f"{game} {window_label(maps)}"] = {
-            "game": game, "maps": maps,
+        out[f"{game} {window_label(maps, first)}"] = {
+            "game": game, "maps": maps, **({"map": first} if first > 1 else {}),
             "graded": len(rows),
             "pushes": len(rows) - len(decided),
             "over": overs,

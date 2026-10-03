@@ -145,14 +145,15 @@ function Chevron({ open, color, size = 13 }) {
    line. It is deliberately shown only when the prop's map window matches
    the projection on screen and the line is fresh — a stale or
    wrong-window edge is worse than none, because it reads as actionable. */
-function mapWindowLabel(maps) {
-  return maps === 1 ? "map 1" : `maps 1-${maps}`;
+function mapWindowLabel(maps, firstMap = 1) {
+  const start = Number.isInteger(firstMap) && firstMap > 0 ? firstMap : 1;
+  return maps === 1 ? `map ${start}` : `maps ${start}-${start + maps - 1}`;
 }
 
 function PropReadout({ prop, projection, fresh, ageMinutes }) {
   const theme = useTheme();
   if (!prop) return null;
-  const mapWindow = mapWindowLabel(prop.maps);
+  const mapWindow = mapWindowLabel(prop.maps, prop.map);
 
   /* Several lines posted for the same player, stat and fixture, with
      nothing naming which is the market one. They are alternate payouts,
@@ -285,7 +286,7 @@ function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, 
         </div>
         <div style={{ display: "flex", alignItems: "flex-end", gap: 16, flexShrink: 0 }}>
           {(props || []).map((posted, i) => (
-            <PropReadout key={posted.maps} prop={posted}
+            <PropReadout key={windowKey(posted)} prop={posted}
                          projection={(propProjections || [])[i]}
                          fresh={propsFresh} ageMinutes={propsAge} />
           ))}
@@ -407,6 +408,15 @@ function homeRegionLookup(regionsData, regionKey) {
    separates nothing. */
 const PROP_MATCH_WINDOW_HOURS = 2;
 
+/* Which market a line is in: its map count AND the map it starts on. A
+   "MAP 3 Kills" line covers one map, like "MAP 1 Kills", and is a
+   different market from it; keyed on the count alone the two read as
+   alternate payouts of one line and the edge on both was suppressed. */
+function windowKey(p) {
+  const maps = p && typeof p.maps === "number" ? p.maps : -1;
+  return `${(p && p.map) || 1}:${maps}`;
+}
+
 /* Find the posted line for this player, in THIS match.
 
    The map window is not a setting to be matched — it is a fact about the
@@ -479,14 +489,18 @@ function propsFor(propsData, game, playerName, statType, matchDate) {
      is a real question, and never across windows, where it is not. */
   const byWindow = new Map();
   for (const p of candidates) {
-    const key = typeof p.maps === "number" ? p.maps : -1;
+    const key = windowKey(p);
     if (!byWindow.has(key)) byWindow.set(key, []);
     byWindow.get(key).push(p);
   }
 
   const out = [];
-  for (const maps of [...byWindow.keys()].sort((a, b) => a - b)) {
-    let group = byWindow.get(maps);
+  const order = (k) => k.split(":").map(Number);
+  for (const key of [...byWindow.keys()].sort((a, b) => {
+    const [fa, ma] = order(a), [fb, mb] = order(b);
+    return ma - mb || fa - fb;
+  })) {
+    let group = byWindow.get(key);
     const market = group.filter(
       (p) => String(p.odds_type || "").toLowerCase() === "standard"
     );
@@ -1700,14 +1714,13 @@ function modelRecord(regionsData, regionList, results, weights, statType) {
 function recordByWindow(rows) {
   const byWindow = new Map();
   for (const r of rows) {
-    const maps = typeof r.maps === "number" ? r.maps : -1;
-    if (!byWindow.has(maps)) byWindow.set(maps, []);
-    byWindow.get(maps).push(r);
+    const key = windowKey(r);
+    if (!byWindow.has(key)) byWindow.set(key, { maps: typeof r.maps === "number" ? r.maps : -1, map: r.map || 1, rows: [] });
+    byWindow.get(key).rows.push(r);
   }
-  return [...byWindow.keys()].sort((a, b) => a - b).map((maps) => {
-    const inWindow = byWindow.get(maps);
+  return [...byWindow.values()].sort((a, b) => a.maps - b.maps || a.map - b.map).map(({ maps, map, rows: inWindow }) => {
     const won = inWindow.filter((r) => r.won).length;
-    return { maps, n: inWindow.length, won,
+    return { maps, map, n: inWindow.length, won,
              rate: inWindow.length ? won / inWindow.length : null };
   });
 }
@@ -4495,7 +4508,7 @@ function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop }) {
   // an empty panel.
   const [open, setOpen] = useState(false);
   const canExpand = !!(row.breakdown && row.player);
-  const mapWindow = mapWindowLabel(prop.maps);
+  const mapWindow = mapWindowLabel(prop.maps, prop.map);
   const ambiguous = edge === null;
   // The number shown is the one the board is ranked by, so the order on
   // screen always matches the figures printed on it. The raw edge is
@@ -4622,12 +4635,13 @@ function windowSections(rows) {
   for (const row of rows) {
     const maps = typeof row.maps === "number" ? row.maps
       : (row.prop && typeof row.prop.maps === "number" ? row.prop.maps : -1);
-    if (!byWindow.has(maps)) byWindow.set(maps, []);
-    byWindow.get(maps).push(row);
+    const first = (row.prop && row.prop.map) || 1;
+    const key = `${first}:${maps}`;
+    if (!byWindow.has(key)) byWindow.set(key, { maps, map: first, rows: [] });
+    byWindow.get(key).rows.push(row);
   }
-  return [...byWindow.keys()]
-    .sort((a, b) => a - b)
-    .map((maps) => ({ maps, rows: byWindow.get(maps) }));
+  return [...byWindow.values()]
+    .sort((a, b) => a.maps - b.maps || a.map - b.map);
 }
 
 /* The board, ranked. See collectEdges for why this view exists at all. */
@@ -4781,8 +4795,8 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
             )}
           </div>
         )}
-        {windowSections(rows).map(({ maps, rows: section }) => (
-          <Fragment key={maps}>
+        {windowSections(rows).map(({ maps, map: firstMap, rows: section }) => (
+          <Fragment key={`${firstMap}:${maps}`}>
             {/* Named even when it is the only section on the board. A
                 reader who cannot see which maps they are looking at has
                 to infer it from the line, and the whole point of
@@ -4793,7 +4807,7 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
                           display: "flex", alignItems: "baseline", gap: 8 }}>
               <span style={{ fontSize: 10.5, letterSpacing: 1, textTransform: "uppercase",
                              fontWeight: 700, color: theme.textDim }}>
-                {maps > 0 ? mapWindowLabel(maps) : "window not stated"}
+                {maps > 0 ? mapWindowLabel(maps, firstMap) : "window not stated"}
               </span>
               <span style={{ fontSize: 11, color: theme.textFaint }}>
                 {section.length} {section.length === 1 ? "line" : "lines"}
@@ -5622,10 +5636,10 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
         {windows.map((w) => {
           const enough = w.n >= RECORD_MIN_SAMPLE;
           return (
-            <div key={w.maps} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 16px",
+            <div key={`${w.map}:${w.maps}`} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 16px",
                                        borderBottom: `1px solid ${theme.steel}` }}>
               <div style={{ flex: 1, fontSize: 12.5, color: theme.textDim }}>
-                {w.maps > 0 ? mapWindowLabel(w.maps) : "window not stated"}
+                {w.maps > 0 ? mapWindowLabel(w.maps, w.map) : "window not stated"}
               </div>
               <div className="kp-num" style={{ fontSize: 12, color: theme.textFaint, minWidth: 70, textAlign: "right" }}>
                 {w.won}/{w.n}

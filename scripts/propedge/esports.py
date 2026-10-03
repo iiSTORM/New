@@ -450,8 +450,12 @@ class EsportsModel:
         history without a start time and would have closed a Tuesday bet with a
         Friday number.
         """
+        # A single-map line on map 2 or 3 carries "map"; map 1 does not, so
+        # every id minted before the field existed is unchanged.
+        first = prop.get("map") or 1
         return (f"{prop.get('game')}:{str(prop.get('player')).lower()}:"
-                f"{prop.get('stat')}:{prop.get('maps')}:{prop.get('line')}:"
+                f"{prop.get('stat')}:{prop.get('maps')}"
+                f"{'@' + str(first) if first != 1 else ''}:{prop.get('line')}:"
                 f"{prop.get('odds_type') or 'standard'}:"
                 f"{prop.get('start_time') or ''}")
 

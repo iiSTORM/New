@@ -73,7 +73,7 @@ except ImportError:
     # is the only route that works.
     requests = None
 
-from props_match import (build_alias_index, build_roster_index, match_props,
+from props_match import (build_alias_index, build_roster_index, dedupe_rows, match_props,
                          unmatched_by_team)
 
 OUTPUT_PATH = "props.json"
@@ -372,9 +372,13 @@ def payload_fetched_at(sources):
 
 
 def history_key(record):
-    """What makes two observations the same posting rather than a move."""
+    """What makes two observations the same posting rather than a move.
+
+    The map is part of it: a Map 1 and a Map 3 line at the same number on the
+    same match are two postings."""
     return (record.get("game"), record.get("player"), record.get("stat"),
-            record.get("maps"), record.get("start_time"), record.get("line"))
+            record.get("maps"), record.get("start_time"), record.get("line"),
+            record.get("map") or 1)
 
 
 def archive_props(result, path=HISTORY_PATH):
@@ -508,6 +512,10 @@ def main():
             print(f"{game}: {len(stale)} alias row(s) point at a name no "
                   f"roster carries any more — prune them: {names}",
                   file=sys.stderr)
+        matched, doubled = dedupe_rows(matched)
+        if doubled:
+            print(f"{game}: {doubled} line(s) appeared twice, identical in every "
+                  f"field — kept once", file=sys.stderr)
         total_matched += len(matched)
         total_unmatched += len(unmatched)
 

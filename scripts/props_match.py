@@ -81,6 +81,23 @@ WINDOW_PATTERNS = [
 ]
 
 
+#: Which map a single-map line is for. "MAP 3 Kills" is a real label (four of
+#: them in one saved payload), and WINDOW_PATTERNS files it as a one-map
+#: window like "MAP 1 Kills" -- correctly, it is one map -- but without this
+#: the two are the same row: a Map 1 and a Map 2 line at the same number came
+#: out identical, and a Map 3 line was graded against map 1's box score.
+FIRST_MAP_PATTERN = re.compile(r"\bmaps?\s*(\d)\b(?!\s*[-–])", re.I)
+
+
+def first_map(label):
+    """1-based number of the first map a line covers: 3 for "MAP 3 Kills",
+    1 for "MAP 1 Kills" and for every "MAPS 1-N" window."""
+    if not isinstance(label, str):
+        return 1
+    found = FIRST_MAP_PATTERN.search(label)
+    return int(found.group(1)) if found else 1
+
+
 def normalize_name(name):
     """Fold a player handle to a comparable key.
 
@@ -340,5 +357,27 @@ def match_props(raw_props, roster_index, game=None, alias_index=None):
             "odds_type": prop.get("odds_type"),
             "provider": prop.get("provider"),
             "start_time": prop.get("start_time"),
+            # Only when it is not map 1, so every row that was already right
+            # keeps the exact shape (and id) it had.
+            **({"map": first_map(label)} if first_map(label) > 1 else {}),
         })
     return matched, unmatched
+
+
+def dedupe_rows(rows):
+    """(rows with exact duplicates removed, how many were removed).
+
+    A row identical in every field to one already kept is the same line twice
+    -- the provider listing a projection twice, or one fetched twice -- and
+    on the board it would be two legs, two edges and a prop-id collision for
+    one market. Only EXACT copies go: a demon and a standard line at the same
+    number, or one line on two different maps, differ in a field and stay.
+    """
+    seen, kept = set(), []
+    for row in rows:
+        key = tuple(sorted((k, repr(v)) for k, v in row.items()))
+        if key in seen:
+            continue
+        seen.add(key)
+        kept.append(row)
+    return kept, len(rows) - len(kept)

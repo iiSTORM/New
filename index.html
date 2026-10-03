@@ -279,8 +279,9 @@ try {
       strokeLinejoin: "round"
     }));
   }
-  function mapWindowLabel(maps) {
-    return maps === 1 ? "map 1" : `maps 1-${maps}`;
+  function mapWindowLabel(maps, firstMap = 1) {
+    const start = Number.isInteger(firstMap) && firstMap > 0 ? firstMap : 1;
+    return maps === 1 ? `map ${start}` : `maps ${start}-${start + maps - 1}`;
   }
   function PropReadout({
     prop,
@@ -290,7 +291,7 @@ try {
   }) {
     const theme = useTheme();
     if (!prop) return null;
-    const mapWindow = mapWindowLabel(prop.maps);
+    const mapWindow = mapWindowLabel(prop.maps, prop.map);
     if (prop.lineCount > 1) {
       return React.createElement("div", {
         style: {
@@ -506,7 +507,7 @@ try {
         flexShrink: 0
       }
     }, (props || []).map((posted, i) => React.createElement(PropReadout, {
-      key: posted.maps,
+      key: windowKey(posted),
       prop: posted,
       projection: (propProjections || [])[i],
       fresh: propsFresh,
@@ -592,6 +593,10 @@ try {
     };
   }
   const PROP_MATCH_WINDOW_HOURS = 2;
+  function windowKey(p) {
+    const maps = p && typeof p.maps === "number" ? p.maps : -1;
+    return `${p && p.map || 1}:${maps}`;
+  }
   function propsFor(propsData, game, playerName, statType, matchDate) {
     if (!propsData || !propsData.props) return [];
     const forGame = propsData.props[game];
@@ -621,13 +626,18 @@ try {
     }
     const byWindow = new Map();
     for (const p of candidates) {
-      const key = typeof p.maps === "number" ? p.maps : -1;
+      const key = windowKey(p);
       if (!byWindow.has(key)) byWindow.set(key, []);
       byWindow.get(key).push(p);
     }
     const out = [];
-    for (const maps of [...byWindow.keys()].sort((a, b) => a - b)) {
-      let group = byWindow.get(maps);
+    const order = k => k.split(":").map(Number);
+    for (const key of [...byWindow.keys()].sort((a, b) => {
+      const [fa, ma] = order(a),
+        [fb, mb] = order(b);
+      return ma - mb || fa - fb;
+    })) {
+      let group = byWindow.get(key);
       const market = group.filter(p => String(p.odds_type || "").toLowerCase() === "standard");
       if (market.length) group = market;
       const distinct = [...new Set(group.map(p => p.line))];
@@ -1346,15 +1356,23 @@ try {
   function recordByWindow(rows) {
     const byWindow = new Map();
     for (const r of rows) {
-      const maps = typeof r.maps === "number" ? r.maps : -1;
-      if (!byWindow.has(maps)) byWindow.set(maps, []);
-      byWindow.get(maps).push(r);
+      const key = windowKey(r);
+      if (!byWindow.has(key)) byWindow.set(key, {
+        maps: typeof r.maps === "number" ? r.maps : -1,
+        map: r.map || 1,
+        rows: []
+      });
+      byWindow.get(key).rows.push(r);
     }
-    return [...byWindow.keys()].sort((a, b) => a - b).map(maps => {
-      const inWindow = byWindow.get(maps);
+    return [...byWindow.values()].sort((a, b) => a.maps - b.maps || a.map - b.map).map(({
+      maps,
+      map,
+      rows: inWindow
+    }) => {
       const won = inWindow.filter(r => r.won).length;
       return {
         maps,
+        map,
         n: inWindow.length,
         won,
         rate: inWindow.length ? won / inWindow.length : null
@@ -4262,7 +4280,7 @@ try {
     const aged = live && !fresh ? ageLabel(ageMinutes) : null;
     const [open, setOpen] = useState(false);
     const canExpand = !!(row.breakdown && row.player);
-    const mapWindow = mapWindowLabel(prop.maps);
+    const mapWindow = mapWindowLabel(prop.maps, prop.map);
     const ambiguous = edge === null;
     const shown = row.adjustedEdge !== null && row.adjustedEdge !== undefined ? row.adjustedEdge : edge;
     const evidence = row.evidence !== undefined && row.evidence !== null ? row.evidence : row.breakdown ? row.breakdown.evidenceGames : null;
@@ -4413,13 +4431,16 @@ try {
     const byWindow = new Map();
     for (const row of rows) {
       const maps = typeof row.maps === "number" ? row.maps : row.prop && typeof row.prop.maps === "number" ? row.prop.maps : -1;
-      if (!byWindow.has(maps)) byWindow.set(maps, []);
-      byWindow.get(maps).push(row);
+      const first = row.prop && row.prop.map || 1;
+      const key = `${first}:${maps}`;
+      if (!byWindow.has(key)) byWindow.set(key, {
+        maps,
+        map: first,
+        rows: []
+      });
+      byWindow.get(key).rows.push(row);
     }
-    return [...byWindow.keys()].sort((a, b) => a - b).map(maps => ({
-      maps,
-      rows: byWindow.get(maps)
-    }));
+    return [...byWindow.values()].sort((a, b) => a.maps - b.maps || a.map - b.map);
   }
   function EdgesTab({
     regionsData,
@@ -4544,9 +4565,10 @@ try {
       }
     }, lean.overs, " of ", lean.n, " lines read ", lean.side.toUpperCase(), "."), " ", "Edges that nearly all point one way usually mean the model and the market disagree about the fixture rather than about the players \u2014 a level offset, which per-player accuracy cannot fix.", borrowedCount === withEdge.length && withEdge.length > 0 && React.createElement(React.Fragment, null, " Every line here is for an event with no completed matches yet, so the projections come from the players\u2019 form in another competition. The market is pricing something about this event that that form does not contain.")), windowSections(rows).map(({
       maps,
+      map: firstMap,
       rows: section
     }) => React.createElement(Fragment, {
-      key: maps
+      key: `${firstMap}:${maps}`
     }, React.createElement("div", {
       style: {
         padding: "9px 16px",
@@ -4565,7 +4587,7 @@ try {
         fontWeight: 700,
         color: theme.textDim
       }
-    }, maps > 0 ? mapWindowLabel(maps) : "window not stated"), React.createElement("span", {
+    }, maps > 0 ? mapWindowLabel(maps, firstMap) : "window not stated"), React.createElement("span", {
       style: {
         fontSize: 11,
         color: theme.textFaint
@@ -5554,7 +5576,7 @@ try {
     }, "By map window"), windows.map(w => {
       const enough = w.n >= RECORD_MIN_SAMPLE;
       return React.createElement("div", {
-        key: w.maps,
+        key: `${w.map}:${w.maps}`,
         style: {
           display: "flex",
           alignItems: "center",
@@ -5568,7 +5590,7 @@ try {
           fontSize: 12.5,
           color: theme.textDim
         }
-      }, w.maps > 0 ? mapWindowLabel(w.maps) : "window not stated"), React.createElement("div", {
+      }, w.maps > 0 ? mapWindowLabel(w.maps, w.map) : "window not stated"), React.createElement("div", {
         className: "kp-num",
         style: {
           fontSize: 12,
