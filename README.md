@@ -614,6 +614,33 @@ CI fails if `index.html` does not match `src/`. A stale `index.html` would
 ship an app that disagrees with its own source, and the diff would be
 invisible in review because it would simply be missing.
 
+## International events (LoL)
+
+The Demacia Cup, Worlds, MSI, First Stand and the Esports World Cup each
+appear as a League region of their own while they are on, from three weeks
+before the first match to five days after the last. No code change is needed
+per event:
+
+- **Schedule and structure:** `scripts/scrape_schedule.py` asks the LoL
+  Esports API which of those leagues has a current tournament
+  (`scripts/international.py`, keyed by league slug, because the Demacia Cup's
+  league is *named* "DCGI"). It records the event's stages, sections and
+  matches, with best-of and results, in `schedule.json`'s `events`.
+- **Rosters:** `merge.py` resolves the API's team names against every league
+  and lends each participant its home league's roster, refreshed every run
+  (`from_home_region` on the team). The event's own games still reach the
+  projections, through the region's `past_matches`.
+- **Results:** `scrape_lcs.py` finds the event on gol.gg's own tournament
+  list by name pattern once it has games, and scrapes its series like any
+  league's.
+
+The **Bracket** tab draws the event: Swiss records and rounds by pool, group
+tables, and the knockout tree. The API does not link matches, so the tree is
+drawn only for a single-elimination shape, where the API's listing order is
+bracket order. `tests/event_views.test.mjs` checks that against the real
+Worlds 2025 bracket. Fixture cards cap the projected game count at the
+series length, so a Bo1 projects one game.
+
 ## Data flow
 
 Three jobs run in parallel on separate runners, one per game. They write

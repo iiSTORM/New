@@ -108,3 +108,10 @@ jobs:
       # slips through both and compares the files byte for byte.
       - name: Check the tracker app and the propedge CLI agree
         run: node tests/tracker_parity.test.mjs
+
+      # The Bracket tab infers what the LoL Esports API does not say: Swiss
+      # pools from records, and which knockout match feeds which from the
+      # order the API lists them. That order is checked here against the
+      # real Worlds 2025 bracket, whose results fix the answer.
+      - name: Check the event bracket and Swiss views
+        run: node tests/event_views.test.mjs

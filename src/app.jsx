@@ -2168,8 +2168,15 @@ const GAMES = {
   lol: {
     label: "League of Legends",
     dataUrl: DATA_URL_LOL,
-    regionList: ["LCS", "LEC", "LCK", "LPL", "LCP", "CBLOL", "TCL"],
-    regionLabels: { LCS: "LCS", LEC: "LEC", LCK: "LCK", LPL: "LPL", LCP: "LCP", CBLOL: "CBLOL", TCL: "TCL" },
+    // International events last, and only while one is on: each appears
+    // when scripts/international.py finds the event on the LoL Esports
+    // schedule (from three weeks before it) and disappears after it ends.
+    // A tab that is empty eleven months a year is not offered.
+    regionList: ["LCS", "LEC", "LCK", "LPL", "LCP", "CBLOL", "TCL",
+                 "First Stand", "MSI", "EWC", "Demacia Cup", "Worlds"],
+    optionalRegions: ["First Stand", "MSI", "EWC", "Demacia Cup", "Worlds"],
+    regionLabels: { LCS: "LCS", LEC: "LEC", LCK: "LCK", LPL: "LPL", LCP: "LCP", CBLOL: "CBLOL", TCL: "TCL",
+                    "First Stand": "First Stand", MSI: "MSI", EWC: "EWC", "Demacia Cup": "Demacia Cup", Worlds: "Worlds" },
     fallbackRegions: FALLBACK_REGIONS_LOL,
   },
   valorant: {
@@ -6054,7 +6061,18 @@ function GamesControl({ theme, games, setGames }) {
 
 /* ---------- Future tab (card list, like Past, predicted only) ---------- */
 
-function FutureMatchCard({ teams, pastMatches, match, weights, statType, games, game }) {
+/* How many games a fixture's card projects: the selector's count, but never
+   more than the series can have. A Demacia Cup Swiss round opens with Bo1s,
+   and a Bo1 projected over "2 games combined" is a number for a match that
+   cannot happen. A fixture with no recorded series length keeps the
+   selector's count, as every fixture did before best_of existed. */
+function seriesGames(games, match) {
+  const bestOf = Number(match && match.best_of);
+  return Number.isFinite(bestOf) && bestOf > 0 ? Math.min(games, bestOf) : games;
+}
+
+function FutureMatchCard({ teams, pastMatches, match, weights, statType, games: selectedGames, game }) {
+  const games = seriesGames(selectedGames, match);
   const theme = useTheme();
   const homeRegion = useHomeRegion();
   const propsData = useProps();
@@ -6143,7 +6161,7 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games, 
               </>
             )}
             <span aria-hidden="true" style={{ opacity: 0.5 }}>•</span>
-            <span>{games} game{games === 1 ? "" : "s"}</span>
+            <span>{match.best_of ? `Bo${match.best_of} · ` : ""}{games} game{games === 1 ? "" : "s"}</span>
           </div>
         </div>
         {/* Labelled for the side it actually covers. A half-known fixture's
@@ -6702,6 +6720,8 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isD
       <div style={{ fontSize: 11, color: theme.textFaint, marginBottom: 12, lineHeight: 1.5 }}>
         Projected {STAT_TYPES[statType].label.toLowerCase()} ({games} game{games > 1 ? "s" : ""} combined) for each
         upcoming matchup, using current model weights.
+        {(upcomingMatches || []).some((m) => seriesGames(games, m) < games)
+          && " A shorter series (a Bo1) is projected over the games it can actually have."}
       </div>
       <DayPicker dates={dates} activeDate={activeDate} onChange={setSelectedDate} counts={dateCounts} />
       {activeDate && visible.length === 0 && (
@@ -7224,7 +7244,556 @@ function GameSwitcher({ game, selectGame, statusByGame, theme }) {
    content area on desktop (full width to work with) and in the mobile
    stack on small screens (still bigger/clearer than the old treatment). ---------- */
 
-function TopNav({ theme, gameCfg, game, region, setRegion, tab, setTab, statType, setStatType, isDesktop }) {
+/* ============================================================
+   EVENT VIEWS — the Swiss stage, groups and the knockout bracket of an
+   international event (Demacia Cup, Worlds, MSI ...).
+
+   The structure arrives in a region's `event` (scripts/international.py):
+   stages -> sections -> matches, in the order the LoL Esports API lists
+   them, each match with its two sides, series score, best-of and start.
+   What the API does NOT give is how the pieces connect -- previousMatchIds
+   is empty on every event checked -- so everything here is inferred from
+   the matches themselves, and inferred conservatively:
+
+     - a Swiss round is a team's match count so far, and its pool is the
+       record both sides brought into it. Matches whose sides are not drawn
+       yet cannot be placed in a pool and are listed by date instead,
+       rather than guessed into one;
+     - a knockout is drawn as a tree only when each round has half the
+       matches of the one before (4-2-1). That is the single-elimination
+       shape, and the API lists such a bracket in bracket order (QF1-QF4,
+       then SF1 = winners of QF1/QF2, ...; checked against Worlds 2025).
+       Anything else -- a double-elimination MSI bracket -- is drawn as
+       rounds side by side without connectors, because a connector drawn
+       on a guess is a claim about who plays whom.
+   ============================================================ */
+
+const EVENT_STAGE_ROUND = /^round\s*(\d+)$/i;
+
+/** A side's identity for records: the tracked team when merge resolved one. */
+function eventSideKey(side) {
+  if (!side || !side.name || side.name === "TBD") return null;
+  return side.team || side.name;
+}
+
+function eventMatchDone(m) {
+  return m && m.state === "completed";
+}
+
+/** The winner's key of a completed match, or null. */
+function eventWinner(m) {
+  if (!eventMatchDone(m)) return null;
+  const [a, b] = m.teams || [];
+  if (a && a.outcome === "win") return eventSideKey(a);
+  if (b && b.outcome === "win") return eventSideKey(b);
+  if (a && b && Number.isFinite(a.wins) && Number.isFinite(b.wins) && a.wins !== b.wins) {
+    return eventSideKey(a.wins > b.wins ? a : b);
+  }
+  return null;
+}
+
+/** What kind of view a stage wants. */
+function eventStageKind(stage) {
+  const name = String(stage.name || "");
+  const blocks = (stage.matches || []).map((m) => String(m.block || ""));
+  if (/swiss/i.test(name)) return "swiss";
+  if (/knockout|playoff|bracket|final/i.test(name)
+      || blocks.some((b) => /quarter|semi|final/i.test(b))) return "bracket";
+  if ((stage.sections || []).length > 1 || /group/i.test(name)) return "groups";
+  return "list";
+}
+
+/** The event's stages, flattened for drawing.
+
+    The Demacia Cup lists "Round 4" and "Round 5" as stages of their own
+    after "Swiss"; they are that Swiss stage's later rounds, so they are
+    folded into it, each match carrying its round number. */
+function eventStages(event) {
+  const out = [];
+  for (const stage of (event && event.stages) || []) {
+    const sections = stage.sections || [];
+    const matches = sections.flatMap((sec) => (sec.matches || []).map((m) => ({ ...m, section: sec.name })));
+    const round = EVENT_STAGE_ROUND.exec(String(stage.name || "").trim());
+    const prev = out[out.length - 1];
+    if (round && prev && prev.kind === "swiss") {
+      for (const m of matches) prev.matches.push({ ...m, round: Number(round[1]) });
+      continue;
+    }
+    const flat = { name: stage.name, slug: stage.slug, sections, matches };
+    flat.kind = eventStageKind(flat);
+    out.push(flat);
+  }
+  return out;
+}
+
+/** Done / live / upcoming, for a stage's chip. */
+function eventStageStatus(stage) {
+  const ms = stage.matches || [];
+  if (ms.length && ms.every(eventMatchDone)) return "done";
+  if (ms.some((m) => eventMatchDone(m) || m.state === "inProgress")) return "live";
+  return "upcoming";
+}
+
+function eventStartOf(m) {
+  const t = Date.parse(m && m.start);
+  return Number.isFinite(t) ? t : null;
+}
+
+/** Every side named in any stage after index `i` -- who got through. */
+function eventTeamsAfter(stages, i) {
+  const out = new Set();
+  for (const st of stages.slice(i + 1)) {
+    for (const m of st.matches || []) for (const s of m.teams || []) {
+      const k = eventSideKey(s);
+      if (k) out.add(k);
+    }
+  }
+  return out;
+}
+
+/** Records, rounds and pools for a Swiss stage.
+
+    Returns { standings: [{key, side, w, l, status}], rounds: [{round,
+    pools: [{pool, matches}]}], undrawn: [{day, matches}] }. A side's
+    status is "advanced" when it appears in a later stage, "out" when the
+    stage is over without it doing so, else "alive" -- the API does not say
+    what record qualifies, so neither does this. */
+function swissModel(stage, laterTeams) {
+  const order = (stage.matches || []).map((m, i) => ({ m, i }))
+    .sort((a, b) => {
+      const ta = eventStartOf(a.m), tb = eventStartOf(b.m);
+      if (ta === null || tb === null) return (ta === null) - (tb === null) || a.i - b.i;
+      return ta - tb || a.i - b.i;
+    });
+  const rec = new Map();
+  const sides = new Map();
+  const get = (k) => {
+    if (!rec.has(k)) rec.set(k, { w: 0, l: 0 });
+    return rec.get(k);
+  };
+  const rounds = new Map();
+  const undrawn = [];
+  for (const { m } of order) {
+    const [a, b] = m.teams || [];
+    const ka = eventSideKey(a), kb = eventSideKey(b);
+    if (ka) sides.set(ka, a);
+    if (kb) sides.set(kb, b);
+    if (!ka || !kb) {
+      undrawn.push(m);
+      continue;
+    }
+    const ra = get(ka), rb = get(kb);
+    const round = m.round || Math.max(ra.w + ra.l, rb.w + rb.l) + 1;
+    const pool = `${ra.w}–${ra.l}`;
+    if (!rounds.has(round)) rounds.set(round, new Map());
+    const pools = rounds.get(round);
+    if (!pools.has(pool)) pools.set(pool, []);
+    pools.get(pool).push(m);
+    const win = eventWinner(m);
+    if (win) {
+      const lose = win === ka ? kb : ka;
+      get(win).w += 1;
+      get(lose).l += 1;
+    }
+  }
+  const finished = (stage.matches || []).length > 0
+    && (stage.matches || []).every((m) => eventMatchDone(m));
+  const standings = [...sides.keys()].map((key) => {
+    const r = get(key);
+    const status = laterTeams && laterTeams.has(key) ? "advanced" : finished ? "out" : "alive";
+    return { key, side: sides.get(key), w: r.w, l: r.l, status };
+  }).sort((x, y) => (y.w - y.l) - (x.w - x.l) || y.w - x.w || String(x.key).localeCompare(String(y.key)));
+  const byDay = new Map();
+  for (const m of undrawn) {
+    const t = eventStartOf(m);
+    const day = t === null ? "Date to be set"
+      : new Date(t).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+    if (!byDay.has(day)) byDay.set(day, []);
+    byDay.get(day).push(m);
+  }
+  return {
+    standings,
+    rounds: [...rounds.entries()].sort((a, b) => a[0] - b[0]).map(([round, pools]) => ({
+      round,
+      // Best record first, the way a Swiss diagram reads top to bottom.
+      pools: [...pools.entries()].sort((x, y) => {
+        const [xw, xl] = x[0].split("–").map(Number), [yw, yl] = y[0].split("–").map(Number);
+        return (yw - yl) - (xw - xl) || yw - xw;
+      }).map(([pool, matches]) => ({ pool, matches })),
+    })),
+    undrawn: [...byDay.entries()].map(([day, matches]) => ({ day, matches })),
+  };
+}
+
+/** A knockout's rounds, and whether they form a single-elimination tree.
+
+    Rounds come from the schedule's round names (Quarterfinals, Semifinals,
+    Finals) in the order they first appear; failing those, from halving
+    (7 matches -> 4, 2, 1). `tree` is true only for the halving shape. */
+function bracketRounds(matches) {
+  const ms = matches || [];
+  const named = ms.every((m) => m.block);
+  let rounds = [];
+  if (named) {
+    const index = new Map();
+    for (const m of ms) {
+      if (!index.has(m.block)) { index.set(m.block, rounds.length); rounds.push({ name: m.block, matches: [] }); }
+      rounds[index.get(m.block)].matches.push(m);
+    }
+  } else {
+    let size = 1;
+    while (size * 2 - 1 < ms.length) size *= 2;
+    if (size * 2 - 1 === ms.length) {
+      let at = 0;
+      for (let n = size; n >= 1; n /= 2) {
+        rounds.push({ name: n === 1 ? "Final" : n === 2 ? "Semifinals" : n === 4 ? "Quarterfinals" : `Round of ${n * 2}`,
+          matches: ms.slice(at, at + n) });
+        at += n;
+      }
+    } else {
+      rounds = [{ name: "Matches", matches: ms }];
+    }
+  }
+  const tree = rounds.length > 1 && rounds.every((r, i) => i === 0 || r.matches.length * 2 === rounds[i - 1].matches.length);
+  return { rounds, tree };
+}
+
+/** Round-robin table for a group: series W-L, then game difference. */
+function groupTable(matches) {
+  const rows = new Map();
+  const row = (side) => {
+    const k = eventSideKey(side);
+    if (!k) return null;
+    if (!rows.has(k)) rows.set(k, { key: k, side, w: 0, l: 0, gw: 0, gl: 0 });
+    return rows.get(k);
+  };
+  for (const m of matches || []) {
+    const [a, b] = m.teams || [];
+    const ra = row(a), rb = row(b);
+    if (!ra || !rb || !eventMatchDone(m)) continue;
+    const win = eventWinner(m);
+    if (win === ra.key) { ra.w += 1; rb.l += 1; } else if (win === rb.key) { rb.w += 1; ra.l += 1; }
+    ra.gw += Number(a.wins) || 0; ra.gl += Number(b.wins) || 0;
+    rb.gw += Number(b.wins) || 0; rb.gl += Number(a.wins) || 0;
+  }
+  return [...rows.values()].sort((x, y) => y.w - x.w || x.l - y.l
+    || (y.gw - y.gl) - (x.gw - x.gl) || String(x.key).localeCompare(String(y.key)));
+}
+
+/* ---------------------------------------------------------- components */
+
+function eventWhen(m, compact) {
+  const t = eventStartOf(m);
+  if (t === null) return "Time TBA";
+  const d = new Date(t);
+  const day = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  if (compact) return `${day} ${d.toLocaleTimeString(undefined, { hour: "numeric" })}`;
+  return `${day} · ${d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}`;
+}
+
+/** One side of a match box. */
+function EventSide({ side, teams, won, lost, showScore, compact }) {
+  const theme = useTheme();
+  const key = eventSideKey(side);
+  const team = key && teams ? teams[key] : null;
+  const color = team ? team.color : theme.steel;
+  const label = !key ? "TBD" : compact ? (side.code || key) : key;
+  return (
+    <div title={key ? `${side.name}${team && team.from_home_region ? ` · ${team.from_home_region}` : ""}` : "Not decided yet"}
+      style={{ display: "flex", alignItems: "center", gap: 7, padding: "5px 8px", minWidth: 0,
+        opacity: lost ? 0.55 : 1 }}>
+      <span aria-hidden="true" style={{ width: 3, height: 14, borderRadius: 2, background: color, flexShrink: 0 }} />
+      <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+        fontSize: 12.5, fontWeight: won ? 700 : 600, color: key ? theme.text : theme.textFaint,
+        fontFamily: "'Inter', sans-serif" }}>
+        {label}
+      </span>
+      {showScore && (
+        <span className="kp-num" style={{ fontSize: 12.5, fontWeight: 700, color: won ? theme.accent : theme.textDim }}>
+          {Number.isFinite(side.wins) ? side.wins : "–"}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function EventMatchBox({ m, teams, compact, width }) {
+  const theme = useTheme();
+  const [a, b] = m.teams || [];
+  const win = eventWinner(m);
+  const done = eventMatchDone(m);
+  const live = m.state === "inProgress";
+  return (
+    <div style={{ width, background: theme.graphiteLight, border: `1px solid ${live ? theme.accentBorder : theme.steel}`,
+      borderRadius: 8, overflow: "hidden", flexShrink: 0 }}>
+      <EventSide side={a || {}} teams={teams} compact={compact} showScore={done || live}
+        won={win && win === eventSideKey(a)} lost={win && win !== eventSideKey(a)} />
+      <div style={{ height: 1, background: theme.steelSoft }} />
+      <EventSide side={b || {}} teams={teams} compact={compact} showScore={done || live}
+        won={win && win === eventSideKey(b)} lost={win && win !== eventSideKey(b)} />
+      <div style={{ borderTop: `1px solid ${theme.steelSoft}`, padding: "3px 8px", fontSize: 10.5,
+        color: live ? theme.accent : theme.textFaint, display: "flex", justifyContent: "space-between", gap: 6 }}>
+        <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {live ? "Live" : done ? "Final" : eventWhen(m, compact)}
+        </span>
+        {m.best_of ? <span className="kp-num">Bo{m.best_of}</span> : null}
+      </div>
+    </div>
+  );
+}
+
+const EVENT_STATUS = {
+  advanced: { label: "Through", glyph: "▲" },
+  out: { label: "Out", glyph: "✕" },
+  alive: { label: "Alive", glyph: "•" },
+};
+
+function SwissView({ stage, laterTeams, teams, isDesktop }) {
+  const theme = useTheme();
+  const model = swissModel(stage, laterTeams);
+  const boxW = isDesktop ? 190 : 150;
+  return (
+    <div>
+      {model.standings.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 11, letterSpacing: 1.2, color: theme.textFaint, fontWeight: 700, marginBottom: 6 }}>RECORDS</div>
+          <div role="table" aria-label={`${stage.name} records`}
+            style={{ display: "grid", gridTemplateColumns: isDesktop ? "repeat(2, minmax(0, 1fr))" : "minmax(0, 1fr)", columnGap: 18 }}>
+            {model.standings.map((row) => {
+              const team = teams && teams[row.key];
+              const st = EVENT_STATUS[row.status];
+              const tone = row.status === "advanced" ? theme.good : row.status === "out" ? theme.bad : theme.textFaint;
+              return (
+                <div key={row.key} role="row" className="kp-row"
+                  style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", fontSize: 13 }}>
+                  <span aria-hidden="true" style={{ width: 3, height: 14, borderRadius: 2, background: team ? team.color : theme.steel }} />
+                  <span role="cell" style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 600 }}>
+                    {row.key}
+                  </span>
+                  {team && team.from_home_region && (
+                    <span role="cell" style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: theme.textFaint,
+                      border: `1px solid ${theme.steel}`, borderRadius: 4, padding: "0 4px" }}>{team.from_home_region}</span>
+                  )}
+                  <span role="cell" className="kp-num" style={{ width: 34, textAlign: "right", fontWeight: 700 }}>{row.w}–{row.l}</span>
+                  <span role="cell" style={{ width: 62, textAlign: "right", fontSize: 11.5, color: tone }}>
+                    <span aria-hidden="true">{st.glyph} </span>{st.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      <div className="kp-dayscroll" style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 8, alignItems: "flex-start" }}>
+        {model.rounds.map((r) => (
+          <div key={r.round} style={{ flexShrink: 0 }}>
+            <div style={{ fontSize: 11, letterSpacing: 1.2, color: theme.textFaint, fontWeight: 700, marginBottom: 8 }}>ROUND {r.round}</div>
+            {r.pools.map((p) => (
+              <div key={p.pool} style={{ marginBottom: 12 }}>
+                <div className="kp-num" style={{ fontSize: 11, color: theme.textDim, marginBottom: 6 }}>{p.pool} pool</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {p.matches.map((m) => <EventMatchBox key={m.id} m={m} teams={teams} compact={!isDesktop} width={boxW} />)}
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
+        {model.undrawn.length > 0 && (
+          <div style={{ flexShrink: 0 }}>
+            <div style={{ fontSize: 11, letterSpacing: 1.2, color: theme.textFaint, fontWeight: 700, marginBottom: 8 }}>
+              {model.rounds.length ? "LATER ROUNDS" : "SCHEDULE"}
+            </div>
+            <div style={{ fontSize: 11, color: theme.textFaint, marginBottom: 8, maxWidth: boxW }}>
+              Drawn once the round before is played.
+            </div>
+            {model.undrawn.map((d) => (
+              <div key={d.day} style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 11, color: theme.textDim, marginBottom: 6 }}>{d.day} · {d.matches.length} match{d.matches.length === 1 ? "" : "es"}</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {d.matches.map((m) => <EventMatchBox key={m.id} m={m} teams={teams} compact={!isDesktop} width={boxW} />)}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* "Quarterfinals" is wider than a phone's bracket column, and a header
+   that widens its column pushes the final off the screen. */
+function shortRoundName(name) {
+  const n = String(name || "");
+  if (/quarter/i.test(n)) return "Quarters";
+  if (/semi/i.test(n)) return "Semis";
+  if (/final/i.test(n)) return "Final";
+  return n;
+}
+
+function BracketView({ stage, teams, isDesktop }) {
+  const theme = useTheme();
+  const { rounds, tree } = bracketRounds(stage.matches);
+  // Sized so a phone shows quarterfinals to final without scrolling.
+  const boxW = isDesktop ? 180 : 100;
+  const gap = isDesktop ? 36 : 12;
+  const slot = 92;                                    // px per first-round match
+  const height = Math.max(1, rounds[0] ? rounds[0].matches.length : 1) * slot;
+  return (
+    <div className="kp-dayscroll" style={{ overflowX: "auto", paddingBottom: 8 }}>
+      <div style={{ display: "flex", alignItems: "stretch", minWidth: "min-content" }}>
+        {rounds.map((r, ri) => (
+          <React.Fragment key={r.name + ri}>
+            {ri > 0 && (
+              tree ? (
+                /* Connectors: each match here is fed by two in the round
+                   before. With space-around columns of equal height, match
+                   i of n sits at height (2i+1)/(2n), so the lines are exact. */
+                <svg aria-hidden="true" width={gap} height={height + 22} style={{ flexShrink: 0 }}>
+                  {r.matches.map((_, i) => {
+                    const n = r.matches.length, p = rounds[ri - 1].matches.length;
+                    const y = (k, m) => 22 + height * (2 * k + 1) / (2 * m);
+                    const y1 = y(2 * i, p), y2 = y(2 * i + 1, p), yc = y(i, n), mid = gap / 2;
+                    return (
+                      <path key={i} d={`M0 ${y1} H${mid} V${y2} H0 M${mid} ${yc} H${gap}`}
+                        fill="none" stroke={theme.steel} strokeWidth="1.5" />
+                    );
+                  })}
+                </svg>
+              ) : <div style={{ width: gap / 2, flexShrink: 0 }} />
+            )}
+            <div style={{ display: "flex", flexDirection: "column", flexShrink: 0 }}>
+              <div style={{ height: 22, width: boxW, fontSize: 11, letterSpacing: 1.2, color: theme.textFaint, fontWeight: 700,
+                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={r.name}>
+                {(isDesktop ? String(r.name) : shortRoundName(r.name)).toUpperCase()}
+              </div>
+              <div style={{ height: tree ? height : "auto", display: "flex", flexDirection: "column",
+                justifyContent: tree ? "space-around" : "flex-start", gap: tree ? 0 : 8 }}>
+                {r.matches.map((m) => <EventMatchBox key={m.id} m={m} teams={teams} compact={!isDesktop} width={boxW} />)}
+              </div>
+            </div>
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function GroupsView({ stage, teams, isDesktop }) {
+  const theme = useTheme();
+  const sections = (stage.sections || []).length ? stage.sections : [{ name: stage.name, matches: stage.matches }];
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "repeat(2, minmax(0, 1fr))" : "minmax(0, 1fr)", gap: 16 }}>
+      {sections.map((sec) => {
+        const table = groupTable(sec.matches);
+        return (
+          <div key={sec.name}>
+            <div style={{ fontWeight: 700, fontSize: 13.5, marginBottom: 6 }}>{sec.name}</div>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
+              <thead>
+                <tr style={{ color: theme.textFaint, fontSize: 10.5, letterSpacing: 0.8 }}>
+                  <th style={{ textAlign: "left", fontWeight: 600, padding: "4px 0" }}>TEAM</th>
+                  <th style={{ textAlign: "right", fontWeight: 600 }}>SERIES</th>
+                  <th style={{ textAlign: "right", fontWeight: 600 }}>GAMES</th>
+                </tr>
+              </thead>
+              <tbody>
+                {table.map((row) => (
+                  <tr key={row.key} style={{ borderTop: `1px solid ${theme.steelSoft}` }}>
+                    <td style={{ padding: "6px 0" }}>
+                      <TeamTag name={row.key} size={12.5} color={teams && teams[row.key] ? teams[row.key].color : theme.steel} />
+                    </td>
+                    <td className="kp-num" style={{ textAlign: "right" }}>{row.w}–{row.l}</td>
+                    <td className="kp-num" style={{ textAlign: "right", color: theme.textDim }}>{row.gw}–{row.gl}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {table.length === 0 && <div style={{ fontSize: 12, color: theme.textFaint }}>Teams not drawn yet.</div>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function EventListView({ stage, teams, isDesktop }) {
+  const groups = groupByLabel(stage.matches || [], (m) => m.block || null);
+  const theme = useTheme();
+  return (
+    <div>
+      {groups.map(([label, ms]) => (
+        <div key={label} style={{ marginBottom: 10 }}>
+          {groups.length > 1 && <div style={{ fontSize: 11, color: theme.textDim, marginBottom: 6 }}>{label}</div>}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {ms.map((m) => <EventMatchBox key={m.id} m={m} teams={teams} compact={!isDesktop} width={isDesktop ? 190 : 150} />)}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EventTab({ event, teams, isDesktop }) {
+  const theme = useTheme();
+  const stages = eventStages(event);
+  if (!stages.length) {
+    return <div style={{ color: theme.textDim, fontSize: 13 }}>No event structure published yet.</div>;
+  }
+  const fmtDay = (d) => {
+    const t = Date.parse(d);
+    return Number.isFinite(t) ? new Date(t + 12 * 3600e3).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "";
+  };
+  const statusText = { done: "Done", live: "Live", upcoming: "Upcoming" };
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
+        <div style={{ fontFamily: "'Fraunces', serif", fontSize: isDesktop ? 22 : 18, fontWeight: 600 }}>{event.name}</div>
+        {event.start && <div style={{ fontSize: 12.5, color: theme.textDim }}>{fmtDay(event.start)} – {fmtDay(event.end)}</div>}
+      </div>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 18 }}>
+        {stages.map((st, i) => {
+          const status = eventStageStatus(st);
+          const first = (st.matches || []).map(eventStartOf).filter((t) => t !== null).sort((a, b) => a - b)[0];
+          return (
+            <a key={i} href={`#event-stage-${i}`} className="kp-chip"
+              onClick={(e) => {
+                const el = typeof document !== "undefined" && document.getElementById(`event-stage-${i}`);
+                if (el && el.scrollIntoView) { e.preventDefault(); el.scrollIntoView({ behavior: "smooth", block: "start" }); }
+              }}
+              style={{ textDecoration: "none", fontSize: 11.5, padding: "4px 10px",
+                background: status === "live" ? theme.accentSoft : "transparent",
+                color: status === "live" ? theme.accent : status === "done" ? theme.textFaint : theme.textDim,
+                border: `1px solid ${status === "live" ? theme.accentBorder : theme.steel}` }}>
+              {st.name} · {status === "upcoming" && first ? new Date(first).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : statusText[status]}
+            </a>
+          );
+        })}
+      </div>
+      {stages.map((st, i) => (
+        <div key={i} id={`event-stage-${i}`} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`,
+          ...cardShape(theme.cornerStyle), ...elevation(), padding: isDesktop ? "16px 18px" : "14px 12px", marginBottom: 14 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12, gap: 8 }}>
+            <div style={{ fontWeight: 700, fontSize: 15 }}>{st.name}</div>
+            <div style={{ fontSize: 11.5, color: theme.textFaint }}>
+              {(st.matches || []).filter(eventMatchDone).length}/{(st.matches || []).length} played
+            </div>
+          </div>
+          {st.kind === "swiss" ? <SwissView stage={st} laterTeams={eventTeamsAfter(stages, i)} teams={teams} isDesktop={isDesktop} />
+            : st.kind === "bracket" ? <BracketView stage={st} teams={teams} isDesktop={isDesktop} />
+            : st.kind === "groups" ? <GroupsView stage={st} teams={teams} isDesktop={isDesktop} />
+            : <EventListView stage={st} teams={teams} isDesktop={isDesktop} />}
+        </div>
+      ))}
+      <div style={{ fontSize: 11.5, color: theme.textFaint, lineHeight: 1.5 }}>
+        From the LoL Esports schedule. Bracket lines are drawn only for a single-elimination shape, where the
+        schedule's order fixes who meets whom; Swiss pools are the records both sides brought into the match.
+      </div>
+    </div>
+  );
+}
+
+function TopNav({ theme, gameCfg, game, region, setRegion, tab, setTab, statType, setStatType, isDesktop, regions, hasEvent }) {
   // The live board, so the stat selector can follow what the provider
   // is actually posting instead of offering four tabs equally when two
   // of them lead nowhere.
@@ -7232,7 +7801,8 @@ function TopNav({ theme, gameCfg, game, region, setRegion, tab, setTab, statType
   // Parlays sits next to Edges because it is the same board read a different
   // way: Edges ranks single lines, Parlays stacks them. It is cross-game, so
   // the region and stat selectors above do not apply to it.
-  const TABS = [["future", "Future"], ["edges", "Edges"], ["projections", "Projections"], ["parlays", "Parlays"], ["record", "Record"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
+  // Bracket only where there is one: an international event's region.
+  const TABS = [["future", "Future"], ...(hasEvent ? [["event", "Bracket"]] : []), ["edges", "Edges"], ["projections", "Projections"], ["parlays", "Parlays"], ["record", "Record"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
   return (
     <div style={{ marginBottom: isDesktop ? 22 : 14 }}>
       {/* Region picker. Seven regions wrapped onto two rows on a phone,
@@ -7250,7 +7820,7 @@ function TopNav({ theme, gameCfg, game, region, setRegion, tab, setTab, statType
           scrollSnapType: isDesktop ? "none" : "x proximity",
         }}
       >
-        {gameCfg.regionList.map((key) => (
+        {(regions || gameCfg.regionList).map((key) => (
           <button
             key={key}
             className="kp-btn"
@@ -7628,6 +8198,12 @@ function KillProjector({ onHome } = {}) {
             const fetched = fetchedRegions[key];
             if (fetched && fetched.teams && Object.keys(fetched.teams).length > 0) {
               merged[key] = fetched;
+            } else if (fetched && fetched.event) {
+              // An event drawn but not yet populated (Worlds before its
+              // qualifiers finish: every slot TBD) has no teams and still
+              // has a bracket worth showing. No fallback snapshot exists
+              // for an event, so there is nothing for this to displace.
+              merged[key] = fetched;
             }
           }
           return { ...prev, [gameId]: merged };
@@ -7734,6 +8310,11 @@ function KillProjector({ onHome } = {}) {
      its own matches AND its not-yet-started teams' home seasons. */
   const historyIsBorrowed = history.length > (current.past_matches || []).length;
   const hasData = Object.keys(current.teams || {}).length > 0;
+  const hasEvent = !!(current.event && (current.event.stages || []).length);
+  const visibleRegions = gameCfg.regionList.filter(
+    (key) => !(gameCfg.optionalRegions || []).includes(key) || regionsData[key]);
+  // Leaving an event's region for a league's leaves no bracket to show.
+  useEffect(() => { if (tab === "event" && !hasEvent) setTab("future"); }, [tab, hasEvent]);
   const normalizedUpcoming = formatUpcoming(current.upcoming_matches || []);
 
   const selectGame = (id) => {
@@ -7820,7 +8401,7 @@ function KillProjector({ onHome } = {}) {
                 region={region} setRegion={setRegion}
                 tab={tab} setTab={setTab}
                 statType={statType} setStatType={setStatType}
-                isDesktop={isDesktop}
+                isDesktop={isDesktop} regions={visibleRegions} hasEvent={hasEvent}
               />
             )}
 
@@ -7860,13 +8441,24 @@ function KillProjector({ onHome } = {}) {
                 region={region} setRegion={setRegion}
                 tab={tab} setTab={setTab}
                 statType={statType} setStatType={setStatType}
-                isDesktop={isDesktop}
+                isDesktop={isDesktop} regions={visibleRegions} hasEvent={hasEvent}
               />
             )}
 
-            {!hasData ? (
+            {tab === "event" && hasEvent ? (
+              <EventTab event={current.event} teams={current.teams} isDesktop={isDesktop} />
+            ) : !hasData ? (
               <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: "20px 16px", textAlign: "center" }}>
-                <div style={{ fontSize: 13, color: theme.textDim }}>No {gameCfg.regionLabels[region]} data available yet.</div>
+                <div style={{ fontSize: 13, color: theme.textDim }}>
+                  {hasEvent ? `No ${gameCfg.regionLabels[region]} teams are drawn yet.` : `No ${gameCfg.regionLabels[region]} data available yet.`}
+                </div>
+                {hasEvent && (
+                  <button type="button" className="kp-btn" onClick={() => setTab("event")}
+                    style={{ marginTop: 10, cursor: "pointer", background: theme.accentSoft, color: theme.accent,
+                      border: `1px solid ${theme.accentBorder}`, borderRadius: 8, padding: "7px 12px", fontSize: 13, fontWeight: 600 }}>
+                    See the bracket and schedule
+                  </button>
+                )}
                 <div style={{ fontSize: 12, color: theme.textFaint, marginTop: 4 }}>
                   {statusByGame[game] === "live" || statusByGame[game] === "loading"
                     ? "This region may not have loaded from the live source — try refresh above."

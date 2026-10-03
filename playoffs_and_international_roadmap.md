@@ -1,5 +1,11 @@
 # Playoffs & International Events — Readiness Guide
 
+> **Status, 2026-10-03:** sections 1c, 2a (Option B), 2b and 2c are built
+> for LoL, for the Demacia Cup and Worlds 2026; see "International events
+> (LoL)" in the README. The bracket view reads the LoL Esports API's
+> structure (stages, sections, best-of) rather than gol.gg's round labels.
+> Domestic playoffs and VCT events do not use it yet.
+
 A planning reference, not a build spec. Each section lays out what's already
 solid, what's genuinely uncertain, and the concrete options for closing the
 gap — so decisions can get made deliberately rather than discovered mid-build.
