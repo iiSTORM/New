@@ -6826,6 +6826,305 @@ try {
       });
     }));
   }
+  const IMPACT_MIN_LOBBY = 8;
+  const IMPACT_MIN_SAMPLES = 5;
+  const IMPACT_CONSISTENT = 0.65;
+  function impactLobby(entries) {
+    const rated = entries.filter(e => Number.isFinite(e.rating) && e.rating > 0);
+    if (rated.length < IMPACT_MIN_LOBBY) return [];
+    const mean = rated.reduce((s, e) => s + e.rating, 0) / rated.length;
+    return mean > 0 ? rated.map(e => ({
+      ...e,
+      value: (e.rating / mean - 1) * 100
+    })) : [];
+  }
+  function impactByPlayer(pastMatches) {
+    const out = {};
+    const push = (e, when, perMap) => {
+      (out[e.player] = out[e.player] || []).push({
+        when,
+        value: e.value,
+        perMap
+      });
+    };
+    for (const m of pastMatches || []) {
+      const when = m.start_time || m.date || "";
+      const maps = (m.per_game || []).filter(g => g && typeof g === "object");
+      const mapLobbies = maps.map(g => impactLobby(Object.values(g).flatMap(team => Object.entries(team || {}).map(([player, s]) => ({
+        player,
+        rating: Number(s && s.rt)
+      })))));
+      if (mapLobbies.some(l => l.length)) {
+        mapLobbies.forEach(l => l.forEach(e => push(e, when, true)));
+        continue;
+      }
+      impactLobby(Object.values(m.actual || {}).flatMap(team => Object.entries(team || {}).map(([player, s]) => ({
+        player,
+        rating: Number(s && s.rating)
+      })))).forEach(e => push(e, when, false));
+    }
+    for (const list of Object.values(out)) list.sort((a, b) => String(a.when).localeCompare(String(b.when)));
+    return out;
+  }
+  function impactSummary(samples, window) {
+    const recent = (samples || []).slice(-window);
+    const n = recent.length;
+    if (!n) return null;
+    const mean = recent.reduce((s, x) => s + x.value, 0) / n;
+    const positive = recent.filter(x => x.value > 0).length / n;
+    const sd = Math.sqrt(recent.reduce((s, x) => s + (x.value - mean) ** 2, 0) / n);
+    const label = n < IMPACT_MIN_SAMPLES ? "few" : positive >= IMPACT_CONSISTENT ? "positive" : positive <= 1 - IMPACT_CONSISTENT ? "negative" : "mixed";
+    return {
+      recent,
+      n,
+      mean,
+      positive,
+      sd,
+      label
+    };
+  }
+  const IMPACT_LABELS = {
+    positive: {
+      text: "Consistently +",
+      glyph: "▲"
+    },
+    negative: {
+      text: "Consistently −",
+      glyph: "▼"
+    },
+    mixed: {
+      text: "Mixed",
+      glyph: "◆"
+    },
+    few: {
+      text: "Too few",
+      glyph: "·"
+    }
+  };
+  function ImpactStrip({
+    samples,
+    width = 132,
+    height = 26
+  }) {
+    const theme = useTheme();
+    const n = samples.length;
+    if (!n) return null;
+    const cap = 40;
+    const step = width / Math.max(n, 1);
+    const bw = Math.max(2, Math.min(8, step - 2));
+    const mid = height / 2;
+    return React.createElement("svg", {
+      width: width,
+      height: height,
+      role: "img",
+      "aria-label": `${samples.filter(s => s.value > 0).length} of ${n} above the lobby`
+    }, React.createElement("line", {
+      x1: "0",
+      x2: width,
+      y1: mid,
+      y2: mid,
+      stroke: theme.steel,
+      strokeWidth: "1"
+    }), samples.map((s, i) => {
+      const h = Math.max(1.5, Math.min(1, Math.abs(s.value) / cap) * (mid - 1));
+      const up = s.value > 0;
+      return React.createElement("rect", {
+        key: i,
+        x: i * step + (step - bw) / 2,
+        y: up ? mid - h : mid,
+        width: bw,
+        height: h,
+        rx: "1",
+        fill: up ? theme.good : theme.bad,
+        opacity: s.perMap ? 1 : 0.75
+      }, React.createElement("title", null, `${String(s.when).slice(0, 10)}: ${up ? "+" : ""}${s.value.toFixed(0)}% vs lobby${s.perMap ? " (map)" : " (series)"}`));
+    }));
+  }
+  function ImpactPanel({
+    teams,
+    pastMatches,
+    windowSize,
+    isDesktop
+  }) {
+    const theme = useTheme();
+    const [filter, setFilter] = useState("all");
+    const byPlayer = useMemo(() => impactByPlayer(pastMatches), [pastMatches]);
+    const rows = [];
+    for (const [teamName, teamData] of Object.entries(teams || {})) {
+      for (const player of teamData.players || []) {
+        const summary = impactSummary(byPlayer[player.name], windowSize);
+        if (!summary || summary.n < 3) continue;
+        rows.push({
+          name: player.name,
+          team: teamName,
+          color: teamData.color,
+          ...summary
+        });
+      }
+    }
+    if (!rows.length) return null;
+    const counts = {
+      positive: 0,
+      negative: 0
+    };
+    rows.forEach(r => {
+      if (counts[r.label] !== undefined) counts[r.label] += 1;
+    });
+    const shown = rows.filter(r => filter === "all" || r.label === filter).sort((a, b) => filter === "negative" ? a.mean - b.mean : b.mean - a.mean).slice(0, 60);
+    const perMap = rows.some(r => r.recent.some(s => s.perMap));
+    return React.createElement("div", {
+      style: {
+        background: theme.graphite,
+        border: `1px solid ${theme.steel}`,
+        ...cardShape(theme.cornerStyle),
+        ...elevation(),
+        padding: isDesktop ? "16px 18px" : "14px 12px",
+        marginTop: 18
+      }
+    }, React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "baseline",
+        gap: 10,
+        flexWrap: "wrap"
+      }
+    }, React.createElement("div", {
+      style: {
+        fontWeight: 700,
+        fontSize: 15
+      }
+    }, "Impact \xB1 ", React.createElement("span", {
+      style: {
+        fontWeight: 500,
+        color: theme.textDim,
+        fontSize: 12.5
+      }
+    }, "swing-style")), React.createElement("div", {
+      style: {
+        fontSize: 11.5,
+        color: theme.textFaint
+      }
+    }, "last ", windowSize, " ", perMap ? "maps/series" : "series")), React.createElement("div", {
+      style: {
+        fontSize: 12,
+        color: theme.textDim,
+        lineHeight: 1.55,
+        margin: "6px 0 12px"
+      }
+    }, "Each player's rating against the average of everyone on the same map, so +10% means they out-rated that lobby by a tenth. Consistently + means positive on at least ", Math.round(IMPACT_CONSISTENT * 100), "% of them."), React.createElement("div", {
+      role: "group",
+      "aria-label": "Filter",
+      style: {
+        display: "flex",
+        gap: 6,
+        flexWrap: "wrap",
+        marginBottom: 10
+      }
+    }, [["all", `All ${rows.length}`], ["positive", `▲ Consistently + ${counts.positive}`], ["negative", `▼ Consistently − ${counts.negative}`]].map(([key, label]) => React.createElement("button", {
+      key: key,
+      type: "button",
+      className: "kp-btn",
+      "aria-pressed": filter === key,
+      onClick: () => setFilter(key),
+      style: {
+        cursor: "pointer",
+        fontSize: 12,
+        fontWeight: 600,
+        padding: "5px 10px",
+        borderRadius: 16,
+        background: filter === key ? theme.accentSoft : "transparent",
+        color: filter === key ? theme.accent : theme.textDim,
+        border: `1px solid ${filter === key ? theme.accentBorder : theme.steel}`
+      }
+    }, label))), React.createElement("div", {
+      role: "table",
+      "aria-label": "Impact plus-minus by player"
+    }, shown.map(r => {
+      const lab = IMPACT_LABELS[r.label];
+      const tone = r.label === "positive" ? theme.good : r.label === "negative" ? theme.bad : theme.textFaint;
+      return React.createElement("div", {
+        key: r.team + r.name,
+        role: "row",
+        className: "kp-row",
+        style: {
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: "7px 0",
+          fontSize: 13
+        }
+      }, React.createElement("span", {
+        "aria-hidden": "true",
+        style: {
+          width: 3,
+          height: 16,
+          borderRadius: 2,
+          background: r.color,
+          flexShrink: 0
+        }
+      }), React.createElement("span", {
+        role: "cell",
+        style: {
+          flex: "1 1 auto",
+          minWidth: 0,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap"
+        }
+      }, React.createElement("strong", null, r.name), isDesktop && React.createElement("span", {
+        style: {
+          color: theme.textFaint
+        }
+      }, " \xB7 ", r.team)), React.createElement("span", {
+        role: "cell",
+        className: "kp-num",
+        style: {
+          width: 48,
+          textAlign: "right",
+          fontWeight: 700
+        }
+      }, r.mean > 0 ? "+" : r.mean < 0 ? "−" : "", Math.abs(r.mean).toFixed(0), "%"), React.createElement("span", {
+        role: "cell",
+        className: "kp-num",
+        style: {
+          width: 44,
+          textAlign: "right",
+          color: theme.textDim,
+          fontSize: 12
+        },
+        title: `positive on ${Math.round(r.positive * r.n)} of ${r.n}`
+      }, Math.round(r.positive * r.n), "/", r.n), isDesktop && React.createElement("span", {
+        role: "cell"
+      }, React.createElement(ImpactStrip, {
+        samples: r.recent
+      })), React.createElement("span", {
+        role: "cell",
+        style: {
+          width: isDesktop ? 118 : 26,
+          textAlign: "right",
+          fontSize: 11.5,
+          color: tone,
+          whiteSpace: "nowrap"
+        },
+        title: lab.text
+      }, React.createElement("span", {
+        "aria-hidden": "true"
+      }, lab.glyph), isDesktop ? ` ${lab.text}` : React.createElement("span", {
+        style: {
+          position: "absolute",
+          left: -9999
+        }
+      }, lab.text)));
+    })), React.createElement("div", {
+      style: {
+        fontSize: 11.5,
+        color: theme.textFaint,
+        lineHeight: 1.5,
+        marginTop: 10
+      }
+    }, "Built from bo3.gg/vlr.gg ratings, not HLTV's Swing. Not used in the projections: tested on 2,302 CS2 series, a player's average impact did not predict their kills any better than their kill rate already does."));
+  }
   function ConsistencyTab({
     teams,
     pastMatches,
@@ -6943,7 +7242,12 @@ try {
       row: row,
       rank: i + 1,
       cfg: cfg
-    }))));
+    }))), React.createElement(ImpactPanel, {
+      teams: teams,
+      pastMatches: pastMatches,
+      windowSize: effectiveWindow,
+      isDesktop: isDesktop
+    }));
   }
   function ConsistencyCard({
     row,

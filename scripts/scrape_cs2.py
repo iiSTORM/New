@@ -504,9 +504,18 @@ def per_map_entry(row):
     Missing fields are left out rather than zero-filled: the grader
     treats an absent stat as "not recorded for this game" and refuses,
     which is the honest answer, while a zero would grade as a real 0.
+
+    Plus the map's rating as "rt", rounded: the one style column kept per
+    map, because the app's Impact ± (a swing-style stat: a player's
+    rating against the ten on that map) is a per-map question by nature.
+    One number per player per map; the rest stay series-only.
     """
-    return {field: row[field] for field in PER_MAP_FIELDS
-            if isinstance(row.get(field), int)}
+    entry = {field: row[field] for field in PER_MAP_FIELDS
+             if isinstance(row.get(field), int)}
+    rating = row.get("rating")
+    if isinstance(rating, (int, float)) and not isinstance(rating, bool):
+        entry["rt"] = round(float(rating), 2)
+    return entry
 
 
 async def fetch_match_actuals(session, match_slug, canonical_name_by_team_id):

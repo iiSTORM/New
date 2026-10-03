@@ -115,3 +115,9 @@ jobs:
       # real Worlds 2025 bracket, whose results fix the answer.
       - name: Check the event bracket and Swiss views
         run: node tests/event_views.test.mjs
+
+      # Impact ±, the swing-style stat, against the committed CS2 data: a
+      # renamed rating field or a dropped per-map "rt" would otherwise show
+      # up only as an empty panel.
+      - name: Check the Impact ± stat
+        run: node tests/impact.test.mjs

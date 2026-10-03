@@ -6413,6 +6413,185 @@ function DayPicker({ dates, activeDate, onChange, counts }) {
 // useless to act on. So volume is shown alongside, the list can be
 // sorted by either, and a minimum-games floor keeps small samples from
 // manufacturing fake steadiness.
+/* ============================================================
+   IMPACT ± — a swing-style stat, built from data already collected.
+
+   HLTV's Swing scores how much a player moved their team's chance of
+   winning rounds. HLTV is not a source here (its terms forbid scraping
+   and the only access tried was a paid service), so this is the nearest
+   honest equivalent from what bo3.gg and vlr.gg publish: a player's
+   rating on a map against the average rating of everyone on that map,
+   as a percentage. +12% is "rated 12% above this lobby", so a player who
+   is consistently positive is one who consistently outplays the room,
+   whatever the room was.
+
+   Per map where the scraper kept the map's rating ("rt" on per_game,
+   CS2 from 2026-10-03), per series otherwise -- the series rating is a
+   sum over the same maps for all ten players, so the comparison is
+   like for like either way.
+
+   DISPLAY ONLY. It is not an input to any projection: measured on 2,302
+   CS2 player-series, a player's prior average impact did not improve
+   next-series kill predictions over their kill rate alone (error 5.605
+   vs 5.601 kills/map; the impact rating correlates 0.84 with kill rate).
+   It goes into the model only if a later test says it helps.
+   ============================================================ */
+
+const IMPACT_MIN_LOBBY = 8;        // a lobby with fewer rated players is a partial box score
+const IMPACT_MIN_SAMPLES = 5;      // below this a "consistently" claim is noise
+const IMPACT_CONSISTENT = 0.65;    // share of maps on one side of zero to be called consistent
+
+function impactLobby(entries) {
+  const rated = entries.filter((e) => Number.isFinite(e.rating) && e.rating > 0);
+  if (rated.length < IMPACT_MIN_LOBBY) return [];
+  const mean = rated.reduce((s, e) => s + e.rating, 0) / rated.length;
+  return mean > 0 ? rated.map((e) => ({ ...e, value: (e.rating / mean - 1) * 100 })) : [];
+}
+
+/** {player name: [{when, value, perMap}]}, oldest first. */
+function impactByPlayer(pastMatches) {
+  const out = {};
+  const push = (e, when, perMap) => { (out[e.player] = out[e.player] || []).push({ when, value: e.value, perMap }); };
+  for (const m of pastMatches || []) {
+    const when = m.start_time || m.date || "";
+    const maps = (m.per_game || []).filter((g) => g && typeof g === "object");
+    const mapLobbies = maps.map((g) => impactLobby(Object.values(g).flatMap((team) =>
+      Object.entries(team || {}).map(([player, s]) => ({ player, rating: Number(s && s.rt) })))));
+    if (mapLobbies.some((l) => l.length)) {
+      mapLobbies.forEach((l) => l.forEach((e) => push(e, when, true)));
+      continue;
+    }
+    impactLobby(Object.values(m.actual || {}).flatMap((team) =>
+      Object.entries(team || {}).map(([player, s]) => ({ player, rating: Number(s && s.rating) }))))
+      .forEach((e) => push(e, when, false));
+  }
+  for (const list of Object.values(out)) list.sort((a, b) => String(a.when).localeCompare(String(b.when)));
+  return out;
+}
+
+/** Mean, share positive, spread and a label over the most recent `window`. */
+function impactSummary(samples, window) {
+  const recent = (samples || []).slice(-window);
+  const n = recent.length;
+  if (!n) return null;
+  const mean = recent.reduce((s, x) => s + x.value, 0) / n;
+  const positive = recent.filter((x) => x.value > 0).length / n;
+  const sd = Math.sqrt(recent.reduce((s, x) => s + (x.value - mean) ** 2, 0) / n);
+  const label = n < IMPACT_MIN_SAMPLES ? "few"
+    : positive >= IMPACT_CONSISTENT ? "positive"
+    : positive <= 1 - IMPACT_CONSISTENT ? "negative" : "mixed";
+  return { recent, n, mean, positive, sd, label };
+}
+
+const IMPACT_LABELS = {
+  positive: { text: "Consistently +", glyph: "▲" },
+  negative: { text: "Consistently −", glyph: "▼" },
+  mixed: { text: "Mixed", glyph: "◆" },
+  few: { text: "Too few", glyph: "·" },
+};
+
+/* A diverging strip: one bar per map (or series), up when the player out-
+   rated the lobby, down when under. The bar's sign says it as well as its
+   colour, so the strip reads without colour. */
+function ImpactStrip({ samples, width = 132, height = 26 }) {
+  const theme = useTheme();
+  const n = samples.length;
+  if (!n) return null;
+  const cap = 40;                                     // ±40% fills the half-height
+  const step = width / Math.max(n, 1);
+  const bw = Math.max(2, Math.min(8, step - 2));
+  const mid = height / 2;
+  return (
+    <svg width={width} height={height} role="img"
+      aria-label={`${samples.filter((s) => s.value > 0).length} of ${n} above the lobby`}>
+      <line x1="0" x2={width} y1={mid} y2={mid} stroke={theme.steel} strokeWidth="1" />
+      {samples.map((s, i) => {
+        const h = Math.max(1.5, Math.min(1, Math.abs(s.value) / cap) * (mid - 1));
+        const up = s.value > 0;
+        return (
+          <rect key={i} x={i * step + (step - bw) / 2} y={up ? mid - h : mid} width={bw} height={h} rx="1"
+            fill={up ? theme.good : theme.bad} opacity={s.perMap ? 1 : 0.75}>
+            <title>{`${String(s.when).slice(0, 10)}: ${up ? "+" : ""}${s.value.toFixed(0)}% vs lobby${s.perMap ? " (map)" : " (series)"}`}</title>
+          </rect>
+        );
+      })}
+    </svg>
+  );
+}
+
+function ImpactPanel({ teams, pastMatches, windowSize, isDesktop }) {
+  const theme = useTheme();
+  const [filter, setFilter] = useState("all");
+  const byPlayer = useMemo(() => impactByPlayer(pastMatches), [pastMatches]);
+  const rows = [];
+  for (const [teamName, teamData] of Object.entries(teams || {})) {
+    for (const player of teamData.players || []) {
+      const summary = impactSummary(byPlayer[player.name], windowSize);
+      if (!summary || summary.n < 3) continue;
+      rows.push({ name: player.name, team: teamName, color: teamData.color, ...summary });
+    }
+  }
+  if (!rows.length) return null;
+  const counts = { positive: 0, negative: 0 };
+  rows.forEach((r) => { if (counts[r.label] !== undefined) counts[r.label] += 1; });
+  const shown = rows.filter((r) => filter === "all" || r.label === filter)
+    .sort((a, b) => (filter === "negative" ? a.mean - b.mean : b.mean - a.mean)).slice(0, 60);
+  const perMap = rows.some((r) => r.recent.some((s) => s.perMap));
+  return (
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+      ...elevation(), padding: isDesktop ? "16px 18px" : "14px 12px", marginTop: 18 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+        <div style={{ fontWeight: 700, fontSize: 15 }}>Impact ± <span style={{ fontWeight: 500, color: theme.textDim, fontSize: 12.5 }}>swing-style</span></div>
+        <div style={{ fontSize: 11.5, color: theme.textFaint }}>last {windowSize} {perMap ? "maps/series" : "series"}</div>
+      </div>
+      <div style={{ fontSize: 12, color: theme.textDim, lineHeight: 1.55, margin: "6px 0 12px" }}>
+        Each player's rating against the average of everyone on the same map, so +10% means they out-rated
+        that lobby by a tenth. Consistently + means positive on at least {Math.round(IMPACT_CONSISTENT * 100)}% of them.
+      </div>
+      <div role="group" aria-label="Filter" style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+        {[["all", `All ${rows.length}`], ["positive", `▲ Consistently + ${counts.positive}`], ["negative", `▼ Consistently − ${counts.negative}`]].map(([key, label]) => (
+          <button key={key} type="button" className="kp-btn" aria-pressed={filter === key} onClick={() => setFilter(key)}
+            style={{ cursor: "pointer", fontSize: 12, fontWeight: 600, padding: "5px 10px", borderRadius: 16,
+              background: filter === key ? theme.accentSoft : "transparent", color: filter === key ? theme.accent : theme.textDim,
+              border: `1px solid ${filter === key ? theme.accentBorder : theme.steel}` }}>{label}</button>
+        ))}
+      </div>
+      <div role="table" aria-label="Impact plus-minus by player">
+        {shown.map((r) => {
+          const lab = IMPACT_LABELS[r.label];
+          const tone = r.label === "positive" ? theme.good : r.label === "negative" ? theme.bad : theme.textFaint;
+          return (
+            <div key={r.team + r.name} role="row" className="kp-row"
+              style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", fontSize: 13 }}>
+              <span aria-hidden="true" style={{ width: 3, height: 16, borderRadius: 2, background: r.color, flexShrink: 0 }} />
+              <span role="cell" style={{ flex: "1 1 auto", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <strong>{r.name}</strong>
+                {isDesktop && <span style={{ color: theme.textFaint }}> · {r.team}</span>}
+              </span>
+              <span role="cell" className="kp-num" style={{ width: 48, textAlign: "right", fontWeight: 700 }}>
+                {r.mean > 0 ? "+" : r.mean < 0 ? "−" : ""}{Math.abs(r.mean).toFixed(0)}%
+              </span>
+              <span role="cell" className="kp-num" style={{ width: 44, textAlign: "right", color: theme.textDim, fontSize: 12 }}
+                title={`positive on ${Math.round(r.positive * r.n)} of ${r.n}`}>
+                {Math.round(r.positive * r.n)}/{r.n}
+              </span>
+              {isDesktop && <span role="cell"><ImpactStrip samples={r.recent} /></span>}
+              <span role="cell" style={{ width: isDesktop ? 118 : 26, textAlign: "right", fontSize: 11.5, color: tone, whiteSpace: "nowrap" }}
+                title={lab.text}>
+                <span aria-hidden="true">{lab.glyph}</span>{isDesktop ? ` ${lab.text}` : <span style={{ position: "absolute", left: -9999 }}>{lab.text}</span>}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ fontSize: 11.5, color: theme.textFaint, lineHeight: 1.5, marginTop: 10 }}>
+        Built from bo3.gg/vlr.gg ratings, not HLTV's Swing. Not used in the projections: tested on 2,302 CS2
+        series, a player's average impact did not predict their kills any better than their kill rate already does.
+      </div>
+    </div>
+  );
+}
+
 function ConsistencyTab({ teams, pastMatches, statType, isDesktop }) {
   const theme = useTheme();
   const cfg = STAT_TYPES[statType];
@@ -6501,6 +6680,8 @@ function ConsistencyTab({ teams, pastMatches, statType, isDesktop }) {
           ))}
         </div>
       )}
+      {/* Renders nothing where no rating is recorded (League). */}
+      <ImpactPanel teams={teams} pastMatches={pastMatches} windowSize={effectiveWindow} isDesktop={isDesktop} />
     </div>
   );
 }

@@ -614,6 +614,24 @@ CI fails if `index.html` does not match `src/`. A stale `index.html` would
 ship an app that disagrees with its own source, and the diff would be
 invisible in review because it would simply be missing.
 
+## Impact ± (a swing-style stat)
+
+The Consistency tab (CS2 and Valorant) lists each player's **Impact ±**: their
+rating on a map against the average rating of everyone on that map, as a
+percentage, averaged over the same recent window. "Consistently +" means
+positive on at least 65% of those maps (or series); "Consistently −" the
+mirror. CS2 maps scraped from 2026-10-03 carry their own rating (`rt` on
+`per_game`); older ones, and Valorant, compare per series.
+
+It stands in for HLTV's Swing, which is not available here: HLTV's terms
+forbid scraping, and the only access ever tried was a paid service. It is
+**display only**. Measured on 2,302 CS2 player-series, adding a player's
+prior impact to their prior kill rate did not improve next-series kill
+predictions (5.605 vs 5.601 kills/map), because the rating tracks kill
+rate closely (r = 0.84). As a trait it is real but moderate: first-half
+vs second-half impact correlates about 0.37, and roughly 70% of clearly
+positive or negative players keep their sign.
+
 ## International events (LoL)
 
 The Demacia Cup, Worlds, MSI, First Stand and the Esports World Cup each
