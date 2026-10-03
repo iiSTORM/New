@@ -47,6 +47,9 @@ const EXPORTS = [
   "payoutTableFrom", "payoutTableIsDefault", "PAYOUT_MULTIPLIERS", "legIsStandardPriced",
   "oddsTypeOf", "oddsFactorsFrom", "rungMultiplier", "ODDS_TYPE_FACTORS",
   "NON_STANDARD_ODDS_TYPES",
+  "AppShell", "MainMenu", "TrackerPage", "PeSlipForm", "PeOpenSlip", "PeSummary",
+  "PeSettledList", "PeLedgerList", "PeConnect", "peEmptyStore", "pePlace", "peGradeLegs",
+  "peSettle", "peMoney", "pePending",
 ];
 const available = EXPORTS.filter((name) =>
   new RegExp(`(function|const)\\s+${name}\\b`).test(body));
@@ -97,10 +100,12 @@ const appOpen = new Function(
   neverResolves, fakeWindow.localStorage, console);
 
 let pass = 0, fail = 0;
+const markup = {};
 function renders(label, element) {
   try {
     const html = renderToStaticMarkup(element);
     if (typeof html !== "string") throw new Error("no markup");
+    markup[label] = html;
     pass++;
   } catch (err) {
     fail++;
@@ -1654,6 +1659,82 @@ if (app.ParlaysTab && app.buildParlays && app.parlayEvidence) {
     fail++;
     console.error(`FAIL  the ladder's construction rules hold\n        ${err.message}`);
   }
+}
+
+/* ---- the tracker and the menu ----
+   A store built through the real operations, holding every state a slip can
+   be in: open, part-graded, won, lost, refunded, and settled off a payout
+   with an unknown leg. The open card for a slip whose legs are all graded
+   but which is not yet settled shows the payout estimate, so one is here. */
+{
+  const tl = (player, team, line, side = "over", extra = {}) =>
+    ({ sport: "cs2", player, team, opponent: "", stat: "kills", line, side, maps: 2, ...extra });
+  const s = app.peEmptyStore();
+  app.peMoney(s, "deposit", "19.19", "starting bankroll", "2026-09-28T15:00:00-04:00");
+  const open = app.pePlace(s, { mode: "power", stake_cents: 100, multiplier: "3",
+    placed_at: "2026-10-01T18:00:00-04:00", legs: [tl("a", "A", 10.5), tl("b", "B", 8, "under")] });
+  app.peGradeLegs(s, open.id, [{ actual: 12 }, null]);
+  const ready = app.pePlace(s, { mode: "flex", stake_cents: 300, placed_at: "2026-10-01T19:00:00-04:00",
+    legs: [tl("c", "C", 10.5), tl("d", "D", 10.5), tl("e", "E", 4.5, "under", { sport: "valorant" })] });
+  app.peGradeLegs(s, ready.id, [{ actual: 11 }, { result: "lost" }, { dnp: true }]);
+  const unknown = app.pePlace(s, { mode: "power", stake_cents: 100, placed_at: "2026-10-01T20:00:00-04:00",
+    legs: [tl("f", "F", 1.5), tl("g", "G", 1.5)] });
+  app.peGradeLegs(s, unknown.id, [{ actual: 3 }, { result: "unknown" }]);
+  for (const [result, payout] of [[[{ actual: 20 }, { actual: 1 }], null],
+                                  [[{ actual: 20 }, { actual: 20 }], null],
+                                  [[{ actual: 10 }, { dnp: true }], null],
+                                  [[{ actual: 20 }, { result: "unknown" }], "3"]]) {
+    const done = app.pePlace(s, { mode: "power", stake_cents: 91, placed_at: "2026-09-30T12:00:00-04:00",
+      legs: [tl("Tomás", "H", 10), tl("i", "I", 10.5)] }, true);
+    app.peGradeLegs(s, done.id, result);
+    app.peSettle(s, done.id, payout);
+  }
+  const noop = () => {};
+  const nothing = async () => {};
+  renders("the main menu, nothing cached", wrap(React.createElement(app.MainMenu, { isDesktop: false, go: noop })));
+  fakeWindow.localStorage.setItem("pe.lastSeen", JSON.stringify({ balance: 4530, open: 2, at: "2026-10-03T10:00:00-04:00" }));
+  renders("the main menu, a cached balance", wrap(React.createElement(app.MainMenu, { isDesktop: true, go: noop })));
+  renders("the tracker, not connected", wrap(React.createElement(app.TrackerPage, { isDesktop: false, onHome: noop })));
+  fakeWindow.localStorage.setItem("pe.token", JSON.stringify("github_pat_test"));
+  renders("the tracker, connected and loading", wrap(React.createElement(app.TrackerPage, { isDesktop: true, onHome: noop })));
+  fakeWindow.localStorage.removeItem("pe.token");
+  renders("the connect card with an error", wrap(React.createElement(app.PeConnect, { onConnect: noop, busy: false, error: "GitHub rejected the token" })));
+  renders("the bankroll summary", wrap(React.createElement(app.PeSummary, { store: s, repo: "o/r", onRefresh: noop, onMoney: noop, onDisconnect: noop, busy: false })));
+  renders("the bankroll summary, an empty store", wrap(React.createElement(app.PeSummary, { store: app.peEmptyStore(), repo: "o/r", onRefresh: noop, onMoney: noop, onDisconnect: noop })));
+  for (const slip of app.pePending(s)) {
+    renders(`an open slip (${slip.legs.map((l) => l.result).join(",")})`,
+      wrap(React.createElement(app.PeOpenSlip, { slip, table: s.payout_table, busy: false, onSave: nothing, onSettle: nothing, onRemove: nothing })));
+  }
+  renders("the settled list", wrap(React.createElement(app.PeSettledList, { store: s, busy: false, onRemove: noop })));
+  renders("the ledger", wrap(React.createElement(app.PeLedgerList, { store: s })));
+  renders("the slip form", wrap(React.createElement(app.PeSlipForm, { table: s.payout_table, busy: false, onSubmit: noop, onCancel: noop })));
+  renders("the slip form, every toggle on", wrapOpen(React.createElement(appOpen.PeSlipForm, { table: s.payout_table, busy: true, onSubmit: noop, onCancel: noop })));
+  for (const hash of ["", "#/", "#/tracker", "#/projections", "#/nonsense"]) {
+    fakeWindow.location = { hash };
+    renders(`the app shell at "${hash}"`, React.createElement(app.AppShell));
+  }
+  delete fakeWindow.location;
+
+  /* Rendering without throwing is not the same as rendering the right page.
+     Each of these is what a user would see first in that state. */
+  const expect = [
+    ["the main menu, a cached balance", "$45.30"],
+    ["the tracker, not connected", "Connect your private tracker"],
+    ["the tracker, connected and loading", "Opening iiSTORM/propedge"],
+    ["the bankroll summary", "BANKROLL"],
+    ["the app shell at \"#/tracker\"", "Connect your private tracker"],
+    ["the app shell at \"#/projections\"", "KILL PROJECTOR"],
+    ["the app shell at \"#/nonsense\"", "Where to?"],
+  ];
+  for (const [label, text] of expect) {
+    if (markup[label] === undefined) continue;   // its render already failed above
+    if (markup[label].includes(text)) pass++;
+    else { fail++; console.error(`FAIL  ${label} does not show "${text}"`); }
+  }
+  const settledOpen = Object.keys(markup).find((k) => k.startsWith("an open slip (won,lost,dnp)"));
+  if (!settledOpen || !markup[settledOpen].includes("Expected")) {
+    fail++; console.error("FAIL  a fully graded open slip does not show its expected payout");
+  } else pass++;
 }
 
 console.log(`${pass} rendered, ${fail} failed`);

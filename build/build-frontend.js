@@ -56,7 +56,13 @@ function build() {
   // easily could, and the failure would be a blank page.
   const safe = code.replace(/<\/script>/gi, "<\\/script>");
 
-  return template.replace(MARKER, `${BANNER}\n<script>\n${safe}\n</script>`);
+  // A FUNCTION replacement, not a string: a replacement string gives "$$",
+  // "$&" and "$'" special meanings, so the code's own `$${dollars}` came out
+  // as `${dollars}` and every "$4.00" in the tracker rendered as "4.00".
+  const script = `${BANNER}\n<script>\n${safe}\n</script>`;
+  const out = template.replace(MARKER, () => script);
+  if (!out.includes(safe)) throw new Error("the compiled script did not land in index.html verbatim");
+  return out;
 }
 
 const built = build();

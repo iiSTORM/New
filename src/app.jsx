@@ -7412,7 +7412,94 @@ function SettingsPanel({ theme, accentOverride, setAccentOverride, cornerStyle, 
   );
 }
 
-function KillProjector() {
+/* The one shared stylesheet. Everything else in this app is inline styles,
+   which can't do :hover or animation. Defined once so the projections page,
+   the menu and the tracker all render it. */
+const KP_STYLES = `
+          /* Everything else in this app is inline styles, which can't do
+             :hover or animation — this is the one shared stylesheet, kept
+             small and general-purpose rather than styling every element
+             individually. Buttons/clickable cards opt in via className. */
+          .kp-btn { transition: filter 0.15s ease, transform 0.1s ease, border-color 0.15s ease, background-color 0.15s ease; }
+          .kp-btn:hover { filter: brightness(1.18); }
+          .kp-btn:active { transform: scale(0.97); }
+          .kp-clickable { transition: border-color 0.15s ease, filter 0.15s ease; cursor: pointer; }
+          .kp-clickable:hover { filter: brightness(1.08); border-color: rgba(255,255,255,0.16) !important; }
+          input[type="range"] { cursor: pointer; }
+          input[type="range"]::-webkit-slider-thumb { transition: transform 0.15s ease; }
+          input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.25); }
+          @keyframes kp-fade-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+          @keyframes kp-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+          .kp-menu-anim { animation: kp-fade-in 0.16s ease; }
+          .kp-backdrop-anim { animation: kp-backdrop-in 0.16s ease; }
+          /* Targeting-bracket corner marks — the two sharp corners the
+             angular clip-path doesn't cut (top-left, bottom-right) get
+             small viewfinder-style accent marks. A deliberate nod to the
+             "kill projector / reticle" identity rather than generic corner
+             decoration — only makes sense paired with the angular corner
+             style, so it's applied conditionally in JS, not always-on. */
+          .kp-bracket { position: relative; }
+          .kp-bracket::before, .kp-bracket::after {
+            content: ""; position: absolute; width: 11px; height: 11px; pointer-events: none; opacity: 0.85;
+          }
+          .kp-bracket::before { top: 2px; left: 2px; border-top: 1.5px solid var(--kp-bracket-color); border-left: 1.5px solid var(--kp-bracket-color); }
+          .kp-bracket::after { bottom: 2px; right: 2px; border-bottom: 1.5px solid var(--kp-bracket-color); border-right: 1.5px solid var(--kp-bracket-color); }
+          .kp-chip {
+            display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px;
+            font-size: 10px; font-weight: 600; letter-spacing: 0.3px; font-family: 'Inter', sans-serif;
+          }
+          /* Day picker scroll row — a thin, quiet scrollbar rather than
+             the OS default, which is heavy enough to dominate a row of
+             small chips. Still visible (not hidden) so it stays obvious
+             that the row scrolls when it overflows. */
+          .kp-dayscroll { scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
+          .kp-dayscroll::-webkit-scrollbar { height: 6px; }
+          .kp-dayscroll::-webkit-scrollbar-track { background: transparent; }
+          .kp-dayscroll::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.14); border-radius: 3px;
+          }
+          .kp-dayscroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.24); }
+          .kp-divider { border: none; height: 1px; }
+          /* ---- Numerals -------------------------------------------------
+             Every figure in this app sits in a column that is compared
+             against the figure above it. Proportional digits make those
+             columns ragged and make a changing number jitter, so all
+             numeric readouts use tabular figures. */
+          .kp-num { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+          table, .kp-tabular { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+          /* ---- Focus ----------------------------------------------------
+             Cards and chips are divs with onClick, which gave keyboard
+             users no way in and no visible focus. Anything interactive now
+             takes focus and shows it, without adding a ring for mouse
+             users. */
+          .kp-btn:focus-visible, .kp-clickable:focus-visible, .kp-focus:focus-visible,
+          button:focus-visible, [role="button"]:focus-visible, input:focus-visible, select:focus-visible {
+            outline: 2px solid var(--kp-accent-live, #C9A86A);
+            outline-offset: 2px;
+          }
+          .kp-btn:focus:not(:focus-visible), .kp-clickable:focus:not(:focus-visible) { outline: none; }
+
+          /* Hairline separators that read as structure rather than as lines. */
+          .kp-row + .kp-row { border-top: 1px solid rgba(255,255,255,0.045); }
+
+          /* ---- Motion ---------------------------------------------------
+             Respect the OS setting. Animation here is decoration; nothing
+             depends on it. */
+          @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+              animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+              transition-duration: 0.01ms !important; scroll-behavior: auto !important;
+            }
+          }
+
+          /* Content appears as data resolves; a 1-frame fade stops tabs
+             from feeling like a hard cut. */
+          @keyframes kp-rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+          .kp-rise { animation: kp-rise 0.22s ease both; }
+        `;
+
+function KillProjector({ onHome } = {}) {
   const isDesktop = useIsDesktop();
   const [game, setGame] = useState("lol");
   const [region, setRegion] = useState("LCS");
@@ -7675,89 +7762,7 @@ function KillProjector() {
           + theme.void,
         backgroundSize: "auto, 48px 48px, 48px 48px, auto",
       }}>
-        <style>{`
-          /* Everything else in this app is inline styles, which can't do
-             :hover or animation — this is the one shared stylesheet, kept
-             small and general-purpose rather than styling every element
-             individually. Buttons/clickable cards opt in via className. */
-          .kp-btn { transition: filter 0.15s ease, transform 0.1s ease, border-color 0.15s ease, background-color 0.15s ease; }
-          .kp-btn:hover { filter: brightness(1.18); }
-          .kp-btn:active { transform: scale(0.97); }
-          .kp-clickable { transition: border-color 0.15s ease, filter 0.15s ease; cursor: pointer; }
-          .kp-clickable:hover { filter: brightness(1.08); border-color: rgba(255,255,255,0.16) !important; }
-          input[type="range"] { cursor: pointer; }
-          input[type="range"]::-webkit-slider-thumb { transition: transform 0.15s ease; }
-          input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.25); }
-          @keyframes kp-fade-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
-          @keyframes kp-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
-          .kp-menu-anim { animation: kp-fade-in 0.16s ease; }
-          .kp-backdrop-anim { animation: kp-backdrop-in 0.16s ease; }
-          /* Targeting-bracket corner marks — the two sharp corners the
-             angular clip-path doesn't cut (top-left, bottom-right) get
-             small viewfinder-style accent marks. A deliberate nod to the
-             "kill projector / reticle" identity rather than generic corner
-             decoration — only makes sense paired with the angular corner
-             style, so it's applied conditionally in JS, not always-on. */
-          .kp-bracket { position: relative; }
-          .kp-bracket::before, .kp-bracket::after {
-            content: ""; position: absolute; width: 11px; height: 11px; pointer-events: none; opacity: 0.85;
-          }
-          .kp-bracket::before { top: 2px; left: 2px; border-top: 1.5px solid var(--kp-bracket-color); border-left: 1.5px solid var(--kp-bracket-color); }
-          .kp-bracket::after { bottom: 2px; right: 2px; border-bottom: 1.5px solid var(--kp-bracket-color); border-right: 1.5px solid var(--kp-bracket-color); }
-          .kp-chip {
-            display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px;
-            font-size: 10px; font-weight: 600; letter-spacing: 0.3px; font-family: 'Inter', sans-serif;
-          }
-          /* Day picker scroll row — a thin, quiet scrollbar rather than
-             the OS default, which is heavy enough to dominate a row of
-             small chips. Still visible (not hidden) so it stays obvious
-             that the row scrolls when it overflows. */
-          .kp-dayscroll { scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
-          .kp-dayscroll::-webkit-scrollbar { height: 6px; }
-          .kp-dayscroll::-webkit-scrollbar-track { background: transparent; }
-          .kp-dayscroll::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.14); border-radius: 3px;
-          }
-          .kp-dayscroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.24); }
-          .kp-divider { border: none; height: 1px; }
-          /* ---- Numerals -------------------------------------------------
-             Every figure in this app sits in a column that is compared
-             against the figure above it. Proportional digits make those
-             columns ragged and make a changing number jitter, so all
-             numeric readouts use tabular figures. */
-          .kp-num { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
-          table, .kp-tabular { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
-
-          /* ---- Focus ----------------------------------------------------
-             Cards and chips are divs with onClick, which gave keyboard
-             users no way in and no visible focus. Anything interactive now
-             takes focus and shows it, without adding a ring for mouse
-             users. */
-          .kp-btn:focus-visible, .kp-clickable:focus-visible, .kp-focus:focus-visible,
-          button:focus-visible, [role="button"]:focus-visible, input:focus-visible, select:focus-visible {
-            outline: 2px solid var(--kp-accent-live, #C9A86A);
-            outline-offset: 2px;
-          }
-          .kp-btn:focus:not(:focus-visible), .kp-clickable:focus:not(:focus-visible) { outline: none; }
-
-          /* Hairline separators that read as structure rather than as lines. */
-          .kp-row + .kp-row { border-top: 1px solid rgba(255,255,255,0.045); }
-
-          /* ---- Motion ---------------------------------------------------
-             Respect the OS setting. Animation here is decoration; nothing
-             depends on it. */
-          @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-              animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
-              transition-duration: 0.01ms !important; scroll-behavior: auto !important;
-            }
-          }
-
-          /* Content appears as data resolves; a 1-frame fade stops tabs
-             from feeling like a hard cut. */
-          @keyframes kp-rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-          .kp-rise { animation: kp-rise 0.22s ease both; }
-        `}</style>
+        <style>{KP_STYLES}</style>
         <div style={{
           maxWidth: isDesktop ? 1400 : 640, margin: "0 auto",
           display: isDesktop ? "flex" : "block", alignItems: "flex-start", gap: isDesktop ? 32 : 0,
@@ -7772,6 +7777,15 @@ function KillProjector() {
                 the rest to a single line. */}
             <div style={{ marginBottom: isDesktop ? 18 : 14 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: isDesktop ? 11 : 10.5, letterSpacing: 2, color: theme.accent, fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>
+                {onHome && (
+                  <button type="button" className="kp-btn" onClick={onHome} title="Back to the menu"
+                    style={{ cursor: "pointer", background: "transparent", color: theme.textDim,
+                      border: `1px solid ${theme.steel}`, borderRadius: 6, padding: "2px 7px",
+                      fontSize: 10.5, letterSpacing: 1, fontWeight: 600, fontFamily: "'Inter', sans-serif",
+                      marginRight: 4 }}>
+                    ← MENU
+                  </button>
+                )}
                 <Reticle size={13} color={theme.accent} active />
                 KILL PROJECTOR
               </div>
@@ -7929,8 +7943,1469 @@ function KillProjector() {
   );
 }
 
+/* =======================================================================
+   TRACKER — the ledger, in the browser
+   =======================================================================
+
+   A port of scripts/propedge (slips.py, ledger.py, store.py, money.py,
+   payouts.py) so slips can be logged from a phone without the CLI.
+
+   THE ONE RULE: this code and the Python must never disagree about money.
+   Both read and write the same store.json in the private repo, so anything
+   written here is later read by `propedge report`, and vice versa.
+   tests/tracker_parity.test.mjs replays the same operations through both and
+   compares the results field by field. If a rule changes in Python, it
+   changes here in the same commit or that test goes red.
+
+   What follows mirrors the Python deliberately, down to the names:
+     - money is INTEGER CENTS, never floats, and a dollar string is parsed
+       exactly (to_cents) rather than through parseFloat, which turns 19.19
+       into 1918 cents on the way through a binary fraction;
+     - a multiplier is a decimal STRING ("37.5"), multiplied exactly with
+       BigInt and rounded half-up, as money.multiply does with Decimal;
+     - the balance is never stored, only derived from the ledger;
+     - a slip is staked once and paid once, enforced on every write;
+     - only keys the Python dataclasses know are ever written, because
+       Leg.from_json drops unknown keys and a typo here would be silently
+       lost there. */
+
+const PE_SIGN = { deposit: 1, withdrawal: -1, stake: -1, payout: 1, refund: 1, adjustment: 1 };
+const PE_SETTLEMENT_KINDS = ["payout", "refund"];
+const PE_LEG_RESULTS = ["pending", "won", "lost", "push", "dnp", "unknown"];
+const PE_MODES = ["power", "flex"];
+const PE_VERSION = 1;
+//: The default table, identical to payouts.POWER / payouts.FLEX.
+const PE_POWER = { 2: "3", 3: "6", 4: "10", 5: "20", 6: "37.5" };
+const PE_FLEX = {
+  3: { 3: "2.25", 2: "1.25" },
+  4: { 4: "5", 3: "1.5" },
+  5: { 5: "10", 4: "2", 3: "0.4" },
+  6: { 6: "25", 5: "2", 4: "0.4" },
+};
+//: The Leg and Slip dataclass fields, in declaration order. Nothing else is
+//: written into a leg or a slip.
+const PE_LEG_FIELDS = ["sport", "player", "stat", "line", "side", "team", "opponent",
+  "odds_type", "maps", "model_prob", "line_at_placement", "closing_line", "actual",
+  "result", "start_time", "note"];
+const PE_SLIP_FIELDS = ["mode", "stake_cents", "placed_at", "legs", "multiplier", "id",
+  "status", "payout_cents", "early_payout_taken", "notes"];
+
+class PeError extends Error {}
+
+/* ---------------------------------------------------------------- money */
+
+/** Dollars -> integer cents, exactly, half-up. money.to_cents. */
+function peCents(amount) {
+  const text = String(amount === undefined || amount === null ? "" : amount)
+    .trim().replace(/^\$/, "").replace(/,/g, "").trim();
+  const m = /^(-?)(\d*)(?:\.(\d*))?$/.exec(text);
+  if (!m || (m[2] === "" && (m[3] === undefined || m[3] === ""))) {
+    throw new PeError(`"${amount}" is not an amount of money`);
+  }
+  const neg = m[1] === "-";
+  const whole = BigInt(m[2] || "0");
+  const frac = (m[3] || "");
+  const two = BigInt((frac + "00").slice(0, 2));
+  // Half-up on the magnitude, which is Decimal's ROUND_HALF_UP.
+  const roundUp = frac.length > 2 && Number(frac[2]) >= 5;
+  let cents = whole * 100n + two + (roundUp ? 1n : 0n);
+  if (neg) cents = -cents;
+  return Number(cents);
+}
+
+/** A decimal string -> [numerator BigInt, scale BigInt], exactly. */
+function peDecimal(value) {
+  const text = String(value).trim();
+  const m = /^(\d*)(?:\.(\d*))?$/.exec(text);
+  if (!m || (m[1] === "" && !m[2])) throw new PeError(`"${value}" is not a multiplier`);
+  const frac = m[2] || "";
+  return [BigInt((m[1] || "0") + frac), 10n ** BigInt(frac.length)];
+}
+
+/** cents x multiplier, rounded half-up to a whole cent. money.multiply. */
+function peMultiply(cents, multiplier) {
+  const [num, scale] = peDecimal(multiplier);
+  const product = BigInt(cents) * num;
+  const q = product / scale, r = product % scale;
+  return Number(2n * r >= scale ? q + 1n : q);
+}
+
+/** "$13.19", negatives "-$1.50". money.fmt. */
+function peFmt(cents) {
+  const c = Number(cents) || 0;
+  const abs = Math.abs(c);
+  const text = `$${Math.floor(abs / 100)}.${String(abs % 100).padStart(2, "0")}`;
+  return c < 0 ? `-${text}` : text;
+}
+
+/** A multiplier as typed -> the canonical string the Python stores. */
+function peMultiplierText(value) {
+  if (value === undefined || value === null || String(value).trim() === "") return null;
+  const text = String(value).trim().replace(/x$/i, "");
+  peDecimal(text);   // throws if it is not a decimal
+  return text;
+}
+
+/* ----------------------------------------------------------------- time */
+
+/** Local time WITH its offset, seconds precision. ledger._now.
+ *  A betting night is local: a slip at 9pm Eastern is tomorrow in UTC, and a
+ *  UTC stamp would split one night's stakes across two nightly caps. */
+function peNow(date) {
+  const d = date || new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  const off = -d.getTimezoneOffset();
+  const a = Math.abs(off);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+    + `T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+    + `${off >= 0 ? "+" : "-"}${pad(Math.floor(a / 60))}:${pad(a % 60)}`;
+}
+
+/** An entry's timestamp as epoch ms, for ordering. ledger._instant. */
+function peInstant(at) {
+  const t = Date.parse(at);
+  return Number.isFinite(t) ? t : -8.64e15;
+}
+
+function peId(prefix) {
+  const bytes = new Uint8Array(6);
+  if (typeof crypto !== "undefined" && crypto.getRandomValues) crypto.getRandomValues(bytes);
+  else for (let i = 0; i < 6; i++) bytes[i] = Math.floor(Math.random() * 256);
+  return `${prefix}_${Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")}`;
+}
+
+/* ------------------------------------------------------------------ legs */
+
+/** A leg with every dataclass field present and nothing else. Leg(**fields). */
+function peLeg(fields) {
+  const leg = {
+    sport: "", player: "", stat: "", line: null, side: "over", team: "", opponent: "",
+    odds_type: "standard", maps: null, model_prob: null, line_at_placement: null,
+    closing_line: null, actual: null, result: "pending", start_time: "", note: "",
+  };
+  for (const key of PE_LEG_FIELDS) if (fields && fields[key] !== undefined) leg[key] = fields[key];
+  if (leg.side !== "over" && leg.side !== "under") {
+    throw new PeError(`side must be over or under, not ${JSON.stringify(leg.side)}`);
+  }
+  if (!PE_LEG_RESULTS.includes(leg.result)) {
+    throw new PeError(`result must be one of ${PE_LEG_RESULTS.join(", ")}`);
+  }
+  const line = Number(leg.line);
+  if (leg.line === null || leg.line === "" || !Number.isFinite(line)) {
+    throw new PeError(`${leg.player || "a leg"} needs a numeric line`);
+  }
+  leg.line = line;
+  if (leg.maps !== null && leg.maps !== "" && leg.maps !== undefined) leg.maps = parseInt(leg.maps, 10);
+  else leg.maps = null;
+  if (leg.line_at_placement === null || leg.line_at_placement === undefined) leg.line_at_placement = leg.line;
+  return leg;
+}
+
+function peCanPush(leg) { return Number.isInteger(Number(leg.line)); }
+
+function peTeamKey(leg) {
+  if (leg.sport === "tennis") return `tennis:${String(leg.player).trim().toLowerCase()}`;
+  return String(leg.team || "").trim().toLowerCase();
+}
+function pePlayerKey(leg) { return `${leg.sport}:${String(leg.player).trim().toLowerCase()}`; }
+
+/** The leg's result from the number the player put up. Leg.grade. */
+function peGrade(leg, actual, dnp) {
+  const out = { ...leg };
+  if (dnp) { out.result = "dnp"; return out; }
+  if (actual !== undefined && actual !== null && actual !== "") out.actual = Number(actual);
+  if (out.actual === null || out.actual === undefined || !Number.isFinite(Number(out.actual))) {
+    out.result = "pending";
+  } else if (peCanPush(out) && Number(out.actual) === Number(out.line)) {
+    out.result = "push";
+  } else if (out.side === "over") {
+    out.result = Number(out.actual) > Number(out.line) ? "won" : "lost";
+  } else {
+    out.result = Number(out.actual) < Number(out.line) ? "won" : "lost";
+  }
+  return out;
+}
+
+/* ----------------------------------------------------------------- slips */
+
+function peSlip(fields) {
+  const slip = {
+    mode: "power", stake_cents: 0, placed_at: "", legs: [], multiplier: null,
+    id: peId("slip"), status: "pending", payout_cents: null, early_payout_taken: false, notes: "",
+  };
+  for (const key of PE_SLIP_FIELDS) if (fields && fields[key] !== undefined) slip[key] = fields[key];
+  if (!PE_MODES.includes(slip.mode)) throw new PeError(`mode must be power or flex`);
+  slip.stake_cents = Math.trunc(Number(slip.stake_cents));
+  slip.multiplier = peMultiplierText(slip.multiplier);
+  slip.legs = (slip.legs || []).map(peLeg);
+  return slip;
+}
+
+/** Every reason this slip is not placeable. Slip.problems, same sentences. */
+function peProblems(slip) {
+  const out = [];
+  const legs = slip.legs || [];
+  if (legs.length < 2) out.push(`a slip needs at least 2 legs, this has ${legs.length}`);
+  if (slip.stake_cents < 100) out.push("the minimum entry is $1.00");
+  const players = legs.map(pePlayerKey);
+  const repeated = new Set(players.filter((p, i) => players.indexOf(p) !== i));
+  if (repeated.size) {
+    const names = [...new Set(legs.filter((l) => repeated.has(pePlayerKey(l))).map((l) => l.player))].sort();
+    out.push("one prop per player per slip; repeated: " + names.join(", "));
+  }
+  const teams = new Set(legs.map(peTeamKey));
+  if (teams.has("")) out.push("every leg needs a team (tennis aside, where the player is the team)");
+  else if (legs.length && teams.size < 2) {
+    out.push(`a slip needs players from at least 2 different teams; all ${legs.length} legs are ${legs[0].team}`);
+  }
+  return out;
+}
+
+function peTableMultiplier(table, mode, size, correct) {
+  const power = (table && table.power) || PE_POWER;
+  const flex = (table && table.flex) || PE_FLEX;
+  if (mode === "power") {
+    if (correct !== undefined && correct !== null && correct !== size) return null;
+    return power[size] !== undefined ? String(power[size]) : null;
+  }
+  const row = flex[size] || {};
+  const key = correct === undefined || correct === null ? size : correct;
+  return row[key] !== undefined ? String(row[key]) : null;
+}
+
+/** What the slip pays. slips.settle, including the estimate rules.
+ *  `actualPayout` (dollars) is the number from the account; pass it whenever
+ *  it is known and it becomes the payout. */
+function peSettlement(slip, table, actualPayout) {
+  const legs = slip.legs || [];
+  const pending = legs.filter((l) => l.result === "pending");
+  if (pending.length) throw new PeError("still pending: " + pending.map((l) => `${l.player} ${l.stat}`).join(", "));
+  const unknown = legs.filter((l) => l.result === "unknown");
+  const has = actualPayout !== undefined && actualPayout !== null && String(actualPayout).trim() !== "";
+  if (unknown.length && !has) {
+    throw new PeError("cannot estimate a payout while these legs' numbers are unknown: "
+      + unknown.map((l) => `${l.player} ${l.stat}`).join(", ") + " — enter the payout that actually landed");
+  }
+  if (unknown.length) {
+    const paid = peCents(actualPayout);
+    return { status: paid === 0 ? "lost" : "won", payout_cents: paid, multiplier: null, estimated: false,
+      reasons: unknown.map((l) => `${l.player} ${l.stat} was never written down`)
+        .concat(["payout taken as recorded, not estimated"]) };
+  }
+  const removed = legs.filter((l) => l.result === "push" || l.result === "dnp");
+  const active = legs.filter((l) => l.result === "won" || l.result === "lost");
+  const reasons = removed.map((l) => `${l.player} ${l.side} ${pyNum(l.line)} ${l.stat} `
+    + (l.result === "push" ? "pushed" : "did not play") + " — leg removed, slip shrinks");
+  let got;
+  if (active.length <= 1) {
+    reasons.push(`only ${active.length} leg(s) left after removals, so the entry is refunded`);
+    got = { status: "refunded", payout_cents: slip.stake_cents, multiplier: null, estimated: false, reasons };
+  } else {
+    const correct = active.filter((l) => l.result === "won").length;
+    const size = active.length;
+    const shrunk = size !== legs.length;
+    let multiplier, estimated;
+    if (slip.mode === "power" && !shrunk && slip.multiplier !== null && slip.multiplier !== undefined) {
+      multiplier = correct === size ? String(slip.multiplier) : null;
+      estimated = false;
+    } else {
+      multiplier = peTableMultiplier(table, slip.mode, size, correct);
+      estimated = shrunk || slip.multiplier === null || slip.multiplier === undefined;
+    }
+    let payout, status;
+    if (multiplier === null) {
+      payout = 0;
+      reasons.push(size !== correct ? `${size - correct} of ${size} legs missed` : "no multiplier on file for this size");
+      status = "lost";
+    } else {
+      payout = peMultiply(slip.stake_cents, multiplier);
+      status = correct === size ? "won" : "partial";
+      reasons.push(`${correct} of ${size} legs landed at ${multiplier}x`);
+    }
+    if (estimated && multiplier !== null) {
+      reasons.push("multiplier taken from the payout table, not the slip — confirm it against what actually paid");
+    }
+    got = { status, payout_cents: payout, multiplier, estimated, reasons };
+  }
+  if (has) {
+    const real = peCents(actualPayout);
+    if (real !== got.payout_cents) {
+      got.reasons.push(`estimated ${got.payout_cents} cents, actually paid ${real}; the recorded payout is the real one`);
+    }
+    got.payout_cents = real;
+    got.estimated = false;
+    if (got.status !== "refunded") {
+      const landed = legs.filter((l) => l.result === "won" || l.result === "lost").every((l) => l.result === "won");
+      got.status = real === 0 ? "lost" : (landed ? "won" : "partial");
+    }
+  }
+  return got;
+}
+
+
+/* ---------------------------------------------------------------- ledger */
+
+function peLedgerAdd(store, kind, amountCents, slipId, note, at) {
+  if (!(kind in PE_SIGN)) throw new PeError(`kind must be one of ${Object.keys(PE_SIGN).join(", ")}`);
+  const amount = Math.trunc(Number(amountCents));
+  if (!Number.isFinite(amount)) throw new PeError("amount must be a number of cents");
+  if (kind !== "adjustment" && amount < 0) throw new PeError(`a ${kind} is a magnitude; pass ${Math.abs(amount)} not ${amount}`);
+  if (kind !== "adjustment" && amount === 0) throw new PeError(`a ${kind} of zero is not an event; skip it`);
+  const forSlip = slipId ? store.ledger.filter((e) => e.slip_id === slipId) : [];
+  if (kind === "stake" && slipId && forSlip.some((e) => e.kind === "stake")) {
+    throw new PeError(`${slipId} is already staked — entering it twice would debit the bankroll twice`);
+  }
+  if (PE_SETTLEMENT_KINDS.includes(kind) && slipId && forSlip.some((e) => PE_SETTLEMENT_KINDS.includes(e.kind))) {
+    throw new PeError(`${slipId} is already settled — paying it twice would credit the bankroll twice`);
+  }
+  const entry = { id: peId("led"), at: at || peNow(), kind, amount_cents: amount,
+    slip_id: slipId || null, note: note || "" };
+  store.ledger.push(entry);
+  return entry;
+}
+
+function peSigned(entry) { return PE_SIGN[entry.kind] * Math.trunc(Number(entry.amount_cents)); }
+function peBalance(store) { return (store.ledger || []).reduce((s, e) => s + peSigned(e), 0); }
+function pePending(store) { return (store.slips || []).filter((s) => s.status === "pending"); }
+function peExposure(store) { return pePending(store).reduce((s, x) => s + Number(x.stake_cents), 0); }
+
+/** [(entry, balance after)] in time order. Ledger.history. */
+function peHistory(store) {
+  let running = 0;
+  return [...(store.ledger || [])]
+    .map((e, i) => [e, i])
+    .sort((a, b) => peInstant(a[0].at) - peInstant(b[0].at) || a[1] - b[1])
+    .map(([e]) => { running += peSigned(e); return [e, running]; });
+}
+
+/* ------------------------------------------------------------ operations */
+/* Each takes a store and returns it changed. They are applied to a FRESH copy
+   of the store on every write (see peCommit), so a phone and the CLI writing
+   minutes apart can never overwrite each other's entries. */
+
+function peEmptyStore() {
+  return { version: PE_VERSION, slips: [], ledger: [],
+    payout_table: { power: { ...PE_POWER }, flex: JSON.parse(JSON.stringify(PE_FLEX)) } };
+}
+
+function peCheckVersion(store) {
+  if (!store || store.version !== PE_VERSION) {
+    throw new PeError(`this store is version ${store && store.version}; this app reads version ${PE_VERSION}. `
+      + "Refusing to write rather than risk corrupting it.");
+  }
+}
+
+function peFind(store, slipId) {
+  const slip = (store.slips || []).find((s) => s.id === slipId);
+  if (!slip) throw new PeError(`no slip ${slipId}`);
+  return slip;
+}
+
+/** Record a placed slip and debit the stake. Tracker.place. */
+function pePlace(store, fields, force) {
+  peCheckVersion(store);
+  const slip = peSlip(fields);
+  const problems = peProblems(slip);
+  if (problems.length && !force) throw new PeError("this slip breaks PrizePicks rules: " + problems.join("; "));
+  store.slips.push(slip);
+  peLedgerAdd(store, "stake", slip.stake_cents, slip.id, `${slip.mode} ${slip.legs.length}-pick`,
+    slip.placed_at || null);
+  return slip;
+}
+
+/** Set leg results. `grades` is [{actual} | {result} | {dnp:true} | null] per leg. */
+function peGradeLegs(store, slipId, grades) {
+  peCheckVersion(store);
+  const slip = peFind(store, slipId);
+  slip.legs = slip.legs.map((leg, i) => {
+    const g = grades[i];
+    if (!g) return leg;
+    if (g.dnp) return peGrade(leg, null, true);
+    if (g.actual !== undefined && g.actual !== null && g.actual !== "") return peGrade(leg, g.actual, false);
+    if (g.result) {
+      if (!PE_LEG_RESULTS.includes(g.result)) throw new PeError(`unknown result ${g.result}`);
+      return { ...leg, result: g.result };
+    }
+    return leg;
+  });
+  return slip;
+}
+
+/** Grade a slip from its legs and credit what it paid. Tracker.settle. */
+function peSettle(store, slipId, actualPayout) {
+  peCheckVersion(store);
+  const slip = peFind(store, slipId);
+  if (slip.status !== "pending") throw new PeError(`${slipId} is already settled`);
+  const got = peSettlement(slip, store.payout_table, actualPayout);
+  slip.status = got.status;
+  slip.payout_cents = got.payout_cents;
+  if (got.payout_cents) {
+    peLedgerAdd(store, got.status === "refunded" ? "refund" : "payout", got.payout_cents, slip.id,
+      got.reasons.join("; ").slice(0, 200));
+  }
+  return got;
+}
+
+function peMoney(store, kind, amount, note, at) {
+  peCheckVersion(store);
+  if (kind !== "deposit" && kind !== "withdrawal") throw new PeError("deposit or withdrawal only");
+  return peLedgerAdd(store, kind, peCents(amount), null, note || "", at || null);
+}
+
+/** Take a slip back out entirely: the slip and every ledger entry tied to it.
+ *  For correcting a typo, not for history. Nothing is lost for good, because
+ *  every write is a commit in the private repo and the old version is one
+ *  `git checkout` away. */
+function peRemoveSlip(store, slipId) {
+  peCheckVersion(store);
+  peFind(store, slipId);
+  store.slips = store.slips.filter((s) => s.id !== slipId);
+  store.ledger = store.ledger.filter((e) => e.slip_id !== slipId);
+}
+
+/* ----------------------------------------------------------- serialising */
+
+/** The leg fields the Python declares as float. The CLI parses them with
+ *  float() and grading stores float(actual), so Python writes 15.0, not 15.
+ *  JSON.parse cannot tell 15 from 15.0, so they are always written back as
+ *  floats here; otherwise every write from the phone would reformat them. */
+const PE_FLOAT_FIELDS = ["line", "line_at_placement", "closing_line", "actual", "model_prob"];
+const PE_FLOAT_TAG = "__pe_float__";
+
+/** Python's repr of a float: 15 -> "15.0", 15.5 -> "15.5". */
+function pyNum(x) {
+  const n = Number(x);
+  return Number.isInteger(n) ? `${n}.0` : String(n);
+}
+
+/** json.dump(indent=1, sort_keys=True, ensure_ascii=True) + "\n", so a write
+ *  from the phone and one from the CLI produce the same file and git diffs
+ *  show the change, not a reformat. */
+function peSerialize(store) {
+  const sortKeys = (v, isLeg) => {
+    if (Array.isArray(v)) return v.map((x) => sortKeys(x, false));
+    if (!v || typeof v !== "object") return v;
+    return Object.keys(v).sort().reduce((o, k) => {
+      const x = v[k];
+      if (isLeg && PE_FLOAT_FIELDS.includes(k) && typeof x === "number" && Number.isFinite(x)) {
+        o[k] = PE_FLOAT_TAG + pyNum(x);
+      } else if (k === "legs" && Array.isArray(x)) {
+        o[k] = x.map((leg) => sortKeys(leg, true));
+      } else {
+        o[k] = sortKeys(x, false);
+      }
+      return o;
+    }, {});
+  };
+  return JSON.stringify(sortKeys(store, false), null, 1)
+    .replace(new RegExp(`"${PE_FLOAT_TAG}([-0-9.e+]+)"`, "g"), "$1")
+    .replace(/[\u0080-\uffff]/g, (c) => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0")) + "\n";
+}
+
+
+/* ----------------------------------------------------- the private repo */
+/* The store lives in a PRIVATE GitHub repository, read and written through
+   the Contents API with a token the user pastes in once per device.
+
+   Why a token in the browser and not something cleverer: this page is
+   served from a PUBLIC repo, so nothing secret can ship in its code, and
+   the build plan rules out putting bets anywhere public. A fine-grained
+   token scoped to the one private repo, held only in this browser's
+   storage, keeps both promises: the code carries no secret, and what the
+   token can reach is the bet history and nothing else. The CLI and this
+   page then read and write the very same store.json, so there is one
+   record, not two that drift apart.
+
+   Every write is sha-guarded. GitHub refuses a PUT whose sha is not the
+   file's current one, which turns "the CLI wrote a minute ago" into a
+   retry instead of a silent overwrite: the operation is re-applied to the
+   fresh copy and written again. */
+
+const PE_REPO_DEFAULT = "iiSTORM/propedge";
+const PE_STORE_PATH = "store.json";
+
+function peB64Encode(text) {
+  const bytes = new TextEncoder().encode(text);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+function peB64Decode(b64) {
+  const bin = atob(String(b64).replace(/\s/g, ""));
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder("utf-8").decode(bytes);
+}
+
+class PeHttpError extends Error {
+  constructor(message, status, conflict) { super(message); this.status = status; this.conflict = !!conflict; }
+}
+
+function peHeaders(token) {
+  return { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28" };
+}
+
+async function peExplain(resp, repo) {
+  let detail = "";
+  try { detail = ((await resp.json()) || {}).message || ""; } catch (e) { /* not JSON */ }
+  if (resp.status === 401) return new PeHttpError("GitHub rejected the token — it may have expired. Disconnect and paste a new one.", 401);
+  if (resp.status === 403 && resp.headers && resp.headers.get && resp.headers.get("x-ratelimit-remaining") === "0") {
+    return new PeHttpError("GitHub's rate limit is spent for the hour. Try again shortly.", 403);
+  }
+  if (resp.status === 403) return new PeHttpError(`The token can't write to ${repo}. It needs Contents: Read and write on that repository.`, 403);
+  if (resp.status === 404) return new PeHttpError(`Can't see ${repo}/${PE_STORE_PATH}. Check the repository name and that the token was given access to it.`, 404);
+  if (resp.status === 409 || resp.status === 422) return new PeHttpError("The store changed while saving.", resp.status, true);
+  return new PeHttpError(`GitHub answered ${resp.status}${detail ? `: ${detail}` : ""}`, resp.status);
+}
+
+/** fetch, with "Failed to fetch" turned into something a person can act on. */
+async function peRequest(url, init) {
+  try {
+    return await fetch(url, init);
+  } catch (e) {
+    throw new PeHttpError("Couldn't reach GitHub. Check the connection and try again — nothing was saved.", 0);
+  }
+}
+
+async function peFetchStore(token, repo) {
+  const resp = await peRequest(`https://api.github.com/repos/${repo}/contents/${PE_STORE_PATH}`,
+    { headers: peHeaders(token), cache: "no-store" });
+  if (!resp.ok) throw await peExplain(resp, repo);
+  const blob = await resp.json();
+  const store = JSON.parse(peB64Decode(blob.content));
+  peCheckVersion(store);
+  return { store, sha: blob.sha };
+}
+
+async function pePutStore(token, repo, store, sha, message) {
+  const resp = await peRequest(`https://api.github.com/repos/${repo}/contents/${PE_STORE_PATH}`, {
+    method: "PUT", headers: { ...peHeaders(token), "Content-Type": "application/json" },
+    body: JSON.stringify({ message, sha, content: peB64Encode(peSerialize(store)) }),
+  });
+  if (!resp.ok) throw await peExplain(resp, repo);
+  const out = await resp.json();
+  return out && out.content ? out.content.sha : null;
+}
+
+/** Fetch the freshest store, apply `op` to it, write it back. On a sha
+ *  conflict, start over from a fresh read: the op is a function of the store,
+ *  so re-applying it is always correct where re-sending a stale file is not. */
+async function peCommit(token, repo, op, message) {
+  for (let attempt = 0; ; attempt++) {
+    const { store, sha } = await peFetchStore(token, repo);
+    const next = JSON.parse(JSON.stringify(store));
+    const result = op(next);
+    try {
+      const newSha = await pePutStore(token, repo, next, sha, message);
+      return { store: next, sha: newSha, result };
+    } catch (e) {
+      if (!(e instanceof PeHttpError) || !e.conflict || attempt >= 2) throw e;
+    }
+  }
+}
+
+
+/* -------------------------------------------------------------- the page */
+
+const PE_SPORTS = [["cs2", "CS2"], ["valorant", "Valorant"], ["lol", "LoL"], ["mlb", "MLB"],
+  ["nfl", "NFL"], ["nba", "NBA"], ["wnba", "WNBA"], ["nhl", "NHL"], ["cfb", "CFB"],
+  ["cbb", "CBB"], ["soccer", "Soccer"], ["tennis", "Tennis"], ["golf", "Golf"],
+  ["mma", "MMA"], ["other", "Other"]];
+const PE_ESPORTS = ["cs2", "valorant", "lol"];
+const PE_STATS = ["kills", "headshots", "assists", "deaths", "points", "rebounds",
+  "pts+rebs+asts", "strikeouts", "hits", "hits allowed", "pitcher outs", "total bases",
+  "earned runs", "goalie saves", "shots on goal", "passing yards", "rushing yards",
+  "receiving yards", "receptions", "game winner", "total runs", "run margin"];
+const PE_OUTCOMES = [["won", "Hit"], ["lost", "Miss"], ["push", "Push"], ["dnp", "DNP"]];
+const PE_STATUS_LABEL = { won: "Won", lost: "Lost", partial: "Partial", refunded: "Refunded", pending: "Pending" };
+
+/** "2026-09-30T10:54" for a datetime-local input, in local time. */
+function peLocalInput(date) { return peNow(date || new Date()).slice(0, 16); }
+function peFromLocalInput(value) {
+  if (!value) return peNow();
+  const d = new Date(value);
+  return Number.isFinite(d.getTime()) ? peNow(d) : peNow();
+}
+function peWhen(at) {
+  const t = Date.parse(at);
+  if (!Number.isFinite(t)) return at || "";
+  return new Date(t).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
+function peInputStyle(theme) {
+  // 16px stops iOS zooming the page every time a field takes focus.
+  return { width: "100%", boxSizing: "border-box", background: theme.void, color: theme.text,
+    border: `1px solid ${theme.steel}`, borderRadius: 8, padding: "9px 10px", fontSize: 16,
+    fontFamily: "'Inter', sans-serif" };
+}
+
+function PeButton({ children, onClick, kind, disabled, small, title }) {
+  const theme = useTheme();
+  const solid = kind === "primary";
+  const danger = kind === "danger";
+  return (
+    <button type="button" className="kp-btn" onClick={onClick} disabled={disabled} title={title}
+      style={{
+        cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.45 : 1,
+        background: solid ? theme.accent : "transparent",
+        color: solid ? theme.void : danger ? theme.bad : theme.text,
+        border: `1px solid ${solid ? theme.accent : danger ? theme.bad + "88" : theme.steel}`,
+        borderRadius: 8, padding: small ? "6px 10px" : "10px 14px",
+        fontSize: small ? 12.5 : 14, fontWeight: 600, fontFamily: "'Inter', sans-serif",
+      }}>
+      {children}
+    </button>
+  );
+}
+
+function PeSegmented({ options, value, onChange, small }) {
+  const theme = useTheme();
+  return (
+    <div role="group" style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+      {options.map(([key, label]) => {
+        const on = value === key;
+        return (
+          <button key={key} type="button" className="kp-btn" onClick={() => onChange(on ? "" : key)}
+            aria-pressed={on}
+            style={{
+              cursor: "pointer", flex: small ? "0 0 auto" : 1, minWidth: small ? 0 : 64,
+              background: on ? theme.accentSoft : "transparent",
+              color: on ? theme.accent : theme.textDim,
+              border: `1px solid ${on ? theme.accentBorder : theme.steel}`,
+              borderRadius: 8, padding: small ? "6px 9px" : "8px 10px", fontSize: small ? 12.5 : 13.5,
+              fontWeight: 600, fontFamily: "'Inter', sans-serif",
+            }}>
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function PeField({ label, children, hint, grow }) {
+  const theme = useTheme();
+  return (
+    <label style={{ display: "flex", flexDirection: "column", gap: 4, flex: grow ? 1 : "0 0 auto",
+      minWidth: 0, fontSize: 11.5, color: theme.textDim, fontWeight: 600, letterSpacing: 0.2 }}>
+      <span>{label}</span>
+      {children}
+      {hint && <span style={{ fontWeight: 400, color: theme.textFaint, fontSize: 11 }}>{hint}</span>}
+    </label>
+  );
+}
+
+function PeCard({ children, style }) {
+  const theme = useTheme();
+  return (
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`,
+      ...cardShape(theme.cornerStyle), ...elevation(), padding: "14px 16px", marginBottom: 14, ...style }}>
+      {children}
+    </div>
+  );
+}
+
+function PeResultBadge({ result }) {
+  const theme = useTheme();
+  const color = result === "won" ? theme.good : result === "lost" ? theme.bad
+    : result === "pending" ? theme.textFaint : theme.textDim;
+  const label = { won: "Hit", lost: "Miss", push: "Push", dnp: "DNP", unknown: "?", pending: "—" }[result] || result;
+  return <span className="kp-chip" style={{ background: color + "22", color, border: `1px solid ${color}55` }}>{label}</span>;
+}
+
+/* --------------------------------------------------------- connect card */
+
+function PeConnect({ onConnect, busy, error }) {
+  const theme = useTheme();
+  const [token, setToken] = useState("");
+  const [repo, setRepo] = useState(PE_REPO_DEFAULT);
+  const step = { margin: "0 0 6px", lineHeight: 1.55 };
+  return (
+    <PeCard>
+      <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>Connect your private tracker</div>
+      <div style={{ fontSize: 13, color: theme.textDim, lineHeight: 1.6, marginBottom: 12 }}>
+        Your slips and bankroll live in your <strong style={{ color: theme.text }}>private</strong> GitHub
+        repository, never in this public page. This page needs a key that can open that one
+        repository. You make it once per device:
+      </div>
+      <ol style={{ fontSize: 13, color: theme.textDim, paddingLeft: 18, margin: "0 0 14px" }}>
+        <li style={step}>Open{" "}
+          <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer"
+            style={{ color: theme.accent }}>GitHub → new fine-grained token</a>.</li>
+        <li style={step}>Name it <em>propedge tracker</em>. Pick an expiration (a year is fine).</li>
+        <li style={step}>Repository access: <strong style={{ color: theme.text }}>Only select repositories</strong> →{" "}
+          <strong style={{ color: theme.text }}>propedge</strong>.</li>
+        <li style={step}>Permissions → Repository → <strong style={{ color: theme.text }}>Contents: Read and write</strong>.
+          Nothing else.</li>
+        <li style={step}>Generate, copy it, paste it below.</li>
+      </ol>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <PeField label="Token">
+          <input type="password" autoComplete="off" value={token} onChange={(e) => setToken(e.target.value.trim())}
+            placeholder="github_pat_…" style={peInputStyle(theme)} />
+        </PeField>
+        <PeField label="Repository" hint="owner/name of the private repo holding store.json">
+          <input value={repo} onChange={(e) => setRepo(e.target.value.trim())} style={peInputStyle(theme)} />
+        </PeField>
+        {error && <div style={{ color: theme.bad, fontSize: 13 }}>{error}</div>}
+        <PeButton kind="primary" disabled={!token || !repo || busy} onClick={() => onConnect(token, repo)}>
+          {busy ? "Checking…" : "Connect"}
+        </PeButton>
+        <div style={{ fontSize: 11.5, color: theme.textFaint, lineHeight: 1.5 }}>
+          The key is kept only in this browser on this device, and can reach only the repository you chose.
+          Anyone who can use this browser can use it, so don't connect on a shared device.
+        </div>
+      </div>
+    </PeCard>
+  );
+}
+
+/* --------------------------------------------------------- the summary */
+
+function PeSummary({ store, repo, onRefresh, onMoney, onDisconnect, busy }) {
+  const theme = useTheme();
+  const [moneyKind, setMoneyKind] = useState("");
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const balance = peBalance(store);
+  const exposure = peExposure(store);
+  const pending = pePending(store);
+  const settled = (store.slips || []).filter((s) => s.status !== "pending");
+  const staked = settled.reduce((s, x) => s + Number(x.stake_cents), 0);
+  const returned = settled.reduce((s, x) => s + Number(x.payout_cents || 0), 0);
+  const net = returned - staked;
+  const bySize = {};
+  for (const s of settled) {
+    const key = `${s.legs.length}-pick ${s.mode}`;
+    const row = bySize[key] || (bySize[key] = { n: 0, staked: 0, net: 0 });
+    row.n += 1; row.staked += Number(s.stake_cents); row.net += Number(s.payout_cents || 0) - Number(s.stake_cents);
+  }
+  let amountOk = false;
+  try { amountOk = peCents(amount) > 0; } catch (e) { amountOk = false; }
+  return (
+    <PeCard>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+        <div>
+          <div style={{ fontSize: 11, letterSpacing: 1.5, color: theme.textFaint, fontWeight: 700 }}>BANKROLL</div>
+          <div className="kp-num" style={{ fontSize: 34, fontWeight: 700, lineHeight: 1.1 }}>{peFmt(balance)}</div>
+        </div>
+        <div style={{ textAlign: "right", fontSize: 13, color: theme.textDim }}>
+          <div><span className="kp-num" style={{ color: theme.text }}>{peFmt(exposure)}</span> at risk</div>
+          <div>{pending.length} open slip{pending.length === 1 ? "" : "s"}</div>
+        </div>
+      </div>
+      {settled.length > 0 && (
+        <div style={{ marginTop: 12, fontSize: 12.5, color: theme.textDim, lineHeight: 1.6 }}>
+          Settled: {settled.length} slips, staked <span className="kp-num">{peFmt(staked)}</span>, returned{" "}
+          <span className="kp-num">{peFmt(returned)}</span>, net{" "}
+          <span className="kp-num" style={{ color: net >= 0 ? theme.good : theme.bad }}>{peFmt(net)}</span>
+          {staked > 0 && <> ({(net / staked * 100).toFixed(1)}%)</>}
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 4 }}>
+            {Object.entries(bySize).sort().map(([k, r]) => (
+              <span key={k}>{k}: {r.n}, <span className="kp-num" style={{ color: r.net >= 0 ? theme.good : theme.bad }}>{peFmt(r.net)}</span></span>
+            ))}
+          </div>
+        </div>
+      )}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
+        <PeButton small onClick={() => setMoneyKind(moneyKind === "deposit" ? "" : "deposit")}>Deposit</PeButton>
+        <PeButton small onClick={() => setMoneyKind(moneyKind === "withdrawal" ? "" : "withdrawal")}>Withdraw</PeButton>
+        <PeButton small onClick={onRefresh} disabled={busy}>Refresh</PeButton>
+        <div style={{ flex: 1 }} />
+        <PeButton small kind="danger" onClick={onDisconnect}>Disconnect</PeButton>
+      </div>
+      {moneyKind && (
+        <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap", marginTop: 12 }}>
+          <PeField label={moneyKind === "deposit" ? "Deposit $" : "Withdraw $"}>
+            <input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)}
+              placeholder="35.00" style={{ ...peInputStyle(theme), width: 110 }} />
+          </PeField>
+          <PeField label="Note" grow>
+            <input value={note} onChange={(e) => setNote(e.target.value)} style={peInputStyle(theme)} />
+          </PeField>
+          <PeButton kind="primary" disabled={!amountOk || busy}
+            onClick={() => onMoney(moneyKind, amount, note, () => { setAmount(""); setNote(""); setMoneyKind(""); })}>
+            Save
+          </PeButton>
+        </div>
+      )}
+      <div style={{ marginTop: 10, fontSize: 11, color: theme.textFaint }}>Saved to {repo}</div>
+    </PeCard>
+  );
+}
+
+/* ------------------------------------------------------------ leg editor */
+
+function peBlankLeg(sport) {
+  return { sport: sport || "cs2", player: "", team: "", opponent: "", stat: "", line: "", side: "over",
+    maps: "", odds_type: "standard", note: "", outcome: "", actual: "" };
+}
+
+/** A leg as the form holds it -> the grade the ledger takes, or null. */
+function peGradeOf(draft) {
+  if (draft.actual !== "" && draft.actual !== null && draft.actual !== undefined
+      && Number.isFinite(Number(draft.actual))) return { actual: Number(draft.actual) };
+  if (draft.outcome === "dnp") return { dnp: true };
+  if (draft.outcome) return { result: draft.outcome };
+  return null;
+}
+
+/** What a form leg would grade to, for showing it as you type. */
+function peDraftResult(draft) {
+  const g = peGradeOf(draft);
+  if (!g) return "pending";
+  if (g.dnp) return "dnp";
+  if (g.result) return g.result;
+  try {
+    return peGrade(peLeg({ ...draft, line: draft.line, maps: draft.maps || null, result: "pending" }), g.actual, false).result;
+  } catch (e) { return "pending"; }
+}
+
+function PeLegEditor({ leg, index, onChange, onRemove, showResult, canRemove }) {
+  const theme = useTheme();
+  const set = (key) => (e) => onChange({ ...leg, [key]: e && e.target ? e.target.value : e });
+  const esports = PE_ESPORTS.includes(leg.sport);
+  const whole = leg.line !== "" && Number.isInteger(Number(leg.line));
+  return (
+    <div style={{ border: `1px solid ${theme.steelSoft}`, borderRadius: 10, padding: 10, marginBottom: 10,
+      background: theme.graphiteLight }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: theme.textDim }}>Leg {index + 1}</span>
+        {canRemove && <PeButton small kind="danger" onClick={onRemove}>Remove</PeButton>}
+      </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+        <PeField label="Sport">
+          <select value={leg.sport} onChange={set("sport")} style={{ ...peInputStyle(theme), width: 118 }}>
+            {PE_SPORTS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+          </select>
+        </PeField>
+        <PeField label="Player" grow>
+          <input value={leg.player} onChange={set("player")} style={peInputStyle(theme)} autoCapitalize="off" />
+        </PeField>
+      </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+        <PeField label="Team" grow>
+          <input value={leg.team} onChange={set("team")} style={peInputStyle(theme)} />
+        </PeField>
+        <PeField label="Opponent" grow>
+          <input value={leg.opponent} onChange={set("opponent")} style={peInputStyle(theme)} />
+        </PeField>
+      </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8, alignItems: "flex-end" }}>
+        <PeField label="Stat" grow>
+          <input list="pe-stats" value={leg.stat} onChange={set("stat")} style={peInputStyle(theme)} autoCapitalize="off" />
+        </PeField>
+        <PeField label="Line">
+          <input inputMode="decimal" value={leg.line} onChange={set("line")} style={{ ...peInputStyle(theme), width: 84 }} />
+        </PeField>
+        {esports && (
+          <PeField label="Maps">
+            <select value={leg.maps} onChange={set("maps")} style={{ ...peInputStyle(theme), width: 104 }}>
+              <option value="">—</option>
+              <option value="1">1 map</option>
+              <option value="2">Maps 1-2</option>
+              <option value="3">Maps 1-3</option>
+            </select>
+          </PeField>
+        )}
+      </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: showResult ? 8 : 0 }}>
+        <div style={{ flex: "1 1 160px" }}>
+          <PeSegmented value={leg.side} onChange={(v) => onChange({ ...leg, side: v || leg.side })}
+            options={[["over", "↑ More"], ["under", "↓ Less"]]} />
+        </div>
+        <select value={leg.odds_type} onChange={set("odds_type")} style={{ ...peInputStyle(theme), width: 120 }}>
+          <option value="standard">Standard</option>
+          <option value="goblin">Goblin</option>
+          <option value="demon">Demon</option>
+          <option value="promo">Promo</option>
+        </select>
+      </div>
+      {whole && (
+        <div style={{ fontSize: 11.5, color: theme.textDim, marginBottom: showResult ? 8 : 0 }}>
+          Whole-number line: landing exactly {Number(leg.line)} pushes, and the slip pays as one leg smaller.
+        </div>
+      )}
+      {showResult && (
+        <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
+          <PeField label="Actual">
+            <input inputMode="decimal" value={leg.actual} placeholder="—"
+              onChange={(e) => onChange({ ...leg, actual: e.target.value, outcome: "" })}
+              style={{ ...peInputStyle(theme), width: 84 }} />
+          </PeField>
+          <div style={{ flex: 1 }}>
+            <PeSegmented small value={leg.actual !== "" ? "" : leg.outcome}
+              onChange={(v) => onChange({ ...leg, outcome: v, actual: "" })} options={PE_OUTCOMES} />
+          </div>
+          <PeResultBadge result={peDraftResult(leg)} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------- new-slip form */
+
+function peDefaultMultiplier(mode, n) {
+  return peTableMultiplier(null, mode, n, null) || "";
+}
+
+/** The form's fields -> peSlip fields. Throws PeError with what to fix. */
+function peSlipFromForm(form) {
+  const stake = peCents(form.stake);
+  if (stake <= 0) throw new PeError("the stake has to be more than $0");
+  const legs = form.legs.map((d, i) => {
+    if (!String(d.player).trim()) throw new PeError(`leg ${i + 1} needs a player`);
+    if (!String(d.stat).trim()) throw new PeError(`leg ${i + 1} needs a stat`);
+    if (d.line === "" || !Number.isFinite(Number(d.line))) throw new PeError(`leg ${i + 1} needs a numeric line`);
+    return {
+      sport: d.sport, player: String(d.player).trim(), stat: String(d.stat).trim().toLowerCase(),
+      line: Number(d.line), side: d.side, team: String(d.team).trim(), opponent: String(d.opponent).trim(),
+      odds_type: d.odds_type || "standard", maps: d.maps === "" ? null : Number(d.maps),
+      note: String(d.note || "").trim(),
+    };
+  });
+  return { mode: form.mode, stake_cents: stake, placed_at: peFromLocalInput(form.placedAt),
+    multiplier: peMultiplierText(form.multiplier), notes: String(form.notes || "").trim(), legs };
+}
+
+function PeSlipForm({ table, busy, onSubmit, onCancel }) {
+  const theme = useTheme();
+  const [form, setForm] = useState(() => ({
+    finished: false, mode: "power", stake: "1", multiplier: "", placedAt: peLocalInput(),
+    notes: "", payout: "", legs: [peBlankLeg("cs2"), peBlankLeg("cs2")],
+  }));
+  const [confirmRules, setConfirmRules] = useState(false);
+  const set = (patch) => { setForm((f) => ({ ...f, ...patch })); setConfirmRules(false); };
+  const setLeg = (i, leg) => set({ legs: form.legs.map((l, j) => (j === i ? leg : l)) });
+
+  let fields = null, problems = [], invalid = null, estimate = null, estimateError = null;
+  try {
+    fields = peSlipFromForm(form);
+    problems = peProblems(peSlip(fields));
+  } catch (e) { invalid = e.message; }
+  if (fields && form.finished) {
+    try {
+      const slip = peSlip(fields);
+      slip.legs = slip.legs.map((leg, i) => {
+        const g = peGradeOf(form.legs[i]);
+        if (!g) return leg;
+        if (g.dnp) return peGrade(leg, null, true);
+        if (g.actual !== undefined) return peGrade(leg, g.actual, false);
+        return { ...leg, result: g.result };
+      });
+      estimate = peSettlement(slip, table);
+    } catch (e) { estimateError = e.message; }
+  }
+  const allGraded = form.legs.every((l) => peGradeOf(l));
+  let payoutOk = !form.finished;
+  if (form.finished) { try { peCents(form.payout); payoutOk = String(form.payout).trim() !== ""; } catch (e) { payoutOk = false; } }
+  const ready = !invalid && (!form.finished || (allGraded && payoutOk));
+  const defMult = peDefaultMultiplier(form.mode, form.legs.length);
+
+  return (
+    <PeCard>
+      <datalist id="pe-stats">{PE_STATS.map((s) => <option key={s} value={s} />)}</datalist>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <div style={{ fontWeight: 700, fontSize: 15 }}>Log a slip</div>
+        <PeButton small onClick={onCancel}>Cancel</PeButton>
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <PeSegmented value={form.finished ? "done" : "open"}
+          onChange={(v) => set({ finished: v === "done" })}
+          options={[["open", "Still open"], ["done", "Already finished"]]} />
+      </div>
+
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12, alignItems: "flex-end" }}>
+        <div style={{ flex: "1 1 150px" }}>
+          <PeSegmented value={form.mode} onChange={(v) => set({ mode: v || form.mode })}
+            options={[["power", "Power"], ["flex", "Flex"]]} />
+        </div>
+        <PeField label="Stake $">
+          <input inputMode="decimal" value={form.stake} onChange={(e) => set({ stake: e.target.value })}
+            style={{ ...peInputStyle(theme), width: 84 }} />
+        </PeField>
+        <PeField label="Multiplier">
+          <input inputMode="decimal" value={form.multiplier} placeholder={defMult ? `${defMult}x` : "—"}
+            onChange={(e) => set({ multiplier: e.target.value })} style={{ ...peInputStyle(theme), width: 92 }} />
+        </PeField>
+      </div>
+      <div style={{ fontSize: 11.5, color: theme.textFaint, margin: "-4px 0 12px", lineHeight: 1.5 }}>
+        Type the multiplier exactly as the slip shows it (6.5x, 3.8x boost…). Left blank, it's settled off the
+        standard table{defMult ? ` (${defMult}x for this size)` : ""} and marked as an estimate.
+      </div>
+
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+        <PeField label="Placed at" grow>
+          <input type="datetime-local" value={form.placedAt} onChange={(e) => set({ placedAt: e.target.value })}
+            style={peInputStyle(theme)} />
+        </PeField>
+      </div>
+
+      {form.legs.map((leg, i) => (
+        <PeLegEditor key={i} leg={leg} index={i} showResult={form.finished} canRemove={form.legs.length > 2}
+          onChange={(l) => setLeg(i, l)} onRemove={() => set({ legs: form.legs.filter((_, j) => j !== i) })} />
+      ))}
+      {form.legs.length < 6 && (
+        <div style={{ marginBottom: 12 }}>
+          <PeButton small onClick={() => set({ legs: [...form.legs, peBlankLeg(form.legs[form.legs.length - 1].sport)] })}>
+            + Add leg
+          </PeButton>
+        </div>
+      )}
+
+      <PeField label="Notes" hint="Anything worth remembering — a promo, a boost, a Predict entry.">
+        <input value={form.notes} onChange={(e) => set({ notes: e.target.value })} style={peInputStyle(theme)} />
+      </PeField>
+
+      {form.finished && (
+        <div style={{ marginTop: 12 }}>
+          <PeField label="What it paid $" hint={estimate
+            ? `Expected ${peFmt(estimate.payout_cents)} (${PE_STATUS_LABEL[estimate.status] || estimate.status})${estimate.estimated ? ", estimated" : ""}. Enter what actually landed, 0 if it lost.`
+            : estimateError && allGraded ? estimateError : "Enter what actually landed, 0 if it lost."}>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input inputMode="decimal" value={form.payout} onChange={(e) => set({ payout: e.target.value })}
+                style={{ ...peInputStyle(theme), width: 120 }} />
+              {estimate && (
+                <PeButton small onClick={() => set({ payout: (estimate.payout_cents / 100).toFixed(2) })}>
+                  Use {peFmt(estimate.payout_cents)}
+                </PeButton>
+              )}
+            </div>
+          </PeField>
+        </div>
+      )}
+
+      {invalid && <div style={{ color: theme.textDim, fontSize: 12.5, marginTop: 12 }}>To save: {invalid}.</div>}
+      {!invalid && problems.length > 0 && (
+        <div style={{ color: theme.textDim, fontSize: 12.5, marginTop: 12, lineHeight: 1.5,
+          borderLeft: `2px solid ${theme.bad}88`, paddingLeft: 10 }}>
+          This breaks a PrizePicks rule as entered:
+          <ul style={{ margin: "4px 0 0", paddingLeft: 18 }}>{problems.map((p) => <li key={p}>{p}</li>)}</ul>
+          If PrizePicks accepted it anyway (a Predict entry, a fee adjusted to $0.98…), log it as it is.
+        </div>
+      )}
+      <div style={{ marginTop: 14, display: "flex", gap: 8 }}>
+        <PeButton kind="primary" disabled={!ready || busy}
+          onClick={() => {
+            if (problems.length && !confirmRules) { setConfirmRules(true); return; }
+            onSubmit({ fields, finished: form.finished, grades: form.legs.map(peGradeOf), payout: form.payout });
+          }}>
+          {busy ? "Saving…" : problems.length && confirmRules ? "Tap again to log it anyway"
+            : form.finished ? "Log finished slip" : "Log open slip"}
+        </PeButton>
+      </div>
+    </PeCard>
+  );
+}
+
+/* ----------------------------------------------------------- open slips */
+
+function PeOpenSlip({ slip, table, busy, onSave, onSettle, onRemove }) {
+  const theme = useTheme();
+  const [drafts, setDrafts] = useState(() => slip.legs.map((l) => ({
+    actual: l.actual === null || l.actual === undefined ? "" : String(l.actual),
+    outcome: l.result !== "pending" && (l.actual === null || l.actual === undefined) ? l.result : "",
+  })));
+  const [payout, setPayout] = useState("");
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  const grades = drafts.map(peGradeOf);
+  const graded = slip.legs.map((leg, i) => {
+    const g = grades[i];
+    if (!g) return leg;
+    if (g.dnp) return peGrade(leg, null, true);
+    if (g.actual !== undefined) return peGrade(leg, g.actual, false);
+    return { ...leg, result: g.result };
+  });
+  const allDone = graded.every((l) => l.result !== "pending");
+  let estimate = null, estimateError = null;
+  if (allDone) { try { estimate = peSettlement({ ...slip, legs: graded }, table); } catch (e) { estimateError = e.message; } }
+  let payoutOk = false;
+  try { payoutOk = String(payout).trim() !== "" && peCents(payout) >= 0; } catch (e) { payoutOk = false; }
+  const changed = graded.some((l, i) => l.result !== slip.legs[i].result || l.actual !== slip.legs[i].actual);
+
+  return (
+    <PeCard>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline", flexWrap: "wrap" }}>
+        <div style={{ fontWeight: 700 }}>
+          {slip.legs.length}-pick {slip.mode} · <span className="kp-num">{peFmt(slip.stake_cents)}</span>
+          {slip.multiplier && <> · {slip.multiplier}x</>}
+        </div>
+        <div style={{ fontSize: 12, color: theme.textFaint }}>{peWhen(slip.placed_at)}</div>
+      </div>
+      {slip.notes && <div style={{ fontSize: 12, color: theme.textDim, marginTop: 4 }}>{slip.notes}</div>}
+      <div style={{ marginTop: 10 }}>
+        {slip.legs.map((leg, i) => (
+          <div key={i} className="kp-row" style={{ padding: "8px 0" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+              <div style={{ fontSize: 13.5, minWidth: 0 }}>
+                <strong>{leg.player}</strong>{" "}
+                <span style={{ color: theme.textDim }}>
+                  {leg.side === "over" ? "↑" : "↓"} {leg.line} {leg.stat}
+                  {leg.maps ? ` · maps 1-${leg.maps}` : ""}{leg.odds_type !== "standard" ? ` · ${leg.odds_type}` : ""}
+                </span>
+              </div>
+              <PeResultBadge result={graded[i].result} />
+            </div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6, flexWrap: "wrap" }}>
+              <input inputMode="decimal" value={drafts[i].actual} placeholder="actual"
+                onChange={(e) => setDrafts(drafts.map((d, j) => (j === i ? { actual: e.target.value, outcome: "" } : d)))}
+                style={{ ...peInputStyle(theme), width: 84, padding: "6px 8px" }} />
+              <PeSegmented small value={drafts[i].actual !== "" ? "" : drafts[i].outcome}
+                onChange={(v) => setDrafts(drafts.map((d, j) => (j === i ? { actual: "", outcome: v } : d)))}
+                options={PE_OUTCOMES} />
+            </div>
+          </div>
+        ))}
+      </div>
+      {allDone && (
+        <div style={{ marginTop: 10 }}>
+          <PeField label="What it paid $" hint={estimate
+            ? `Expected ${peFmt(estimate.payout_cents)} (${PE_STATUS_LABEL[estimate.status] || estimate.status})${estimate.estimated ? ", estimated" : ""}. Enter what actually landed.`
+            : estimateError || ""}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <input inputMode="decimal" value={payout} onChange={(e) => setPayout(e.target.value)}
+                style={{ ...peInputStyle(theme), width: 110 }} />
+              {estimate && <PeButton small onClick={() => setPayout((estimate.payout_cents / 100).toFixed(2))}>Use {peFmt(estimate.payout_cents)}</PeButton>}
+            </div>
+          </PeField>
+        </div>
+      )}
+      <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+        {allDone
+          ? <PeButton kind="primary" disabled={!payoutOk || busy} onClick={() => onSettle(slip.id, grades, payout)}>Settle</PeButton>
+          : <PeButton disabled={!changed || busy} onClick={() => onSave(slip.id, grades)}>Save results so far</PeButton>}
+        <div style={{ flex: 1 }} />
+        <PeButton small kind="danger" disabled={busy}
+          onClick={() => { if (confirmRemove) onRemove(slip.id); else setConfirmRemove(true); }}>
+          {confirmRemove ? "Tap again to remove" : "Remove"}
+        </PeButton>
+      </div>
+    </PeCard>
+  );
+}
+
+/* ----------------------------------------------------------- history */
+
+function PeSettledList({ store, busy, onRemove }) {
+  const theme = useTheme();
+  const [open, setOpen] = useState(null);
+  const [confirm, setConfirm] = useState(null);
+  const settled = (store.slips || []).filter((s) => s.status !== "pending")
+    .sort((a, b) => peInstant(b.placed_at) - peInstant(a.placed_at)).slice(0, 30);
+  if (!settled.length) return null;
+  return (
+    <PeCard>
+      <div style={{ fontWeight: 700, marginBottom: 8 }}>Settled</div>
+      {settled.map((s) => {
+        const net = Number(s.payout_cents || 0) - Number(s.stake_cents);
+        const color = s.status === "won" ? theme.good : s.status === "lost" ? theme.bad : theme.textDim;
+        return (
+          <div key={s.id} className="kp-row" style={{ padding: "8px 0" }}>
+            <div role="button" tabIndex={0} className="kp-clickable" onClick={() => setOpen(open === s.id ? null : s.id)}
+              onKeyDown={(e) => { if (e.key === "Enter") setOpen(open === s.id ? null : s.id); }}
+              style={{ display: "flex", justifyContent: "space-between", gap: 8, cursor: "pointer", fontSize: 13.5 }}>
+              <span>
+                <span style={{ color: theme.textFaint }}>{peWhen(s.placed_at)}</span>{" · "}
+                {s.legs.length}-pick {s.mode} {peFmt(s.stake_cents)}
+              </span>
+              <span>
+                <span style={{ color }}>{PE_STATUS_LABEL[s.status] || s.status}</span>{" "}
+                <span className="kp-num" style={{ color: net >= 0 ? theme.good : theme.bad }}>{net >= 0 ? "+" : ""}{peFmt(net)}</span>
+              </span>
+            </div>
+            {open === s.id && (
+              <div style={{ marginTop: 6, paddingLeft: 8 }}>
+                {s.legs.map((l, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: theme.textDim, padding: "2px 0" }}>
+                    <span>{l.player} {l.side === "over" ? "↑" : "↓"} {l.line} {l.stat}{l.actual !== null && l.actual !== undefined ? ` → ${l.actual}` : ""}</span>
+                    <PeResultBadge result={l.result} />
+                  </div>
+                ))}
+                {s.notes && <div style={{ fontSize: 12, color: theme.textFaint, marginTop: 4 }}>{s.notes}</div>}
+                <div style={{ marginTop: 6 }}>
+                  <PeButton small kind="danger" disabled={busy}
+                    onClick={() => { if (confirm === s.id) onRemove(s.id); else setConfirm(s.id); }}>
+                    {confirm === s.id ? "Tap again: remove slip and its money" : "Remove (entered by mistake)"}
+                  </PeButton>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </PeCard>
+  );
+}
+
+function PeLedgerList({ store }) {
+  const theme = useTheme();
+  const rows = peHistory(store).slice(-12).reverse();
+  if (!rows.length) return null;
+  return (
+    <PeCard>
+      <div style={{ fontWeight: 700, marginBottom: 8 }}>Money in and out</div>
+      {rows.map(([e, running]) => {
+        const signed = peSigned(e);
+        return (
+          <div key={e.id} className="kp-row" style={{ display: "flex", gap: 8, padding: "6px 0", fontSize: 12.5, alignItems: "baseline" }}>
+            <span style={{ color: theme.textFaint, flex: "1 1 auto", minWidth: 0, overflow: "hidden",
+              textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{peWhen(e.at)}</span>
+            <span style={{ flex: "0 0 66px", color: theme.textDim }}>{e.kind}</span>
+            <span className="kp-num" style={{ flex: "0 0 66px", textAlign: "right", color: signed >= 0 ? theme.good : theme.text }}>
+              {signed >= 0 ? "+" : ""}{peFmt(signed)}
+            </span>
+            <span className="kp-num" style={{ flex: "0 0 66px", textAlign: "right", color: theme.textDim }}>{peFmt(running)}</span>
+          </div>
+        );
+      })}
+    </PeCard>
+  );
+}
+
+/* --------------------------------------------------------- the tracker */
+
+function TrackerPage({ isDesktop, onHome }) {
+  const theme = useTheme();
+  const [token, setToken] = useState(() => loadStored("pe.token", ""));
+  const [repo, setRepo] = useState(() => loadStored("pe.repo", PE_REPO_DEFAULT));
+  const [store, setStore] = useState(null);
+  // Starts true when there is a token, so the first paint says "Opening…"
+  // rather than flashing "Couldn't open the store" before the fetch begins.
+  const [loading, setLoading] = useState(() => !!token);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const [notice, setNotice] = useState(null);
+  const [adding, setAdding] = useState(false);
+
+  const load = async (tk, rp) => {
+    setLoading(true); setError(null);
+    try {
+      const { store: s } = await peFetchStore(tk, rp);
+      setStore(s);
+      saveStored("pe.lastSeen", { balance: peBalance(s), open: pePending(s).length, at: peNow() });
+      return true;
+    } catch (e) {
+      setError(e.message); return false;
+    } finally { setLoading(false); }
+  };
+  useEffect(() => { if (token) load(token, repo); }, []);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  const connect = async (tk, rp) => {
+    if (await load(tk, rp)) {
+      saveStored("pe.token", tk); saveStored("pe.repo", rp);
+      setToken(tk); setRepo(rp);
+    }
+  };
+  const disconnect = () => {
+    try { window.localStorage.removeItem("pe.token"); } catch (e) { /* storage disabled */ }
+    setToken(""); setStore(null); setError(null);
+  };
+
+  const commit = async (op, message, success) => {
+    setBusy(true); setError(null); setNotice(null);
+    try {
+      const out = await peCommit(token, repo, op, message);
+      setStore(out.store);
+      saveStored("pe.lastSeen", { balance: peBalance(out.store), open: pePending(out.store).length, at: peNow() });
+      setNotice(typeof success === "function" ? success(out.result, out.store) : success);
+      return true;
+    } catch (e) {
+      setError(e.message); return false;
+    } finally { setBusy(false); }
+  };
+
+  const logSlip = async ({ fields, finished, grades, payout }) => {
+    const ok = await commit((s) => {
+      const slip = pePlace(s, fields, true);
+      if (finished) {
+        peGradeLegs(s, slip.id, grades);
+        return { slip, got: peSettle(s, slip.id, payout) };
+      }
+      return { slip };
+    }, finished ? "propedge app: log a finished slip" : "propedge app: place a slip",
+    (r) => r.got ? `Logged and settled: ${PE_STATUS_LABEL[r.got.status] || r.got.status}, paid ${peFmt(r.got.payout_cents)}.`
+                 : `Logged. ${peFmt(r.slip.stake_cents)} staked.`);
+    if (ok) setAdding(false);
+  };
+
+  return (
+    <div style={{ maxWidth: 640, margin: "0 auto", padding: isDesktop ? "32px 24px 60px" : "18px 16px 56px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+        <PeButton small onClick={onHome}>← Menu</PeButton>
+        <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 10.5, letterSpacing: 2,
+          color: theme.accent, fontWeight: 600 }}>
+          <Reticle size={13} color={theme.accent} active />
+          TRACKER
+        </div>
+      </div>
+      <h1 style={{ fontSize: isDesktop ? 26 : 21, fontWeight: 600, margin: "0 0 14px",
+        fontFamily: "'Fraunces', serif", letterSpacing: -0.2 }}>Slips & bankroll</h1>
+
+      {notice && (
+        <div style={{ background: theme.good + "18", border: `1px solid ${theme.good}55`, color: theme.text,
+          borderRadius: 10, padding: "10px 12px", marginBottom: 14, fontSize: 13.5 }}>{notice}</div>
+      )}
+      {error && token && (
+        <div style={{ background: theme.bad + "18", border: `1px solid ${theme.bad}55`, color: theme.text,
+          borderRadius: 10, padding: "10px 12px", marginBottom: 14, fontSize: 13.5 }}>{error}</div>
+      )}
+
+      {!token ? (
+        <PeConnect busy={loading} error={error} onConnect={connect} />
+      ) : !store ? (
+        <PeCard>
+          <div style={{ color: theme.textDim, fontSize: 14 }}>{loading ? `Opening ${repo}…` : "Couldn't open the store."}</div>
+          {!loading && (
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <PeButton onClick={() => load(token, repo)}>Try again</PeButton>
+              <PeButton kind="danger" onClick={disconnect}>Disconnect</PeButton>
+            </div>
+          )}
+        </PeCard>
+      ) : (
+        <>
+          <PeSummary store={store} repo={repo} busy={busy || loading} onDisconnect={disconnect}
+            onRefresh={() => load(token, repo)}
+            onMoney={async (kind, amount, note, done) => {
+              const ok = await commit((s) => peMoney(s, kind, amount, note),
+                `propedge app: ${kind} ${peFmt(peCents(amount))}`, `${kind === "deposit" ? "Deposited" : "Withdrew"} ${peFmt(peCents(amount))}.`);
+              if (ok) done();
+            }} />
+
+          {adding ? (
+            <PeSlipForm table={store.payout_table} busy={busy} onCancel={() => setAdding(false)} onSubmit={logSlip} />
+          ) : (
+            <div style={{ marginBottom: 14 }}>
+              <PeButton kind="primary" onClick={() => { setAdding(true); setNotice(null); }}>+ Log a slip</PeButton>
+            </div>
+          )}
+
+          {pePending(store).sort((a, b) => peInstant(b.placed_at) - peInstant(a.placed_at)).map((slip) => (
+            <PeOpenSlip key={`${slip.id}:${slip.legs.map((l) => l.result).join(",")}`} slip={slip}
+              table={store.payout_table} busy={busy}
+              onSave={(id, grades) => commit((s) => peGradeLegs(s, id, grades),
+                `propedge app: grade ${id}`, "Results saved.")}
+              onSettle={(id, grades, payout) => commit((s) => { peGradeLegs(s, id, grades); return peSettle(s, id, payout); },
+                `propedge app: settle ${id}`,
+                (got) => `Settled: ${PE_STATUS_LABEL[got.status] || got.status}, paid ${peFmt(got.payout_cents)}.`)}
+              onRemove={(id) => commit((s) => peRemoveSlip(s, id), `propedge app: remove ${id}`, "Slip removed.")} />
+          ))}
+
+          <PeSettledList store={store} busy={busy}
+            onRemove={(id) => commit((s) => peRemoveSlip(s, id), `propedge app: remove ${id}`, "Slip removed.")} />
+          <PeLedgerList store={store} />
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------ main menu */
+
+function MainMenu({ isDesktop, go }) {
+  const theme = useTheme();
+  const seen = loadStored("pe.lastSeen", null);
+  const card = (key, title, body, extra) => (
+    <div role="button" tabIndex={0} className="kp-clickable" onClick={() => go(key)}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(key); } }}
+      style={{ cursor: "pointer", background: theme.graphite, border: `1px solid ${theme.steel}`,
+        ...cardShape(theme.cornerStyle), ...elevation(), padding: "20px 20px", flex: "1 1 260px" }}>
+      <div style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 600, marginBottom: 6 }}>{title} →</div>
+      <div style={{ fontSize: 13.5, color: theme.textDim, lineHeight: 1.55 }}>{body}</div>
+      {extra}
+    </div>
+  );
+  return (
+    <div style={{ maxWidth: 820, margin: "0 auto", padding: isDesktop ? "56px 24px" : "28px 16px 56px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11, letterSpacing: 2,
+        color: theme.accent, fontWeight: 600, marginBottom: 8 }}>
+        <Reticle size={13} color={theme.accent} active />
+        PROPEDGE
+      </div>
+      <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: isDesktop ? 34 : 26, fontWeight: 600,
+        margin: "0 0 24px", letterSpacing: -0.3 }}>Where to?</h1>
+      <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+        {card("projections", "Projections",
+          "Model projections, edges and parlays for LoL, Valorant and CS2, with the benchmark against the line.")}
+        {card("tracker", "Tracker",
+          "Log slips as you place them, mark results, and keep your bankroll straight.",
+          seen && typeof seen.balance === "number" ? (
+            <div style={{ marginTop: 12, fontSize: 13, color: theme.textDim }}>
+              <span className="kp-num" style={{ color: theme.text, fontSize: 18, fontWeight: 700 }}>{peFmt(seen.balance)}</span>
+              {" "}· {seen.open} open · as of {peWhen(seen.at)}
+            </div>
+          ) : null)}
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------- the app shell */
+
+const PE_ROUTES = ["menu", "projections", "tracker"];
+function peRouteFromHash() {
+  const h = (typeof window !== "undefined" && window.location && window.location.hash || "").replace(/^#\/?/, "");
+  return PE_ROUTES.includes(h) ? h : "menu";
+}
+
+function AppShell() {
+  const isDesktop = useIsDesktop();
+  const [route, setRoute] = useState(peRouteFromHash);
+  // The projections page fetches several megabytes on mount. Once visited it
+  // stays mounted and is only hidden, so going to the tracker and back is
+  // instant instead of a full reload.
+  const [projectionsMounted, setProjectionsMounted] = useState(route === "projections");
+  useEffect(() => {
+    const onHash = () => setRoute(peRouteFromHash());
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+  useEffect(() => { if (route === "projections") setProjectionsMounted(true); }, [route]);
+  const go = (to) => {
+    const target = to === "menu" ? "#/" : `#/${to}`;
+    if (window.location.hash !== target) window.location.hash = target;
+    else setRoute(to);
+    try { window.scrollTo(0, 0); } catch (e) { /* not in a browser */ }
+  };
+
+  const accentOverride = loadStored("kp.accentOverride", null);
+  const accent = accentOverride || GAME_ACCENTS.lol.accent;
+  const theme = {
+    ...BASE_TOKENS, accent,
+    accentSoft: `${accent}18`, accentBorder: `${accent}55`,
+    cornerStyle: loadStored("kp.cornerStyle", "rounded"),
+  };
+  const page = {
+    minHeight: "100vh", color: theme.text, fontFamily: "'Inter', -apple-system, sans-serif",
+    "--kp-accent-live": theme.accent,
+    background: `radial-gradient(ellipse 1200px 800px at 50% -10%, ${theme.accent}0d, transparent 60%), ${theme.void}`,
+  };
+  return (
+    <>
+      {projectionsMounted && (
+        <div style={{ display: route === "projections" ? "block" : "none" }}>
+          <KillProjector onHome={() => go("menu")} />
+        </div>
+      )}
+      {route !== "projections" && (
+        <ThemeContext.Provider value={theme}>
+          <div style={page}>
+            <style>{KP_STYLES}</style>
+            {route === "tracker"
+              ? <TrackerPage isDesktop={isDesktop} onHome={() => go("menu")} />
+              : <MainMenu isDesktop={isDesktop} go={go} />}
+          </div>
+        </ThemeContext.Provider>
+      )}
+    </>
+  );
+}
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<KillProjector />);
+root.render(<AppShell />);
 
 } catch (err) {
   document.getElementById('root').innerHTML =

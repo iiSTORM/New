@@ -585,7 +585,9 @@ ranking needs.
 ## The frontend
 
 `index.html` is a single self-contained page: React from a CDN, everything
-else inline. There is no server and no framework beyond React.
+else inline. There is no server and no framework beyond React. It opens on a
+menu (`#/`) linking the projections page (`#/projections`) and the bet
+tracker (`#/tracker`, see "The Tracker page" below).
 
 It is **generated**. Edit `src/app.jsx` (and `src/index.template.html` for
 the surrounding shell), then:
@@ -942,6 +944,48 @@ python scripts/propedge_cli.py settle <slip> --payout 6.00
 python scripts/propedge_cli.py size --prob 0.62 --prob 0.60,0.03 --multiplier 3
 python scripts/propedge_cli.py balance
 ```
+
+### The Tracker page — the same store, from a phone
+
+The site opens on a menu with two pages: **Projections** (`#/projections`, the
+model) and **Tracker** (`#/tracker`). The Tracker logs slips, grades legs,
+settles payouts and records deposits and withdrawals, straight into the
+private repo's `store.json`. It is the CLI's ledger, not a second copy of it:
+both read and write the one file, and a slip logged on the phone can be
+settled by the CLI and the other way round.
+
+It connects with a **fine-grained personal access token**, made once per
+device:
+
+1. GitHub → Settings → Developer settings → [Fine-grained tokens → Generate
+   new token](https://github.com/settings/personal-access-tokens/new).
+2. Repository access: **Only select repositories** → `propedge`.
+3. Permissions → Repository → **Contents: Read and write**. Nothing else.
+4. Paste it into the Tracker page.
+
+What that costs, plainly: the token sits in that browser's `localStorage`
+for the `iistorm.github.io` origin. The page's code is public and carries no
+secret, which is what the build plan requires, but anything that runs script
+on that origin could read the token. The blast radius is what the token can
+reach, which is why it must be scoped to the one private repository with
+Contents only: at worst, someone could read or rewrite the bet history, and
+every write is a commit, so a rewrite is visible and reversible. Do not
+connect on a shared device; **Disconnect** removes the token from the
+browser, and revoking it on GitHub kills it everywhere.
+
+How a write works: read `store.json` and its sha, apply the change to that
+fresh copy, `PUT` it back with the sha. If the CLI (or another phone) wrote
+in between, GitHub refuses the stale sha and the page re-reads and re-applies
+the change, rather than overwriting what the other writer added. Each write
+is one commit, `propedge app: …`. If you then use the CLI, `git pull` the
+private checkout first, or its push will be refused as behind.
+
+The JS port is in `src/app.jsx` (the `pe*` functions), and
+`tests/tracker_parity.test.mjs` replays the same slips through it and through
+`scripts/propedge` and compares slips, ledgers, settlements, rule checks,
+rounding and the written file byte for byte. A rule changed on one side and
+not the other fails that test. **Remove** on a slip deletes it and its ledger
+entries, for typos; the old version is still in the private repo's history.
 
 ### What the rules module actually enforces
 

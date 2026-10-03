@@ -101,3 +101,10 @@ jobs:
       # scraper had never seen -- with the pure suite fully green.
       - name: Check the page still renders
         run: node tests/render_smoke.test.mjs
+
+      # The tracker page and scripts/propedge read and write the SAME
+      # store.json in the private repo, so a disagreement about a payout or a
+      # rounding is a wrong bankroll, not a cosmetic drift. Replays the same
+      # slips through both and compares the files byte for byte.
+      - name: Check the tracker app and the propedge CLI agree
+        run: node tests/tracker_parity.test.mjs
