@@ -1442,6 +1442,42 @@ def match_key(m):
     return ("legacy", m.get("date"), m.get("teamA"), m.get("teamB"), m.get("score"))
 
 
+def _kills_signature(m):
+    """Every player's kills, per team, as one comparable string."""
+    return json.dumps({team: {p: (s or {}).get("k") for p, s in (side or {}).items()}
+                       for team, side in (m.get("actual") or {}).items()}, sort_keys=True)
+
+
+def drop_superseded_legacy(matches):
+    """Remove id-less records that are the same match as an id'd one.
+
+    match_key gives a record written before match ids were stored a
+    composite key, and the same match fetched again WITH its id gets an id
+    key -- so the two never collided and both were kept. 91 matches sat in
+    cs2_data.json twice this way on 2026-10-03, and every player in them
+    had each of those games counted twice in their history: eight rows on
+    the history card that were four matches.
+
+    Dropped only when an id'd record has the same day, the same two teams
+    in either order, AND identical kills for every player. Teams meet
+    twice in a day, and a genuine double-header differs in its box score,
+    so it can never be mistaken for a copy. Order is otherwise preserved.
+    """
+    with_id = collections.defaultdict(set)
+    for m in matches:
+        if m.get("match_id"):
+            with_id[(str(m.get("date") or "")[:10], frozenset((m.get("teamA"), m.get("teamB"))))].add(
+                _kills_signature(m))
+    kept = []
+    for m in matches:
+        if not m.get("match_id"):
+            key = (str(m.get("date") or "")[:10], frozenset((m.get("teamA"), m.get("teamB"))))
+            if _kills_signature(m) in with_id.get(key, ()):
+                continue
+        kept.append(m)
+    return kept
+
+
 def absorb_results(past_matches, fresh):
     """Fold re-fetched results into the list in place.
 
@@ -1488,6 +1524,8 @@ def absorb_results(past_matches, fresh):
             past_matches[at] = entry
             refreshed += 1
         touched.append(entry)
+    # A fresh id'd copy can make an id-less record on file redundant.
+    past_matches[:] = drop_superseded_legacy(past_matches)
     return added, refreshed, touched
 
 
@@ -1507,7 +1545,8 @@ def merge_past_matches(previous, fresh, per_team=MATCHES_KEPT_PER_TEAM):
         if not m or not m.get("teamA") or not m.get("teamB"):
             continue
         by_key[match_key(m)] = m          # fresh overwrites previous
-    ordered = sorted(by_key.values(), key=lambda m: (m.get("date") or ""), reverse=True)
+    ordered = sorted(drop_superseded_legacy(list(by_key.values())),
+                     key=lambda m: (m.get("date") or ""), reverse=True)
 
     kept, seen_per_team = [], {}
     for m in ordered:

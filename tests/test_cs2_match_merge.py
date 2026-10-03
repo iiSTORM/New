@@ -161,3 +161,55 @@ class TestCoverageAccumulates:
         assert teams_for(fresh) == {"Active", "Rival"}
         assert teams_for(sc.merge_past_matches(stored, fresh)) == {
             "Active", "Rival", "Gone Quiet", "Also Quiet"}
+
+
+class TestLegacyCopies:
+    """A match stored before ids existed, then fetched again with its id.
+
+    The two keys never collided, so 91 matches sat in the file twice on
+    2026-10-03 and players' history cards showed four matches as eight.
+    """
+
+    def legacy(self, date, a="A", b="B", kills=20, score="2-0"):
+        rec = m(None, date, a, b, score)
+        rec["actual"][a]["p1"]["k"] = kills
+        rec.pop("match_id")
+        return rec
+
+    def test_an_id_less_copy_of_an_id_d_match_is_dropped(self):
+        new = m("abc", "2026-09-22", start_time="2026-09-22T14:10:00.000+00:00")
+        kept = sc.drop_superseded_legacy([self.legacy("2026-09-22"), new])
+        assert kept == [new]
+
+    def test_teams_in_the_other_order_are_the_same_match(self):
+        new = m("abc", "2026-09-22", a="A", b="B")
+        old = self.legacy("2026-09-22", a="B", b="A")
+        old["actual"] = {"A": {"p1": {"k": 20}}, "B": {}}
+        assert sc.drop_superseded_legacy([old, new]) == [new]
+
+    def test_a_double_header_with_a_different_box_score_is_kept(self):
+        new = m("abc", "2026-09-22")
+        other = self.legacy("2026-09-22", kills=9, score="1-2")
+        assert sc.drop_superseded_legacy([other, new]) == [other, new]
+
+    def test_an_id_less_match_with_no_id_d_twin_is_kept(self):
+        old = self.legacy("2026-09-20")
+        assert sc.drop_superseded_legacy([old, m("abc", "2026-09-22")])[0] is old
+
+    def test_merging_runs_drops_the_copy(self):
+        merged = sc.merge_past_matches([self.legacy("2026-09-22")], [m("abc", "2026-09-22")])
+        assert [r.get("match_id") for r in merged] == ["abc"]
+
+    def test_absorbing_results_drops_the_copy(self):
+        past = [self.legacy("2026-09-22")]
+        sc.absorb_results(past, [m("abc", "2026-09-22")])
+        assert [r.get("match_id") for r in past] == ["abc"]
+
+
+def test_the_committed_file_holds_no_match_twice():
+    path = Path(__file__).resolve().parent.parent / "cs2_data.json"
+    if not path.exists():
+        pytest.skip("no cs2_data.json")
+    for region in json.loads(path.read_text())["regions"].values():
+        matches = region.get("past_matches") or []
+        assert len(sc.drop_superseded_legacy(matches)) == len(matches)
