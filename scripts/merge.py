@@ -19,6 +19,8 @@ from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from team_aliases import alias_key
+from international import (INTERNATIONAL_EVENTS, event_team_names, home_donors,
+                           lend_home_rosters)
 
 # Only the names the two sources genuinely SPELL DIFFERENTLY -- a sponsor or
 # city word one carries and the other drops, or an abbreviation. Pure spelling
@@ -266,6 +268,14 @@ def load_schedule():
     return schedule
 
 
+def _series_fields(m):
+    """best_of and match_id, carried through when the schedule has them.
+
+    Only present keys are copied, so a fixture from an older schedule.json
+    comes out exactly as it did before these existed."""
+    return {k: m[k] for k in ("best_of", "match_id") if m.get(k) is not None}
+
+
 def resolve_upcoming(region_schedule, lookup, region_key="?", aliases=None,
                      elsewhere=None):
     """The fixtures a region can actually show, and why the rest cannot.
@@ -288,7 +298,8 @@ def resolve_upcoming(region_schedule, lookup, region_key="?", aliases=None,
         a, why_a = resolve_side(m["teamA"], lookup, aliases, elsewhere)
         b, why_b = resolve_side(m["teamB"], lookup, aliases, elsewhere)
         if a and b:
-            upcoming.append({"date": m["date"], "teamA": a, "teamB": b, "block": m.get("block", "")})
+            upcoming.append({"date": m["date"], "teamA": a, "teamB": b, "block": m.get("block", ""),
+                             **_series_fields(m)})
             continue
         # These two cases were previously summed into one "dropped"
         # count, which made the number impossible to act on: a
@@ -325,7 +336,8 @@ def resolve_upcoming(region_schedule, lookup, region_key="?", aliases=None,
         # TBD and hidden.
         if (a or b) and side_is_tbd:
             upcoming.append({"date": m["date"], "teamA": a or "TBD",
-                             "teamB": b or "TBD", "block": m.get("block", "")})
+                             "teamB": b or "TBD", "block": m.get("block", ""),
+                             **_series_fields(m)})
             kept_half += 1
             continue
         if side_is_tbd:
@@ -352,6 +364,57 @@ def resolve_upcoming(region_schedule, lookup, region_key="?", aliases=None,
                       "uncovered": dropped_uncovered, "half": kept_half}
 
 
+def merge_international(data, schedule):
+    """Fold each international event into data.json as a region of its own.
+
+    The event's teams are named the LoL Esports API's way ("Beijing JDG
+    Esports") and tracked nowhere under that region, because the event's
+    rosters ARE the leagues' rosters. So both its fixtures and its bracket
+    resolve against every league at once, and each resolved team is then
+    lent its home league's roster (international.lend_home_rosters).
+
+    An event region whose event is no longer on is removed, but only when
+    this schedule.json actually says so -- one written before events were
+    recorded at all says nothing either way.
+    """
+    regions = data.setdefault("regions", {})
+    events = schedule.get("events")
+    intl = set(INTERNATIONAL_EVENTS)
+    if events is None:
+        return
+    for key in [k for k in regions if k in intl and k not in events]:
+        print(f"{key}: event no longer on the schedule — region removed")
+        del regions[key]
+
+    league_teams = [t for k, r in regions.items() if k not in intl for t in (r.get("teams") or {})]
+    lookup = build_lookup(league_teams)
+    aliases = build_alias_lookup(league_teams)
+    donors = home_donors(regions, skip=intl)
+    for key, event in events.items():
+        region = regions.setdefault(key, {"teams": {}, "past_matches": []})
+        region.setdefault("past_matches", [])
+        upcoming, counts = resolve_upcoming(schedule.get("regions", {}).get(key, []), lookup,
+                                            key, aliases)
+        region["upcoming_matches"] = upcoming
+        unresolved = set()
+        for stage in event.get("stages") or []:
+            for sec in stage.get("sections") or []:
+                for m in sec.get("matches") or []:
+                    for t in m.get("teams") or []:
+                        if t.get("name") in (None, "", "TBD"):
+                            continue
+                        name, _ = resolve_side(t["name"], lookup, aliases)
+                        t["team"] = name
+                        if not name:
+                            unresolved.add(t["name"])
+        region["event"] = event
+        wanted = event_team_names(event) + [n for m in upcoming for n in (m["teamA"], m["teamB"])]
+        borrowed, missing = lend_home_rosters(region, list(dict.fromkeys(wanted)), donors)
+        print(f"{key}: {len(upcoming)} upcoming, {len(borrowed)} roster(s) from home leagues"
+              + (f", {len(missing)} with no home league tracked: {missing}" if missing else "")
+              + (f", unresolved names: {sorted(unresolved)}" if unresolved else ""))
+
+
 def main():
     with open("data.json") as f:
         data = json.load(f)
@@ -359,6 +422,8 @@ def main():
 
     elsewhere = tracked_by_key(data.get("regions"))
     for region_key, region_data in data.get("regions", {}).items():
+        if region_key in INTERNATIONAL_EVENTS:
+            continue  # merge_international, below, owns these
         known_teams = set(region_data.get("teams", {}).keys())
         lookup = build_lookup(known_teams)
         region_schedule = schedule.get("regions", {}).get(region_key, [])
@@ -379,6 +444,7 @@ def main():
         suffix = f" ({', '.join(detail)})" if detail else ""
         print(f"{region_key}: merged {len(upcoming)}/{len(region_schedule)} upcoming matches{suffix}")
 
+    merge_international(data, schedule)
     merge_career_data(data)
 
     with open("data.json", "w") as f:

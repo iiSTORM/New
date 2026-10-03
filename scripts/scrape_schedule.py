@@ -8,10 +8,14 @@ published public API key below.
 Merges into data.json's "regions" structure alongside scrape_lcs.py's output.
 """
 import json
+import os
 import sys
 from datetime import datetime, timezone
 
 import requests
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from international import INTERNATIONAL_EVENTS, build_event, in_window, pick_tournament
 
 API = "https://esports-api.lolesports.com/persisted/gw"
 # Public key used by lolesports.com's own frontend — not a secret, but if
@@ -45,6 +49,68 @@ def get_schedule(league_id):
     return r.json()["data"]["schedule"]["events"]
 
 
+def get_tournaments(league_id):
+    r = requests.get(f"{API}/getTournamentsForLeague", headers=HEADERS,
+                     params={"hl": "en-US", "leagueId": league_id}, timeout=20)
+    r.raise_for_status()
+    return r.json()["data"]["leagues"][0]["tournaments"]
+
+
+def get_standings(tournament_id):
+    r = requests.get(f"{API}/getStandings", headers=HEADERS,
+                     params={"hl": "en-US", "tournamentId": tournament_id}, timeout=20)
+    r.raise_for_status()
+    return r.json()["data"]
+
+
+def upcoming_entry(e):
+    """An unstarted schedule event as a fixture row, or None if it lacks two sides."""
+    match = e.get("match", {})
+    teams = match.get("teams", [])
+    if len(teams) != 2:
+        return None
+    strategy = match.get("strategy") or {}
+    return {
+        "date": e["startTime"],  # ISO 8601 UTC — app formats to local time
+        "teamA": teams[0]["name"],
+        "teamB": teams[1]["name"],
+        "block": e.get("blockName", ""),
+        # A Demacia Cup Swiss round opens Bo1 and turns Bo3 the next day, so
+        # the series length is per match, not per event.
+        "best_of": strategy.get("count") if strategy.get("type") == "bestOf" else None,
+        "match_id": match.get("id"),
+    }
+
+
+def scrape_international(leagues, now=None):
+    """({region key: upcoming}, {region key: event}) for every event on now."""
+    by_slug = {l.get("slug"): l for l in leagues}
+    upcoming, events = {}, {}
+    for region_key, slug in INTERNATIONAL_EVENTS.items():
+        league = by_slug.get(slug)
+        if not league:
+            print(f"  {region_key}: no '{slug}' league in the API this run")
+            continue
+        try:
+            tournament = pick_tournament(get_tournaments(league["id"]), now)
+            if not tournament:
+                continue
+            standings = get_standings(tournament["id"])
+            schedule = [e for e in get_schedule(league["id"])
+                        if in_window(e.get("startTime"), tournament)]
+        except Exception as e:
+            print(f"  ! {region_key} event fetch failed: {e}", file=sys.stderr)
+            continue
+        event = build_event(slug, region_key, tournament, standings, schedule)
+        rows = [r for r in (upcoming_entry(e) for e in schedule if e.get("state") == "unstarted") if r]
+        upcoming[region_key] = rows
+        events[region_key] = event
+        n = sum(len(sec["matches"]) for st in event["stages"] for sec in st["sections"])
+        print(f"  {region_key}: {tournament.get('slug')} — {len(event['stages'])} stage(s), "
+              f"{n} matches, {len(rows)} upcoming")
+    return upcoming, events
+
+
 def main():
     leagues = get_all_leagues()
     print(f"Fetched {len(leagues)} leagues from LoL Esports API")
@@ -68,23 +134,21 @@ def main():
             state_counts[state] = state_counts.get(state, 0) + 1
             if state != "unstarted":
                 continue
-            match = e.get("match", {})
-            teams = match.get("teams", [])
-            if len(teams) != 2:
+            row = upcoming_entry(e)
+            if row is None:
                 dropped_team_count += 1
                 continue
-            upcoming.append({
-                "date": e["startTime"],  # ISO 8601 UTC — app formats to local time
-                "teamA": teams[0]["name"],
-                "teamB": teams[1]["name"],
-                "block": e.get("blockName", ""),
-            })
+            upcoming.append(row)
         print(f"    event states: {state_counts}")
         if dropped_team_count:
             print(f"    {dropped_team_count} 'unstarted' events dropped for not having exactly 2 teams "
                   f"(likely TBD bracket slots)")
         regions[region_key] = upcoming
         print(f"  {region_key}: {len(upcoming)} upcoming matches after filtering")
+
+    print("International events:")
+    intl_upcoming, events = scrape_international(leagues)
+    regions.update(intl_upcoming)
 
     with open("schedule.json", "w") as f:
         # Written minified: these files are machine-generated and never read
@@ -94,7 +158,7 @@ def main():
         # still parses the full decompressed text, and every run commits a
         # whole fresh copy.
         json.dump({"generated_at": datetime.now(timezone.utc).isoformat(),
-                   "regions": regions}, f, separators=(",", ":"))
+                   "regions": regions, "events": events}, f, separators=(",", ":"))
     print(f"Wrote schedule.json for regions: {list(regions.keys())}")
 
 

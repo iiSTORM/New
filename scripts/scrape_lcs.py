@@ -994,27 +994,81 @@ def reusable_past_matches(existing_region, today=None):
         out[game_id] = entry
     return out
 
-def scrape_region(region_key, current_tournament, historical_tournament, known=None):
-    print(f"\n=== {region_key} ({current_tournament}) ===")
+#: International events, by our region key -> a pattern for gol.gg's name for
+#: them. Matched against gol.gg's own tournament list rather than spelled out,
+#: because the names are not knowable in advance: 2025 was "Worlds 2025 Play-In"
+#: and "Worlds 2025 Main Event", and the 2026 Demacia Cup (the API calls it
+#: "DCGI") was not on gol.gg at all before its first game. The keys match
+#: international.INTERNATIONAL_EVENTS, which owns the schedule side.
+GOLGG_EVENTS = {
+    "First Stand": re.compile(r"first stand", re.I),
+    "MSI": re.compile(r"^msi\b", re.I),
+    "EWC": re.compile(r"esports world cup", re.I),
+    "Demacia Cup": re.compile(r"demacia|dcgi", re.I),
+    "Worlds": re.compile(r"^worlds\b|world championship", re.I),
+}
+#: An event's games stay scraped this long after its last one, matching how
+#: long the schedule side keeps the region up.
+EVENT_GRACE_DAYS = 5
 
-    print(f"Fetching team rosters (for team/role assignment)...")
-    roster, team_urls = parse_team_rosters(current_tournament)
-    print(f"  {len(roster)} players matched to a team/role")
 
-    print(f"Fetching current-split player stats...")
-    cur_players = parse_player_list(current_tournament)
-    print(f"  {len(cur_players)} players")
+def golgg_tournament_rows(season):
+    """gol.gg's tournament list for a season ("S16" is 2026), or [].
 
-    print(f"Fetching historical-split player stats...")
-    hist_players = parse_player_list(historical_tournament)
-    print(f"  {len(hist_players)} players")
+    The /tournament/list/ page is rendered client-side from this endpoint,
+    which is why discover_tournaments() could not use the page itself.
+    """
+    REQUEST_TOTAL["n"] += 1
+    try:
+        r = requests.post(f"{BASE}/tournament/ajax.trlist.php", data={"season": season},
+                          headers={**HEADERS, "X-Requested-With": "XMLHttpRequest",
+                                   "Referer": f"{BASE}/tournament/list/"}, timeout=20)
+        r.raise_for_status()
+        rows = r.json()
+        return rows if isinstance(rows, list) else []
+    except (requests.exceptions.RequestException, ValueError) as e:
+        print(f"  ! gol.gg tournament list ({season}) failed: {e}", file=sys.stderr)
+        return []
 
-    teams_payload = build_teams_payload(cur_players, hist_players, roster)
-    print(f"  built payload for {len(teams_payload)} teams: {list(teams_payload.keys())}")
 
-    print(f"Discovering this year's tournaments (regular season + any playoffs/finals stages)...")
-    tournaments = discover_tournaments(current_tournament, team_urls)
+def pick_event_tournaments(rows, today):
+    """{region key: [gol.gg tournament names]} for events with recent games.
 
+    Pure, for the tests. A row qualifies when its name matches an event and
+    its last game is within EVENT_GRACE_DAYS -- gol.gg lists a tournament
+    only once it has games, so a recent last game IS "this event is on".
+    """
+    out = {}
+    for row in rows or []:
+        name = str(row.get("trname") or "").strip()
+        last = str(row.get("lastgame") or "")[:10]
+        try:
+            last_day = datetime.strptime(last, "%Y-%m-%d").date()
+        except ValueError:
+            continue
+        if (today - last_day).days > EVENT_GRACE_DAYS:
+            continue
+        for key, pattern in GOLGG_EVENTS.items():
+            if pattern.search(name):
+                out.setdefault(key, []).append(name)
+                break
+    return {k: sorted(v) for k, v in out.items()}
+
+
+def season_code(today):
+    """gol.gg's season label: S16 is 2026."""
+    return f"S{today.year - 2010}"
+
+
+def scrape_matches(tournaments, known=None, current_tournament=None):
+    """Every completed series in `tournaments`, with box scores.
+
+    Shared by the leagues and the international events: a series is a
+    series, and an event's own games are what its region's past_matches
+    hold once gol.gg lists it. `known` is reusable_past_matches() from the
+    last run; `current_tournament` labels a match whose tournament was not
+    recorded.
+    """
     print(f"Fetching match list(s)...")
     matches = []
     seen_base_ids = set()
@@ -1105,7 +1159,66 @@ def scrape_region(region_key, current_tournament, historical_tournament, known=N
             except Exception as e:
                 print(f"  ! skipped {m['team_left']} vs {m['team_right']}: {e}", file=sys.stderr)
 
+    return past_matches
+
+
+def scrape_region(region_key, current_tournament, historical_tournament, known=None):
+    print(f"\n=== {region_key} ({current_tournament}) ===")
+
+    print(f"Fetching team rosters (for team/role assignment)...")
+    roster, team_urls = parse_team_rosters(current_tournament)
+    print(f"  {len(roster)} players matched to a team/role")
+
+    print(f"Fetching current-split player stats...")
+    cur_players = parse_player_list(current_tournament)
+    print(f"  {len(cur_players)} players")
+
+    print(f"Fetching historical-split player stats...")
+    hist_players = parse_player_list(historical_tournament)
+    print(f"  {len(hist_players)} players")
+
+    teams_payload = build_teams_payload(cur_players, hist_players, roster)
+    print(f"  built payload for {len(teams_payload)} teams: {list(teams_payload.keys())}")
+
+    print(f"Discovering this year's tournaments (regular season + any playoffs/finals stages)...")
+    tournaments = discover_tournaments(current_tournament, team_urls)
+
+    past_matches = scrape_matches(tournaments, known, current_tournament)
     return {"teams": teams_payload, "past_matches": past_matches}
+
+
+def scrape_events(payload, existing_regions, now_iso, today=None):
+    """International events' own games, into regions of their own.
+
+    Teams are deliberately left empty: merge.py lends every participant
+    its home league's roster (see international.py for why always). What
+    this adds is the event's completed series, which is what Standings,
+    Past Results and the projections' history read.
+
+    An event region the previous run had carries forward when gol.gg has
+    nothing this run -- before its first game, or on a failed fetch -- so
+    merge.py, which knows from the schedule whether the event is still on,
+    decides when it goes.
+    """
+    today = today or datetime.now(timezone.utc).date()
+    found = pick_event_tournaments(golgg_tournament_rows(season_code(today)), today)
+    for key in GOLGG_EVENTS:
+        names = found.get(key)
+        previous = existing_regions.get(key) or {}
+        if not names:
+            if previous:
+                payload["regions"][key] = {"teams": {}, "past_matches": previous.get("past_matches") or [],
+                                           "refreshed_at": previous.get("refreshed_at")}
+            continue
+        print(f"\n=== {key} (event: {names}) ===")
+        try:
+            past = scrape_matches(names, reusable_past_matches(previous), names[-1])
+            payload["regions"][key] = {"teams": {}, "past_matches": past, "refreshed_at": now_iso}
+        except Exception as e:
+            print(f"! event {key} failed: {e}", file=sys.stderr)
+            if previous:
+                payload["regions"][key] = {"teams": {}, "past_matches": previous.get("past_matches") or [],
+                                           "refreshed_at": previous.get("refreshed_at")}
 
 
 def main():
@@ -1168,6 +1281,8 @@ def main():
             else:
                 print(f"  ! no prior data.json data exists for {region_key} either — it will be "
                       f"genuinely missing this run", file=sys.stderr)
+
+    scrape_events(payload, existing_regions, now_iso)
 
     if failed and len(failed) == len(REGIONS):
         print(f"\n! ALL {len(REGIONS)} regions failed this run (see errors above) — likely gol.gg "
