@@ -132,11 +132,23 @@ def test_the_shrink_never_crosses_the_coin_flip():
         assert (got - 0.5) * ((under / 20) - 0.5) >= 0
 
 
+PLAN_DATE = "2026-09-28"
+
+
 def test_the_plans_quoted_figures_match_the_committed_record():
     """The build plan quotes rates as of 2026-09-28. They are not hardcoded
-    anywhere -- this is the check that the file still says what it said."""
+    anywhere -- this is the check that the file still says what it said.
+
+    Read as of that date, not over the whole file. The record grows every
+    day, so the whole-file rate drifts away from any figure quoted at a fixed
+    date and the check failed for that reason alone: Valorant kills went
+    under 71.6% of 109 lines by 2026-09-28 (inside the plan's range) and
+    59.8% of 209 by 2026-10-02. The live rate is what the priors use; this
+    only asks whether the record still supports what the plan said then.
+    """
     graded = json.loads(open("props_results.json").read())["graded"]
-    rates = under_rates(graded)
+    as_of_plan = [r for r in graded if str(r.get("match_date") or "")[:10] <= PLAN_DATE]
+    rates = under_rates(as_of_plan)
     cs2_kills = rates[("cs2", "kills", 2, "standard")]
     cs2_hs = rates[("cs2", "headshots", 2, "standard")]
     val = rates[("valorant", "kills", 2, "standard")]
