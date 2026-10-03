@@ -1,21 +1,21 @@
 {
   "summary": {
     "all": {
-      "graded": 3020,
-      "pushes": 82,
-      "over": 1351,
-      "under": 1587,
-      "over_rate": 0.4598,
-      "mean_margin": -0.074,
+      "graded": 3068,
+      "pushes": 84,
+      "over": 1384,
+      "under": 1600,
+      "over_rate": 0.4638,
+      "mean_margin": -0.052,
       "median_margin": -0.5
     },
     "cs2": {
-      "graded": 2676,
-      "pushes": 76,
-      "over": 1229,
-      "under": 1371,
-      "over_rate": 0.4727,
-      "mean_margin": 0.092,
+      "graded": 2704,
+      "pushes": 78,
+      "over": 1248,
+      "under": 1378,
+      "over_rate": 0.4752,
+      "mean_margin": 0.102,
       "median_margin": -0.5
     },
     "lol": {
@@ -28,12 +28,12 @@
       "median_margin": -2.5
     },
     "valorant": {
-      "graded": 261,
+      "graded": 281,
       "pushes": 6,
-      "over": 100,
-      "under": 155,
-      "over_rate": 0.3922,
-      "mean_margin": -1.103,
+      "over": 114,
+      "under": 161,
+      "over_rate": 0.4145,
+      "mean_margin": -0.902,
       "median_margin": -1.5
     }
   },
@@ -41,22 +41,22 @@
     "cs2 map 1": {
       "game": "cs2",
       "maps": 1,
-      "graded": 1031,
-      "pushes": 42,
-      "over": 470,
-      "under": 519,
-      "over_rate": 0.4752,
-      "mean_margin": 0.271
+      "graded": 1049,
+      "pushes": 44,
+      "over": 488,
+      "under": 517,
+      "over_rate": 0.4856,
+      "mean_margin": 0.344
     },
     "cs2 maps 1-2": {
       "game": "cs2",
       "maps": 2,
-      "graded": 1645,
+      "graded": 1655,
       "pushes": 34,
-      "over": 759,
-      "under": 852,
-      "over_rate": 0.4711,
-      "mean_margin": -0.019
+      "over": 760,
+      "under": 861,
+      "over_rate": 0.4688,
+      "mean_margin": -0.051
     },
     "lol maps 1-3": {
       "game": "lol",
@@ -71,22 +71,22 @@
     "valorant map 1": {
       "game": "valorant",
       "maps": 1,
-      "graded": 48,
+      "graded": 58,
       "pushes": 2,
-      "over": 16,
-      "under": 30,
-      "over_rate": 0.3478,
-      "mean_margin": -1.125
+      "over": 23,
+      "under": 33,
+      "over_rate": 0.4107,
+      "mean_margin": -0.647
     },
     "valorant maps 1-2": {
       "game": "valorant",
       "maps": 2,
-      "graded": 213,
+      "graded": 223,
       "pushes": 4,
-      "over": 84,
-      "under": 125,
-      "over_rate": 0.4019,
-      "mean_margin": -1.099
+      "over": 91,
+      "under": 128,
+      "over_rate": 0.4155,
+      "mean_margin": -0.969
     }
   },
   "graded": [
@@ -7180,7 +7180,7 @@
       "margin": -15.5,
       "result": "under",
       "match_date": "2026-09-20",
-      "opponent": "Vitality"
+      "opponent": "Team Vitality"
     },
     {
       "game": "cs2",
@@ -25108,7 +25108,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -25126,7 +25126,7 @@
       "margin": 1.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -25144,7 +25144,7 @@
       "margin": -5.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -25162,7 +25162,7 @@
       "margin": -4.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -25180,7 +25180,7 @@
       "margin": 0.5,
       "result": "over",
       "match_date": "2026-09-25",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -25198,7 +25198,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -25216,7 +25216,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -25234,7 +25234,7 @@
       "margin": -5.5,
       "result": "under",
       "match_date": "2026-09-25",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -45862,7 +45862,7 @@
       "margin": -5.0,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -45880,7 +45880,7 @@
       "margin": -0.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -46006,7 +46006,7 @@
       "margin": 2.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -46024,7 +46024,7 @@
       "margin": 3.0,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -46150,7 +46150,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -46168,7 +46168,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -46294,7 +46294,7 @@
       "margin": 10.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -46312,7 +46312,7 @@
       "margin": 7.0,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -46438,7 +46438,7 @@
       "margin": -6.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -46456,7 +46456,7 @@
       "margin": -6.0,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -46578,11 +46578,11 @@
       "start_time": "2026-10-02T08:00:00.000-04:00",
       "stat": "kills",
       "team": "NPG",
-      "actual": 11,
-      "margin": -1.5,
-      "result": "under",
+      "actual": 21,
+      "margin": 8.5,
+      "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "Eternal Fire"
+      "opponent": "Anteiku"
     },
     {
       "game": "cs2",
@@ -46596,11 +46596,11 @@
       "start_time": "2026-10-02T08:00:00.000-04:00",
       "stat": "headshots",
       "team": "NPG",
-      "actual": 10,
-      "margin": 2.5,
+      "actual": 16,
+      "margin": 8.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "Eternal Fire"
+      "opponent": "Anteiku"
     },
     {
       "game": "cs2",
@@ -46614,11 +46614,11 @@
       "start_time": "2026-10-02T08:00:00.000-04:00",
       "stat": "kills",
       "team": "NPG",
-      "actual": 9,
-      "margin": -4.5,
+      "actual": 12,
+      "margin": -1.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Eternal Fire"
+      "opponent": "Anteiku"
     },
     {
       "game": "cs2",
@@ -46632,11 +46632,11 @@
       "start_time": "2026-10-02T08:00:00.000-04:00",
       "stat": "headshots",
       "team": "NPG",
-      "actual": 4,
-      "margin": -2.5,
-      "result": "under",
+      "actual": 9,
+      "margin": 2.5,
+      "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "Eternal Fire"
+      "opponent": "Anteiku"
     },
     {
       "game": "cs2",
@@ -46650,11 +46650,11 @@
       "start_time": "2026-10-02T08:00:00.000-04:00",
       "stat": "kills",
       "team": "NPG",
-      "actual": 17,
-      "margin": 5.5,
+      "actual": 15,
+      "margin": 3.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "Eternal Fire"
+      "opponent": "Anteiku"
     },
     {
       "game": "cs2",
@@ -46668,11 +46668,11 @@
       "start_time": "2026-10-02T08:00:00.000-04:00",
       "stat": "headshots",
       "team": "NPG",
-      "actual": 12,
-      "margin": 5.5,
+      "actual": 8,
+      "margin": 1.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "Eternal Fire"
+      "opponent": "Anteiku"
     },
     {
       "game": "cs2",
@@ -46686,11 +46686,11 @@
       "start_time": "2026-10-02T08:00:00.000-04:00",
       "stat": "kills",
       "team": "NPG",
-      "actual": 6,
-      "margin": -7.5,
+      "actual": 11,
+      "margin": -2.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Eternal Fire"
+      "opponent": "Anteiku"
     },
     {
       "game": "cs2",
@@ -46704,11 +46704,11 @@
       "start_time": "2026-10-02T08:00:00.000-04:00",
       "stat": "kills",
       "team": "NPG",
-      "actual": 9,
-      "margin": -3.5,
-      "result": "under",
+      "actual": 15,
+      "margin": 2.5,
+      "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "Eternal Fire"
+      "opponent": "Anteiku"
     },
     {
       "game": "cs2",
@@ -46722,11 +46722,11 @@
       "start_time": "2026-10-02T08:00:00.000-04:00",
       "stat": "headshots",
       "team": "NPG",
-      "actual": 6,
-      "margin": -1.5,
-      "result": "under",
+      "actual": 8,
+      "margin": 0.5,
+      "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "Eternal Fire"
+      "opponent": "Anteiku"
     },
     {
       "game": "cs2",
@@ -46852,7 +46852,7 @@
       "margin": -5.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -46870,7 +46870,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -46996,7 +46996,7 @@
       "margin": 7.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -47014,7 +47014,7 @@
       "margin": 3.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -47140,7 +47140,7 @@
       "margin": -0.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -47158,7 +47158,7 @@
       "margin": 0.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -47284,7 +47284,7 @@
       "margin": 6.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -47302,7 +47302,7 @@
       "margin": 6.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -47428,7 +47428,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -47446,7 +47446,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -47536,7 +47536,7 @@
       "margin": -0.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -47554,7 +47554,7 @@
       "margin": 0.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -47680,7 +47680,7 @@
       "margin": -4.0,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -47698,7 +47698,7 @@
       "margin": 0.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -47824,7 +47824,7 @@
       "margin": -9.0,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -47842,7 +47842,7 @@
       "margin": -5.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -47968,7 +47968,7 @@
       "margin": 0.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -47986,7 +47986,7 @@
       "margin": -1.0,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "NPG"
+      "opponent": "Nordic Partners Gaming"
     },
     {
       "game": "cs2",
@@ -48076,7 +48076,7 @@
       "margin": -8.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -48094,7 +48094,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -48220,7 +48220,7 @@
       "margin": -6.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -48238,7 +48238,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -48346,7 +48346,7 @@
       "margin": 1.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -48364,7 +48364,7 @@
       "margin": 3.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -48490,7 +48490,7 @@
       "margin": -5.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -48508,7 +48508,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -48634,7 +48634,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -48652,7 +48652,7 @@
       "margin": 0.0,
       "result": "push",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -48742,7 +48742,7 @@
       "margin": 7.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -48760,7 +48760,7 @@
       "margin": 0.0,
       "result": "push",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -48778,7 +48778,7 @@
       "margin": 7.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -48796,7 +48796,7 @@
       "margin": 0.0,
       "result": "push",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -48850,7 +48850,7 @@
       "margin": -5.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -48868,7 +48868,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -48886,7 +48886,7 @@
       "margin": -6.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -48904,7 +48904,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -48958,7 +48958,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -48976,7 +48976,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -48994,7 +48994,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -49012,7 +49012,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -49066,7 +49066,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -49084,7 +49084,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -49102,7 +49102,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -49120,7 +49120,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "Sangal"
+      "opponent": "Sangal 1XBET"
     },
     {
       "game": "cs2",
@@ -50636,6 +50636,42 @@
     },
     {
       "game": "cs2",
+      "line": 12.5,
+      "maps": 1,
+      "observed_at": "2026-10-02T11:49:27.553912+00:00",
+      "odds_type": "standard",
+      "player": "raalz",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-02T11:00:00.000-04:00",
+      "stat": "kills",
+      "team": "9INE",
+      "actual": 15,
+      "margin": 2.5,
+      "result": "over",
+      "match_date": "2026-10-02",
+      "opponent": "MTX"
+    },
+    {
+      "game": "cs2",
+      "line": 7.5,
+      "maps": 1,
+      "observed_at": "2026-10-02T11:49:27.553912+00:00",
+      "odds_type": "standard",
+      "player": "raalz",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-02T11:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "9INE",
+      "actual": 9,
+      "margin": 1.5,
+      "result": "over",
+      "match_date": "2026-10-02",
+      "opponent": "MTX"
+    },
+    {
+      "game": "cs2",
       "line": 13.5,
       "maps": 1,
       "observed_at": "2026-10-02T11:49:27.553912+00:00",
@@ -50646,11 +50682,11 @@
       "start_time": "2026-10-02T12:00:00.000-04:00",
       "stat": "kills",
       "team": "9INE",
-      "actual": 7,
-      "margin": -6.5,
+      "actual": 13,
+      "margin": -0.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "JiJieHao"
+      "opponent": "EAC EXTRA"
     },
     {
       "game": "cs2",
@@ -50664,11 +50700,11 @@
       "start_time": "2026-10-02T12:00:00.000-04:00",
       "stat": "headshots",
       "team": "9INE",
-      "actual": 6,
-      "margin": -2.5,
-      "result": "under",
+      "actual": 9,
+      "margin": 0.5,
+      "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "JiJieHao"
+      "opponent": "EAC EXTRA"
     },
     {
       "game": "cs2",
@@ -50751,14 +50787,50 @@
       "player": "kraghen",
       "provider": "prizepicks",
       "region": "CS2",
+      "start_time": "2026-10-02T11:00:00.000-04:00",
+      "stat": "kills",
+      "team": "9INE",
+      "actual": 21,
+      "margin": 8.5,
+      "result": "over",
+      "match_date": "2026-10-02",
+      "opponent": "MTX"
+    },
+    {
+      "game": "cs2",
+      "line": 5.5,
+      "maps": 1,
+      "observed_at": "2026-10-02T11:49:27.553912+00:00",
+      "odds_type": "standard",
+      "player": "kraghen",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-02T11:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "9INE",
+      "actual": 10,
+      "margin": 4.5,
+      "result": "over",
+      "match_date": "2026-10-02",
+      "opponent": "MTX"
+    },
+    {
+      "game": "cs2",
+      "line": 12.5,
+      "maps": 1,
+      "observed_at": "2026-10-02T11:49:27.553912+00:00",
+      "odds_type": "standard",
+      "player": "kraghen",
+      "provider": "prizepicks",
+      "region": "CS2",
       "start_time": "2026-10-02T12:00:00.000-04:00",
       "stat": "kills",
       "team": "9INE",
-      "actual": 15,
-      "margin": 2.5,
+      "actual": 17,
+      "margin": 4.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "JiJieHao"
+      "opponent": "EAC EXTRA"
     },
     {
       "game": "cs2",
@@ -50772,11 +50844,11 @@
       "start_time": "2026-10-02T12:00:00.000-04:00",
       "stat": "headshots",
       "team": "9INE",
-      "actual": 5,
-      "margin": -0.5,
-      "result": "under",
+      "actual": 9,
+      "margin": 3.5,
+      "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "JiJieHao"
+      "opponent": "EAC EXTRA"
     },
     {
       "game": "cs2",
@@ -50852,6 +50924,42 @@
     },
     {
       "game": "cs2",
+      "line": 15.5,
+      "maps": 1,
+      "observed_at": "2026-10-02T11:49:27.553912+00:00",
+      "odds_type": "standard",
+      "player": "Flayy",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-02T11:00:00.000-04:00",
+      "stat": "kills",
+      "team": "9INE",
+      "actual": 27,
+      "margin": 11.5,
+      "result": "over",
+      "match_date": "2026-10-02",
+      "opponent": "MTX"
+    },
+    {
+      "game": "cs2",
+      "line": 5.5,
+      "maps": 1,
+      "observed_at": "2026-10-02T11:49:27.553912+00:00",
+      "odds_type": "standard",
+      "player": "Flayy",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-02T11:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "9INE",
+      "actual": 6,
+      "margin": 0.5,
+      "result": "over",
+      "match_date": "2026-10-02",
+      "opponent": "MTX"
+    },
+    {
+      "game": "cs2",
       "line": 16.0,
       "maps": 1,
       "observed_at": "2026-10-02T11:49:27.553912+00:00",
@@ -50862,11 +50970,11 @@
       "start_time": "2026-10-02T12:00:00.000-04:00",
       "stat": "kills",
       "team": "9INE",
-      "actual": 24,
-      "margin": 8.0,
+      "actual": 20,
+      "margin": 4.0,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "JiJieHao"
+      "opponent": "EAC EXTRA"
     },
     {
       "game": "cs2",
@@ -50880,11 +50988,11 @@
       "start_time": "2026-10-02T12:00:00.000-04:00",
       "stat": "headshots",
       "team": "9INE",
-      "actual": 5,
-      "margin": -0.5,
+      "actual": 4,
+      "margin": -1.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "JiJieHao"
+      "opponent": "EAC EXTRA"
     },
     {
       "game": "cs2",
@@ -50967,6 +51075,42 @@
       "player": "b1elany",
       "provider": "prizepicks",
       "region": "CS2",
+      "start_time": "2026-10-02T11:00:00.000-04:00",
+      "stat": "kills",
+      "team": "9INE",
+      "actual": 15,
+      "margin": 0.5,
+      "result": "over",
+      "match_date": "2026-10-02",
+      "opponent": "MTX"
+    },
+    {
+      "game": "cs2",
+      "line": 7.5,
+      "maps": 1,
+      "observed_at": "2026-10-02T11:49:27.553912+00:00",
+      "odds_type": "standard",
+      "player": "b1elany",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-02T11:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "9INE",
+      "actual": 9,
+      "margin": 1.5,
+      "result": "over",
+      "match_date": "2026-10-02",
+      "opponent": "MTX"
+    },
+    {
+      "game": "cs2",
+      "line": 14.5,
+      "maps": 1,
+      "observed_at": "2026-10-02T11:49:27.553912+00:00",
+      "odds_type": "standard",
+      "player": "b1elany",
+      "provider": "prizepicks",
+      "region": "CS2",
       "start_time": "2026-10-02T12:00:00.000-04:00",
       "stat": "kills",
       "team": "9INE",
@@ -50974,7 +51118,7 @@
       "margin": 0.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "JiJieHao"
+      "opponent": "EAC EXTRA"
     },
     {
       "game": "cs2",
@@ -50988,11 +51132,11 @@
       "start_time": "2026-10-02T12:00:00.000-04:00",
       "stat": "headshots",
       "team": "9INE",
-      "actual": 12,
-      "margin": 4.5,
+      "actual": 8,
+      "margin": 0.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "JiJieHao"
+      "opponent": "EAC EXTRA"
     },
     {
       "game": "cs2",
@@ -52666,7 +52810,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "9INE"
+      "opponent": "9INE Pusulabet"
     },
     {
       "game": "cs2",
@@ -52684,7 +52828,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "9INE"
+      "opponent": "9INE Pusulabet"
     },
     {
       "game": "cs2",
@@ -52702,7 +52846,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "9INE"
+      "opponent": "9INE Pusulabet"
     },
     {
       "game": "cs2",
@@ -52720,7 +52864,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "9INE"
+      "opponent": "9INE Pusulabet"
     },
     {
       "game": "cs2",
@@ -52810,7 +52954,7 @@
       "margin": 1.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "9INE"
+      "opponent": "9INE Pusulabet"
     },
     {
       "game": "cs2",
@@ -52828,7 +52972,7 @@
       "margin": 2.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "9INE"
+      "opponent": "9INE Pusulabet"
     },
     {
       "game": "cs2",
@@ -52846,7 +52990,7 @@
       "margin": 1.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "9INE"
+      "opponent": "9INE Pusulabet"
     },
     {
       "game": "cs2",
@@ -52864,7 +53008,7 @@
       "margin": 2.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "9INE"
+      "opponent": "9INE Pusulabet"
     },
     {
       "game": "cs2",
@@ -52954,7 +53098,7 @@
       "margin": 4.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "9INE"
+      "opponent": "9INE Pusulabet"
     },
     {
       "game": "cs2",
@@ -52972,7 +53116,7 @@
       "margin": 3.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "9INE"
+      "opponent": "9INE Pusulabet"
     },
     {
       "game": "cs2",
@@ -52990,7 +53134,7 @@
       "margin": 5.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "9INE"
+      "opponent": "9INE Pusulabet"
     },
     {
       "game": "cs2",
@@ -53008,7 +53152,7 @@
       "margin": 3.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "9INE"
+      "opponent": "9INE Pusulabet"
     },
     {
       "game": "cs2",
@@ -53098,7 +53242,7 @@
       "margin": 1.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "9INE"
+      "opponent": "9INE Pusulabet"
     },
     {
       "game": "cs2",
@@ -53116,7 +53260,7 @@
       "margin": -0.5,
       "result": "under",
       "match_date": "2026-10-02",
-      "opponent": "9INE"
+      "opponent": "9INE Pusulabet"
     },
     {
       "game": "cs2",
@@ -53134,7 +53278,7 @@
       "margin": 2.0,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "9INE"
+      "opponent": "9INE Pusulabet"
     },
     {
       "game": "cs2",
@@ -53152,7 +53296,7 @@
       "margin": 0.0,
       "result": "push",
       "match_date": "2026-10-02",
-      "opponent": "9INE"
+      "opponent": "9INE Pusulabet"
     },
     {
       "game": "cs2",
@@ -54449,12 +54593,732 @@
       "result": "over",
       "match_date": "2026-10-02",
       "opponent": "T1"
+    },
+    {
+      "game": "valorant",
+      "line": 30.5,
+      "maps": 2,
+      "observed_at": "2026-10-02T11:49:27.553912+00:00",
+      "odds_type": "standard",
+      "player": "BABYBAY",
+      "provider": "prizepicks",
+      "region": "VCT Americas",
+      "start_time": "2026-10-03T05:00:00.000-04:00",
+      "stat": "kills",
+      "team": "G2 Esports",
+      "actual": 32,
+      "margin": 1.5,
+      "result": "over",
+      "match_date": "2026-10-03",
+      "opponent": "Team Liquid"
+    },
+    {
+      "game": "valorant",
+      "line": 29.5,
+      "maps": 2,
+      "observed_at": "2026-10-02T11:49:27.553912+00:00",
+      "odds_type": "standard",
+      "player": "valyn",
+      "provider": "prizepicks",
+      "region": "VCT Americas",
+      "start_time": "2026-10-03T05:00:00.000-04:00",
+      "stat": "kills",
+      "team": "G2 Esports",
+      "actual": 36,
+      "margin": 6.5,
+      "result": "over",
+      "match_date": "2026-10-03",
+      "opponent": "Team Liquid"
+    },
+    {
+      "game": "valorant",
+      "line": 30.0,
+      "maps": 2,
+      "observed_at": "2026-10-02T11:49:27.553912+00:00",
+      "odds_type": "standard",
+      "player": "jawgemo",
+      "provider": "prizepicks",
+      "region": "VCT Americas",
+      "start_time": "2026-10-03T05:00:00.000-04:00",
+      "stat": "kills",
+      "team": "G2 Esports",
+      "actual": 34,
+      "margin": 4.0,
+      "result": "over",
+      "match_date": "2026-10-03",
+      "opponent": "Team Liquid"
+    },
+    {
+      "game": "valorant",
+      "line": 31.0,
+      "maps": 2,
+      "observed_at": "2026-10-02T11:49:27.553912+00:00",
+      "odds_type": "standard",
+      "player": "leaf",
+      "provider": "prizepicks",
+      "region": "VCT Americas",
+      "start_time": "2026-10-03T05:00:00.000-04:00",
+      "stat": "kills",
+      "team": "G2 Esports",
+      "actual": 23,
+      "margin": -8.0,
+      "result": "under",
+      "match_date": "2026-10-03",
+      "opponent": "Team Liquid"
+    },
+    {
+      "game": "valorant",
+      "line": 29.5,
+      "maps": 2,
+      "observed_at": "2026-10-02T11:49:27.553912+00:00",
+      "odds_type": "standard",
+      "player": "trent",
+      "provider": "prizepicks",
+      "region": "VCT Americas",
+      "start_time": "2026-10-03T05:00:00.000-04:00",
+      "stat": "kills",
+      "team": "G2 Esports",
+      "actual": 41,
+      "margin": 11.5,
+      "result": "over",
+      "match_date": "2026-10-03",
+      "opponent": "Team Liquid"
+    },
+    {
+      "game": "valorant",
+      "line": 29.5,
+      "maps": 2,
+      "observed_at": "2026-10-02T11:49:27.553912+00:00",
+      "odds_type": "standard",
+      "player": "nAts",
+      "provider": "prizepicks",
+      "region": "VCT EMEA",
+      "start_time": "2026-10-03T05:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Team Liquid",
+      "actual": 22,
+      "margin": -7.5,
+      "result": "under",
+      "match_date": "2026-10-03",
+      "opponent": "G2 Esports"
+    },
+    {
+      "game": "valorant",
+      "line": 26.5,
+      "maps": 2,
+      "observed_at": "2026-10-02T11:49:27.553912+00:00",
+      "odds_type": "standard",
+      "player": "trexx",
+      "provider": "prizepicks",
+      "region": "VCT EMEA",
+      "start_time": "2026-10-03T05:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Team Liquid",
+      "actual": 32,
+      "margin": 5.5,
+      "result": "over",
+      "match_date": "2026-10-03",
+      "opponent": "G2 Esports"
+    },
+    {
+      "game": "valorant",
+      "line": 25.5,
+      "maps": 2,
+      "observed_at": "2026-10-02T11:49:27.553912+00:00",
+      "odds_type": "standard",
+      "player": "Kicks",
+      "provider": "prizepicks",
+      "region": "VCT EMEA",
+      "start_time": "2026-10-03T05:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Team Liquid",
+      "actual": 35,
+      "margin": 9.5,
+      "result": "over",
+      "match_date": "2026-10-03",
+      "opponent": "G2 Esports"
+    },
+    {
+      "game": "valorant",
+      "line": 33.5,
+      "maps": 2,
+      "observed_at": "2026-10-02T11:49:27.553912+00:00",
+      "odds_type": "standard",
+      "player": "kamo",
+      "provider": "prizepicks",
+      "region": "VCT EMEA",
+      "start_time": "2026-10-03T05:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Team Liquid",
+      "actual": 34,
+      "margin": 0.5,
+      "result": "over",
+      "match_date": "2026-10-03",
+      "opponent": "G2 Esports"
+    },
+    {
+      "game": "valorant",
+      "line": 31.5,
+      "maps": 2,
+      "observed_at": "2026-10-02T11:49:27.553912+00:00",
+      "odds_type": "standard",
+      "player": "GSR",
+      "provider": "prizepicks",
+      "region": "VCT Champions",
+      "start_time": "2026-10-03T05:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Team Liquid",
+      "actual": 26,
+      "margin": -5.5,
+      "result": "under",
+      "match_date": "2026-10-03",
+      "opponent": "G2 Esports"
+    },
+    {
+      "game": "cs2",
+      "line": 12.5,
+      "maps": 1,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "JamYoung",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-03T07:00:00.000-04:00",
+      "stat": "kills",
+      "team": "TYLOO",
+      "actual": 23,
+      "margin": 10.5,
+      "result": "over",
+      "match_date": "2026-10-03",
+      "opponent": "Team Falcons"
+    },
+    {
+      "game": "cs2",
+      "line": 8.0,
+      "maps": 1,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "JamYoung",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-03T07:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "TYLOO",
+      "actual": 13,
+      "margin": 5.0,
+      "result": "over",
+      "match_date": "2026-10-03",
+      "opponent": "Team Falcons"
+    },
+    {
+      "game": "cs2",
+      "line": 12.5,
+      "maps": 1,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "Jee",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-03T07:00:00.000-04:00",
+      "stat": "kills",
+      "team": "TYLOO",
+      "actual": 9,
+      "margin": -3.5,
+      "result": "under",
+      "match_date": "2026-10-03",
+      "opponent": "Team Falcons"
+    },
+    {
+      "game": "cs2",
+      "line": 4.5,
+      "maps": 1,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "Jee",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-03T07:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "TYLOO",
+      "actual": 3,
+      "margin": -1.5,
+      "result": "under",
+      "match_date": "2026-10-03",
+      "opponent": "Team Falcons"
+    },
+    {
+      "game": "cs2",
+      "line": 11.5,
+      "maps": 1,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "Mercury",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-03T07:00:00.000-04:00",
+      "stat": "kills",
+      "team": "TYLOO",
+      "actual": 10,
+      "margin": -1.5,
+      "result": "under",
+      "match_date": "2026-10-03",
+      "opponent": "Team Falcons"
+    },
+    {
+      "game": "cs2",
+      "line": 6.5,
+      "maps": 1,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "Mercury",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-03T07:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "TYLOO",
+      "actual": 5,
+      "margin": -1.5,
+      "result": "under",
+      "match_date": "2026-10-03",
+      "opponent": "Team Falcons"
+    },
+    {
+      "game": "cs2",
+      "line": 11.5,
+      "maps": 1,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "Zero",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-03T07:00:00.000-04:00",
+      "stat": "kills",
+      "team": "TYLOO",
+      "actual": 17,
+      "margin": 5.5,
+      "result": "over",
+      "match_date": "2026-10-03",
+      "opponent": "Team Falcons"
+    },
+    {
+      "game": "cs2",
+      "line": 6.0,
+      "maps": 1,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "Zero",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-03T07:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "TYLOO",
+      "actual": 6,
+      "margin": 0.0,
+      "result": "push",
+      "match_date": "2026-10-03",
+      "opponent": "Team Falcons"
+    },
+    {
+      "game": "cs2",
+      "line": 11.0,
+      "maps": 1,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "Moseyuh",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-03T07:00:00.000-04:00",
+      "stat": "kills",
+      "team": "TYLOO",
+      "actual": 11,
+      "margin": 0.0,
+      "result": "push",
+      "match_date": "2026-10-03",
+      "opponent": "Team Falcons"
+    },
+    {
+      "game": "cs2",
+      "line": 6.5,
+      "maps": 1,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "Moseyuh",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-03T07:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "TYLOO",
+      "actual": 7,
+      "margin": 0.5,
+      "result": "over",
+      "match_date": "2026-10-03",
+      "opponent": "Team Falcons"
+    },
+    {
+      "game": "cs2",
+      "line": 23.5,
+      "maps": 2,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "Ax1Le",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-03T07:30:00.000-04:00",
+      "stat": "kills",
+      "team": "1win",
+      "actual": 12,
+      "margin": -11.5,
+      "result": "under",
+      "match_date": "2026-10-03",
+      "opponent": "Team Vitality"
+    },
+    {
+      "game": "cs2",
+      "line": 12.0,
+      "maps": 2,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "Ax1Le",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-03T07:30:00.000-04:00",
+      "stat": "headshots",
+      "team": "1win",
+      "actual": 6,
+      "margin": -6.0,
+      "result": "under",
+      "match_date": "2026-10-03",
+      "opponent": "Team Vitality"
+    },
+    {
+      "game": "cs2",
+      "line": 23.5,
+      "maps": 2,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "Artfr0st",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-03T07:30:00.000-04:00",
+      "stat": "kills",
+      "team": "1win",
+      "actual": 19,
+      "margin": -4.5,
+      "result": "under",
+      "match_date": "2026-10-03",
+      "opponent": "Team Vitality"
+    },
+    {
+      "game": "cs2",
+      "line": 8.0,
+      "maps": 2,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "Artfr0st",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-03T07:30:00.000-04:00",
+      "stat": "headshots",
+      "team": "1win",
+      "actual": 9,
+      "margin": 1.0,
+      "result": "over",
+      "match_date": "2026-10-03",
+      "opponent": "Team Vitality"
+    },
+    {
+      "game": "cs2",
+      "line": 22.0,
+      "maps": 2,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "BELCHONOKK",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-03T07:30:00.000-04:00",
+      "stat": "kills",
+      "team": "1win",
+      "actual": 20,
+      "margin": -2.0,
+      "result": "under",
+      "match_date": "2026-10-03",
+      "opponent": "Team Vitality"
+    },
+    {
+      "game": "cs2",
+      "line": 12.5,
+      "maps": 2,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "BELCHONOKK",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-03T07:30:00.000-04:00",
+      "stat": "headshots",
+      "team": "1win",
+      "actual": 10,
+      "margin": -2.5,
+      "result": "under",
+      "match_date": "2026-10-03",
+      "opponent": "Team Vitality"
+    },
+    {
+      "game": "cs2",
+      "line": 21.0,
+      "maps": 2,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "fame",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-03T07:30:00.000-04:00",
+      "stat": "kills",
+      "team": "1win",
+      "actual": 19,
+      "margin": -2.0,
+      "result": "under",
+      "match_date": "2026-10-03",
+      "opponent": "Team Vitality"
+    },
+    {
+      "game": "cs2",
+      "line": 13.5,
+      "maps": 2,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "fame",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-03T07:30:00.000-04:00",
+      "stat": "headshots",
+      "team": "1win",
+      "actual": 13,
+      "margin": -0.5,
+      "result": "under",
+      "match_date": "2026-10-03",
+      "opponent": "Team Vitality"
+    },
+    {
+      "game": "cs2",
+      "line": 20.5,
+      "maps": 2,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "nafany",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-03T07:30:00.000-04:00",
+      "stat": "kills",
+      "team": "1win",
+      "actual": 5,
+      "margin": -15.5,
+      "result": "under",
+      "match_date": "2026-10-03",
+      "opponent": "Team Vitality"
+    },
+    {
+      "game": "cs2",
+      "line": 11.5,
+      "maps": 2,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "nafany",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-03T07:30:00.000-04:00",
+      "stat": "headshots",
+      "team": "1win",
+      "actual": 2,
+      "margin": -9.5,
+      "result": "under",
+      "match_date": "2026-10-03",
+      "opponent": "Team Vitality"
+    },
+    {
+      "game": "valorant",
+      "line": 15.0,
+      "maps": 1,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "BABYBAY",
+      "provider": "prizepicks",
+      "region": "VCT Americas",
+      "start_time": "2026-10-03T07:00:00.000-04:00",
+      "stat": "kills",
+      "team": "G2 Esports",
+      "actual": 16,
+      "margin": 1.0,
+      "result": "over",
+      "match_date": "2026-10-03",
+      "opponent": "Team Liquid"
+    },
+    {
+      "game": "valorant",
+      "line": 14.5,
+      "maps": 1,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "valyn",
+      "provider": "prizepicks",
+      "region": "VCT Americas",
+      "start_time": "2026-10-03T07:00:00.000-04:00",
+      "stat": "kills",
+      "team": "G2 Esports",
+      "actual": 15,
+      "margin": 0.5,
+      "result": "over",
+      "match_date": "2026-10-03",
+      "opponent": "Team Liquid"
+    },
+    {
+      "game": "valorant",
+      "line": 15.5,
+      "maps": 1,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "jawgemo",
+      "provider": "prizepicks",
+      "region": "VCT Americas",
+      "start_time": "2026-10-03T07:00:00.000-04:00",
+      "stat": "kills",
+      "team": "G2 Esports",
+      "actual": 16,
+      "margin": 0.5,
+      "result": "over",
+      "match_date": "2026-10-03",
+      "opponent": "Team Liquid"
+    },
+    {
+      "game": "valorant",
+      "line": 15.0,
+      "maps": 1,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "leaf",
+      "provider": "prizepicks",
+      "region": "VCT Americas",
+      "start_time": "2026-10-03T07:00:00.000-04:00",
+      "stat": "kills",
+      "team": "G2 Esports",
+      "actual": 13,
+      "margin": -2.0,
+      "result": "under",
+      "match_date": "2026-10-03",
+      "opponent": "Team Liquid"
+    },
+    {
+      "game": "valorant",
+      "line": 14.5,
+      "maps": 1,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "trent",
+      "provider": "prizepicks",
+      "region": "VCT Americas",
+      "start_time": "2026-10-03T07:00:00.000-04:00",
+      "stat": "kills",
+      "team": "G2 Esports",
+      "actual": 21,
+      "margin": 6.5,
+      "result": "over",
+      "match_date": "2026-10-03",
+      "opponent": "Team Liquid"
+    },
+    {
+      "game": "valorant",
+      "line": 14.5,
+      "maps": 1,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "nAts",
+      "provider": "prizepicks",
+      "region": "VCT EMEA",
+      "start_time": "2026-10-03T07:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Team Liquid",
+      "actual": 8,
+      "margin": -6.5,
+      "result": "under",
+      "match_date": "2026-10-03",
+      "opponent": "G2 Esports"
+    },
+    {
+      "game": "valorant",
+      "line": 13.0,
+      "maps": 1,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "trexx",
+      "provider": "prizepicks",
+      "region": "VCT EMEA",
+      "start_time": "2026-10-03T07:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Team Liquid",
+      "actual": 12,
+      "margin": -1.0,
+      "result": "under",
+      "match_date": "2026-10-03",
+      "opponent": "G2 Esports"
+    },
+    {
+      "game": "valorant",
+      "line": 12.5,
+      "maps": 1,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "Kicks",
+      "provider": "prizepicks",
+      "region": "VCT EMEA",
+      "start_time": "2026-10-03T07:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Team Liquid",
+      "actual": 22,
+      "margin": 9.5,
+      "result": "over",
+      "match_date": "2026-10-03",
+      "opponent": "G2 Esports"
+    },
+    {
+      "game": "valorant",
+      "line": 16.5,
+      "maps": 1,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "kamo",
+      "provider": "prizepicks",
+      "region": "VCT EMEA",
+      "start_time": "2026-10-03T07:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Team Liquid",
+      "actual": 21,
+      "margin": 4.5,
+      "result": "over",
+      "match_date": "2026-10-03",
+      "opponent": "G2 Esports"
+    },
+    {
+      "game": "valorant",
+      "line": 15.5,
+      "maps": 1,
+      "observed_at": "2026-10-03T11:00:22.286377+00:00",
+      "odds_type": "standard",
+      "player": "GSR",
+      "provider": "prizepicks",
+      "region": "VCT Champions",
+      "start_time": "2026-10-03T07:00:00.000-04:00",
+      "stat": "kills",
+      "team": "Team Liquid",
+      "actual": 19,
+      "margin": 3.5,
+      "result": "over",
+      "match_date": "2026-10-03",
+      "opponent": "G2 Esports"
     }
   ],
   "refused": {
-    "no completed match on that date": 926,
+    "no completed match on that date": 886,
     "player missing from the box score": 2,
     "player missing from a map's box score": 20,
-    "team played more than once that day": 62
+    "team played more than once that day": 54
   }
 }
