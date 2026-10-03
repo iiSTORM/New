@@ -8471,8 +8471,11 @@ try {
       compact: !isDesktop,
       width: boxW
     }))))))), model.undrawn.length > 0 && React.createElement("div", {
-      style: {
+      style: model.rounds.length ? {
         flexShrink: 0
+      } : {
+        flex: "1 1 100%",
+        minWidth: 0
       }
     }, React.createElement("div", {
       style: {
@@ -8503,7 +8506,8 @@ try {
     }, d.day, " \xB7 ", d.matches.length, " match", d.matches.length === 1 ? "" : "es"), React.createElement("div", {
       style: {
         display: "flex",
-        flexDirection: "column",
+        flexDirection: model.rounds.length ? "column" : "row",
+        flexWrap: "wrap",
         gap: 8
       }
     }, d.matches.map(m => React.createElement(EventMatchBox, {

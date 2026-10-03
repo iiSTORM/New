@@ -7599,7 +7599,7 @@ function SwissView({ stage, laterTeams, teams, isDesktop }) {
           </div>
         ))}
         {model.undrawn.length > 0 && (
-          <div style={{ flexShrink: 0 }}>
+          <div style={model.rounds.length ? { flexShrink: 0 } : { flex: "1 1 100%", minWidth: 0 }}>
             <div style={{ fontSize: 11, letterSpacing: 1.2, color: theme.textFaint, fontWeight: 700, marginBottom: 8 }}>
               {model.rounds.length ? "LATER ROUNDS" : "SCHEDULE"}
             </div>
@@ -7609,7 +7609,10 @@ function SwissView({ stage, laterTeams, teams, isDesktop }) {
             {model.undrawn.map((d) => (
               <div key={d.day} style={{ marginBottom: 12 }}>
                 <div style={{ fontSize: 11, color: theme.textDim, marginBottom: 6 }}>{d.day} · {d.matches.length} match{d.matches.length === 1 ? "" : "es"}</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {/* Before anything is drawn this is the whole stage, and one
+                    column of 33 boxes is most of a phone's scroll. */}
+                <div style={{ display: "flex", flexDirection: model.rounds.length ? "column" : "row",
+                  flexWrap: "wrap", gap: 8 }}>
                   {d.matches.map((m) => <EventMatchBox key={m.id} m={m} teams={teams} compact={!isDesktop} width={boxW} />)}
                 </div>
               </div>
