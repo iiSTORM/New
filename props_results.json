@@ -1,21 +1,21 @@
 {
   "summary": {
     "all": {
-      "graded": 3019,
+      "graded": 3020,
       "pushes": 82,
       "over": 1351,
-      "under": 1586,
-      "over_rate": 0.46,
-      "mean_margin": -0.068,
+      "under": 1587,
+      "over_rate": 0.4598,
+      "mean_margin": -0.074,
       "median_margin": -0.5
     },
     "cs2": {
-      "graded": 2675,
+      "graded": 2676,
       "pushes": 76,
       "over": 1229,
-      "under": 1370,
-      "over_rate": 0.4729,
-      "mean_margin": 0.098,
+      "under": 1371,
+      "over_rate": 0.4727,
+      "mean_margin": 0.092,
       "median_margin": -0.5
     },
     "lol": {
@@ -51,12 +51,12 @@
     "cs2 maps 1-2": {
       "game": "cs2",
       "maps": 2,
-      "graded": 1644,
+      "graded": 1645,
       "pushes": 34,
       "over": 759,
-      "under": 851,
-      "over_rate": 0.4714,
-      "mean_margin": -0.01
+      "under": 852,
+      "over_rate": 0.4711,
+      "mean_margin": -0.019
     },
     "lol maps 1-3": {
       "game": "lol",
@@ -7163,6 +7163,24 @@
       "result": "under",
       "match_date": "2026-09-23",
       "opponent": "ALKA"
+    },
+    {
+      "game": "cs2",
+      "line": 30.5,
+      "maps": 2,
+      "observed_at": "2026-09-20T16:02:12.999042+00:00",
+      "odds_type": null,
+      "player": "FalleN",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-20T13:30:00-04:00",
+      "stat": "kills",
+      "team": "FURIA",
+      "actual": 15,
+      "margin": -15.5,
+      "result": "under",
+      "match_date": "2026-09-20",
+      "opponent": "Vitality"
     },
     {
       "game": "cs2",
@@ -54437,6 +54455,6 @@
     "no completed match on that date": 926,
     "player missing from the box score": 2,
     "player missing from a map's box score": 20,
-    "team played more than once that day": 63
+    "team played more than once that day": 62
   }
 }
