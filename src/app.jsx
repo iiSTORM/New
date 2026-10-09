@@ -1844,6 +1844,34 @@ function propsAgeMinutes(propsData) {
   return (Date.now() - then.getTime()) / 60000;
 }
 
+/* When every line on the board is for a match that has already started,
+   the board is simply old: say so, with its age, rather than letting an
+   empty Edges or Parlays tab read as "none of your leagues are posted".
+   Returns the sentence, or null when anything on the board is still live. */
+function staleBoardNote(propsData) {
+  if (!propsData || !propsData.props) return null;
+  let latest = null, count = 0;
+  for (const players of Object.values(propsData.props)) {
+    for (const rows of Object.values(players || {})) {
+      for (const row of rows || []) {
+        count++;
+        const t = Date.parse(row.start_time);
+        if (Number.isFinite(t) && (latest === null || t > latest)) latest = t;
+      }
+    }
+  }
+  if (!count || latest === null || latest > Date.now()) return null;
+  const fetched = Date.parse(propsData.fetched_at);
+  const when = Number.isFinite(fetched)
+    ? new Date(fetched).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })
+    : "an earlier day";
+  const age = propsAgeMinutes(propsData);
+  const ago = age === null ? "" : age >= 2880 ? ` (${Math.round(age / 1440)} days ago)`
+    : age >= 120 ? ` (${Math.round(age / 60)} hours ago)` : "";
+  return `The posted lines were saved ${when}${ago}, and every match they were for has started. `
+    + "Upload a fresh board to see edges and parlays.";
+}
+
 function propsAreFresh(propsData) {
   const age = propsAgeMinutes(propsData);
   return age !== null && age <= PROPS_MAX_AGE_MINUTES;
@@ -2267,7 +2295,9 @@ function postedLineCounts(propsData, game) {
   const byPlayer = (propsData && propsData.props && propsData.props[game]) || {};
   for (const lines of Object.values(byPlayer)) {
     for (const line of lines || []) {
-      if (line && line.stat) out[line.stat] = (out[line.stat] || 0) + 1;
+      // Only lines still open: "Kills 230" over a board whose matches have
+      // all been played promised 230 lines and showed none.
+      if (line && line.stat && propIsLive(line)) out[line.stat] = (out[line.stat] || 0) + 1;
     }
   }
   return out;
@@ -3087,12 +3117,47 @@ function pointInTimeTeamStat(pastMatches, team, statKey, cutoffDate) {
   return games > 0 ? total / games : null;
 }
 
+/* The league average was every team's pointInTimeTeamStat, each a full
+   scan of the match list -- about 200 CS2 teams x 900 matches per call --
+   and the Record and Parlays tabs call it once per graded line: 45 seconds
+   to open Parlays on 2026-10-09. Now one pass over the matches, keeping
+   each team's running total in the same order the per-team scan did (so the
+   result is the same number to the last bit), cached per cutoff: every line
+   graded on the same day shares one. Keyed on the list and the teams object
+   by identity, which are replaced wholesale when data reloads. */
+const leagueAvgCache = new WeakMap();
 function pointInTimeLeagueAvgStat(pastMatches, teams, statKey, cutoffDate) {
-  const rates = Object.keys(teams)
-    .map((t) => pointInTimeTeamStat(pastMatches, t, statKey, cutoffDate))
+  let byTeams = leagueAvgCache.get(pastMatches);
+  if (!byTeams) { byTeams = new WeakMap(); leagueAvgCache.set(pastMatches, byTeams); }
+  let memo = byTeams.get(teams);
+  if (!memo) { memo = new Map(); byTeams.set(teams, memo); }
+  const key = `${statKey}|${cutoffDate}`;
+  if (memo.has(key)) return memo.get(key);
+
+  const names = Object.keys(teams);
+  const totals = new Map(names.map((t) => [t, { total: 0, games: 0 }]));
+  for (const m of pastMatches) {
+    if (cutoffDate !== null && (!m.date || m.date >= cutoffDate)) continue;
+    if (!m.actual) continue;
+    for (const [team, opp] of [[m.teamA, m.teamB], [m.teamB, m.teamA]]) {
+      const acc = totals.get(team);
+      if (!acc || !opp) continue;
+      if (m.teamA === m.teamB && team === m.teamB) continue;   // the per-team scan counted such a row once
+      const sourceTeam = statKey === "d" ? opp : team;
+      const sourceData = m.actual[sourceTeam];
+      if (!sourceData) continue;
+      for (const playerName in sourceData) {
+        const val = getActualStat(m, sourceTeam, playerName, "k");
+        if (typeof val === "number") acc.total += val;
+      }
+      acc.games += mapsCountedFor(m);
+    }
+  }
+  const rates = names.map((t) => { const a = totals.get(t); return a.games > 0 ? a.total / a.games : null; })
     .filter((r) => r !== null);
-  if (rates.length === 0) return null;
-  return rates.reduce((s, r) => s + r, 0) / rates.length;
+  const out = rates.length === 0 ? null : rates.reduce((s, r) => s + r, 0) / rates.length;
+  memo.set(key, out);
+  return out;
 }
 
 /* ============================================================
@@ -4678,6 +4743,7 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
       payload saved out of a browser — see “Prop lines” in the README. The projections on the other tabs do not
       depend on it.</>);
   }
+  if (!rows.length && staleBoardNote(propsData)) return note(staleBoardNote(propsData));
   if (!rows.length) {
     return note(<>Lines are loaded, but none of them belong to a player in an upcoming {cfg.label.toLowerCase()} fixture
       this app tracks. That is usually the board being a league outside the tracked regions rather than anything
@@ -5088,7 +5154,7 @@ function ProjectionsTab({ isDesktop }) {
                   )}
                 </td>
                 <td style={{ padding: "6px 8px", color: theme.textDim }}>
-                  {r.stat} · maps 1-{r.maps}
+                  {r.stat} · {mapWindowLabel(r.maps, r.map || Number((/:\d+@(\d+):/.exec(r.prop_id || "") || [])[1]) || 1)}
                 </td>
                 <td style={{ padding: "6px 8px", textAlign: "right" }}>{r.line}</td>
                 <td style={{ padding: "6px 8px", textAlign: "right" }}>
@@ -5198,6 +5264,7 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
   );
 
   if (!propsData) return shell("No posted lines loaded, so there is nothing to build a parlay from.");
+  if (!rows.length && staleBoardNote(propsData)) return shell(staleBoardNote(propsData));
   if (!ladder.length) {
     return shell(`${rows.length} live line(s) across every game, which is not enough distinct `
       + `players to fill even a two-leg entry. The ladder needs one leg per player.`);
@@ -5398,7 +5465,7 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
                       </span>
                     )}
                     <span>{leg.team} vs {leg.opponent}</span>
-                    <span>{STAT_TYPES[leg.statType].label} maps 1-{leg.maps}</span>
+                    <span>{STAT_TYPES[leg.statType].label} {mapWindowLabel(leg.maps, leg.prop && leg.prop.map)}</span>
                     <span>
                       line {leg.prop.line} · we say {leg.projection.toFixed(1)}
                       {" "}<strong style={{ color: theme.text }}>
@@ -7746,7 +7813,10 @@ const EVENT_STATUS = {
 function SwissView({ stage, laterTeams, teams, isDesktop }) {
   const theme = useTheme();
   const model = swissModel(stage, laterTeams);
-  const boxW = isDesktop ? 190 : 150;
+  // Five Swiss rounds at full width ran past the card on a desktop and
+  // clipped the last column; narrower boxes keep them all on screen.
+  const columns = model.rounds.length + (model.undrawn.length ? 1 : 0);
+  const boxW = isDesktop ? (columns >= 5 ? 168 : 190) : 150;
   return (
     <div>
       {model.standings.length > 0 && (
@@ -8721,7 +8791,8 @@ function KillProjector({ onHome } = {}) {
             )}
 
             <div style={{ marginTop: 20, fontSize: 11, color: theme.textFaint, lineHeight: 1.6 }}>
-              Data: {game === "lol" ? "regular-season box scores (gol.gg) and schedule (LoL Esports API)" : "match stats (VLR.gg)"}.
+              Data: {game === "lol" ? "box scores (gol.gg) and schedule (LoL Esports API)"
+                : game === "cs2" ? "match stats and schedule (bo3.gg)" : "match stats (VLR.gg)"}.
             </div>
           </div>
         </div>
@@ -9834,7 +9905,7 @@ function PeOpenSlip({ slip, table, busy, onSave, onSettle, onRemove }) {
                 <strong>{leg.player}</strong>{" "}
                 <span style={{ color: theme.textDim }}>
                   {leg.side === "over" ? "↑" : "↓"} {leg.line} {leg.stat}
-                  {leg.maps ? ` · maps 1-${leg.maps}` : ""}{leg.odds_type !== "standard" ? ` · ${leg.odds_type}` : ""}
+                  {leg.maps ? ` · ${mapWindowLabel(Number(leg.maps))}` : ""}{leg.odds_type !== "standard" ? ` · ${leg.odds_type}` : ""}
                 </span>
               </div>
               <PeResultBadge result={graded[i].result} />

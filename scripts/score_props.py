@@ -399,6 +399,45 @@ def summarise_by_window(graded):
     return out
 
 
+def graded_key(row):
+    """One graded line: the posting it grades, not the observation of it."""
+    return (row.get("game"), row.get("player"), row.get("stat"), row.get("maps"),
+            row.get("map") or 1, row.get("line"), row.get("start_time"), row.get("odds_type"))
+
+
+def carry_forward(previous, graded, data_by_game):
+    """(graded plus the rows from last run worth keeping, how many were kept).
+
+    Every run regrades from scratch against the CURRENT data files, and the
+    CS2 file keeps only each team's last MATCHES_KEPT_PER_TEAM matches. So a
+    line graded on a match that has since rolled off simply vanished from
+    the record: 67 CS2 lines by 2026-10-09, quietly thinning the Record tab,
+    the under-rate priors and the closing-line history, and moving figures
+    quoted for a past date.
+
+    A row from the last run is kept only when it is not regraded now AND its
+    match is no longer in the data (no match that day for that team). A row
+    whose match IS still on file but no longer grades was refused on purpose
+    -- a duplicate line, a map-2 line once mislabelled map 1 -- and is not
+    resurrected.
+    """
+    fresh = {graded_key(r) for r in graded}
+    on_file = collections.defaultdict(set)
+    for game, data in (data_by_game or {}).items():
+        for region in ((data or {}).get("regions") or {}).values():
+            for m in (region.get("past_matches") or []) + (region.get("history_matches") or []):
+                for team in (m.get("teamA"), m.get("teamB")):
+                    on_file[game].add((str(m.get("date") or "")[:10], team))
+    kept = []
+    for row in previous or []:
+        if graded_key(row) in fresh:
+            continue
+        if (str(row.get("match_date") or "")[:10], row.get("team")) in on_file.get(row.get("game"), ()):
+            continue
+        kept.append(row)
+    return list(graded) + kept, len(kept)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--history", default="props_history.jsonl")
@@ -430,6 +469,16 @@ def main():
 
     graded, refused = grade(records, data_by_game)
     print(f"{len(records)} observation(s) on file, {len(graded)} gradeable\n")
+    if args.json_out:
+        try:
+            with open(args.json_out) as f:
+                previous = json.load(f).get("graded") or []
+        except (OSError, ValueError):
+            previous = []
+        graded, carried = carry_forward(previous, graded, data_by_game)
+        if carried:
+            print(f"{carried} line(s) kept from the last run: their matches have rolled "
+                  f"out of the data files, so they can no longer be regraded\n")
 
     if refused:
         print("NOT GRADED")

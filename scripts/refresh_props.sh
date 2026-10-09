@@ -145,16 +145,27 @@ if [ -n "$DRY_RUN" ]; then
   exit 0
 fi
 
-# Only props.json, by path: whatever else is in the tree is not this job's.
-git add props.json
-if git diff --quiet --cached -- props.json; then
+# The Projections tab reads model_projections.json, built from this board. It
+# went stale on every upload when only props.json was committed, and the
+# test that checks the two agree failed on every push. Never fatal: the
+# board is worth committing even if this step breaks.
+if ! "$PYTHON" scripts/publish_projections.py; then
+  log "publish_projections.py failed — the Projections tab keeps its last file"
+fi
+
+# By path only: whatever else is in the tree is not this job's. The board,
+# its history (what grading reads; it was being committed by hand after
+# each run) and the projections built from it go in one commit.
+FILES="props.json props_history.jsonl model_projections.json"
+git add -- $FILES 2>/dev/null || git add -- props.json
+if git diff --quiet --cached -- $FILES; then
   log "lines unchanged since the last run"
   exit 0
 fi
 
 git -c user.name="${PROPS_GIT_NAME:-props-refresh}" \
     -c user.email="${PROPS_GIT_EMAIL:-actions@users.noreply.github.com}" \
-    commit --quiet --only props.json \
+    commit --quiet --only $FILES \
     -m "Update prop lines $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 for attempt in 1 2 3; do

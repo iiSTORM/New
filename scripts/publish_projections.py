@@ -66,7 +66,7 @@ def benchmark(graded, model):
         mu, evidence = mean
         if evidence < MIN_MAPS:
             continue
-        key = f"{game} {stat} maps 1-{maps}"
+        key = f"{game} {stat} {'map 1' if maps == 1 else f'maps 1-{maps}'}"
         cells[key]["model"].append(abs(mu - row["actual"]))
         cells[key]["line"].append(abs(row["line"] - row["actual"]))
     out = []

@@ -91,9 +91,17 @@ function Invoke-Refresh {
 
     if ($DryRun) { Write-Log "-DryRun: nothing committed"; return 0 }
 
+    # The Projections tab is built from this board; refresh it too. Never
+    # fatal: the board is worth committing even if this step breaks.
+    & $Python scripts/publish_projections.py
+    if ($LASTEXITCODE -ne 0) { Write-Log "publish_projections.py failed -- the Projections tab keeps its last file" }
+
     # By path only: whatever else is in the tree is not this job's business.
-    & git add props.json
-    & git diff --quiet --cached -- props.json
+    # The board, its history (what grading reads) and the projections built
+    # from it go in one commit.
+    $files = @("props.json", "props_history.jsonl", "model_projections.json") | Where-Object { Test-Path $_ }
+    & git add -- @files
+    & git diff --quiet --cached -- @files
     if ($LASTEXITCODE -eq 0) {
         Write-Log "lines unchanged since the last run"
         return 0
@@ -101,7 +109,7 @@ function Invoke-Refresh {
 
     $stamp = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
     & git -c user.name="props-refresh" -c user.email="actions@users.noreply.github.com" `
-        commit --quiet --only props.json -m "Update prop lines $stamp"
+        commit --quiet --only @files -m "Update prop lines $stamp"
     if ($LASTEXITCODE -ne 0) { Write-Log "commit failed"; return 1 }
 
     foreach ($attempt in 1..3) {

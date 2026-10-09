@@ -129,9 +129,12 @@ refuse. In Firefox, switch to the *Raw Data* tab first; its JSON viewer
 renders a tree, and the tree is not the document.
 
 `./scripts/refresh_props.sh` then finds that file, refuses it if it has
-aged past the 90-minute window the app enforces, runs the matcher and
-commits. Two steps, a few seconds, and nothing pretending to be anything
-it is not.
+aged past the 90-minute window the app enforces, runs the matcher, rebuilds
+the Projections tab's `model_projections.json` from the new board, and
+commits the board, `props_history.jsonl` and the projections together. Two
+steps, a few seconds, and nothing pretending to be anything it is not.
+(Until 2026-10-09 it committed only `props.json`: the history had to be
+committed by hand and the projections went stale on every upload.)
 
 The page shows the script's full source beside the button, generated from
 `tools/bookmarklet.js` so the code you read is the code you install —
@@ -160,7 +163,8 @@ Get-Clipboard | python scripts/scrape_props.py --fixture - --out props.json  # W
 pbpaste | python scripts/scrape_props.py --fixture - --out props.json        # macOS
 xclip -o -sel clip | python scripts/scrape_props.py --fixture - --out props.json  # Linux
 
-git add props.json && git commit -m "Update prop lines" && git push
+python scripts/publish_projections.py   # the Projections tab is built from the board
+git add props.json props_history.jsonl model_projections.json && git commit -m "Update prop lines" && git push
 ```
 
 ### Automatic refresh
@@ -231,7 +235,8 @@ Lines are good for 90 minutes. To replace them:
 ```bash
 git pull
 python scripts/scrape_props.py --fixture lol.json cs2.json val.json --out props.json
-git add props.json props_history.jsonl && git commit -m "Update prop lines" && git push
+python scripts/publish_projections.py   # the Projections tab is built from the board
+git add props.json props_history.jsonl model_projections.json && git commit -m "Update prop lines" && git push
 ```
 
 4. Hard-refresh the app (Ctrl-Shift-R). Lines appear on the **Edges** tab,
@@ -240,7 +245,7 @@ git add props.json props_history.jsonl && git commit -m "Update prop lines" && g
 Read the funnel before step 3's commit — it is printed whether or not you
 asked for a dry run, and `0 matched` for a game is worth understanding
 before pushing rather than after. The payload filenames are in
-`.gitignore`, so only the two files below are ever committed.
+`.gitignore`, so only the board, its history and the projections are ever committed.
 
 **Commit `props_history.jsonl` too.** `props.json` holds only what is live,
 and each refresh overwrites it. The history is append-only: every board ever

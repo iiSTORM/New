@@ -651,8 +651,10 @@ if (fs.existsSync(realPath)) {
               all.some((w) => w.maps === p.maps), true);
         // ...and no window comes back twice, which would double-count
         // the same market on a board ranked by edge.
+        // A window is the map count AND the map it starts on: a Map 1 and
+        // a Map 2 line are two markets, both rightly listed.
         check(`${game}/${name} lists each window once`,
-              new Set(all.map((w) => w.maps)).size, all.length);
+              new Set(all.map((w) => `${w.map || 1}:${w.maps}`)).size, all.length);
         checked++;
       }
     }

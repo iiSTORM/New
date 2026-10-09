@@ -121,3 +121,9 @@ jobs:
       # up only as an empty panel.
       - name: Check the Impact ± stat
         run: node tests/impact.test.mjs
+
+      # The league average is computed in one cached pass rather than one
+      # scan per team (Parlays took 38s to open). It must stay bit-identical
+      # to the per-team definition, which is what this checks.
+      - name: Check the fast league average matches the per-team scan
+        run: node tests/league_avg.test.mjs

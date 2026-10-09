@@ -29,6 +29,11 @@ def _key(game, player, stat, maps, line):
 def index_graded(rows):
     out = {}
     for row in rows:
+        # A leg does not record which map a one-map line was on, and nearly
+        # every one is map 1; a "MAP 2 Kills" row at the same number is a
+        # different market and must not grade it.
+        if (row.get("map") or 1) != 1:
+            continue
         try:
             key = _key(row.get("game"), row.get("player"), row.get("stat"),
                        row.get("maps"), row.get("line"))

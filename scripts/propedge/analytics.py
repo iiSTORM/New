@@ -287,7 +287,7 @@ MATCH_WINDOW = timedelta(hours=2)
 def board_history(path="props_history.jsonl"):
     """(by_match, captures).
 
-    `by_match` is keyed by (game, player, stat, maps, start_time) -- the START
+    `by_match` is keyed by (game, player, stat, maps, first map, start_time) -- the START
     TIME MATTERS. Without it a player's kills line in Tuesday's match and
     Friday's collapse into one series, and the "closing line" for a Tuesday bet
     could be a number posted for Friday. That is not a slightly wrong CLV
@@ -317,8 +317,11 @@ def board_history(path="props_history.jsonl"):
         if seen_at is None or not isinstance(row.get("line"), (int, float)):
             continue
         captures.add(seen_at)
+        # The first map is part of the key: "MAP 1 Kills" and "MAP 2 Kills"
+        # on one match are two markets over one map each, and since the board
+        # records which map, mixing them made one series out of two lines.
         key = (str(row.get("game", "")).lower(), str(row.get("player", "")).lower(),
-               str(row.get("stat", "")).lower(), row.get("maps"),
+               str(row.get("stat", "")).lower(), row.get("maps"), row.get("map") or 1,
                str(row.get("start_time") or ""))
         by_match[key].append({"at": seen_at, "line": float(row["line"]),
                               "start": parse_ts(row.get("start_time"))})
@@ -336,8 +339,10 @@ def resolve_prop(leg, placed, by_match):
     ambiguous rather than resolved by picking one: a coin flip between two
     matches produces a number that looks like a measurement.
     """
-    prefix = (leg.sport, leg.player.strip().lower(), leg.stat.lower(), leg.maps)
-    groups = [(key, rows) for key, rows in by_match.items() if key[:4] == prefix]
+    # A tracker leg does not record which map a one-map line was on; nearly
+    # every one is map 1, which is what it is matched against.
+    prefix = (leg.sport, leg.player.strip().lower(), leg.stat.lower(), leg.maps, 1)
+    groups = [(key, rows) for key, rows in by_match.items() if key[:5] == prefix]
     if not groups:
         return None, "never seen on a board we captured"
 
