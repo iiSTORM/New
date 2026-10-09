@@ -9864,8 +9864,46 @@ function PeSlipForm({ table, busy, onSubmit, onCancel }) {
 
 /* ----------------------------------------------------------- open slips */
 
-function PeOpenSlip({ slip, table, busy, onSave, onSettle, onRemove }) {
+/* What each open leg actually did, from the scrapers' own graded record.
+
+   A port of scripts/propedge/autograde.py, rule for rule: the same game,
+   player, stat, map window and line is the same prop; narrowed to the
+   slip's day when that leaves anything; and refused -- null -- when the
+   rows that match disagree, because grading a Tuesday slip off Wednesday's
+   number is worse than leaving it pending. A "MAP 2" row never grades a
+   leg, which does not record its map and is a map-1 line in practice.
+
+   Returns one {actual, date} or null per leg. Only a SUGGESTION: the slip
+   card fills its boxes with it and the person still presses Save. */
+const PE_AUTO_GRADED = ["cs2", "lol", "valorant"];
+function peSuggestedActuals(slip, graded) {
+  const key = (game, player, stat, maps, line) =>
+    `${String(game).toLowerCase()}|${String(player).trim().toLowerCase()}|${String(stat).toLowerCase()}|${maps === null || maps === undefined ? "" : Number(maps)}|${Number(line)}`;
+  const index = new Map();
+  for (const r of graded || []) {
+    if ((r.map || 1) !== 1) continue;
+    const k = key(r.game, r.player, r.stat, r.maps, r.line);
+    if (!index.has(k)) index.set(k, []);
+    index.get(k).push(r);
+  }
+  return (slip.legs || []).map((leg) => {
+    if (!PE_AUTO_GRADED.includes(leg.sport) || leg.result !== "pending"
+        || (leg.actual !== null && leg.actual !== undefined)) return null;
+    let rows = index.get(key(leg.sport, leg.player, leg.stat, leg.maps, leg.line)) || [];
+    const day = String(leg.start_time || slip.placed_at || "").slice(0, 10);
+    if (day) {
+      const narrowed = rows.filter((r) => String(r.match_date || "").slice(0, 10) === day
+        || String(r.start_time || "").slice(0, 10) === day);
+      if (narrowed.length) rows = narrowed;
+    }
+    const actuals = [...new Set(rows.map((r) => r.actual).filter((a) => typeof a === "number"))];
+    return actuals.length === 1 ? { actual: actuals[0], date: String(rows[0].match_date || "").slice(0, 10) } : null;
+  });
+}
+
+function PeOpenSlip({ slip, table, busy, onSave, onSettle, onRemove, gradedResults }) {
   const theme = useTheme();
+  const suggestions = useMemo(() => peSuggestedActuals(slip, gradedResults), [slip, gradedResults]);
   const [drafts, setDrafts] = useState(() => slip.legs.map((l) => ({
     actual: l.actual === null || l.actual === undefined ? "" : String(l.actual),
     outcome: l.result !== "pending" && (l.actual === null || l.actual === undefined) ? l.result : "",
@@ -9886,6 +9924,10 @@ function PeOpenSlip({ slip, table, busy, onSave, onSettle, onRemove }) {
   let payoutOk = false;
   try { payoutOk = String(payout).trim() !== "" && peCents(payout) >= 0; } catch (e) { payoutOk = false; }
   const changed = graded.some((l, i) => l.result !== slip.legs[i].result || l.actual !== slip.legs[i].actual);
+  // Suggestions for legs whose boxes are still empty; filling never
+  // overwrites something typed.
+  const fillable = suggestions.map((sg, i) => (sg && drafts[i].actual === "" && !drafts[i].outcome ? sg : null));
+  const fillCount = fillable.filter(Boolean).length;
 
   return (
     <PeCard>
@@ -9921,6 +9963,16 @@ function PeOpenSlip({ slip, table, busy, onSave, onSettle, onRemove }) {
           </div>
         ))}
       </div>
+      {fillCount > 0 && (
+        <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap",
+          fontSize: 12.5, color: theme.textDim }}>
+          <PeButton small onClick={() => setDrafts(drafts.map((d, i) => (fillable[i]
+            ? { actual: String(fillable[i].actual), outcome: "" } : d)))}>
+            Fill {fillCount} result{fillCount === 1 ? "" : "s"} from the graded lines
+          </PeButton>
+          <span>{fillable.map((sg, i) => sg && `${slip.legs[i].player} ${sg.actual}`).filter(Boolean).join(" · ")}</span>
+        </div>
+      )}
       {allDone && (
         <div style={{ marginTop: 10 }}>
           <PeField label="What it paid $" hint={estimate
@@ -10040,6 +10092,8 @@ function TrackerPage({ isDesktop, onHome }) {
   const [error, setError] = useState(null);
   const [notice, setNotice] = useState(null);
   const [adding, setAdding] = useState(false);
+  // The public graded record, for filling in esports results.
+  const results = useGradedResults();
 
   const load = async (tk, rp) => {
     setLoading(true); setError(null);
@@ -10146,7 +10200,7 @@ function TrackerPage({ isDesktop, onHome }) {
 
           {pePending(store).sort((a, b) => peInstant(b.placed_at) - peInstant(a.placed_at)).map((slip) => (
             <PeOpenSlip key={`${slip.id}:${slip.legs.map((l) => l.result).join(",")}`} slip={slip}
-              table={store.payout_table} busy={busy}
+              table={store.payout_table} busy={busy} gradedResults={results && results.graded}
               onSave={(id, grades) => commit((s) => peGradeLegs(s, id, grades),
                 `propedge app: grade ${id}`, "Results saved.")}
               onSettle={(id, grades, payout) => commit((s) => { peGradeLegs(s, id, grades); return peSettle(s, id, payout); },

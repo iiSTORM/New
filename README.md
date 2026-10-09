@@ -1023,6 +1023,14 @@ every write is a commit, so a rewrite is visible and reversible. Do not
 connect on a shared device; **Disconnect** removes the token from the
 browser, and revoking it on GitHub kills it everywhere.
 
+**Filling results.** An open esports leg (CS2, Valorant, League) whose line
+is in the scrapers' graded record gets a **Fill results from the graded
+lines** button: same player, stat, map window and line, narrowed to the
+slip's day, refused when the graded rows disagree -- the rules
+`propedge autograde` uses, checked against it by
+`tests/tracker_autofill.test.mjs`. It fills the boxes; nothing is saved until
+you press Save or Settle.
+
 How a write works: read `store.json` and its sha, apply the change to that
 fresh copy, `PUT` it back with the sha. If the CLI (or another phone) wrote
 in between, GitHub refuses the stale sha and the page re-reads and re-applies

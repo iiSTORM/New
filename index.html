@@ -11614,15 +11614,42 @@ try {
       }
     }, busy ? "Saving…" : problems.length && confirmRules ? "Tap again to log it anyway" : form.finished ? "Log finished slip" : "Log open slip")));
   }
+  const PE_AUTO_GRADED = ["cs2", "lol", "valorant"];
+  function peSuggestedActuals(slip, graded) {
+    const key = (game, player, stat, maps, line) => `${String(game).toLowerCase()}|${String(player).trim().toLowerCase()}|${String(stat).toLowerCase()}|${maps === null || maps === undefined ? "" : Number(maps)}|${Number(line)}`;
+    const index = new Map();
+    for (const r of graded || []) {
+      if ((r.map || 1) !== 1) continue;
+      const k = key(r.game, r.player, r.stat, r.maps, r.line);
+      if (!index.has(k)) index.set(k, []);
+      index.get(k).push(r);
+    }
+    return (slip.legs || []).map(leg => {
+      if (!PE_AUTO_GRADED.includes(leg.sport) || leg.result !== "pending" || leg.actual !== null && leg.actual !== undefined) return null;
+      let rows = index.get(key(leg.sport, leg.player, leg.stat, leg.maps, leg.line)) || [];
+      const day = String(leg.start_time || slip.placed_at || "").slice(0, 10);
+      if (day) {
+        const narrowed = rows.filter(r => String(r.match_date || "").slice(0, 10) === day || String(r.start_time || "").slice(0, 10) === day);
+        if (narrowed.length) rows = narrowed;
+      }
+      const actuals = [...new Set(rows.map(r => r.actual).filter(a => typeof a === "number"))];
+      return actuals.length === 1 ? {
+        actual: actuals[0],
+        date: String(rows[0].match_date || "").slice(0, 10)
+      } : null;
+    });
+  }
   function PeOpenSlip({
     slip,
     table,
     busy,
     onSave,
     onSettle,
-    onRemove
+    onRemove,
+    gradedResults
   }) {
     const theme = useTheme();
+    const suggestions = useMemo(() => peSuggestedActuals(slip, gradedResults), [slip, gradedResults]);
     const [drafts, setDrafts] = useState(() => slip.legs.map(l => ({
       actual: l.actual === null || l.actual === undefined ? "" : String(l.actual),
       outcome: l.result !== "pending" && (l.actual === null || l.actual === undefined) ? l.result : ""
@@ -11660,6 +11687,8 @@ try {
       payoutOk = false;
     }
     const changed = graded.some((l, i) => l.result !== slip.legs[i].result || l.actual !== slip.legs[i].actual);
+    const fillable = suggestions.map((sg, i) => sg && drafts[i].actual === "" && !drafts[i].outcome ? sg : null);
+    const fillCount = fillable.filter(Boolean).length;
     return React.createElement(PeCard, null, React.createElement("div", {
       style: {
         display: "flex",
@@ -11742,7 +11771,23 @@ try {
         outcome: v
       } : d)),
       options: PE_OUTCOMES
-    }))))), allDone && React.createElement("div", {
+    }))))), fillCount > 0 && React.createElement("div", {
+      style: {
+        marginTop: 10,
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        flexWrap: "wrap",
+        fontSize: 12.5,
+        color: theme.textDim
+      }
+    }, React.createElement(PeButton, {
+      small: true,
+      onClick: () => setDrafts(drafts.map((d, i) => fillable[i] ? {
+        actual: String(fillable[i].actual),
+        outcome: ""
+      } : d))
+    }, "Fill ", fillCount, " result", fillCount === 1 ? "" : "s", " from the graded lines"), React.createElement("span", null, fillable.map((sg, i) => sg && `${slip.legs[i].player} ${sg.actual}`).filter(Boolean).join(" · "))), allDone && React.createElement("div", {
       style: {
         marginTop: 10
       }
@@ -11948,6 +11993,7 @@ try {
     const [error, setError] = useState(null);
     const [notice, setNotice] = useState(null);
     const [adding, setAdding] = useState(false);
+    const results = useGradedResults();
     const load = async (tk, rp) => {
       setLoading(true);
       setError(null);
@@ -12138,6 +12184,7 @@ try {
       slip: slip,
       table: store.payout_table,
       busy: busy,
+      gradedResults: results && results.graded,
       onSave: (id, grades) => commit(s => peGradeLegs(s, id, grades), `propedge app: grade ${id}`, "Results saved."),
       onSettle: (id, grades, payout) => commit(s => {
         peGradeLegs(s, id, grades);

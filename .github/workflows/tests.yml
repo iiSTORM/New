@@ -109,6 +109,12 @@ jobs:
       - name: Check the tracker app and the propedge CLI agree
         run: node tests/tracker_parity.test.mjs
 
+      # The tracker page's "fill results from the graded lines" and
+      # `propedge autograde` must grade a leg the same way: either can write
+      # the shared store.
+      - name: Check the tracker's result filling matches the CLI's autograde
+        run: node tests/tracker_autofill.test.mjs
+
       # The Bracket tab infers what the LoL Esports API does not say: Swiss
       # pools from records, and which knockout match feeds which from the
       # order the API lists them. That order is checked here against the
