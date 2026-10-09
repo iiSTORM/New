@@ -1321,7 +1321,29 @@ try {
       return Math.abs(kb) - Math.abs(ka);
     });
   }
+  const modelRecordCache = new WeakMap();
   function modelRecord(regionsData, regionList, results, weights, statType) {
+    if (!regionsData || !results || !weights) return modelRecordUncached(regionsData, regionList, results, weights, statType);
+    let a = modelRecordCache.get(regionsData);
+    if (!a) {
+      a = new WeakMap();
+      modelRecordCache.set(regionsData, a);
+    }
+    let b = a.get(results);
+    if (!b) {
+      b = new WeakMap();
+      a.set(results, b);
+    }
+    let c = b.get(weights);
+    if (!c) {
+      c = new Map();
+      b.set(weights, c);
+    }
+    const key = `${statType}|${(regionList || []).join(",")}`;
+    if (!c.has(key)) c.set(key, modelRecordUncached(regionsData, regionList, results, weights, statType));
+    return c.get(key);
+  }
+  function modelRecordUncached(regionsData, regionList, results, weights, statType) {
     const rows = [];
     for (const row of results && results.graded || []) {
       if (row.stat !== statType) continue;
@@ -8004,7 +8026,11 @@ try {
     });
     const availableStages = [...new Set(sorted.map(m => m.stage).filter(Boolean))];
     const filtered = stageFilter === "all" ? sorted : sorted.filter(m => m.stage === stageFilter);
-    const byTournament = groupByLabel(filtered, m => m.tournament || null);
+    const PAST_PAGE = 40;
+    const [shown, setShown] = useState(PAST_PAGE);
+    useEffect(() => setShown(PAST_PAGE), [stageFilter, statType, pastMatches]);
+    const visible = filtered.slice(0, shown);
+    const byTournament = groupByLabel(visible, m => m.tournament || null);
     const gridStyle = isDesktop ? {
       display: "grid",
       gridTemplateColumns: "repeat(auto-fill, minmax(420px, 1fr))",
@@ -8069,7 +8095,28 @@ try {
         weights: weights,
         statType: statType
       }))))));
-    }));
+    }), filtered.length > shown && React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "center",
+        margin: "6px 0 18px"
+      }
+    }, React.createElement("button", {
+      type: "button",
+      className: "kp-btn",
+      onClick: () => setShown(shown + PAST_PAGE),
+      style: {
+        cursor: "pointer",
+        background: "transparent",
+        color: theme.textDim,
+        border: `1px solid ${theme.steel}`,
+        borderRadius: 8,
+        padding: "9px 16px",
+        fontSize: 13,
+        fontWeight: 600,
+        fontFamily: "'Inter', sans-serif"
+      }
+    }, "Show ", Math.min(PAST_PAGE, filtered.length - shown), " older matches (", filtered.length - shown, " more)")));
   }
   function relativeTime(iso) {
     if (!iso) return null;

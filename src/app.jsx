@@ -1667,7 +1667,25 @@ function rankEdges(rows) {
    A projection sitting exactly on the line is not a disagreement and is
    dropped, as is a push. Neither is a bet, and counting either would pad
    the sample with outcomes nobody could have acted on. */
+/* Edges, Record and Parlays each re-project the same graded record with the
+   same arguments; computed once and shared. Keyed by identity on the data,
+   results and weights objects, which are replaced (not mutated) when any of
+   them changes, so a stale entry cannot be served. */
+const modelRecordCache = new WeakMap();
 function modelRecord(regionsData, regionList, results, weights, statType) {
+  if (!regionsData || !results || !weights) return modelRecordUncached(regionsData, regionList, results, weights, statType);
+  let a = modelRecordCache.get(regionsData);
+  if (!a) { a = new WeakMap(); modelRecordCache.set(regionsData, a); }
+  let b = a.get(results);
+  if (!b) { b = new WeakMap(); a.set(results, b); }
+  let c = b.get(weights);
+  if (!c) { c = new Map(); b.set(weights, c); }
+  const key = `${statType}|${(regionList || []).join(",")}`;
+  if (!c.has(key)) c.set(key, modelRecordUncached(regionsData, regionList, results, weights, statType));
+  return c.get(key);
+}
+
+function modelRecordUncached(regionsData, regionList, results, weights, statType) {
   const rows = [];
   for (const row of (results && results.graded) || []) {
     if (row.stat !== statType) continue;
@@ -7235,7 +7253,14 @@ function PastResultsTab({ teams, pastMatches, weights, statType, isDesktop }) {
   // playoff-aware ordering. Since `sorted` is already newest-first,
   // grouping preserves that as most-recent-tournament-first too — each
   // tournament's group naturally starts at its own latest match.
-  const byTournament = groupByLabel(filtered, (m) => m.tournament || null);
+  // Paged. Every card re-projects its players as of that match, and CS2
+  // carries ~900 matches: rendering them all was ~9,000 projections and 6.8s
+  // before the tab appeared. Newest first, PAST_PAGE at a time.
+  const PAST_PAGE = 40;
+  const [shown, setShown] = useState(PAST_PAGE);
+  useEffect(() => setShown(PAST_PAGE), [stageFilter, statType, pastMatches]);
+  const visible = filtered.slice(0, shown);
+  const byTournament = groupByLabel(visible, (m) => m.tournament || null);
   const gridStyle = isDesktop
     ? { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(420px, 1fr))", gap: 14, alignItems: "start" }
     : {};
@@ -7287,6 +7312,15 @@ function PastResultsTab({ teams, pastMatches, weights, statType, isDesktop }) {
           </div>
         );
       })}
+      {filtered.length > shown && (
+        <div style={{ display: "flex", justifyContent: "center", margin: "6px 0 18px" }}>
+          <button type="button" className="kp-btn" onClick={() => setShown(shown + PAST_PAGE)}
+            style={{ cursor: "pointer", background: "transparent", color: theme.textDim, border: `1px solid ${theme.steel}`,
+              borderRadius: 8, padding: "9px 16px", fontSize: 13, fontWeight: 600, fontFamily: "'Inter', sans-serif" }}>
+            Show {Math.min(PAST_PAGE, filtered.length - shown)} older matches ({filtered.length - shown} more)
+          </button>
+        </div>
+      )}
     </div>
   );
 }
