@@ -1,21 +1,21 @@
 {
   "summary": {
     "all": {
-      "graded": 4251,
+      "graded": 4271,
       "pushes": 108,
-      "over": 1981,
-      "under": 2162,
-      "over_rate": 0.4782,
-      "mean_margin": 0.117,
+      "over": 1990,
+      "under": 2173,
+      "over_rate": 0.478,
+      "mean_margin": 0.112,
       "median_margin": -0.5
     },
     "cs2": {
-      "graded": 3552,
+      "graded": 3572,
       "pushes": 94,
-      "over": 1685,
-      "under": 1773,
-      "over_rate": 0.4873,
-      "mean_margin": 0.257,
+      "over": 1694,
+      "under": 1784,
+      "over_rate": 0.4871,
+      "mean_margin": 0.25,
       "median_margin": 0.0
     },
     "lol": {
@@ -41,12 +41,12 @@
     "cs2 map 1": {
       "game": "cs2",
       "maps": 1,
-      "graded": 1411,
+      "graded": 1421,
       "pushes": 50,
-      "over": 660,
-      "under": 701,
-      "over_rate": 0.4849,
-      "mean_margin": 0.28
+      "over": 665,
+      "under": 706,
+      "over_rate": 0.485,
+      "mean_margin": 0.277
     },
     "cs2 map 2": {
       "game": "cs2",
@@ -62,12 +62,12 @@
     "cs2 maps 1-2": {
       "game": "cs2",
       "maps": 2,
-      "graded": 2103,
+      "graded": 2113,
       "pushes": 44,
-      "over": 994,
-      "under": 1065,
-      "over_rate": 0.4828,
-      "mean_margin": 0.152
+      "over": 998,
+      "under": 1071,
+      "over_rate": 0.4824,
+      "mean_margin": 0.143
     },
     "lol map 1": {
       "game": "lol",
@@ -3759,6 +3759,186 @@
     },
     {
       "game": "cs2",
+      "line": 31.5,
+      "maps": 2,
+      "observed_at": "2026-09-23T05:36:52.455990+00:00",
+      "odds_type": "standard",
+      "player": "jks",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-23T05:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 28,
+      "margin": -3.5,
+      "result": "under",
+      "match_date": "2026-09-23",
+      "opponent": "LFO 8"
+    },
+    {
+      "game": "cs2",
+      "line": 19.5,
+      "maps": 2,
+      "observed_at": "2026-09-23T05:36:52.455990+00:00",
+      "odds_type": "standard",
+      "player": "jks",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-23T05:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "FlyQuest",
+      "actual": 20,
+      "margin": 0.5,
+      "result": "over",
+      "match_date": "2026-09-23",
+      "opponent": "LFO 8"
+    },
+    {
+      "game": "cs2",
+      "line": 29.5,
+      "maps": 2,
+      "observed_at": "2026-09-23T05:36:52.455990+00:00",
+      "odds_type": "standard",
+      "player": "INS",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-23T05:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 20,
+      "margin": -9.5,
+      "result": "under",
+      "match_date": "2026-09-23",
+      "opponent": "LFO 8"
+    },
+    {
+      "game": "cs2",
+      "line": 14.5,
+      "maps": 2,
+      "observed_at": "2026-09-23T05:36:52.455990+00:00",
+      "odds_type": "standard",
+      "player": "INS",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-23T05:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "FlyQuest",
+      "actual": 11,
+      "margin": -3.5,
+      "result": "under",
+      "match_date": "2026-09-23",
+      "opponent": "LFO 8"
+    },
+    {
+      "game": "cs2",
+      "line": 33.0,
+      "maps": 2,
+      "observed_at": "2026-09-23T05:36:52.455990+00:00",
+      "odds_type": "standard",
+      "player": "Vexite",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-23T05:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 36,
+      "margin": 3.0,
+      "result": "over",
+      "match_date": "2026-09-23",
+      "opponent": "LFO 8"
+    },
+    {
+      "game": "cs2",
+      "line": 18.5,
+      "maps": 2,
+      "observed_at": "2026-09-23T05:36:52.455990+00:00",
+      "odds_type": "standard",
+      "player": "Vexite",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-23T05:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "FlyQuest",
+      "actual": 22,
+      "margin": 3.5,
+      "result": "over",
+      "match_date": "2026-09-23",
+      "opponent": "LFO 8"
+    },
+    {
+      "game": "cs2",
+      "line": 29.0,
+      "maps": 2,
+      "observed_at": "2026-09-23T05:36:52.455990+00:00",
+      "odds_type": "standard",
+      "player": "nettik",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-23T05:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 26,
+      "margin": -3.0,
+      "result": "under",
+      "match_date": "2026-09-23",
+      "opponent": "LFO 8"
+    },
+    {
+      "game": "cs2",
+      "line": 17.0,
+      "maps": 2,
+      "observed_at": "2026-09-23T05:36:52.455990+00:00",
+      "odds_type": "standard",
+      "player": "nettik",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-23T05:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "FlyQuest",
+      "actual": 13,
+      "margin": -4.0,
+      "result": "under",
+      "match_date": "2026-09-23",
+      "opponent": "LFO 8"
+    },
+    {
+      "game": "cs2",
+      "line": 30.5,
+      "maps": 2,
+      "observed_at": "2026-09-23T05:36:52.455990+00:00",
+      "odds_type": "standard",
+      "player": "aliStair",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-23T05:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 28,
+      "margin": -2.5,
+      "result": "under",
+      "match_date": "2026-09-23",
+      "opponent": "LFO 8"
+    },
+    {
+      "game": "cs2",
+      "line": 10.5,
+      "maps": 2,
+      "observed_at": "2026-09-23T05:36:52.455990+00:00",
+      "odds_type": "standard",
+      "player": "aliStair",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-23T05:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "FlyQuest",
+      "actual": 11,
+      "margin": 0.5,
+      "result": "over",
+      "match_date": "2026-09-23",
+      "opponent": "LFO 8"
+    },
+    {
+      "game": "cs2",
       "line": 26.5,
       "maps": 2,
       "observed_at": "2026-09-23T05:36:52.455990+00:00",
@@ -4350,6 +4530,186 @@
       "result": "over",
       "match_date": "2026-09-23",
       "opponent": "METANOIA Wolves"
+    },
+    {
+      "game": "cs2",
+      "line": 15.5,
+      "maps": 1,
+      "observed_at": "2026-09-23T05:36:52.455990+00:00",
+      "odds_type": "standard",
+      "player": "jks",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-23T07:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 14,
+      "margin": -1.5,
+      "result": "under",
+      "match_date": "2026-09-23",
+      "opponent": "LFO 8"
+    },
+    {
+      "game": "cs2",
+      "line": 9.5,
+      "maps": 1,
+      "observed_at": "2026-09-23T05:36:52.455990+00:00",
+      "odds_type": "standard",
+      "player": "jks",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-23T07:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "FlyQuest",
+      "actual": 9,
+      "margin": -0.5,
+      "result": "under",
+      "match_date": "2026-09-23",
+      "opponent": "LFO 8"
+    },
+    {
+      "game": "cs2",
+      "line": 14.5,
+      "maps": 1,
+      "observed_at": "2026-09-23T05:36:52.455990+00:00",
+      "odds_type": "standard",
+      "player": "INS",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-23T07:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 9,
+      "margin": -5.5,
+      "result": "under",
+      "match_date": "2026-09-23",
+      "opponent": "LFO 8"
+    },
+    {
+      "game": "cs2",
+      "line": 7.0,
+      "maps": 1,
+      "observed_at": "2026-09-23T05:36:52.455990+00:00",
+      "odds_type": "standard",
+      "player": "INS",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-23T07:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "FlyQuest",
+      "actual": 6,
+      "margin": -1.0,
+      "result": "under",
+      "match_date": "2026-09-23",
+      "opponent": "LFO 8"
+    },
+    {
+      "game": "cs2",
+      "line": 16.0,
+      "maps": 1,
+      "observed_at": "2026-09-23T05:36:52.455990+00:00",
+      "odds_type": "standard",
+      "player": "Vexite",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-23T07:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 14,
+      "margin": -2.0,
+      "result": "under",
+      "match_date": "2026-09-23",
+      "opponent": "LFO 8"
+    },
+    {
+      "game": "cs2",
+      "line": 9.0,
+      "maps": 1,
+      "observed_at": "2026-09-23T05:36:52.455990+00:00",
+      "odds_type": "standard",
+      "player": "Vexite",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-23T07:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "FlyQuest",
+      "actual": 10,
+      "margin": 1.0,
+      "result": "over",
+      "match_date": "2026-09-23",
+      "opponent": "LFO 8"
+    },
+    {
+      "game": "cs2",
+      "line": 14.5,
+      "maps": 1,
+      "observed_at": "2026-09-23T05:36:52.455990+00:00",
+      "odds_type": "standard",
+      "player": "nettik",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-23T07:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 18,
+      "margin": 3.5,
+      "result": "over",
+      "match_date": "2026-09-23",
+      "opponent": "LFO 8"
+    },
+    {
+      "game": "cs2",
+      "line": 8.5,
+      "maps": 1,
+      "observed_at": "2026-09-23T05:36:52.455990+00:00",
+      "odds_type": "standard",
+      "player": "nettik",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-23T07:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "FlyQuest",
+      "actual": 10,
+      "margin": 1.5,
+      "result": "over",
+      "match_date": "2026-09-23",
+      "opponent": "LFO 8"
+    },
+    {
+      "game": "cs2",
+      "line": 15.0,
+      "maps": 1,
+      "observed_at": "2026-09-23T05:36:52.455990+00:00",
+      "odds_type": "standard",
+      "player": "aliStair",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-23T07:00:00.000-04:00",
+      "stat": "kills",
+      "team": "FlyQuest",
+      "actual": 16,
+      "margin": 1.0,
+      "result": "over",
+      "match_date": "2026-09-23",
+      "opponent": "LFO 8"
+    },
+    {
+      "game": "cs2",
+      "line": 5.0,
+      "maps": 1,
+      "observed_at": "2026-09-23T05:36:52.455990+00:00",
+      "odds_type": "standard",
+      "player": "aliStair",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-09-23T07:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "FlyQuest",
+      "actual": 7,
+      "margin": 2.0,
+      "result": "over",
+      "match_date": "2026-09-23",
+      "opponent": "LFO 8"
     },
     {
       "game": "cs2",
@@ -55271,7 +55631,7 @@
       "margin": 10.5,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -55289,7 +55649,7 @@
       "margin": 5.0,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -55307,7 +55667,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-10-03",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -55325,7 +55685,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-10-03",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -55343,7 +55703,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-10-03",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -55361,7 +55721,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-10-03",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -55379,7 +55739,7 @@
       "margin": 5.5,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -55397,7 +55757,7 @@
       "margin": 0.0,
       "result": "push",
       "match_date": "2026-10-03",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -55415,7 +55775,7 @@
       "margin": 0.0,
       "result": "push",
       "match_date": "2026-10-03",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -55433,7 +55793,7 @@
       "margin": 0.5,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -65517,150 +65877,6 @@
     },
     {
       "game": "cs2",
-      "line": 28.5,
-      "maps": 2,
-      "observed_at": "2026-10-06T06:04:33.357135+00:00",
-      "odds_type": "standard",
-      "player": "FL1T",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-10-06T08:00:00.000-04:00",
-      "stat": "kills",
-      "team": "PARIVISION",
-      "actual": 22,
-      "margin": -6.5,
-      "result": "under",
-      "match_date": "2026-10-06",
-      "opponent": "G2 Esports"
-    },
-    {
-      "game": "cs2",
-      "line": 17.0,
-      "maps": 2,
-      "observed_at": "2026-10-06T06:04:33.357135+00:00",
-      "odds_type": "standard",
-      "player": "FL1T",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-10-06T08:00:00.000-04:00",
-      "stat": "headshots",
-      "team": "PARIVISION",
-      "actual": 11,
-      "margin": -6.0,
-      "result": "under",
-      "match_date": "2026-10-06",
-      "opponent": "G2 Esports"
-    },
-    {
-      "game": "cs2",
-      "line": 28.0,
-      "maps": 2,
-      "observed_at": "2026-10-06T06:04:33.357135+00:00",
-      "odds_type": "standard",
-      "player": "xiELO",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-10-06T08:00:00.000-04:00",
-      "stat": "kills",
-      "team": "PARIVISION",
-      "actual": 30,
-      "margin": 2.0,
-      "result": "over",
-      "match_date": "2026-10-06",
-      "opponent": "G2 Esports"
-    },
-    {
-      "game": "cs2",
-      "line": 17.0,
-      "maps": 2,
-      "observed_at": "2026-10-06T06:04:33.357135+00:00",
-      "odds_type": "standard",
-      "player": "xiELO",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-10-06T08:00:00.000-04:00",
-      "stat": "headshots",
-      "team": "PARIVISION",
-      "actual": 18,
-      "margin": 1.0,
-      "result": "over",
-      "match_date": "2026-10-06",
-      "opponent": "G2 Esports"
-    },
-    {
-      "game": "cs2",
-      "line": 27.5,
-      "maps": 2,
-      "observed_at": "2026-10-06T06:04:33.357135+00:00",
-      "odds_type": "standard",
-      "player": "Jame",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-10-06T08:00:00.000-04:00",
-      "stat": "kills",
-      "team": "PARIVISION",
-      "actual": 31,
-      "margin": 3.5,
-      "result": "over",
-      "match_date": "2026-10-06",
-      "opponent": "G2 Esports"
-    },
-    {
-      "game": "cs2",
-      "line": 9.0,
-      "maps": 2,
-      "observed_at": "2026-10-06T06:04:33.357135+00:00",
-      "odds_type": "standard",
-      "player": "Jame",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-10-06T08:00:00.000-04:00",
-      "stat": "headshots",
-      "team": "PARIVISION",
-      "actual": 10,
-      "margin": 1.0,
-      "result": "over",
-      "match_date": "2026-10-06",
-      "opponent": "G2 Esports"
-    },
-    {
-      "game": "cs2",
-      "line": 26.5,
-      "maps": 2,
-      "observed_at": "2026-10-06T06:04:33.357135+00:00",
-      "odds_type": "standard",
-      "player": "zweih",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-10-06T08:00:00.000-04:00",
-      "stat": "kills",
-      "team": "PARIVISION",
-      "actual": 22,
-      "margin": -4.5,
-      "result": "under",
-      "match_date": "2026-10-06",
-      "opponent": "G2 Esports"
-    },
-    {
-      "game": "cs2",
-      "line": 13.5,
-      "maps": 2,
-      "observed_at": "2026-10-06T06:04:33.357135+00:00",
-      "odds_type": "standard",
-      "player": "zweih",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-10-06T08:00:00.000-04:00",
-      "stat": "headshots",
-      "team": "PARIVISION",
-      "actual": 10,
-      "margin": -3.5,
-      "result": "under",
-      "match_date": "2026-10-06",
-      "opponent": "G2 Esports"
-    },
-    {
-      "game": "cs2",
       "line": 32.5,
       "maps": 2,
       "observed_at": "2026-10-06T06:04:33.357135+00:00",
@@ -65855,7 +66071,7 @@
       "margin": 16.5,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -65873,7 +66089,7 @@
       "margin": 6.0,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -65891,7 +66107,7 @@
       "margin": 2.5,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -65910,7 +66126,7 @@
       "margin": 2.5,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -65928,7 +66144,7 @@
       "margin": 2.0,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -65946,7 +66162,7 @@
       "margin": 2.0,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -65965,7 +66181,7 @@
       "margin": 5.5,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -65983,7 +66199,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66002,7 +66218,7 @@
       "margin": 6.5,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66020,7 +66236,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66039,7 +66255,7 @@
       "margin": 7.5,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66057,7 +66273,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66076,7 +66292,7 @@
       "margin": 3.5,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66094,7 +66310,7 @@
       "margin": 2.5,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66112,7 +66328,7 @@
       "margin": -5.5,
       "result": "under",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66130,7 +66346,7 @@
       "margin": -4.5,
       "result": "under",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66149,7 +66365,7 @@
       "margin": 8.5,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66167,7 +66383,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66186,7 +66402,7 @@
       "margin": 9.5,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66204,7 +66420,7 @@
       "margin": -0.5,
       "result": "under",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66222,7 +66438,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66241,7 +66457,7 @@
       "margin": 1.5,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66259,7 +66475,7 @@
       "margin": 9.5,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66277,7 +66493,7 @@
       "margin": -8.5,
       "result": "under",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66296,7 +66512,7 @@
       "margin": 15.5,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66314,7 +66530,7 @@
       "margin": 12.5,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66332,7 +66548,7 @@
       "margin": -7.5,
       "result": "under",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66351,7 +66567,7 @@
       "margin": 16.5,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66369,7 +66585,7 @@
       "margin": -6.5,
       "result": "under",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66388,7 +66604,7 @@
       "margin": 17.5,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66407,7 +66623,7 @@
       "margin": 16.5,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66425,7 +66641,7 @@
       "margin": 3.5,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66443,7 +66659,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66462,7 +66678,7 @@
       "margin": 5.5,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66480,7 +66696,7 @@
       "margin": 1.0,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66498,7 +66714,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66516,7 +66732,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -66535,7 +66751,7 @@
       "margin": 7.5,
       "result": "over",
       "match_date": "2026-10-06",
-      "opponent": "Falcons"
+      "opponent": "Team Falcons"
     },
     {
       "game": "cs2",
@@ -71057,186 +71273,6 @@
     },
     {
       "game": "cs2",
-      "line": 25.0,
-      "maps": 2,
-      "observed_at": "2026-10-07T05:27:18.937250+00:00",
-      "odds_type": "standard",
-      "player": "zweih",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-10-07T10:30:00.000-04:00",
-      "stat": "kills",
-      "team": "PARIVISION",
-      "actual": 22,
-      "margin": -3.0,
-      "result": "under",
-      "match_date": "2026-10-07",
-      "opponent": "Natus Vincere"
-    },
-    {
-      "game": "cs2",
-      "line": 13.5,
-      "maps": 2,
-      "observed_at": "2026-10-07T05:27:18.937250+00:00",
-      "odds_type": "standard",
-      "player": "zweih",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-10-07T10:30:00.000-04:00",
-      "stat": "headshots",
-      "team": "PARIVISION",
-      "actual": 8,
-      "margin": -5.5,
-      "result": "under",
-      "match_date": "2026-10-07",
-      "opponent": "Natus Vincere"
-    },
-    {
-      "game": "cs2",
-      "line": 26.5,
-      "maps": 2,
-      "observed_at": "2026-10-07T05:27:18.937250+00:00",
-      "odds_type": "standard",
-      "player": "Jame",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-10-07T10:30:00.000-04:00",
-      "stat": "kills",
-      "team": "PARIVISION",
-      "actual": 23,
-      "margin": -3.5,
-      "result": "under",
-      "match_date": "2026-10-07",
-      "opponent": "Natus Vincere"
-    },
-    {
-      "game": "cs2",
-      "line": 8.5,
-      "maps": 2,
-      "observed_at": "2026-10-07T05:27:18.937250+00:00",
-      "odds_type": "standard",
-      "player": "Jame",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-10-07T10:30:00.000-04:00",
-      "stat": "headshots",
-      "team": "PARIVISION",
-      "actual": 7,
-      "margin": -1.5,
-      "result": "under",
-      "match_date": "2026-10-07",
-      "opponent": "Natus Vincere"
-    },
-    {
-      "game": "cs2",
-      "line": 26.5,
-      "maps": 2,
-      "observed_at": "2026-10-07T05:27:18.937250+00:00",
-      "odds_type": "standard",
-      "player": "xiELO",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-10-07T10:30:00.000-04:00",
-      "stat": "kills",
-      "team": "PARIVISION",
-      "actual": 38,
-      "margin": 11.5,
-      "result": "over",
-      "match_date": "2026-10-07",
-      "opponent": "Natus Vincere"
-    },
-    {
-      "game": "cs2",
-      "line": 16.5,
-      "maps": 2,
-      "observed_at": "2026-10-07T05:27:18.937250+00:00",
-      "odds_type": "standard",
-      "player": "xiELO",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-10-07T10:30:00.000-04:00",
-      "stat": "headshots",
-      "team": "PARIVISION",
-      "actual": 21,
-      "margin": 4.5,
-      "result": "over",
-      "match_date": "2026-10-07",
-      "opponent": "Natus Vincere"
-    },
-    {
-      "game": "cs2",
-      "line": 27.5,
-      "maps": 2,
-      "observed_at": "2026-10-07T05:27:18.937250+00:00",
-      "odds_type": "standard",
-      "player": "FL1T",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-10-07T10:30:00.000-04:00",
-      "stat": "kills",
-      "team": "PARIVISION",
-      "actual": 34,
-      "margin": 6.5,
-      "result": "over",
-      "match_date": "2026-10-07",
-      "opponent": "Natus Vincere"
-    },
-    {
-      "game": "cs2",
-      "line": 15.5,
-      "maps": 2,
-      "observed_at": "2026-10-07T05:27:18.937250+00:00",
-      "odds_type": "standard",
-      "player": "FL1T",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-10-07T10:30:00.000-04:00",
-      "stat": "headshots",
-      "team": "PARIVISION",
-      "actual": 15,
-      "margin": -0.5,
-      "result": "under",
-      "match_date": "2026-10-07",
-      "opponent": "Natus Vincere"
-    },
-    {
-      "game": "cs2",
-      "line": 24.0,
-      "maps": 2,
-      "observed_at": "2026-10-07T05:27:18.937250+00:00",
-      "odds_type": "standard",
-      "player": "HObbit",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-10-07T10:30:00.000-04:00",
-      "stat": "kills",
-      "team": "PARIVISION",
-      "actual": 27,
-      "margin": 3.0,
-      "result": "over",
-      "match_date": "2026-10-07",
-      "opponent": "Natus Vincere"
-    },
-    {
-      "game": "cs2",
-      "line": 12.0,
-      "maps": 2,
-      "observed_at": "2026-10-07T05:27:18.937250+00:00",
-      "odds_type": "standard",
-      "player": "HObbit",
-      "provider": "prizepicks",
-      "region": "CS2",
-      "start_time": "2026-10-07T10:30:00.000-04:00",
-      "stat": "headshots",
-      "team": "PARIVISION",
-      "actual": 7,
-      "margin": -5.0,
-      "result": "under",
-      "match_date": "2026-10-07",
-      "opponent": "Natus Vincere"
-    },
-    {
-      "game": "cs2",
       "line": 28.5,
       "maps": 2,
       "observed_at": "2026-10-07T05:27:18.937250+00:00",
@@ -71251,7 +71287,7 @@
       "margin": 8.5,
       "result": "over",
       "match_date": "2026-10-07",
-      "opponent": "PARIVISION"
+      "opponent": "PVISION"
     },
     {
       "game": "cs2",
@@ -71269,7 +71305,7 @@
       "margin": 4.5,
       "result": "over",
       "match_date": "2026-10-07",
-      "opponent": "PARIVISION"
+      "opponent": "PVISION"
     },
     {
       "game": "cs2",
@@ -71287,7 +71323,7 @@
       "margin": -1.5,
       "result": "under",
       "match_date": "2026-10-07",
-      "opponent": "PARIVISION"
+      "opponent": "PVISION"
     },
     {
       "game": "cs2",
@@ -71305,7 +71341,7 @@
       "margin": -1.0,
       "result": "under",
       "match_date": "2026-10-07",
-      "opponent": "PARIVISION"
+      "opponent": "PVISION"
     },
     {
       "game": "cs2",
@@ -71323,7 +71359,7 @@
       "margin": -5.0,
       "result": "under",
       "match_date": "2026-10-07",
-      "opponent": "PARIVISION"
+      "opponent": "PVISION"
     },
     {
       "game": "cs2",
@@ -71341,7 +71377,7 @@
       "margin": -7.5,
       "result": "under",
       "match_date": "2026-10-07",
-      "opponent": "PARIVISION"
+      "opponent": "PVISION"
     },
     {
       "game": "cs2",
@@ -71359,7 +71395,7 @@
       "margin": 6.0,
       "result": "over",
       "match_date": "2026-10-07",
-      "opponent": "PARIVISION"
+      "opponent": "PVISION"
     },
     {
       "game": "cs2",
@@ -71377,7 +71413,7 @@
       "margin": -0.5,
       "result": "under",
       "match_date": "2026-10-07",
-      "opponent": "PARIVISION"
+      "opponent": "PVISION"
     },
     {
       "game": "cs2",
@@ -71395,7 +71431,7 @@
       "margin": -6.0,
       "result": "under",
       "match_date": "2026-10-07",
-      "opponent": "PARIVISION"
+      "opponent": "PVISION"
     },
     {
       "game": "cs2",
@@ -71413,7 +71449,7 @@
       "margin": -2.0,
       "result": "under",
       "match_date": "2026-10-07",
-      "opponent": "PARIVISION"
+      "opponent": "PVISION"
     },
     {
       "game": "cs2",
@@ -75149,6 +75185,330 @@
     },
     {
       "game": "cs2",
+      "line": 28.5,
+      "maps": 2,
+      "observed_at": "2026-10-06T06:04:33.357135+00:00",
+      "odds_type": "standard",
+      "player": "FL1T",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-06T08:00:00.000-04:00",
+      "stat": "kills",
+      "team": "PARIVISION",
+      "actual": 22,
+      "margin": -6.5,
+      "result": "under",
+      "match_date": "2026-10-06",
+      "opponent": "G2 Esports"
+    },
+    {
+      "game": "cs2",
+      "line": 17.0,
+      "maps": 2,
+      "observed_at": "2026-10-06T06:04:33.357135+00:00",
+      "odds_type": "standard",
+      "player": "FL1T",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-06T08:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "PARIVISION",
+      "actual": 11,
+      "margin": -6.0,
+      "result": "under",
+      "match_date": "2026-10-06",
+      "opponent": "G2 Esports"
+    },
+    {
+      "game": "cs2",
+      "line": 28.0,
+      "maps": 2,
+      "observed_at": "2026-10-06T06:04:33.357135+00:00",
+      "odds_type": "standard",
+      "player": "xiELO",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-06T08:00:00.000-04:00",
+      "stat": "kills",
+      "team": "PARIVISION",
+      "actual": 30,
+      "margin": 2.0,
+      "result": "over",
+      "match_date": "2026-10-06",
+      "opponent": "G2 Esports"
+    },
+    {
+      "game": "cs2",
+      "line": 17.0,
+      "maps": 2,
+      "observed_at": "2026-10-06T06:04:33.357135+00:00",
+      "odds_type": "standard",
+      "player": "xiELO",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-06T08:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "PARIVISION",
+      "actual": 18,
+      "margin": 1.0,
+      "result": "over",
+      "match_date": "2026-10-06",
+      "opponent": "G2 Esports"
+    },
+    {
+      "game": "cs2",
+      "line": 27.5,
+      "maps": 2,
+      "observed_at": "2026-10-06T06:04:33.357135+00:00",
+      "odds_type": "standard",
+      "player": "Jame",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-06T08:00:00.000-04:00",
+      "stat": "kills",
+      "team": "PARIVISION",
+      "actual": 31,
+      "margin": 3.5,
+      "result": "over",
+      "match_date": "2026-10-06",
+      "opponent": "G2 Esports"
+    },
+    {
+      "game": "cs2",
+      "line": 9.0,
+      "maps": 2,
+      "observed_at": "2026-10-06T06:04:33.357135+00:00",
+      "odds_type": "standard",
+      "player": "Jame",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-06T08:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "PARIVISION",
+      "actual": 10,
+      "margin": 1.0,
+      "result": "over",
+      "match_date": "2026-10-06",
+      "opponent": "G2 Esports"
+    },
+    {
+      "game": "cs2",
+      "line": 26.5,
+      "maps": 2,
+      "observed_at": "2026-10-06T06:04:33.357135+00:00",
+      "odds_type": "standard",
+      "player": "zweih",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-06T08:00:00.000-04:00",
+      "stat": "kills",
+      "team": "PARIVISION",
+      "actual": 22,
+      "margin": -4.5,
+      "result": "under",
+      "match_date": "2026-10-06",
+      "opponent": "G2 Esports"
+    },
+    {
+      "game": "cs2",
+      "line": 13.5,
+      "maps": 2,
+      "observed_at": "2026-10-06T06:04:33.357135+00:00",
+      "odds_type": "standard",
+      "player": "zweih",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-06T08:00:00.000-04:00",
+      "stat": "headshots",
+      "team": "PARIVISION",
+      "actual": 10,
+      "margin": -3.5,
+      "result": "under",
+      "match_date": "2026-10-06",
+      "opponent": "G2 Esports"
+    },
+    {
+      "game": "cs2",
+      "line": 25.0,
+      "maps": 2,
+      "observed_at": "2026-10-07T05:27:18.937250+00:00",
+      "odds_type": "standard",
+      "player": "zweih",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-07T10:30:00.000-04:00",
+      "stat": "kills",
+      "team": "PARIVISION",
+      "actual": 22,
+      "margin": -3.0,
+      "result": "under",
+      "match_date": "2026-10-07",
+      "opponent": "Natus Vincere"
+    },
+    {
+      "game": "cs2",
+      "line": 13.5,
+      "maps": 2,
+      "observed_at": "2026-10-07T05:27:18.937250+00:00",
+      "odds_type": "standard",
+      "player": "zweih",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-07T10:30:00.000-04:00",
+      "stat": "headshots",
+      "team": "PARIVISION",
+      "actual": 8,
+      "margin": -5.5,
+      "result": "under",
+      "match_date": "2026-10-07",
+      "opponent": "Natus Vincere"
+    },
+    {
+      "game": "cs2",
+      "line": 26.5,
+      "maps": 2,
+      "observed_at": "2026-10-07T05:27:18.937250+00:00",
+      "odds_type": "standard",
+      "player": "Jame",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-07T10:30:00.000-04:00",
+      "stat": "kills",
+      "team": "PARIVISION",
+      "actual": 23,
+      "margin": -3.5,
+      "result": "under",
+      "match_date": "2026-10-07",
+      "opponent": "Natus Vincere"
+    },
+    {
+      "game": "cs2",
+      "line": 8.5,
+      "maps": 2,
+      "observed_at": "2026-10-07T05:27:18.937250+00:00",
+      "odds_type": "standard",
+      "player": "Jame",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-07T10:30:00.000-04:00",
+      "stat": "headshots",
+      "team": "PARIVISION",
+      "actual": 7,
+      "margin": -1.5,
+      "result": "under",
+      "match_date": "2026-10-07",
+      "opponent": "Natus Vincere"
+    },
+    {
+      "game": "cs2",
+      "line": 26.5,
+      "maps": 2,
+      "observed_at": "2026-10-07T05:27:18.937250+00:00",
+      "odds_type": "standard",
+      "player": "xiELO",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-07T10:30:00.000-04:00",
+      "stat": "kills",
+      "team": "PARIVISION",
+      "actual": 38,
+      "margin": 11.5,
+      "result": "over",
+      "match_date": "2026-10-07",
+      "opponent": "Natus Vincere"
+    },
+    {
+      "game": "cs2",
+      "line": 16.5,
+      "maps": 2,
+      "observed_at": "2026-10-07T05:27:18.937250+00:00",
+      "odds_type": "standard",
+      "player": "xiELO",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-07T10:30:00.000-04:00",
+      "stat": "headshots",
+      "team": "PARIVISION",
+      "actual": 21,
+      "margin": 4.5,
+      "result": "over",
+      "match_date": "2026-10-07",
+      "opponent": "Natus Vincere"
+    },
+    {
+      "game": "cs2",
+      "line": 27.5,
+      "maps": 2,
+      "observed_at": "2026-10-07T05:27:18.937250+00:00",
+      "odds_type": "standard",
+      "player": "FL1T",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-07T10:30:00.000-04:00",
+      "stat": "kills",
+      "team": "PARIVISION",
+      "actual": 34,
+      "margin": 6.5,
+      "result": "over",
+      "match_date": "2026-10-07",
+      "opponent": "Natus Vincere"
+    },
+    {
+      "game": "cs2",
+      "line": 15.5,
+      "maps": 2,
+      "observed_at": "2026-10-07T05:27:18.937250+00:00",
+      "odds_type": "standard",
+      "player": "FL1T",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-07T10:30:00.000-04:00",
+      "stat": "headshots",
+      "team": "PARIVISION",
+      "actual": 15,
+      "margin": -0.5,
+      "result": "under",
+      "match_date": "2026-10-07",
+      "opponent": "Natus Vincere"
+    },
+    {
+      "game": "cs2",
+      "line": 24.0,
+      "maps": 2,
+      "observed_at": "2026-10-07T05:27:18.937250+00:00",
+      "odds_type": "standard",
+      "player": "HObbit",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-07T10:30:00.000-04:00",
+      "stat": "kills",
+      "team": "PARIVISION",
+      "actual": 27,
+      "margin": 3.0,
+      "result": "over",
+      "match_date": "2026-10-07",
+      "opponent": "Natus Vincere"
+    },
+    {
+      "game": "cs2",
+      "line": 12.0,
+      "maps": 2,
+      "observed_at": "2026-10-07T05:27:18.937250+00:00",
+      "odds_type": "standard",
+      "player": "HObbit",
+      "provider": "prizepicks",
+      "region": "CS2",
+      "start_time": "2026-10-07T10:30:00.000-04:00",
+      "stat": "headshots",
+      "team": "PARIVISION",
+      "actual": 7,
+      "margin": -5.0,
+      "result": "under",
+      "match_date": "2026-10-07",
+      "opponent": "Natus Vincere"
+    },
+    {
+      "game": "cs2",
       "line": 23.5,
       "maps": 2,
       "observed_at": "2026-10-03T11:00:22.286377+00:00",
@@ -76679,9 +77039,9 @@
     }
   ],
   "refused": {
-    "no completed match on that date": 557,
+    "no completed match on that date": 626,
     "player missing from the box score": 2,
-    "player missing from a map's box score": 183,
-    "team played more than once that day": 149
+    "player missing from a map's box score": 132,
+    "team played more than once that day": 129
   }
 }
