@@ -2,20 +2,20 @@
   "summary": {
     "all": {
       "graded": 4241,
-      "pushes": 108,
-      "over": 1976,
-      "under": 2157,
-      "over_rate": 0.4781,
-      "mean_margin": 0.113,
+      "pushes": 107,
+      "over": 1978,
+      "under": 2156,
+      "over_rate": 0.4785,
+      "mean_margin": 0.098,
       "median_margin": -0.5
     },
     "cs2": {
       "graded": 3542,
-      "pushes": 94,
-      "over": 1680,
-      "under": 1768,
-      "over_rate": 0.4872,
-      "mean_margin": 0.252,
+      "pushes": 93,
+      "over": 1682,
+      "under": 1767,
+      "over_rate": 0.4877,
+      "mean_margin": 0.235,
       "median_margin": 0.0
     },
     "lol": {
@@ -43,10 +43,10 @@
       "maps": 1,
       "graded": 1421,
       "pushes": 50,
-      "over": 665,
-      "under": 706,
-      "over_rate": 0.485,
-      "mean_margin": 0.277
+      "over": 666,
+      "under": 705,
+      "over_rate": 0.4858,
+      "mean_margin": 0.266
     },
     "cs2 map 2": {
       "game": "cs2",
@@ -63,11 +63,11 @@
       "game": "cs2",
       "maps": 2,
       "graded": 2083,
-      "pushes": 44,
-      "over": 984,
+      "pushes": 43,
+      "over": 985,
       "under": 1055,
-      "over_rate": 0.4826,
-      "mean_margin": 0.146
+      "over_rate": 0.4828,
+      "mean_margin": 0.123
     },
     "lol map 1": {
       "game": "lol",
@@ -12391,11 +12391,11 @@
       "start_time": "2026-09-24T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Bounty Hunters",
-      "actual": 27,
-      "margin": -3.5,
+      "actual": 15,
+      "margin": -15.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Yawara"
+      "opponent": "paiN"
     },
     {
       "game": "cs2",
@@ -12409,11 +12409,11 @@
       "start_time": "2026-09-24T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "Bounty Hunters",
-      "actual": 16,
-      "margin": -3.0,
+      "actual": 10,
+      "margin": -9.0,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Yawara"
+      "opponent": "paiN"
     },
     {
       "game": "cs2",
@@ -12463,11 +12463,11 @@
       "start_time": "2026-09-24T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Bounty Hunters",
-      "actual": 29,
-      "margin": -1.0,
+      "actual": 26,
+      "margin": -4.0,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Yawara"
+      "opponent": "paiN"
     },
     {
       "game": "cs2",
@@ -12481,11 +12481,11 @@
       "start_time": "2026-09-24T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "Bounty Hunters",
-      "actual": 18,
-      "margin": 0.5,
-      "result": "over",
+      "actual": 14,
+      "margin": -3.5,
+      "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Yawara"
+      "opponent": "paiN"
     },
     {
       "game": "cs2",
@@ -12535,11 +12535,11 @@
       "start_time": "2026-09-24T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Bounty Hunters",
-      "actual": 26,
-      "margin": -0.5,
+      "actual": 19,
+      "margin": -7.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Yawara"
+      "opponent": "paiN"
     },
     {
       "game": "cs2",
@@ -12553,11 +12553,11 @@
       "start_time": "2026-09-24T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "Bounty Hunters",
-      "actual": 14,
-      "margin": -1.5,
+      "actual": 12,
+      "margin": -3.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Yawara"
+      "opponent": "paiN"
     },
     {
       "game": "cs2",
@@ -12607,11 +12607,11 @@
       "start_time": "2026-09-24T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Bounty Hunters",
-      "actual": 34,
-      "margin": 3.5,
-      "result": "over",
+      "actual": 21,
+      "margin": -9.5,
+      "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Yawara"
+      "opponent": "paiN"
     },
     {
       "game": "cs2",
@@ -12625,11 +12625,11 @@
       "start_time": "2026-09-24T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "Bounty Hunters",
-      "actual": 14,
-      "margin": -1.5,
+      "actual": 10,
+      "margin": -5.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Yawara"
+      "opponent": "paiN"
     },
     {
       "game": "cs2",
@@ -12679,11 +12679,11 @@
       "start_time": "2026-09-24T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Bounty Hunters",
-      "actual": 28,
-      "margin": -0.5,
+      "actual": 16,
+      "margin": -12.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Yawara"
+      "opponent": "paiN"
     },
     {
       "game": "cs2",
@@ -12701,7 +12701,7 @@
       "margin": -3.5,
       "result": "under",
       "match_date": "2026-09-24",
-      "opponent": "Yawara"
+      "opponent": "paiN"
     },
     {
       "game": "cs2",
@@ -34351,11 +34351,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 7,
-      "margin": -6.5,
-      "result": "under",
+      "actual": 15,
+      "margin": 1.5,
+      "result": "over",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34369,11 +34369,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 7,
-      "margin": -5.5,
-      "result": "under",
+      "actual": 15,
+      "margin": 2.5,
+      "result": "over",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34387,11 +34387,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 7,
-      "margin": -4.5,
-      "result": "under",
+      "actual": 15,
+      "margin": 3.5,
+      "result": "over",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34405,11 +34405,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "Galorys",
-      "actual": 3,
-      "margin": -3.5,
-      "result": "under",
+      "actual": 7,
+      "margin": 0.5,
+      "result": "over",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34423,11 +34423,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 21,
-      "margin": -4.5,
-      "result": "under",
+      "actual": 26,
+      "margin": 0.5,
+      "result": "over",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34441,11 +34441,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "Galorys",
-      "actual": 9,
-      "margin": -5.5,
+      "actual": 10,
+      "margin": -4.5,
       "result": "under",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34499,7 +34499,7 @@
       "margin": -0.5,
       "result": "under",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34517,7 +34517,7 @@
       "margin": 0.5,
       "result": "over",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34535,7 +34535,7 @@
       "margin": 1.5,
       "result": "over",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34549,11 +34549,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 26,
-      "margin": -2.5,
+      "actual": 24,
+      "margin": -4.5,
       "result": "under",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34567,11 +34567,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "Galorys",
-      "actual": 10,
-      "margin": 0.5,
+      "actual": 12,
+      "margin": 2.5,
       "result": "over",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34621,11 +34621,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 13,
-      "margin": -3.5,
+      "actual": 5,
+      "margin": -11.5,
       "result": "under",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34639,11 +34639,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 13,
-      "margin": -2.5,
+      "actual": 5,
+      "margin": -10.5,
       "result": "under",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34657,11 +34657,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 13,
-      "margin": -1.5,
+      "actual": 5,
+      "margin": -9.5,
       "result": "under",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34675,11 +34675,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "Galorys",
-      "actual": 6,
-      "margin": -2.5,
+      "actual": 4,
+      "margin": -4.5,
       "result": "under",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34693,11 +34693,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 36,
-      "margin": 3.5,
-      "result": "over",
+      "actual": 22,
+      "margin": -10.5,
+      "result": "under",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34711,11 +34711,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "Galorys",
-      "actual": 18,
-      "margin": 1.0,
-      "result": "over",
+      "actual": 13,
+      "margin": -4.0,
+      "result": "under",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34765,11 +34765,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 3,
-      "margin": -13.5,
+      "actual": 15,
+      "margin": -1.5,
       "result": "under",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34783,11 +34783,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 22,
-      "margin": -9.5,
-      "result": "under",
+      "actual": 32,
+      "margin": 0.5,
+      "result": "over",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34801,11 +34801,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "Galorys",
-      "actual": 13,
-      "margin": -3.5,
+      "actual": 16,
+      "margin": -0.5,
       "result": "under",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34855,11 +34855,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 20,
-      "margin": 4.5,
-      "result": "over",
+      "actual": 10,
+      "margin": -5.5,
+      "result": "under",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34873,11 +34873,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 20,
-      "margin": 5.5,
-      "result": "over",
+      "actual": 10,
+      "margin": -4.5,
+      "result": "under",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34891,11 +34891,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 20,
-      "margin": 6.5,
-      "result": "over",
+      "actual": 10,
+      "margin": -3.5,
+      "result": "under",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34909,11 +34909,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Galorys",
-      "actual": 39,
-      "margin": 8.5,
+      "actual": 33,
+      "margin": 2.5,
       "result": "over",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -34927,11 +34927,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "Galorys",
-      "actual": 20,
-      "margin": 5.5,
+      "actual": 15,
+      "margin": 0.5,
       "result": "over",
       "match_date": "2026-09-27",
-      "opponent": "Procyon"
+      "opponent": "Bounty Hunters"
     },
     {
       "game": "cs2",
@@ -35305,11 +35305,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Procyon",
-      "actual": 26,
-      "margin": 1.5,
+      "actual": 31,
+      "margin": 6.5,
       "result": "over",
       "match_date": "2026-09-27",
-      "opponent": "Galorys"
+      "opponent": "BESTIA Academy"
     },
     {
       "game": "cs2",
@@ -35323,11 +35323,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "Procyon",
-      "actual": 14,
-      "margin": 5.0,
+      "actual": 13,
+      "margin": 4.0,
       "result": "over",
       "match_date": "2026-09-27",
-      "opponent": "Galorys"
+      "opponent": "BESTIA Academy"
     },
     {
       "game": "cs2",
@@ -35341,11 +35341,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Procyon",
-      "actual": 17,
-      "margin": -11.5,
+      "actual": 24,
+      "margin": -4.5,
       "result": "under",
       "match_date": "2026-09-27",
-      "opponent": "Galorys"
+      "opponent": "BESTIA Academy"
     },
     {
       "game": "cs2",
@@ -35359,11 +35359,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "Procyon",
-      "actual": 7,
-      "margin": -7.5,
+      "actual": 5,
+      "margin": -9.5,
       "result": "under",
       "match_date": "2026-09-27",
-      "opponent": "Galorys"
+      "opponent": "BESTIA Academy"
     },
     {
       "game": "cs2",
@@ -35377,11 +35377,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Procyon",
-      "actual": 25,
-      "margin": -0.5,
-      "result": "under",
+      "actual": 34,
+      "margin": 8.5,
+      "result": "over",
       "match_date": "2026-09-27",
-      "opponent": "Galorys"
+      "opponent": "BESTIA Academy"
     },
     {
       "game": "cs2",
@@ -35395,11 +35395,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "Procyon",
-      "actual": 11,
-      "margin": -3.5,
-      "result": "under",
+      "actual": 20,
+      "margin": 5.5,
+      "result": "over",
       "match_date": "2026-09-27",
-      "opponent": "Galorys"
+      "opponent": "BESTIA Academy"
     },
     {
       "game": "cs2",
@@ -35413,11 +35413,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "kills",
       "team": "Procyon",
-      "actual": 31,
-      "margin": 6.0,
+      "actual": 28,
+      "margin": 3.0,
       "result": "over",
       "match_date": "2026-09-27",
-      "opponent": "Galorys"
+      "opponent": "BESTIA Academy"
     },
     {
       "game": "cs2",
@@ -35431,11 +35431,11 @@
       "start_time": "2026-09-27T17:00:00.000-04:00",
       "stat": "headshots",
       "team": "Procyon",
-      "actual": 16,
-      "margin": 0.0,
-      "result": "push",
+      "actual": 19,
+      "margin": 3.0,
+      "result": "over",
       "match_date": "2026-09-27",
-      "opponent": "Galorys"
+      "opponent": "BESTIA Academy"
     },
     {
       "game": "cs2",
@@ -56963,7 +56963,7 @@
       "margin": 20.0,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -56981,7 +56981,7 @@
       "margin": 10.0,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -56999,7 +56999,7 @@
       "margin": 10.0,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -57017,7 +57017,7 @@
       "margin": 6.0,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -57035,7 +57035,7 @@
       "margin": 8.5,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -57053,7 +57053,7 @@
       "margin": 10.0,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -57071,7 +57071,7 @@
       "margin": 10.5,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -57089,7 +57089,7 @@
       "margin": 6.5,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -57107,7 +57107,7 @@
       "margin": 8.5,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -57125,7 +57125,7 @@
       "margin": 10.0,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -57143,7 +57143,7 @@
       "margin": 10.5,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -57161,7 +57161,7 @@
       "margin": 6.5,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -57179,7 +57179,7 @@
       "margin": 5.5,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -57197,7 +57197,7 @@
       "margin": 3.5,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -57215,7 +57215,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -57233,7 +57233,7 @@
       "margin": -0.5,
       "result": "under",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -57251,7 +57251,7 @@
       "margin": -2.5,
       "result": "under",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -57269,7 +57269,7 @@
       "margin": -1.0,
       "result": "under",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -57287,7 +57287,7 @@
       "margin": -0.5,
       "result": "under",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -57305,7 +57305,7 @@
       "margin": 7.5,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -57323,7 +57323,7 @@
       "margin": 7.0,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -57341,7 +57341,7 @@
       "margin": 2.5,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -57359,7 +57359,7 @@
       "margin": 2.5,
       "result": "over",
       "match_date": "2026-10-03",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -72115,7 +72115,7 @@
       "margin": 4.5,
       "result": "over",
       "match_date": "2026-10-07",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -72133,7 +72133,7 @@
       "margin": 3.5,
       "result": "over",
       "match_date": "2026-10-07",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -72151,7 +72151,7 @@
       "margin": 14.5,
       "result": "over",
       "match_date": "2026-10-07",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -72169,7 +72169,7 @@
       "margin": 10.5,
       "result": "over",
       "match_date": "2026-10-07",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -72187,7 +72187,7 @@
       "margin": 2.5,
       "result": "over",
       "match_date": "2026-10-07",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -72205,7 +72205,7 @@
       "margin": 0.5,
       "result": "over",
       "match_date": "2026-10-07",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -72223,7 +72223,7 @@
       "margin": -12.5,
       "result": "under",
       "match_date": "2026-10-07",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -72241,7 +72241,7 @@
       "margin": -4.0,
       "result": "under",
       "match_date": "2026-10-07",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -72259,7 +72259,7 @@
       "margin": 1.5,
       "result": "over",
       "match_date": "2026-10-07",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -72277,7 +72277,7 @@
       "margin": 2.0,
       "result": "over",
       "match_date": "2026-10-07",
-      "opponent": "Spirit"
+      "opponent": "Team Spirit"
     },
     {
       "game": "cs2",
@@ -76499,9 +76499,9 @@
     }
   ],
   "refused": {
-    "no completed match on that date": 478,
+    "no completed match on that date": 544,
     "player missing from the box score": 2,
-    "player missing from a map's box score": 262,
+    "player missing from a map's box score": 196,
     "team played more than once that day": 129
   }
 }
