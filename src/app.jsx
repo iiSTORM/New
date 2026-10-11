@@ -10338,8 +10338,29 @@ function MenuEvents({ go, isDesktop }) {
   );
 }
 
+/* How fresh the posted lines are, for the menu: "84 open lines, saved 2h
+   ago" or "saved Wed, Oct 7 -- every line has started". The Edges and
+   Parlays tabs are empty without a fresh board, and nothing said so before
+   you went looking. */
+function useBoardStatus() {
+  const [board, setBoard] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    fetch(DATA_URL_PROPS, { cache: "no-store" }).then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (alive) setBoard(d); }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
+  if (!board || !board.props) return null;
+  let open = 0;
+  for (const players of Object.values(board.props)) for (const rows of Object.values(players || {}))
+    for (const row of rows || []) if (propIsLive(row)) open++;
+  const age = propsAgeMinutes(board);
+  return { open, age, saved: board.fetched_at };
+}
+
 function MainMenu({ isDesktop, go }) {
   const theme = useTheme();
+  const board = useBoardStatus();
   const seen = loadStored("pe.lastSeen", null);
   const card = (key, title, body, extra) => (
     <div role="button" tabIndex={0} className="kp-clickable" onClick={() => go(key)}
@@ -10363,7 +10384,14 @@ function MainMenu({ isDesktop, go }) {
       <MenuEvents go={go} isDesktop={isDesktop} />
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
         {card("projections", "Projections",
-          "Model projections, edges and parlays for LoL, Valorant and CS2, with the benchmark against the line.")}
+          "Model projections, edges and parlays for LoL, Valorant and CS2, with the benchmark against the line.",
+          board ? (
+            <div style={{ marginTop: 12, fontSize: 12.5, color: board.open ? theme.textDim : theme.bad }}>
+              {board.open
+                ? <><span className="kp-num" style={{ color: theme.text, fontWeight: 700 }}>{board.open}</span> open lines · board {ageLabel(board.age) || "just saved"}</>
+                : <>Board saved {peWhen(board.saved)} — every line on it has started. Upload a fresh one for edges and parlays.</>}
+            </div>
+          ) : null)}
         {card("tracker", "Tracker",
           "Log slips as you place them, mark results, and keep your bankroll straight.",
           seen && typeof seen.balance === "number" ? (

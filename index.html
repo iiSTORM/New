@@ -12380,11 +12380,35 @@ try {
       }
     }, "Bracket \u2192"))));
   }
+  function useBoardStatus() {
+    const [board, setBoard] = useState(null);
+    useEffect(() => {
+      let alive = true;
+      fetch(DATA_URL_PROPS, {
+        cache: "no-store"
+      }).then(r => r.ok ? r.json() : null).then(d => {
+        if (alive) setBoard(d);
+      }).catch(() => {});
+      return () => {
+        alive = false;
+      };
+    }, []);
+    if (!board || !board.props) return null;
+    let open = 0;
+    for (const players of Object.values(board.props)) for (const rows of Object.values(players || {})) for (const row of rows || []) if (propIsLive(row)) open++;
+    const age = propsAgeMinutes(board);
+    return {
+      open,
+      age,
+      saved: board.fetched_at
+    };
+  }
   function MainMenu({
     isDesktop,
     go
   }) {
     const theme = useTheme();
+    const board = useBoardStatus();
     const seen = loadStored("pe.lastSeen", null);
     const card = (key, title, body, extra) => React.createElement("div", {
       role: "button",
@@ -12458,7 +12482,19 @@ try {
         gap: 16,
         flexWrap: "wrap"
       }
-    }, card("projections", "Projections", "Model projections, edges and parlays for LoL, Valorant and CS2, with the benchmark against the line."), card("tracker", "Tracker", "Log slips as you place them, mark results, and keep your bankroll straight.", seen && typeof seen.balance === "number" ? React.createElement("div", {
+    }, card("projections", "Projections", "Model projections, edges and parlays for LoL, Valorant and CS2, with the benchmark against the line.", board ? React.createElement("div", {
+      style: {
+        marginTop: 12,
+        fontSize: 12.5,
+        color: board.open ? theme.textDim : theme.bad
+      }
+    }, board.open ? React.createElement(React.Fragment, null, React.createElement("span", {
+      className: "kp-num",
+      style: {
+        color: theme.text,
+        fontWeight: 700
+      }
+    }, board.open), " open lines \xB7 board ", ageLabel(board.age) || "just saved") : React.createElement(React.Fragment, null, "Board saved ", peWhen(board.saved), " \u2014 every line on it has started. Upload a fresh one for edges and parlays.")) : null), card("tracker", "Tracker", "Log slips as you place them, mark results, and keep your bankroll straight.", seen && typeof seen.balance === "number" ? React.createElement("div", {
       style: {
         marginTop: 12,
         fontSize: 13,
