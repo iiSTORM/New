@@ -47,8 +47,16 @@ jobs:
       - name: Install dependencies
         run: pip install requests beautifulsoup4
 
+      # Allowed to fail so the steps that do not need gol.gg still run: the
+      # schedule and the international brackets come from the LoL Esports
+      # API, and a gol.gg outage (2026-10-10: every region timed out) used
+      # to freeze them too. scrape_lcs.py leaves data.json untouched when
+      # every region fails, so the stats keep their real age; the run is
+      # still turned red by the step after the commit.
       - name: Scrape gol.gg (LoL player stats + past match results)
+        id: golgg
         run: python scripts/scrape_lcs.py
+        continue-on-error: true
 
       - name: Scrape LoL schedule (LoL Esports API)
         id: schedule
@@ -57,12 +65,14 @@ jobs:
 
       - name: Scrape LoL player career history (gol.gg, multi-season)
         id: career
+        if: steps.golgg.outcome == 'success'   # gol.gg is down: do not wait out a 45-minute timeout
         run: python scripts/scrape_career.py
         continue-on-error: true  # incremental/cached by design, but shouldn't block data.json if it fails or times out — a stale career_data.json (or none at all) just means merge_career_data() falls back every player to career=None, which the model already handles gracefully
         timeout-minutes: 45  # first-ever run has no cache to build on (hundreds of players, some needing all 11 seasons individually) — subsequent runs are much faster since past seasons are cached and only the current season gets re-fetched
 
       - name: Aggregate champion-level stat baselines
         id: champion_stats
+        if: steps.golgg.outcome == 'success'
         run: python scripts/aggregate_champion_stats.py
         continue-on-error: true  # reads data.json's per_game field (from scrape_lcs.py above) — champion_stats.json is fetched independently by the app, so a failure here doesn't affect anything else in this job
 
@@ -85,7 +95,10 @@ jobs:
       # commit step: if the data is stale or gutted, the run goes red and
       # the bad snapshot never reaches main.
       - name: Check data.json is fresh and complete
-        run: python scripts/check_data.py lol
+        # With gol.gg down the stats are knowingly old -- that is the point of
+        # keeping them -- so freshness is not checked; structure and the
+        # regression guard still are.
+        run: python scripts/check_data.py lol ${{ steps.golgg.outcome != 'success' && '--skip-freshness' || '' }}
 
       # The steps above marked continue-on-error are allowed to fail, but
       # a failure that nobody ever sees is how the career tier silently
@@ -178,6 +191,14 @@ jobs:
             sleep $((RANDOM % 5 + 1))
           done
           git push
+      # The fixtures and brackets were committed above; the run still goes
+      # red, because stats that did not refresh are a failure worth seeing.
+      - name: Fail the run if gol.gg was unreachable
+        if: steps.golgg.outcome != 'success'
+        run: |
+          echo "::error title=gol.gg unreachable::Player stats were not refreshed this run (the committed data.json stats are unchanged). Fixtures and event brackets were still updated from the LoL Esports API."
+          exit 1
+
       # Deliberately the LAST step in the job. GitHub's job-log API returns
       # a job's TAIL, and the commit/push step above echoes ~90 lines of
       # its own script, so anything before it is unreachable from an API
