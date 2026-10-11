@@ -1987,6 +1987,7 @@ const DATA_URL_CS2 = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/m
 // since it's a standalone reference table, not one game's live snapshot.
 const DATA_URL_CHAMPION_STATS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/champion_stats.json";
 const DATA_URL_PROPS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props.json";
+const DATA_URL_SCHEDULE = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/schedule.json";
 const DATA_URL_RESULTS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props_results.json";
 const DATA_URL_PROJECTIONS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/model_projections.json";
 
@@ -8373,9 +8374,24 @@ const KP_STYLES = `
 
 function KillProjector({ onHome } = {}) {
   const isDesktop = useIsDesktop();
-  const [game, setGame] = useState("lol");
-  const [region, setRegion] = useState("LCS");
-  const [tab, setTab] = useState("future");
+  const linked = projectionsParamsFromHash();
+  const [game, setGame] = useState(() => (GAMES[linked.game] ? linked.game : "lol"));
+  const [region, setRegion] = useState(() => (linked.region && GAMES[linked.game || "lol"]
+    && GAMES[linked.game || "lol"].regionList.includes(linked.region) ? linked.region : "LCS"));
+  const [tab, setTab] = useState(() => linked.tab || "future");
+  // A link from the menu while this page is already mounted (it stays
+  // mounted once visited) arrives as a hash change, not a fresh mount.
+  useEffect(() => {
+    const apply = () => {
+      const p = projectionsParamsFromHash();
+      if (GAMES[p.game]) setGame(p.game);
+      const g = GAMES[p.game] || null;
+      if (p.region && g && g.regionList.includes(p.region)) setRegion(p.region);
+      if (p.tab) setTab(p.tab);
+    };
+    window.addEventListener("hashchange", apply);
+    return () => window.removeEventListener("hashchange", apply);
+  }, []);
   const [statType, setStatType] = useState("kills");
   const [games, setGames] = useState(2);
 
@@ -8616,7 +8632,11 @@ function KillProjector({ onHome } = {}) {
   const visibleRegions = gameCfg.regionList.filter(
     (key) => !(gameCfg.optionalRegions || []).includes(key) || regionsData[key]);
   // Leaving an event's region for a league's leaves no bracket to show.
-  useEffect(() => { if (tab === "event" && !hasEvent) setTab("future"); }, [tab, hasEvent]);
+  // Only once the data has arrived: a link straight to a bracket lands
+  // before the live file does, and the fallback snapshot has no events.
+  useEffect(() => {
+    if (tab === "event" && !hasEvent && statusByGame[game] !== "loading") setTab("future");
+  }, [tab, hasEvent, statusByGame, game]);
   const normalizedUpcoming = formatUpcoming(current.upcoming_matches || []);
 
   const selectGame = (id) => {
@@ -10254,6 +10274,70 @@ function TrackerPage({ isDesktop, onHome }) {
 
 /* ------------------------------------------------------------ main menu */
 
+/* The international events on now, for the menu: each one's state and its
+   next matchup with both sides drawn. From schedule.json, which is ~20KB --
+   the menu must not pull the multi-megabyte data files just to say what is
+   on. Live first, then the soonest to start; finished events are left out. */
+function menuEvents(schedule, now = Date.now()) {
+  const out = [];
+  for (const [key, ev] of Object.entries((schedule && schedule.events) || {})) {
+    const matches = (ev.stages || []).flatMap((st) => (st.sections || []).flatMap((sec) =>
+      (sec.matches || []).map((m) => ({ ...m, stage: st.name }))));
+    if (!matches.length) continue;
+    const done = matches.filter((m) => m.state === "completed").length;
+    if (done === matches.length) continue;
+    const named = (t) => t && t.name && t.name !== "TBD";
+    const next = matches
+      .filter((m) => m.state !== "completed" && (m.teams || []).every(named) && Date.parse(m.start) >= now - 3 * 3600e3)
+      .sort((a, b) => Date.parse(a.start) - Date.parse(b.start))[0] || null;
+    const first = matches.map((m) => Date.parse(m.start)).filter(Number.isFinite).sort((a, b) => a - b)[0];
+    const live = done > 0 || matches.some((m) => m.state === "inProgress") || (first && first <= now);
+    out.push({ key, name: ev.name || key, live, done, total: matches.length, first: first || null, next });
+  }
+  return out.sort((a, b) => (b.live - a.live) || ((a.first || 0) - (b.first || 0)));
+}
+
+function MenuEvents({ go, isDesktop }) {
+  const theme = useTheme();
+  const [schedule, setSchedule] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    fetch(DATA_URL_SCHEDULE, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null)).then((d) => { if (alive) setSchedule(d); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+  const events = menuEvents(schedule);
+  if (!events.length) return null;
+  const when = (t) => new Date(t).toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  return (
+    <div style={{ marginBottom: 16 }}>
+      {events.map((e) => (
+        <div key={e.key} role="button" tabIndex={0} className="kp-clickable"
+          onClick={() => go(`projections?game=lol&region=${encodeURIComponent(e.key)}&tab=event`)}
+          onKeyDown={(ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); go(`projections?game=lol&region=${encodeURIComponent(e.key)}&tab=event`); } }}
+          style={{ cursor: "pointer", background: theme.graphite, border: `1px solid ${e.live ? theme.accentBorder : theme.steel}`,
+            ...cardShape(theme.cornerStyle), ...elevation(), padding: "14px 18px", marginBottom: 10,
+            display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+          <span className="kp-chip" style={{ background: e.live ? theme.accentSoft : "transparent", color: e.live ? theme.accent : theme.textDim,
+            border: `1px solid ${e.live ? theme.accentBorder : theme.steel}`, fontSize: 11 }}>
+            {e.live ? "On now" : `Starts ${new Date(e.first).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`}
+          </span>
+          <div style={{ flex: "1 1 200px", minWidth: 0 }}>
+            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 18, fontWeight: 600 }}>{e.name}</div>
+            <div style={{ fontSize: 12.5, color: theme.textDim, marginTop: 2 }}>
+              {e.next
+                ? <>Next: <strong style={{ color: theme.text }}>{e.next.teams[0].name} vs {e.next.teams[1].name}</strong> · {e.next.stage}{e.next.best_of ? ` · Bo${e.next.best_of}` : ""} · {when(e.next.start)}</>
+                : `${e.done} of ${e.total} matches played · next matchups not drawn yet`}
+            </div>
+          </div>
+          <span style={{ fontSize: 13, color: theme.accent, fontWeight: 600 }}>Bracket →</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function MainMenu({ isDesktop, go }) {
   const theme = useTheme();
   const seen = loadStored("pe.lastSeen", null);
@@ -10276,6 +10360,7 @@ function MainMenu({ isDesktop, go }) {
       </div>
       <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: isDesktop ? 34 : 26, fontWeight: 600,
         margin: "0 0 24px", letterSpacing: -0.3 }}>Where to?</h1>
+      <MenuEvents go={go} isDesktop={isDesktop} />
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
         {card("projections", "Projections",
           "Model projections, edges and parlays for LoL, Valorant and CS2, with the benchmark against the line.")}
@@ -10297,7 +10382,22 @@ function MainMenu({ isDesktop, go }) {
 const PE_ROUTES = ["menu", "projections", "tracker"];
 function peRouteFromHash() {
   const h = (typeof window !== "undefined" && window.location && window.location.hash || "").replace(/^#\/?/, "");
-  return PE_ROUTES.includes(h) ? h : "menu";
+  const route = h.split("?")[0];
+  return PE_ROUTES.includes(route) ? route : "menu";
+}
+
+/* "#/projections?game=lol&region=Worlds&tab=event" -> {game, region, tab}.
+   How the menu's event card opens a bracket directly. */
+function projectionsParamsFromHash() {
+  const h = (typeof window !== "undefined" && window.location && window.location.hash) || "";
+  const q = h.indexOf("?");
+  if (q < 0) return {};
+  const out = {};
+  for (const part of h.slice(q + 1).split("&")) {
+    const [k, v] = part.split("=");
+    if (k && v !== undefined) out[decodeURIComponent(k)] = decodeURIComponent(v);
+  }
+  return out;
 }
 
 function AppShell() {

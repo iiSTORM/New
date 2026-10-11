@@ -25,7 +25,7 @@ const raw = fs.readFileSync(path.join(root, "src/app.jsx"), "utf8");
 const bootstrap = raw.indexOf("const root = ReactDOM.createRoot");
 const body = raw.slice(raw.indexOf("try {") + "try {".length, bootstrap);
 const { code } = transformSync(
-  `${body}\nreturn { eventStages, eventStageKind, eventStageStatus, swissModel, bracketRounds, groupTable,`
+  `${body}\nreturn { menuEvents, eventStages, eventStageKind, eventStageStatus, swissModel, bracketRounds, groupTable,`
   + ` eventTeamsAfter, eventWinner, EventTab, ThemeContext, BASE_TOKENS, GAME_ACCENTS };`,
   { presets: [["@babel/preset-react", { runtime: "classic" }]], filename: "app.jsx", compact: true,
     parserOpts: { allowReturnOutsideFunction: true } });
@@ -200,6 +200,33 @@ check("renders: Worlds with every slot TBD, and an event with no stages", () => 
   const html = render(WORLDS, {}, true);
   if (!html.includes("Play-Ins") || !html.includes("TBD")) throw new Error("Worlds shell missing");
   render({ name: "x", stages: [] }, {}, false);
+});
+
+/* ------------------------------------------------------- menu cards */
+
+check("menu: before an event, it is upcoming with its first drawn matchup", () => {
+  // The fixture is the board as of 2026-10-03 06:00Z, two hours before the
+  // Demacia Cup's first game.
+  const now = Date.parse("2026-10-03T06:00:00Z");
+  const sched = { events: { "Demacia Cup": DC, Worlds: WORLDS } };
+  const out = app.menuEvents(sched, now);
+  eq(out.map((e) => [e.key, e.live]), [["Demacia Cup", false], ["Worlds", false]], "soonest first, neither live");
+  eq(app.menuEvents(sched, Date.parse("2026-10-03T09:00:00Z"))[0].live, true, "live once its first game is due");
+  eq(out[0].next && out[0].next.teams.map((t) => t.name), ["RED Kalunga", "Natus Vincere"], "Demacia next");
+  eq(out[1].next, null, "Worlds has no drawn matchup in the fixture");
+});
+
+check("menu: a finished event is left off, and a drawn later match is offered", () => {
+  const now = Date.parse("2026-10-11T12:00:00Z");
+  const ev = clone(DC);
+  for (const st of ev.stages) for (const sec of st.sections) for (const m of sec.matches) m.state = "completed";
+  eq(app.menuEvents({ events: { x: ev } }, now), [], "finished");
+  const ko = clone(DC);
+  const qf = ko.stages[3].sections[0].matches[0];
+  qf.teams = [{ name: "kt Rolster", code: "KT" }, { name: "Team Vitality", code: "VIT" }];
+  ko.stages[0].sections[0].matches.forEach((m) => { m.state = "completed"; });
+  const got = app.menuEvents({ events: { "Demacia Cup": ko } }, now)[0];
+  eq(got.next && got.next.stage, "Playoffs", "next is the drawn quarterfinal");
 });
 
 console.log(`${pass} event-view checks passed, ${fail} failed`);

@@ -1608,6 +1608,7 @@ try {
   const DATA_URL_CS2 = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/cs2_data.json";
   const DATA_URL_CHAMPION_STATS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/champion_stats.json";
   const DATA_URL_PROPS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props.json";
+  const DATA_URL_SCHEDULE = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/schedule.json";
   const DATA_URL_RESULTS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props_results.json";
   const DATA_URL_PROJECTIONS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/model_projections.json";
   const PROPS_MAX_AGE_MINUTES = 90;
@@ -9677,9 +9678,21 @@ try {
     onHome
   } = {}) {
     const isDesktop = useIsDesktop();
-    const [game, setGame] = useState("lol");
-    const [region, setRegion] = useState("LCS");
-    const [tab, setTab] = useState("future");
+    const linked = projectionsParamsFromHash();
+    const [game, setGame] = useState(() => GAMES[linked.game] ? linked.game : "lol");
+    const [region, setRegion] = useState(() => linked.region && GAMES[linked.game || "lol"] && GAMES[linked.game || "lol"].regionList.includes(linked.region) ? linked.region : "LCS");
+    const [tab, setTab] = useState(() => linked.tab || "future");
+    useEffect(() => {
+      const apply = () => {
+        const p = projectionsParamsFromHash();
+        if (GAMES[p.game]) setGame(p.game);
+        const g = GAMES[p.game] || null;
+        if (p.region && g && g.regionList.includes(p.region)) setRegion(p.region);
+        if (p.tab) setTab(p.tab);
+      };
+      window.addEventListener("hashchange", apply);
+      return () => window.removeEventListener("hashchange", apply);
+    }, []);
     const [statType, setStatType] = useState("kills");
     const [games, setGames] = useState(2);
     const [weightsByGameAndStat, setWeightsByGameAndStat] = useState(() => {
@@ -9846,8 +9859,8 @@ try {
     const hasEvent = !!(current.event && (current.event.stages || []).length);
     const visibleRegions = gameCfg.regionList.filter(key => !(gameCfg.optionalRegions || []).includes(key) || regionsData[key]);
     useEffect(() => {
-      if (tab === "event" && !hasEvent) setTab("future");
-    }, [tab, hasEvent]);
+      if (tab === "event" && !hasEvent && statusByGame[game] !== "loading") setTab("future");
+    }, [tab, hasEvent, statusByGame, game]);
     const normalizedUpcoming = formatUpcoming(current.upcoming_matches || []);
     const selectGame = id => {
       setGame(id);
@@ -12246,6 +12259,127 @@ try {
       store: store
     })));
   }
+  function menuEvents(schedule, now = Date.now()) {
+    const out = [];
+    for (const [key, ev] of Object.entries(schedule && schedule.events || {})) {
+      const matches = (ev.stages || []).flatMap(st => (st.sections || []).flatMap(sec => (sec.matches || []).map(m => ({
+        ...m,
+        stage: st.name
+      }))));
+      if (!matches.length) continue;
+      const done = matches.filter(m => m.state === "completed").length;
+      if (done === matches.length) continue;
+      const named = t => t && t.name && t.name !== "TBD";
+      const next = matches.filter(m => m.state !== "completed" && (m.teams || []).every(named) && Date.parse(m.start) >= now - 3 * 3600e3).sort((a, b) => Date.parse(a.start) - Date.parse(b.start))[0] || null;
+      const first = matches.map(m => Date.parse(m.start)).filter(Number.isFinite).sort((a, b) => a - b)[0];
+      const live = done > 0 || matches.some(m => m.state === "inProgress") || first && first <= now;
+      out.push({
+        key,
+        name: ev.name || key,
+        live,
+        done,
+        total: matches.length,
+        first: first || null,
+        next
+      });
+    }
+    return out.sort((a, b) => b.live - a.live || (a.first || 0) - (b.first || 0));
+  }
+  function MenuEvents({
+    go,
+    isDesktop
+  }) {
+    const theme = useTheme();
+    const [schedule, setSchedule] = useState(null);
+    useEffect(() => {
+      let alive = true;
+      fetch(DATA_URL_SCHEDULE, {
+        cache: "no-store"
+      }).then(r => r.ok ? r.json() : null).then(d => {
+        if (alive) setSchedule(d);
+      }).catch(() => {});
+      return () => {
+        alive = false;
+      };
+    }, []);
+    const events = menuEvents(schedule);
+    if (!events.length) return null;
+    const when = t => new Date(t).toLocaleString(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit"
+    });
+    return React.createElement("div", {
+      style: {
+        marginBottom: 16
+      }
+    }, events.map(e => React.createElement("div", {
+      key: e.key,
+      role: "button",
+      tabIndex: 0,
+      className: "kp-clickable",
+      onClick: () => go(`projections?game=lol&region=${encodeURIComponent(e.key)}&tab=event`),
+      onKeyDown: ev => {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          go(`projections?game=lol&region=${encodeURIComponent(e.key)}&tab=event`);
+        }
+      },
+      style: {
+        cursor: "pointer",
+        background: theme.graphite,
+        border: `1px solid ${e.live ? theme.accentBorder : theme.steel}`,
+        ...cardShape(theme.cornerStyle),
+        ...elevation(),
+        padding: "14px 18px",
+        marginBottom: 10,
+        display: "flex",
+        alignItems: "center",
+        gap: 14,
+        flexWrap: "wrap"
+      }
+    }, React.createElement("span", {
+      className: "kp-chip",
+      style: {
+        background: e.live ? theme.accentSoft : "transparent",
+        color: e.live ? theme.accent : theme.textDim,
+        border: `1px solid ${e.live ? theme.accentBorder : theme.steel}`,
+        fontSize: 11
+      }
+    }, e.live ? "On now" : `Starts ${new Date(e.first).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric"
+    })}`), React.createElement("div", {
+      style: {
+        flex: "1 1 200px",
+        minWidth: 0
+      }
+    }, React.createElement("div", {
+      style: {
+        fontFamily: "'Fraunces', serif",
+        fontSize: 18,
+        fontWeight: 600
+      }
+    }, e.name), React.createElement("div", {
+      style: {
+        fontSize: 12.5,
+        color: theme.textDim,
+        marginTop: 2
+      }
+    }, e.next ? React.createElement(React.Fragment, null, "Next: ", React.createElement("strong", {
+      style: {
+        color: theme.text
+      }
+    }, e.next.teams[0].name, " vs ", e.next.teams[1].name), " \xB7 ", e.next.stage, e.next.best_of ? ` · Bo${e.next.best_of}` : "", " \xB7 ", when(e.next.start)) : `${e.done} of ${e.total} matches played · next matchups not drawn yet`)), React.createElement("span", {
+      style: {
+        fontSize: 13,
+        color: theme.accent,
+        fontWeight: 600
+      }
+    }, "Bracket \u2192"))));
+  }
   function MainMenu({
     isDesktop,
     go
@@ -12315,7 +12449,10 @@ try {
         margin: "0 0 24px",
         letterSpacing: -0.3
       }
-    }, "Where to?"), React.createElement("div", {
+    }, "Where to?"), React.createElement(MenuEvents, {
+      go: go,
+      isDesktop: isDesktop
+    }), React.createElement("div", {
       style: {
         display: "flex",
         gap: 16,
@@ -12339,7 +12476,19 @@ try {
   const PE_ROUTES = ["menu", "projections", "tracker"];
   function peRouteFromHash() {
     const h = (typeof window !== "undefined" && window.location && window.location.hash || "").replace(/^#\/?/, "");
-    return PE_ROUTES.includes(h) ? h : "menu";
+    const route = h.split("?")[0];
+    return PE_ROUTES.includes(route) ? route : "menu";
+  }
+  function projectionsParamsFromHash() {
+    const h = typeof window !== "undefined" && window.location && window.location.hash || "";
+    const q = h.indexOf("?");
+    if (q < 0) return {};
+    const out = {};
+    for (const part of h.slice(q + 1).split("&")) {
+      const [k, v] = part.split("=");
+      if (k && v !== undefined) out[decodeURIComponent(k)] = decodeURIComponent(v);
+    }
+    return out;
   }
   function AppShell() {
     const isDesktop = useIsDesktop();
