@@ -40,6 +40,27 @@
  * multiplier in the backtest AND the graded record improves in every game
  * it is applied to.
  *
+ * MATCHUPS BY ROLE. The second idea: does an opponent concede more than
+ * projected to one role in particular (a team that cannot handle AWPers,
+ * or bleeds kills to bot lane)? Each player-match gets the opponent's
+ * actual-over-projected kills against players of the same role over the
+ * opponent's last 10 matches before it, (actual + K) / (projected + K)
+ * so a thin record pulls toward 1, raised to a power alpha. K and alpha
+ * are tuned on the first half of the dates and scored on the second,
+ * against the CONTROL of the same factor ignoring role. Intervals are
+ * clustered on the match.
+ *
+ *   test-half MAE      base     opponent, any role     opponent vs role
+ *   League             2.853    2.839 (-0.49%)         2.837 (-0.54%, CI spans 0)
+ *   CS2                5.921    6.031 (+1.85%)         5.960 (+0.66%)
+ *   Valorant           5.909    5.903 (-0.11%)         5.910 (+0.02%)
+ *
+ * NOT ADOPTED either. The role version never beats the role-free one by
+ * more than noise, and in CS2 both are worse than doing nothing. The one
+ * thing that clears zero is League's role-free opponent factor, worth
+ * half a percent -- a hint that the existing opponent weight (0.4) is
+ * slightly low, which is a weight-search question, not a role one.
+ *
  * Usage:
  *     node scripts/dev/role_correction.mjs [--since 2026-06-01] [--game lol|cs2|valorant]
  */
@@ -101,7 +122,7 @@ for (const [game, file] of Object.entries(FILES)) {
           if (!b || typeof b.perGame !== "number") continue;
           const role = game === "lol" ? p.role : game === "cs2" ? (cs2.get(p.name) || null)
             : app.agentClassBefore(pool, team, p.name, m.date);
-          bt.push({ date: m.date, role, proj: b.perGame * games, actual });
+          bt.push({ date: m.date, team, opp, role, proj: b.perGame * games, actual });
         }
       }
     }
@@ -151,5 +172,56 @@ for (const [game, file] of Object.entries(FILES)) {
     if (!t.n) continue;
     console.log(`  ${String(role).padEnd(11)} lines ${String(t.n).padStart(4)}  wins ${t.before} -> ${t.after}`
       + `  model MAE ${(t.aeBefore / t.n).toFixed(3)} -> ${(t.aeAfter / t.n).toFixed(3)}  sides flipped ${t.flipped}`);
+  }
+
+  // 4. Matchups by role, against the role-free control.
+  const roled = bt.filter((r) => r.role);
+  const half = [...new Set(roled.map((r) => r.date))][Math.floor(new Set(roled.map((r) => r.date)).size / 2)];
+  const oppDates = new Map();
+  for (const r of roled) { if (!oppDates.has(r.opp)) oppDates.set(r.opp, new Set()); oppDates.get(r.opp).add(r.date); }
+  for (const [k, v] of oppDates) oppDates.set(k, [...v].sort());
+  const factorsFor = (keyOf, K) => {
+    const sums = new Map();   // opp|key|date -> [actual, projected]
+    for (const r of roled) {
+      const k = `${r.opp}|${keyOf(r)}|${r.date}`;
+      const c = sums.get(k) || [0, 0]; c[0] += r.actual; c[1] += r.proj; sums.set(k, c);
+    }
+    return roled.map((r) => {
+      const ds = oppDates.get(r.opp);
+      let i = 0; while (i < ds.length && ds[i] < r.date) i++;
+      let A = 0, P = 0;
+      for (const d of ds.slice(Math.max(0, i - 10), i)) {
+        const c = sums.get(`${r.opp}|${keyOf(r)}|${d}`); if (c) { A += c[0]; P += c[1]; }
+      }
+      return (A + K) / (P + K);
+    });
+  };
+  const baseTest = roled.filter((r) => r.date >= half);
+  const baseMae = baseTest.reduce((a, r) => a + Math.abs(r.actual - r.proj), 0) / baseTest.length;
+  console.log(`  matchups (tuned before ${half}, scored from it; base MAE ${baseMae.toFixed(4)}):`);
+  for (const [label, keyOf] of [["opponent, any role (control)", () => "*"], ["opponent vs this role", (r) => r.role]]) {
+    let best = null;
+    for (const K of [5, 10, 20, 40, 80]) {
+      const f = factorsFor(keyOf, K);
+      for (const alpha of [0.25, 0.5, 0.75, 1]) {
+        let e = 0, n = 0;
+        roled.forEach((r, i) => { if (r.date < half) { e += Math.abs(r.actual - r.proj * f[i] ** alpha); n++; } });
+        if (!best || e / n < best.mae) best = { mae: e / n, K, alpha, f };
+      }
+    }
+    const perMatch = new Map();
+    let e = 0;
+    roled.forEach((r, i) => {
+      if (r.date < half) return;
+      const adj = Math.abs(r.actual - r.proj * best.f[i] ** best.alpha);
+      e += adj;
+      const k = `${r.date}|${[r.team, r.opp].sort()}`;
+      perMatch.set(k, (perMatch.get(k) || 0) + adj - Math.abs(r.actual - r.proj));
+    });
+    const v = [...perMatch.values()], mean = v.reduce((a, b) => a + b, 0) / v.length;
+    const se = Math.sqrt(v.reduce((a, b) => a + (b - mean) ** 2, 0) / (v.length - 1) / v.length);
+    const mae = e / baseTest.length;
+    console.log(`    ${label.padEnd(30)} K=${best.K} alpha=${best.alpha}  MAE ${mae.toFixed(4)} (${(100 * (mae - baseMae) / baseMae).toFixed(2)}%)`
+      + `  per-match change ${mean.toFixed(3)} ± ${(1.96 * se).toFixed(3)} over ${v.length} matches`);
   }
 }

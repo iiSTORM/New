@@ -1636,6 +1636,15 @@ typical game — and against the posted line it wins bot (48 → 53) while
 losing supports (23 → 20), three bets net over 17 matches. Not adopted;
 rerun as the graded record grows.
 
+**Matchups by role.** Whether an opponent concedes more than projected to one
+role in particular (a team that cannot handle AWPers, or bleeds kills to bot
+lane), from its last ten matches, tuned on the first half of the dates and
+scored on the second against the same adjustment ignoring role. The role
+version never beats the role-free one by more than noise, and in CS2 both
+make the projection worse. Not adopted. The one thing that clears zero is
+League's role-free opponent factor (−0.5% error), a hint that its opponent
+weight is slightly low.
+
 ### Seeing any of it: the Projections tab
 
 Everything above ran in a Python CLI and was invisible in the app.
