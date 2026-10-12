@@ -62,6 +62,18 @@ jobs:
         run: |
           python scripts/score_props.py --json props_results.json | tee grade.log
 
+      # The Projections tab's file is a function of the board AND the data:
+      # a scrape that adds a player to a roster gives a posted line a
+      # projection it did not have. It used to be rebuilt only when a board
+      # was uploaded, so it went stale between uploads (and the Tests
+      # workflow, which compares it with a fresh run, went red). Rebuilt here
+      # because this job already runs after every data landing. Never fatal:
+      # the graded record is the thing this job exists to commit.
+      - name: Re-project the posted board
+        id: projections
+        run: python scripts/publish_projections.py
+        continue-on-error: true
+
       - name: Commit the record
         run: |
           git config user.name "esports-data-bot"
@@ -71,6 +83,7 @@ jobs:
             exit 0
           fi
           git add props_results.json
+          [ -f model_projections.json ] && git add model_projections.json
           if git diff --quiet --cached; then
             echo "No change in the graded record since the last run"
             exit 0
@@ -85,7 +98,9 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             python scripts/score_props.py --json props_results.json
+            python scripts/publish_projections.py || true
             git add props_results.json
+            [ -f model_projections.json ] && git add model_projections.json
             if git diff --quiet --cached; then
               echo "Remote already has this record"
               exit 0

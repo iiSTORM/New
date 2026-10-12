@@ -304,6 +304,17 @@ not, a confident edge is worth no more than a marginal one — and that is the
 most useful thing the record can tell anyone, including the answer "this
 does not work".
 
+For League it is also broken out **by position** (TOP, JNG, MID, BOT, SUP):
+the record on each, which side the bets were on and how each side did, how
+far the posted line sat from what the players actually did ("line ran +2"
+means two above, a seat the market prices high), and whether our projection
+or the line landed closer. The positions share their matches, so read them
+as one set of games seen from five seats, not five independent samples.
+
+The same job also re-runs `scripts/publish_projections.py`, so the
+Projections tab follows the data between board uploads (a scrape that adds a
+player to a roster gives a posted line a projection it did not have before).
+
 Rates are withheld below 30 decided bets, per row and overall. Pushes and
 projections landing exactly on the line are excluded; neither is a bet. And
 nothing in it accounts for the price paid, so a win rate over 50% is not by

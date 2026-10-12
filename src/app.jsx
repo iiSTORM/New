@@ -1712,7 +1712,7 @@ function modelRecordUncached(regionsData, regionList, results, weights, statType
     if (side === null || row.result === "push") continue;
 
     rows.push({
-      ...row, projection, side,
+      ...row, projection, side, role: player.role || null,
       won: side === row.result,
       edge: Math.round((projection - row.line) * 100) / 100,
     });
@@ -1741,6 +1741,45 @@ function recordByWindow(rows) {
     return { maps, map, n: inWindow.length, won,
              rate: inWindow.length ? won / inWindow.length : null };
   });
+}
+
+/* The same record, split by position (League only: CS2 and Valorant
+   rosters carry no role, and those rows are left out rather than filed
+   under a blank heading).
+
+   A position is a different stat line, not just a different player: a bot
+   laner's kills come from fights the team builds around them, a support's
+   from almost nothing. A model off by a constant on one position looks fine
+   pooled with four others. Each row also says which side the bets were on
+   and where the LINE sat against the result, so "we keep winning unders on
+   bot" can be told apart from "the market prices bot high". */
+const ROLE_ORDER = ["TOP", "JNG", "MID", "BOT", "SUP"];
+function recordByRole(rows) {
+  const byRole = new Map();
+  for (const r of rows) {
+    if (!r.role) continue;
+    if (!byRole.has(r.role)) byRole.set(r.role, []);
+    byRole.get(r.role).push(r);
+  }
+  const rank = (role) => (ROLE_ORDER.indexOf(role) + 1) || ROLE_ORDER.length + 1;
+  return [...byRole.entries()].sort((a, b) => rank(a[0]) - rank(b[0]) || a[0].localeCompare(b[0]))
+    .map(([role, inRole]) => {
+      const won = inRole.filter((r) => r.won).length;
+      const overs = inRole.filter((r) => r.side === "over");
+      const unders = inRole.filter((r) => r.side === "under");
+      const graded = inRole.filter((r) => typeof r.actual === "number" && typeof r.line === "number");
+      const mean = (f) => (graded.length ? graded.reduce((a, r) => a + f(r), 0) / graded.length : null);
+      return {
+        role, n: inRole.length, won, rate: inRole.length ? won / inRole.length : null,
+        over: { n: overs.length, won: overs.filter((r) => r.won).length },
+        under: { n: unders.length, won: unders.filter((r) => r.won).length },
+        // Positive: the line sat above what the player did, on average.
+        lineMinusActual: mean((r) => r.line - r.actual),
+        // Positive: the line's miss was bigger than ours.
+        errorEdge: mean((r) => Math.abs(r.line - r.actual) - Math.abs(r.projection - r.actual)),
+        matches: groupByMatch(inRole).length,
+      };
+    });
 }
 
 /* ============================================================
@@ -5600,6 +5639,7 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
   const won = rows.filter((r) => r.won).length;
   const buckets = recordByEdge(rows);
   const windows = recordByWindow(rows);
+  const roles = recordByRole(rows);
   const vsLine = recordVsLine(rows);
   const cal = calibration(rows);
   const graded = results.graded.length;
@@ -5739,6 +5779,48 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
           );
         })}
       </div>
+
+      {roles.length > 0 && (
+        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+                      ...elevation(), marginTop: 12, overflow: "hidden" }}>
+          <div style={{ padding: "12px 16px", borderBottom: `1px solid ${theme.steel}`, fontSize: 12.5, color: theme.text }}>
+            By position
+          </div>
+          {roles.map((r) => {
+            const enough = r.n >= RECORD_MIN_SAMPLE;
+            const side = (x) => (x.n ? `${x.won}/${x.n}` : "none");
+            const signed = (v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}`;
+            return (
+              <div key={r.role} style={{ padding: "10px 16px", borderBottom: `1px solid ${theme.steel}` }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ flex: 1, fontSize: 12.5, color: theme.textDim, fontWeight: 600 }}>{r.role}</div>
+                  <div className="kp-num" style={{ fontSize: 12, color: theme.textFaint, minWidth: 70, textAlign: "right" }}>
+                    {r.won}/{r.n}
+                  </div>
+                  <div className="kp-num" style={{ fontSize: 14, fontWeight: 700, minWidth: 64, textAlign: "right",
+                                                   color: enough ? (r.rate > 0.5 ? theme.good : r.rate < 0.5 ? theme.bad : theme.textDim)
+                                                                 : theme.textFaint }}>
+                    {enough ? `${(100 * r.rate).toFixed(0)}%` : "\u2014"}
+                  </div>
+                </div>
+                <div className="kp-num" style={{ fontSize: 10.5, color: theme.textFaint, marginTop: 4, lineHeight: 1.5 }}>
+                  overs {side(r.over)} · unders {side(r.under)}
+                  {r.lineMinusActual !== null && <> · line ran {signed(r.lineMinusActual)} vs result</>}
+                  {r.errorEdge !== null && (
+                    <> · {r.errorEdge >= 0 ? "we were closer" : "line was closer"} by {Math.abs(r.errorEdge).toFixed(2)}</>
+                  )}
+                  {" "}· {r.matches} {r.matches === 1 ? "match" : "matches"}
+                </div>
+              </div>
+            );
+          })}
+          <div style={{ padding: "10px 16px", fontSize: 11, color: theme.textFaint, lineHeight: 1.6 }}>
+            “Line ran +2” means the posted line sat two above what the player actually did, on average — a
+            position the market prices high, where unders win without the model knowing anything. The
+            positions share their matches, so each row is the same games seen through one seat.
+          </div>
+        </div>
+      )}
 
       <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
                     ...elevation(), marginTop: 12, overflow: "hidden" }}>

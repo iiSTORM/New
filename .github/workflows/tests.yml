@@ -133,3 +133,9 @@ jobs:
       # to the per-team definition, which is what this checks.
       - name: Check the fast league average matches the per-team scan
         run: node tests/league_avg.test.mjs
+
+      # The Record tab's League record split by position. Checked on the
+      # committed rosters too, so a data file that stops carrying `role`
+      # fails here rather than as a silently missing card.
+      - name: Check the record by position
+        run: node tests/record_by_role.test.mjs
