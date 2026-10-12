@@ -1611,7 +1611,7 @@ log-loss by cutting the spread the floor test protects — over-confidence belon
 in the residual scale, not in flattening the model), and the Valorant changes
 (136 props across 8 matches is too thin to retune on).
 
-### Two things measured and reported as dead ends
+### Things measured and reported as dead ends
 
 **Round count.** Kills scale with rounds played, and rounds explain **25%** of
 kills variance — a large, unused signal. But rounds are *not predictable*: from
@@ -1625,6 +1625,16 @@ attractive. On Valorant it lifts picks from 39% to 63% — and log-loss gets
 *worse*, and the bottom fifth (80.6%) beats the top (64.8%). Shifting every
 projection down 4.79 kills simply turns every pick into an under, which is the
 market bias wearing a different hat. Rejected.
+
+**Per-role correction.** The Record tab's role tables lean (supports and bot
+laners projected high, AWPers losing overs), so a multiplier per role was
+fitted on earlier matches and scored on later ones
+(`scripts/dev/role_correction.mjs`). CS2 and Valorant get worse, in the
+backtest and against the line. League improves its error 0.9% — nearly all
+of it supports, whose handful of kills puts the model's average above their
+typical game — and against the posted line it wins bot (48 → 53) while
+losing supports (23 → 20), three bets net over 17 matches. Not adopted;
+rerun as the graded record grows.
 
 ### Seeing any of it: the Projections tab
 
