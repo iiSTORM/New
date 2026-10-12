@@ -1849,11 +1849,16 @@ function agentClassBefore(pastMatches, team, playerName, cutoffDate) {
    differently, over the team's last SEAT_WINDOW matches before the date
    (point-in-time, like teamKillSeat):
 
-     AWPer    the biggest weapon spender on the team (an AWP costs $4,750,
-              a rifle about $3,000), as a share of the team's spend on the
-              same maps. Where spend was not yet recorded, the lowest
-              headshot rate instead -- an AWP kills with body shots -- and
-              only when it sits clearly below the next player's.
+     AWPer    the fewest shots per kill on the team (a sniper fires a
+              handful of shots per kill, a rifler three times as many),
+              when it sits AWP_SHOTS_RATIO below the next player's, or
+              when it is closer than that but the same player also has the
+              lowest headshot rate (an AWP kills with body shots). Where
+              shots were not yet recorded, the lowest headshot rate alone,
+              and only when it sits clearly below the next player's. Weapon
+              spend was tried first and dropped: bo3.gg's weapons_value
+              swings from $8k to $31k for one player between matches and
+              put ZywOo last on Vitality.
      Entry    of the rest, the most opening duels (first kills plus first
               deaths) per map.
      Support  of the rest, the biggest utility spender. Absent until
@@ -1861,10 +1866,11 @@ function agentClassBefore(pastMatches, team, playerName, cutoffDate) {
      Rifler   everyone else; lurkers and in-game leaders land here, since
               nothing in the data separates them.
 
-   Checked against rosters with a well-known AWPer: the headshot rule
-   alone named 12 of 13. */
+   Checked against rosters with a well-known AWPer: shots per kill named
+   9 of 12, the misses all near-ties, and the headshot rule alone 12 of
+   13. */
 const CS2_ROLE_ORDER = ["AWPer", "Entry", "Support", "Rifler"];
-const AWP_SPEND_SHARE = 1.15;   // the AWPer's weapon spend over the team's mean
+const AWP_SHOTS_RATIO = 0.85;   // the AWPer's shots per kill over the next player's
 const AWP_HS_GAP = 0.03;        // headshot fallback: this far below the next player
 const cs2RoleCache = new WeakMap();
 function cs2RolesBefore(pastMatches, teams, team, cutoffDate) {
@@ -1888,8 +1894,8 @@ function cs2RolesBefore(pastMatches, teams, team, cutoffDate) {
   };
   const stats = [];
   for (const p of teams[team].players || []) {
-    let n = 0, maps = 0, k = 0, hs = 0, opening = 0;
-    const wv = [], uv = [];
+    let n = 0, maps = 0, k = 0, hs = 0, opening = 0, shots = 0, shotKills = 0, shotMatches = 0;
+    const uv = [];
     for (const m of played) {
       if (n >= SEAT_WINDOW) break;
       const row = m.actual[team][p.name];
@@ -1897,24 +1903,27 @@ function cs2RolesBefore(pastMatches, teams, team, cutoffDate) {
       n++; maps += mapsCountedFor(m);
       if (typeof row.hs === "number") { k += row.k; hs += row.hs; }
       if (typeof row.fk === "number" && typeof row.fd === "number") opening += row.fk + row.fd;
-      const w = shareIn(m, "wv", p.name); if (w !== null) wv.push(w);
+      if (typeof row.sht === "number" && !row.sht_incomplete) { shots += row.sht; shotKills += row.k; shotMatches++; }
       const u = shareIn(m, "uv", p.name); if (u !== null) uv.push(u);
     }
     if (n < SEAT_MIN) continue;
     const mean = (xs) => (xs.length >= SEAT_MIN ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
     stats.push({ name: p.name, hsRate: k > 0 ? hs / k : null, opening: maps > 0 ? opening / maps : null,
-                 wv: mean(wv), uv: mean(uv) });
+                 shotsPerKill: shotMatches >= SEAT_MIN && shotKills > 0 ? shots / shotKills : null, uv: mean(uv) });
   }
   const roles = new Map();
   if (stats.length >= 4) {
     const best = (list, f, dir = 1) => list.filter((x) => f(x) !== null)
       .sort((a, b) => dir * (f(b) - f(a)))[0] || null;
     let awper = null;
-    const bySpend = best(stats, (x) => x.wv);
-    if (bySpend && stats.filter((x) => x.wv !== null).length >= 4 && bySpend.wv >= AWP_SPEND_SHARE) awper = bySpend;
-    if (!awper && !stats.some((x) => x.wv !== null)) {
-      const byHs = stats.filter((x) => x.hsRate !== null).sort((a, b) => a.hsRate - b.hsRate);
-      if (byHs.length >= 4 && byHs[1].hsRate - byHs[0].hsRate >= AWP_HS_GAP) awper = byHs[0];
+    const byHs = stats.filter((x) => x.hsRate !== null).sort((a, b) => a.hsRate - b.hsRate);
+    const byShots = stats.filter((x) => x.shotsPerKill !== null).sort((a, b) => a.shotsPerKill - b.shotsPerKill);
+    if (byShots.length >= 4) {
+      const [low, next] = byShots;
+      if (low.shotsPerKill <= AWP_SHOTS_RATIO * next.shotsPerKill
+          || (byHs.length >= 4 && byHs[0].name === low.name)) awper = low;
+    } else if (byHs.length >= 4 && byHs[1].hsRate - byHs[0].hsRate >= AWP_HS_GAP) {
+      awper = byHs[0];
     }
     if (awper) roles.set(awper.name, "AWPer");
     const rest = () => stats.filter((x) => !roles.has(x.name));
@@ -6043,8 +6052,8 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
       {cs2Roles.length > 0 && (
         <RecordGroupCard groups={cs2Roles} title="By role"
           note={<> Roles are read off the box score over each player’s previous {SEAT_WINDOW} matches before
-            the line. AWPer: the team’s biggest weapon spender (an AWP costs $4,750, a rifle about $3,000), or
-            the lowest headshot rate where spend was not recorded yet. Entry: the most opening duels. Support:
+            the line. AWPer: the fewest shots per kill on the team (a sniper needs a handful, a rifler three
+            times as many), backed by the lowest headshot rate when it is close. Entry: the most opening duels. Support:
             the biggest utility spender. Everyone else is a rifler — lurkers and in-game leaders included,
             since nothing in the data tells them apart. A team with no clear AWPer gets none.</>} />
       )}

@@ -329,20 +329,24 @@ no class held half of those maps.
 CS2 gets a **by role** table too (AWPer, Entry, Support, Rifler), read off
 the box score over each player's previous ten matches before the line:
 
-- **AWPer**: the team's biggest weapon spender as a share of the team's
-  spend on the same maps (an AWP costs $4,750, a rifle about $3,000), at
-  least 15% above the team mean. Before spend was recorded, the lowest
-  headshot rate instead, since an AWP kills with body shots, and only when
-  it sits 3 points or more below the next player's. On rosters with a
-  well-known AWPer the headshot rule alone named 12 of 13.
+- **AWPer**: the fewest shots per kill on the team (a sniper needs a
+  handful, a rifler about three times as many), at least 15% below the next
+  player's, or closer than that when the same player also has the lowest
+  headshot rate (an AWP kills with body shots). Before shots were recorded,
+  the lowest headshot rate alone, 3 points or more below the next player's.
+  A team whose signals disagree gets no AWPer. On rosters with a well-known
+  AWPer this names all but one, and that one is left blank, not mislabelled.
+  Weapon spend was tried first and dropped: bo3.gg's `weapons_value` swings
+  from $8k to $31k for one player between matches.
 - **Entry**: of the rest, the most opening duels (first kills plus first
   deaths) per map.
 - **Support**: of the rest, the biggest utility spender (once recorded).
 - **Rifler**: everyone else. Lurkers and in-game leaders land here, since
   nothing in the data separates them.
 
-`scrape_cs2.py` keeps four fields bo3.gg already sent for this: `wv`
-(weapons_value), `uv` (utility_value), `sht` (shots) and `hit` (hits).
+`scrape_cs2.py` keeps four fields bo3.gg already sent for this: `sht`
+(shots), `hit` (hits), `uv` (utility_value) and `wv` (weapons_value, kept
+but unused for now).
 
 The same job also re-runs `scripts/publish_projections.py`, so the
 Projections tab follows the data between board uploads (a scrape that adds a

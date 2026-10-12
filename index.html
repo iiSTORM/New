@@ -1476,7 +1476,7 @@ try {
     return out;
   }
   const CS2_ROLE_ORDER = ["AWPer", "Entry", "Support", "Rifler"];
-  const AWP_SPEND_SHARE = 1.15;
+  const AWP_SHOTS_RATIO = 0.85;
   const AWP_HS_GAP = 0.03;
   const cs2RoleCache = new WeakMap();
   function cs2RolesBefore(pastMatches, teams, team, cutoffDate) {
@@ -1502,9 +1502,11 @@ try {
         maps = 0,
         k = 0,
         hs = 0,
-        opening = 0;
-      const wv = [],
-        uv = [];
+        opening = 0,
+        shots = 0,
+        shotKills = 0,
+        shotMatches = 0;
+      const uv = [];
       for (const m of played) {
         if (n >= SEAT_WINDOW) break;
         const row = m.actual[team][p.name];
@@ -1516,8 +1518,11 @@ try {
           hs += row.hs;
         }
         if (typeof row.fk === "number" && typeof row.fd === "number") opening += row.fk + row.fd;
-        const w = shareIn(m, "wv", p.name);
-        if (w !== null) wv.push(w);
+        if (typeof row.sht === "number" && !row.sht_incomplete) {
+          shots += row.sht;
+          shotKills += row.k;
+          shotMatches++;
+        }
         const u = shareIn(m, "uv", p.name);
         if (u !== null) uv.push(u);
       }
@@ -1527,7 +1532,7 @@ try {
         name: p.name,
         hsRate: k > 0 ? hs / k : null,
         opening: maps > 0 ? opening / maps : null,
-        wv: mean(wv),
+        shotsPerKill: shotMatches >= SEAT_MIN && shotKills > 0 ? shots / shotKills : null,
         uv: mean(uv)
       });
     }
@@ -1535,11 +1540,13 @@ try {
     if (stats.length >= 4) {
       const best = (list, f, dir = 1) => list.filter(x => f(x) !== null).sort((a, b) => dir * (f(b) - f(a)))[0] || null;
       let awper = null;
-      const bySpend = best(stats, x => x.wv);
-      if (bySpend && stats.filter(x => x.wv !== null).length >= 4 && bySpend.wv >= AWP_SPEND_SHARE) awper = bySpend;
-      if (!awper && !stats.some(x => x.wv !== null)) {
-        const byHs = stats.filter(x => x.hsRate !== null).sort((a, b) => a.hsRate - b.hsRate);
-        if (byHs.length >= 4 && byHs[1].hsRate - byHs[0].hsRate >= AWP_HS_GAP) awper = byHs[0];
+      const byHs = stats.filter(x => x.hsRate !== null).sort((a, b) => a.hsRate - b.hsRate);
+      const byShots = stats.filter(x => x.shotsPerKill !== null).sort((a, b) => a.shotsPerKill - b.shotsPerKill);
+      if (byShots.length >= 4) {
+        const [low, next] = byShots;
+        if (low.shotsPerKill <= AWP_SHOTS_RATIO * next.shotsPerKill || byHs.length >= 4 && byHs[0].name === low.name) awper = low;
+      } else if (byHs.length >= 4 && byHs[1].hsRate - byHs[0].hsRate >= AWP_HS_GAP) {
+        awper = byHs[0];
       }
       if (awper) roles.set(awper.name, "AWPer");
       const rest = () => stats.filter(x => !roles.has(x.name));
@@ -6002,7 +6009,7 @@ try {
     }), cs2Roles.length > 0 && React.createElement(RecordGroupCard, {
       groups: cs2Roles,
       title: "By role",
-      note: React.createElement(React.Fragment, null, " Roles are read off the box score over each player\u2019s previous ", SEAT_WINDOW, " matches before the line. AWPer: the team\u2019s biggest weapon spender (an AWP costs $4,750, a rifle about $3,000), or the lowest headshot rate where spend was not recorded yet. Entry: the most opening duels. Support: the biggest utility spender. Everyone else is a rifler \u2014 lurkers and in-game leaders included, since nothing in the data tells them apart. A team with no clear AWPer gets none.")
+      note: React.createElement(React.Fragment, null, " Roles are read off the box score over each player\u2019s previous ", SEAT_WINDOW, " matches before the line. AWPer: the fewest shots per kill on the team (a sniper needs a handful, a rifler three times as many), backed by the lowest headshot rate when it is close. Entry: the most opening duels. Support: the biggest utility spender. Everyone else is a rifler \u2014 lurkers and in-game leaders included, since nothing in the data tells them apart. A team with no clear AWPer gets none.")
     }), agentClasses.length > 0 && React.createElement(RecordGroupCard, {
       groups: agentClasses,
       title: "By agent role",

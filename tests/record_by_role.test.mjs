@@ -145,13 +145,26 @@ check("no AWPer when the lowest headshot rate is not clearly lowest", () => {
   if (Object.values(roles(past)).includes("AWPer")) throw new Error("should not guess");
 });
 
-check("weapon spend wins over headshots, and utility spend names the support", () => {
-  const spend = (wv, uv) => ({ wv, uv });
-  const rows = { awp: box(30, 15, 4, 4, spend(9000, 800)), entry: box(28, 9, 9, 8, spend(6000, 900)),
-                 sup: box(20, 11, 2, 2, spend(5800, 2500)), r1: box(25, 13, 3, 3, spend(6000, 1000)),
-                 r2: box(24, 13, 3, 2, spend(6100, 900)) };
+check("shots per kill wins over headshots, and utility spend names the support", () => {
+  const extra = (sht, uv) => ({ sht, uv });
+  // "awp" fires 8 shots a kill; the entry has the lowest headshot rate.
+  const rows = { awp: box(30, 15, 4, 4, extra(240, 800)), entry: box(28, 9, 9, 8, extra(420, 900)),
+                 sup: box(20, 11, 2, 2, extra(320, 2500)), r1: box(25, 13, 3, 3, extra(380, 1000)),
+                 r2: box(24, 13, 3, 2, extra(360, 900)) };
   const past = ["2026-09-01", "2026-09-02", "2026-09-03"].map((d) => cs2Match(d, rows));
   eq(roles(past), { awp: "AWPer", entry: "Entry", sup: "Support", r1: "Rifler", r2: "Rifler" }, "roles");
+});
+
+check("a close shots-per-kill call needs the headshot rate to agree", () => {
+  const extra = (sht) => ({ sht });
+  // awp 12/kill against r1 13/kill: too close alone.
+  const agree = { ...hsOnly, awp: box(30, 9, 4, 4, extra(360)), entry: box(28, 15, 9, 8, extra(500)),
+                  sup: box(20, 11, 2, 2, extra(320 * 1.5)), r1: box(25, 13, 3, 3, extra(325)), r2: box(24, 13, 3, 2, extra(400)) };
+  const past = ["2026-09-01", "2026-09-02", "2026-09-03"].map((d) => cs2Match(d, agree));
+  eq(roles(past).awp, "AWPer", "headshots agree");
+  const split = { ...agree, r1: box(25, 7, 3, 3, extra(325)) };   // r1 now has the lowest headshot rate
+  const past2 = ["2026-09-01", "2026-09-02", "2026-09-03"].map((d) => cs2Match(d, split));
+  if (Object.values(roles(past2)).includes("AWPer")) throw new Error("signals disagree: no AWPer");
 });
 
 check("matches on or after the line's date do not count", () => {
