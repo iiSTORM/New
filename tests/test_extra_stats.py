@@ -298,9 +298,9 @@ class TestTheWiderRow:
 
     def test_economy_fields_are_deliberately_left(self):
         """They describe buy rounds rather than what a player did, and
-        this file already carries 1404 players. Taken only if something
-        shows the performance fields are worth having first."""
+        this file already carries 1404 players. Weapon and utility spend
+        are the exception, taken to tell an AWPer and a support apart."""
         taken = {c for cands in sc.EXTRA_STAT_FIELDS.values() for c in cands}
-        for skipped in ("money_spent", "utility_value", "weapons_value",
-                        "total_equipment_value", "pistols_value", "money_save"):
+        for skipped in ("money_spent", "total_equipment_value", "pistols_value", "money_save"):
             assert skipped not in taken
+        assert {"weapons_value", "utility_value"} <= taken

@@ -300,6 +300,16 @@ EXTRA_STAT_FIELDS = {
     "tk": ("trade_kills",),                # a kill that traded a fallen teammate
     "td": ("trade_death",),
     "dmg": ("damage",),
+    # Two of the economy fields, taken for one purpose: telling roles
+    # apart. An AWP costs $4,750 against about $3,000 for a rifle, so the
+    # team's AWPer spends the most on weapons; the support buys the most
+    # utility. Read as a share of the team's spend on the same maps, never
+    # as an absolute, so round count and economy cancel out. Shots and
+    # hits ride along: an AWPer fires far fewer shots per kill.
+    "wv": ("weapons_value",),
+    "uv": ("utility_value",),
+    "sht": ("shots",),
+    "hit": ("hits",),
 }
 SOURCE_FIELDS_SEEN = set()
 

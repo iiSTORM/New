@@ -326,6 +326,24 @@ from it is named in the run log). A player's role for a line is the class
 they played most over their previous ten matches before it, and "flex" when
 no class held half of those maps.
 
+CS2 gets a **by role** table too (AWPer, Entry, Support, Rifler), read off
+the box score over each player's previous ten matches before the line:
+
+- **AWPer**: the team's biggest weapon spender as a share of the team's
+  spend on the same maps (an AWP costs $4,750, a rifle about $3,000), at
+  least 15% above the team mean. Before spend was recorded, the lowest
+  headshot rate instead, since an AWP kills with body shots, and only when
+  it sits 3 points or more below the next player's. On rosters with a
+  well-known AWPer the headshot rule alone named 12 of 13.
+- **Entry**: of the rest, the most opening duels (first kills plus first
+  deaths) per map.
+- **Support**: of the rest, the biggest utility spender (once recorded).
+- **Rifler**: everyone else. Lurkers and in-game leaders land here, since
+  nothing in the data separates them.
+
+`scrape_cs2.py` keeps four fields bo3.gg already sent for this: `wv`
+(weapons_value), `uv` (utility_value), `sht` (shots) and `hit` (hits).
+
 The same job also re-runs `scripts/publish_projections.py`, so the
 Projections tab follows the data between board uploads (a scrape that adds a
 player to a roster gives a posted line a projection it did not have before).

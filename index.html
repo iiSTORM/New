@@ -1372,6 +1372,7 @@ try {
         role: player.role || null,
         seat: player.role ? null : teamKillSeat(pastMatches, teams, row.team, row.player, row.match_date),
         agentClass: row.game === "valorant" ? agentClassBefore(pastMatches, row.team, row.player, row.match_date) : null,
+        cs2Role: row.game === "cs2" ? cs2RolesBefore(pastMatches, teams, row.team, row.match_date).get(row.player) || null : null,
         won: side === row.result,
         edge: Math.round((projection - row.line) * 100) / 100
       });
@@ -1474,6 +1475,83 @@ try {
     byKey.set(key, out);
     return out;
   }
+  const CS2_ROLE_ORDER = ["AWPer", "Entry", "Support", "Rifler"];
+  const AWP_SPEND_SHARE = 1.15;
+  const AWP_HS_GAP = 0.03;
+  const cs2RoleCache = new WeakMap();
+  function cs2RolesBefore(pastMatches, teams, team, cutoffDate) {
+    if (!pastMatches || !teams || !teams[team]) return new Map();
+    let byKey = cs2RoleCache.get(pastMatches);
+    if (!byKey) {
+      byKey = new Map();
+      cs2RoleCache.set(pastMatches, byKey);
+    }
+    const key = `${team}|${cutoffDate}`;
+    if (byKey.has(key)) return byKey.get(key);
+    const played = pastMatches.filter(m => m.date && m.date < cutoffDate && m.actual && m.actual[team]).sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : 0);
+    const shareIn = (m, field, name) => {
+      const rows = Object.values(m.actual[team]).filter(r => r && typeof r[field] === "number" && !r[`${field}_incomplete`]);
+      const row = m.actual[team][name];
+      if (rows.length < 4 || !row || typeof row[field] !== "number" || row[`${field}_incomplete`]) return null;
+      const mean = rows.reduce((a, r) => a + r[field], 0) / rows.length;
+      return mean > 0 ? row[field] / mean : null;
+    };
+    const stats = [];
+    for (const p of teams[team].players || []) {
+      let n = 0,
+        maps = 0,
+        k = 0,
+        hs = 0,
+        opening = 0;
+      const wv = [],
+        uv = [];
+      for (const m of played) {
+        if (n >= SEAT_WINDOW) break;
+        const row = m.actual[team][p.name];
+        if (!row || typeof row.k !== "number") continue;
+        n++;
+        maps += mapsCountedFor(m);
+        if (typeof row.hs === "number") {
+          k += row.k;
+          hs += row.hs;
+        }
+        if (typeof row.fk === "number" && typeof row.fd === "number") opening += row.fk + row.fd;
+        const w = shareIn(m, "wv", p.name);
+        if (w !== null) wv.push(w);
+        const u = shareIn(m, "uv", p.name);
+        if (u !== null) uv.push(u);
+      }
+      if (n < SEAT_MIN) continue;
+      const mean = xs => xs.length >= SEAT_MIN ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
+      stats.push({
+        name: p.name,
+        hsRate: k > 0 ? hs / k : null,
+        opening: maps > 0 ? opening / maps : null,
+        wv: mean(wv),
+        uv: mean(uv)
+      });
+    }
+    const roles = new Map();
+    if (stats.length >= 4) {
+      const best = (list, f, dir = 1) => list.filter(x => f(x) !== null).sort((a, b) => dir * (f(b) - f(a)))[0] || null;
+      let awper = null;
+      const bySpend = best(stats, x => x.wv);
+      if (bySpend && stats.filter(x => x.wv !== null).length >= 4 && bySpend.wv >= AWP_SPEND_SHARE) awper = bySpend;
+      if (!awper && !stats.some(x => x.wv !== null)) {
+        const byHs = stats.filter(x => x.hsRate !== null).sort((a, b) => a.hsRate - b.hsRate);
+        if (byHs.length >= 4 && byHs[1].hsRate - byHs[0].hsRate >= AWP_HS_GAP) awper = byHs[0];
+      }
+      if (awper) roles.set(awper.name, "AWPer");
+      const rest = () => stats.filter(x => !roles.has(x.name));
+      const entry = best(rest(), x => x.opening);
+      if (entry) roles.set(entry.name, "Entry");
+      const support = rest().filter(x => x.uv !== null).length >= 2 ? best(rest(), x => x.uv) : null;
+      if (support) roles.set(support.name, "Support");
+      for (const x of rest()) roles.set(x.name, "Rifler");
+    }
+    byKey.set(key, roles);
+    return roles;
+  }
   const ROLE_ORDER = ["TOP", "JNG", "MID", "BOT", "SUP"];
   function recordByRole(rows) {
     return recordByGroup(rows, r => r.role ? {
@@ -1488,6 +1566,12 @@ try {
     return recordByGroup(rows, r => r.agentClass ? {
       label: r.agentClass[0].toUpperCase() + r.agentClass.slice(1),
       rank: AGENT_CLASS_ORDER.indexOf(r.agentClass) + 1 || AGENT_CLASS_ORDER.length + 1
+    } : null);
+  }
+  function recordByCs2Role(rows) {
+    return recordByGroup(rows, r => r.cs2Role ? {
+      label: r.cs2Role,
+      rank: CS2_ROLE_ORDER.indexOf(r.cs2Role) + 1 || CS2_ROLE_ORDER.length + 1
     } : null);
   }
   function recordByGroup(rows, groupOf) {
@@ -5720,6 +5804,7 @@ try {
     const windows = recordByWindow(rows);
     const roles = recordByRole(rows);
     const agentClasses = recordByAgentClass(rows);
+    const cs2Roles = recordByCs2Role(rows);
     const vsLine = recordVsLine(rows);
     const cal = calibration(rows);
     const graded = results.graded.length;
@@ -5914,6 +5999,10 @@ try {
       groups: roles,
       title: roles.some(r => ROLE_ORDER.includes(r.role)) ? "By position" : "By kill rank on the team",
       note: !roles.some(r => ROLE_ORDER.includes(r.role)) && React.createElement(React.Fragment, null, " Neither source names an AWPer, so the seat is the player\u2019s kill rank among teammates over their previous ", SEAT_WINDOW, " matches, worked out from games played before each line \u2014 never from the match being graded. A sixth seat is a roster with a stand-in.")
+    }), cs2Roles.length > 0 && React.createElement(RecordGroupCard, {
+      groups: cs2Roles,
+      title: "By role",
+      note: React.createElement(React.Fragment, null, " Roles are read off the box score over each player\u2019s previous ", SEAT_WINDOW, " matches before the line. AWPer: the team\u2019s biggest weapon spender (an AWP costs $4,750, a rifle about $3,000), or the lowest headshot rate where spend was not recorded yet. Entry: the most opening duels. Support: the biggest utility spender. Everyone else is a rifler \u2014 lurkers and in-game leaders included, since nothing in the data tells them apart. A team with no clear AWPer gets none.")
     }), agentClasses.length > 0 && React.createElement(RecordGroupCard, {
       groups: agentClasses,
       title: "By agent role",

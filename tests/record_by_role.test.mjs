@@ -18,7 +18,7 @@ const { transformSync } = require("@babel/core");
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const raw = fs.readFileSync(path.join(root, "src/app.jsx"), "utf8");
 const body = raw.slice(raw.indexOf("try {") + "try {".length, raw.indexOf("const root = ReactDOM.createRoot"));
-const { code } = transformSync(`${body}\nreturn { recordByRole, recordByAgentClass, agentClassBefore, RecordGroupCard, ThemeContext, BASE_TOKENS, modelRecord, teamKillSeat, DEFAULT_WEIGHTS_BY_GAME_AND_STAT };`,
+const { code } = transformSync(`${body}\nreturn { recordByRole, recordByAgentClass, recordByCs2Role, cs2RolesBefore, agentClassBefore, RecordGroupCard, ThemeContext, BASE_TOKENS, modelRecord, teamKillSeat, DEFAULT_WEIGHTS_BY_GAME_AND_STAT };`,
   { presets: [["@babel/preset-react", { runtime: "classic" }]], filename: "app.jsx", compact: true,
     parserOpts: { allowReturnOutsideFunction: true } });
 const w = { innerWidth: 1400, addEventListener() {}, removeEventListener() {},
@@ -126,6 +126,41 @@ check("agent-class rows group in class order; the card renders", () => {
   if (!html.includes("By agent role") || !html.includes("Duelist")) throw new Error("card missing");
 });
 
+// CS2 roles from the box score.
+const cs2Match = (date, rows) => ({ date, games: 2, teamA: "T", teamB: "O", actual: { T: rows } });
+const box = (k, hs, fk, fd, extra = {}) => ({ k, hs, fk, fd, d: 10, a: 3, ...extra });
+const team5 = roster(["awp", "entry", "sup", "r1", "r2"]);
+const hsOnly = { awp: box(30, 9, 4, 4), entry: box(28, 15, 9, 8), sup: box(20, 11, 2, 2),
+                 r1: box(25, 13, 3, 3), r2: box(24, 13, 3, 2) };
+const roles = (past, cutoff = "2026-10-01") => Object.fromEntries(app.cs2RolesBefore(past, team5, "T", cutoff));
+
+check("headshot fallback names the AWPer; opening duels name the entry", () => {
+  const past = ["2026-09-01", "2026-09-02", "2026-09-03"].map((d) => cs2Match(d, hsOnly));
+  eq(roles(past), { awp: "AWPer", entry: "Entry", sup: "Rifler", r1: "Rifler", r2: "Rifler" }, "roles");
+});
+
+check("no AWPer when the lowest headshot rate is not clearly lowest", () => {
+  const close = { ...hsOnly, r1: box(25, 8, 3, 3) };   // 0.32 against the AWPer's 0.30
+  const past = ["2026-09-01", "2026-09-02", "2026-09-03"].map((d) => cs2Match(d, close));
+  if (Object.values(roles(past)).includes("AWPer")) throw new Error("should not guess");
+});
+
+check("weapon spend wins over headshots, and utility spend names the support", () => {
+  const spend = (wv, uv) => ({ wv, uv });
+  const rows = { awp: box(30, 15, 4, 4, spend(9000, 800)), entry: box(28, 9, 9, 8, spend(6000, 900)),
+                 sup: box(20, 11, 2, 2, spend(5800, 2500)), r1: box(25, 13, 3, 3, spend(6000, 1000)),
+                 r2: box(24, 13, 3, 2, spend(6100, 900)) };
+  const past = ["2026-09-01", "2026-09-02", "2026-09-03"].map((d) => cs2Match(d, rows));
+  eq(roles(past), { awp: "AWPer", entry: "Entry", sup: "Support", r1: "Rifler", r2: "Rifler" }, "roles");
+});
+
+check("matches on or after the line's date do not count", () => {
+  const past = ["2026-09-01", "2026-09-02", "2026-09-03"].map((d) => cs2Match(d, hsOnly));
+  const swapped = { ...hsOnly, awp: box(30, 20, 4, 4), r1: box(25, 2, 3, 3) };
+  past.push(...["2026-10-01", "2026-10-02", "2026-10-03", "2026-10-04"].map((d) => cs2Match(d, swapped)));
+  eq(roles(past).awp, "AWPer", "later matches leaked");
+});
+
 for (const [g, file] of [["cs2", "cs2_data.json"], ["valorant", "valorant_data.json"]]) {
   check(`the committed ${g} record gets kill-rank seats`, () => {
     const data = JSON.parse(fs.readFileSync(path.join(root, file), "utf8"));
@@ -134,6 +169,11 @@ for (const [g, file] of [["cs2", "cs2_data.json"], ["valorant", "valorant_data.j
       app.DEFAULT_WEIGHTS_BY_GAME_AND_STAT[g].kills, "kills");
     const seated = rows.filter((r) => r.seat).length;
     if (seated < 0.8 * rows.length) throw new Error(`only ${seated} of ${rows.length} seated`);
+    if (g === "cs2") {
+      const byRole = app.recordByCs2Role(rows);
+      eq(byRole.map((r) => r.role).filter((r) => r !== "Support"), ["AWPer", "Entry", "Rifler"], "cs2 roles");
+      console.log(`      cs2 roles: ${byRole.map((r) => `${r.role} ${r.won}/${r.n}`).join(", ")}`);
+    }
     const roles = app.recordByRole(rows);
     eq(roles.slice(0, 5).map((r) => r.role), ["Top fragger", "2nd on team", "3rd on team", "4th on team", "5th on team"], "seats");
     console.log(`      ${g}: ${roles.map((r) => `${r.role} ${r.won}/${r.n}`).join(", ")}`);

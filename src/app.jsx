@@ -1715,6 +1715,7 @@ function modelRecordUncached(regionsData, regionList, results, weights, statType
       ...row, projection, side, role: player.role || null,
       seat: player.role ? null : teamKillSeat(pastMatches, teams, row.team, row.player, row.match_date),
       agentClass: row.game === "valorant" ? agentClassBefore(pastMatches, row.team, row.player, row.match_date) : null,
+      cs2Role: row.game === "cs2" ? (cs2RolesBefore(pastMatches, teams, row.team, row.match_date).get(row.player) || null) : null,
       won: side === row.result,
       edge: Math.round((projection - row.line) * 100) / 100,
     });
@@ -1842,6 +1843,91 @@ function agentClassBefore(pastMatches, team, playerName, cutoffDate) {
   return out;
 }
 
+/* A CS2 player's role going into a match, from the box score alone.
+
+   Neither source names roles, so they are read off what each role does
+   differently, over the team's last SEAT_WINDOW matches before the date
+   (point-in-time, like teamKillSeat):
+
+     AWPer    the biggest weapon spender on the team (an AWP costs $4,750,
+              a rifle about $3,000), as a share of the team's spend on the
+              same maps. Where spend was not yet recorded, the lowest
+              headshot rate instead -- an AWP kills with body shots -- and
+              only when it sits clearly below the next player's.
+     Entry    of the rest, the most opening duels (first kills plus first
+              deaths) per map.
+     Support  of the rest, the biggest utility spender. Absent until
+              utility spend has been recorded.
+     Rifler   everyone else; lurkers and in-game leaders land here, since
+              nothing in the data separates them.
+
+   Checked against rosters with a well-known AWPer: the headshot rule
+   alone named 12 of 13. */
+const CS2_ROLE_ORDER = ["AWPer", "Entry", "Support", "Rifler"];
+const AWP_SPEND_SHARE = 1.15;   // the AWPer's weapon spend over the team's mean
+const AWP_HS_GAP = 0.03;        // headshot fallback: this far below the next player
+const cs2RoleCache = new WeakMap();
+function cs2RolesBefore(pastMatches, teams, team, cutoffDate) {
+  if (!pastMatches || !teams || !teams[team]) return new Map();
+  let byKey = cs2RoleCache.get(pastMatches);
+  if (!byKey) { byKey = new Map(); cs2RoleCache.set(pastMatches, byKey); }
+  const key = `${team}|${cutoffDate}`;
+  if (byKey.has(key)) return byKey.get(key);
+
+  const played = pastMatches
+    .filter((m) => m.date && m.date < cutoffDate && m.actual && m.actual[team])
+    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+  // A spend share is the player's spend over the team mean in the same
+  // match, so map count and how rich the team was cancel out.
+  const shareIn = (m, field, name) => {
+    const rows = Object.values(m.actual[team]).filter((r) => r && typeof r[field] === "number" && !r[`${field}_incomplete`]);
+    const row = m.actual[team][name];
+    if (rows.length < 4 || !row || typeof row[field] !== "number" || row[`${field}_incomplete`]) return null;
+    const mean = rows.reduce((a, r) => a + r[field], 0) / rows.length;
+    return mean > 0 ? row[field] / mean : null;
+  };
+  const stats = [];
+  for (const p of teams[team].players || []) {
+    let n = 0, maps = 0, k = 0, hs = 0, opening = 0;
+    const wv = [], uv = [];
+    for (const m of played) {
+      if (n >= SEAT_WINDOW) break;
+      const row = m.actual[team][p.name];
+      if (!row || typeof row.k !== "number") continue;
+      n++; maps += mapsCountedFor(m);
+      if (typeof row.hs === "number") { k += row.k; hs += row.hs; }
+      if (typeof row.fk === "number" && typeof row.fd === "number") opening += row.fk + row.fd;
+      const w = shareIn(m, "wv", p.name); if (w !== null) wv.push(w);
+      const u = shareIn(m, "uv", p.name); if (u !== null) uv.push(u);
+    }
+    if (n < SEAT_MIN) continue;
+    const mean = (xs) => (xs.length >= SEAT_MIN ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
+    stats.push({ name: p.name, hsRate: k > 0 ? hs / k : null, opening: maps > 0 ? opening / maps : null,
+                 wv: mean(wv), uv: mean(uv) });
+  }
+  const roles = new Map();
+  if (stats.length >= 4) {
+    const best = (list, f, dir = 1) => list.filter((x) => f(x) !== null)
+      .sort((a, b) => dir * (f(b) - f(a)))[0] || null;
+    let awper = null;
+    const bySpend = best(stats, (x) => x.wv);
+    if (bySpend && stats.filter((x) => x.wv !== null).length >= 4 && bySpend.wv >= AWP_SPEND_SHARE) awper = bySpend;
+    if (!awper && !stats.some((x) => x.wv !== null)) {
+      const byHs = stats.filter((x) => x.hsRate !== null).sort((a, b) => a.hsRate - b.hsRate);
+      if (byHs.length >= 4 && byHs[1].hsRate - byHs[0].hsRate >= AWP_HS_GAP) awper = byHs[0];
+    }
+    if (awper) roles.set(awper.name, "AWPer");
+    const rest = () => stats.filter((x) => !roles.has(x.name));
+    const entry = best(rest(), (x) => x.opening);
+    if (entry) roles.set(entry.name, "Entry");
+    const support = rest().filter((x) => x.uv !== null).length >= 2 ? best(rest(), (x) => x.uv) : null;
+    if (support) roles.set(support.name, "Support");
+    for (const x of rest()) roles.set(x.name, "Rifler");
+  }
+  byKey.set(key, roles);
+  return roles;
+}
+
 const ROLE_ORDER = ["TOP", "JNG", "MID", "BOT", "SUP"];
 function recordByRole(rows) {
   // League rows group by position; CS2 and Valorant rows, which have none,
@@ -1856,6 +1942,13 @@ function recordByAgentClass(rows) {
   return recordByGroup(rows, (r) => (r.agentClass
     ? { label: r.agentClass[0].toUpperCase() + r.agentClass.slice(1),
         rank: (AGENT_CLASS_ORDER.indexOf(r.agentClass) + 1) || AGENT_CLASS_ORDER.length + 1 }
+    : null));
+}
+
+/* CS2, by the role each player held going into the match. */
+function recordByCs2Role(rows) {
+  return recordByGroup(rows, (r) => (r.cs2Role
+    ? { label: r.cs2Role, rank: (CS2_ROLE_ORDER.indexOf(r.cs2Role) + 1) || CS2_ROLE_ORDER.length + 1 }
     : null));
 }
 
@@ -5797,6 +5890,7 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
   const windows = recordByWindow(rows);
   const roles = recordByRole(rows);
   const agentClasses = recordByAgentClass(rows);
+  const cs2Roles = recordByCs2Role(rows);
   const vsLine = recordVsLine(rows);
   const cal = calibration(rows);
   const graded = results.graded.length;
@@ -5944,6 +6038,15 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
             seat is the player’s kill rank among teammates over their previous {SEAT_WINDOW} matches, worked
             out from games played before each line — never from the match being graded. A sixth seat is a
             roster with a stand-in.</>} />
+      )}
+
+      {cs2Roles.length > 0 && (
+        <RecordGroupCard groups={cs2Roles} title="By role"
+          note={<> Roles are read off the box score over each player’s previous {SEAT_WINDOW} matches before
+            the line. AWPer: the team’s biggest weapon spender (an AWP costs $4,750, a rifle about $3,000), or
+            the lowest headshot rate where spend was not recorded yet. Entry: the most opening duels. Support:
+            the biggest utility spender. Everyone else is a rifler — lurkers and in-game leaders included,
+            since nothing in the data tells them apart. A team with no clear AWPer gets none.</>} />
       )}
 
       {agentClasses.length > 0 && (
