@@ -311,6 +311,13 @@ means two above, a seat the market prices high), and whether our projection
 or the line landed closer. The positions share their matches, so read them
 as one set of games seen from five seats, not five independent samples.
 
+CS2 and Valorant rosters carry no position, and neither source says who
+holds the AWP or which agent a player is on, so there the same table is
+split **by kill rank on the team** (top fragger down to fifth). Each seat
+comes from the player's previous ten matches *before* the line's date, never
+the season average, which contains the very match being graded and would
+promote anyone who went off in it to "star".
+
 The same job also re-runs `scripts/publish_projections.py`, so the
 Projections tab follows the data between board uploads (a scrape that adds a
 player to a roster gives a posted line a projection it did not have before).

@@ -18,7 +18,7 @@ const { transformSync } = require("@babel/core");
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const raw = fs.readFileSync(path.join(root, "src/app.jsx"), "utf8");
 const body = raw.slice(raw.indexOf("try {") + "try {".length, raw.indexOf("const root = ReactDOM.createRoot"));
-const { code } = transformSync(`${body}\nreturn { recordByRole, modelRecord, DEFAULT_WEIGHTS_BY_GAME_AND_STAT };`,
+const { code } = transformSync(`${body}\nreturn { recordByRole, modelRecord, teamKillSeat, DEFAULT_WEIGHTS_BY_GAME_AND_STAT };`,
   { presets: [["@babel/preset-react", { runtime: "classic" }]], filename: "app.jsx", compact: true,
     parserOpts: { allowReturnOutsideFunction: true } });
 const w = { innerWidth: 1400, addEventListener() {}, removeEventListener() {},
@@ -66,6 +66,51 @@ check("the committed League record splits into all five positions", () => {
   for (const r of roles) if (r.over.n + r.under.n !== r.n) throw new Error(`${r.role} sides`);
   console.log(`      ${roles.map((r) => `${r.role} ${r.won}/${r.n}`).join(", ")}`);
 });
+
+// Kill-rank seats, for CS2 and Valorant rosters that carry no position.
+const roster = (names) => ({ T: { players: names.map((name) => ({ name })) } });
+const game = (date, kills, games = 2) => ({ date, games, teamA: "T", teamB: "O",
+  actual: { T: Object.fromEntries(Object.entries(kills).map(([n, k]) => [n, { k }])) } });
+const five = { a: 50, b: 40, c: 30, d: 20, e: 10 };
+
+check("seats rank by kills per map over the matches before the date", () => {
+  const past = ["2026-09-01", "2026-09-02", "2026-09-03"].map((d) => game(d, five));
+  const teams = roster(Object.keys(five));
+  eq(["a", "c", "e"].map((n) => app.teamKillSeat(past, teams, "T", n, "2026-10-01")), [1, 3, 5], "seats");
+});
+
+check("the graded match itself never moves a seat", () => {
+  const past = ["2026-09-01", "2026-09-02", "2026-09-03"].map((d) => game(d, five));
+  past.push(game("2026-10-01", { a: 0, b: 0, c: 0, d: 0, e: 500 }));   // e goes off on the day
+  eq(app.teamKillSeat(past, roster(Object.keys(five)), "T", "e", "2026-10-01"), 5, "same-day match leaked");
+});
+
+check("too little history gives no seat", () => {
+  const two = ["2026-09-01", "2026-09-02"].map((d) => game(d, five));
+  eq(app.teamKillSeat(two, roster(Object.keys(five)), "T", "a", "2026-10-01"), null, "under SEAT_MIN");
+  const three = ["2026-09-01", "2026-09-02", "2026-09-03"].map((d) => game(d, { a: 5, b: 4, c: 3 }));
+  eq(app.teamKillSeat(three, roster(["a", "b", "c"]), "T", "a", "2026-10-01"), null, "under four ranked");
+});
+
+check("seat rows group in rank order and League rows keep positions", () => {
+  const out = app.recordByRole([row(null, "over", true, 3.5, 5, 4), { ...row(null, "under", true, 20.5, 18, 19), seat: 3 },
+    { ...row(null, "over", false, 20.5, 18, 22), seat: 1 }]);
+  eq(out.map((r) => r.role), ["Top fragger", "3rd on team"], "seat order");
+});
+
+for (const [g, file] of [["cs2", "cs2_data.json"], ["valorant", "valorant_data.json"]]) {
+  check(`the committed ${g} record gets kill-rank seats`, () => {
+    const data = JSON.parse(fs.readFileSync(path.join(root, file), "utf8"));
+    const results = JSON.parse(fs.readFileSync(path.join(root, "props_results.json"), "utf8"));
+    const rows = app.modelRecord(data.regions, Object.keys(data.regions), results,
+      app.DEFAULT_WEIGHTS_BY_GAME_AND_STAT[g].kills, "kills");
+    const seated = rows.filter((r) => r.seat).length;
+    if (seated < 0.8 * rows.length) throw new Error(`only ${seated} of ${rows.length} seated`);
+    const roles = app.recordByRole(rows);
+    eq(roles.slice(0, 5).map((r) => r.role), ["Top fragger", "2nd on team", "3rd on team", "4th on team", "5th on team"], "seats");
+    console.log(`      ${g}: ${roles.map((r) => `${r.role} ${r.won}/${r.n}`).join(", ")}`);
+  });
+}
 
 console.log(`${pass} by-position checks passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

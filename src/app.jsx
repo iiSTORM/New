@@ -1713,6 +1713,7 @@ function modelRecordUncached(regionsData, regionList, results, weights, statType
 
     rows.push({
       ...row, projection, side, role: player.role || null,
+      seat: player.role ? null : teamKillSeat(pastMatches, teams, row.team, row.player, row.match_date),
       won: side === row.result,
       edge: Math.round((projection - row.line) * 100) / 100,
     });
@@ -1753,17 +1754,68 @@ function recordByWindow(rows) {
    pooled with four others. Each row also says which side the bets were on
    and where the LINE sat against the result, so "we keep winning unders on
    bot" can be told apart from "the market prices bot high". */
+/* A player's kill rank on their own team, from the matches BEFORE a date.
+
+   CS2 and Valorant rosters carry no position, and the sources the scrapers
+   read do not say who holds the AWP or which agent class a player is on. What
+   the data does say is who gets the kills, and that is most of what a kills
+   line prices: the star fragger and the fifth man are different markets.
+
+   Built from each player's last SEAT_WINDOW team matches before the cutoff,
+   never from the season average: that average contains the very match being
+   graded, so a player who went off in it would be promoted to star and that
+   over would be filed as a star's win. Players with fewer than SEAT_MIN
+   matches before the cutoff are not ranked, and a roster with fewer than
+   four ranked players gives no seat to anyone (a rank out of two says
+   nothing). */
+const SEAT_WINDOW = 10;
+const SEAT_MIN = 3;
+const seatCache = new WeakMap();
+function teamKillSeat(pastMatches, teams, team, playerName, cutoffDate) {
+  if (!pastMatches || !teams || !teams[team]) return null;
+  let byKey = seatCache.get(pastMatches);
+  if (!byKey) { byKey = new Map(); seatCache.set(pastMatches, byKey); }
+  const key = `${team}|${cutoffDate}`;
+  if (!byKey.has(key)) {
+    const played = pastMatches
+      .filter((m) => m.date && m.date < cutoffDate && m.actual && m.actual[team])
+      .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));   // newest first
+    const rates = [];
+    for (const p of teams[team].players || []) {
+      let kills = 0, maps = 0, n = 0;
+      for (const m of played) {
+        if (n >= SEAT_WINDOW) break;
+        const row = m.actual[team][p.name];
+        if (!row || typeof row.k !== "number") continue;
+        kills += row.k; maps += mapsCountedFor(m); n++;
+      }
+      if (n >= SEAT_MIN && maps > 0) rates.push({ name: p.name, rate: kills / maps });
+    }
+    const seats = new Map();
+    if (rates.length >= 4) {
+      for (const r of rates) seats.set(r.name, 1 + rates.filter((o) => o.rate > r.rate).length);
+    }
+    byKey.set(key, seats);
+  }
+  return byKey.get(key).get(playerName) || null;
+}
+const seatLabel = (seat) => (seat === 1 ? "Top fragger"
+  : `${seat}${seat === 2 ? "nd" : seat === 3 ? "rd" : "th"} on team`);
+
 const ROLE_ORDER = ["TOP", "JNG", "MID", "BOT", "SUP"];
 function recordByRole(rows) {
+  // League rows group by position; CS2 and Valorant rows, which have none,
+  // by kill rank on the team (teamKillSeat). A row with neither is left out.
   const byRole = new Map();
   for (const r of rows) {
-    if (!r.role) continue;
-    if (!byRole.has(r.role)) byRole.set(r.role, []);
-    byRole.get(r.role).push(r);
+    const role = r.role || (r.seat ? seatLabel(r.seat) : null);
+    if (!role) continue;
+    const rank = r.role ? ((ROLE_ORDER.indexOf(r.role) + 1) || ROLE_ORDER.length + 1) : 10 + r.seat;
+    if (!byRole.has(role)) byRole.set(role, { rank, rows: [] });
+    byRole.get(role).rows.push(r);
   }
-  const rank = (role) => (ROLE_ORDER.indexOf(role) + 1) || ROLE_ORDER.length + 1;
-  return [...byRole.entries()].sort((a, b) => rank(a[0]) - rank(b[0]) || a[0].localeCompare(b[0]))
-    .map(([role, inRole]) => {
+  return [...byRole.entries()].sort((a, b) => a[1].rank - b[1].rank || a[0].localeCompare(b[0]))
+    .map(([role, { rows: inRole }]) => {
       const won = inRole.filter((r) => r.won).length;
       const overs = inRole.filter((r) => r.side === "over");
       const unders = inRole.filter((r) => r.side === "under");
@@ -1778,6 +1830,8 @@ function recordByRole(rows) {
         // Positive: the line's miss was bigger than ours.
         errorEdge: mean((r) => Math.abs(r.line - r.actual) - Math.abs(r.projection - r.actual)),
         matches: groupByMatch(inRole).length,
+        // Clustered on the match like every other interval on the tab.
+        ci: clusteredMean(groupByMatch(inRole).map((m) => m.filter((r) => r.won).length / m.length)),
       };
     });
 }
@@ -5784,7 +5838,7 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
         <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
                       ...elevation(), marginTop: 12, overflow: "hidden" }}>
           <div style={{ padding: "12px 16px", borderBottom: `1px solid ${theme.steel}`, fontSize: 12.5, color: theme.text }}>
-            By position
+            {roles.some((r) => ROLE_ORDER.includes(r.role)) ? "By position" : "By kill rank on the team"}
           </div>
           {roles.map((r) => {
             const enough = r.n >= RECORD_MIN_SAMPLE;
@@ -5810,14 +5864,19 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
                     <> · {r.errorEdge >= 0 ? "we were closer" : "line was closer"} by {Math.abs(r.errorEdge).toFixed(2)}</>
                   )}
                   {" "}· {r.matches} {r.matches === 1 ? "match" : "matches"}
+                  {enough && r.ci && <> · 95% CI {(100 * Math.max(0, r.ci.lo)).toFixed(0)}–{(100 * Math.min(1, r.ci.hi)).toFixed(0)}%</>}
                 </div>
               </div>
             );
           })}
           <div style={{ padding: "10px 16px", fontSize: 11, color: theme.textFaint, lineHeight: 1.6 }}>
             “Line ran +2” means the posted line sat two above what the player actually did, on average — a
-            position the market prices high, where unders win without the model knowing anything. The
-            positions share their matches, so each row is the same games seen through one seat.
+            seat the market prices high, where unders win without the model knowing anything. The rows
+            share their matches, so each is the same games seen through one seat.
+            {!roles.some((r) => ROLE_ORDER.includes(r.role)) && <> Neither source says who holds the AWP or
+            which agent a player is on, so the seat is the player’s kill rank among teammates over
+            their previous {SEAT_WINDOW} matches, worked out from games played before each line — never
+            from the match being graded. A sixth seat is a roster with a stand-in.</>}
           </div>
         </div>
       )}
