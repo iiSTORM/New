@@ -18,7 +18,7 @@ const { transformSync } = require("@babel/core");
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const raw = fs.readFileSync(path.join(root, "src/app.jsx"), "utf8");
 const body = raw.slice(raw.indexOf("try {") + "try {".length, raw.indexOf("const root = ReactDOM.createRoot"));
-const { code } = transformSync(`${body}\nreturn { recordByRole, modelRecord, teamKillSeat, DEFAULT_WEIGHTS_BY_GAME_AND_STAT };`,
+const { code } = transformSync(`${body}\nreturn { recordByRole, recordByAgentClass, agentClassBefore, RecordGroupCard, ThemeContext, BASE_TOKENS, modelRecord, teamKillSeat, DEFAULT_WEIGHTS_BY_GAME_AND_STAT };`,
   { presets: [["@babel/preset-react", { runtime: "classic" }]], filename: "app.jsx", compact: true,
     parserOpts: { allowReturnOutsideFunction: true } });
 const w = { innerWidth: 1400, addEventListener() {}, removeEventListener() {},
@@ -96,6 +96,34 @@ check("seat rows group in rank order and League rows keep positions", () => {
   const out = app.recordByRole([row(null, "over", true, 3.5, 5, 4), { ...row(null, "under", true, 20.5, 18, 19), seat: 3 },
     { ...row(null, "over", false, 20.5, 18, 22), seat: 1 }]);
   eq(out.map((r) => r.role), ["Top fragger", "3rd on team"], "seat order");
+});
+
+// Agent classes, from the per-map "ac" the Valorant scraper writes.
+const mapsOf = (date, classes) => ({ date, games: classes.length, teamA: "T", teamB: "O", actual: { T: { p: { k: 1 } } },
+  per_game: classes.map((ac) => ({ T: { p: { k: 1, ...(ac ? { ag: "x", ac } : {}) } } })) });
+
+check("the class played most before the date, flex when none holds half", () => {
+  const past = [mapsOf("2026-09-01", ["duelist", "duelist"]), mapsOf("2026-09-02", ["duelist", "initiator"]),
+                mapsOf("2026-10-01", ["sentinel", "sentinel", "sentinel", "sentinel"])];   // the graded day
+  eq(app.agentClassBefore(past, "T", "p", "2026-10-01"), "duelist", "majority");
+  const split = [mapsOf("2026-09-01", ["duelist", "initiator"]), mapsOf("2026-09-02", ["controller", "sentinel"])];
+  eq(app.agentClassBefore(split, "T", "p", "2026-10-01"), "flex", "flex");
+});
+
+check("maps scraped before agents were read give no class", () => {
+  const past = [mapsOf("2026-09-01", [null, null]), mapsOf("2026-09-02", [null, "duelist"])];
+  eq(app.agentClassBefore(past, "T", "p", "2026-10-01"), null, "under SEAT_MIN classed maps");
+});
+
+check("agent-class rows group in class order; the card renders", () => {
+  const groups = app.recordByAgentClass([{ ...row(null, "over", true, 20.5, 22, 21), agentClass: "sentinel" },
+    { ...row(null, "under", true, 20.5, 18, 19), agentClass: "duelist" }, row(null, "over", true, 3.5, 5, 4)]);
+  eq(groups.map((g) => g.role), ["Duelist", "Sentinel"], "order");
+  const { renderToStaticMarkup } = require("react-dom/server");
+  const theme = { ...app.BASE_TOKENS, accent: "#c9a86a", accentSoft: "#0000", accentBorder: "#0000", cornerStyle: "rounded" };
+  const html = renderToStaticMarkup(React.createElement(app.ThemeContext.Provider, { value: theme },
+    React.createElement(app.RecordGroupCard, { title: "By agent role", groups, note: "n" })));
+  if (!html.includes("By agent role") || !html.includes("Duelist")) throw new Error("card missing");
 });
 
 for (const [g, file] of [["cs2", "cs2_data.json"], ["valorant", "valorant_data.json"]]) {

@@ -318,6 +318,14 @@ comes from the player's previous ten matches *before* the line's date, never
 the season average, which contains the very match being graded and would
 promote anyone who went off in it to "star".
 
+Valorant also gets a **by agent role** table (duelist, initiator, controller,
+sentinel, or flex). `scrape_valorant.py` reads each player's agent off the
+icon in their row on every map and stores it in `per_game` as `ag` with its
+class as `ac` (the mapping is `AGENT_CLASS` in that script; an agent missing
+from it is named in the run log). A player's role for a line is the class
+they played most over their previous ten matches before it, and "flex" when
+no class held half of those maps.
+
 The same job also re-runs `scripts/publish_projections.py`, so the
 Projections tab follows the data between board uploads (a scrape that adds a
 player to a roster gives a posted line a projection it did not have before).

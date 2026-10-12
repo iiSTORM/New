@@ -1714,6 +1714,7 @@ function modelRecordUncached(regionsData, regionList, results, weights, statType
     rows.push({
       ...row, projection, side, role: player.role || null,
       seat: player.role ? null : teamKillSeat(pastMatches, teams, row.team, row.player, row.match_date),
+      agentClass: row.game === "valorant" ? agentClassBefore(pastMatches, row.team, row.player, row.match_date) : null,
       won: side === row.result,
       edge: Math.round((projection - row.line) * 100) / 100,
     });
@@ -1802,15 +1803,68 @@ function teamKillSeat(pastMatches, teams, team, playerName, cutoffDate) {
 const seatLabel = (seat) => (seat === 1 ? "Top fragger"
   : `${seat}${seat === 2 ? "nd" : seat === 3 ? "rd" : "th"} on team`);
 
+/* A Valorant player's agent class going into a match: the class they
+   played most over their last SEAT_WINDOW team matches before the date,
+   counting maps (the scraper files each map's agent and class in
+   per_game as "ag" and "ac"). Under SEAT_MIN classed maps, null; when no
+   class holds half the maps, "flex", which is a role of its own rather
+   than a coin toss between two. Point-in-time for the same reason as
+   teamKillSeat. */
+const AGENT_CLASS_ORDER = ["duelist", "initiator", "controller", "sentinel", "flex"];
+const agentClassCache = new WeakMap();
+function agentClassBefore(pastMatches, team, playerName, cutoffDate) {
+  if (!pastMatches) return null;
+  let byKey = agentClassCache.get(pastMatches);
+  if (!byKey) { byKey = new Map(); agentClassCache.set(pastMatches, byKey); }
+  const key = `${team}|${playerName}|${cutoffDate}`;
+  if (byKey.has(key)) return byKey.get(key);
+  const played = pastMatches
+    .filter((m) => m.date && m.date < cutoffDate && Array.isArray(m.per_game)
+                   && m.per_game.some((g) => g && g[team] && g[team][playerName]))
+    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
+    .slice(0, SEAT_WINDOW);
+  const counts = {};
+  let maps = 0;
+  for (const m of played) {
+    for (const g of m.per_game) {
+      const cls = g && g[team] && g[team][playerName] && g[team][playerName].ac;
+      if (!cls) continue;
+      counts[cls] = (counts[cls] || 0) + 1;
+      maps++;
+    }
+  }
+  let out = null;
+  if (maps >= SEAT_MIN) {
+    const [top, n] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    out = n * 2 >= maps ? top : "flex";
+  }
+  byKey.set(key, out);
+  return out;
+}
+
 const ROLE_ORDER = ["TOP", "JNG", "MID", "BOT", "SUP"];
 function recordByRole(rows) {
   // League rows group by position; CS2 and Valorant rows, which have none,
   // by kill rank on the team (teamKillSeat). A row with neither is left out.
+  return recordByGroup(rows, (r) => (r.role
+    ? { label: r.role, rank: (ROLE_ORDER.indexOf(r.role) + 1) || ROLE_ORDER.length + 1 }
+    : r.seat ? { label: seatLabel(r.seat), rank: 10 + r.seat } : null));
+}
+
+/* Valorant, by the agent class each player was on going into the match. */
+function recordByAgentClass(rows) {
+  return recordByGroup(rows, (r) => (r.agentClass
+    ? { label: r.agentClass[0].toUpperCase() + r.agentClass.slice(1),
+        rank: (AGENT_CLASS_ORDER.indexOf(r.agentClass) + 1) || AGENT_CLASS_ORDER.length + 1 }
+    : null));
+}
+
+function recordByGroup(rows, groupOf) {
   const byRole = new Map();
   for (const r of rows) {
-    const role = r.role || (r.seat ? seatLabel(r.seat) : null);
-    if (!role) continue;
-    const rank = r.role ? ((ROLE_ORDER.indexOf(r.role) + 1) || ROLE_ORDER.length + 1) : 10 + r.seat;
+    const g = groupOf(r);
+    if (!g) continue;
+    const { label: role, rank } = g;
     if (!byRole.has(role)) byRole.set(role, { rank, rows: [] });
     byRole.get(role).rows.push(r);
   }
@@ -5662,6 +5716,54 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
   );
 }
 
+/* One "record by group" card: by position, kill rank or agent class. */
+function RecordGroupCard({ title, groups, note }) {
+  const theme = useTheme();
+  return (
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+                  ...elevation(), marginTop: 12, overflow: "hidden" }}>
+      <div style={{ padding: "12px 16px", borderBottom: `1px solid ${theme.steel}`, fontSize: 12.5, color: theme.text }}>
+        {title}
+      </div>
+      {groups.map((r) => {
+        const enough = r.n >= RECORD_MIN_SAMPLE;
+        const side = (x) => (x.n ? `${x.won}/${x.n}` : "none");
+        const signed = (v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}`;
+        return (
+          <div key={r.role} style={{ padding: "10px 16px", borderBottom: `1px solid ${theme.steel}` }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ flex: 1, fontSize: 12.5, color: theme.textDim, fontWeight: 600 }}>{r.role}</div>
+              <div className="kp-num" style={{ fontSize: 12, color: theme.textFaint, minWidth: 70, textAlign: "right" }}>
+                {r.won}/{r.n}
+              </div>
+              <div className="kp-num" style={{ fontSize: 14, fontWeight: 700, minWidth: 64, textAlign: "right",
+                                               color: enough ? (r.rate > 0.5 ? theme.good : r.rate < 0.5 ? theme.bad : theme.textDim)
+                                                             : theme.textFaint }}>
+                {enough ? `${(100 * r.rate).toFixed(0)}%` : "\u2014"}
+              </div>
+            </div>
+            <div className="kp-num" style={{ fontSize: 10.5, color: theme.textFaint, marginTop: 4, lineHeight: 1.5 }}>
+              overs {side(r.over)} · unders {side(r.under)}
+              {r.lineMinusActual !== null && <> · line ran {signed(r.lineMinusActual)} vs result</>}
+              {r.errorEdge !== null && (
+                <> · {r.errorEdge >= 0 ? "we were closer" : "line was closer"} by {Math.abs(r.errorEdge).toFixed(2)}</>
+              )}
+              {" "}· {r.matches} {r.matches === 1 ? "match" : "matches"}
+              {enough && r.ci && <> · 95% CI {(100 * Math.max(0, r.ci.lo)).toFixed(0)}–{(100 * Math.min(1, r.ci.hi)).toFixed(0)}%</>}
+            </div>
+          </div>
+        );
+      })}
+      <div style={{ padding: "10px 16px", fontSize: 11, color: theme.textFaint, lineHeight: 1.6 }}>
+        “Line ran +2” means the posted line sat two above what the player actually did, on average — a
+        seat the market prices high, where unders win without the model knowing anything. The rows
+        share their matches, so each is the same games seen through one seat.
+        {note}
+      </div>
+    </div>
+  );
+}
+
 function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
   const theme = useTheme();
   const cfg = STAT_TYPES[statType];
@@ -5694,6 +5796,7 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
   const buckets = recordByEdge(rows);
   const windows = recordByWindow(rows);
   const roles = recordByRole(rows);
+  const agentClasses = recordByAgentClass(rows);
   const vsLine = recordVsLine(rows);
   const cal = calibration(rows);
   const graded = results.graded.length;
@@ -5835,50 +5938,19 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
       </div>
 
       {roles.length > 0 && (
-        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
-                      ...elevation(), marginTop: 12, overflow: "hidden" }}>
-          <div style={{ padding: "12px 16px", borderBottom: `1px solid ${theme.steel}`, fontSize: 12.5, color: theme.text }}>
-            {roles.some((r) => ROLE_ORDER.includes(r.role)) ? "By position" : "By kill rank on the team"}
-          </div>
-          {roles.map((r) => {
-            const enough = r.n >= RECORD_MIN_SAMPLE;
-            const side = (x) => (x.n ? `${x.won}/${x.n}` : "none");
-            const signed = (v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}`;
-            return (
-              <div key={r.role} style={{ padding: "10px 16px", borderBottom: `1px solid ${theme.steel}` }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ flex: 1, fontSize: 12.5, color: theme.textDim, fontWeight: 600 }}>{r.role}</div>
-                  <div className="kp-num" style={{ fontSize: 12, color: theme.textFaint, minWidth: 70, textAlign: "right" }}>
-                    {r.won}/{r.n}
-                  </div>
-                  <div className="kp-num" style={{ fontSize: 14, fontWeight: 700, minWidth: 64, textAlign: "right",
-                                                   color: enough ? (r.rate > 0.5 ? theme.good : r.rate < 0.5 ? theme.bad : theme.textDim)
-                                                                 : theme.textFaint }}>
-                    {enough ? `${(100 * r.rate).toFixed(0)}%` : "\u2014"}
-                  </div>
-                </div>
-                <div className="kp-num" style={{ fontSize: 10.5, color: theme.textFaint, marginTop: 4, lineHeight: 1.5 }}>
-                  overs {side(r.over)} · unders {side(r.under)}
-                  {r.lineMinusActual !== null && <> · line ran {signed(r.lineMinusActual)} vs result</>}
-                  {r.errorEdge !== null && (
-                    <> · {r.errorEdge >= 0 ? "we were closer" : "line was closer"} by {Math.abs(r.errorEdge).toFixed(2)}</>
-                  )}
-                  {" "}· {r.matches} {r.matches === 1 ? "match" : "matches"}
-                  {enough && r.ci && <> · 95% CI {(100 * Math.max(0, r.ci.lo)).toFixed(0)}–{(100 * Math.min(1, r.ci.hi)).toFixed(0)}%</>}
-                </div>
-              </div>
-            );
-          })}
-          <div style={{ padding: "10px 16px", fontSize: 11, color: theme.textFaint, lineHeight: 1.6 }}>
-            “Line ran +2” means the posted line sat two above what the player actually did, on average — a
-            seat the market prices high, where unders win without the model knowing anything. The rows
-            share their matches, so each is the same games seen through one seat.
-            {!roles.some((r) => ROLE_ORDER.includes(r.role)) && <> Neither source says who holds the AWP or
-            which agent a player is on, so the seat is the player’s kill rank among teammates over
-            their previous {SEAT_WINDOW} matches, worked out from games played before each line — never
-            from the match being graded. A sixth seat is a roster with a stand-in.</>}
-          </div>
-        </div>
+        <RecordGroupCard groups={roles}
+          title={roles.some((r) => ROLE_ORDER.includes(r.role)) ? "By position" : "By kill rank on the team"}
+          note={!roles.some((r) => ROLE_ORDER.includes(r.role)) && <> Neither source names an AWPer, so the
+            seat is the player’s kill rank among teammates over their previous {SEAT_WINDOW} matches, worked
+            out from games played before each line — never from the match being graded. A sixth seat is a
+            roster with a stand-in.</>} />
+      )}
+
+      {agentClasses.length > 0 && (
+        <RecordGroupCard groups={agentClasses} title="By agent role"
+          note={<> The role is the agent class the player was on most over their previous {SEAT_WINDOW} matches
+            before each line, read from the agent icons on the match pages. “Flex” means no class held half
+            of those maps. Lines from before agents were scraped have no role and are left out.</>} />
       )}
 
       <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),

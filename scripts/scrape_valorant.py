@@ -415,6 +415,11 @@ def parse_match(match_id, match_path):
         while len(per_game) <= map_index:
             per_game.append({})
         per_game[map_index].setdefault(side_team, {})[name] = {"k": k, "d": d, "a": a}
+        AGENT_COUNTS["rows"] += 1
+        agent, agent_class = agent_from_row(row)
+        if agent:
+            AGENT_COUNTS["found"] += 1
+            per_game[map_index][side_team][name].update({"ag": agent, "ac": agent_class})
 
         if map_index >= MAPS_IN_SERIES_TOTAL:
             # This is the app's convention across both games: only maps/games
@@ -586,6 +591,7 @@ def build_region_payload(region_key, current_event, historical_event):
         teams[team]["players"].append(entry)
     print(f"  built payload for {len(teams)} teams: {list(teams.keys())}")
     report_first_duels()
+    report_agents()
 
     def as_record(m):
         winner = m["teamA"] if (m["scoreA"] or 0) > (m["scoreB"] or 0) else m["teamB"]
@@ -644,6 +650,69 @@ def build_region_payload(region_key, current_event, historical_event):
 MAPS_IN_SERIES_TOTAL = 2
 
 STAT_ROW_COUNTS = {"rows": 0, "parsed": 0}
+
+# ---- Agents ----
+#
+# Each player row on a match page shows the agent played on that map as an
+# icon (an <img> whose src is under /img/vlr/game/agents/). Read from the
+# icon rather than from a fixed cell position, so a reshuffle of the row's
+# columns does not lose it, and stored per map: a player can flex between
+# classes inside one series.
+#
+# The class is what the Record tab groups by (duelist, initiator,
+# controller, sentinel). It is written here, beside the agent, so the
+# mapping has one home. An agent missing from it is stored with "ac": null
+# and named in the run log, which is the cue to add it.
+AGENT_CLASS = {
+    "jett": "duelist", "phoenix": "duelist", "reyna": "duelist", "raze": "duelist",
+    "yoru": "duelist", "neon": "duelist", "iso": "duelist", "waylay": "duelist",
+    "sova": "initiator", "breach": "initiator", "skye": "initiator", "kayo": "initiator",
+    "fade": "initiator", "gekko": "initiator", "tejo": "initiator",
+    "brimstone": "controller", "viper": "controller", "omen": "controller",
+    "astra": "controller", "harbor": "controller", "clove": "controller",
+    "killjoy": "sentinel", "cypher": "sentinel", "sage": "sentinel",
+    "chamber": "sentinel", "deadlock": "sentinel", "vyse": "sentinel", "veto": "sentinel",
+}
+AGENT_COUNTS = {"rows": 0, "found": 0, "unknown": {}}
+_AGENT_SRC = re.compile(r"/agents/([A-Za-z0-9_%-]+)\.(?:png|webp|svg|jpg)", re.IGNORECASE)
+
+
+def agent_key(name):
+    """'KAY/O' -> 'kayo'; the icon file name and the title agree after this."""
+    return re.sub(r"[^a-z]", "", (name or "").lower())
+
+
+def agent_from_row(row):
+    """The agent on one player-map row, as (agent, class), or (None, None).
+
+    The icon's file name first (it is the stable identifier), then its
+    title or alt text. Only images under an /agents/ path count, so a team
+    logo or a flag in the same row can never be read as an agent."""
+    for img in row.find_all("img"):
+        src = img.get("src") or ""
+        m = _AGENT_SRC.search(src)
+        if not m and "/agents/" not in src:
+            continue
+        key = agent_key(m.group(1) if m else (img.get("title") or img.get("alt")))
+        if not key:
+            continue
+        cls = AGENT_CLASS.get(key)
+        if cls is None:
+            AGENT_COUNTS["unknown"][key] = AGENT_COUNTS["unknown"].get(key, 0) + 1
+        return key, cls
+    return None, None
+
+
+def report_agents():
+    rows, found = AGENT_COUNTS["rows"], AGENT_COUNTS["found"]
+    if not rows:
+        return
+    print(f"  agents read on {found}/{rows} player-map rows ({100.0 * found / rows:.0f}%)")
+    if found == 0:
+        print("  ! no agent icon found in any row: the markup has moved, so agents will be "
+              "absent (the Record tab falls back to kill rank)", file=sys.stderr)
+    for key, n in sorted(AGENT_COUNTS["unknown"].items()):
+        print(f"  ! agent {key!r} on {n} rows has no class in AGENT_CLASS; add it", file=sys.stderr)
 
 # Everything parse_stat_row returns, which is what gets summed per player.
 EXTRA_STAT_FIELDS = ("acs", "adr", "kast", "hs", "rating", "fk", "fd")
