@@ -669,7 +669,7 @@ AGENT_CLASS = {
     "sova": "initiator", "breach": "initiator", "skye": "initiator", "kayo": "initiator",
     "fade": "initiator", "gekko": "initiator", "tejo": "initiator",
     "brimstone": "controller", "viper": "controller", "omen": "controller",
-    "astra": "controller", "harbor": "controller", "clove": "controller",
+    "astra": "controller", "harbor": "controller", "clove": "controller", "miks": "controller",
     "killjoy": "sentinel", "cypher": "sentinel", "sage": "sentinel",
     "chamber": "sentinel", "deadlock": "sentinel", "vyse": "sentinel", "veto": "sentinel",
 }
