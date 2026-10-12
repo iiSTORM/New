@@ -1642,8 +1642,13 @@ lane), from its last ten matches, tuned on the first half of the dates and
 scored on the second against the same adjustment ignoring role. The role
 version never beats the role-free one by more than noise, and in CS2 both
 make the projection worse. Not adopted. The one thing that clears zero is
-League's role-free opponent factor (−0.5% error), a hint that its opponent
-weight is slightly low.
+League's role-free opponent factor (−0.5% error). That looked like a hint
+that League's opponent weight is low, and the walk-forward sweep says it is
+not (`sweep_weight.py --game lol --stat kills --param opponent`, 7,626 rows,
+6 folds): 0.4 is the bottom of the curve, 0.5 "wins" 4 of 6 folds by 0.01%
+(two thousandths of a kill), and every other value is worse (0.2 +0.36%,
+0.6 +0.12%, 0.8 +0.89%, 0 +1.30%). Left at 0.4. Whatever the half percent
+is, it is recency in what an opponent concedes, not the weight's strength.
 
 ### Seeing any of it: the Projections tab
 
