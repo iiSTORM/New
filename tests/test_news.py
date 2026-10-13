@@ -143,3 +143,8 @@ def test_shouted_handles_match_and_live_score_pages_are_dropped():
     dropped = {}
     assert sn.build(sn.parse_feed(xml, "lol", "x"), {"lol": ents}, NOW, dropped) == []
     assert dropped == {"live-score or stream page": 1}
+
+
+def test_a_handle_that_is_a_team_name_is_not_matched_when_shouted():
+    ents = {"teams": {"HEROIC": ["HEROIC"], "Orion": ["Orion"]}, "players": {"Heroic": "Orion"}}
+    assert sn.mentions("HEROIC benches head coach doto", ents) == (["HEROIC"], [])

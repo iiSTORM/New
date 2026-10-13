@@ -203,13 +203,17 @@ def mentions(text, game_entities):
             if re.search(r"(?<![\w])" + re.escape(a) + r"(?![\w])", text, re.IGNORECASE if len(a) > 4 else 0):
                 teams.append(team)
                 break
+    # A handle that is also a team's name ("Heroic", "HEROIC") is the team
+    # when shouted, not the player.
+    team_words = {a.lower() for aliases in game_entities["teams"].values() for a in aliases}
     players = []
     for name, team in game_entities["players"].items():
         if len(name) < 3:
             continue
         found = [m for m in re.finditer(r"(?<![\w])" + re.escape(name) + r"(?![\w])", text)
                  if not (name.islower() and _ARTICLE_BEFORE.search(text[:m.start()]))]
-        if not found and len(name) >= 4 and name.lower() not in COMMON_WORDS:
+        if (not found and len(name) >= 4 and name.lower() not in COMMON_WORDS
+                and name.lower() not in team_words):
             # Headlines often shout a handle ("TES ZUIAN misses Worlds").
             found = list(re.finditer(r"(?<![\w])" + re.escape(name.upper()) + r"(?![\w])", text))
         if not found:
