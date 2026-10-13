@@ -243,7 +243,8 @@ function PropReadout({ prop, projection, fresh, ageMinutes }) {
       <div className="kp-num" style={{ fontSize: 15, fontWeight: 600, color: live ? theme.text : theme.textFaint }}>
         {prop.line}
       </div>
-      <div className="kp-num" style={{ fontSize: 11, fontWeight: 700, color: tone, marginTop: 2 }}>
+      <div className="kp-num" style={{ display: "inline-block", fontSize: 11, fontWeight: 800, color: tone, marginTop: 3,
+        padding: "1px 7px", borderRadius: 999, background: `${tone}1f`, border: `1px solid ${tone}40` }}>
         {live ? `${edge > 0 ? "+" : ""}${edge.toFixed(1)}` : "started"}
       </div>
       {/* The window is named rather than left implicit. The edge above is
@@ -304,19 +305,22 @@ function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, 
       className={canExpand ? "kp-clickable" : undefined}
       onClick={canExpand ? () => setOpen(!open) : undefined}
       style={{
-        padding: "15px 18px", borderTop: `1px solid ${theme.steelSoft}`,
+        padding: "14px 18px 14px 15px", borderTop: `1px solid ${theme.steelSoft}`,
+        borderLeft: `3px solid ${open ? teamColor : "transparent"}`,
         cursor: canExpand ? "pointer" : "default",
-        background: open ? theme.graphiteLight : "transparent",
+        background: open ? `linear-gradient(90deg, ${teamColor}16, transparent 45%), ${theme.graphiteLight}` : "transparent",
+        transition: "background 0.2s ease, border-color 0.2s ease",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
           <span
             style={{
-              width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
+              width: 38, height: 38, borderRadius: 12, flexShrink: 0,
               display: "flex", alignItems: "center", justifyContent: "center",
-              background: `${teamColor}22`, border: `1.5px solid ${teamColor}`,
-              color: teamColor, fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 12,
+              background: `linear-gradient(140deg, ${teamColor}55, ${teamColor}12)`,
+              border: `1px solid ${teamColor}77`, boxShadow: `0 6px 16px -8px ${teamColor}`,
+              color: theme.text, fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 12.5, letterSpacing: 0.3,
             }}
           >
             {initialsFor(name)}
@@ -350,19 +354,23 @@ function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, 
               <div style={{ fontSize: 9, letterSpacing: 0.6, color: theme.textFaint, fontFamily: "'JetBrains Mono', monospace" }}>{s.label}</div>
               <div
                 style={{
-                  fontSize: s.big ? 24 : 14, fontWeight: s.big ? 600 : 700,
+                  fontSize: s.big ? 26 : 14, fontWeight: s.big ? 800 : 700, lineHeight: 1.1,
                   fontFamily: s.big ? "'Sora', sans-serif" : "'JetBrains Mono', monospace",
                   color: s.big ? theme.accent : (s.color || theme.text), marginTop: 2,
+                  ...(s.big ? { ...gradText(theme), display: "inline-block", letterSpacing: -0.6 } : {}),
                 }}
               >
                 {s.value}
               </div>
             </div>
           ))}
+          {canExpand && <Chevron open={open} color={open ? theme.accent : theme.textFaint} size={12} />}
         </div>
       </div>
       {open && canExpand && (
-        <div style={{ marginTop: 12 }}>
+        <div className="kp-rise" onClick={(e) => e.stopPropagation()} style={{ marginTop: 14, padding: 16, borderRadius: 16, cursor: "default",
+          background: `${theme.void}b3`, border: `1px solid ${theme.steelSoft}`,
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)" }}>
           <ProjectionDetail r={r} p={p} cfg={cfg} games={games} pastMatches={pastMatches} team={team} />
         </div>
       )}
@@ -4314,9 +4322,21 @@ function RadarChart({ axes, size = 140, color }) {
   };
   const polygonPoints = axes.map((ax, i) => pointFor(i, ax.value).join(",")).join(" ");
   const ringLevels = [25, 50, 75, 100];
+  const gid = `kp-radar-${(color || "").replace("#", "")}`;
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ overflow: "visible" }}>
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor={color} />
+          <stop offset="100%" stopColor={theme.accent2 || color} />
+        </linearGradient>
+        <radialGradient id={`${gid}-bg`}>
+          <stop offset="0%" stopColor={color} stopOpacity="0.12" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx={c} cy={c} r={R} fill={`url(#${gid}-bg)`} />
       {ringLevels.map((level) => (
         <polygon
           key={level}
@@ -4331,10 +4351,11 @@ function RadarChart({ axes, size = 140, color }) {
         const [x, y] = pointFor(i, 100);
         return <line key={ax.label} x1={c} y1={c} x2={x} y2={y} stroke={theme.steel} strokeWidth={0.6} />;
       })}
-      <polygon points={polygonPoints} fill={`${color}33`} stroke={color} strokeWidth={1.8} />
+      <polygon points={polygonPoints} fill={`url(#${gid})`} fillOpacity={0.28} stroke={`url(#${gid})`} strokeWidth={2} strokeLinejoin="round"
+        style={{ filter: `drop-shadow(0 0 6px ${color}66)` }} />
       {axes.map((ax, i) => {
         const [px, py] = pointFor(i, ax.value);
-        return <circle key={`pt-${ax.label}`} cx={px} cy={py} r={2.5} fill={color} />;
+        return <circle key={`pt-${ax.label}`} cx={px} cy={py} r={3} fill={theme.void} stroke={color} strokeWidth={1.6} />;
       })}
       {axes.map((ax, i) => {
         const [lx, ly] = pointFor(i, 118);
@@ -4410,7 +4431,7 @@ function EvidenceChip({ games, compact, borrowed }) {
   );
 }
 
-function ScoreBar({ label, value, max, unit, color }) {
+function ScoreBar({ label, value, max, unit, color, color2 }) {
   const theme = useTheme();
   // A bar with nothing to show draws nothing. It used to call .toFixed on
   // whatever it was handed, so one undefined number took the whole page
@@ -4421,13 +4442,16 @@ function ScoreBar({ label, value, max, unit, color }) {
   if (typeof value !== "number" || !isFinite(value)) return null;
   const pct = max > 0 ? Math.max(0, Math.min(100, (value / max) * 100)) : 0;
   return (
-    <div style={{ marginBottom: 8 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: theme.textFaint, marginBottom: 3 }}>
-        <span>{label}</span>
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", color: theme.textDim }}>{value.toFixed(1)} {unit}</span>
+    <div style={{ marginBottom: 11 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", fontSize: 11.5, color: theme.textDim, marginBottom: 5 }}>
+        <span style={{ fontWeight: 600 }}>{label}</span>
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", color: theme.text, fontWeight: 700 }}>
+          {value.toFixed(1)} <span style={{ color: theme.textFaint, fontWeight: 400 }}>{unit}</span>
+        </span>
       </div>
-      <div style={{ height: 5, background: theme.steelSoft, borderRadius: 3, overflow: "hidden" }}>
-        <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 3 }} />
+      <div style={{ height: 8, background: theme.steelSoft, borderRadius: 999, overflow: "hidden" }}>
+        <div style={{ width: `${pct}%`, height: "100%", borderRadius: 999,
+          background: `linear-gradient(90deg, ${color}55, ${color2 || color})`, boxShadow: `0 0 10px ${(color2 || color)}55` }} />
       </div>
     </div>
   );
@@ -4471,23 +4495,33 @@ function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
   return (
     <div>
       <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
-        <RadarChart axes={axes} color={theme.accent} />
+        <RadarChart axes={axes} color={theme.accent} size={150} />
         <div style={{ flex: 1, minWidth: 140 }}>
-          <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 30, fontWeight: 600, color: theme.accent }}>
+          <div style={{ fontSize: 9.5, letterSpacing: 1.4, textTransform: "uppercase", color: theme.textFaint, fontWeight: 700 }}>
+            Projected {cfg.label.toLowerCase()} · {games}g
+          </div>
+          <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 44, fontWeight: 800, letterSpacing: -1.5, lineHeight: 1.05,
+            display: "inline-block", ...gradText(theme) }}>
             {r.total.toFixed(1)}
           </div>
           {edgePct != null && Math.abs(edgePct) >= 1 && (
-            <div style={{ fontSize: 12, color: edgePct > 0 ? theme.good : theme.bad, fontFamily: "'JetBrains Mono', monospace", marginTop: 2 }}>
-              {edgePct > 0 ? "+" : ""}{edgePct.toFixed(0)}% vs season avg
+            <div>
+              <span className="kp-num" style={{ display: "inline-block", fontSize: 11.5, fontWeight: 700, marginTop: 4,
+                padding: "2px 9px", borderRadius: 999,
+                color: edgePct > 0 ? theme.good : theme.bad, background: `${edgePct > 0 ? theme.good : theme.bad}1a` }}>
+                {edgePct > 0 ? "▲ +" : "▼ "}{edgePct.toFixed(0)}% vs season avg
+              </span>
             </div>
           )}
           {tags.length > 0 && (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
               {tags.map((t) => (
                 <span key={t.text} style={{
-                  fontSize: 11, fontWeight: 500, padding: "4px 11px", borderRadius: 20,
-                  fontFamily: "'Inter', sans-serif", background: `${t.color}20`, color: t.color,
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  fontSize: 11, fontWeight: 600, padding: "4px 11px 4px 9px", borderRadius: 999,
+                  fontFamily: "'Inter', sans-serif", background: `${t.color}16`, color: t.color, border: `1px solid ${t.color}33`,
                 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: t.color, boxShadow: `0 0 6px ${t.color}` }} />
                   {t.text}
                 </span>
               ))}
@@ -4508,9 +4542,10 @@ function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
         const basis = r.careerRate != null && r.careerWeight > 0
           ? "career record and recent matches" : "recent matches";
         return (
-          <div style={{ marginTop: 14, padding: "9px 12px", borderRadius: 8,
-                        background: theme.steelSoft, fontSize: 11.5, lineHeight: 1.55,
-                        color: theme.textFaint }}>
+          <div style={{ marginTop: 16, padding: "10px 14px", borderRadius: 12,
+                        background: `linear-gradient(90deg, ${tone}14, transparent 60%), ${theme.graphite}`,
+                        borderLeft: `3px solid ${tone}`, fontSize: 11.5, lineHeight: 1.6,
+                        color: theme.textDim }}>
             <span style={{ color: tone, fontWeight: 600 }}>
               {games} game{games === 1 ? "" : "s"} of evidence
             </span>
@@ -4528,23 +4563,24 @@ function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
         {/* One scale for all three bars, so their lengths stay comparable.
             Built from the values that exist — a missing season rate must
             not drag the maximum to NaN and flatten every bar to zero. */}
-        <ScoreBar label="Recent form" value={r.recentFormRate} max={barScale} unit={`${cfg.key}/g`} color={theme.textDim} />
+        <ScoreBar label="Recent form" value={r.recentFormRate} max={barScale} unit={`${cfg.key}/g`} color={theme.good} />
         {r.careerRate != null && r.careerWeight > 0 && (
-          <ScoreBar label="Career baseline" value={r.careerRate} max={barScale} unit={`${cfg.key}/g`} color={theme.accent} />
+          <ScoreBar label="Career baseline" value={r.careerRate} max={barScale} unit={`${cfg.key}/g`} color={theme.accent} color2={theme.accent2} />
         )}
-        <ScoreBar label="Season average" value={seasonAvg} max={barScale} unit={`${cfg.key}/g`} color={theme.textFaint} />
+        <ScoreBar label="Season average" value={seasonAvg} max={barScale} unit={`${cfg.key}/g`} color={theme.textDim} />
       </div>
 
       {form.length > 0 && (
-        <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${theme.steelSoft}` }}>
+        <div style={{ marginTop: 16, padding: 14, borderRadius: 14, background: theme.graphite, border: `1px solid ${theme.steelSoft}` }}>
           <RecentFormChart rows={form} line={r.total} statLabel={cfg.label.toLowerCase()} />
           {steadiness && (
             <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
               <span style={{ fontSize: 11, color: theme.textFaint }}>Consistency</span>
-              <div style={{ flex: 1, minWidth: 90, height: 5, background: theme.steelSoft, borderRadius: 3, overflow: "hidden" }}>
+              <div style={{ flex: 1, minWidth: 90, height: 7, background: theme.steelSoft, borderRadius: 999, overflow: "hidden" }}>
                 <div style={{
-                  width: `${steadiness.score}%`, height: "100%", borderRadius: 3,
-                  background: steadiness.score >= 70 ? theme.good : steadiness.score >= 45 ? theme.accent : theme.bad,
+                  width: `${steadiness.score}%`, height: "100%", borderRadius: 999,
+                  background: (() => { const c = steadiness.score >= 70 ? theme.good : steadiness.score >= 45 ? theme.accent : theme.bad;
+                    return `linear-gradient(90deg, ${c}66, ${c})`; })(),
                 }} />
               </div>
               <span style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: theme.textDim }}>
@@ -4558,7 +4594,11 @@ function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
         </div>
       )}
 
-      <div style={{ marginTop: 12, fontSize: 11, color: theme.textFaint, fontFamily: "'JetBrains Mono', monospace", lineHeight: 1.8, paddingTop: 10, borderTop: `1px solid ${theme.steelSoft}` }}>
+      <div style={{ marginTop: 14, fontSize: 11, color: theme.textFaint, fontFamily: "'JetBrains Mono', monospace", lineHeight: 1.85,
+        padding: "10px 14px", borderRadius: 12, background: theme.void, border: `1px dashed ${theme.steel}` }}>
+        <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 9.5, letterSpacing: 1.4, fontWeight: 700, textTransform: "uppercase", color: theme.textDim, marginBottom: 2 }}>
+          The math
+        </div>
         <div>opponent ×{r.oppMult.toFixed(2)} {cfg.useKP && <>&nbsp;·&nbsp; kp ×{r.kpMult.toFixed(2)}</>} &nbsp;→&nbsp; <span style={{ color: theme.text }}>{r.perGame.toFixed(2)} {cfg.key}/game</span> × {games}g</div>
         {/* Only shown where the tier actually applied. A line reading
             "0% of ..." on every LoL card would be noise, and one shown
@@ -4597,8 +4637,8 @@ function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
       </div>
 
       {consistency && (
-        <div style={{ marginTop: 8, paddingTop: 10, borderTop: `1px solid ${theme.steelSoft}` }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: theme.text, letterSpacing: 0.3 }}>Champion cheat code</div>
+        <div style={{ marginTop: 14, padding: 14, borderRadius: 14, background: theme.graphite, border: `1px solid ${theme.steelSoft}` }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: theme.text, fontFamily: "'Sora', sans-serif" }}>Champion cheat code</div>
           <div style={{ fontSize: 11, color: theme.textFaint, fontFamily: "'JetBrains Mono', monospace", marginTop: 3 }}>
             {consistency.championsConsidered} champs, {consistency.totalGames}g on file &nbsp;→&nbsp;
             {" "}CV={consistency.coefficientOfVariation != null ? consistency.coefficientOfVariation.toFixed(2) : "n/a"}
@@ -4616,7 +4656,7 @@ function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
               return (
                 <span key={e.champion} title={`${rate.toFixed(1)} ${cfg.key}/g over ${e.g} games — ${diffPct >= 0 ? "+" : ""}${diffPct.toFixed(0)}% vs their own average`}
                   style={{
-                    fontSize: 10, padding: "4px 8px", borderRadius: 4, fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 10.5, padding: "5px 10px", borderRadius: 999, fontFamily: "'JetBrains Mono', monospace",
                     background: `${pillColor}15`, border: `1px solid ${pillColor}45`, color: theme.text,
                   }}>
                   {e.champion} <span style={{ color: pillColor, fontWeight: 600 }}>{rate.toFixed(1)}</span>
@@ -4711,7 +4751,7 @@ function RecentFormChart({ rows, line, statLabel }) {
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: theme.text, fontFamily: "'Inter', sans-serif" }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: theme.text, fontFamily: "'Sora', sans-serif" }}>
           Last {ordered.length} matches
         </span>
         {hr && (
@@ -4730,7 +4770,7 @@ function RecentFormChart({ rows, line, statLabel }) {
             title={`Projection: ${line.toFixed(1)} ${statLabel}`}
             style={{
               position: "absolute", left: 0, right: 0, bottom: (line / maxVal) * H,
-              borderTop: `1px dashed ${theme.accent}`, opacity: 0.75, pointerEvents: "none", zIndex: 1,
+              borderTop: `1.5px dashed ${theme.accent}`, opacity: 0.9, pointerEvents: "none", zIndex: 1,
             }}
           />
         )}
@@ -4738,13 +4778,13 @@ function RecentFormChart({ rows, line, statLabel }) {
           const h = Math.max(2, (r.value / maxVal) * H);
           const over = line != null && r.value > line;
           return (
-            <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+            <div key={i} style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
               <div
                 title={`${r.value} vs ${r.opponent}${r.date ? ` · ${r.date}` : ""}`}
                 style={{
-                  width: "100%", height: h, borderRadius: "3px 3px 0 0",
-                  background: over ? theme.good : theme.steel,
-                  border: `1px solid ${over ? theme.good : theme.steel}`,
+                  width: "100%", height: h, borderRadius: "6px 6px 2px 2px",
+                  background: over ? `linear-gradient(180deg, ${theme.good}, ${theme.good}44)` : `linear-gradient(180deg, ${theme.steel}, ${theme.steelSoft})`,
+                  boxShadow: over ? `0 0 12px -2px ${theme.good}66` : "none",
                   minHeight: 2,
                 }}
               />
@@ -4755,7 +4795,7 @@ function RecentFormChart({ rows, line, statLabel }) {
 
       <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
         {ordered.map((r, i) => (
-          <div key={i} style={{ flex: 1, textAlign: "center" }}>
+          <div key={i} style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
             <div style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: theme.text, fontWeight: 600 }}>
               {r.value}
             </div>
@@ -6355,17 +6395,27 @@ function HeadToHeadCard({ teams, pastMatches, teamA, teamB, bare = false }) {
 
   const content = (
     <>
-      <div style={{ fontSize: 13, fontWeight: 600, color: theme.text, fontFamily: "'Inter', sans-serif", marginBottom: 12 }}>Head-to-head</div>
+      <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 1.4, textTransform: "uppercase", color: theme.textFaint, marginBottom: 12 }}>Head-to-head</div>
       {meetings.length === 0 ? (
         <div style={{ fontSize: 12, color: theme.textDim }}>No prior meetings this split.</div>
       ) : (
         <>
           {/* Same colour-bar treatment as every other team reference, so
               the record reads as the emphasis rather than the names. */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", marginBottom: 10, gap: 12 }}>
             <TeamTag name={teamA} color={colorA} dim={winsA < winsB} />
-            <span className="kp-num" style={{ fontSize: 20, fontWeight: 700, color: theme.text, flexShrink: 0 }}>{winsA} – {winsB}</span>
-            <TeamTag name={teamB} color={colorB} dim={winsB < winsA} />
+            <span className="kp-num" style={{ fontSize: 26, fontWeight: 800, flexShrink: 0, letterSpacing: -0.5,
+              padding: "4px 14px", borderRadius: 12, background: theme.graphite, border: `1px solid ${theme.steel}` }}>
+              <span style={{ color: winsA >= winsB ? theme.text : theme.textFaint }}>{winsA}</span>
+              <span style={{ color: theme.textFaint, margin: "0 6px" }}>:</span>
+              <span style={{ color: winsB >= winsA ? theme.text : theme.textFaint }}>{winsB}</span>
+            </span>
+            <span style={{ justifySelf: "end" }}><TeamTag name={teamB} color={colorB} dim={winsB < winsA} /></span>
+          </div>
+          {/* Win split as a bar in the two teams' colours. */}
+          <div aria-hidden="true" style={{ display: "flex", height: 5, borderRadius: 999, overflow: "hidden", marginBottom: 10, background: theme.steelSoft }}>
+            <div style={{ width: `${(winsA / Math.max(1, winsA + winsB)) * 100}%`, background: colorA }} />
+            <div style={{ flex: 1, background: winsB ? colorB : "transparent" }} />
           </div>
           {meetings.map((m, i) => (
             <div
@@ -6386,7 +6436,7 @@ function HeadToHeadCard({ teams, pastMatches, teamA, teamB, bare = false }) {
     </>
   );
 
-  if (bare) return <div style={{ padding: "12px 14px" }}>{content}</div>;
+  if (bare) return <div style={{ padding: "14px 18px" }}>{content}</div>;
   return (
     <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), padding: 14, marginBottom: 12 }}>
       {content}
@@ -6688,7 +6738,7 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games: 
         <Chevron open={open} color={theme.textFaint} />
       </div>
       {open && (
-        <div style={{ borderTop: `1px solid ${theme.steel}` }}>
+        <div className="kp-rise" style={{ borderTop: `1px solid ${theme.steel}`, background: `${theme.void}80` }}>
           <HeadToHeadCard teams={teams} pastMatches={pastMatches} teamA={match.teamA} teamB={match.teamB} bare />
           {rows.map((row) => (
             <MatchPlayerRow
@@ -7617,7 +7667,7 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
         <Chevron open={open} color={theme.textFaint} />
       </div>
       {open && (
-        <div style={{ borderTop: `1px solid ${theme.steel}` }}>
+        <div className="kp-rise" style={{ borderTop: `1px solid ${theme.steel}`, background: `${theme.void}80` }}>
           {rows.map((row) => (
             <MatchPlayerRow
               key={row.team + row.name}
@@ -8792,6 +8842,9 @@ const KP_STYLES = `
           .kp-tile:hover .kp-arrow { transform: translateX(3px) rotate(-45deg); background: var(--kp-accent-live) !important; }
           .kp-tile:hover .kp-arrow path { stroke: #0A0B14; }
           .kp-tile:hover { transform: translateY(-3px); }
+          .kp-news { transition: transform 0.2s ease, border-color 0.2s ease; }
+          .kp-news:hover { transform: translateY(-2px); border-color: var(--kp-accent-live) !important; }
+          .kp-news a:hover { text-decoration: underline; text-decoration-color: var(--kp-accent-live); text-underline-offset: 3px; }
           .kp-tab:hover { color: #F3F4FB !important; background: rgba(255,255,255,0.04); }
           .kp-tab[aria-selected="true"]:hover { background: inherit; }
           .kp-pill:hover { color: #F3F4FB; }
@@ -10951,43 +11004,104 @@ function NewsPage({ isDesktop, onHome }) {
   const items = payload ? filterNews(payload.items, game, grade) : [];
   const watch = payload ? newsWatchList(payload.signals, game) : [];
   const tone = (g) => (g === "negative" ? theme.bad : g === "positive" ? theme.good : theme.textFaint);
-  const chip = (active, label, onClick, key) => (
-    <button key={key || label} type="button" className="kp-btn" onClick={onClick}
-      style={{ cursor: "pointer", borderRadius: 999, padding: "5px 11px", fontSize: 12.5, fontWeight: 600,
-        background: active ? theme.accentSoft : "transparent", color: active ? theme.text : theme.textDim,
-        border: `1px solid ${active ? theme.accentBorder : theme.steel}` }}>{label}</button>
+  // Segmented control: one track, the active option filled.
+  const seg = (options, value, onPick, label) => (
+    <div role="group" aria-label={label} className="kp-dayscroll" style={{ display: "inline-flex", gap: 2, padding: 4, borderRadius: 14,
+      background: `${theme.graphite}d9`, border: `1px solid ${theme.steel}`, maxWidth: "100%", overflowX: "auto" }}>
+      {options.map(([id, text, icon, dot]) => {
+        const on = value === id;
+        return (
+          <button key={id} type="button" className="kp-btn" aria-pressed={on} onClick={() => onPick(id)}
+            style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 7, whiteSpace: "nowrap",
+              borderRadius: 10, padding: "7px 13px", fontSize: 12.5, fontWeight: 700, fontFamily: "'Inter', sans-serif",
+              border: "none", background: on ? theme.grad : "transparent", color: on ? theme.onAccent : theme.textDim,
+              boxShadow: on ? `0 6px 18px -8px ${theme.accent}` : "none" }}>
+            {icon && <Icon name={icon} size={14} stroke={2} color={on ? theme.onAccent : theme.textFaint} />}
+            {dot && <span style={{ width: 7, height: 7, borderRadius: "50%", background: on ? theme.onAccent : dot }} />}
+            {text}
+          </button>
+        );
+      })}
+    </div>
   );
   const tag = (text, color, title, key) => (
-    <span key={key || text} title={title} style={{ fontSize: 11, padding: "2px 7px", borderRadius: 999,
-      background: (color || theme.textFaint) + "1c", color: color || theme.textDim, whiteSpace: "nowrap" }}>{text}</span>
+    <span key={key || text} title={title} style={{ fontSize: 11, fontWeight: 600, padding: "3px 9px", borderRadius: 999,
+      background: (color || theme.textFaint) + "18", border: `1px solid ${(color || theme.textFaint)}30`,
+      color: color || theme.textDim, whiteSpace: "nowrap" }}>{text}</span>
   );
   const card = { background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation() };
+  const forGame = payload ? filterNews(payload.items, game, "all") : [];
+  const counts = {
+    all: forGame.length,
+    negative: forGame.filter((i) => i.grade === "negative").length,
+    positive: forGame.filter((i) => i.grade === "positive").length,
+  };
+  const gameIcon = (g, size = 34) => {
+    const acc = GAME_ACCENTS[g];
+    return (
+      <span style={{ width: size, height: size, borderRadius: size * 0.32, flexShrink: 0, display: "grid", placeItems: "center",
+        background: acc ? `linear-gradient(135deg, ${acc.accent}, ${acc.accent2})` : theme.graphiteLight }}>
+        {acc && <Icon name={g} size={size * 0.5} stroke={2.2} color={theme.onAccent} />}
+      </span>
+    );
+  };
 
   return (
-    <div style={{ maxWidth: 760, margin: "0 auto", padding: isDesktop ? "32px 24px 60px" : "18px 16px 56px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-        <PeButton small onClick={onHome}>← Menu</PeButton>
-        <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 10.5, letterSpacing: 2,
-          color: theme.accent, fontWeight: 600 }}>
-          <Reticle size={13} color={theme.accent} active />
+    <div style={{ maxWidth: 880, margin: "0 auto", padding: isDesktop ? "40px 28px 64px" : "20px 16px 56px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: isDesktop ? 28 : 20 }}>
+        <button type="button" className="kp-btn" onClick={onHome} title="Back to the menu" aria-label="Back to the menu"
+          style={{ cursor: "pointer", background: theme.graphite, border: `1px solid ${theme.steel}`, borderRadius: 999,
+            width: 34, height: 34, display: "grid", placeItems: "center", padding: 0 }}>
+          <Icon name="back" size={16} color={theme.textDim} />
+        </button>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 10.5, letterSpacing: 2.2,
+          color: theme.accent, fontWeight: 800, padding: "5px 11px 5px 9px", borderRadius: 999,
+          background: theme.accentSoft, border: `1px solid ${theme.accentBorder}` }}>
+          <Icon name="news" size={13} color={theme.accent} stroke={2} />
           NEWS
         </div>
         {payload && payload.generated_at && (
-          <span style={{ marginLeft: "auto", fontSize: 11.5, color: theme.textFaint }}>updated {newsAgo(payload.generated_at)}</span>
+          <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 7, fontSize: 11.5, color: theme.textDim,
+            padding: "5px 11px", borderRadius: 999, background: theme.graphite, border: `1px solid ${theme.steel}` }}>
+            <span className="kp-live-dot" style={{ width: 6, height: 6, borderRadius: "50%", background: theme.good, color: `${theme.good}88` }} />
+            updated {newsAgo(payload.generated_at)}
+          </span>
         )}
       </div>
-      <h1 style={{ fontSize: isDesktop ? 26 : 21, fontWeight: 600, margin: "0 0 14px",
-        fontFamily: "'Sora', sans-serif", letterSpacing: -0.2 }}>What changed this week</h1>
+      <h1 style={{ fontSize: isDesktop ? 48 : 32, fontWeight: 800, margin: "0 0 10px",
+        fontFamily: "'Sora', sans-serif", letterSpacing: isDesktop ? -1.8 : -1, lineHeight: 1.02 }}>
+        What changed this week<span style={gradText(theme)}>.</span>
+      </h1>
+      <p style={{ fontSize: isDesktop ? 15 : 14, color: theme.textDim, lineHeight: 1.6, margin: "0 0 22px", maxWidth: 560 }}>
+        Roster moves, stand-ins, illness and patches for every team we track, graded for whether they help or hurt.
+      </p>
 
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
-        {chip(game === "all", "All games", () => pick("all"))}
-        {Object.entries(NEWS_GAMES).map(([id, label]) => chip(game === id, label, () => pick(id), id))}
-      </div>
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
-        {chip(grade === "all", "Everything", () => setGrade("all"))}
-        {chip(grade === "negative", "Negative", () => setGrade("negative"))}
-        {chip(grade === "positive", "Positive", () => setGrade("positive"))}
-        {chip(grade === "neutral", "Noted", () => setGrade("neutral"))}
+      {payload && (
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${isDesktop ? 4 : 2}, 1fr)`, gap: 10, marginBottom: 20 }}>
+          {[
+            [counts.all, "stories", theme.text, "news"],
+            [counts.negative, "negative", theme.bad, "pulse"],
+            [counts.positive, "positive", theme.good, "check"],
+            [watch.length, "on watch", theme.accent, "target"],
+          ].map(([n, label, tone, icon]) => (
+            <div key={label} style={{ ...card, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+              <span style={{ width: 34, height: 34, borderRadius: 10, display: "grid", placeItems: "center", flexShrink: 0,
+                background: `${tone}18`, border: `1px solid ${tone}33` }}>
+                <Icon name={icon} size={16} color={tone} stroke={2} />
+              </span>
+              <div>
+                <div className="kp-num" style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, color: tone }}>{n}</div>
+                <div style={{ fontSize: 10, letterSpacing: 1.1, textTransform: "uppercase", color: theme.textFaint, fontWeight: 700, marginTop: 4 }}>{label}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 20 }}>
+        {seg([["all", "All games", "layers"], ...Object.entries(NEWS_GAMES).map(([id, label]) => [id, label, id])], game, pick, "Game")}
+        {seg([["all", "Everything"], ["negative", "Negative", null, theme.bad], ["positive", "Positive", null, theme.good],
+          ["neutral", "Noted", null, theme.textFaint]], grade, setGrade, "Grade")}
       </div>
 
       {payload === undefined && <div style={{ ...card, padding: 18, color: theme.textDim }}>Loading news…</div>}
@@ -10998,13 +11112,26 @@ function NewsPage({ isDesktop, onHome }) {
       )}
 
       {payload && watch.length > 0 && (
-        <div style={{ ...card, padding: "12px 14px", marginBottom: 14 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 600, color: theme.text, marginBottom: 8 }}>
-            Watch list <span style={{ fontWeight: 400, color: theme.textFaint }}>· net-negative news in the last 7 days</span>
+        <div style={{ ...card, padding: "16px 18px", marginBottom: 20,
+          background: `radial-gradient(120% 140% at 0% 0%, ${theme.bad}14, transparent 55%), ${theme.graphite}` }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+            <span style={{ fontFamily: "'Sora', sans-serif", fontSize: 16, fontWeight: 800 }}>Watch list</span>
+            <span style={{ fontSize: 12, color: theme.textFaint }}>net-negative news in the last 7 days</span>
           </div>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {watch.slice(0, 16).map((w) => tag(`${w.team} ${w.score}`, theme.bad,
-              `${NEWS_GAMES[w.game]}: ${w.items} item(s) — ${w.rules.join(", ")}`, `${w.game}|${w.team}`))}
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fill, minmax(${isDesktop ? 180 : 150}px, 1fr))`, gap: 8 }}>
+            {watch.slice(0, 16).map((w) => (
+              <div key={`${w.game}|${w.team}`} title={`${NEWS_GAMES[w.game]}: ${w.items} item(s) — ${w.rules.join(", ")}`}
+                style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 11px", borderRadius: 12,
+                  background: theme.void, border: `1px solid ${theme.steelSoft}`, minWidth: 0 }}>
+                {gameIcon(w.game, 26)}
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{w.team}</div>
+                  <div style={{ fontSize: 10.5, color: theme.textFaint }}>{w.items} item{w.items === 1 ? "" : "s"}</div>
+                </div>
+                <span className="kp-num" style={{ fontSize: 13, fontWeight: 800, color: theme.bad, padding: "2px 8px", borderRadius: 999,
+                  background: `${theme.bad}1a` }}>{w.score}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -11013,32 +11140,50 @@ function NewsPage({ isDesktop, onHome }) {
         <div style={{ ...card, padding: 18, color: theme.textDim }}>Nothing here for this filter.</div>
       )}
       {payload && items.length > 0 && (
-        <div style={{ ...card, overflow: "hidden" }}>
-          {items.map((it) => (
-            <div key={it.link} style={{ display: "flex", gap: 12, padding: "12px 14px",
-              borderBottom: `1px solid ${theme.steel}` }}>
-              <div style={{ width: 4, borderRadius: 2, flex: "0 0 4px", background: tone(it.grade) }} />
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <a href={it.link} target="_blank" rel="noopener noreferrer"
-                  style={{ color: theme.text, fontSize: 14.5, fontWeight: 600, lineHeight: 1.4, textDecoration: "none",
-                    overflowWrap: "anywhere" }}>{it.title}</a>
-                <div style={{ fontSize: 11.5, color: theme.textFaint, margin: "4px 0 6px" }}>
-                  {NEWS_GAMES[it.game] || it.game} · {it.source}{it.published ? ` · ${newsAgo(it.published)}` : ""}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {items.map((it) => {
+            const t = tone(it.grade);
+            return (
+              <div key={it.link} className="kp-news" style={{ ...card, display: "flex", gap: 14, padding: isDesktop ? "16px 18px" : "14px",
+                position: "relative", overflow: "hidden",
+                background: it.grade !== "neutral" ? `linear-gradient(90deg, ${t}12, transparent 35%), ${theme.graphite}` : theme.graphite }}>
+                <div aria-hidden="true" style={{ position: "absolute", left: 0, top: 14, bottom: 14, width: 3, borderRadius: 3,
+                  background: t, boxShadow: it.grade !== "neutral" ? `0 0 10px ${t}` : "none" }} />
+                {gameIcon(it.game, isDesktop ? 38 : 32)}
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 11.5, color: theme.textFaint, marginBottom: 5, display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                    <span style={{ fontWeight: 700, color: theme.textDim }}>{NEWS_GAMES[it.game] || it.game}</span>
+                    <span aria-hidden="true">·</span><span>{it.source}</span>
+                    {it.published && <><span aria-hidden="true">·</span><span>{newsAgo(it.published)}</span></>}
+                  </div>
+                  <a href={it.link} target="_blank" rel="noopener noreferrer"
+                    style={{ color: theme.text, fontSize: isDesktop ? 16 : 15, fontWeight: 700, lineHeight: 1.4, textDecoration: "none",
+                      fontFamily: "'Sora', sans-serif", letterSpacing: -0.2, overflowWrap: "anywhere" }}>{it.title}</a>
+                  <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 10 }}>
+                    {(it.rules || []).map((r, i) => tag(r, it.grade === "neutral" ? null : t,
+                      (it.reasons || [])[i], `r${r}`))}
+                    {(it.teams || []).map((tm) => tag(tm, null, null, `t${tm}`))}
+                    {(it.players || []).map((pl) => tag(pl.name, theme.accent, pl.team, `p${pl.name}`))}
+                  </div>
                 </div>
-                <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                  {it.grade !== "neutral" && tag(`${it.grade} ${it.score > 0 ? "+" : ""}${it.score}`, tone(it.grade))}
-                  {(it.rules || []).map((r, i) => tag(r, it.grade === "neutral" ? null : tone(it.grade),
-                    (it.reasons || [])[i], `r${r}`))}
-                  {(it.teams || []).map((t) => tag(t, null, null, `t${t}`))}
-                  {(it.players || []).map((p) => tag(p.name, theme.accent, p.team, `p${p.name}`))}
-                </div>
+                {it.grade !== "neutral" && (
+                  <div style={{ flexShrink: 0, textAlign: "center", alignSelf: "flex-start" }}>
+                    <div className="kp-num" style={{ fontSize: 20, fontWeight: 800, color: t, lineHeight: 1 }}>
+                      {it.score > 0 ? "+" : ""}{it.score}
+                    </div>
+                    <div style={{ fontSize: 9, letterSpacing: 1, textTransform: "uppercase", color: t, fontWeight: 700, marginTop: 4, opacity: 0.85 }}>
+                      {it.grade}
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      <div style={{ fontSize: 11, color: theme.textFaint, marginTop: 12, lineHeight: 1.6 }}>
+      <div style={{ fontSize: 11.5, color: theme.textFaint, marginTop: 20, lineHeight: 1.65, padding: "12px 16px", borderRadius: 14,
+        border: `1px dashed ${theme.steel}` }}>
         Grades come from fixed rules, not a reading of the article: a stand-in, illness, visa problem or suspension is
         −2 for the team it names, a benching or departure −1, a return +1; signings, coaching changes and patches are
         noted but not graded. The rules that fired are on each item — hover or tap one for what it means. Nothing here
