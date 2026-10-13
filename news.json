@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-13T17:06:28.447994+00:00",
+ "generated_at": "2026-10-13T23:05:26.659011+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,13 +61,13 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 71,
+   "items": 73,
    "error": null
   },
   {
    "game": "lol",
    "source": "Google News",
-   "items": 53,
+   "items": 57,
    "error": null
   },
   {
@@ -79,13 +79,13 @@
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 64,
+   "items": 63,
    "error": null
   },
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 48,
+   "items": 45,
    "error": null
   },
   {
@@ -97,17 +97,118 @@
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 36,
+   "items": 34,
    "error": null
   },
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 40,
+   "items": 42,
    "error": null
   }
  ],
  "items": [
+  {
+   "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "Sources: purp0 set to join Barça eSports for the VCT 2027 season",
+   "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxOaEFxRXY4RGtoVlpnZlRjWWQwT1E3QzV2enlnekNDclhlRHlfODVsSVQ0TEhJeERjZVF5b3JsREdnMURkQnRNYnQ0V2ttTjk4RjVxQjc2YldPZnB3YWtXSzIwOVF2X3kyN0NrM0VYS3huR2ZzUWN5QVd2b2ZuUjRRbGVCVWNDdDg2NlctdFpEZTFHSGNOU21iMmlFd3cwSXg1OEVnRl9EeUxLc2s?oc=5",
+   "published": "2026-10-13T22:07:30+00:00",
+   "summary": "Sources: purp0 set to join Barça eSports for the VCT 2027 season Sheep Esports",
+   "teams": [
+    "Team Liquid"
+   ],
+   "players": [
+    {
+     "name": "purp0",
+     "team": "Team Liquid"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "League of Legends Worlds 2026: Top 20 Players",
+   "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxNNE1BcE1aeTc3WE9rdk9iaks4TmthRGlvUFJjMDFXS0pSaktNVVFmNmh0VE9hWWpzMjRMaUR6RGV0ZHB0UFkyWVlMNVVDWFBRQVRSRUVtT3NJYUx5SVlHNjlCamZXb1pnb09WSDRFeVJrQ0N4MzZvUXFvVVpRRXp5Um1NM2w0dUgxY1VPbklIWkowdw?oc=5",
+   "published": "2026-10-13T20:38:11+00:00",
+   "summary": "League of Legends Worlds 2026: Top 20 Players Sheep Esports",
+   "teams": [
+    "Top Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "brnz4n departs MIBR",
+   "link": "https://www.hltv.org/news/45715/brnz4n-departs-mibr",
+   "published": "2026-10-13T20:23:00+00:00",
+   "summary": "MIBR call time on a five-year association with brnz4n.",
+   "teams": [
+    "MIBR"
+   ],
+   "players": [],
+   "score": -1,
+   "grade": "negative",
+   "rules": [
+    "departure"
+   ],
+   "reasons": [
+    "a player or coach leaves"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "Skin.Club Community",
+   "title": "Astralis sign siuhy and cmtry to complete new CS2 roster",
+   "link": "https://news.google.com/rss/articles/CBMic0FVX3lxTFBZaHRqVHFWMXdaVlVBdnRMTnFWeUU3WEVVRnlBWFlxMHJHWmpHVWlLSlI5SmdTSE9HUmFaY3o1ZXptMVR0T3JUZUg0c1VJOU9GX296QXV0dEtrS0JBVThxMG02S3pfM2xHQ2VtbzZtMkVmeUU?oc=5",
+   "published": "2026-10-13T19:58:43+00:00",
+   "summary": "Astralis sign siuhy and cmtry to complete new CS2 roster Skin.Club Community",
+   "teams": [
+    "Astralis"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "Official: Astralis sign siuhy and cmtry",
+   "link": "https://www.hltv.org/news/45714/official-astralis-sign-siuhy-and-cmtry",
+   "published": "2026-10-13T18:58:00+00:00",
+   "summary": "The roster is back to full strength ahead of its appearance at Stake Pulse Beat III.",
+   "teams": [
+    "Astralis"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
   {
    "game": "lol",
    "source": "Field Level Media",
@@ -117,6 +218,22 @@
    "summary": "Team WE, BRION advance to Demacia Cup semifinals Field Level Media",
    "teams": [
     "Team WE"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "EGamersWorld",
+   "title": "FlyQuest Concludes 2026 LoL Season: Complete Roster Breakdown and Tournament Results",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPeDdoVExBMFlydENpZ2gyRkVzQ1dpUHpSRzgzNkp3TzhwQWZsX0I1MzJzQkc2RVg0ejQ0WGt5aDRNb1lPMXh3bExTRFhNSURVUklzN2Vya0VwNGxVRzJ3cHN0YWJ3cnN1Nm4xT3NFME05LWctM195Vjh4ZG9QYTR6UVVRNmV6VVgtYW05dGdZR3h2WXJhZnNCZkltaTc2WUtjM2c?oc=5",
+   "published": "2026-10-13T15:50:45+00:00",
+   "summary": "FlyQuest Concludes 2026 LoL Season: Complete Roster Breakdown and Tournament Results EGamersWorld",
+   "teams": [
+    "FlyQuest"
    ],
    "players": [],
    "score": 0,
@@ -629,6 +746,26 @@
   {
    "game": "lol",
    "source": "Dot Esports",
+   "title": "Deft reportedly joins Nongshim RedForce for LCK 2027",
+   "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxPa2VQQ1BvV0FDckllSlphS201eG5sWElKZTlDU2t3YmhLTTdwUGNmQ2dBZ2hfN1hOLThuTU84a2lwT3NMUW5abmdHRnJFUEYxbUFtMV9ncklKUDJJNFFMUWI0dlFQUlRqNExLUnZDRXU1enp5NVI2T3YxaEZMSnhPSzR3dw?oc=5",
+   "published": "2026-10-12T01:25:00+00:00",
+   "summary": "Deft reportedly joins Nongshim RedForce for LCK 2027 Dot Esports",
+   "teams": [
+    "Nongshim RedForce"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Dot Esports",
    "title": "Deft reportedly returning to the LCK with Nongshim RedForce in 2027",
    "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxPa2VQQ1BvV0FDckllSlphS201eG5sWElKZTlDU2t3YmhLTTdwUGNmQ2dBZ2hfN1hOLThuTU84a2lwT3NMUW5abmdHRnJFUEYxbUFtMV9ncklKUDJJNFFMUWI0dlFQUlRqNExLUnZDRXU1enp5NVI2T3YxaEZMSnhPSzR3dw?oc=5",
    "published": "2026-10-12T01:25:00+00:00",
@@ -839,6 +976,22 @@
   },
   {
    "game": "lol",
+   "source": "Sheep Esports",
+   "title": "HANJIN BRION Academy vs Eunpyeong Meditech High School | LCK 2026 | 11 October 2026",
+   "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxNRzctcXRuVGlLZ01obk5yVmNCeWk1eFdnb3llZlRHeUtSczVGV1Q4ZW1VcTRUVGpLdlBEZmxpNnRoSFZBZkpzcXVRRUdBLVdpWWJYOVFZTl96cFFqMnppU1dRUE1ReWUwVms3ZUc5bkRwSUxsalZfOU1Xb0p5U0oxSGU4N2pReXczYkRzZHd2MHpFMm93dU5vUWZKd09SdEVkcGU3MEZ2Z1FldTdwM0dVNVdfS2k?oc=5",
+   "published": "2026-10-11T07:15:24+00:00",
+   "summary": "HANJIN BRION Academy vs Eunpyeong Meditech High School | LCK 2026 | 11 October 2026 Sheep Esports",
+   "teams": [
+    "HANJIN BRION"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
    "source": "SuaraGarut.ID",
    "title": "Gen.G and Hanwha Life Lead Worlds 2026 Contenders",
    "link": "https://news.google.com/rss/articles/CBMiY0FVX3lxTFA3VVFuYjhIQXktaXB6U0NJcnQ5SWJBZVB0aTZKVjh2RDNpUDBETHByVDRXYTQtOWtaTFlYNGJLbDV1aDBYM0tjNEJQQy1jNGV5WEctekVPZXBab0I1MjVPLTB6VQ?oc=5",
@@ -847,6 +1000,39 @@
    "teams": [
     "Gen.G",
     "Hanwha Life Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Kiwoom DRX Academy vs Eunpyeong Meditech High School | LCK 2026 | 11 octobre 2026",
+   "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxQcjhpYWV2YkY3bTBMbXM3ZEZvYjJyM2V1S3c0MEN3YmFlMTR3WW1lcFpLMG9YT1VQVVJtRlJicm1rbllDSzFVQmhVX18yczBTLVB0S0NSTjBEeWd3SjlQTVlBLVBQSDQ3RldMbjU0YWY2M2Z1c3JlVUhxZlllRVAxTEVwN3JkS1dscHdjQkVXc3VvMll4ajhkajUyODZoRWdkZ1JpM0I1NTdUXzhzaGhrdHg2YnM?oc=5",
+   "published": "2026-10-11T04:17:59+00:00",
+   "summary": "Kiwoom DRX Academy vs Eunpyeong Meditech High School | LCK 2026 | 11 octobre 2026 Sheep Esports",
+   "teams": [
+    "Kiwoom DRX"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Hanwha Life Esports Academy vs T1 Esports Academy Rookies | LCK 2026 | 11 October 2026",
+   "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxQX09BY1ZrUVc5WklhN09xNm9EQ2FXR3pUX1ZQNzU5dnRMV2xjNkliTnNmanlzdlVQTExvenltOXFEY2lrbkEta29wZzgwbnlwc2NtckFaaXdtTjZlS0JFU2E0SHBIVHFnNl9OSEVqc0NrWndXNlllSUhnaW1ocmdYdFZORVAzbXh1Z1VUelRsY3hFV1A4ZUlVb0J2eWVQTFp4UENVX18xb1NlUXRJSmdmQ09jdEE3QQ?oc=5",
+   "published": "2026-10-11T04:14:04+00:00",
+   "summary": "Hanwha Life Esports Academy vs T1 Esports Academy Rookies | LCK 2026 | 11 October 2026 Sheep Esports",
+   "teams": [
+    "Hanwha Life Esports",
+    "T1"
    ],
    "players": [],
    "score": 0,
@@ -889,6 +1075,22 @@
   },
   {
    "game": "cs2",
+   "source": "Dexerto",
+   "title": "Who’s in FaZe Clan? Full roster and all members who quit in 2025 exodus",
+   "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1Rbnh0blVrOEozalFYbExVbjl5Z1hfTjljaXFFWVBXOVh2NVBBM0c1SG1uOGFrOGV4T3dGaEtDNk1yV1RsMkliWU5SWFpHbzU2eDExTzQ2ejhFczlmR2pMY25jUnFXMmdrUHljakVn?oc=5",
+   "published": "2026-10-10T16:53:56+00:00",
+   "summary": "Who’s in FaZe Clan? Full roster and all members who quit in 2025 exodus Dexerto",
+   "teams": [
+    "FaZe"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
    "source": "Pley.gg",
    "title": "Astralis \"turn the page\" by removing HooXi and jabbi",
    "link": "https://news.google.com/rss/articles/CBMie0FVX3lxTE9pV0l1YTBQal9FZmZmWW5XVVRBa2lmbEtsSXhKY1l1SnZJaTh2eE1WdFJjTEVXWU1VZUhueGVzanBJYXhNc1JNMlAwd1FncHhyM0EzZEJOVzZERW5EbTZjZERyeXJDWllYR1h5QnhqaEVmNmppblp3c2wyUQ?oc=5",
@@ -907,26 +1109,6 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Sheep Esports",
-   "title": "Sources: Deft set to Join Nongshim RedForce for LCK 2027",
-   "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNNldJRER0bmN0S1lER3c3V2wyVXM3ck43SmVNMGU2blZwNzdOTGpwZXJZUmZEaU5vVkxpUzVRNUgzaXRORVkyOEhOckIyLW9iNUFyQnF5Q0taMWx3S25aUVBjRWhXcFBQM1VJR2xDa1gyQmFIcW9GZ3VWVWpFcFdRTkJBbFdnTnhrU2x1em1lMzRzTkVWb1lTZUVSREFJdURw?oc=5",
-   "published": "2026-10-10T15:27:55+00:00",
-   "summary": "Sources: Deft set to Join Nongshim RedForce for LCK 2027 Sheep Esports",
-   "teams": [
-    "Nongshim RedForce"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
   },
   {
    "game": "valorant",
@@ -1089,6 +1271,23 @@
   {
    "game": "valorant",
    "source": "Dot Esports",
+   "title": "TYLOO is the first team to get eliminated from VALORANT Champions 2026 after facing Team Liquid",
+   "link": "https://news.google.com/rss/articles/CBMic0FVX3lxTE1jMy1QMnNmeXRaVGZJbnlQc2R2RGJaRnc0WDNaZHg0RkhRaXNQRXBYXzZLQXR2S1paRE1hQnZTZ2ZaeVFZN1NCS2FWd1NJTzZOMUhBUXFRSmJNZjlnVHhqdXZDekhqTl9CMXlFTHk4LVVqRjA?oc=5",
+   "published": "2026-10-10T07:00:00+00:00",
+   "summary": "TYLOO is the first team to get eliminated from VALORANT Champions 2026 after facing Team Liquid Dot Esports",
+   "teams": [
+    "Team Liquid",
+    "TYLOO"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Dot Esports",
    "title": "Dambi makes bold claim after Nongshim RedForce knock Vitality out of VALORANT EWC 2026",
    "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxNVVE1T3FqYlU5eThjYlBwTE5WZS12QVEyV01NZUVxWXRZa0dhb1VBZ0N0YjVrY042NHNEeVdEVUJWVDFMR0hGV2VwbXhONGl2Y0IxTFFzVGtORW9ldG1feVpCQkstZk03d2F2TE9ETzk3ZV9GdXlINDltSXIwT0w0ZHh5Ym1mNjlkaFR2XzJmbGxva1JweXJHaTNTQQ?oc=5",
    "published": "2026-10-10T07:00:00+00:00",
@@ -1109,15 +1308,15 @@
    "reasons": []
   },
   {
-   "game": "valorant",
-   "source": "Dot Esports",
-   "title": "TYLOO is the first team to get eliminated from VALORANT Champions 2026 after facing Team Liquid",
-   "link": "https://news.google.com/rss/articles/CBMic0FVX3lxTE1jMy1QMnNmeXRaVGZJbnlQc2R2RGJaRnc0WDNaZHg0RkhRaXNQRXBYXzZLQXR2S1paRE1hQnZTZ2ZaeVFZN1NCS2FWd1NJTzZOMUhBUXFRSmJNZjlnVHhqdXZDekhqTl9CMXlFTHk4LVVqRjA?oc=5",
-   "published": "2026-10-10T07:00:00+00:00",
-   "summary": "TYLOO is the first team to get eliminated from VALORANT Champions 2026 after facing Team Liquid Dot Esports",
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Kiwoom DRX Academy vs KT Rolster Academy | LCK 2026 | 10 October 2026",
+   "link": "https://news.google.com/rss/articles/CBMiswFBVV95cUxQd3JUVmFnNGdrZktvRlo2Q2pfNFBtX18wdnNZWE9xb2hMNXNOUmR2VGhXck9STWp2alZsU01xaVM1UmdPay14V3dPR09ZOGRHY1Q2dXdVUFRUZVREbmdyOVNPaHR1ckluS3U4VDFDYnRmYnpzX255Y2ZYalpuLVc2MTNId1dzMHUzcldpdnhtT0E0R0FnMHpqbXBibGo2TWM5Y1E4V1NQakZnMUdseDRjaE13MA?oc=5",
+   "published": "2026-10-10T04:53:20+00:00",
+   "summary": "Kiwoom DRX Academy vs KT Rolster Academy | LCK 2026 | 10 October 2026 Sheep Esports",
    "teams": [
-    "Team Liquid",
-    "TYLOO"
+    "Kiwoom DRX",
+    "KT Rolster"
    ],
    "players": [],
    "score": 0,
@@ -1133,6 +1332,23 @@
    "published": "2026-10-10T03:16:00+00:00",
    "summary": "PRX end VALORANT Champions 2026 run after T1 comeback Dot Esports",
    "teams": [
+    "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "T1 and 100T send PRX and Nongshim RedForce home from VALORANT Champions Shanghai",
+   "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxOX2xoWFlHTDZQXzA0dW96TVRyeGwwV1R4VDJ6RWRwZjJ3UEs5VWhPYUtsTVJNcXhNWkxZMG92VEpDZ1AxNEU1Nl9UVjZuYlF0eWI5Z2dQeEpJVmRBeHVUR0RFSUpTSGJ2bldZbWdjMHBrcHdjWnZlbEZhX0NsaUNGbV95MFlGaEVWVnpoODl6UVl6cmJ2WkwycjlxZV9BbDhXdGNHbl84dWZkTlJ0RUJkeE03Vll6UmVRQTRDdC1GOXBGUQ?oc=5",
+   "published": "2026-10-09T23:18:07+00:00",
+   "summary": "T1 and 100T send PRX and Nongshim RedForce home from VALORANT Champions Shanghai Sheep Esports",
+   "teams": [
+    "Nongshim RedForce",
     "T1"
    ],
    "players": [],
@@ -1200,23 +1416,6 @@
    "teams": [
     "Nongshim RedForce",
     "Paper Rex"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Sheep Esports",
-   "title": "T1 and 100T send PRX and Nongshim RedForce home from VALORANT Champions Shanghai",
-   "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxPb1NWTTM1RlBRTGN0NHllRW1tQklpTmVnQjNMZmx6eUF4UXE4VVh6Wl91cmNfWWxwaEZvTUZmNWhObEZ2dkRGSHVCLW1femVpdU45VlhqMjh5Z3FaVm9TYTBHYjdwYkZHaUdIV2xCRzUwbTVic0h4RG1iMkc1ZlVJZ2Q0bzBQWTJNOU81NExUXzNXc0RWZTNmaVd2SVBOeV9VSzlBLTlWdTgtSUM5cWdCbnAtaGpyQWROcFJEYlJQNjktUQ?oc=5",
-   "published": "2026-10-09T17:31:29+00:00",
-   "summary": "T1 and 100T send PRX and Nongshim RedForce home from VALORANT Champions Shanghai Sheep Esports",
-   "teams": [
-    "Nongshim RedForce",
-    "T1"
    ],
    "players": [],
    "score": 0,
@@ -1772,6 +1971,26 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Sources: Deft set to Join Nongshim RedForce for LCK 2027",
+   "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNNldJRER0bmN0S1lER3c3V2wyVXM3ck43SmVNMGU2blZwNzdOTGpwZXJZUmZEaU5vVkxpUzVRNUgzaXRORVkyOEhOckIyLW9iNUFyQnF5Q0taMWx3S25aUVBjRWhXcFBQM1VJR2xDa1gyQmFIcW9GZ3VWVWpFcFdRTkJBbFdnTnhrU2x1em1lMzRzTkVWb1lTZUVSREFJdURw?oc=5",
+   "published": "2026-10-08T07:00:00+00:00",
+   "summary": "Sources: Deft set to Join Nongshim RedForce for LCK 2027 Sheep Esports",
+   "teams": [
+    "Nongshim RedForce"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
   },
   {
    "game": "valorant",
@@ -2567,26 +2786,6 @@
    ]
   },
   {
-   "game": "lol",
-   "source": "Sheep Esports",
-   "title": "Sources: Piero set to join GIANTX for the LEC 2027 Season",
-   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOQTBXT1lMbUxwaHl1Z0l2Nm5jUVhpemlKblF0cW85c1dJbnB6ei1CQ2FwUFRodTdjRlNmWWZDQkt2em5KdHMxSm1EeWZoLVd3U01mWlhiQ0tMRERuc1M4b2R4S2hKbWdKSTFDZzV0RS1PcE9WMnJzbGxiMnZKdjlzYURURFhJdGVhc2FoeGF1VzM5LWpBRGhhZzFUbEs4VVg5Q2c?oc=5",
-   "published": "2026-10-06T04:17:11+00:00",
-   "summary": "Sources: Piero set to join GIANTX for the LEC 2027 Season Sheep Esports",
-   "teams": [
-    "GIANTX"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
    "game": "valorant",
    "source": "TalkEsport",
    "title": "Every CS2 Team That Switched VRS Region: BC.Game, Liquid, Wildcard and Sashi",
@@ -2756,6 +2955,26 @@
    "reasons": []
   },
   {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Sources: Piero set to join GIANTX for the LEC 2027 Season",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOQTBXT1lMbUxwaHl1Z0l2Nm5jUVhpemlKblF0cW85c1dJbnB6ei1CQ2FwUFRodTdjRlNmWWZDQkt2em5KdHMxSm1EeWZoLVd3U01mWlhiQ0tMRERuc1M4b2R4S2hKbWdKSTFDZzV0RS1PcE9WMnJzbGxiMnZKdjlzYURURFhJdGVhc2FoeGF1VzM5LWpBRGhhZzFUbEs4VVg5Q2c?oc=5",
+   "published": "2026-10-05T07:00:00+00:00",
+   "summary": "Sources: Piero set to join GIANTX for the LEC 2027 Season Sheep Esports",
+   "teams": [
+    "GIANTX"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
    "game": "valorant",
    "source": "Sheep Esports",
    "title": "Sources: Jamelinho213 set to join Team Heretics for 2027",
@@ -2898,6 +3117,23 @@
   },
   {
    "game": "valorant",
+   "source": "ABS-CBN",
+   "title": "Global Esports exits VALORANT Champions Shanghai after heartbreaking loss to LOUD",
+   "link": "https://news.google.com/rss/articles/CBMivgFBVV95cUxPTkQ0SFdVZ1BnMGJybFRRQzZCY0s1LXRDcjZTeExicm9Oekh5UUZ1a0FmRm5qeTRhTkxuM05jZzkxYjlGR2lDTDM1YmtIUVExSkY1VkJTN3lnb1VqTVlRSFdHY09VdlF6RHFQczJiZ1JmcXloQ21HYi1pa1hfOU0yWHJPdlVEeGtnS0ZmUi1TZ2FSNWR1Y0ZMYkozMXFiaUN6UHpTVlBhcUtwVVZCN09oX1BmRGVjQWhDdlJ4RXFB?oc=5",
+   "published": "2026-10-04T07:00:00+00:00",
+   "summary": "Global Esports exits VALORANT Champions Shanghai after heartbreaking loss to LOUD ABS-CBN",
+   "teams": [
+    "LOUD",
+    "Global Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
    "source": "TalkEsport",
    "title": "Global Esports vs LOUD: GE Knocked Out of Valorant Champions 2026 as LOUD Reach Playoffs",
    "link": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxNUkRqM2drZWY0QkgtRm1UeEpCd1M3V2hEVEZBM0Q1SHdXZ3NKTHVyU2NSd2owU190R2NnWWtzeGM1djlMRWxjdjdqZndGVTd6OS1kNDhZM1FZdlk3ZmtIam56YXk1dEgxaXdWQndrRW9sMzJEZnVWamh5ancyX214NXZlNEFsWHVQamlEdkJzX0VhbVZVWVZGYkVETUU1WXd1NlRkdnNCOXBiOWlnNjZWczZyM1hmMHlTTTFyMEVUR1EzNVZnRkNSMQ?oc=5",
@@ -2948,6 +3184,28 @@
    "reasons": [
     "a player or coach leaves"
    ]
+  },
+  {
+   "game": "cs2",
+   "source": "Esports News UK",
+   "title": "LOUD and Keyd Stars exit Counter-Strike as Brazil cracks down on betting",
+   "link": "https://news.google.com/rss/articles/CBMisAFBVV95cUxNRlo2RUxRUjZvTnlOQnRUNUljNmZ0MHdLMkp0QkFtR282NllwcTVtRlJFYzg3LXZoWExzb2ZyV3FKUFBXR0s0YktPMTNHMC15TE1jWU5oUEJzdnpGSm80dk9XNGxwdi1pZUpwc0dTRXo2N0V1SzRadkh5R25vLU96V0ZHVmpuTE5OaHVJdGpkSGgzU1VRWXROWkpjX1JCM2ZJZEZxRVVqc0dYTFFaMjF1Wg?oc=5",
+   "published": "2026-10-03T07:15:35+00:00",
+   "summary": "LOUD and Keyd Stars exit Counter-Strike as Brazil cracks down on betting Esports News UK",
+   "teams": [
+    "Keyd Stars",
+    "Fluxo"
+   ],
+   "players": [
+    {
+     "name": "exit",
+     "team": "Fluxo"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
   },
   {
    "game": "lol",
@@ -3025,6 +3283,32 @@
    ],
    "reasons": [
     "a contract is extended"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "Pley.gg",
+   "title": "Snappi becomes head coach for HEROIC",
+   "link": "https://news.google.com/rss/articles/CBMiaEFVX3lxTFBPeWNrUXJNemRZUXBmSFRuVUdOellnNC1GVGFkbHB0Tmw5dENGRXRNc0hKbzlhcnhGTUsweU80NGJ1MmFfLUJBcC1CNlQtdmRHQm5KT2UxNkNOaUE3N0dienZJTExjTlI3?oc=5",
+   "published": "2026-10-01T15:40:59+00:00",
+   "summary": "Snappi becomes head coach for HEROIC Pley.gg",
+   "teams": [
+    "HEROIC",
+    "Ninjas In Pyjamas eStar"
+   ],
+   "players": [
+    {
+     "name": "Snappi",
+     "team": "Ninjas In Pyjamas eStar"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "coach"
+   ],
+   "reasons": [
+    "a coaching change"
    ]
   },
   {
@@ -3243,6 +3527,38 @@
   }
  ],
  "signals": {
+  "cs2": {
+   "MIBR": {
+    "score": -1,
+    "items": 1,
+    "rules": [
+     "departure"
+    ]
+   },
+   "BBL": {
+    "score": -1,
+    "items": 1,
+    "rules": [
+     "benched",
+     "signing"
+    ]
+   },
+   "Sashi": {
+    "score": -1,
+    "items": 1,
+    "rules": [
+     "benched",
+     "signing"
+    ]
+   },
+   "Astralis": {
+    "score": -1,
+    "items": 1,
+    "rules": [
+     "benched"
+    ]
+   }
+  },
   "valorant": {
    "T1": {
     "score": -1,
@@ -3265,31 +3581,6 @@
     "rules": [
      "stand-in",
      "signing"
-    ]
-   }
-  },
-  "cs2": {
-   "BBL": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "benched",
-     "signing"
-    ]
-   },
-   "Sashi": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "benched",
-     "signing"
-    ]
-   },
-   "Astralis": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "benched"
     ]
    }
   },
