@@ -3,19 +3,19 @@
     "all": {
       "graded": 4241,
       "pushes": 107,
-      "over": 1978,
-      "under": 2156,
-      "over_rate": 0.4785,
-      "mean_margin": 0.098,
+      "over": 1980,
+      "under": 2154,
+      "over_rate": 0.479,
+      "mean_margin": 0.102,
       "median_margin": -0.5
     },
     "cs2": {
       "graded": 3542,
       "pushes": 93,
-      "over": 1682,
-      "under": 1767,
-      "over_rate": 0.4877,
-      "mean_margin": 0.235,
+      "over": 1684,
+      "under": 1765,
+      "over_rate": 0.4883,
+      "mean_margin": 0.239,
       "median_margin": 0.0
     },
     "lol": {
@@ -43,10 +43,10 @@
       "maps": 1,
       "graded": 1421,
       "pushes": 50,
-      "over": 666,
-      "under": 705,
-      "over_rate": 0.4858,
-      "mean_margin": 0.266
+      "over": 668,
+      "under": 703,
+      "over_rate": 0.4872,
+      "mean_margin": 0.278
     },
     "cs2 map 2": {
       "game": "cs2",
@@ -51109,11 +51109,11 @@
       "start_time": "2026-10-02T12:00:00.000-04:00",
       "stat": "kills",
       "team": "9INE",
-      "actual": 13,
-      "margin": -0.5,
-      "result": "under",
+      "actual": 15,
+      "margin": 1.5,
+      "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "EAC EXTRA"
+      "opponent": "MTX"
     },
     {
       "game": "cs2",
@@ -51131,7 +51131,7 @@
       "margin": 0.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "EAC EXTRA"
+      "opponent": "MTX"
     },
     {
       "game": "cs2",
@@ -51253,11 +51253,11 @@
       "start_time": "2026-10-02T12:00:00.000-04:00",
       "stat": "kills",
       "team": "9INE",
-      "actual": 17,
-      "margin": 4.5,
+      "actual": 21,
+      "margin": 8.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "EAC EXTRA"
+      "opponent": "MTX"
     },
     {
       "game": "cs2",
@@ -51271,11 +51271,11 @@
       "start_time": "2026-10-02T12:00:00.000-04:00",
       "stat": "headshots",
       "team": "9INE",
-      "actual": 9,
-      "margin": 3.5,
+      "actual": 10,
+      "margin": 4.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "EAC EXTRA"
+      "opponent": "MTX"
     },
     {
       "game": "cs2",
@@ -51397,11 +51397,11 @@
       "start_time": "2026-10-02T12:00:00.000-04:00",
       "stat": "kills",
       "team": "9INE",
-      "actual": 20,
-      "margin": 4.0,
+      "actual": 27,
+      "margin": 11.0,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "EAC EXTRA"
+      "opponent": "MTX"
     },
     {
       "game": "cs2",
@@ -51415,11 +51415,11 @@
       "start_time": "2026-10-02T12:00:00.000-04:00",
       "stat": "headshots",
       "team": "9INE",
-      "actual": 4,
-      "margin": -1.5,
-      "result": "under",
+      "actual": 6,
+      "margin": 0.5,
+      "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "EAC EXTRA"
+      "opponent": "MTX"
     },
     {
       "game": "cs2",
@@ -51545,7 +51545,7 @@
       "margin": 0.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "EAC EXTRA"
+      "opponent": "MTX"
     },
     {
       "game": "cs2",
@@ -51559,11 +51559,11 @@
       "start_time": "2026-10-02T12:00:00.000-04:00",
       "stat": "headshots",
       "team": "9INE",
-      "actual": 8,
-      "margin": 0.5,
+      "actual": 9,
+      "margin": 1.5,
       "result": "over",
       "match_date": "2026-10-02",
-      "opponent": "EAC EXTRA"
+      "opponent": "MTX"
     },
     {
       "game": "cs2",
@@ -76499,7 +76499,7 @@
     }
   ],
   "refused": {
-    "no completed match on that date": 782,
+    "no completed match on that date": 854,
     "player missing from the box score": 2,
     "player missing from a map's box score": 176,
     "team played more than once that day": 129
