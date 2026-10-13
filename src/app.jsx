@@ -16,40 +16,45 @@ const { useState, useEffect, useMemo, useContext, createContext, Fragment } = Re
    ============================================================ */
 
 const BASE_TOKENS = {
-  void: "#14181F",
-  graphite: "#1B212B",
-  graphiteLight: "#222A38",
-  steel: "#2C3444",
-  steelSoft: "#232A38",
-  text: "#EDEFF4",
-  textDim: "#A8B0C0",
-  textFaint: "#5C6478",
-  good: "#6EBF8B",
-  bad: "#DA7A6D",
+  void: "#0A0B14",
+  graphite: "#12141F",
+  graphiteLight: "#1A1D2D",
+  steel: "#2B2F48",
+  steelSoft: "#1D2033",
+  text: "#F3F4FB",
+  textDim: "#AEB3CE",
+  textFaint: "#7C82A6",
+  good: "#5EEAB0",
+  bad: "#FF7A8E",
 };
 
 const GAME_ACCENTS = {
-  lol: { accent: "#C9A86A", accentSoft: "#C9A86A18", accentBorder: "#C9A86A55", name: "Hextech Gold" },
-  valorant: { accent: "#FF4655", accentSoft: "#FF465518", accentBorder: "#FF465555", name: "Valorant Red" },
-  cs2: { accent: "#4FC3F7", accentSoft: "#4FC3F718", accentBorder: "#4FC3F755", name: "Tactical Cyan" },
+  lol: { accent: "#F6C45E", accentSoft: "#F6C45E1c", accentBorder: "#F6C45E5c", name: "Solar Amber" },
+  valorant: { accent: "#FF5C74", accentSoft: "#FF5C741c", accentBorder: "#FF5C745c", name: "Coral Red" },
+  cs2: { accent: "#4CD9FF", accentSoft: "#4CD9FF1c", accentBorder: "#4CD9FF5c", name: "Ion Cyan" },
 };
 
 const ACCENT_SWATCHES = [
-  { name: "Hextech Gold", hex: "#C9A86A" },
-  { name: "Valorant Red", hex: "#FF4655" },
-  { name: "Signal Cyan", hex: "#4FD8E8" },
-  { name: "Reticle Green", hex: "#7FE07A" },
-  { name: "Violet", hex: "#B07FE0" },
-  { name: "Ember", hex: "#E08A4F" },
+  { name: "Solar Amber", hex: "#F6C45E" },
+  { name: "Coral Red", hex: "#FF5C74" },
+  { name: "Ion Cyan", hex: "#4CD9FF" },
+  { name: "Mint", hex: "#5EEAB0" },
+  { name: "Orchid", hex: "#B58CFF" },
+  { name: "Tangerine", hex: "#FF9A5C" },
 ];
 
 const CORNER_CUT = 12; // px, used by both the clip-path and the SVG corner accents
 
 function cardShape(cornerStyle) {
-  if (cornerStyle === "rounded") return { borderRadius: 12 };
+  // Soft top-left sheen layered over the card's own background colour:
+  // backgroundImage survives the `background` shorthand written before the
+  // spread, so every card picks up the glass look without touching callers.
+  const sheen = "linear-gradient(155deg, rgba(255,255,255,0.055), rgba(255,255,255,0) 42%)";
+  if (cornerStyle === "rounded") return { borderRadius: 16, backgroundImage: sheen };
   const c = CORNER_CUT;
   return {
     borderRadius: 0,
+    backgroundImage: sheen,
     clipPath: `polygon(0 0, calc(100% - ${c}px) 0, 100% ${c}px, 100% 100%, ${c}px 100%, 0 calc(100% - ${c}px))`,
   };
 }
@@ -63,9 +68,9 @@ function cardShape(cornerStyle) {
 // content cards rather than making everything look identical).
 function elevation(tier = "card") {
   if (tier === "sunken") {
-    return { boxShadow: "inset 0 1px 3px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.02)" };
+    return { boxShadow: "inset 0 2px 6px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.025)" };
   }
-  return { boxShadow: "0 3px 10px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05)" };
+  return { boxShadow: "0 10px 30px -12px rgba(0,0,0,0.65), 0 2px 6px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.07)" };
 }
 
 // Targeting-bracket accents (see the .kp-bracket CSS rule) only make sense
@@ -106,7 +111,7 @@ function TeamTag({ name, color, size = 14, dim = false, region = null }) {
         boxShadow: `0 0 8px ${color}55`,
       }} />
       <span style={{
-        fontFamily: "'Fraunces', serif", fontWeight: 600, fontSize: size,
+        fontFamily: "'Sora', sans-serif", fontWeight: 600, fontSize: size,
         color: dim ? theme.textDim : theme.text, whiteSpace: "nowrap",
         overflow: "hidden", textOverflow: "ellipsis",
       }}>{name}</span>
@@ -116,7 +121,7 @@ function TeamTag({ name, color, size = 14, dim = false, region = null }) {
           reader so it is not read as a loose word after the team. */}
       {region && (
         <span style={{
-          fontFamily: "'IBM Plex Mono', monospace", fontSize: Math.max(9, size - 5),
+          fontFamily: "'JetBrains Mono', monospace", fontSize: Math.max(9, size - 5),
           fontWeight: 600, letterSpacing: 0.3, color: theme.textFaint,
           border: `1px solid ${theme.steel}`, borderRadius: 4,
           padding: "1px 5px", flexShrink: 0, whiteSpace: "nowrap",
@@ -261,7 +266,7 @@ function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, 
               width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
               display: "flex", alignItems: "center", justifyContent: "center",
               background: `${teamColor}22`, border: `1.5px solid ${teamColor}`,
-              color: teamColor, fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: 12,
+              color: teamColor, fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 12,
             }}
           >
             {initialsFor(name)}
@@ -269,7 +274,7 @@ function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, 
           <div style={{ minWidth: 0 }}>
             <div
               style={{
-                fontSize: 15, fontWeight: 600, color: theme.text, fontFamily: "'Fraunces', serif",
+                fontSize: 15, fontWeight: 600, color: theme.text, fontFamily: "'Sora', sans-serif",
                 whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
               }}
             >
@@ -292,11 +297,11 @@ function MatchPlayerRow({ theme, teamColor, name, role, extraChip, stats, r, p, 
           ))}
           {stats.map((s, i) => (
             <div key={i} style={{ textAlign: "right", minWidth: s.big ? 52 : 38 }}>
-              <div style={{ fontSize: 9, letterSpacing: 0.6, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>{s.label}</div>
+              <div style={{ fontSize: 9, letterSpacing: 0.6, color: theme.textFaint, fontFamily: "'JetBrains Mono', monospace" }}>{s.label}</div>
               <div
                 style={{
                   fontSize: s.big ? 24 : 14, fontWeight: s.big ? 600 : 700,
-                  fontFamily: s.big ? "'Fraunces', serif" : "'IBM Plex Mono', monospace",
+                  fontFamily: s.big ? "'Sora', sans-serif" : "'JetBrains Mono', monospace",
                   color: s.big ? theme.accent : (s.color || theme.text), marginTop: 2,
                 }}
               >
@@ -4181,7 +4186,7 @@ function Slider({ label, value, onChange, min, max, step, format, tooltip }) {
             </span>
           )}
         </span>
-        <span style={{ color: theme.accent, fontFamily: "'IBM Plex Mono', monospace" }}>{format ? format(value) : value}</span>
+        <span style={{ color: theme.accent, fontFamily: "'JetBrains Mono', monospace" }}>{format ? format(value) : value}</span>
       </div>
       <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(parseFloat(e.target.value))} style={{ width: "100%", accentColor: theme.accent }} />
     </div>
@@ -4255,7 +4260,7 @@ function RadarChart({ axes, size = 140, color }) {
         const [lx, ly] = pointFor(i, 118);
         return (
           <text key={`label-${ax.label}`} x={lx} y={ly} fill={theme.textFaint} fontSize={9}
-                fontFamily="'IBM Plex Mono', monospace" textAnchor="middle" dominantBaseline="middle">
+                fontFamily="'JetBrains Mono', monospace" textAnchor="middle" dominantBaseline="middle">
             {ax.label}
           </text>
         );
@@ -4339,7 +4344,7 @@ function ScoreBar({ label, value, max, unit, color }) {
     <div style={{ marginBottom: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: theme.textFaint, marginBottom: 3 }}>
         <span>{label}</span>
-        <span style={{ fontFamily: "'IBM Plex Mono', monospace", color: theme.textDim }}>{value.toFixed(1)} {unit}</span>
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", color: theme.textDim }}>{value.toFixed(1)} {unit}</span>
       </div>
       <div style={{ height: 5, background: theme.steelSoft, borderRadius: 3, overflow: "hidden" }}>
         <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 3 }} />
@@ -4388,11 +4393,11 @@ function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
       <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
         <RadarChart axes={axes} color={theme.accent} />
         <div style={{ flex: 1, minWidth: 140 }}>
-          <div style={{ fontFamily: "'Fraunces', serif", fontSize: 30, fontWeight: 600, color: theme.accent }}>
+          <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 30, fontWeight: 600, color: theme.accent }}>
             {r.total.toFixed(1)}
           </div>
           {edgePct != null && Math.abs(edgePct) >= 1 && (
-            <div style={{ fontSize: 12, color: edgePct > 0 ? theme.good : theme.bad, fontFamily: "'IBM Plex Mono', monospace", marginTop: 2 }}>
+            <div style={{ fontSize: 12, color: edgePct > 0 ? theme.good : theme.bad, fontFamily: "'JetBrains Mono', monospace", marginTop: 2 }}>
               {edgePct > 0 ? "+" : ""}{edgePct.toFixed(0)}% vs season avg
             </div>
           )}
@@ -4462,7 +4467,7 @@ function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
                   background: steadiness.score >= 70 ? theme.good : steadiness.score >= 45 ? theme.accent : theme.bad,
                 }} />
               </div>
-              <span style={{ fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", color: theme.textDim }}>
+              <span style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: theme.textDim }}>
                 {steadiness.score.toFixed(0)}/100
               </span>
               <span style={{ fontSize: 11, color: theme.textFaint }}>
@@ -4473,7 +4478,7 @@ function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
         </div>
       )}
 
-      <div style={{ marginTop: 12, fontSize: 11, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.8, paddingTop: 10, borderTop: `1px solid ${theme.steelSoft}` }}>
+      <div style={{ marginTop: 12, fontSize: 11, color: theme.textFaint, fontFamily: "'JetBrains Mono', monospace", lineHeight: 1.8, paddingTop: 10, borderTop: `1px solid ${theme.steelSoft}` }}>
         <div>opponent ×{r.oppMult.toFixed(2)} {cfg.useKP && <>&nbsp;·&nbsp; kp ×{r.kpMult.toFixed(2)}</>} &nbsp;→&nbsp; <span style={{ color: theme.text }}>{r.perGame.toFixed(2)} {cfg.key}/game</span> × {games}g</div>
         {/* Only shown where the tier actually applied. A line reading
             "0% of ..." on every LoL card would be noise, and one shown
@@ -4514,7 +4519,7 @@ function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
       {consistency && (
         <div style={{ marginTop: 8, paddingTop: 10, borderTop: `1px solid ${theme.steelSoft}` }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: theme.text, letterSpacing: 0.3 }}>Champion cheat code</div>
-          <div style={{ fontSize: 11, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", marginTop: 3 }}>
+          <div style={{ fontSize: 11, color: theme.textFaint, fontFamily: "'JetBrains Mono', monospace", marginTop: 3 }}>
             {consistency.championsConsidered} champs, {consistency.totalGames}g on file &nbsp;→&nbsp;
             {" "}CV={consistency.coefficientOfVariation != null ? consistency.coefficientOfVariation.toFixed(2) : "n/a"}
             {consistency.coefficientOfVariation != null && (
@@ -4531,7 +4536,7 @@ function ProjectionDetail({ r, p, cfg, games, pastMatches, team }) {
               return (
                 <span key={e.champion} title={`${rate.toFixed(1)} ${cfg.key}/g over ${e.g} games — ${diffPct >= 0 ? "+" : ""}${diffPct.toFixed(0)}% vs their own average`}
                   style={{
-                    fontSize: 10, padding: "4px 8px", borderRadius: 4, fontFamily: "'IBM Plex Mono', monospace",
+                    fontSize: 10, padding: "4px 8px", borderRadius: 4, fontFamily: "'JetBrains Mono', monospace",
                     background: `${pillColor}15`, border: `1px solid ${pillColor}45`, color: theme.text,
                   }}>
                   {e.champion} <span style={{ color: pillColor, fontWeight: 600 }}>{rate.toFixed(1)}</span>
@@ -4630,7 +4635,7 @@ function RecentFormChart({ rows, line, statLabel }) {
           Last {ordered.length} matches
         </span>
         {hr && (
-          <span style={{ fontSize: 12, fontFamily: "'IBM Plex Mono', monospace", color: theme.textDim }}>
+          <span style={{ fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: theme.textDim }}>
             <span style={{ color: hr.pct >= 50 ? theme.good : theme.bad, fontWeight: 700 }}>
               {hr.hits}/{hr.total}
             </span>{" "}
@@ -4671,14 +4676,14 @@ function RecentFormChart({ rows, line, statLabel }) {
       <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
         {ordered.map((r, i) => (
           <div key={i} style={{ flex: 1, textAlign: "center" }}>
-            <div style={{ fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", color: theme.text, fontWeight: 600 }}>
+            <div style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: theme.text, fontWeight: 600 }}>
               {r.value}
             </div>
             <div style={{ fontSize: 9, color: theme.textFaint, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {r.opponent}
             </div>
             {r.seriesFormat && (
-              <div style={{ fontSize: 8, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", opacity: 0.8 }}>
+              <div style={{ fontSize: 8, color: theme.textFaint, fontFamily: "'JetBrains Mono', monospace", opacity: 0.8 }}>
                 {r.seriesFormat}
                 {r.mapsCounted ? `·${r.mapsCounted}m` : ""}
               </div>
@@ -4720,20 +4725,20 @@ function PlayerRow({ teams, pastMatches, p, team, opponentTeam, games, weights, 
               width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
               display: "flex", alignItems: "center", justifyContent: "center",
               background: `${teamColor}22`, border: `1.5px solid ${teamColor}`,
-              color: teamColor, fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: 12,
+              color: teamColor, fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 12,
             }}
           >
             {initialsFor(p.name)}
           </span>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 600, color: theme.text, fontSize: 15, fontFamily: "'Fraunces', serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</div>
+            <div style={{ fontWeight: 600, color: theme.text, fontSize: 15, fontFamily: "'Sora', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</div>
             {p.role && <span className="kp-chip" style={{ background: theme.steelSoft, color: theme.textDim, marginTop: 4 }}>{p.role}</span>}
             <EvidenceChip games={r.evidenceGames} compact />
           </div>
         </div>
         <div style={{ textAlign: "right", flexShrink: 0 }}>
           <div style={{
-            fontFamily: "'Fraunces', serif", fontSize: 26, color: theme.accent, fontWeight: 600,
+            fontFamily: "'Sora', sans-serif", fontSize: 26, color: theme.accent, fontWeight: 600,
           }}>
             {r.total.toFixed(1)}
           </div>
@@ -6148,13 +6153,13 @@ function StandingsTab({ teams, pastMatches, upcomingMatches, regionsData, region
           {standings.map((s, i) => (
             <div key={s.team} style={{ display: "grid", gridTemplateColumns: "1fr 40px 40px 56px", padding: "10px 16px", fontSize: 13, borderTop: `1px solid ${theme.steelSoft}`, alignItems: "center" }}>
               <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", width: 14 }}>{i + 1}</span>
+                <span style={{ fontSize: 10, color: theme.textFaint, fontFamily: "'JetBrains Mono', monospace", width: 14 }}>{i + 1}</span>
                 <span style={{ width: 5, height: 16, borderRadius: 2, background: teams[s.team] ? teams[s.team].color : theme.textFaint }} />
-                <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 600 }}>{s.team}</span>
+                <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 600 }}>{s.team}</span>
               </span>
-              <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.good }}>{s.wins}</span>
-              <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.bad }}>{s.losses}</span>
-              <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.textDim, fontSize: 11 }}>{s.gameWins}-{s.gameLosses}</span>
+              <span style={{ textAlign: "right", fontFamily: "'JetBrains Mono', monospace", color: theme.good }}>{s.wins}</span>
+              <span style={{ textAlign: "right", fontFamily: "'JetBrains Mono', monospace", color: theme.bad }}>{s.losses}</span>
+              <span style={{ textAlign: "right", fontFamily: "'JetBrains Mono', monospace", color: theme.textDim, fontSize: 11 }}>{s.gameWins}-{s.gameLosses}</span>
             </div>
           ))}
         </div>
@@ -6169,11 +6174,11 @@ function StandingsTab({ teams, pastMatches, upcomingMatches, regionsData, region
           {power.map((p, i) => (
             <div key={p.team} style={{ display: "grid", gridTemplateColumns: "1fr 70px 60px", padding: "10px 16px", fontSize: 13, borderTop: `1px solid ${theme.steelSoft}`, alignItems: "center" }}>
               <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", width: 14 }}>{i + 1}</span>
-                <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 600 }}>{p.team}</span>
+                <span style={{ fontSize: 10, color: theme.textFaint, fontFamily: "'JetBrains Mono', monospace", width: 14 }}>{i + 1}</span>
+                <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 600 }}>{p.team}</span>
               </span>
-              <span style={{ textAlign: "right", fontSize: 10, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>{regionLabels[p.region] || p.region}</span>
-              <span style={{ textAlign: "right", fontFamily: "'IBM Plex Mono', monospace", color: theme.accent, fontWeight: 700 }}>{Math.round(p.rating)}</span>
+              <span style={{ textAlign: "right", fontSize: 10, color: theme.textFaint, fontFamily: "'JetBrains Mono', monospace" }}>{regionLabels[p.region] || p.region}</span>
+              <span style={{ textAlign: "right", fontFamily: "'JetBrains Mono', monospace", color: theme.accent, fontWeight: 700 }}>{Math.round(p.rating)}</span>
             </div>
           ))}
         </div>
@@ -6186,7 +6191,7 @@ function StandingsTab({ teams, pastMatches, upcomingMatches, regionsData, region
           </div>
           {playoffGroups.map(([label, matches]) => (
             <div key={label}>
-              <div style={{ padding: "8px 14px 4px", fontSize: 10, letterSpacing: 1.5, color: theme.accent, fontFamily: "'IBM Plex Mono', monospace", borderTop: `1px solid ${theme.steelSoft}`, textTransform: "uppercase" }}>
+              <div style={{ padding: "8px 14px 4px", fontSize: 10, letterSpacing: 1.5, color: theme.accent, fontFamily: "'JetBrains Mono', monospace", borderTop: `1px solid ${theme.steelSoft}`, textTransform: "uppercase" }}>
                 {label}
               </div>
               {matches.map((m, i) => (
@@ -6196,7 +6201,7 @@ function StandingsTab({ teams, pastMatches, upcomingMatches, regionsData, region
                     <span style={{ color: theme.textFaint }}> vs </span>
                     <span style={{ color: teams[m.teamB] ? teams[m.teamB].color : theme.text, fontWeight: m.winner === m.teamB ? 700 : 400 }}>{m.teamB}</span>
                   </span>
-                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: m.played ? theme.textDim : theme.accent }}>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: m.played ? theme.textDim : theme.accent }}>
                     {m.played ? `${m.score} · ${m.winner} won` : (m.date || "TBD")}
                   </span>
                 </div>
@@ -6327,8 +6332,8 @@ function MatchupPanel({ teams, pastMatches, teamA, teamB, games, weights, statTy
         {[[teamA, teamB, totalsA], [teamB, teamA, totalsB]].map(([team, opp, total], i) => (
           <div key={i} className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${teams[team].color}33`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme, teams[team].color), overflow: "hidden" }}>
             <div style={{ padding: "10px 12px", background: `${teams[team].color}18`, borderBottom: `1px solid ${teams[team].color}33`, display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-              <span style={{ fontWeight: 700, fontSize: 14, fontFamily: "'Fraunces', serif" }}>{team}</span>
-              <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, color: teams[team].color }}>Σ {total.toFixed(1)}</span>
+              <span style={{ fontWeight: 700, fontSize: 14, fontFamily: "'Sora', sans-serif" }}>{team}</span>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: teams[team].color }}>Σ {total.toFixed(1)}</span>
             </div>
             {likelyStarters(teams[team].players).map((p) => (
               <PlayerRow key={p.name} teams={teams} pastMatches={pastMatches} p={p} team={team} opponentTeam={opp} games={games} weights={weights} teamColor={teams[team].color} statType={statType} />
@@ -6474,7 +6479,7 @@ function GamesControl({ theme, games, setGames }) {
             style={{
               flex: 1, padding: "11px 0", borderRadius: 6, border: "1px solid " + (games === n ? theme.accent : theme.steel),
               background: games === n ? theme.accentSoft : "transparent", color: games === n ? theme.accent : theme.textDim,
-              fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "'IBM Plex Mono', monospace",
+              fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "'JetBrains Mono', monospace",
             }}
           >
             {n}
@@ -6747,7 +6752,7 @@ function TournamentHeader({ tournament, stage }) {
   const theme = useTheme();
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "28px 0 12px", paddingBottom: 10, borderBottom: `1px solid ${theme.steel}` }}>
-      <span style={{ fontSize: 18, fontWeight: 600, color: theme.text, fontFamily: "'Fraunces', serif" }}>
+      <span style={{ fontSize: 18, fontWeight: 600, color: theme.text, fontFamily: "'Sora', sans-serif" }}>
         {tournament}
       </span>
       <StageBadge stage={stage} />
@@ -7093,7 +7098,7 @@ function ConsistencyTab({ teams, pastMatches, statType, isDesktop }) {
             onChange={(e) => setWindowSize(parseInt(e.target.value, 10))}
             style={{ width: 110, accentColor: theme.accent }}
           />
-          <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>max {maxWindow}</span>
+          <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>max {maxWindow}</span>
         </span>
       </div>
 
@@ -7128,7 +7133,7 @@ function ConsistencyCard({ row, rank, cfg }) {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ fontSize: 11, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace", width: 20 }}>
+        <span style={{ fontSize: 11, color: theme.textFaint, fontFamily: "'JetBrains Mono', monospace", width: 20 }}>
           {rank}
         </span>
         <span style={{
@@ -7140,7 +7145,7 @@ function ConsistencyCard({ row, rank, cfg }) {
           {initialsFor(row.name)}
         </span>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: theme.text, fontFamily: "'Fraunces', serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: theme.text, fontFamily: "'Sora', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {row.name}
           </div>
           <div style={{ fontSize: 11, color: theme.textFaint }}>
@@ -7148,7 +7153,7 @@ function ConsistencyCard({ row, rank, cfg }) {
           </div>
         </div>
         <div style={{ textAlign: "right", flexShrink: 0 }}>
-          <div style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 600, color: barColor }}>
+          <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 600, color: barColor }}>
             {row.score.toFixed(0)}
           </div>
           <div style={{ fontSize: 10, color: theme.textFaint }}>consistency</div>
@@ -7159,7 +7164,7 @@ function ConsistencyCard({ row, rank, cfg }) {
         <div style={{ flex: 1, height: 5, background: theme.steelSoft, borderRadius: 3, overflow: "hidden" }}>
           <div style={{ width: `${row.score}%`, height: "100%", background: barColor, borderRadius: 3 }} />
         </div>
-        <span style={{ fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", color: theme.textDim }}>
+        <span style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: theme.textDim }}>
           avg {row.mean.toFixed(1)} {cfg.key}
         </span>
         <span style={{ fontSize: 11, color: theme.textFaint }}>{row.n}g</span>
@@ -7168,7 +7173,7 @@ function ConsistencyCard({ row, rank, cfg }) {
       {open && (
         <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${theme.steelSoft}` }}>
           <RecentFormChart rows={row.form.slice(0, 8)} line={row.mean} statLabel={cfg.label.toLowerCase()} />
-          <div style={{ marginTop: 8, fontSize: 11, color: theme.textFaint, fontFamily: "'IBM Plex Mono', monospace" }}>
+          <div style={{ marginTop: 8, fontSize: 11, color: theme.textFaint, fontFamily: "'JetBrains Mono', monospace" }}>
             spread ±{(row.cv * row.mean).toFixed(1)} around a {row.mean.toFixed(1)} average
             {" "}(CV {row.cv.toFixed(2)}) — line shown is their own average, not a projection.
           </div>
@@ -7350,7 +7355,7 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isD
           <div style={{ opacity: 0.45, display: "flex", justifyContent: "center", marginBottom: 12 }}>
             <Reticle size={26} color={theme.textDim} />
           </div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: theme.text, fontFamily: "'Fraunces', serif" }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: theme.text, fontFamily: "'Sora', sans-serif" }}>
             No upcoming matches scheduled
           </div>
           <div style={{ fontSize: 12, color: theme.textFaint, marginTop: 6, lineHeight: 1.55, maxWidth: 380, marginLeft: "auto", marginRight: "auto" }}>
@@ -7754,7 +7759,7 @@ function DataStatus({ status, lastUpdated, errorDetail, onRetry, regions }) {
         )}
       </div>
       {status === "error" && errorDetail && (
-        <div style={{ marginTop: 6, fontSize: 10, color: theme.bad, fontFamily: "'IBM Plex Mono', monospace", wordBreak: "break-word" }}>
+        <div style={{ marginTop: 6, fontSize: 10, color: theme.bad, fontFamily: "'JetBrains Mono', monospace", wordBreak: "break-word" }}>
           {errorDetail}
         </div>
       )}
@@ -7806,7 +7811,7 @@ function GameSwitcher({ game, selectGame, statusByGame, theme }) {
       >
         <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ width: 10, height: 10, borderRadius: "50%", background: currentAccent, boxShadow: `0 0 8px ${currentAccent}` }} />
-          <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: 15, color: theme.text }}>{current.label}</span>
+          <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 15, color: theme.text }}>{current.label}</span>
         </span>
         <span style={{ fontSize: 11, color: theme.textFaint, transform: open ? "rotate(180deg)" : "none", transition: "transform 0.15s ease" }}>▾</span>
       </button>
@@ -7845,7 +7850,7 @@ function GameSwitcher({ game, selectGame, statusByGame, theme }) {
                   <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <span style={{ width: 10, height: 10, borderRadius: "50%", background: accent }} />
                     <span>
-                      <div style={{ fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: 14, color: isCurrent ? accent : theme.text }}>
+                      <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 14, color: isCurrent ? accent : theme.text }}>
                         {GAMES[id].label}
                       </div>
                       <div style={{ fontSize: 10, color: theme.textFaint, marginTop: 1 }}>{GAMES[id].regionList.length} regions tracked</div>
@@ -8199,7 +8204,7 @@ function SwissView({ stage, laterTeams, teams, isDesktop }) {
                     {row.key}
                   </span>
                   {team && team.from_home_region && (
-                    <span role="cell" style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: theme.textFaint,
+                    <span role="cell" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: theme.textFaint,
                       border: `1px solid ${theme.steel}`, borderRadius: 4, padding: "0 4px" }}>{team.from_home_region}</span>
                   )}
                   <span role="cell" className="kp-num" style={{ width: 34, textAlign: "right", fontWeight: 700 }}>{row.w}–{row.l}</span>
@@ -8379,7 +8384,7 @@ function EventTab({ event, teams, isDesktop }) {
   return (
     <div>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
-        <div style={{ fontFamily: "'Fraunces', serif", fontSize: isDesktop ? 22 : 18, fontWeight: 600 }}>{event.name}</div>
+        <div style={{ fontFamily: "'Sora', sans-serif", fontSize: isDesktop ? 22 : 18, fontWeight: 600 }}>{event.name}</div>
         {event.start && <div style={{ fontSize: 12.5, color: theme.textDim }}>{fmtDay(event.start)} – {fmtDay(event.end)}</div>}
       </div>
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 18 }}>
@@ -8463,7 +8468,7 @@ function TopNav({ theme, gameCfg, game, region, setRegion, tab, setTab, statType
               background: region === key ? theme.accentSoft : theme.graphite,
               color: region === key ? theme.accent : theme.textDim,
               fontSize: isDesktop ? 15 : 13, fontWeight: 600, cursor: "pointer",
-              fontFamily: "'Fraunces', serif", flexShrink: 0, scrollSnapAlign: "start",
+              fontFamily: "'Sora', sans-serif", flexShrink: 0, scrollSnapAlign: "start",
               ...elevation(),
             }}
           >
@@ -8496,7 +8501,7 @@ function TopNav({ theme, gameCfg, game, region, setRegion, tab, setTab, statType
                 borderBottom: `2px solid ${tab === id ? theme.accent : "transparent"}`,
                 color: tab === id ? theme.accent : theme.textDim,
                 fontSize: isDesktop ? 15 : 13.5, fontWeight: 600, cursor: "pointer",
-                fontFamily: "'Fraunces', serif", whiteSpace: "nowrap", flexShrink: 0,
+                fontFamily: "'Sora', sans-serif", whiteSpace: "nowrap", flexShrink: 0,
               }}
             >
               {label}
@@ -8559,7 +8564,7 @@ function SettingsPanel({ theme, accentOverride, setAccentOverride, cornerStyle, 
               style={{
                 width: 28, height: 28, borderRadius: "50%", cursor: "pointer",
                 border: !accentOverride ? `2px solid ${theme.text}` : `1px solid ${theme.steel}`,
-                background: "conic-gradient(#C9A86A, #FF4655, #4FD8E8, #7FE07A, #B07FE0, #E08A4F, #C9A86A)",
+                background: "conic-gradient(#F6C45E, #FF5C74, #4FD8E8, #7FE07A, #B07FE0, #E08A4F, #F6C45E)",
               }}
             />
             {ACCENT_SWATCHES.map((s) => (
@@ -8580,7 +8585,7 @@ function SettingsPanel({ theme, accentOverride, setAccentOverride, cornerStyle, 
               value={customHex}
               onChange={(e) => setCustomHex(e.target.value)}
               placeholder="#RRGGBB"
-              style={{ flex: 1, background: theme.graphiteLight, border: `1px solid ${theme.steel}`, borderRadius: 8, color: theme.text, padding: "7px 10px", fontSize: 12, fontFamily: "'IBM Plex Mono', monospace" }}
+              style={{ flex: 1, background: theme.graphiteLight, border: `1px solid ${theme.steel}`, borderRadius: 8, color: theme.text, padding: "7px 10px", fontSize: 12, fontFamily: "'JetBrains Mono', monospace" }}
             />
             <button
               onClick={() => { if (/^#[0-9a-fA-F]{6}$/.test(customHex)) setAccentOverride(customHex); }}
@@ -8622,10 +8627,12 @@ const KP_STYLES = `
              small and general-purpose rather than styling every element
              individually. Buttons/clickable cards opt in via className. */
           .kp-btn { transition: filter 0.15s ease, transform 0.1s ease, border-color 0.15s ease, background-color 0.15s ease; }
-          .kp-btn:hover { filter: brightness(1.18); }
+          ::selection { background: var(--kp-accent-live, #F6C45E)55; color: #fff; }
+          .kp-btn { transition: filter 0.15s ease, transform 0.15s ease, box-shadow 0.2s ease; }
+          .kp-btn:hover { filter: brightness(1.18); box-shadow: 0 6px 20px -8px var(--kp-accent-live, #F6C45E); }
           .kp-btn:active { transform: scale(0.97); }
-          .kp-clickable { transition: border-color 0.15s ease, filter 0.15s ease; cursor: pointer; }
-          .kp-clickable:hover { filter: brightness(1.08); border-color: rgba(255,255,255,0.16) !important; }
+          .kp-clickable { transition: border-color 0.2s ease, filter 0.2s ease, transform 0.2s ease; cursor: pointer; }
+          .kp-clickable:hover { filter: brightness(1.1); transform: translateY(-1px); border-color: var(--kp-accent-live, rgba(255,255,255,0.2)) !important; }
           input[type="range"] { cursor: pointer; }
           input[type="range"]::-webkit-slider-thumb { transition: transform 0.15s ease; }
           input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.25); }
@@ -8657,7 +8664,7 @@ const KP_STYLES = `
           .kp-dayscroll::-webkit-scrollbar { height: 6px; }
           .kp-dayscroll::-webkit-scrollbar-track { background: transparent; }
           .kp-dayscroll::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.14); border-radius: 3px;
+            background: rgba(255,255,255,0.16); border-radius: 3px;
           }
           .kp-dayscroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.24); }
           .kp-divider { border: none; height: 1px; }
@@ -8666,7 +8673,7 @@ const KP_STYLES = `
              against the figure above it. Proportional digits make those
              columns ragged and make a changing number jitter, so all
              numeric readouts use tabular figures. */
-          .kp-num { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+          .kp-num { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
           table, .kp-tabular { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
 
           /* ---- Focus ----------------------------------------------------
@@ -8676,7 +8683,7 @@ const KP_STYLES = `
              users. */
           .kp-btn:focus-visible, .kp-clickable:focus-visible, .kp-focus:focus-visible,
           button:focus-visible, [role="button"]:focus-visible, input:focus-visible, select:focus-visible {
-            outline: 2px solid var(--kp-accent-live, #C9A86A);
+            outline: 2px solid var(--kp-accent-live, #F6C45E);
             outline-offset: 2px;
           }
           .kp-btn:focus:not(:focus-visible), .kp-clickable:focus:not(:focus-visible) { outline: none; }
@@ -8988,10 +8995,15 @@ function KillProjector({ onHome } = {}) {
         // Exposed to CSS so the stylesheet's focus rings track the live
         // accent without a rule per game.
         "--kp-accent-live": theme.accent,
-        background: `radial-gradient(ellipse 1200px 800px at 50% -10%, ${theme.accent}0d, transparent 60%), `
-          + `linear-gradient(${theme.steelSoft}33 1px, transparent 1px), linear-gradient(90deg, ${theme.steelSoft}33 1px, transparent 1px), `
+        // Aurora wash: the game accent glows from the top-left, a violet
+        // counter-glow from the right, over a faint dot grid.
+        background: `radial-gradient(ellipse 900px 600px at 8% -8%, ${theme.accent}26, transparent 62%), `
+          + `radial-gradient(ellipse 800px 560px at 100% 0%, #7C5CFF1f, transparent 60%), `
+          + `radial-gradient(ellipse 700px 500px at 50% 115%, #1fd1c11a, transparent 60%), `
+          + `radial-gradient(rgba(255,255,255,0.055) 1px, transparent 1.2px), `
           + theme.void,
-        backgroundSize: "auto, 48px 48px, 48px 48px, auto",
+        backgroundSize: "auto, auto, auto, 26px 26px, auto",
+        backgroundAttachment: "fixed, fixed, fixed, scroll, fixed",
       }}>
         <style>{KP_STYLES}</style>
         <div style={{
@@ -9022,7 +9034,7 @@ function KillProjector({ onHome } = {}) {
               </div>
               <h1 style={{
                 fontSize: isDesktop ? 26 : 19, fontWeight: 600, margin: isDesktop ? "6px 0 0" : "5px 0 0",
-                fontFamily: "'Fraunces', serif", letterSpacing: -0.2, lineHeight: 1.2,
+                fontFamily: "'Sora', sans-serif", letterSpacing: -0.2, lineHeight: 1.2,
               }}>
                 Weighted {STAT_TYPES[statType].singular} projections
               </h1>
@@ -10539,7 +10551,7 @@ function TrackerPage({ isDesktop, onHome }) {
         </div>
       </div>
       <h1 style={{ fontSize: isDesktop ? 26 : 21, fontWeight: 600, margin: "0 0 14px",
-        fontFamily: "'Fraunces', serif", letterSpacing: -0.2 }}>Slips & bankroll</h1>
+        fontFamily: "'Sora', sans-serif", letterSpacing: -0.2 }}>Slips & bankroll</h1>
 
       {notice && (
         <div style={{ background: theme.good + "18", border: `1px solid ${theme.good}55`, color: theme.text,
@@ -10652,7 +10664,7 @@ function MenuEvents({ go, isDesktop }) {
             {e.live ? "On now" : `Starts ${new Date(e.first).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`}
           </span>
           <div style={{ flex: "1 1 200px", minWidth: 0 }}>
-            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 18, fontWeight: 600 }}>{e.name}</div>
+            <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 18, fontWeight: 600 }}>{e.name}</div>
             <div style={{ fontSize: 12.5, color: theme.textDim, marginTop: 2 }}>
               {e.next
                 ? <>Next: <strong style={{ color: theme.text }}>{e.next.teams[0].name} vs {e.next.teams[1].name}</strong> · {e.next.stage}{e.next.best_of ? ` · Bo${e.next.best_of}` : ""} · {when(e.next.start)}</>
@@ -10695,7 +10707,7 @@ function MainMenu({ isDesktop, go }) {
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(key); } }}
       style={{ cursor: "pointer", background: theme.graphite, border: `1px solid ${theme.steel}`,
         ...cardShape(theme.cornerStyle), ...elevation(), padding: "20px 20px", flex: "1 1 260px" }}>
-      <div style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 600, marginBottom: 6 }}>{title} →</div>
+      <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 600, marginBottom: 6 }}>{title} →</div>
       <div style={{ fontSize: 13.5, color: theme.textDim, lineHeight: 1.55 }}>{body}</div>
       {extra}
     </div>
@@ -10707,7 +10719,7 @@ function MainMenu({ isDesktop, go }) {
         <Reticle size={13} color={theme.accent} active />
         PROPEDGE
       </div>
-      <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: isDesktop ? 34 : 26, fontWeight: 600,
+      <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: isDesktop ? 34 : 26, fontWeight: 600,
         margin: "0 0 24px", letterSpacing: -0.3 }}>Where to?</h1>
       <MenuEvents go={go} isDesktop={isDesktop} />
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
@@ -10839,7 +10851,7 @@ function NewsPage({ isDesktop, onHome }) {
         )}
       </div>
       <h1 style={{ fontSize: isDesktop ? 26 : 21, fontWeight: 600, margin: "0 0 14px",
-        fontFamily: "'Fraunces', serif", letterSpacing: -0.2 }}>What changed this week</h1>
+        fontFamily: "'Sora', sans-serif", letterSpacing: -0.2 }}>What changed this week</h1>
 
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
         {chip(game === "all", "All games", () => pick("all"))}
@@ -10966,7 +10978,7 @@ function AppShell() {
   const page = {
     minHeight: "100vh", color: theme.text, fontFamily: "'Inter', -apple-system, sans-serif",
     "--kp-accent-live": theme.accent,
-    background: `radial-gradient(ellipse 1200px 800px at 50% -10%, ${theme.accent}0d, transparent 60%), ${theme.void}`,
+    background: `radial-gradient(ellipse 900px 600px at 8% -8%, ${theme.accent}26, transparent 62%), radial-gradient(ellipse 800px 560px at 100% 0%, #7C5CFF1f, transparent 60%), ${theme.void}`,
   };
   return (
     <>

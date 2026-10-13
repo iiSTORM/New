@@ -5,37 +5,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="theme-color" content="#14181F" />
+<meta name="theme-color" content="#0A0B14" />
 <title>Esports Kill Projector</title>
 <!-- The wordmark's reticle, inline: the page was requesting a favicon.ico
      that does not exist and taking a 404 on every single load. -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%3E%3Crect%20width%3D%2224%22%20height%3D%2224%22%20rx%3D%225%22%20fill%3D%22%2314181F%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%226.2%22%20stroke%3D%22%23C9A86A%22%20stroke-width%3D%221.7%22%2F%3E%3Cline%20x1%3D%2212%22%20y1%3D%222.4%22%20x2%3D%2212%22%20y2%3D%226.4%22%20stroke%3D%22%23C9A86A%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2212%22%20y1%3D%2217.6%22%20x2%3D%2212%22%20y2%3D%2221.6%22%20stroke%3D%22%23C9A86A%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%222.4%22%20y1%3D%2212%22%20x2%3D%226.4%22%20y2%3D%2212%22%20stroke%3D%22%23C9A86A%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2217.6%22%20y1%3D%2212%22%20x2%3D%2221.6%22%20y2%3D%2212%22%20stroke%3D%22%23C9A86A%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%221.7%22%20fill%3D%22%23C9A86A%22%2F%3E%3C%2Fsvg%3E" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%3E%3Crect%20width%3D%2224%22%20height%3D%2224%22%20rx%3D%225%22%20fill%3D%22%230A0B14%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%226.2%22%20stroke%3D%22%23F6C45E%22%20stroke-width%3D%221.7%22%2F%3E%3Cline%20x1%3D%2212%22%20y1%3D%222.4%22%20x2%3D%2212%22%20y2%3D%226.4%22%20stroke%3D%22%23F6C45E%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2212%22%20y1%3D%2217.6%22%20x2%3D%2212%22%20y2%3D%2221.6%22%20stroke%3D%22%23F6C45E%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%222.4%22%20y1%3D%2212%22%20x2%3D%226.4%22%20y2%3D%2212%22%20stroke%3D%22%23F6C45E%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2217.6%22%20y1%3D%2212%22%20x2%3D%2221.6%22%20y2%3D%2212%22%20stroke%3D%22%23F6C45E%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%221.7%22%20fill%3D%22%23F6C45E%22%2F%3E%3C%2Fsvg%3E" />
 <meta name="description" content="Weighted kill, death and assist projections for League of Legends, Counter-Strike 2 and Valorant, backtested against completed matches." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="preconnect" href="https://raw.githubusercontent.com" />
 <!-- One request rather than two: a second stylesheet is a second round trip
      before any text can paint. -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" />
 <style>
   /* Base tokens live here as CSS custom properties as well as in the JS
      theme object, so the shell can paint correct colours before React has
      loaded — otherwise the first frame is unstyled. */
   :root {
-    --kp-void: #14181F;
-    --kp-graphite: #1B212B;
-    --kp-steel: #2C3444;
-    --kp-text: #EDEFF4;
-    --kp-text-dim: #A8B0C0;
-    --kp-text-faint: #5C6478;
-    --kp-accent: #C9A86A;
+    --kp-void: #0A0B14;
+    --kp-graphite: #12141F;
+    --kp-steel: #2B2F48;
+    --kp-text: #F3F4FB;
+    --kp-text-dim: #AEB3CE;
+    --kp-text-faint: #7C82A6;
+    --kp-accent: #F6C45E;
   }
-  html, body { margin: 0; padding: 0; background: var(--kp-void); color: var(--kp-text);
+  html, body { margin: 0; background-image: radial-gradient(ellipse 900px 600px at 8% -8%, #F6C45E22, transparent 62%); padding: 0; background: var(--kp-void); color: var(--kp-text);
                font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
                -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
   #root { min-height: 100vh; }
   #error-box { margin: 16px; padding: 14px; background: #2a1418; border: 1px solid #5c2a2a; border-radius: 8px;
-               color: #ff9a9a; font-family: 'IBM Plex Mono', monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; }
+               color: #ff9a9a; font-family: 'JetBrains Mono', monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; }
   input[type="text"]::placeholder { color: var(--kp-text-faint); }
 
   /* ---- Boot skeleton ----------------------------------------------------
@@ -47,7 +47,7 @@
   #boot { padding: 28px 20px; max-width: 1400px; margin: 0 auto; display: flex; gap: 32px; }
   #boot .boot-side { width: 260px; flex-shrink: 0; }
   #boot .boot-main { flex: 1; min-width: 0; }
-  .sk { background: linear-gradient(90deg, #1B212B 25%, #232B39 50%, #1B212B 75%);
+  .sk { background: linear-gradient(90deg, #12141F 25%, #1D2033 50%, #12141F 75%);
         background-size: 400% 100%; animation: sk-shimmer 1.4s ease-in-out infinite;
         border-radius: 8px; }
   @keyframes sk-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
@@ -121,75 +121,78 @@ try {
     Fragment
   } = React;
   const BASE_TOKENS = {
-    void: "#14181F",
-    graphite: "#1B212B",
-    graphiteLight: "#222A38",
-    steel: "#2C3444",
-    steelSoft: "#232A38",
-    text: "#EDEFF4",
-    textDim: "#A8B0C0",
-    textFaint: "#5C6478",
-    good: "#6EBF8B",
-    bad: "#DA7A6D"
+    void: "#0A0B14",
+    graphite: "#12141F",
+    graphiteLight: "#1A1D2D",
+    steel: "#2B2F48",
+    steelSoft: "#1D2033",
+    text: "#F3F4FB",
+    textDim: "#AEB3CE",
+    textFaint: "#7C82A6",
+    good: "#5EEAB0",
+    bad: "#FF7A8E"
   };
   const GAME_ACCENTS = {
     lol: {
-      accent: "#C9A86A",
-      accentSoft: "#C9A86A18",
-      accentBorder: "#C9A86A55",
-      name: "Hextech Gold"
+      accent: "#F6C45E",
+      accentSoft: "#F6C45E1c",
+      accentBorder: "#F6C45E5c",
+      name: "Solar Amber"
     },
     valorant: {
-      accent: "#FF4655",
-      accentSoft: "#FF465518",
-      accentBorder: "#FF465555",
-      name: "Valorant Red"
+      accent: "#FF5C74",
+      accentSoft: "#FF5C741c",
+      accentBorder: "#FF5C745c",
+      name: "Coral Red"
     },
     cs2: {
-      accent: "#4FC3F7",
-      accentSoft: "#4FC3F718",
-      accentBorder: "#4FC3F755",
-      name: "Tactical Cyan"
+      accent: "#4CD9FF",
+      accentSoft: "#4CD9FF1c",
+      accentBorder: "#4CD9FF5c",
+      name: "Ion Cyan"
     }
   };
   const ACCENT_SWATCHES = [{
-    name: "Hextech Gold",
-    hex: "#C9A86A"
+    name: "Solar Amber",
+    hex: "#F6C45E"
   }, {
-    name: "Valorant Red",
-    hex: "#FF4655"
+    name: "Coral Red",
+    hex: "#FF5C74"
   }, {
-    name: "Signal Cyan",
-    hex: "#4FD8E8"
+    name: "Ion Cyan",
+    hex: "#4CD9FF"
   }, {
-    name: "Reticle Green",
-    hex: "#7FE07A"
+    name: "Mint",
+    hex: "#5EEAB0"
   }, {
-    name: "Violet",
-    hex: "#B07FE0"
+    name: "Orchid",
+    hex: "#B58CFF"
   }, {
-    name: "Ember",
-    hex: "#E08A4F"
+    name: "Tangerine",
+    hex: "#FF9A5C"
   }];
   const CORNER_CUT = 12;
   function cardShape(cornerStyle) {
+    const sheen = "linear-gradient(155deg, rgba(255,255,255,0.055), rgba(255,255,255,0) 42%)";
     if (cornerStyle === "rounded") return {
-      borderRadius: 12
+      borderRadius: 16,
+      backgroundImage: sheen
     };
     const c = CORNER_CUT;
     return {
       borderRadius: 0,
+      backgroundImage: sheen,
       clipPath: `polygon(0 0, calc(100% - ${c}px) 0, 100% ${c}px, 100% 100%, ${c}px 100%, 0 calc(100% - ${c}px))`
     };
   }
   function elevation(tier = "card") {
     if (tier === "sunken") {
       return {
-        boxShadow: "inset 0 1px 3px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.02)"
+        boxShadow: "inset 0 2px 6px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.025)"
       };
     }
     return {
-      boxShadow: "0 3px 10px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05)"
+      boxShadow: "0 10px 30px -12px rgba(0,0,0,0.65), 0 2px 6px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.07)"
     };
   }
   function bracketClass(theme) {
@@ -231,7 +234,7 @@ try {
       }
     }), React.createElement("span", {
       style: {
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         fontWeight: 600,
         fontSize: size,
         color: dim ? theme.textDim : theme.text,
@@ -241,7 +244,7 @@ try {
       }
     }, name), region && React.createElement("span", {
       style: {
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         fontSize: Math.max(9, size - 5),
         fontWeight: 600,
         letterSpacing: 0.3,
@@ -465,7 +468,7 @@ try {
         background: `${teamColor}22`,
         border: `1.5px solid ${teamColor}`,
         color: teamColor,
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         fontWeight: 700,
         fontSize: 12
       }
@@ -478,7 +481,7 @@ try {
         fontSize: 15,
         fontWeight: 600,
         color: theme.text,
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         whiteSpace: "nowrap",
         overflow: "hidden",
         textOverflow: "ellipsis"
@@ -523,13 +526,13 @@ try {
         fontSize: 9,
         letterSpacing: 0.6,
         color: theme.textFaint,
-        fontFamily: "'IBM Plex Mono', monospace"
+        fontFamily: "'JetBrains Mono', monospace"
       }
     }, s.label), React.createElement("div", {
       style: {
         fontSize: s.big ? 24 : 14,
         fontWeight: s.big ? 600 : 700,
-        fontFamily: s.big ? "'Fraunces', serif" : "'IBM Plex Mono', monospace",
+        fontFamily: s.big ? "'Sora', sans-serif" : "'JetBrains Mono', monospace",
         color: s.big ? theme.accent : s.color || theme.text,
         marginTop: 2
       }
@@ -3791,7 +3794,7 @@ try {
     }, "i")), React.createElement("span", {
       style: {
         color: theme.accent,
-        fontFamily: "'IBM Plex Mono', monospace"
+        fontFamily: "'JetBrains Mono', monospace"
       }
     }, format ? format(value) : value)), React.createElement("input", {
       type: "range",
@@ -3891,7 +3894,7 @@ try {
         y: ly,
         fill: theme.textFaint,
         fontSize: 9,
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         textAnchor: "middle",
         dominantBaseline: "middle"
       }, ax.label);
@@ -3969,7 +3972,7 @@ try {
       }
     }, React.createElement("span", null, label), React.createElement("span", {
       style: {
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         color: theme.textDim
       }
     }, value.toFixed(1), " ", unit)), React.createElement("div", {
@@ -4026,7 +4029,7 @@ try {
       }
     }, React.createElement("div", {
       style: {
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         fontSize: 30,
         fontWeight: 600,
         color: theme.accent
@@ -4035,7 +4038,7 @@ try {
       style: {
         fontSize: 12,
         color: edgePct > 0 ? theme.good : theme.bad,
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         marginTop: 2
       }
     }, edgePct > 0 ? "+" : "", edgePct.toFixed(0), "% vs season avg"), tags.length > 0 && React.createElement("div", {
@@ -4141,7 +4144,7 @@ try {
     })), React.createElement("span", {
       style: {
         fontSize: 11,
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         color: theme.textDim
       }
     }, steadiness.score.toFixed(0), "/100"), React.createElement("span", {
@@ -4154,7 +4157,7 @@ try {
         marginTop: 12,
         fontSize: 11,
         color: theme.textFaint,
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         lineHeight: 1.8,
         paddingTop: 10,
         borderTop: `1px solid ${theme.steelSoft}`
@@ -4180,7 +4183,7 @@ try {
       style: {
         fontSize: 11,
         color: theme.textFaint,
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         marginTop: 3
       }
     }, consistency.championsConsidered, " champs, ", consistency.totalGames, "g on file \xA0\u2192\xA0", " ", "CV=", consistency.coefficientOfVariation != null ? consistency.coefficientOfVariation.toFixed(2) : "n/a", consistency.coefficientOfVariation != null && React.createElement("span", {
@@ -4205,7 +4208,7 @@ try {
           fontSize: 10,
           padding: "4px 8px",
           borderRadius: 4,
-          fontFamily: "'IBM Plex Mono', monospace",
+          fontFamily: "'JetBrains Mono', monospace",
           background: `${pillColor}15`,
           border: `1px solid ${pillColor}45`,
           color: theme.text
@@ -4293,7 +4296,7 @@ try {
     }, "Last ", ordered.length, " matches"), hr && React.createElement("span", {
       style: {
         fontSize: 12,
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         color: theme.textDim
       }
     }, React.createElement("span", {
@@ -4359,7 +4362,7 @@ try {
     }, React.createElement("div", {
       style: {
         fontSize: 11,
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         color: theme.text,
         fontWeight: 600
       }
@@ -4375,7 +4378,7 @@ try {
       style: {
         fontSize: 8,
         color: theme.textFaint,
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         opacity: 0.8
       }
     }, r.seriesFormat, r.mapsCounted ? `·${r.mapsCounted}m` : "")))), (() => {
@@ -4441,7 +4444,7 @@ try {
         background: `${teamColor}22`,
         border: `1.5px solid ${teamColor}`,
         color: teamColor,
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         fontWeight: 700,
         fontSize: 12
       }
@@ -4454,7 +4457,7 @@ try {
         fontWeight: 600,
         color: theme.text,
         fontSize: 15,
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         whiteSpace: "nowrap",
         overflow: "hidden",
         textOverflow: "ellipsis"
@@ -4476,7 +4479,7 @@ try {
       }
     }, React.createElement("div", {
       style: {
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         fontSize: 26,
         color: theme.accent,
         fontWeight: 600
@@ -6199,7 +6202,7 @@ try {
       style: {
         fontSize: 10,
         color: theme.textFaint,
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         width: 14
       }
     }, i + 1), React.createElement("span", {
@@ -6211,25 +6214,25 @@ try {
       }
     }), React.createElement("span", {
       style: {
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         fontWeight: 600
       }
     }, s.team)), React.createElement("span", {
       style: {
         textAlign: "right",
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         color: theme.good
       }
     }, s.wins), React.createElement("span", {
       style: {
         textAlign: "right",
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         color: theme.bad
       }
     }, s.losses), React.createElement("span", {
       style: {
         textAlign: "right",
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         color: theme.textDim,
         fontSize: 11
       }
@@ -6285,12 +6288,12 @@ try {
       style: {
         fontSize: 10,
         color: theme.textFaint,
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         width: 14
       }
     }, i + 1), React.createElement("span", {
       style: {
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         fontWeight: 600
       }
     }, p.team)), React.createElement("span", {
@@ -6298,12 +6301,12 @@ try {
         textAlign: "right",
         fontSize: 10,
         color: theme.textFaint,
-        fontFamily: "'IBM Plex Mono', monospace"
+        fontFamily: "'JetBrains Mono', monospace"
       }
     }, regionLabels[p.region] || p.region), React.createElement("span", {
       style: {
         textAlign: "right",
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         color: theme.accent,
         fontWeight: 700
       }
@@ -6335,7 +6338,7 @@ try {
         fontSize: 10,
         letterSpacing: 1.5,
         color: theme.accent,
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         borderTop: `1px solid ${theme.steelSoft}`,
         textTransform: "uppercase"
       }
@@ -6364,7 +6367,7 @@ try {
       }
     }, m.teamB)), React.createElement("span", {
       style: {
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         fontSize: 11,
         color: m.played ? theme.textDim : theme.accent
       }
@@ -6556,11 +6559,11 @@ try {
       style: {
         fontWeight: 700,
         fontSize: 14,
-        fontFamily: "'Fraunces', serif"
+        fontFamily: "'Sora', sans-serif"
       }
     }, team), React.createElement("span", {
       style: {
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         fontSize: 13,
         color: teams[team].color
       }
@@ -6800,7 +6803,7 @@ try {
         fontSize: 15,
         fontWeight: 700,
         cursor: "pointer",
-        fontFamily: "'IBM Plex Mono', monospace"
+        fontFamily: "'JetBrains Mono', monospace"
       }
     }, n))));
   }
@@ -7148,7 +7151,7 @@ try {
         fontSize: 18,
         fontWeight: 600,
         color: theme.text,
-        fontFamily: "'Fraunces', serif"
+        fontFamily: "'Sora', sans-serif"
       }
     }, tournament), React.createElement(StageBadge, {
       stage: stage
@@ -7653,7 +7656,7 @@ try {
       }
     }), React.createElement("span", {
       style: {
-        fontFamily: "'IBM Plex Mono', monospace"
+        fontFamily: "'JetBrains Mono', monospace"
       }
     }, "max ", maxWindow))), top.length === 0 ? React.createElement("div", {
       style: {
@@ -7714,7 +7717,7 @@ try {
       style: {
         fontSize: 11,
         color: theme.textFaint,
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         width: 20
       }
     }, rank), React.createElement("span", {
@@ -7743,7 +7746,7 @@ try {
         fontSize: 15,
         fontWeight: 600,
         color: theme.text,
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         whiteSpace: "nowrap",
         overflow: "hidden",
         textOverflow: "ellipsis"
@@ -7760,7 +7763,7 @@ try {
       }
     }, React.createElement("div", {
       style: {
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         fontSize: 22,
         fontWeight: 600,
         color: barColor
@@ -7795,7 +7798,7 @@ try {
     })), React.createElement("span", {
       style: {
         fontSize: 11,
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         color: theme.textDim
       }
     }, "avg ", row.mean.toFixed(1), " ", cfg.key), React.createElement("span", {
@@ -7818,7 +7821,7 @@ try {
         marginTop: 8,
         fontSize: 11,
         color: theme.textFaint,
-        fontFamily: "'IBM Plex Mono', monospace"
+        fontFamily: "'JetBrains Mono', monospace"
       }
     }, "spread \xB1", (row.cv * row.mean).toFixed(1), " around a ", row.mean.toFixed(1), " average", " ", "(CV ", row.cv.toFixed(2), ") \u2014 line shown is their own average, not a projection.")));
   }
@@ -7998,7 +8001,7 @@ try {
         fontSize: 14,
         fontWeight: 600,
         color: theme.text,
-        fontFamily: "'Fraunces', serif"
+        fontFamily: "'Sora', sans-serif"
       }
     }, "No upcoming matches scheduled"), React.createElement("div", {
       style: {
@@ -8548,7 +8551,7 @@ try {
         marginTop: 6,
         fontSize: 10,
         color: theme.bad,
-        fontFamily: "'IBM Plex Mono', monospace",
+        fontFamily: "'JetBrains Mono', monospace",
         wordBreak: "break-word"
       }
     }, errorDetail));
@@ -8621,7 +8624,7 @@ try {
       }
     }), React.createElement("span", {
       style: {
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         fontWeight: 700,
         fontSize: 15,
         color: theme.text
@@ -8694,7 +8697,7 @@ try {
         }
       }), React.createElement("span", null, React.createElement("div", {
         style: {
-          fontFamily: "'Fraunces', serif",
+          fontFamily: "'Sora', sans-serif",
           fontWeight: 700,
           fontSize: 14,
           color: isCurrent ? accent : theme.text
@@ -9163,7 +9166,7 @@ try {
       }, row.key), team && team.from_home_region && React.createElement("span", {
         role: "cell",
         style: {
-          fontFamily: "'IBM Plex Mono', monospace",
+          fontFamily: "'JetBrains Mono', monospace",
           fontSize: 10,
           color: theme.textFaint,
           border: `1px solid ${theme.steel}`,
@@ -9536,7 +9539,7 @@ try {
       }
     }, React.createElement("div", {
       style: {
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         fontSize: isDesktop ? 22 : 18,
         fontWeight: 600
       }
@@ -9682,7 +9685,7 @@ try {
         fontSize: isDesktop ? 15 : 13,
         fontWeight: 600,
         cursor: "pointer",
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         flexShrink: 0,
         scrollSnapAlign: "start",
         ...elevation()
@@ -9721,7 +9724,7 @@ try {
         fontSize: isDesktop ? 15 : 13.5,
         fontWeight: 600,
         cursor: "pointer",
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         whiteSpace: "nowrap",
         flexShrink: 0
       }
@@ -9828,7 +9831,7 @@ try {
         borderRadius: "50%",
         cursor: "pointer",
         border: !accentOverride ? `2px solid ${theme.text}` : `1px solid ${theme.steel}`,
-        background: "conic-gradient(#C9A86A, #FF4655, #4FD8E8, #7FE07A, #B07FE0, #E08A4F, #C9A86A)"
+        background: "conic-gradient(#F6C45E, #FF5C74, #4FD8E8, #7FE07A, #B07FE0, #E08A4F, #F6C45E)"
       }
     }), ACCENT_SWATCHES.map(s => React.createElement("button", {
       key: s.hex,
@@ -9865,7 +9868,7 @@ try {
         color: theme.text,
         padding: "7px 10px",
         fontSize: 12,
-        fontFamily: "'IBM Plex Mono', monospace"
+        fontFamily: "'JetBrains Mono', monospace"
       }
     }), React.createElement("button", {
       onClick: () => {
@@ -9922,10 +9925,12 @@ try {
              small and general-purpose rather than styling every element
              individually. Buttons/clickable cards opt in via className. */
           .kp-btn { transition: filter 0.15s ease, transform 0.1s ease, border-color 0.15s ease, background-color 0.15s ease; }
-          .kp-btn:hover { filter: brightness(1.18); }
+          ::selection { background: var(--kp-accent-live, #F6C45E)55; color: #fff; }
+          .kp-btn { transition: filter 0.15s ease, transform 0.15s ease, box-shadow 0.2s ease; }
+          .kp-btn:hover { filter: brightness(1.18); box-shadow: 0 6px 20px -8px var(--kp-accent-live, #F6C45E); }
           .kp-btn:active { transform: scale(0.97); }
-          .kp-clickable { transition: border-color 0.15s ease, filter 0.15s ease; cursor: pointer; }
-          .kp-clickable:hover { filter: brightness(1.08); border-color: rgba(255,255,255,0.16) !important; }
+          .kp-clickable { transition: border-color 0.2s ease, filter 0.2s ease, transform 0.2s ease; cursor: pointer; }
+          .kp-clickable:hover { filter: brightness(1.1); transform: translateY(-1px); border-color: var(--kp-accent-live, rgba(255,255,255,0.2)) !important; }
           input[type="range"] { cursor: pointer; }
           input[type="range"]::-webkit-slider-thumb { transition: transform 0.15s ease; }
           input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.25); }
@@ -9957,7 +9962,7 @@ try {
           .kp-dayscroll::-webkit-scrollbar { height: 6px; }
           .kp-dayscroll::-webkit-scrollbar-track { background: transparent; }
           .kp-dayscroll::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.14); border-radius: 3px;
+            background: rgba(255,255,255,0.16); border-radius: 3px;
           }
           .kp-dayscroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.24); }
           .kp-divider { border: none; height: 1px; }
@@ -9966,7 +9971,7 @@ try {
              against the figure above it. Proportional digits make those
              columns ragged and make a changing number jitter, so all
              numeric readouts use tabular figures. */
-          .kp-num { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+          .kp-num { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
           table, .kp-tabular { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
 
           /* ---- Focus ----------------------------------------------------
@@ -9976,7 +9981,7 @@ try {
              users. */
           .kp-btn:focus-visible, .kp-clickable:focus-visible, .kp-focus:focus-visible,
           button:focus-visible, [role="button"]:focus-visible, input:focus-visible, select:focus-visible {
-            outline: 2px solid var(--kp-accent-live, #C9A86A);
+            outline: 2px solid var(--kp-accent-live, #F6C45E);
             outline-offset: 2px;
           }
           .kp-btn:focus:not(:focus-visible), .kp-clickable:focus:not(:focus-visible) { outline: none; }
@@ -10208,8 +10213,9 @@ try {
         fontFamily: "'Inter', -apple-system, sans-serif",
         padding: isDesktop ? "32px 32px 60px" : "20px 16px 56px",
         "--kp-accent-live": theme.accent,
-        background: `radial-gradient(ellipse 1200px 800px at 50% -10%, ${theme.accent}0d, transparent 60%), ` + `linear-gradient(${theme.steelSoft}33 1px, transparent 1px), linear-gradient(90deg, ${theme.steelSoft}33 1px, transparent 1px), ` + theme.void,
-        backgroundSize: "auto, 48px 48px, 48px 48px, auto"
+        background: `radial-gradient(ellipse 900px 600px at 8% -8%, ${theme.accent}26, transparent 62%), ` + `radial-gradient(ellipse 800px 560px at 100% 0%, #7C5CFF1f, transparent 60%), ` + `radial-gradient(ellipse 700px 500px at 50% 115%, #1fd1c11a, transparent 60%), ` + `radial-gradient(rgba(255,255,255,0.055) 1px, transparent 1.2px), ` + theme.void,
+        backgroundSize: "auto, auto, auto, 26px 26px, auto",
+        backgroundAttachment: "fixed, fixed, fixed, scroll, fixed"
       }
     }, React.createElement("style", null, KP_STYLES), React.createElement("div", {
       style: {
@@ -10268,7 +10274,7 @@ try {
         fontSize: isDesktop ? 26 : 19,
         fontWeight: 600,
         margin: isDesktop ? "6px 0 0" : "5px 0 0",
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         letterSpacing: -0.2,
         lineHeight: 1.2
       }
@@ -12496,7 +12502,7 @@ try {
         fontSize: isDesktop ? 26 : 21,
         fontWeight: 600,
         margin: "0 0 14px",
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         letterSpacing: -0.2
       }
     }, "Slips & bankroll"), notice && React.createElement("div", {
@@ -12683,7 +12689,7 @@ try {
       }
     }, React.createElement("div", {
       style: {
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         fontSize: 18,
         fontWeight: 600
       }
@@ -12757,7 +12763,7 @@ try {
       }
     }, React.createElement("div", {
       style: {
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         fontSize: 22,
         fontWeight: 600,
         marginBottom: 6
@@ -12792,7 +12798,7 @@ try {
       active: true
     }), "PROPEDGE"), React.createElement("h1", {
       style: {
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         fontSize: isDesktop ? 34 : 26,
         fontWeight: 600,
         margin: "0 0 24px",
@@ -12991,7 +12997,7 @@ try {
         fontSize: isDesktop ? 26 : 21,
         fontWeight: 600,
         margin: "0 0 14px",
-        fontFamily: "'Fraunces', serif",
+        fontFamily: "'Sora', sans-serif",
         letterSpacing: -0.2
       }
     }, "What changed this week"), React.createElement("div", {
@@ -13159,7 +13165,7 @@ try {
       color: theme.text,
       fontFamily: "'Inter', -apple-system, sans-serif",
       "--kp-accent-live": theme.accent,
-      background: `radial-gradient(ellipse 1200px 800px at 50% -10%, ${theme.accent}0d, transparent 60%), ${theme.void}`
+      background: `radial-gradient(ellipse 900px 600px at 8% -8%, ${theme.accent}26, transparent 62%), radial-gradient(ellipse 800px 560px at 100% 0%, #7C5CFF1f, transparent 60%), ${theme.void}`
     };
     return React.createElement(React.Fragment, null, projectionsMounted && React.createElement("div", {
       style: {
