@@ -28,11 +28,49 @@ const BASE_TOKENS = {
   bad: "#FF7A8E",
 };
 
+// Each game gets a two-stop gradient: `accent` carries meaning (the number
+// that matters, the selected control) and `accent2` only ever appears
+// blended with it, in fills, glows and display type.
 const GAME_ACCENTS = {
-  lol: { accent: "#F6C45E", accentSoft: "#F6C45E1c", accentBorder: "#F6C45E5c", name: "Solar Amber" },
-  valorant: { accent: "#FF5C74", accentSoft: "#FF5C741c", accentBorder: "#FF5C745c", name: "Coral Red" },
-  cs2: { accent: "#4CD9FF", accentSoft: "#4CD9FF1c", accentBorder: "#4CD9FF5c", name: "Ion Cyan" },
+  lol: { accent: "#F6C45E", accent2: "#FF5FA2", accentSoft: "#F6C45E1c", accentBorder: "#F6C45E5c", name: "Solar Amber" },
+  valorant: { accent: "#FF5C74", accent2: "#FFB05C", accentSoft: "#FF5C741c", accentBorder: "#FF5C745c", name: "Coral Red" },
+  cs2: { accent: "#4CD9FF", accent2: "#8B6CFF", accentSoft: "#4CD9FF1c", accentBorder: "#4CD9FF5c", name: "Ion Cyan" },
 };
+const OVERRIDE_PARTNER = "#B58CFF";
+
+// The theme object every component reads. Built in one place so the
+// projector and the shell cannot drift apart.
+function makeTheme(accent, accent2, cornerStyle) {
+  return {
+    ...BASE_TOKENS,
+    accent, accent2,
+    accentSoft: `${accent}1c`,
+    accentBorder: `${accent}5c`,
+    grad: `linear-gradient(120deg, ${accent} 0%, ${accent2} 100%)`,
+    onAccent: "#0A0B14",
+    cornerStyle,
+  };
+}
+
+// Aurora backdrop: accent glow top-left, partner glow top-right, a faint
+// dot grid over the void.
+function pageBackground(theme) {
+  return {
+    background: `radial-gradient(ellipse 900px 620px at 6% -10%, ${theme.accent}2b, transparent 62%), `
+      + `radial-gradient(ellipse 820px 560px at 104% -4%, ${theme.accent2}24, transparent 60%), `
+      + `radial-gradient(ellipse 760px 520px at 50% 118%, ${theme.accent2}14, transparent 60%), `
+      + `radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1.3px), `
+      + theme.void,
+    backgroundSize: "auto, auto, auto, 24px 24px, auto",
+    backgroundAttachment: "fixed, fixed, fixed, scroll, fixed",
+  };
+}
+
+// Text painted with the theme gradient.
+function gradText(theme) {
+  return { backgroundImage: theme.grad, WebkitBackgroundClip: "text", backgroundClip: "text",
+           WebkitTextFillColor: "transparent", color: theme.accent };
+}
 
 const ACCENT_SWATCHES = [
   { name: "Solar Amber", hex: "#F6C45E" },
@@ -45,16 +83,27 @@ const ACCENT_SWATCHES = [
 
 const CORNER_CUT = 12; // px, used by both the clip-path and the SVG corner accents
 
-function cardShape(cornerStyle) {
-  // Soft top-left sheen layered over the card's own background colour:
-  // backgroundImage survives the `background` shorthand written before the
-  // spread, so every card picks up the glass look without touching callers.
-  const sheen = "linear-gradient(155deg, rgba(255,255,255,0.055), rgba(255,255,255,0) 42%)";
-  if (cornerStyle === "rounded") return { borderRadius: 16, backgroundImage: sheen };
+function cardShape(themeOrStyle) {
+  // Accepts the theme (preferred: the top edge then glows in the accent) or
+  // a bare corner-style string. Layers are backgroundImage, which survives
+  // the `background` shorthand written before the spread, so every card
+  // picks up the glass look without touching its colour.
+  const t = typeof themeOrStyle === "object" && themeOrStyle ? themeOrStyle : null;
+  const cornerStyle = t ? t.cornerStyle : themeOrStyle;
+  const edge = t
+    ? `linear-gradient(90deg, transparent 4%, ${t.accent}55 30%, ${t.accent2}55 70%, transparent 96%)`
+    : "linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)";
+  const glass = {
+    backgroundImage: `${edge}, linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.012) 38%, rgba(255,255,255,0) 60%)`,
+    backgroundSize: "100% 1px, 100% 100%",
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "top center, center",
+  };
+  if (cornerStyle === "rounded") return { borderRadius: 18, ...glass };
   const c = CORNER_CUT;
   return {
     borderRadius: 0,
-    backgroundImage: sheen,
+    ...glass,
     clipPath: `polygon(0 0, calc(100% - ${c}px) 0, 100% ${c}px, 100% 100%, ${c}px 100%, 0 calc(100% - ${c}px))`,
   };
 }
@@ -70,7 +119,7 @@ function elevation(tier = "card") {
   if (tier === "sunken") {
     return { boxShadow: "inset 0 2px 6px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.025)" };
   }
-  return { boxShadow: "0 10px 30px -12px rgba(0,0,0,0.65), 0 2px 6px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.07)" };
+  return { boxShadow: "0 18px 40px -18px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)" };
 }
 
 // Targeting-bracket accents (see the .kp-bracket CSS rule) only make sense
@@ -213,8 +262,9 @@ function StatReadout({ value, label, size = 30, color, align = "right" }) {
   const theme = useTheme();
   return (
     <div style={{ textAlign: align, flexShrink: 0 }}>
-      <div className="kp-num" style={{ fontSize: size, fontWeight: 700, lineHeight: 1, color: color || theme.text }}>{value}</div>
-      <div style={{ fontSize: 9.5, letterSpacing: 0.9, textTransform: "uppercase", color: theme.textFaint, marginTop: 5, fontWeight: 600 }}>{label}</div>
+      <div className="kp-num" style={{ display: "inline-block", fontSize: size, fontWeight: 800, lineHeight: 1, letterSpacing: -0.5,
+        color: color || theme.text, ...(color === theme.accent || !color ? gradText(theme) : {}) }}>{value}</div>
+      <div style={{ fontSize: 9.5, letterSpacing: 1.1, textTransform: "uppercase", color: theme.textFaint, marginTop: 5, fontWeight: 600 }}>{label}</div>
     </div>
   );
 }
@@ -2213,6 +2263,36 @@ function saveStored(key, value) {
 
 /* Small reticle mark — the app's one recurring signature graphic. Used in
    the wordmark and as the live-data status dot, nowhere else. */
+/* A small stroke icon set: one viewBox, one stroke weight, so every glyph
+   sits on the same grid next to type. */
+const ICON_PATHS = {
+  calendar: "M4 7h16v13H4zM4 11h16M8 3v4M16 3v4",
+  bracket: "M3 5h5v6h4M3 19h5v-6M12 12h4M16 8h5M16 16h5M16 8v8",
+  bolt: "M13 2 4 14h7l-1 8 9-12h-7z",
+  target: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 11.2v1.6",
+  layers: "M12 3 2 8l10 5 10-5zM2 13l10 5 10-5M2 17.5l10 5 10-5",
+  check: "M4 12.5 9 17.5 20 6.5",
+  history: "M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 2",
+  pulse: "M2 12h4l3-8 6 16 3-8h4",
+  trophy: "M7 4h10v5a5 5 0 0 1-10 0zM7 6H3v1a4 4 0 0 0 4 4M17 6h4v1a4 4 0 0 1-4 4M12 14v4M8 21h8",
+  news: "M4 5h13v15H6a2 2 0 0 1-2-2zM17 9h3v9a2 2 0 0 1-2 2M8 9h5M8 13h5M8 16h3",
+  chart: "M4 20V10M10 20V4M16 20v-7M22 20H2",
+  arrow: "M5 12h14M13 6l6 6-6 6",
+  back: "M19 12H5M11 6l-6 6 6 6",
+  gear: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1",
+  lol: "M12 2 21 7v10l-9 5-9-5V7zM12 7l4.5 2.5v5L12 17l-4.5-2.5v-5z",
+  valorant: "M3 4l8.5 16H15L6.5 4zM21 4h-3.6l-4.2 8 1.8 3.4z",
+  cs2: "M12 3v5M12 16v5M3 12h5M16 12h5M12 7.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z",
+};
+function Icon({ name, size = 16, color = "currentColor", stroke = 1.8, style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true"
+      style={{ flexShrink: 0, ...style }}>
+      <path d={ICON_PATHS[name]} stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function Reticle({ size = 16, color, active = false }) {
   const s = size;
   return (
@@ -5006,7 +5086,7 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
   const BREAKEVEN = 0.524;
 
   const note = (text) => (
-    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme),
                   ...elevation(), padding: "18px 20px", fontSize: 12.5, color: theme.textFaint, lineHeight: 1.6 }}>
       {text}
     </div>
@@ -5061,7 +5141,7 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
 
   return (
     <div>
-      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme),
                     ...elevation(), overflow: "hidden" }}>
         <div style={{ padding: "13px 16px", borderBottom: `1px solid ${theme.steel}`,
                       display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -5531,7 +5611,7 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
 
   const shell = (children) => (
     <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`,
-                  ...cardShape(theme.cornerStyle), ...elevation(), padding: "18px 20px",
+                  ...cardShape(theme), ...elevation(), padding: "18px 20px",
                   fontSize: 12.5, color: theme.textFaint, lineHeight: 1.65 }}>
       {children}
     </div>
@@ -5552,7 +5632,7 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
       {/* The honest headline, above everything, because it decides how to read
           every row below it. */}
       <div style={{ background: theme.graphite, border: `1px solid ${validated ? theme.steel : theme.steelSoft || theme.steel}`,
-                    ...cardShape(theme.cornerStyle), ...elevation(), padding: "14px 16px",
+                    ...cardShape(theme), ...elevation(), padding: "14px 16px",
                     marginBottom: 14, fontSize: 12.5, color: theme.textDim, lineHeight: 1.6 }}>
         <div style={{ color: theme.text, fontWeight: 600, marginBottom: 6 }}>
           {validated ? "Our per-leg probabilities are shown"
@@ -5578,7 +5658,7 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
 
       {/* What the board pays. Editable because it cannot be fetched. */}
       <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`,
-                    ...cardShape(theme.cornerStyle), ...elevation(), padding: "14px 16px",
+                    ...cardShape(theme), ...elevation(), padding: "14px 16px",
                     marginBottom: 14, fontSize: 12.5, color: theme.textDim }}>
         <div style={{ color: theme.text, fontWeight: 600, marginBottom: 2 }}>
           What your board pays
@@ -5673,7 +5753,7 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
         return (
           <div key={`${rung.size}-${rung.shape}`}
                style={{ background: theme.graphite, border: `1px solid ${theme.steel}`,
-                        ...cardShape(theme.cornerStyle), ...elevation(), marginBottom: 10,
+                        ...cardShape(theme), ...elevation(), marginBottom: 10,
                         padding: "14px 16px" }}>
             <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline",
                           gap: 10, marginBottom: 10 }}>
@@ -5828,7 +5908,7 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
 function RecordGroupCard({ title, groups, note }) {
   const theme = useTheme();
   return (
-    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme),
                   ...elevation(), marginTop: 12, overflow: "hidden" }}>
       <div style={{ padding: "12px 16px", borderBottom: `1px solid ${theme.steel}`, fontSize: 12.5, color: theme.text }}>
         {title}
@@ -5883,7 +5963,7 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
   );
 
   const shell = (children) => (
-    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme),
                   ...elevation(), padding: "18px 20px", fontSize: 12.5, color: theme.textFaint, lineHeight: 1.65 }}>
       {children}
     </div>
@@ -5941,7 +6021,7 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
           the line was closer: there is no reading of this that
           flatters the model by accident. */}
       {vsLine.winRate && vsLine.maeGap && (
-        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme),
                       ...elevation(), marginTop: 12, overflow: "hidden" }}>
           <div style={{ padding: "12px 16px", borderBottom: `1px solid ${theme.steel}`, fontSize: 12.5, color: theme.text }}>
             Against the posted line
@@ -6002,7 +6082,7 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
       )}
 
       {cal && cal.withLine > 0 && (
-        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme),
                       ...elevation(), marginTop: 12, padding: "12px 16px", fontSize: 12, color: theme.textDim, lineHeight: 1.65 }}>
           <span style={{ color: theme.text, fontWeight: 600 }}>Is the number centred?</span>{" "}
           Across {cal.n} graded projections the average miss is{" "}
@@ -6020,7 +6100,7 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
         </div>
       )}
 
-      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme),
                     ...elevation(), marginTop: 12, overflow: "hidden" }}>
         <div style={{ padding: "12px 16px", borderBottom: `1px solid ${theme.steel}`, fontSize: 12.5, color: theme.text }}>
           By map window
@@ -6071,7 +6151,7 @@ function RecordTab({ regionsData, regionList, weights, statType, isDesktop }) {
             of those maps. Lines from before agents were scraped have no role and are left out.</>} />
       )}
 
-      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme),
                     ...elevation(), marginTop: 12, overflow: "hidden" }}>
         <div style={{ padding: "12px 16px", borderBottom: `1px solid ${theme.steel}`, fontSize: 12.5, color: theme.text }}>
           By how far the projection disagreed
@@ -6129,7 +6209,7 @@ function StandingsTab({ teams, pastMatches, upcomingMatches, regionsData, region
 
   if (standings.every((s) => s.wins === 0 && s.losses === 0) && !inPlayoffs) {
     return (
-      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: "20px 16px", textAlign: "center" }}>
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), padding: "20px 16px", textAlign: "center" }}>
         <div style={{ fontSize: 13, color: theme.textDim }}>No completed matches yet this split.</div>
       </div>
     );
@@ -6138,7 +6218,7 @@ function StandingsTab({ teams, pastMatches, upcomingMatches, regionsData, region
   return (
     <div>
       <div style={isDesktop ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "start" } : undefined}>
-        <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), overflow: "hidden", marginBottom: isDesktop ? 0 : 20 }}>
+        <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), ...bracketStyle(theme), overflow: "hidden", marginBottom: isDesktop ? 0 : 20 }}>
           <div style={{ padding: "12px 16px", borderBottom: `1px solid ${theme.steel}`, fontSize: 13, fontWeight: 600, color: theme.text, fontFamily: "'Inter', sans-serif" }}>
             Standings{inPlayoffs ? <span style={{ color: theme.textFaint, fontWeight: 400 }}> · regular season (final)</span> : ""}
           </div>
@@ -6164,7 +6244,7 @@ function StandingsTab({ teams, pastMatches, upcomingMatches, regionsData, region
           ))}
         </div>
 
-        <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), overflow: "hidden" }}>
+        <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), ...bracketStyle(theme), overflow: "hidden" }}>
           <div style={{ padding: "12px 16px", borderBottom: `1px solid ${theme.steel}`, fontSize: 13, fontWeight: 600, color: theme.text, fontFamily: "'Inter', sans-serif" }}>
             Power ranking <span style={{ color: theme.textFaint, fontWeight: 400 }}>· all regions</span>
           </div>
@@ -6185,7 +6265,7 @@ function StandingsTab({ teams, pastMatches, upcomingMatches, regionsData, region
       </div>
 
       {inPlayoffs && (
-        <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), overflow: "hidden", marginTop: 20 }}>
+        <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), ...bracketStyle(theme), overflow: "hidden", marginTop: 20 }}>
           <div style={{ padding: "12px 16px", borderBottom: `1px solid ${theme.steel}`, fontSize: 13, fontWeight: 600, color: theme.text, fontFamily: "'Inter', sans-serif" }}>
             Playoffs
           </div>
@@ -6308,7 +6388,7 @@ function HeadToHeadCard({ teams, pastMatches, teamA, teamB, bare = false }) {
 
   if (bare) return <div style={{ padding: "12px 14px" }}>{content}</div>;
   return (
-    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: 14, marginBottom: 12 }}>
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), padding: 14, marginBottom: 12 }}>
       {content}
     </div>
   );
@@ -6318,7 +6398,7 @@ function MatchupPanel({ teams, pastMatches, teamA, teamB, games, weights, statTy
   const theme = useTheme();
   if (!teams[teamA] || !teams[teamB]) {
     return (
-      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: "12px 14px", fontSize: 12, color: theme.textFaint }}>
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), padding: "12px 14px", fontSize: 12, color: theme.textFaint }}>
         Roster data not loaded for one of these teams yet.
       </div>
     );
@@ -6330,7 +6410,7 @@ function MatchupPanel({ teams, pastMatches, teamA, teamB, games, weights, statTy
       <HeadToHeadCard teams={teams} pastMatches={pastMatches} teamA={teamA} teamB={teamB} />
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         {[[teamA, teamB, totalsA], [teamB, teamA, totalsB]].map(([team, opp, total], i) => (
-          <div key={i} className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${teams[team].color}33`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme, teams[team].color), overflow: "hidden" }}>
+          <div key={i} className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${teams[team].color}33`, ...cardShape(theme), ...elevation(), ...bracketStyle(theme, teams[team].color), overflow: "hidden" }}>
             <div style={{ padding: "10px 12px", background: `${teams[team].color}18`, borderBottom: `1px solid ${teams[team].color}33`, display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <span style={{ fontWeight: 700, fontSize: 14, fontFamily: "'Sora', sans-serif" }}>{team}</span>
               <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: teams[team].color }}>Σ {total.toFixed(1)}</span>
@@ -6357,7 +6437,7 @@ function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, s
     : [];
   const LABELS = { history: "History", opponent: "Opponent", kp: "KP", recencyHalfLife: "Recency", patchDiscount: "Patch", career: "Career", share: "Team share", shrink: "Shrinkage" };
   return (
-    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: 18, marginBottom: 22 }}>
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), padding: 18, marginBottom: 22 }}>
       <div
         className="kp-clickable"
         onClick={onToggleExpanded}
@@ -6468,18 +6548,20 @@ function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, s
 
 function GamesControl({ theme, games, setGames }) {
   return (
-    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: 14, marginBottom: 16 }}>
-      <div style={{ fontSize: 13, fontWeight: 600, color: theme.text, fontFamily: "'Inter', sans-serif", marginBottom: 12 }}>Games in series</div>
-      <div style={{ display: "flex", gap: 6 }}>
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), padding: 14, marginBottom: 14 }}>
+      <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 1.4, textTransform: "uppercase", color: theme.textFaint, marginBottom: 10 }}>Games in series</div>
+      <div style={{ display: "flex", gap: 3, padding: 3, borderRadius: 12, background: theme.void, border: `1px solid ${theme.steelSoft}` }}>
         {[1, 2, 3].map((n) => (
           <button
             key={n}
             className="kp-btn"
             onClick={() => setGames(n)}
+            aria-pressed={games === n}
             style={{
-              flex: 1, padding: "11px 0", borderRadius: 6, border: "1px solid " + (games === n ? theme.accent : theme.steel),
-              background: games === n ? theme.accentSoft : "transparent", color: games === n ? theme.accent : theme.textDim,
-              fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "'JetBrains Mono', monospace",
+              flex: 1, padding: "9px 0", borderRadius: 9, border: "none",
+              background: games === n ? theme.grad : "transparent", color: games === n ? theme.onAccent : theme.textDim,
+              boxShadow: games === n ? `0 6px 18px -8px ${theme.accent}` : "none",
+              fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: "'JetBrains Mono', monospace",
             }}
           >
             {n}
@@ -6520,7 +6602,7 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games: 
   const knownTeams = teamKeys.filter((t) => teams[t]);
   if (knownTeams.length === 0) {
     return (
-      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), marginBottom: 10, padding: "12px 14px", fontSize: 12, color: theme.textFaint }}>
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), marginBottom: 10, padding: "12px 14px", fontSize: 12, color: theme.textFaint }}>
         {match.teamA} vs {match.teamB} — no roster data for either team yet.
       </div>
     );
@@ -6559,7 +6641,7 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games: 
   const totalProj = rows.reduce((s, row) => s + row.proj, 0);
 
   return (
-    <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), marginBottom: 10, overflow: "hidden" }}>
+    <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), ...bracketStyle(theme), marginBottom: 10, overflow: "hidden" }}>
       <div
         className="kp-clickable"
         role="button"
@@ -6971,7 +7053,7 @@ function ImpactPanel({ teams, pastMatches, windowSize, isDesktop }) {
     .sort((a, b) => (filter === "negative" ? a.mean - b.mean : b.mean - a.mean)).slice(0, 60);
   const perMap = rows.some((r) => r.recent.some((s) => s.perMap));
   return (
-    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme),
       ...elevation(), padding: isDesktop ? "16px 18px" : "14px 12px", marginTop: 18 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
         <div style={{ fontWeight: 700, fontSize: 15 }}>Impact ± <span style={{ fontWeight: 500, color: theme.textDim, fontSize: 12.5 }}>swing-style</span></div>
@@ -7103,7 +7185,7 @@ function ConsistencyTab({ teams, pastMatches, statType, isDesktop }) {
       </div>
 
       {top.length === 0 ? (
-        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: 16, textAlign: "center", fontSize: 12, color: theme.textDim }}>
+        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), padding: 16, textAlign: "center", fontSize: 12, color: theme.textDim }}>
           No players have 3+ recent matches on record yet — there isn't enough match history loaded to score consistency.
         </div>
       ) : (
@@ -7128,7 +7210,7 @@ function ConsistencyCard({ row, rank, cfg }) {
       className="kp-clickable"
       onClick={() => setOpen(!open)}
       style={{
-        background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
+        background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme),
         ...elevation(), marginBottom: 10, padding: "14px 16px", cursor: "pointer",
       }}
     >
@@ -7261,7 +7343,7 @@ function AccuracySummary({ teams, pastMatches, weights, statType, isDesktop, bor
   return (
     <div className={bracketClass(theme)} style={{
       background: theme.graphite, border: `1px solid ${theme.steel}`,
-      ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme),
+      ...cardShape(theme), ...elevation(), ...bracketStyle(theme),
       padding: isDesktop ? "16px 20px" : "14px 16px", marginBottom: 16,
       display: "flex", alignItems: "center", gap: isDesktop ? 28 : 16, flexWrap: "wrap",
     }}>
@@ -7339,7 +7421,7 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isD
       </div>
       <DayPicker dates={dates} activeDate={activeDate} onChange={setSelectedDate} counts={dateCounts} />
       {activeDate && visible.length === 0 && (
-        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), padding: "16px", textAlign: "center", fontSize: 12, color: theme.textDim, marginBottom: 10 }}>
+        <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), padding: "16px", textAlign: "center", fontSize: 12, color: theme.textDim, marginBottom: 10 }}>
           No matches on this day.
         </div>
       )}
@@ -7349,7 +7431,7 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isD
       {upcomingMatches.length === 0 && (
         <div style={{
           background: theme.graphite, border: `1px solid ${theme.steel}`,
-          ...cardShape(theme.cornerStyle), ...elevation(),
+          ...cardShape(theme), ...elevation(),
           padding: "34px 20px", textAlign: "center", marginBottom: 10,
         }}>
           <div style={{ opacity: 0.45, display: "flex", justifyContent: "center", marginBottom: 12 }}>
@@ -7416,7 +7498,7 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isD
         <div style={{ marginTop: 16 }}>
           <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
             {[[customA, setCustomA], [customB, setCustomB]].map(([val, setter], i) => (
-              <select key={i} value={val} onChange={(e) => setter(e.target.value)} style={{ flex: 1, background: theme.graphiteLight, color: theme.text, border: `1px solid ${teams[val] ? teams[val].color : theme.steel}55`, ...cardShape(theme.cornerStyle), padding: "10px 8px", fontSize: 14, fontWeight: 600 }}>
+              <select key={i} value={val} onChange={(e) => setter(e.target.value)} style={{ flex: 1, background: theme.graphiteLight, color: theme.text, border: `1px solid ${teams[val] ? teams[val].color : theme.steel}55`, ...cardShape(theme), padding: "10px 8px", fontSize: 14, fontWeight: 600 }}>
                 {teamNames.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             ))}
@@ -7444,7 +7526,7 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
 
   if (!teams[match.teamA] || !teams[match.teamB]) {
     return (
-      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), marginBottom: 10, padding: "12px 14px", fontSize: 12, color: theme.textFaint }}>
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), marginBottom: 10, padding: "12px 14px", fontSize: 12, color: theme.textFaint }}>
         {match.teamA} vs {match.teamB} — roster data not loaded for one of these teams yet.
       </div>
     );
@@ -7470,7 +7552,7 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
     // Legacy fallback data only ever tracked kills — nothing to show for
     // deaths/assists on those matches.
     return (
-      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), marginBottom: 10, padding: "12px 14px", fontSize: 12, color: theme.textFaint }}>
+      <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), marginBottom: 10, padding: "12px 14px", fontSize: 12, color: theme.textFaint }}>
         {match.teamA} vs {match.teamB} — {cfg.label.toLowerCase()} data not available for this match.
       </div>
     );
@@ -7485,7 +7567,7 @@ function PastMatchCard({ teams, pastMatches, match, weights, statType }) {
   const coldStartCount = rows.filter((r) => r.priorGames === 0).length;
 
   return (
-    <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), ...bracketStyle(theme), marginBottom: 10, overflow: "hidden" }}>
+    <div className={bracketClass(theme)} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), ...bracketStyle(theme), marginBottom: 10, overflow: "hidden" }}>
       <div
         className="kp-clickable"
         role="button"
@@ -7738,7 +7820,7 @@ function DataStatus({ status, lastUpdated, errorDetail, onRetry, regions }) {
     status === "no-url" ? "Using bundled snapshot (no live source configured)" :
     "Live fetch failed — using bundled snapshot";
   return (
-    <div style={{ marginBottom: 16, padding: "8px 12px", background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation() }}>
+    <div style={{ marginBottom: 16, padding: "8px 12px", background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation() }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div
           style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: stale ? theme.accent : theme.textDim }}
@@ -7793,76 +7875,51 @@ function formatUpcoming(rawList) {
    button row, so choosing a game feels like a real mode switch rather than
    just another selector competing for space with region/view/stat. ---------- */
 
+const GAME_SHORT = { lol: "LoL", valorant: "Valorant", cs2: "CS2" };
+
+/* Three tiles rather than a dropdown: there are only three games, and a
+   menu hid two of them behind a click. Each tile wears its own game's
+   gradient, so the switcher previews where it leads. */
 function GameSwitcher({ game, selectGame, statusByGame, theme }) {
-  const [open, setOpen] = useState(false);
-  const current = GAMES[game];
-  const currentAccent = GAME_ACCENTS[game].accent;
-
   return (
-    <div style={{ position: "relative", marginBottom: 16 }}>
-      <button
-        className="kp-btn"
-        onClick={() => setOpen(!open)}
-        style={{
-          width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "12px 16px", background: theme.graphite, border: `1px solid ${currentAccent}55`,
-          ...cardShape(theme.cornerStyle), ...elevation(), cursor: "pointer",
-        }}
-      >
-        <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: currentAccent, boxShadow: `0 0 8px ${currentAccent}` }} />
-          <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 15, color: theme.text }}>{current.label}</span>
-        </span>
-        <span style={{ fontSize: 11, color: theme.textFaint, transform: open ? "rotate(180deg)" : "none", transition: "transform 0.15s ease" }}>▾</span>
-      </button>
-
-      {open && (
-        <>
-          <div
-            className="kp-backdrop-anim"
-            onClick={() => setOpen(false)}
-            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 40 }}
-          />
-          <div
-            className="kp-menu-anim"
+    <div role="group" aria-label="Game" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 14 }}>
+      {GAME_LIST.map((id) => {
+        const g = GAME_ACCENTS[id];
+        const on = id === game;
+        const status = statusByGame[id];
+        return (
+          <button
+            key={id}
+            type="button"
+            className="kp-btn"
+            onClick={() => selectGame(id)}
+            aria-pressed={on}
+            title={GAMES[id].label}
             style={{
-              position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0, zIndex: 41,
-              background: theme.graphiteLight, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle),
-              boxShadow: "0 12px 32px rgba(0,0,0,0.5)", overflow: "hidden",
+              position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: 7,
+              padding: "13px 6px 11px", borderRadius: 16, cursor: "pointer",
+              border: `1px solid ${on ? g.accent + "88" : theme.steel}`,
+              background: on
+                ? `radial-gradient(120% 90% at 50% 0%, ${g.accent}33, transparent 70%), ${theme.graphite}`
+                : theme.graphite,
+              boxShadow: on ? `0 10px 28px -12px ${g.accent}aa, inset 0 1px 0 rgba(255,255,255,0.08)` : "inset 0 1px 0 rgba(255,255,255,0.04)",
             }}
           >
-            {GAME_LIST.map((id) => {
-              const accent = GAME_ACCENTS[id].accent;
-              const isCurrent = id === game;
-              const status = statusByGame[id];
-              return (
-                <button
-                  key={id}
-                  className="kp-clickable"
-                  onClick={() => { selectGame(id); setOpen(false); }}
-                  style={{
-                    width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-                    padding: "14px 16px", background: isCurrent ? `${accent}14` : "transparent",
-                    border: "none", borderLeft: `3px solid ${isCurrent ? accent : "transparent"}`,
-                    textAlign: "left", cursor: "pointer",
-                  }}
-                >
-                  <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ width: 10, height: 10, borderRadius: "50%", background: accent }} />
-                    <span>
-                      <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 14, color: isCurrent ? accent : theme.text }}>
-                        {GAMES[id].label}
-                      </div>
-                      <div style={{ fontSize: 10, color: theme.textFaint, marginTop: 1 }}>{GAMES[id].regionList.length} regions tracked</div>
-                    </span>
-                  </span>
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: status === "live" ? theme.good : status === "loading" ? theme.textFaint : theme.bad }} />
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
+            <span style={{
+              width: 34, height: 34, borderRadius: 11, display: "grid", placeItems: "center",
+              background: on ? `linear-gradient(135deg, ${g.accent}, ${g.accent2})` : theme.graphiteLight,
+              border: `1px solid ${on ? "transparent" : theme.steel}`,
+            }}>
+              <Icon name={id} size={18} stroke={2} color={on ? theme.onAccent : g.accent} />
+            </span>
+            <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 12.5,
+              color: on ? theme.text : theme.textDim }}>{GAME_SHORT[id]}</span>
+            <span aria-hidden="true" style={{ position: "absolute", top: 8, right: 8, width: 6, height: 6, borderRadius: "50%",
+              background: status === "live" ? theme.good : status === "loading" ? theme.textFaint : theme.bad,
+              boxShadow: status === "live" ? `0 0 6px ${theme.good}` : "none" }} />
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -8408,7 +8465,7 @@ function EventTab({ event, teams, isDesktop }) {
       </div>
       {stages.map((st, i) => (
         <div key={i} id={`event-stage-${i}`} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`,
-          ...cardShape(theme.cornerStyle), ...elevation(), padding: isDesktop ? "16px 18px" : "14px 12px", marginBottom: 14 }}>
+          ...cardShape(theme), ...elevation(), padding: isDesktop ? "16px 18px" : "14px 12px", marginBottom: 14 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12, gap: 8 }}>
             <div style={{ fontWeight: 700, fontSize: 15 }}>{st.name}</div>
             <div style={{ fontSize: 11.5, color: theme.textFaint }}>
@@ -8456,90 +8513,112 @@ function TopNav({ theme, gameCfg, game, region, setRegion, tab, setTab, statType
           scrollSnapType: isDesktop ? "none" : "x proximity",
         }}
       >
-        {(regions || gameCfg.regionList).map((key) => (
-          <button
-            key={key}
-            className="kp-btn"
-            onClick={() => setRegion(key)}
-            aria-pressed={region === key}
-            style={{
-              padding: isDesktop ? "11px 22px" : "9px 15px", borderRadius: 24,
-              border: "1px solid " + (region === key ? theme.accent : theme.steel),
-              background: region === key ? theme.accentSoft : theme.graphite,
-              color: region === key ? theme.accent : theme.textDim,
-              fontSize: isDesktop ? 15 : 13, fontWeight: 600, cursor: "pointer",
-              fontFamily: "'Sora', sans-serif", flexShrink: 0, scrollSnapAlign: "start",
-              ...elevation(),
-            }}
-          >
-            {gameCfg.regionLabels[key]}
-          </button>
-        ))}
+        {(regions || gameCfg.regionList).map((key) => {
+          const on = region === key;
+          return (
+            <button
+              key={key}
+              className="kp-btn kp-pill"
+              onClick={() => setRegion(key)}
+              aria-pressed={on}
+              style={{
+                padding: isDesktop ? "10px 20px" : "8px 15px", borderRadius: 999,
+                border: "1px solid " + (on ? "transparent" : theme.steel),
+                background: on ? theme.grad : `${theme.graphite}cc`,
+                color: on ? theme.onAccent : theme.textDim,
+                fontSize: isDesktop ? 14 : 13, fontWeight: on ? 800 : 600, cursor: "pointer",
+                fontFamily: "'Sora', sans-serif", flexShrink: 0, scrollSnapAlign: "start",
+                letterSpacing: on ? 0.2 : 0,
+                boxShadow: on ? `0 8px 24px -8px ${theme.accent}aa, inset 0 1px 0 rgba(255,255,255,0.35)` : "inset 0 1px 0 rgba(255,255,255,0.04)",
+              }}
+            >
+              {gameCfg.regionLabels[key]}
+            </button>
+          );
+        })}
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12, borderBottom: `1px solid ${theme.steel}` }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
         {/* Real tab semantics: these look and behave like tabs, so screen
             readers should be told that rather than hearing four buttons. */}
         <div
           role="tablist"
           aria-label="View"
-          className={isDesktop ? "" : "kp-dayscroll"}
+          className={"kp-track" + (isDesktop ? "" : " kp-dayscroll")}
           style={{
-            display: "flex", gap: isDesktop ? 24 : 15,
-            overflowX: isDesktop ? "visible" : "auto", maxWidth: "100%",
+            display: "flex", gap: 2, padding: 4, borderRadius: 14,
+            background: `${theme.graphite}d9`, border: `1px solid ${theme.steel}`,
+            overflowX: "auto", maxWidth: "100%",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04), 0 10px 30px -18px rgba(0,0,0,0.8)",
           }}
         >
-          {TABS.map(([id, label]) => (
-            <button
-              key={id}
-              className="kp-btn"
-              role="tab"
-              aria-selected={tab === id}
-              onClick={() => setTab(id)}
-              style={{
-                padding: "10px 2px 12px", background: "none", border: "none",
-                borderBottom: `2px solid ${tab === id ? theme.accent : "transparent"}`,
-                color: tab === id ? theme.accent : theme.textDim,
-                fontSize: isDesktop ? 15 : 13.5, fontWeight: 600, cursor: "pointer",
-                fontFamily: "'Sora', sans-serif", whiteSpace: "nowrap", flexShrink: 0,
-              }}
-            >
-              {label}
-            </button>
-          ))}
+          {TABS.map(([id, label]) => {
+            const on = tab === id;
+            return (
+              <button
+                key={id}
+                className="kp-btn kp-tab"
+                role="tab"
+                aria-selected={on}
+                onClick={() => setTab(id)}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 7,
+                  padding: isDesktop ? "8px 13px" : "7px 11px", borderRadius: 10,
+                  background: on ? `linear-gradient(180deg, ${theme.accent}26, ${theme.accent2}14)` : "transparent",
+                  border: "1px solid " + (on ? theme.accentBorder : "transparent"),
+                  color: on ? theme.text : theme.textDim,
+                  fontSize: isDesktop ? 13.5 : 12.5, fontWeight: 600, cursor: "pointer",
+                  fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap", flexShrink: 0,
+                  boxShadow: on ? `0 0 18px -6px ${theme.accent}99` : "none",
+                }}
+              >
+                <Icon name={TAB_ICONS[id] || "target"} size={15} color={on ? theme.accent : theme.textFaint} />
+                {label}
+              </button>
+            );
+          })}
         </div>
-        <div role="group" aria-label="Stat" style={{ display: "flex", gap: 4, marginBottom: 8 }}>
-          {offeredStats(game, propsData, statType).map(([key, cfg, posted]) => (
-            <button
-              key={key}
-              className="kp-btn"
-              onClick={() => setStatType(key)}
-              aria-pressed={statType === key}
-              title={posted === null ? undefined
-                : posted === 0 ? `No lines posted on ${cfg.label.toLowerCase()} right now`
-                : `${posted} line${posted === 1 ? "" : "s"} posted on ${cfg.label.toLowerCase()}`}
-              style={{
-                padding: "7px 14px", borderRadius: 20, border: "1px solid " + (statType === key ? theme.accent : theme.steel),
-                background: statType === key ? theme.accentSoft : "transparent",
-                color: statType === key ? theme.accent : theme.textDim,
-                fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Inter', sans-serif",
-              }}
-            >
-              {cfg.label}
-              {/* The count, so a reader can see where the market is
-                  rather than having to press each tab to find out. */}
-              {posted ? (
-                <span className="kp-num" style={{ fontSize: 10, marginLeft: 5, opacity: 0.75 }}>
-                  {posted}
-                </span>
-              ) : null}
-            </button>
-          ))}
+        <div role="group" aria-label="Stat" style={{ display: "flex", gap: 2, padding: 3, borderRadius: 999,
+          background: `${theme.graphite}d9`, border: `1px solid ${theme.steel}` }}>
+          {offeredStats(game, propsData, statType).map(([key, cfg, posted]) => {
+            const on = statType === key;
+            return (
+              <button
+                key={key}
+                className="kp-btn"
+                onClick={() => setStatType(key)}
+                aria-pressed={on}
+                title={posted === null ? undefined
+                  : posted === 0 ? `No lines posted on ${cfg.label.toLowerCase()} right now`
+                  : `${posted} line${posted === 1 ? "" : "s"} posted on ${cfg.label.toLowerCase()}`}
+                style={{
+                  padding: "6px 13px", borderRadius: 999, border: "none",
+                  background: on ? theme.grad : "transparent",
+                  color: on ? theme.onAccent : theme.textDim,
+                  fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Inter', sans-serif",
+                }}
+              >
+                {cfg.label}
+                {/* The count, so a reader can see where the market is
+                    rather than having to press each tab to find out. */}
+                {posted ? (
+                  <span className="kp-num" style={{ fontSize: 10, marginLeft: 5, opacity: on ? 0.7 : 0.6 }}>
+                    {posted}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
   );
 }
+
+const TAB_ICONS = {
+  future: "calendar", event: "bracket", edges: "bolt", projections: "target", parlays: "layers",
+  record: "check", past: "history", consistency: "pulse", standings: "trophy",
+};
 
 function SettingsPanel({ theme, accentOverride, setAccentOverride, cornerStyle, setCornerStyle, open, setOpen }) {
   const [customHex, setCustomHex] = useState(accentOverride || "");
@@ -8555,7 +8634,7 @@ function SettingsPanel({ theme, accentOverride, setAccentOverride, cornerStyle, 
         <span style={{ fontSize: 13 }}>⚙</span> Customize {open ? "▴" : "▾"}
       </button>
       {open && (
-        <div style={{ marginTop: 12, background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: 16 }}>
+        <div style={{ marginTop: 12, background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), padding: 16 }}>
           <div style={{ fontSize: 12, color: theme.textDim, marginBottom: 10, fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>Accent color</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
             <button
@@ -8705,14 +8784,31 @@ const KP_STYLES = `
              from feeling like a hard cut. */
           @keyframes kp-rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
           .kp-rise { animation: kp-rise 0.22s ease both; }
+
+          /* ---- Redesign flourishes ------------------------------------- */
+          @keyframes kp-pulse { 0% { box-shadow: 0 0 0 0 currentColor; } 70% { box-shadow: 0 0 0 6px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+          .kp-live-dot { color: rgba(10,11,20,0.55); animation: kp-pulse 1.8s ease-out infinite; }
+          .kp-tile .kp-arrow { transition: transform 0.25s ease, background 0.25s ease; }
+          .kp-tile:hover .kp-arrow { transform: translateX(3px) rotate(-45deg); background: var(--kp-accent-live) !important; }
+          .kp-tile:hover .kp-arrow path { stroke: #0A0B14; }
+          .kp-tile:hover { transform: translateY(-3px); }
+          .kp-tab:hover { color: #F3F4FB !important; background: rgba(255,255,255,0.04); }
+          .kp-tab[aria-selected="true"]:hover { background: inherit; }
+          .kp-pill:hover { color: #F3F4FB; }
+          .kp-track::-webkit-scrollbar { height: 0; }
+          h1, h2, h3 { text-wrap: balance; }
+          body { scrollbar-color: rgba(255,255,255,0.14) transparent; }
         `;
 
 function KillProjector({ onHome } = {}) {
   const isDesktop = useIsDesktop();
   const linked = projectionsParamsFromHash();
   const [game, setGame] = useState(() => (GAMES[linked.game] ? linked.game : "lol"));
-  const [region, setRegion] = useState(() => (linked.region && GAMES[linked.game || "lol"]
-    && GAMES[linked.game || "lol"].regionList.includes(linked.region) ? linked.region : "LCS"));
+  const [region, setRegion] = useState(() => {
+    const g = GAMES[linked.game] || GAMES.lol;
+    return linked.region && g.regionList.includes(linked.region) ? linked.region
+      : GAMES[linked.game] ? g.regionList[0] : "LCS";
+  });
   const [tab, setTab] = useState(() => linked.tab || "future");
   // A link from the menu while this page is already mounted (it stays
   // mounted once visited) arrives as a hash change, not a fresh mount.
@@ -8722,6 +8818,7 @@ function KillProjector({ onHome } = {}) {
       if (GAMES[p.game]) setGame(p.game);
       const g = GAMES[p.game] || null;
       if (p.region && g && g.regionList.includes(p.region)) setRegion(p.region);
+      else if (g) setRegion(g.regionList[0]);
       if (p.tab) setTab(p.tab);
     };
     window.addEventListener("hashchange", apply);
@@ -8781,13 +8878,7 @@ function KillProjector({ onHome } = {}) {
 
   const gameAccent = GAME_ACCENTS[game];
   const accent = accentOverride || gameAccent.accent;
-  const theme = {
-    ...BASE_TOKENS,
-    accent,
-    accentSoft: accentOverride ? `${accentOverride}18` : gameAccent.accentSoft,
-    accentBorder: accentOverride ? `${accentOverride}55` : gameAccent.accentBorder,
-    cornerStyle,
-  };
+  const theme = makeTheme(accent, accentOverride ? OVERRIDE_PARTNER : gameAccent.accent2, cornerStyle);
 
   // Data, load status, and error detail are all keyed by game — switching
   // games doesn't lose or re-fetch the other game's already-loaded data.
@@ -8995,15 +9086,7 @@ function KillProjector({ onHome } = {}) {
         // Exposed to CSS so the stylesheet's focus rings track the live
         // accent without a rule per game.
         "--kp-accent-live": theme.accent,
-        // Aurora wash: the game accent glows from the top-left, a violet
-        // counter-glow from the right, over a faint dot grid.
-        background: `radial-gradient(ellipse 900px 600px at 8% -8%, ${theme.accent}26, transparent 62%), `
-          + `radial-gradient(ellipse 800px 560px at 100% 0%, #7C5CFF1f, transparent 60%), `
-          + `radial-gradient(ellipse 700px 500px at 50% 115%, #1fd1c11a, transparent 60%), `
-          + `radial-gradient(rgba(255,255,255,0.055) 1px, transparent 1.2px), `
-          + theme.void,
-        backgroundSize: "auto, auto, auto, 26px 26px, auto",
-        backgroundAttachment: "fixed, fixed, fixed, scroll, fixed",
+        ...pageBackground(theme),
       }}>
         <style>{KP_STYLES}</style>
         <div style={{
@@ -9019,27 +9102,26 @@ function KillProjector({ onHome } = {}) {
                 anything actionable. The phone keeps the wordmark and drops
                 the rest to a single line. */}
             <div style={{ marginBottom: isDesktop ? 18 : 14 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: isDesktop ? 11 : 10.5, letterSpacing: 2, color: theme.accent, fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: isDesktop ? 11 : 10.5, letterSpacing: 2.2, color: theme.accent, fontFamily: "'Inter', sans-serif", fontWeight: 700 }}>
                 {onHome && (
-                  <button type="button" className="kp-btn" onClick={onHome} title="Back to the menu"
-                    style={{ cursor: "pointer", background: "transparent", color: theme.textDim,
-                      border: `1px solid ${theme.steel}`, borderRadius: 6, padding: "2px 7px",
-                      fontSize: 10.5, letterSpacing: 1, fontWeight: 600, fontFamily: "'Inter', sans-serif",
-                      marginRight: 4 }}>
-                    ← MENU
+                  <button type="button" className="kp-btn" onClick={onHome} title="Back to the menu" aria-label="Back to the menu"
+                    style={{ cursor: "pointer", background: theme.graphite, color: theme.textDim,
+                      border: `1px solid ${theme.steel}`, borderRadius: 999, width: 28, height: 28,
+                      display: "grid", placeItems: "center", padding: 0, marginRight: 4 }}>
+                    <Icon name="back" size={14} color={theme.textDim} />
                   </button>
                 )}
                 <Reticle size={13} color={theme.accent} active />
                 KILL PROJECTOR
               </div>
               <h1 style={{
-                fontSize: isDesktop ? 26 : 19, fontWeight: 600, margin: isDesktop ? "6px 0 0" : "5px 0 0",
-                fontFamily: "'Sora', sans-serif", letterSpacing: -0.2, lineHeight: 1.2,
+                fontSize: isDesktop ? 30 : 22, fontWeight: 800, margin: isDesktop ? "12px 0 0" : "8px 0 0",
+                fontFamily: "'Sora', sans-serif", letterSpacing: -0.8, lineHeight: 1.08,
               }}>
-                Weighted {STAT_TYPES[statType].singular} projections
+                Weighted <span style={gradText(theme)}>{STAT_TYPES[statType].singular}</span> projections
               </h1>
               {isDesktop && (
-                <div style={{ fontSize: 13, color: theme.textDim, marginTop: 4, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 13, color: theme.textDim, marginTop: 10, lineHeight: 1.55 }}>
                   Blends this split's rates with prior-split history, opponent strength and kill participation.
                 </div>
               )}
@@ -9110,7 +9192,7 @@ function KillProjector({ onHome } = {}) {
             {tab === "event" && hasEvent ? (
               <EventTab event={current.event} teams={current.teams} isDesktop={isDesktop} />
             ) : !hasData ? (
-              <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation(), padding: "20px 16px", textAlign: "center" }}>
+              <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), padding: "20px 16px", textAlign: "center" }}>
                 <div style={{ fontSize: 13, color: theme.textDim }}>
                   {hasEvent ? `No ${gameCfg.regionLabels[region]} teams are drawn yet.` : `No ${gameCfg.regionLabels[region]} data available yet.`}
                 </div>
@@ -9855,7 +9937,7 @@ function PeCard({ children, style }) {
   const theme = useTheme();
   return (
     <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`,
-      ...cardShape(theme.cornerStyle), ...elevation(), padding: "14px 16px", marginBottom: 14, ...style }}>
+      ...cardShape(theme), ...elevation(), padding: "14px 16px", marginBottom: 14, ...style }}>
       {children}
     </div>
   );
@@ -10651,27 +10733,33 @@ function MenuEvents({ go, isDesktop }) {
   if (!events.length) return null;
   const when = (t) => new Date(t).toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
   return (
-    <div style={{ marginBottom: 16 }}>
+    <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "repeat(auto-fit, minmax(300px, 1fr))" : "1fr", gap: 12, marginBottom: 14 }}>
       {events.map((e) => (
         <div key={e.key} role="button" tabIndex={0} className="kp-clickable"
           onClick={() => go(`projections?game=lol&region=${encodeURIComponent(e.key)}&tab=event`)}
           onKeyDown={(ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); go(`projections?game=lol&region=${encodeURIComponent(e.key)}&tab=event`); } }}
-          style={{ cursor: "pointer", background: theme.graphite, border: `1px solid ${e.live ? theme.accentBorder : theme.steel}`,
-            ...cardShape(theme.cornerStyle), ...elevation(), padding: "14px 18px", marginBottom: 10,
-            display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-          <span className="kp-chip" style={{ background: e.live ? theme.accentSoft : "transparent", color: e.live ? theme.accent : theme.textDim,
-            border: `1px solid ${e.live ? theme.accentBorder : theme.steel}`, fontSize: 11 }}>
-            {e.live ? "On now" : `Starts ${new Date(e.first).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`}
-          </span>
-          <div style={{ flex: "1 1 200px", minWidth: 0 }}>
-            <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 18, fontWeight: 600 }}>{e.name}</div>
-            <div style={{ fontSize: 12.5, color: theme.textDim, marginTop: 2 }}>
-              {e.next
-                ? <>Next: <strong style={{ color: theme.text }}>{e.next.teams[0].name} vs {e.next.teams[1].name}</strong> · {e.next.stage}{e.next.best_of ? ` · Bo${e.next.best_of}` : ""} · {when(e.next.start)}</>
-                : `${e.done} of ${e.total} matches played · next matchups not drawn yet`}
-            </div>
+          style={{ cursor: "pointer", position: "relative", overflow: "hidden",
+            background: e.live ? `radial-gradient(140% 120% at 0% 0%, ${theme.accent}22, transparent 55%), ${theme.graphite}` : theme.graphite,
+            border: `1px solid ${e.live ? theme.accentBorder : theme.steel}`,
+            ...cardShape(theme), ...elevation(), padding: "16px 18px",
+            display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+            <span className="kp-chip" style={{ background: e.live ? theme.grad : "transparent", color: e.live ? theme.onAccent : theme.textDim,
+              border: e.live ? "none" : `1px solid ${theme.steel}`, fontSize: 10.5, fontWeight: 800, letterSpacing: 0.6, gap: 6,
+              textTransform: "uppercase", padding: e.live ? "4px 10px" : "3px 9px" }}>
+              {e.live && <span className="kp-live-dot" style={{ width: 6, height: 6, borderRadius: "50%", background: theme.onAccent }} />}
+              {e.live ? "Live now" : `Starts ${new Date(e.first).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`}
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, color: theme.accent, fontWeight: 700 }}>
+              <Icon name="bracket" size={14} color={theme.accent} /> Bracket
+            </span>
           </div>
-          <span style={{ fontSize: 13, color: theme.accent, fontWeight: 600 }}>Bracket →</span>
+          <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 800, letterSpacing: -0.5 }}>{e.name}</div>
+          <div style={{ fontSize: 12.5, color: theme.textDim, lineHeight: 1.5 }}>
+            {e.next
+              ? <>Next: <strong style={{ color: theme.text }}>{e.next.teams[0].name} vs {e.next.teams[1].name}</strong><br />{e.next.stage}{e.next.best_of ? ` · Bo${e.next.best_of}` : ""} · {when(e.next.start)}</>
+              : `${e.done} of ${e.total} matches played · next matchups not drawn yet`}
+          </div>
         </div>
       ))}
     </div>
@@ -10702,44 +10790,82 @@ function MainMenu({ isDesktop, go }) {
   const theme = useTheme();
   const board = useBoardStatus();
   const news = useNews();
-  const card = (key, title, body, extra) => (
-    <div role="button" tabIndex={0} className="kp-clickable" onClick={() => go(key)}
+  const card = (key, icon, title, body, extra) => (
+    <div role="button" tabIndex={0} className="kp-clickable kp-tile" onClick={() => go(key)}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(key); } }}
-      style={{ cursor: "pointer", background: theme.graphite, border: `1px solid ${theme.steel}`,
-        ...cardShape(theme.cornerStyle), ...elevation(), padding: "20px 20px", flex: "1 1 260px" }}>
-      <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 600, marginBottom: 6 }}>{title} →</div>
-      <div style={{ fontSize: 13.5, color: theme.textDim, lineHeight: 1.55 }}>{body}</div>
-      {extra}
+      style={{ cursor: "pointer", position: "relative", overflow: "hidden", background: theme.graphite, border: `1px solid ${theme.steel}`,
+        ...cardShape(theme), ...elevation(), padding: isDesktop ? "24px 24px 22px" : "20px", flex: "1 1 280px",
+        display: "flex", flexDirection: "column", minHeight: isDesktop ? 220 : 0 }}>
+      {/* Oversized ghost of the tile's glyph: texture, not information. */}
+      <Icon name={icon} size={180} stroke={0.8} color={theme.accent}
+        style={{ position: "absolute", right: -36, bottom: -44, opacity: 0.08, pointerEvents: "none" }} />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+        <span style={{ width: 46, height: 46, borderRadius: 14, display: "grid", placeItems: "center",
+          background: theme.grad, boxShadow: `0 10px 26px -10px ${theme.accent}` }}>
+          <Icon name={icon} size={22} stroke={2} color={theme.onAccent} />
+        </span>
+        <span className="kp-arrow" style={{ width: 36, height: 36, borderRadius: "50%", display: "grid", placeItems: "center",
+          border: `1px solid ${theme.steel}`, background: theme.graphiteLight }}>
+          <Icon name="arrow" size={16} color={theme.text} />
+        </span>
+      </div>
+      <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 24, fontWeight: 800, letterSpacing: -0.6, marginBottom: 8 }}>{title}</div>
+      <div style={{ fontSize: 13.5, color: theme.textDim, lineHeight: 1.6, maxWidth: 360 }}>{body}</div>
+      <div style={{ marginTop: "auto" }}>{extra}</div>
+    </div>
+  );
+  const stat = (value, label, tone) => (
+    <div style={{ marginTop: 18, display: "inline-flex", alignItems: "baseline", gap: 8, padding: "7px 12px", borderRadius: 999,
+      background: theme.void, border: `1px solid ${theme.steelSoft}`, fontSize: 12, color: tone || theme.textDim }}>
+      {value != null && <span className="kp-num" style={{ fontSize: 15, fontWeight: 800, ...gradText(theme) }}>{value}</span>}
+      {label}
     </div>
   );
   return (
-    <div style={{ maxWidth: 820, margin: "0 auto", padding: isDesktop ? "56px 24px" : "28px 16px 56px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11, letterSpacing: 2,
-        color: theme.accent, fontWeight: 600, marginBottom: 8 }}>
+    <div style={{ maxWidth: 980, margin: "0 auto", padding: isDesktop ? "72px 28px 64px" : "32px 16px 56px" }}>
+      <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 11, letterSpacing: 2.4,
+        color: theme.accent, fontWeight: 800, padding: "6px 12px 6px 10px", borderRadius: 999,
+        background: theme.accentSoft, border: `1px solid ${theme.accentBorder}`, marginBottom: 20 }}>
         <Reticle size={13} color={theme.accent} active />
         PROPEDGE
       </div>
-      <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: isDesktop ? 34 : 26, fontWeight: 600,
-        margin: "0 0 24px", letterSpacing: -0.3 }}>Where to?</h1>
+      <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: isDesktop ? 64 : 40, fontWeight: 800,
+        margin: "0 0 14px", letterSpacing: isDesktop ? -2.4 : -1.4, lineHeight: 1.0 }}>
+        Find the <span style={gradText(theme)}>edge</span>.<br />Skip the noise.
+      </h1>
+      <p style={{ fontSize: isDesktop ? 16 : 14.5, color: theme.textDim, lineHeight: 1.6, maxWidth: 560, margin: "0 0 22px" }}>
+        Backtested kill, death and assist projections for League of Legends, Valorant and Counter-Strike 2, measured against the line.
+      </p>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: isDesktop ? 40 : 28 }}>
+        {GAME_LIST.map((id) => {
+          const g = GAME_ACCENTS[id];
+          return (
+            <button key={id} type="button" className="kp-btn" onClick={() => go(`projections?game=${id}`)}
+              style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "7px 14px 7px 8px", borderRadius: 999, cursor: "pointer",
+                background: theme.graphite, border: `1px solid ${theme.steel}`, color: theme.text,
+                fontSize: 13, fontWeight: 600, fontFamily: "'Inter', sans-serif" }}>
+              <span style={{ width: 24, height: 24, borderRadius: 8, display: "grid", placeItems: "center",
+                background: `linear-gradient(135deg, ${g.accent}, ${g.accent2})` }}>
+                <Icon name={id} size={14} stroke={2.2} color={theme.onAccent} />
+              </span>
+              {GAMES[id].label}
+            </button>
+          );
+        })}
+      </div>
       <MenuEvents go={go} isDesktop={isDesktop} />
-      <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-        {card("projections", "Projections",
+      <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+        {card("projections", "target", "Projections",
           "Model projections, edges and parlays for LoL, Valorant and CS2, with the benchmark against the line.",
-          board ? (
-            <div style={{ marginTop: 12, fontSize: 12.5, color: board.open ? theme.textDim : theme.bad }}>
-              {board.open
-                ? <><span className="kp-num" style={{ color: theme.text, fontWeight: 700 }}>{board.open}</span> open lines · board {ageLabel(board.age) || "just saved"}</>
-                : <>Board saved {peWhen(board.saved)} — every line on it has started. Upload a fresh one for edges and parlays.</>}
-            </div>
+          board ? (board.open
+            ? stat(board.open, <>open lines · board {ageLabel(board.age) || "just saved"}</>)
+            : stat(null, <>Board saved {peWhen(board.saved)} — every line on it has started. Upload a fresh one for edges and parlays.</>, theme.bad)
           ) : null)}
-        {card("news", "News",
+        {card("news", "news", "News",
           "Roster moves, stand-ins, illness and patches for every team we track, graded for whether they help or hurt.",
-          news && news.items ? (
-            <div style={{ marginTop: 12, fontSize: 12.5, color: theme.textDim }}>
-              <span className="kp-num" style={{ color: theme.text, fontWeight: 700 }}>
-                {news.items.filter((i) => Date.parse(i.published || "") > Date.now() - 7 * 864e5).length}
-              </span> items this week · {newsWatchList(news.signals, "all").length} team(s) on the watch list
-            </div>
+          news && news.items ? stat(
+            news.items.filter((i) => Date.parse(i.published || "") > Date.now() - 7 * 864e5).length,
+            <>items this week · {newsWatchList(news.signals, "all").length} team(s) on the watch list</>
           ) : null)}
       </div>
     </div>
@@ -10835,7 +10961,7 @@ function NewsPage({ isDesktop, onHome }) {
     <span key={key || text} title={title} style={{ fontSize: 11, padding: "2px 7px", borderRadius: 999,
       background: (color || theme.textFaint) + "1c", color: color || theme.textDim, whiteSpace: "nowrap" }}>{text}</span>
   );
-  const card = { background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation() };
+  const card = { background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation() };
 
   return (
     <div style={{ maxWidth: 760, margin: "0 auto", padding: isDesktop ? "32px 24px 60px" : "18px 16px 56px" }}>
@@ -10970,15 +11096,12 @@ function AppShell() {
 
   const accentOverride = loadStored("kp.accentOverride", null);
   const accent = accentOverride || GAME_ACCENTS.lol.accent;
-  const theme = {
-    ...BASE_TOKENS, accent,
-    accentSoft: `${accent}18`, accentBorder: `${accent}55`,
-    cornerStyle: loadStored("kp.cornerStyle", "rounded"),
-  };
+  const theme = makeTheme(accent, accentOverride ? OVERRIDE_PARTNER : GAME_ACCENTS.lol.accent2,
+    loadStored("kp.cornerStyle", "rounded"));
   const page = {
     minHeight: "100vh", color: theme.text, fontFamily: "'Inter', -apple-system, sans-serif",
     "--kp-accent-live": theme.accent,
-    background: `radial-gradient(ellipse 900px 600px at 8% -8%, ${theme.accent}26, transparent 62%), radial-gradient(ellipse 800px 560px at 100% 0%, #7C5CFF1f, transparent 60%), ${theme.void}`,
+    ...pageBackground(theme),
   };
   return (
     <>

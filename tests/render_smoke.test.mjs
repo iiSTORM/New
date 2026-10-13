@@ -1727,7 +1727,7 @@ if (app.ParlaysTab && app.buildParlays && app.parlayEvidence) {
     ["the bankroll summary", "BANKROLL"],
     ["the app shell at \"#/tracker\"", "Connect your private tracker"],
     ["the app shell at \"#/projections\"", "KILL PROJECTOR"],
-    ["the app shell at \"#/nonsense\"", "Where to?"],
+    ["the app shell at \"#/nonsense\"", "Skip the noise."],
   ];
   for (const [label, text] of expect) {
     if (markup[label] === undefined) continue;   // its render already failed above
