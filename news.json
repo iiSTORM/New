@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-13T07:40:00.294600+00:00",
+ "generated_at": "2026-10-13T07:47:28.922182+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -42,6 +42,11 @@
    "meaning": "a new player joins; no record with the team yet"
   },
   {
+   "name": "extension",
+   "effect": 0,
+   "meaning": "a contract is extended"
+  },
+  {
    "name": "coach",
    "effect": 0,
    "meaning": "a coaching change"
@@ -55,15 +60,15 @@
  "feeds": [
   {
    "game": "lol",
-   "source": "Dot Esports",
-   "items": 0,
-   "error": "403 Client Error: Forbidden for url: https://dotesports.com/league-of-legends/feed"
+   "source": "Google News",
+   "items": 75,
+   "error": null
   },
   {
    "game": "lol",
-   "source": "Sheep Esports",
-   "items": 0,
-   "error": "403 Client Error: Forbidden for url: https://www.sheepesports.com/feed"
+   "source": "Google News",
+   "items": 54,
+   "error": null
   },
   {
    "game": "lol",
@@ -73,14 +78,14 @@
   },
   {
    "game": "valorant",
-   "source": "Dot Esports",
-   "items": 0,
-   "error": "403 Client Error: Forbidden for url: https://dotesports.com/valorant/feed"
+   "source": "Google News",
+   "items": 69,
+   "error": null
   },
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 100,
+   "items": 45,
    "error": null
   },
   {
@@ -91,18 +96,70 @@
   },
   {
    "game": "cs2",
-   "source": "Dot Esports",
-   "items": 0,
-   "error": "403 Client Error: Forbidden for url: https://dotesports.com/counter-strike/feed"
+   "source": "Google News",
+   "items": 37,
+   "error": null
   },
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 100,
+   "items": 40,
    "error": null
   }
  ],
  "items": [
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Disguised bests Maryville University and retain its LCS Guest Slot for 2027",
+   "link": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxPWS1BcmdVMFNsWnZfSnRzdHhmRzdHcUJhQkFVNU8zZjVXdXNqX3ZxZ2NMdVprME9rVnU5VTFzallXcHlRZkgydk5vOEJ4Q3g3bS1jRUIxZFBZN3I2S3JGUTVwS0d3SlFCaEVEWkgxUEpjQ01HUDJxSHJOc2hkdnBZX3haUFFhZVloRVFMdXFPZzd5enE2MUJzNWkxQzRWQTIwWUlUdFRKQjhtNXdGcE1SYjQ1Y3dNeHUydDYw?oc=5",
+   "published": "2026-10-13T02:37:22+00:00",
+   "summary": "Disguised bests Maryville University and retain its LCS Guest Slot for 2027 Sheep Esports",
+   "teams": [
+    "Disguised"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "게임메카",
+   "title": "200% Cuteness: T1 Universal Minions Collection Released",
+   "link": "https://news.google.com/rss/articles/CBMiXEFVX3lxTE5jRGdmcGVVMFljeGxjMDh5T3VCOXVGYjAyQ3F4WWU0dXIyOW00ME4tNkV6MElTNThhbkdGeVZvRTJhWW1sRWo3a0FKdl9QdXZUX3hTNFpVaUppYm5W?oc=5",
+   "published": "2026-10-13T02:14:13+00:00",
+   "summary": "200% Cuteness: T1 Universal Minions Collection Released 게임메카",
+   "teams": [
+    "T1"
+   ],
+   "players": [],
+   "score": -1,
+   "grade": "negative",
+   "rules": [
+    "departure"
+   ],
+   "reasons": [
+    "a player or coach leaves"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Inven Global",
+   "title": "T1 to Launch Minions Collaboration Collection on the 13th",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPUHNtNXZ6UEpMNFdTNjB2VGtFQjhtT1hPSnc4c2FpQzJpUW1yN25BbGt4MUxsNlhnbmVuamd2U19SS0NjRjg1eFdCZTY5MWI1X0hiVVFlWXVvOUdFQ0trRklVamdZaXRJTWxmcDN3NWt6b1V3a3lqMUdHeVFjM3Vob1hyT3lNQWVyRHR0Sy15M1RfQTZBNTg0RER6V0xMMHJ6QkE?oc=5",
+   "published": "2026-10-13T01:01:09+00:00",
+   "summary": "T1 to Launch Minions Collaboration Collection on the 13th Inven Global",
+   "teams": [
+    "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
   {
    "game": "cs2",
    "source": "HLTV",
@@ -112,15 +169,42 @@
    "summary": "The next Season game is just around the corner.",
    "teams": [
     "Aurora",
-    "Falcons",
-    "Procyon"
+    "Falcons"
    ],
-   "players": [
-    {
-     "name": "next",
-     "team": "Procyon"
-    }
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Maryville University",
+   "title": "Maryville University Faces Disguised for a Spot in the LCS, One Win from a College Esports First",
+   "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxQYU0wanM0amJ3QllPUTNEaEFWZGlPamp1d3JLY29LY1AwYW9yNzdGRTFfZklzazZMdTNfRmkxRm5KalhSZ1BPbF92ZFZPNVVUcWZGeU9NekVFSTQxalRodWdtYThDVHVKa1RWQlZxb1FlbGJsRjJKeW9XQXNmRGx2Y0d0b2E?oc=5",
+   "published": "2026-10-12T19:41:43+00:00",
+   "summary": "Maryville University Faces Disguised for a Spot in the LCS, One Win from a College Esports First Maryville University",
+   "teams": [
+    "Disguised"
    ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Sofascore",
+   "title": "Inner Circle Academy – The Golden Horde - Live score",
+   "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxOVkEwWVFJTWZBb3Q2YWV1MDJYQ01wZlhjdXBpMVpmcUdwZ2V5bE1nQ3RnR2dPWEhENENJbzMwdUVyNVhjSWhENWg4emhiWG5qRWc3Q3ZYdzNBWUhEN0JFY0ZuVTNPZ3IyNmZFYnoyNGFkd1JWOTJKYXI0UjRFZXFfbVZVQUpjTkF6WWVGbVpMbno?oc=5",
+   "published": "2026-10-12T16:48:06+00:00",
+   "summary": "Inner Circle Academy – The Golden Horde - Live score Sofascore",
+   "teams": [
+    "Inner Circle",
+    "Inner Circle Academy"
+   ],
+   "players": [],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -144,6 +228,93 @@
    ],
    "score": 0,
    "grade": "neutral",
+   "rules": [
+    "extension"
+   ],
+   "reasons": [
+    "a contract is extended"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Flashscore.com",
+   "title": "FearX - JD Gaming 3-2",
+   "link": "https://news.google.com/rss/articles/CBMisAFBVV95cUxNQTd1MGhreXNGQk04MDJRRVpEbHEzVl9Sa0hWOEtJTWpvT1pJSDB5bUt3WXZfaVl2dGZwSmhfMGFxWGpqNW5JVHJVemh1VFRHM1dtcG5JQkJlak5VcWJMdFpET0xoQ3pPS19lWWJCdTJTcWtYc0tnbTF4VUJLYzdyeE9NWjgyMEdQSmd0R0FUNFFiSU83WnUxcEtyRU9KMnRpeGdnLTVsQzh4bE5vUFVmcg?oc=5",
+   "published": "2026-10-12T16:10:14+00:00",
+   "summary": "FearX - JD Gaming 3-2 Flashscore.com",
+   "teams": [
+    "JD Gaming"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "TalkEsport",
+   "title": "Vitality Becomes the Richest Team in Counter-Strike History",
+   "link": "https://news.google.com/rss/articles/CBMifkFVX3lxTE9NdXdua1I0TzZxWDBSMzd0cVJSejRZV19rSzBMS2l1S2hTSEEyeDgzTUpDOGswRHdJVnNMYlk3QUF1NVFCUzVzS2VtU0F1c3U1eW1NMnhxRWc4bDZjd21WNjBkWXlDUVVyWjNKV29ac09Nd1BJU2VoTHhlSHBaQQ?oc=5",
+   "published": "2026-10-12T14:47:43+00:00",
+   "summary": "Vitality Becomes the Richest Team in Counter-Strike History TalkEsport",
+   "teams": [
+    "Team Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "EGamersWorld",
+   "title": "FEARX Knock Out JD Gaming in 3-2 Silver Scrapes to Reach Demacia Cup Semis",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOSVdHcWlVSXg2dk8zc0F6TnJrWEtrOVFYajRBQXdwdjV6U3JZSW40cklqUmI1eXhzMktSRXlRVmktSW9HX1dpOVBESjZJRzU2T2hfYVJHcWR3MXFTWko5enhJLVlsUVl0VEtLamp6TTNNLUgzM3Zyb1NHWXhyZHIxd3k1Y2pJYVJlOGdrdnNGMTJpdjRqSnpubXpIemtVWXBZNEE?oc=5",
+   "published": "2026-10-12T14:41:45+00:00",
+   "summary": "FEARX Knock Out JD Gaming in 3-2 Silver Scrapes to Reach Demacia Cup Semis EGamersWorld",
+   "teams": [
+    "JD Gaming"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Esports.gg",
+   "title": "CS2 Thunderpick World Championship 2026: FURIA, Falcons, Aurora in $1 million event",
+   "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxOUjVaX1VqazlXdGtZNGlXQ092YVl2SUJMY09EdXZlem93bHRlWl9yWXdDQ0FZTVRhaUJla1ZmZmVYWVduTWs3akZCZVFETE1zdnp3Q1M5a2tMZU9hdmJpYjFoN3JabHMzUGcwUUtJTWhIeXhCM0ZmMG9UdU9EM0d0eEQ0bXFTU2llTVNmOW9jNFJuYnc?oc=5",
+   "published": "2026-10-12T13:56:13+00:00",
+   "summary": "CS2 Thunderpick World Championship 2026: FURIA, Falcons, Aurora in $1 million event Esports.gg",
+   "teams": [
+    "Aurora",
+    "Falcons",
+    "FURIA"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "EGamersWorld",
+   "title": "Chicken Coop Esports VS Zomblers live score and match stats - 12.10.26 21:00",
+   "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxNZGxSZUhWQmtacThlVG9XNWUtVUYzSGdLazdqalltT1ExWVlKempLQTF4a3pfakIyRDc3YndiQUF0S0RvYURLZGY2VUk4M3o2LVVIN29SNGtXTFZ1Zm83encxU0dVaWJvQkNZekxWMzVvaW9CTk51V1RjeDRtZVZULVd2QUV3ZW84bGVUbktXNE1oQkVFczBBeGk5OWtuRXM?oc=5",
+   "published": "2026-10-12T13:18:18+00:00",
+   "summary": "Chicken Coop Esports VS Zomblers live score and match stats - 12.10.26 21:00 EGamersWorld",
+   "teams": [
+    "Chicken Coop",
+    "Zomblers"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
    "rules": [],
    "reasons": []
   },
@@ -159,16 +330,83 @@
     "HEROIC"
    ],
    "players": [],
-   "score": 1,
-   "grade": "positive",
+   "score": 0,
+   "grade": "neutral",
    "rules": [
-    "return",
     "coach"
    ],
    "reasons": [
-    "a regular is back",
     "a coaching change"
    ]
+  },
+  {
+   "game": "lol",
+   "source": "EGamersWorld",
+   "title": "Down 0-2: KT Rolster Complete Epic Reverse Sweep Over Vitality to Reach Demacia Cup Semifinals",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOYUF0TWpZdTJJZXRkMXI5LXNMLXptcDBxRWJiRy1yZE9UOUpOTGVEZnRabkQwVGNqcDh6VklkVW0ySHlHSWI5cXVNcGVUbUZSdkdzcVlTNnZ5aHlxUjBfSngtU0F5dWgtQkZsZV9tY0FrcnZPNVJyVFFwaTZpNC1rektnbnNRSXozSlNmM1NrVmJ2bS1LLTJZVlZBbUUwSm9lRFE?oc=5",
+   "published": "2026-10-12T10:14:32+00:00",
+   "summary": "Down 0-2: KT Rolster Complete Epic Reverse Sweep Over Vitality to Reach Demacia Cup Semifinals EGamersWorld",
+   "teams": [
+    "Team Vitality",
+    "KT Rolster"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Pley.gg",
+   "title": "FaZe end two-and-a-half-year trophy drought at Roman Imperium Cup IX",
+   "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxQVFZsS19SZmU3YU50V2VYeXVaNWxWSUdzaWROWDdYaGx4RW1IZ1JNdUtWU0RJUlZoUkNQYjYxN1VMVjF5MndJUXFEZXZRSjg0N19ZSl91Q2NzWmhGM3Z5S2tlSk9tSm1IaW42VGJPYUxjbUFhZmcxYkQ3NG8wcFgzN1VBQmhBU0tXWDVaSjU2QjQyTGc?oc=5",
+   "published": "2026-10-12T09:48:54+00:00",
+   "summary": "FaZe end two-and-a-half-year trophy drought at Roman Imperium Cup IX Pley.gg",
+   "teams": [
+    "FaZe"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Pley.gg",
+   "title": "100 Thieves knock reigning world champions NRG out of VALORANT Champions",
+   "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxObU8zRjJBTzZGTnd2bThrazVJTkxaOWRZWmtaWVhrbzhQMGVKMnk4N1BIM09nS3BLSFJfNlpoa3NNNkE0YWZ5ZjhtamhWNEVZb2JyMFdLTXNONjhZNGdtZHVmd0dTakV6QmNzYVlSYmFBc29od1V6NU15eXVjdUFIVlNJYUZxVS1jLXhra0FnbHl0T0Y2OXluaUVuQl9lbUU?oc=5",
+   "published": "2026-10-12T09:32:44+00:00",
+   "summary": "100 Thieves knock reigning world champions NRG out of VALORANT Champions Pley.gg",
+   "teams": [
+    "100 Thieves",
+    "NRG"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Players",
+   "title": "100 Thieves and G2 Esports advance to the lower bracket semifinals of Champions Shanghai, NRG and T1 are eliminated from the tournament",
+   "link": "https://news.google.com/rss/articles/CBMiggJBVV95cUxOX3d1NjRfU080U2hSa1JQclFmbERVVS1IYWhuYzlvNU13dHM4bmRTU0FublNkUUMwVzJJSXVzMkZpOFFiT05VUDZaRzZUYXZvTkR4c3M0c3ZfZGEtS2ZQaF94ek51QmFZMEdrNk5qdFFtMGUwdy1IeFFFZjRWS0I4aDJkUjI4NjZqZXNMSTl2cEhsYlpTZzJudm9KeEhOYTVrNE1ZRGFYU1p0VzZWWDdBXy10eW1QNDZQa1VTak9QcFZ1Q09FejdweU5Pa0dLR0w5X3Q5V1g3VXFFNzZOa1ltNzEtck84QkRmQ2tRbXU3SFFCTlpqbzY5Z2g4ZzEtNjMwdlHSAYICQVVfeXFMTl93dTY0X1NPNFNoUmtSUHJRZmxEVVUtSGFobmM5bzVNd3RzOG5kU1NBbm5TZFFDMFcySUl1czJGaThRYk9OVVA2Wkc2VGF2b05EeHNzNHN2X2RhLUtmUGhfeHpOdUJhWTBHazZOanRRbTBlMHctSHhRRWY0VktCOGgyZFIyODY2amVzTEk5dnBIbGJaU2cybnZvSnhITmE1azRNWURhWFNadFc2Vlg3QV8tdHltUDQ2UGtVU2pPUHBWdUNPRXo3cHlOT2tHS0dMOV90OVdYN1VxRTc2TmtZbTcxLXJPOEJEZkNrUW11N0hRQk5aam82OWdoOGcxLTYzMHZR?oc=5",
+   "published": "2026-10-12T09:23:52+00:00",
+   "summary": "100 Thieves and G2 Esports advance to the lower bracket semifinals of Champions Shanghai, NRG and T1 are eliminated from the tournament Players",
+   "teams": [
+    "G2 Esports",
+    "100 Thieves",
+    "NRG",
+    "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
   },
   {
    "game": "cs2",
@@ -179,6 +417,81 @@
    "summary": "With the Singapore Major invite cutoff looming, Wildcard have made significant strides in the race for a spot from the Americas region.",
    "teams": [
     "Wildcard"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Dot Esports",
+   "title": "Munchkin hints at retirement after T1’s exit from VALORANT Champions Shanghai 2026",
+   "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTFBDUjhrN3BZUGtVaUFfWU5fci1fT2Z6bXpTQ19IM0p0aFdTX2JLSExHOXZJWEVncGlJYjlLUjhRc3N6VloyZDkwSDZRSkswYmVnYW1vbzJZX3MzZmVxTjFhZU9oaVRNMVpIdDNEZ2UwcW1XN3VmWmg0?oc=5",
+   "published": "2026-10-12T05:48:00+00:00",
+   "summary": "Munchkin hints at retirement after T1’s exit from VALORANT Champions Shanghai 2026 Dot Esports",
+   "teams": [
+    "T1"
+   ],
+   "players": [
+    {
+     "name": "Munchkin",
+     "team": "T1"
+    }
+   ],
+   "score": -1,
+   "grade": "negative",
+   "rules": [
+    "departure"
+   ],
+   "reasons": [
+    "a player or coach leaves"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "게임메카",
+   "title": "[LOL Meme] \"Is it you guys again?\" Worlds favorites Hanwha Life Esports, Gen.G, and BLG",
+   "link": "https://news.google.com/rss/articles/CBMiXEFVX3lxTE5hSVJRUllWWi1EZzlBbDVxVTd2c3ZJYWJsOWowVlIySTY4eDFZZV9uRURid3dDdmQxUkZPY3AxTTdCaVBZSVJkdXFxTWNJNUNLZ0JYRWNMV1hqcW1L?oc=5",
+   "published": "2026-10-12T02:25:11+00:00",
+   "summary": "[LOL Meme] \"Is it you guys again?\" Worlds favorites Hanwha Life Esports, Gen.G, and BLG 게임메카",
+   "teams": [
+    "Gen.G",
+    "Hanwha Life Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Field Level Media",
+   "title": "BRION, LGD Gaming and Vitality advance at Demacia Cup",
+   "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxNWmx6RTlob2lDakRKTTBlQ3g1dWZIZVB4WUR3VUhPVTNfZmhOSGFLaWYtTDFTa21WQVNJNmVWTlRwejZ1a2cwSDdRaDlGU0F6eC1pOXBiMmg1ZTRwMUN1SmFVb2hPbENaSjFQSmZMNGFlTlF4a3IzcVJ3cWdvUVRQR2NiSS1NVExKRnpteGNwUEZpelE?oc=5",
+   "published": "2026-10-12T01:35:19+00:00",
+   "summary": "BRION, LGD Gaming and Vitality advance at Demacia Cup Field Level Media",
+   "teams": [
+    "Team Vitality",
+    "LGD Gaming"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Dot Esports",
+   "title": "Deft reportedly returning to the LCK with Nongshim RedForce in 2027",
+   "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxPa2VQQ1BvV0FDckllSlphS201eG5sWElKZTlDU2t3YmhLTTdwUGNmQ2dBZ2hfN1hOLThuTU84a2lwT3NMUW5abmdHRnJFUEYxbUFtMV9ncklKUDJJNFFMUWI0dlFQUlRqNExLUnZDRXU1enp5NVI2T3YxaEZMSnhPSzR3dw?oc=5",
+   "published": "2026-10-12T01:25:00+00:00",
+   "summary": "Deft reportedly returning to the LCK with Nongshim RedForce in 2027 Dot Esports",
+   "teams": [
+    "Nongshim RedForce"
    ],
    "players": [],
    "score": 0,
@@ -208,6 +521,1726 @@
    "reasons": []
   },
   {
+   "game": "cs2",
+   "source": "Sofascore",
+   "title": "Vitality Academy – Royal Foxes Esports - Live score",
+   "link": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQbzBNVVU1RTVoTW80OS00N1lOcExuZl81djVFUlJiaXFvVzUzVmcyaXFLR1htRjEyNUpqOE56RU5LWW1ya0IwY0JSVkhNOFFGNWpHWFpONGlMUXByUUFUYjdOZFU4V2ZrbHVHNkhQeVA4OW0tT0p1YjI2OThMd2g1SHgwaU5pWWZyajE5VVZKUQ?oc=5",
+   "published": "2026-10-11T19:11:46+00:00",
+   "summary": "Vitality Academy – Royal Foxes Esports - Live score Sofascore",
+   "teams": [
+    "Team Vitality",
+    "Vitality Academy"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "escorenews.com",
+   "title": "FLY - MIBR FEM, October 14, 2026 - match stream, live broadcast - VCT 2026 GC Championship - Valorant",
+   "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxPaFUxQ3A2NE5DV2RzQWM5US1KRkt1UjVuellyb2hpcFIzY1VvNTJzRVE3V3dENU1LNVlXd0lwNG90TG5GYmJucVZ3N1lvYVpnV1F0QlNHTHlIZXBLRUdTWlNEaGRkcmxFMDZ3c1VoSGRLblVhcENHaURHbFVGYUJMWmVXM01fd1FpRUJDNFVXNl9ucGNIcl9TX01xRC1pSWFZVXBvUWw0VXdRUQ?oc=5",
+   "published": "2026-10-11T18:33:22+00:00",
+   "summary": "FLY - MIBR FEM, October 14, 2026 - match stream, live broadcast - VCT 2026 GC Championship - Valorant escorenews.com",
+   "teams": [
+    "MIBR"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "escorenews.com",
+   "title": "AKV.GC - MIBR FEM, October 14, 2026 - match stream, live broadcast - VCT 2026 GC Championship - Valorant",
+   "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxNYnFXTmhxd3RYWjNjZHNLZEZRX1JXQm54RmtyaDY3bGdCYlpMR3JPT0ZJV0JMdFB3VnRmOEMxZXJVZmJvd0I0NlY1Mi1zN2xOZ1haQnlWdktYRGE5N3ZEZl9QcDJsN2RIcFR0ekppbXh3R29lb3ZURVlyZjdCM3JhdXo4OXF4a3RuT2JNMmN0clJoMldoOVpqZ0VpT0JGYW9tMXNZdXlCN0M?oc=5",
+   "published": "2026-10-11T18:33:22+00:00",
+   "summary": "AKV.GC - MIBR FEM, October 14, 2026 - match stream, live broadcast - VCT 2026 GC Championship - Valorant escorenews.com",
+   "teams": [
+    "MIBR"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "EGamersWorld",
+   "title": "XI Esport VS ASTRAL Esports match result - 11.10.26 13:00",
+   "link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxQTGhHa2NhN21LVHFzNTRmZzl1R0hrTm9YeFFpSU5fTXFjZ2NRYXFUVHB1NmFHQTE0ekhZdFg5WkxFd2Q2bEhyVldLeUp4LUJER0c4dGM1b2VIUGdZMVZKX3d6ckFNZHFnX1lEbVpncjFSaXpBcE1xZXA0d202Wl9jMnFwdzRmckdlVnZsVHlPQ3NRR05FS3ZwWQ?oc=5",
+   "published": "2026-10-11T18:04:48+00:00",
+   "summary": "XI Esport VS ASTRAL Esports match result - 11.10.26 13:00 EGamersWorld",
+   "teams": [
+    "ASTRAL",
+    "XI"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Worlds 2026 - Meet the players: AD Carry (4/5)",
+   "link": "https://news.google.com/rss/articles/CBMijgFBVV95cUxPRk1IZGtNWVA0WEVCMHQ2OFAtSmVKVF9hbXBXU29MdFVoeEZXXzJxODBQbmJkM1ZPWFg4aTBQZUd4OHBnQ1hIZzVjWGN6YzF6REFmRHBOUXREd3kwYzFiekhzRVl6TmU2X0xlTW83TWluUjFQS3RJYWxoNkdxTk9PNjJKQVVhZHN5c1ptRzVn?oc=5",
+   "published": "2026-10-11T15:03:30+00:00",
+   "summary": "Worlds 2026 - Meet the players: AD Carry (4/5) Sheep Esports",
+   "teams": [
+    "Bushido Wildcats"
+   ],
+   "players": [
+    {
+     "name": "Carry",
+     "team": "Bushido Wildcats"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "EGamersWorld",
+   "title": "G2 Esports Beat T1 2-1 at Valorant Champions 2026",
+   "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPMy1vNElmRU82d3h0VHcxUkUxdHd3czg0TUg5MUsxQnRCSXdYNnJGdEEzMHJPUEE4UnRoVldZa1F4cGw0YV9HSWpkVDNHQjJ3SXVjbmtFc2daSEk5YWxmRG9sT0wtRGd6YXFERDNvZzRvcHkwMEQxOVdzdXVla3dmMWF6Vkt5WVVwTmJVMnZZSzZ2Ujd1bVZYN2dZT29fc21HZUt4Wko4Qks?oc=5",
+   "published": "2026-10-11T14:26:09+00:00",
+   "summary": "G2 Esports Beat T1 2-1 at Valorant Champions 2026 EGamersWorld",
+   "teams": [
+    "G2 Esports",
+    "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "100 Thieves and G2 Esports advance to the Lower Bracket Semifinals as NRG and T1 bow out",
+   "link": "https://news.google.com/rss/articles/CBMizAFBVV95cUxPdE1QQzhlN0d1cUtoRjNualM0YzAwOWdreUpLZHZaZGJzNENtanNEcnN5akVkRDc2ZjA4eFFUdDMzTGs0bHpsQVJyN3ptTWVsRGRuVWFPc05mSHh6N29xUW9Ja0pGT3F0QTBCdG5xemhydWRaZ3dsNU95RDVtck45eVo2UnhSNG80NUp0ZUhKa2VGbWJ2OTdMZ0RYbWtESGFrdGZFWUQzWmpHQkwxM01iX3pxWWhUZzdGcDlsY3NDUjlfRDRhSDFUOENPV1I?oc=5",
+   "published": "2026-10-11T14:08:00+00:00",
+   "summary": "100 Thieves and G2 Esports advance to the Lower Bracket Semifinals as NRG and T1 bow out Sheep Esports",
+   "teams": [
+    "G2 Esports",
+    "100 Thieves",
+    "NRG",
+    "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "EGamersWorld",
+   "title": "Meet SOORI: Hanwha Life Esports Reveal New Official Mascot for Worlds 2026",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxONGNnbEFWR09WX2NrUzQwSGpma01NSzkyNXhpWXViNzBpc0lWTkpxMm93cTYtNWNuNzNJZFRibHd6ZG5ubkdKbzdNcnUxaHRTTm1IVmZCdTc1Q0w0c1ZMVnZ5cktYVXFfN3Y5SkdwR1dFQ0dCWGxGXzdhek81cmZJbFo0M004N2QyLVA1cVMxRzdUY09Tb0o3OV9PTHRyOEdQR1E?oc=5",
+   "published": "2026-10-11T13:41:50+00:00",
+   "summary": "Meet SOORI: Hanwha Life Esports Reveal New Official Mascot for Worlds 2026 EGamersWorld",
+   "teams": [
+    "Hanwha Life Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Sofascore",
+   "title": "Gothic – Esport Academy Copenhagen - Live score",
+   "link": "https://news.google.com/rss/articles/CBMiigFBVV95cUxQRjhOejZya0hsYlJTWnBWY0xmY01HbllVWU5QNXBpTTM3OVdVbVZOM0JyblFLR1hmRkxWa01pMGlOcVRUTmdJYU51OXBvQnNQUXVhb1ppYmRVR21xYWdoR1FwbWpwOFRwelRsaXh3RkFQbTdhdkxYcnZ2cjRkc3VIVlhFSGZta3JLNnc?oc=5",
+   "published": "2026-10-11T13:37:07+00:00",
+   "summary": "Gothic – Esport Academy Copenhagen - Live score Sofascore",
+   "teams": [
+    "Gothic"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "EGamersWorld",
+   "title": "100 Thieves Eliminate NRG at Valorant Champions 2026",
+   "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPUlByRE50NHJOZ0MtMDlKUjhkdllyN09lcHBJMUxQOU9ESml2QmxMV3dtVUdmcS1UbzlUbFQwU1hjUWF5M25EMVZPLWp6bjNzSlA3VTdRa1ZNUDlUWWFreTVhLV8ycGNIOHpSSS03YmNRX280UmJOVXVHUmpKdzNGN09vMnJ6N1NRRm1tTnV1TlZORWc4djZpTW9WX3lBRVgwRnozM29oLTI?oc=5",
+   "published": "2026-10-11T11:17:34+00:00",
+   "summary": "100 Thieves Eliminate NRG at Valorant Champions 2026 EGamersWorld",
+   "teams": [
+    "100 Thieves",
+    "NRG"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "escorenews.com",
+   "title": "FlyQuest",
+   "link": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE9fWDZFUERKT0lMRWpsek1RT251RWMxYm5adFloVHZOaUthd3BmWlNTcWhhUzBDS191VjU1WUhlZzFDNjZSeV9jcXVUVm55OTRwVVBkVUJiWQ?oc=5",
+   "published": "2026-10-11T10:52:22+00:00",
+   "summary": "FlyQuest escorenews.com",
+   "teams": [
+    "FlyQuest"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Esports News UK",
+   "title": "LOUD edge NRG 2-1 at VCT Champions 2026 to set up Team Vitality rematch",
+   "link": "https://news.google.com/rss/articles/CBMirwFBVV95cUxQZ1ZaVEVyQXdIZE5rQ1BsQ3dab2tVbk5UV3BNMXhhUU5rc2NpTU1jQTFONUtEZVoyMmh1TzA0bEZVRlFNVTA1TGRseFR6M0l1Uld3VXh2NElGRk1MLWNfMHNkSzN0LUFTaHZPd1ZJQkFBUUFEUkEtdHdObU05cDd0TmI0azdIVVVTOFdCeTNuS18zaXZES1RsX1ZyNE9vWVdJV1QtYlFURFZyQWNTalk0?oc=5",
+   "published": "2026-10-11T08:05:28+00:00",
+   "summary": "LOUD edge NRG 2-1 at VCT Champions 2026 to set up Team Vitality rematch Esports News UK",
+   "teams": [
+    "NRG",
+    "LOUD",
+    "Team Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Esports.net",
+   "title": "ESL Pro League: MOUZ Reach Season 24 Final",
+   "link": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE1Xbl9lbElHeUxoQzVSSHhpWER2YzFSOWkxWDIteUtiWjlxN01rTkstVm5iS2Q0NE1IS0lVY2t0TzRMM201d2NXeS0yenlEaFd4R1ZJdk11WURIOVNkOFJlYVEyZEJlbUZ6?oc=5",
+   "published": "2026-10-11T07:38:52+00:00",
+   "summary": "ESL Pro League: MOUZ Reach Season 24 Final Esports.net",
+   "teams": [
+    "MOUZ"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sports Tiger",
+   "title": "Team Vitality sweep G2 Esports to reach Upper Bracket Final in VALORANT Champions 2026",
+   "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxNenZhR1lCdTFERnhOZG0zci1DZ3NCUWUwYXFMS3QwMEFGTXFVT19NX0dVcGVNYkFvZVNiSjFjVUF3VGNQd2pMaWNITURYbTZiTDloa3g5YXNmNDlGbnFtVDRFaEtVa3RURFAybXJVV2ZxWXJhSUNaVXd5YTg1eFFRUWltUjZlbTY0Ti1iSnlWbkhoeV9LSnhjUFBGYVhyT3BxZVBzQzBlYzFuRVNzd09HQlB2WlVzaGo3NFh4eEtfTUlHZw?oc=5",
+   "published": "2026-10-11T07:37:53+00:00",
+   "summary": "Team Vitality sweep G2 Esports to reach Upper Bracket Final in VALORANT Champions 2026 Sports Tiger",
+   "teams": [
+    "G2 Esports",
+    "Team Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Sofascore",
+   "title": "Metizport – Spirit Academy Black - Live score",
+   "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxPYlYyeXFWVFcwbm9STlNkZDJiZ0I1aTF1WXVNdWNqaVRxQkZJRGtRNlB1RTdadnQ0M04yWkRqUHhNa3dta3JjZVlpQ1ptdUlqSG03N1l0WkhoU0xtRWtBOXN6RkgzaW5TaUhNUmI2V2FSVGZJcHdudUc1cElSREN3dGExS3FoNWs?oc=5",
+   "published": "2026-10-11T07:17:53+00:00",
+   "summary": "Metizport – Spirit Academy Black - Live score Sofascore",
+   "teams": [
+    "Team Spirit",
+    "Metizport",
+    "Spirit Academy"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "SuaraGarut.ID",
+   "title": "Gen.G and Hanwha Life Lead Worlds 2026 Contenders",
+   "link": "https://news.google.com/rss/articles/CBMiY0FVX3lxTFA3VVFuYjhIQXktaXB6U0NJcnQ5SWJBZVB0aTZKVjh2RDNpUDBETHByVDRXYTQtOWtaTFlYNGJLbDV1aDBYM0tjNEJQQy1jNGV5WEctekVPZXBab0I1MjVPLTB6VQ?oc=5",
+   "published": "2026-10-11T07:14:06+00:00",
+   "summary": "Gen.G and Hanwha Life Lead Worlds 2026 Contenders SuaraGarut.ID",
+   "teams": [
+    "Gen.G",
+    "Hanwha Life Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "TalkEsport",
+   "title": "Vitality Defeats G2 to Reach VALORANT Champions 2026 Upper Bracket Finals",
+   "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxPWURaQnc5M2o3V1hES05tclp5SHVVQndIQkdFUGVjUXZZTm90OFRYWW9hMDg1VmlHM1FTZEFHVDREMDgyOWVEUmdVeFJzUXpyYjNqSUQ4d2xNWVJEMkJxYTM3OTMxM2FPbGF2bDN4d2d6dnlGblByVmNteEJMZXVETlFQdEJxVjVTeUEyNFVteE83Z0VSZ0g4b2JDbVc2SkNHdGZBX2NSem9hUQ?oc=5",
+   "published": "2026-10-10T23:12:06+00:00",
+   "summary": "Vitality Defeats G2 to Reach VALORANT Champions 2026 Upper Bracket Finals TalkEsport",
+   "teams": [
+    "Team Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Esports Insider",
+   "title": "VALORANT Champions Shanghai: T1, 100 Thieves Advance",
+   "link": "https://news.google.com/rss/articles/CBMiggFBVV95cUxNLVp3X052V2xjVHhBWGpsTXZjN1hHa3kyWW9ET2NpWWtKUkJOVTgwX2thQnM0V3RLZDRkZG1GTnZNWURvOUFUbjR5YmdkUzBqT2hrdkhISjNzNmVabnZyLXhha2RrQ3ltT3lYRlBrUGh4cXNhcjJBc1Ftd2x0bWJRLWdn?oc=5",
+   "published": "2026-10-10T20:01:58+00:00",
+   "summary": "VALORANT Champions Shanghai: T1, 100 Thieves Advance Esports Insider",
+   "teams": [
+    "100 Thieves",
+    "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Sources: Deft set to Join Nongshim RedForce for LCK 2027",
+   "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNNldJRER0bmN0S1lER3c3V2wyVXM3ck43SmVNMGU2blZwNzdOTGpwZXJZUmZEaU5vVkxpUzVRNUgzaXRORVkyOEhOckIyLW9iNUFyQnF5Q0taMWx3S25aUVBjRWhXcFBQM1VJR2xDa1gyQmFIcW9GZ3VWVWpFcFdRTkJBbFdnTnhrU2x1em1lMzRzTkVWb1lTZUVSREFJdURw?oc=5",
+   "published": "2026-10-10T15:27:55+00:00",
+   "summary": "Sources: Deft set to Join Nongshim RedForce for LCK 2027 Sheep Esports",
+   "teams": [
+    "Nongshim RedForce"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "LOUD and Team Vitality set for a rematch as NRG and G2 Esports falter",
+   "link": "https://news.google.com/rss/articles/CBMiswFBVV95cUxPdzJLU2FHNmo2Y1EyWGl3ajRhd1JsckRhSllaLWphUjRXcFRJYU90LVRtdzRUZ0NxMU1vczRwcU1ZYzhzWXd1UDYxSGM3S29MUnBXMEtvc1ZvMDJidzZ4ZXFKUHJQellFX0NaNHp1bDhTM2JkXzBFQWxBazRKN0pscTRxNGJIQnpvTFJBcnVvMHA2bEc3RU1ibWN2RktyWjk4NE9HMHVKX1BRX3ZTRUZWU05WWQ?oc=5",
+   "published": "2026-10-10T15:02:14+00:00",
+   "summary": "LOUD and Team Vitality set for a rematch as NRG and G2 Esports falter Sheep Esports",
+   "teams": [
+    "G2 Esports",
+    "NRG",
+    "LOUD",
+    "Team Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "VALORANT Esports",
+   "title": "LOUD VS NRG",
+   "link": "https://news.google.com/rss/articles/CBMiakFVX3lxTFAxN08tcUZHWkxHbmFvUzl0bEV4TUFtSC1XZGdnc2V5RUtlWDVJZExsNmZLcDJLM0pXX3JRNlV6dGpOVmNBdTc5RktKSUJ3RUxZemNRbF8yMWtER29QM196QkNTVy0xXzJoQ0E?oc=5",
+   "published": "2026-10-10T12:40:15+00:00",
+   "summary": "LOUD VS NRG VALORANT Esports",
+   "teams": [
+    "NRG",
+    "LOUD"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Sofascore",
+   "title": "madlikewizards – Mindfreak - Live score",
+   "link": "https://news.google.com/rss/articles/CBMif0FVX3lxTFBDVlRJOXZIUUYzaHB3cmZjYU1zUFFpckgxVmJaNlZGMFRicGJ1Q3gtMXRTOGxrYzFENzdQREtJMVRXanZjUEo1YUM0Y2plTGRhU3hMbG10XzhrMjZLM2luYTlRMVViN29heWRvMG1iR1lfWTdfZnB1S2xCbG1vQzQ?oc=5",
+   "published": "2026-10-10T12:30:13+00:00",
+   "summary": "madlikewizards – Mindfreak - Live score Sofascore",
+   "teams": [
+    "Mindfreak"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Skin.Club Community",
+   "title": "BBL sign MistR after moving Boye to the bench",
+   "link": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxOa1o4SG9wZEtNckFDTnh1UFVZUzdVTzFFWmpIbldPc2Fva1p2WkZtTm5fMUliXy1VemRGNl9fMkR1ZmFsMU1lMWV6dVJ6azJJeXV2dk01RTBzNnprb08yOTZxbWR5cG9Kd1AyWWxJZU5JMVJhU2FkWmR1TEpvZW1xdDF4SW9xcVpS?oc=5",
+   "published": "2026-10-10T12:10:58+00:00",
+   "summary": "BBL sign MistR after moving Boye to the bench Skin.Club Community",
+   "teams": [
+    "BBL",
+    "Sashi"
+   ],
+   "players": [
+    {
+     "name": "Boye",
+     "team": "BBL"
+    },
+    {
+     "name": "MistR",
+     "team": "Sashi"
+    }
+   ],
+   "score": -1,
+   "grade": "negative",
+   "rules": [
+    "benched",
+    "signing"
+   ],
+   "reasons": [
+    "a regular is out of the lineup",
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "Hawk Live",
+   "title": "Dastan Summarized PARIVISION’s Performance at ESL Pro League 24",
+   "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxQbmJGU0hmY0RLRDZLUVdxeWNZUGtYZkx3Ykh4SHdTVF8wdlVGZk1JMFlHWlQ3Qi0yaFNHNlg0azBWNS1RN3RhRFJ1R2tZbWJPNXU4WG1nd2VLaTlsZHBTN2s3SV9QZ1NZTzhKNnpFT3hXQjlxLU12QUZ6T1JpeWV6UmNTbVEzZVVORUJR?oc=5",
+   "published": "2026-10-10T10:10:00+00:00",
+   "summary": "Dastan Summarized PARIVISION’s Performance at ESL Pro League 24 Hawk Live",
+   "teams": [
+    "PARIVISION"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Esports Insider",
+   "title": "Astralis Roster Change: HooXi and jabbi Benched",
+   "link": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE03ZXRmUWMyek1rVVU2UEdDVEFKclhoVXZ0YjJGSGxkeXFYczF5dDQ4SFMzR041S1BSSnZqWW43SGFaS1dQS3A3d0MzS1Rjb0dWbmh1T0M5YWVVMy12YTlFX19jNHNnNWtJ?oc=5",
+   "published": "2026-10-10T10:01:55+00:00",
+   "summary": "Astralis Roster Change: HooXi and jabbi Benched Esports Insider",
+   "teams": [
+    "Astralis"
+   ],
+   "players": [
+    {
+     "name": "HooXi",
+     "team": "Astralis"
+    }
+   ],
+   "score": -1,
+   "grade": "negative",
+   "rules": [
+    "benched"
+   ],
+   "reasons": [
+    "a regular is out of the lineup"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Esports.net",
+   "title": "Vitality.Bee Pauses LFL Operations After Seven Years",
+   "link": "https://news.google.com/rss/articles/CBMickFVX3lxTE0zeGhVUEEtOHFzSThoVGRjTzFBNmstQllVVE1SRE1ZMkEyQkxpT3VNWFNRazBRaWFIUEprQ0VvS0toRHZRSmM0T2pGNDZXTF9GcHZkMEowRzRPX19CanlZZ180VGpnRDVuYy1nRno3RjhqUQ?oc=5",
+   "published": "2026-10-10T08:49:56+00:00",
+   "summary": "Vitality.Bee Pauses LFL Operations After Seven Years Esports.net",
+   "teams": [
+    "Team Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Players",
+   "title": "A New Generation at Worlds 2026: Top Debutants of the League of Legends World Championship",
+   "link": "https://news.google.com/rss/articles/CBMivgFBVV95cUxNdlZBMk82aGFEWTl0Qm5jbEw5Rmtrb1NfZlZOZFllZHk4ZG0zdkh6b0J5WE5HX1V2U0g0TzlVLVA2MTJaNW1pb3pFeEtOdndvYnZLUjJnWGxmNmJjNWhMdm84cHAwb1dNbXBRUXBMb0F1MDdFVjZubERvQVVFdmZ0MS12UG13czBfVkM5S09PVVRfd2hRMzZVSktVSmdfb3NmX3dLRV8wcWNrRndOdVVsSHdOMjZGU1llc21yZXVn0gHGAUFVX3lxTE5QY2dCLXBiWXNwT2J4WFdOQXZLNHRlNTlwZ2Y4ZzA3OWl5RDB5dTdFX2RZTmR3YjFJWVB3WXpqc3A5cUl4MFc3cTUwWUhlaWF3SVBZZlgxTE55ZGxKVFdzV1NzSEFzUXMxRXVnempoSkllTC1OeHJHOEQ2enFHdjM4c2doc3lydkpSX0VuM05GcXY0bFFmaFR6VldnS3JwdzBKZE10X3J3YS1EWENGVW5hY1JWQm5sQTdkaVVWZUVnZ0E0dVRXUQ?oc=5",
+   "published": "2026-10-10T08:43:43+00:00",
+   "summary": "A New Generation at Worlds 2026: Top Debutants of the League of Legends World Championship Players",
+   "teams": [
+    "Top Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Dot Esports",
+   "title": "Dambi makes bold claim after Nongshim RedForce knock Vitality out of VALORANT EWC 2026",
+   "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxNVVE1T3FqYlU5eThjYlBwTE5WZS12QVEyV01NZUVxWXRZa0dhb1VBZ0N0YjVrY042NHNEeVdEVUJWVDFMR0hGV2VwbXhONGl2Y0IxTFFzVGtORW9ldG1feVpCQkstZk03d2F2TE9ETzk3ZV9GdXlINDltSXIwT0w0ZHh5Ym1mNjlkaFR2XzJmbGxva1JweXJHaTNTQQ?oc=5",
+   "published": "2026-10-10T07:00:00+00:00",
+   "summary": "Dambi makes bold claim after Nongshim RedForce knock Vitality out of VALORANT EWC 2026 Dot Esports",
+   "teams": [
+    "Team Vitality",
+    "Nongshim RedForce"
+   ],
+   "players": [
+    {
+     "name": "Dambi",
+     "team": "Nongshim RedForce"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Dot Esports",
+   "title": "TYLOO is the first team to get eliminated from VALORANT Champions 2026 after facing Team Liquid",
+   "link": "https://news.google.com/rss/articles/CBMic0FVX3lxTE1jMy1QMnNmeXRaVGZJbnlQc2R2RGJaRnc0WDNaZHg0RkhRaXNQRXBYXzZLQXR2S1paRE1hQnZTZ2ZaeVFZN1NCS2FWd1NJTzZOMUhBUXFRSmJNZjlnVHhqdXZDekhqTl9CMXlFTHk4LVVqRjA?oc=5",
+   "published": "2026-10-10T07:00:00+00:00",
+   "summary": "TYLOO is the first team to get eliminated from VALORANT Champions 2026 after facing Team Liquid Dot Esports",
+   "teams": [
+    "Team Liquid",
+    "TYLOO"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "EGamersWorld",
+   "title": "Chicken Coop Esports VS Detonate: 09.10.2026 at 01:00. Counter-Strike (CS2) ➥ Betting Tips, Stream, LiveScore, Results on EGW☕",
+   "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxOOFhlX2hQdEttbGhKS2ltVnZPQmRwOXRVa0UxN2pWZWZkdGtOTk9yOUJ5dG5oMDY0Zm5NZDgtbXRtVzRLVkszTDVOc3BrSE0yUXpSOGtxTFhkeTl2U1NqM2JBMWRFbzQycENYbTZHRXMzenRENmV0bzVDN2pZcWowWTN6TmxuRUp4cjJpV2hvNkFzNW52WkxiWThQWVBPX0k?oc=5",
+   "published": "2026-10-10T04:37:57+00:00",
+   "summary": "Chicken Coop Esports VS Detonate: 09.10.2026 at 01:00. Counter-Strike (CS2) ➥ Betting Tips, Stream, LiveScore, Results on EGW☕ EGamersWorld",
+   "teams": [
+    "Chicken Coop",
+    "DETONATE"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Dot Esports",
+   "title": "PRX end VALORANT Champions 2026 run after T1 comeback",
+   "link": "https://news.google.com/rss/articles/CBMic0FVX3lxTE95U3BNNVlmTDk3Y1pvbXZJOWR2MUZrR1ZQdEk5WF9GWFQ0T2pyMzF4dDRwVjZ3ci1PU1hRMkF2eWRHU21rSTVqYTNMSDJ2ZlgxWlU1ZGNMSExycWxScWtFNndLZ1hkQlhIWFJWSUFrbVB1bTg?oc=5",
+   "published": "2026-10-10T03:16:00+00:00",
+   "summary": "PRX end VALORANT Champions 2026 run after T1 comeback Dot Esports",
+   "teams": [
+    "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Team Vitality disbands League of Legends academic division after 9 years in ERLs",
+   "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxONUdlVVRMWFBUTVVCX1pIQW9LaUNZLXpReUR2cF85SDRyaXA2TXBGRXR4VTZmUDhVbjlZX2s1Q1ZKaFpaUnVubmxZVWNtM3hYcTBjbzdUSEFSYlVseUhfSkZzV0FCS0g2TFdCTjVPQVNaVGhrRVVUazFxYk45NGFJVFpEUHFqbmp6QWphdW5ZV2FKVVVvcEQyclBuaXR5T0E0aDNBZXVJa3plOFZoT3pBS0dId1E1Mm5pZW5OakhfUkdyQQ?oc=5",
+   "published": "2026-10-09T23:40:42+00:00",
+   "summary": "Team Vitality disbands League of Legends academic division after 9 years in ERLs Sheep Esports",
+   "teams": [
+    "Team Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "TalkEsport",
+   "title": "Paper Rex Complete an Unwanted Valorant Record After Champions Shanghai Exit",
+   "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxNdVlfTWxTNjA0bVB1LWY4VjFmOWFYQjRNbWFCRnFabUxJd0NNQ29UZU1LNWRuVGxKSWJyYkk1T0MtelprQnRUdndGQWl6M1VnUU5aRFRGZkRhaElPN0FJUWNiNC1OWUh2R0FZbDFYWm9pMlJjLUpDZTVpc1dtdjR0UUZoVVhoZ1d6SFFSalhHS0pGVVE?oc=5",
+   "published": "2026-10-09T21:39:13+00:00",
+   "summary": "Paper Rex Complete an Unwanted Valorant Record After Champions Shanghai Exit TalkEsport",
+   "teams": [
+    "Paper Rex"
+   ],
+   "players": [],
+   "score": -1,
+   "grade": "negative",
+   "rules": [
+    "departure"
+   ],
+   "reasons": [
+    "a player or coach leaves"
+   ]
+  },
+  {
+   "game": "valorant",
+   "source": "Insider Gaming",
+   "title": "Paper Rex Hold Unfortunate Record After Valorant Champions Exit",
+   "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxNTmJQSjRaUjRVQ3pKM2kzX21BTWpSdGtRMWF3cXY5bE1GYW1mY2FZN2IwdjB0eDFBQnM2a1FtLUU2TFlDZWVYcmNyd3djXzlKT0gySUtvaFgxck5LWExNTWpXZDJSak1XV0VKQmNEcW9UQm1uZGs4VEYyaVcyUWVCWWlfMExfZDhKNTRtM1JDYld2cm9k?oc=5",
+   "published": "2026-10-09T19:39:37+00:00",
+   "summary": "Paper Rex Hold Unfortunate Record After Valorant Champions Exit Insider Gaming",
+   "teams": [
+    "Paper Rex"
+   ],
+   "players": [],
+   "score": -1,
+   "grade": "negative",
+   "rules": [
+    "departure"
+   ],
+   "reasons": [
+    "a player or coach leaves"
+   ]
+  },
+  {
+   "game": "valorant",
+   "source": "FreeTips",
+   "title": "NRG vs LOUD Betting Tips – VCT Americas Rivals Clash in VALORANT Champions 2026",
+   "link": "https://news.google.com/rss/articles/CBMifEFVX3lxTE1teE1OSERTZ2V3eVB3aTJDR29IWFMtc3FfemFQa0U3ZW1xbXZGdWZHTkVkankwV1A2STNJTkswdG1DRFZ4c09ZVW9kWGxkTFR6anFVSkdJYlg3U05oVTc2NGppNEcwUHBpUklPaTZnSWFOWV9lX0ltYS1GYlA?oc=5",
+   "published": "2026-10-09T19:13:18+00:00",
+   "summary": "NRG vs LOUD Betting Tips – VCT Americas Rivals Clash in VALORANT Champions 2026 FreeTips",
+   "teams": [
+    "NRG",
+    "LOUD"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Players",
+   "title": "VALORANT Champions 2026: Nongshim RedForce and Paper Rex Eliminated",
+   "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxPTWtiUllTalczYmgxM3M4bXZYdlFfMWcxeTVscVRRX2JDV3V5bm1hRUkydzRZbGtnaTZTVEx1SGE1QXlXTEJYMEt5T2pNSFh2RXo3TkJmNHR6emZyTktEUl9ZUllpNmhITGVSN0tnaEhHMzFlVy1TVW9HMW1QWVZxQUJDVXM2QmtmVk5NRlk2UXVFZmpRMnVsaGVaS1dudknSAacBQVVfeXFMT2V0SlpSZ3d0VlAwUUl4d2gxU05UYmJicndFWE5FaTFiMWlfMERLenRDNE5fOHNmUVp0M0dmX2tFVlV5VWNROG5EQ2lLYjFzclVBVVI1LXpzMlFQU3ZkT3NLaGU1UXh4MzN6T19yRHFuVWlLaTU3U3BFLXltYjM5MXZJeGRBV0drZlQzVDFRNEFjbWpWNEtrcTRzQ1NDNnZjdE5hbDdqMkE?oc=5",
+   "published": "2026-10-09T18:19:26+00:00",
+   "summary": "VALORANT Champions 2026: Nongshim RedForce and Paper Rex Eliminated Players",
+   "teams": [
+    "Paper Rex",
+    "Nongshim RedForce"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "T1 and 100T send PRX and Nongshim RedForce home from VALORANT Champions Shanghai",
+   "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxPb1NWTTM1RlBRTGN0NHllRW1tQklpTmVnQjNMZmx6eUF4UXE4VVh6Wl91cmNfWWxwaEZvTUZmNWhObEZ2dkRGSHVCLW1femVpdU45VlhqMjh5Z3FaVm9TYTBHYjdwYkZHaUdIV2xCRzUwbTVic0h4RG1iMkc1ZlVJZ2Q0bzBQWTJNOU81NExUXzNXc0RWZTNmaVd2SVBOeV9VSzlBLTlWdTgtSUM5cWdCbnAtaGpyQWROcFJEYlJQNjktUQ?oc=5",
+   "published": "2026-10-09T17:31:29+00:00",
+   "summary": "T1 and 100T send PRX and Nongshim RedForce home from VALORANT Champions Shanghai Sheep Esports",
+   "teams": [
+    "T1",
+    "Nongshim RedForce"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Hotspawn",
+   "title": "Nongshim RedForce Eliminated From VALORANT Champions Shanghai By 100 Thieves",
+   "link": "https://news.google.com/rss/articles/CBMigAFBVV95cUxNd3B2MWF5U2paOXR5U0NqLWlZUGwwRHJfY2NBeEhCNjVvTEFGVlZxejYwNmVQVGE2Y3NWNHRpU2lrNkREQjZHcXhBVzRUaUpjeW52LUxJVDRIb2VoSFRSVnpwdC03bnFUY2RuOGp2S3luc2pzVnQwb3ZTWVV6cUFrUw?oc=5",
+   "published": "2026-10-09T15:58:35+00:00",
+   "summary": "Nongshim RedForce Eliminated From VALORANT Champions Shanghai By 100 Thieves Hotspawn",
+   "teams": [
+    "100 Thieves",
+    "Nongshim RedForce"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Hotspawn",
+   "title": "Paper Rex Sets Unwanted Record In VALORANT Champions Shanghai Elimination",
+   "link": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxQWjd6eDN0Z09ZV3JNdi1PZnBUV3ZQM2prZEFjY2xmZkdKWDNWN2VlQ09pRE9RUDk1c3BwVWJnVG9UMnM0dlJJbTZPUUtJcm9lamhYdVcyVVEwUTJsUWNXakFBVVZSeWhDNzhNOHRnMU5xZ0RXYjgtdUVRSHE1a1lSS3lRVk9Zemkt?oc=5",
+   "published": "2026-10-09T15:37:08+00:00",
+   "summary": "Paper Rex Sets Unwanted Record In VALORANT Champions Shanghai Elimination Hotspawn",
+   "teams": [
+    "Paper Rex"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "EGamersWorld",
+   "title": "100 Thieves Knock NS RedForce Out of Valorant Champions 2026",
+   "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxQeEFGZ09kVVdTZVRrRmNyYWQ3MWZUNk5pbjJpbFJWcmZxY09kZllaNjRPLTBycHkzWmJQQ2ZsLXltT1RNR0RLWGt1SHlkRzBhRWU1a3c3QWU5YTFwcnBMbW5zRTA1aWhWc1F1YmpnT3U1bGNURy1lRHBvajQ4ck5rVzF5WGl6LUxDU3ZubnNuaVNTczZZcDdlWDdxRmVWaHNoUWJNMkNJVWI?oc=5",
+   "published": "2026-10-09T15:34:55+00:00",
+   "summary": "100 Thieves Knock NS RedForce Out of Valorant Champions 2026 EGamersWorld",
+   "teams": [
+    "100 Thieves"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Hotspawn",
+   "title": "LoL Worlds 2026 Top 20 Players",
+   "link": "https://news.google.com/rss/articles/CBMif0FVX3lxTE1ZRjl4eUZMSVZmQnd6Ujk5NUYyT2ZRMFF5RGZNOENLZ2VBTTF6NlpHQ3MtVHRtTk0yQW9lWHk5bWQ1dFVnLXhMTjVaMmNmeW03VUFIRWF5QW9mbmhIakxMZ1pXZmdYc2l4RV9JZHNoOExsbjhTWDhFTWVfVFNYMkE?oc=5",
+   "published": "2026-10-09T14:50:38+00:00",
+   "summary": "LoL Worlds 2026 Top 20 Players Hotspawn",
+   "teams": [
+    "Top Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Insider Gaming",
+   "title": "Paper Rex Collapse in Valorant Champions; Was It Their Final Bow?",
+   "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxPRk1CUkdHVUlyNHg4UUxoaHdQMXUyMnRRcFVNZVJhTXY3TTJzSUpOblBmZ2NGQmVPUnlBME9WY0EwU0JyeEtZbmRFamlac1NRaGJmYkxqWUY3b1VIUzhlZnIzWjgxemZ4R0JnLVM3WWlCZW5yaHJmTVc5aHNnRGhiV3VlWQ?oc=5",
+   "published": "2026-10-09T14:40:12+00:00",
+   "summary": "Paper Rex Collapse in Valorant Champions; Was It Their Final Bow? Insider Gaming",
+   "teams": [
+    "Paper Rex"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "FreeTips",
+   "title": "G2 Esports vs Team Vitality Betting Tips – Two Surging Teams Clash in VALORANT Champions 2026",
+   "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxNeGZZMzR2b183NEliREtadUZUSlI2ZGcxMlNyNEE4NlNDN1p1WFVTeGRraGd5MVM1X3NOeGV6SXcyNVZBVWxhZU81TzBvYTBNc3ZuMk1MclhXcUlERnlrb00tM3g3OU45UkxkXzI2WWxZaFo3c25RODVKcW1oOXkxa2Vaazc5OV9GRGpGZHYxNzVhQQ?oc=5",
+   "published": "2026-10-09T14:07:35+00:00",
+   "summary": "G2 Esports vs Team Vitality Betting Tips – Two Surging Teams Clash in VALORANT Champions 2026 FreeTips",
+   "teams": [
+    "G2 Esports",
+    "Team Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Skin.Club Community",
+   "title": "Vitality topped the ranking of the richest rosters in CS2",
+   "link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxPQldoaGVwUEtIZ21QTEhjUms3dXhicXlkM3dBeERiR2VENnRqVzlhRDg1Xzkwczk2U1FCZHN3eVdSWFg4MGtnU1lSRWxQeFpzZWoxek9kbGtQWGZrT2F0Ny0zdmQ5bFg1cV9PbkdUdElkU3lKOW4zXzd2MGFXRzVwMV9SZmlDbl9QZnlGUEY1TVJiVWJzdUFxZQ?oc=5",
+   "published": "2026-10-09T13:31:46+00:00",
+   "summary": "Vitality topped the ranking of the richest rosters in CS2 Skin.Club Community",
+   "teams": [
+    "Team Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Esports.net",
+   "title": "GIANTX Roster Adds CyvOph and globeX as Stand-Ins",
+   "link": "https://news.google.com/rss/articles/CBMicEFVX3lxTE5pV3RYTFUzYUM5QTFwODdiaDFNNWtwNndDZ05iaWtFMFZvWGVzbzFOcTlqYXFjUEhpRkZsc2JaQzVfR1IwdDdKMnNGUy03dkxQWURqODJOT2MyTXB3ZXQxMHZ0S2dTTkhIc3B1ek5xOWw?oc=5",
+   "published": "2026-10-09T12:00:34+00:00",
+   "summary": "GIANTX Roster Adds CyvOph and globeX as Stand-Ins Esports.net",
+   "teams": [
+    "GIANTX",
+    "Natus Vincere"
+   ],
+   "players": [
+    {
+     "name": "CyvOph",
+     "team": "Natus Vincere"
+    }
+   ],
+   "score": -2,
+   "grade": "negative",
+   "rules": [
+    "stand-in",
+    "signing"
+   ],
+   "reasons": [
+    "a stand-in plays; the team's record was built without them",
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "Flashscore.com",
+   "title": "Falcons - Team Spirit 0-2",
+   "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxNOUg3VW1fQ2MtejNxLTNxRXNNc0xwSDJNV3V6Zk16WUlXcGRWZS0tcWhabHU2bTByQ3hQTkFnWFFIX0RtQnhXdFRSRkRhU3h4dFpmUWhDZGpYZjNvMUwwelhPYVQtRGp6RGFiYURELTRBd3JhMEV0Y21IQkJuVTctcVFxY1FEWGRoWUZOc0x5c2FNT2QyX19FSHQ5RTdnclVFSjBkUUttSjhYejFNSkE?oc=5",
+   "published": "2026-10-09T07:00:00+00:00",
+   "summary": "Falcons - Team Spirit 0-2 Flashscore.com",
+   "teams": [
+    "Team Spirit",
+    "Falcons"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Robinhood",
+   "title": "October 9, 2026: Pcific Esports vs. Team NVus Prediction Market",
+   "link": "https://news.google.com/rss/articles/CBMipAFBVV95cUxPQ2dwV1RUY1RJWC1WaWNMSTFOQTAyTllHUEk0MVNvdlBvMTlUTG1iR3NsYkZRR3ZDbzcwSjZpYUtvdXRzb09NZTBWc3VRc1BPNjAxZkcwU1NRTzZEaVF6NVoxamNjOWtWcG5HUXNQWkF1WHRwY09xdHR0bExLMzNMcHJscDB6UVRVNFhHTVhtTmFfbDRhUU51Y2NPYUVGMF95ZEFQTw?oc=5",
+   "published": "2026-10-08T21:16:59+00:00",
+   "summary": "October 9, 2026: Pcific Esports vs. Team NVus Prediction Market Robinhood",
+   "teams": [
+    "PCIFIC Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "ShowMaker, Xun, and Cloud9... The most anticipated returns at Worlds 2026",
+   "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxOYk9sR1dWX3N6VDJISDF3NG1sMGdueTNHY1Ruc2Njc2hzMldaOURiU0NvczZVWDl1Z3lHMEZxVkpTR0R6WVFzSjlmUzgtLTVoa21seE9zSXo4REFOYWE4SjM0THZZZ2QwaWFuOE95LTVlbVJUMXBINncwQWw2dEFJSHZraEpKM0pTV2dsMkV5al9Sb0djOUJvVEh5SUp2dkxVLXZzOE91ZnU5QkJ2dC1OUUJ3?oc=5",
+   "published": "2026-10-08T17:05:15+00:00",
+   "summary": "ShowMaker, Xun, and Cloud9... The most anticipated returns at Worlds 2026 Sheep Esports",
+   "teams": [
+    "Cloud9",
+    "Dplus KIA"
+   ],
+   "players": [
+    {
+     "name": "ShowMaker",
+     "team": "Dplus KIA"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Hotspawn",
+   "title": "LOUD’s Lukxo \"I’ll Never Stop Being Aggressive\" In First VALORANT Champions Appearance",
+   "link": "https://news.google.com/rss/articles/CBMiigFBVV95cUxPNGk2MXJib2FaNWJqczVzbXAtN1dybTdHcDVqU0Fkam1TNXNWT0phVF9jNnZhd0tsWHotNE51eUQ4YW5NTklLUDUtUUVCVTZyM3FOS1BoMW1JVVRleFNjaU1BTDRxZklZQ2g4eGwzREgyVU9hNWtLUlBsT1BfR2hxVC1QOVpvVE1MdEE?oc=5",
+   "published": "2026-10-08T16:59:07+00:00",
+   "summary": "LOUD’s Lukxo \"I’ll Never Stop Being Aggressive\" In First VALORANT Champions Appearance Hotspawn",
+   "teams": [
+    "LOUD"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "EGamersWorld",
+   "title": "Vitality Beat NS RedForce 2-1 at Valorant Champions 2026",
+   "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxOREFPUXZKSmpSYlRfV1lJa0xXM3NQYnN4Q3ZLOXVKWlJzVXZmSWE1VXdpSkRHaGtvRkJ4UXlyZmhxYWlYYnBFUUp6MGZMdzB1d1BENFM3c2ZYZEVBQUgzU0JNLVBxc2ZjN3dfSTdQTzdhOHhyOUVSYWJlZ19OTUxOcVg3aVU3TkhkTy1fVm03U3B3SVU3OWJ6VzZZbS1qR1RtU0IweERicC0?oc=5",
+   "published": "2026-10-08T16:21:45+00:00",
+   "summary": "Vitality Beat NS RedForce 2-1 at Valorant Champions 2026 EGamersWorld",
+   "teams": [
+    "Team Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Bdd and Perfect extend with KT Rolster until 2028",
+   "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxPVUhTenRiaUh2NklJNE1KWEFsYWlQV1JORWEzX3ZNZE42d190Sm5ZX09TWEMxNHFQLVotRlZZcTRUR1FQN0ljSWowcWpEVU8xWEcxR3NPWW9sY2ljOE9CSUtkVmxuclFJbHE2cmZxSTd4RHBqNmh2Z3RJOVZoVEI1QktMRTNUcEV4VDRkdmNvM3J3UDA?oc=5",
+   "published": "2026-10-08T15:44:33+00:00",
+   "summary": "Bdd and Perfect extend with KT Rolster until 2028 Sheep Esports",
+   "teams": [
+    "KT Rolster"
+   ],
+   "players": [
+    {
+     "name": "Bdd",
+     "team": "KT Rolster"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "extension"
+   ],
+   "reasons": [
+    "a contract is extended"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Egamersworld",
+   "title": "Top Esports Hit by Massive Worlds 2026 Visa Delays Across Coaching Staff and Top Lane",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxNVnlrSGpFS1VLeXJWRjZxa0tpQTdqeFNodmp5VWJUZnEwQ08xNUFSVXJRT2J5eHZlSE54ckxXNXNvZWx6YjBMRGhjeXVXclhiUkRGX3h2bkYyVWdCeUdRTWR4MHFsblFIZVZpRnVmTTBLYUpYOHJLaDhsTk9JX1dhbkZaNTRJSHVVTFo1UzRIRVcyN2hJVzlsVXNGLWxWV3JROFE?oc=5",
+   "published": "2026-10-08T15:09:04+00:00",
+   "summary": "Top Esports Hit by Massive Worlds 2026 Visa Delays Across Coaching Staff and Top Lane Egamersworld",
+   "teams": [
+    "Top Esports"
+   ],
+   "players": [],
+   "score": -2,
+   "grade": "negative",
+   "rules": [
+    "visa"
+   ],
+   "reasons": [
+    "a player may not be able to travel or play"
+   ]
+  },
+  {
+   "game": "valorant",
+   "source": "EGamersWorld",
+   "title": "G2 Esports VS Team Vitality ➥ VALORANT ➥ Betting Tips, Stream, LiveScore, Results on EGW☕",
+   "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxNMy1GeTNKdWFOLXYwZjZ5Y1J3Vm1GcGRLVTJ3WGFPb2dBOG1yck5Jazd1N3BXN19iVm1nYmFOb0JfQUdGQi1pTEhFM1REQXZ0UkN2LTMwYm1KSm5iVXg3VzdKRHNzSVNGaTkwRTBYSi15UmNjUVpkUUhWcXQyVGZmRmYzdmdnLUNEZm5BNXY4Vmtxdw?oc=5",
+   "published": "2026-10-08T15:00:35+00:00",
+   "summary": "G2 Esports VS Team Vitality ➥ VALORANT ➥ Betting Tips, Stream, LiveScore, Results on EGW☕ EGamersWorld",
+   "teams": [
+    "G2 Esports",
+    "Team Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "EGamersWorld",
+   "title": "100 Thieves vs Nongshim RedForce Prediction & Betting Tip | VALORANT",
+   "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxPek52ejJ2U2NTVk1DM2hrdFV4ZWlld1NCeXpRTWY5STdjRXYwWTRmVWIydE9FV2ZteVpMbVV6NnVycmxNOFI4Q1JyODdYMUgtenZsZXlhOVlPNjJmY2dtdTRHeXVlX3V3LTdBeVhNbnZIWFJoYndKc0pWZUM3NC1DcHZSWndOMmh5VXB1cXkwNS1iVFk5?oc=5",
+   "published": "2026-10-08T14:18:33+00:00",
+   "summary": "100 Thieves vs Nongshim RedForce Prediction & Betting Tip | VALORANT EGamersWorld",
+   "teams": [
+    "100 Thieves",
+    "Nongshim RedForce"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "FreeTips",
+   "title": "T1 vs Paper Rex Betting Tips – Paper Rex Tipped to Overcome T1 in VALORANT Champions 2026",
+   "link": "https://news.google.com/rss/articles/CBMiggFBVV95cUxQM1o0RDlMdWlpR3lQWWRGa0dsc0gtcHpjYm5ZRDE5TlV4WjBPS2FVMzh5S1NKVFhIQzZkbldYZ3B4enNTQ2RCWnhraGMxNjhpVFFkTmZVd1Fqdi1EVkJmOHBDTXhuTm9Kekw4Q283ODR4M3BEdDI3Zy16cWoxV2t4WHJR?oc=5",
+   "published": "2026-10-08T14:07:57+00:00",
+   "summary": "T1 vs Paper Rex Betting Tips – Paper Rex Tipped to Overcome T1 in VALORANT Champions 2026 FreeTips",
+   "teams": [
+    "Paper Rex",
+    "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Insider Gaming",
+   "title": "100T & Nongshim Sent to Valorant Champions Lower Bracket after G2 and Vitality Victories",
+   "link": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxQamdEQnE2MjdGV0E0azJ1NUR4MlBydlBWbXJYdkdBZWR1bjNrTzlvVEFWaDB1MC00UllXa0JsTTRWUV8zdHl5T3dzaWtvaUFvNm5OVkRBMjFnTnpoRGwwZm8zeUIwZ08yQXlrWExLMWJBUzk1cFlBQXBqTWM0T1E2NkhDY09TWjV3?oc=5",
+   "published": "2026-10-08T14:07:10+00:00",
+   "summary": "100T & Nongshim Sent to Valorant Champions Lower Bracket after G2 and Vitality Victories Insider Gaming",
+   "teams": [
+    "Team Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "G2 valyn: \"Our perfect playstyle wasn't enough and we needed to step up individually\"",
+   "link": "https://news.google.com/rss/articles/CBMixAFBVV95cUxQYUZ3U0JndW5oX1hPV3JMMlRkUDJNdExHZWs2dGVmY09UX2lyb2NFRnlxWTd3cENDSW1lYURlb0dQQVFWbTNmTUx2ZTA2NUhWeHY2X2hpUTFGLXpfajljZFl1X251aEhONmhuaEFlWllDZGxHQ1RtYk1UbzNTcTdPTUc5cDdrcEhqdU9QUl8tdFU0a1Mya216ZXdTZDN0S2RZMmcwSHRPSWFMYTAyaldBZHR2ZkdHR29VNk5WdlZaUVlFSmZE?oc=5",
+   "published": "2026-10-08T13:50:17+00:00",
+   "summary": "G2 valyn: \"Our perfect playstyle wasn't enough and we needed to step up individually\" Sheep Esports",
+   "teams": [
+    "G2 Esports"
+   ],
+   "players": [
+    {
+     "name": "valyn",
+     "team": "G2 Esports"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "Global Esports Founder Rushindra Sinha: “The only other title we might consider in the future is VALORANT Mobile”",
+   "link": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxQY3VieWVQY3gwc0JYb2J5QzlDVTN4dldDa1JwQjdadlNCOXpxREhzeHhFek1IY1FRWk1XcDVRVWdSNDA4RjFjdklMODlMbEF6TFh6YVlmRlE2TTBPMWI2dkNJek8zaEJLRVVNNDBsWXhWV2htajdlcl9ZZzFEVGJQaGJJXzZqV0FMMFkySXFsZzVfRDJDM0Q0bDBNTkVxbXUtdUdFdkRDU3MtcFlwYlVtUFp3VUwzVkI5dkJwY2NiMHRDQWluZUpVeUw4YlBIU1o0SGNVTw?oc=5",
+   "published": "2026-10-08T12:41:37+00:00",
+   "summary": "Global Esports Founder Rushindra Sinha: “The only other title we might consider in the future is VALORANT Mobile” Sheep Esports",
+   "teams": [
+    "Global Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "EGamersWorld",
+   "title": "G2 Beat 100 Thieves 2-0 at Valorant Champions 2026",
+   "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxNcEFxcW81MFZBb21aaTVudVV5MXBaZkF6N0Y5NzdkalRnWFd5VVNOMlViMzg5MkRrUXFrdWFmT3RtbWcwRnNEeWhBNXFaVk4wWTNTaXFZejFZN080U2VHb21yOHlGRWs2M2huZjZSSE1hci1DV0pUbjlOZVlwMkRCTnBvZWktTWI4c0REYWxNZUJKdG1JbDJoUWtnRWZseUt3T2std1lYNVg?oc=5",
+   "published": "2026-10-08T12:25:00+00:00",
+   "summary": "G2 Beat 100 Thieves 2-0 at Valorant Champions 2026 EGamersWorld",
+   "teams": [
+    "100 Thieves"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Insider Gaming",
+   "title": "Bdd and PerfecT Re-Sign for KT Rolster Through 2028",
+   "link": "https://news.google.com/rss/articles/CBMihgFBVV95cUxPWEp0UTlFQ292YlBDMXM2eTV6ZDZxcW9OdVVKVG55bUlJUi12VHlFZ3ZtUlVtZDdGYklXdzNvZXNrTFluMDRUODJIRzBJMDZULVAwQ0R4WklTM1NUWEVZSU9xV1dfMm5xa0xsWFFNTDJLU1JlaDRKcV9qNDg4Nmlfa1FzNWlHdw?oc=5",
+   "published": "2026-10-08T12:11:44+00:00",
+   "summary": "Bdd and PerfecT Re-Sign for KT Rolster Through 2028 Insider Gaming",
+   "teams": [
+    "KT Rolster"
+   ],
+   "players": [
+    {
+     "name": "Bdd",
+     "team": "KT Rolster"
+    },
+    {
+     "name": "PerfecT",
+     "team": "KT Rolster"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing",
+    "extension"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet",
+    "a contract is extended"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Flashscore.com",
+   "title": "FlyQuest eSports",
+   "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxNNFY2VE9DcUg0V3F4eWw1eG9TUkRTTFBfVk9aSzRqY2FrZzN3Ump6WlkzNlVRZkhCTnllWEZ6M0g2QWVvdDRUdVA0cWVSUU9KVWE1R1pieUdCVXhTMWkyZWFsTHY1NUViSWFuZWV0a05wMDV5QlRwSWhnTThhdHZUTFRBRWJncHptMDg1MjRDbXBaLThoVGkyWGJXZ2V3b0lXZEpIMi1rRk1EYzVCWXpxelEtbkJGUQ?oc=5",
+   "published": "2026-10-08T11:21:36+00:00",
+   "summary": "FlyQuest eSports Flashscore.com",
+   "teams": [
+    "FlyQuest"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "EGamersWorld",
+   "title": "FlyQuest Eliminate RED Canids from Demacia Cup Global Invitational 2026",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPcTdHLS1Nd1dXaHliNDhBM0p3VmpwQml4ZEQ5eG16X3FlYkJiSE1LU3hsYlZiVkN3cFhMdDZMQm5MWVJTaTgwWWpGeUtvdUk1R0NRRDZuLTZjNlVsMHk0dnUwZU1sbUxsdmxodlBsZVRJUk13bGZpeGs5YWV6RU1sWmxtZkVfQVpyZVdHcTRVMDJoRi1tUEtQaUtoZy0wcHZBUGc?oc=5",
+   "published": "2026-10-08T10:46:55+00:00",
+   "summary": "FlyQuest Eliminate RED Canids from Demacia Cup Global Invitational 2026 EGamersWorld",
+   "teams": [
+    "FlyQuest",
+    "RED Canids"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "EGamersWorld",
+   "title": "The Audacity vs The Huns Esports Prediction & Betting Tip | Counter-Strike (CS2)",
+   "link": "https://news.google.com/rss/articles/CBMingFBVV95cUxPaXZVZUcwdUFOYnpEbzhjN0hiUWlGN2p0cVpfakpyY0lxS3J3SWE2RnY4R2E5RWRoZXJBZkZJWXpoREV0ZjVwTXB0Vk9TQkthV0dEMmpiNFZlaUYyazZrNzdTTHJJMDBCTlVabVJROGdJbmFEcUVNQnhoclRyb1ZhcjZYY2ZBYmlxVkQtYW9aUEpLN0RLZmRrUWV1alhQUQ?oc=5",
+   "published": "2026-10-08T10:15:18+00:00",
+   "summary": "The Audacity vs The Huns Esports Prediction & Betting Tip | Counter-Strike (CS2) EGamersWorld",
+   "teams": [
+    "The Huns"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Cloud9 vs Karmine Corp | Worlds 2026 | 15 October 2026",
+   "link": "https://news.google.com/rss/articles/CBMipAFBVV95cUxOT0tVcUNQTGNlcFAyZnQ3MVBsbnNjVFZiLXN6WTZZVVFZTHdlSjNRVkQ0VzNtQzczTXNmN25oRWRQdGoyWlNuOGxSMTZZaGxGYzRiRWZrQ3ZGVzJIWTJnUVhxZGF4aEt2RVNIa1JWUF9sTnM2b1RMX0dGM2ZNT2Zmd1Y5NnIwS2JzZFBkNUF6T2lpRmFmMlp6d2Y5TUZOYXllcElrUw?oc=5",
+   "published": "2026-10-08T07:06:08+00:00",
+   "summary": "Cloud9 vs Karmine Corp | Worlds 2026 | 15 October 2026 Sheep Esports",
+   "teams": [
+    "Cloud9",
+    "Karmine Corp"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "VCL guarantees a VCT EMEA playoff spot as Enterprise and Fire Flux set for showdown",
+   "link": "https://news.google.com/rss/articles/CBMixgFBVV95cUxQeERZblJQdC1KS0g4YkZ3VF9tYzhUVGVmTUgzTWgwSXFET05IRWtEX1Rfai1wNXNrT3VaQ3ZVaU1WVmNTM0VfTTg3RVJjTHg5Z05DUkZUV2FMTDFZLWJLbzVKQndXZUkwZl9nZzBZbVlReEF4WFRrdTl1aXg5WkZCX2ppbzhUUkdSOVFLYzhscGpWbVJNdVlmOVhMY1lEbGl2QXRaaFVFUVh6Q1FHTkZ0U3VaVGYzS1FDazA4Yng3RE5xMzRjdVE?oc=5",
+   "published": "2026-10-08T07:00:00+00:00",
+   "summary": "VCL guarantees a VCT EMEA playoff spot as Enterprise and Fire Flux set for showdown Sheep Esports",
+   "teams": [
+    "Fire Flux Esports",
+    "Enterprise Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Players",
+   "title": "Astralis planning double roster change after first LAN victory in years",
+   "link": "https://news.google.com/rss/articles/CBMipgFBVV95cUxNUGc3OG8wdDVFa2E2MG5EcHhiWTlOLUx2c1c2TFhJVE5uczlseHd6enNURjF3dHFIbTA3Zkk5Y19OYjlCM01lTk9jSlBjNEh0U0RRMjFVTThmN0oybmJWUHNPbkFOTVVjMmpMTGx4RUZacmhQRi1PM0lGVUlTaTNWaUUxYmVCZlVHTUFVVnBFRzVXTGNCaUQyRUVzTEV4TUJFc2JfZDdR0gGuAUFVX3lxTE9iVXdVcHZJZWtjRUZOdHdGS0ZFQ0ZGMXh0VFkxdFc5QWU5Nkk5QUhtZUtxb3BsMV9ySzFLakE3RWI5WjA0SklPb0hTaWdHc0prSlppbmlSb3ZoRTN1M0Z5cDZMOTNJdW5KNVdZUTlMR3hDSFk4TTNoQVV5YVFONnR0NWlKSld3Z0FucXRyVW9qdXVOckVDM21qMlZhYjZwRkRoWEN1R0llS1lNWjhPUQ?oc=5",
+   "published": "2026-10-08T04:27:00+00:00",
+   "summary": "Astralis planning double roster change after first LAN victory in years Players",
+   "teams": [
+    "Astralis"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Facebook",
+   "title": "BOUNCE BACK, PRX! Pacific squad Paper Rex suffered an agonizing 2-0 defeat to Brazilian titan LOUD at VALORANT Champions Shanghai playoffs. With the loss, the team has been relegated to the lower elimination bracket. Full story link in the comments s",
+   "link": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxPWkgyMXRWdUZmbTVUcFg0d0toRkdHSGJXdjNCTmtnTVdyQ2dfa2QxcGxNVWIwOXdNZm9kdVBfdzVtbF82Y19MSVd2R2YycXdaeTVXbFhUUDg1bWhqMi1RWko4R0xlOTdCQ1FCQzNXS1dST2FZbmdfT2pDbEJxSWF6TU80SFdkZC1FZjdnR0ZhY1g3UmNuNEdWNGRrazRjY3VyUTBFQTd4NlA2dWZ3TFg2ZUhweHlnQWtxZWNSQV8ycW1yYmNTaTUxNUJQeUxPd2d2U1FEZDFfZw?oc=5",
+   "published": "2026-10-08T04:15:02+00:00",
+   "summary": "BOUNCE BACK, PRX! Pacific squad Paper Rex suffered an agonizing 2-0 defeat to Brazilian titan LOUD at VALORANT Champions Shanghai playoffs. With the loss, the team has been relegated to the lower elimination bracket. Full story link in the comments s Facebook",
+   "teams": [
+    "LOUD",
+    "Paper Rex"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Dot Esports",
+   "title": "Riot delays controversial LoL replay changes to Patch 26.21",
+   "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxOUThkU09UR1VmRHEtc0I4ZkR4RmROdUhDNUFhVmEtQXY4T0QtbVo2QkptdzcyNGpfVnN3ZHBySm53d295RHE4b0xVaFAyRGN0TnJoejFSMkNGRm41OWQwUVlidW1IVUlFbGgxcnpoRVJiZjAtUUxiSm8ySC01VU9LeExGVGl0bGcyNzB0OE9WR3lFVjV0WWc?oc=5",
+   "published": "2026-10-08T03:33:00+00:00",
+   "summary": "Riot delays controversial LoL replay changes to Patch 26.21 Dot Esports",
+   "teams": [
+    "SU Esports"
+   ],
+   "players": [
+    {
+     "name": "Patch",
+     "team": "SU Esports"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "patch"
+   ],
+   "reasons": [
+    "a game patch or meta change"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Dot Esports",
+   "title": "TES ZUIAN misses Worlds 2026, 369 joins starting lineup",
+   "link": "https://news.google.com/rss/articles/CBMihgFBVV95cUxNdGlMQ2pSclh6UzM3MlNWMlhwTUx4NlhqMWtRd3dXZVYxUkxreTkyaDJGaUY4Z25XVmRNNzVzaWRPbExodEl5cjhTRE1lZTIxMFY5WDRpbVN0Yjh2Y0dmbGRjNzVlTS1KSEZhajl1c2F2YUxTSWNjb0R0RzUtS0JhOElnT2VRUQ?oc=5",
+   "published": "2026-10-07T23:54:00+00:00",
+   "summary": "TES ZUIAN misses Worlds 2026, 369 joins starting lineup Dot Esports",
+   "teams": [
+    "Top Esports"
+   ],
+   "players": [
+    {
+     "name": "ZUIAN",
+     "team": "Top Esports"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "EarlyGame",
+   "title": "LoL Patch 26.20: This Is The Worlds Patch",
+   "link": "https://news.google.com/rss/articles/CBMie0FVX3lxTE4yc01GLWtxeWJ1NWhxLTJqT1hkWUhzZmVlTm5tSFktcHJVOC1qWFFMbFBwLWNIWUhQeDhQeE14VERuS19NczFyU2pNcEZ0dVhsYWh1VnRoeDVJM3RGcnVXT0pwZFZyS25xN2FxUGhFVVN5N3BXWWpmbE1Daw?oc=5",
+   "published": "2026-10-07T23:00:00+00:00",
+   "summary": "LoL Patch 26.20: This Is The Worlds Patch EarlyGame",
+   "teams": [
+    "SU Esports"
+   ],
+   "players": [
+    {
+     "name": "Patch",
+     "team": "SU Esports"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "patch"
+   ],
+   "reasons": [
+    "a game patch or meta change"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "TalkEsport",
+   "title": "Brazil Betting Ban Hits CS2: Keyd Exit, BetBoom Deals and What Comes Next",
+   "link": "https://news.google.com/rss/articles/CBMia0FVX3lxTE0xN2xROHNfdUlORTZIWm1aR05LcU9xQlotMzBEUi00a3NXX2dRZXQ5ay1tTm9ZYTlnOTlIXzBpcGFhOFNqWmdUYU5BNlhNbnhlS1RBYXZrQUVxa0V5S1pYZUtOdjE0SmQ3d0lV?oc=5",
+   "published": "2026-10-07T21:31:17+00:00",
+   "summary": "Brazil Betting Ban Hits CS2: Keyd Exit, BetBoom Deals and What Comes Next TalkEsport",
+   "teams": [
+    "BetBoom"
+   ],
+   "players": [],
+   "score": -1,
+   "grade": "negative",
+   "rules": [
+    "departure"
+   ],
+   "reasons": [
+    "a player or coach leaves"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "The Esports Advocate",
+   "title": "Brazil Betting Ban Hits Counter-Strike Teams and BetBoom",
+   "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTFBnMG9KTFBBUGZIYlBxdnlMd0ZZeUFFVXd4QUJqOXRGYTBmek82VWQtbGtEak1iSFlaVVIxS3ZsODl2VWlaQ0gyaFZNaDlQb1hVbGo5VmFGVFNKcHVCVXU4X3p3OFU3VDR3SG1yRWVRcWJKRDBxMFBEajNR?oc=5",
+   "published": "2026-10-07T17:10:14+00:00",
+   "summary": "Brazil Betting Ban Hits Counter-Strike Teams and BetBoom The Esports Advocate",
+   "teams": [
+    "BetBoom"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Players",
+   "title": "NRG's Triumph and LOUD's Incredible Comeback: VALORANT Champions Playoffs Day One Recap",
+   "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxPQXduT0p1V19mZWVaXzFRcFRmOE1DaWdDWUNBNkoxTWlleHo0VEMxTmVFUkNscklVZHVFbGxYQThoZFVGV2xHdmtEanV6VmtDUkxmWVZuMUpIdlJRUGZOdkotT0kxc0IwdFN4UnRUV2QxVEdxTER4cmxKZV9LWHN5b0FKdWxCOXk3REJzbi1LZ09wWlE4YzlRakdQU0lqdThldDlSTVhvTk5Lc3UtVmdzZjdTM0hZeWpjM2fSAcIBQVVfeXFMTVBJd2Y4N1Q4SzUzclhMS25XV1dkUXR6UHJWcjRtN3BsRWl5YXktSGVSTThmWllZSU9fMVNLYzNIUDBCQkZmTTRtb0RFQmx0RmhmNHV5VTZlcGVaNHA4blZqeHdseTNmWjZIT2l1VHRzZDFnVHo2enlHbVNzQVdqeVlVQm1SVEpCa1F4OVBVSHJFd3dDa293SGc2WVM1TVNEZUpEV3R4LTRCQ28tSDM0TUhPUnlSOGk0QkRsSXVqMFZsMFE?oc=5",
+   "published": "2026-10-07T17:08:54+00:00",
+   "summary": "NRG's Triumph and LOUD's Incredible Comeback: VALORANT Champions Playoffs Day One Recap Players",
+   "teams": [
+    "NRG",
+    "LOUD"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sportskeeda",
+   "title": "100 Thieves vs G2 in Valorant Champions 2026 playoffs: Prediction, head-to-head, and start time",
+   "link": "https://news.google.com/rss/articles/CBMivwFBVV95cUxNTFhzVGVwUVh6NE56YXBzWUJ2eVBERVhYVDBiTkg0ZExGaE52YkRuaEJ6Wk9rc0wzNmMzQ0otYlFQVXJTNGhfckdlOHRad1RmMjluY2E4SUhOejJqSWJVdFdRUFRuMHJrcm5lMVlIUTVZQ0d5MDRoeWVEWi1mV1NCTUZlb3FVTFNmVWdOZ1JhYWxzYkVOWTBBcUpfbENLZmRjWnlpQmtlTnE1ZFZBUVFfemF4TTFnS1YxdU85ckVRYw?oc=5",
+   "published": "2026-10-07T16:50:00+00:00",
+   "summary": "100 Thieves vs G2 in Valorant Champions 2026 playoffs: Prediction, head-to-head, and start time Sportskeeda",
+   "teams": [
+    "100 Thieves"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Hotspawn",
+   "title": "Worlds 2026 Meta: What To Expect From LoL Patch 26.20",
+   "link": "https://news.google.com/rss/articles/CBMifkFVX3lxTE92MTRPQS1yc1lsMnJnWEx4aWkyUW9zdXJ2ZEhid0ZOR1Z1LVpZTkVMTVBWWUgxTTdyQXczU2FZTlRKaGpRNi1tUXBLamt2elJfQnZtY0pKbzRyNks4dVhoWUZUV01Rc2pfVW4ydHluM1pNSW5iM0pIM1gzeVV5Zw?oc=5",
+   "published": "2026-10-07T16:30:50+00:00",
+   "summary": "Worlds 2026 Meta: What To Expect From LoL Patch 26.20 Hotspawn",
+   "teams": [
+    "SU Esports"
+   ],
+   "players": [
+    {
+     "name": "Patch",
+     "team": "SU Esports"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "patch"
+   ],
+   "reasons": [
+    "a game patch or meta change"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "TalkEsport",
+   "title": "BC.Game CEO Asks Valve to Reset VRS Points Ahead of Major",
+   "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTE5qU0RZOV9lLWNtN25BZTlMUzFCdW54eUtLM0pYNzV1XzVKX0FFSjBnRlUzSFpMd3dZY3hCZzZlMFpLcVAxYXVJX0hDbTVXR1pNTXotMmVuM3JEckhETHFDeVdJNXZnZ08xWU82REF0VE4wNkhISFRwUkFR?oc=5",
+   "published": "2026-10-07T16:08:54+00:00",
+   "summary": "BC.Game CEO Asks Valve to Reset VRS Points Ahead of Major TalkEsport",
+   "teams": [
+    "BC.Game"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Esports.gg",
+   "title": "LOUD sweep Paper Rex 2-0 to open VALORANT Champions 2026 playoffs in Shanghai",
+   "link": "https://news.google.com/rss/articles/CBMifEFVX3lxTE9HWDVuMFZlX2VhOE00YVFscnVqVzR5d0RPdmFFb1h5OUU0bHh0VnFxZVI0bVBwMk9mNU5BdTQybHpXZ2xQSFFiQzR2Q3hMMmZBSmZGWmRHZjhxM3REWDZPdVhxR0NwTzgtVXl6Yl9nVUY2dkJMT00xSGZqM2s?oc=5",
+   "published": "2026-10-07T15:04:07+00:00",
+   "summary": "LOUD sweep Paper Rex 2-0 to open VALORANT Champions 2026 playoffs in Shanghai Esports.gg",
+   "teams": [
+    "LOUD",
+    "Paper Rex"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Facebook",
+   "title": "PUSHED TO THE BRINK IN SHANGHAI 📢 Paper Rex falls short against former Champions winner LOUD, dropping their playoffs opener at VALORANT Champions Shanghai, 2-0 [13-9 Split, 15-13 Sunset]. The W-Gaming squad’s tournament life is now on the",
+   "link": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxNODF0c05hTlB6RTA0VG15enY5cldtTktNVWJSNURKazhiR1RZNC1EalZ6dEhDdF9WbHhYeGVmbnUweGkzaEVud0lxbVhSelFoQUNmRnZHQlZIRnRMOV9xbWg5SW1ZQ2x2cnVuOG1RN1lqZXRycVJPSTNkNDZhaHpCbjVZRHM1S0oxRENEOHFSdllKOVlyUjIwaTVBRmdHbmpSVk1TQTU1cXYySTF6ZnJYNmloZEF5MUNfSDV0UXZXWWI2VU0yay1GaE5YWXJDcHJVR1RFZDdDTQ?oc=5",
+   "published": "2026-10-07T14:22:01+00:00",
+   "summary": "PUSHED TO THE BRINK IN SHANGHAI 📢 Paper Rex falls short against former Champions winner LOUD, dropping their playoffs opener at VALORANT Champions Shanghai, 2-0 [13-9 Split, 15-13 Sunset]. The W-Gaming squad’s tournament life is now on the Facebook",
+   "teams": [
+    "LOUD",
+    "Paper Rex"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "EGamersWorld",
+   "title": "LOUD Beat Paper Rex 2-0 at Valorant Champions 2026 Playoffs",
+   "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxOU2ZoRXZoNFJYVkJlTm81Wm5vTmxvNUEtZ2FCRVNRcjkzRFNPWXgwYWZHUF8weUMxR3RQeWVTYmNYa2gyc0JQWW9UZEFZYTFyeVA3MnpkWGZ6NURGTEhvZDNlcjB2SG4wNmEwQU5lQ1FoQW94ZFFnLVNqX1p0RTdIeFBBMVR3azZIZE0xVUtDbWdaX2lxYXZYeC1FS21ONDFKQ3JXU2k3T3c?oc=5",
+   "published": "2026-10-07T13:44:02+00:00",
+   "summary": "LOUD Beat Paper Rex 2-0 at Valorant Champions 2026 Playoffs EGamersWorld",
+   "teams": [
+    "LOUD",
+    "Paper Rex"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Insider Gaming",
+   "title": "LOUD Stun Paper Rex, NRG Outclass T1 in Valorant Champions Playoffs",
+   "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQMERjREVVNy1ETjktQ2JCc28zQzQzdXpvV01pLVlvOU1kOFNpa0lGNHFvRjZNRm1VVE0ta1RZbUFnQVpFY3ByRjlmaFhmd2RZRHhrN0lfS012d0s3TU0yOVRfd2YyTlhLUEZZem1PRFVRaHAwUEdzb3FsYnNFcjRXTTY0dVI5Ql9Uai11LXhvN2VZSXI5bDdoenN3?oc=5",
+   "published": "2026-10-07T13:31:16+00:00",
+   "summary": "LOUD Stun Paper Rex, NRG Outclass T1 in Valorant Champions Playoffs Insider Gaming",
+   "teams": [
+    "NRG",
+    "LOUD",
+    "Paper Rex",
+    "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Insider Gaming",
+   "title": "FlyQuest Survive Demacia Cup Elimination Group",
+   "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxOVWNseVpkcDB2RnRGY29GMU56anNfNVNuc0lXVGs4VkttSHBBSEkxNnVQRmwwUWxjS2JsNW0zcVNkNWRDY01SM0pGZmhDdWJZeGg1YWhBdVR6SHJ2MW1tcHRfVkdyZmdIQUQwOW9qLVVQY3N5R2ZhdWZtWkp3TFlTMEQ5cw?oc=5",
+   "published": "2026-10-07T12:48:28+00:00",
+   "summary": "FlyQuest Survive Demacia Cup Elimination Group Insider Gaming",
+   "teams": [
+    "FlyQuest"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "EGamersWorld",
+   "title": "FlyQuest Eliminate Shopify Rebellion 2-1 Behind Gryffinn's Shyvana Masterclass",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxNbUlWSVR6Uk50SkVJYkR0RXNtbnNMSXdYdlNVM0hva09vSWkwQVhhOXZEZEZhNi1wbmNaSHc5d281WlY2WnBGS1d5SEI2V0UxdFFBTC1tSktrNjdLRjVOWE5lLUp1VHJHeDdHRWNOWGkyeGxmemQwX1pnbDhZQy1NN2d2bVVhQ0swblRrVTJpS0ZrQmgzWEQ1dlFmX1dwQjBlRGc?oc=5",
+   "published": "2026-10-07T12:38:29+00:00",
+   "summary": "FlyQuest Eliminate Shopify Rebellion 2-1 Behind Gryffinn's Shyvana Masterclass EGamersWorld",
+   "teams": [
+    "Shopify Rebellion",
+    "FlyQuest"
+   ],
+   "players": [
+    {
+     "name": "Gryffinn",
+     "team": "FlyQuest"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "EGamersWorld",
+   "title": "NRG Beat T1 2-0 at Valorant Champions 2026 Playoffs",
+   "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxOSnpiaHBtVDFSaVp0SXJ4LUVpT0hFN0FRX0lNcmRCWG1MblB3V2xKTjI0cEZidnFwaEk4Qm9BTV9pTWNuTklaNEFZODJBbEoyN042RmpvWkpLV3lSZFc3dFFkTHluWkZWTFhKcUpJYXBMWUktTnVpVEU3N1JuU3h2OXVlVjJMQXhJdjM4VlVTazN2eDVscGwxUVk2b1ppVFRWZlBtVU10UEs?oc=5",
+   "published": "2026-10-07T11:19:29+00:00",
+   "summary": "NRG Beat T1 2-0 at Valorant Champions 2026 Playoffs EGamersWorld",
+   "teams": [
+    "NRG",
+    "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "games.gg",
+   "title": "1win Owner Rewards CS2 Team With $100K Bonus After Team Spirit Upset",
+   "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxOZ2QtNFJmbm5adU9lY3c0cGR0NWFLWHY4NjlvYXFVaVFncl9EUUc1R3JCNUFQMXA4cUFFVHMtQUdYMmNMZGpKRVcxRkdwREVRaDJVZEx3eFZUV2xhZUlsOXRPQkhTNmFLQ1NrZmNaMnAwekhVMVRveWhSdUR2VFAzVS1VTEYzTGpBTVg1WTl0TG5DeTli?oc=5",
+   "published": "2026-10-07T08:47:17+00:00",
+   "summary": "1win Owner Rewards CS2 Team With $100K Bonus After Team Spirit Upset games.gg",
+   "teams": [
+    "Team Spirit"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Dexerto",
+   "title": "FaZe Clan stun fans with surprise addition of NEO to CS:GO line-up",
+   "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxQOEFja3JpM2Y1dVJsMk5Qc1EzVkZGc3JxRnpuR1BlTS1FcmhlLUk5ZFE3VTF4dGtOWWRVOFRoU0hKM2RxSlIwRzc0cjNoTVlYRXNlS2s5VU9CZ3hoNXQtb2Y5aUc3MDhiRm8xRFlzSWtCcmRQOGxBQVkwM05IN2x0aktDZWltaFBBWXhUNA?oc=5",
+   "published": "2026-10-07T07:00:00+00:00",
+   "summary": "FaZe Clan stun fans with surprise addition of NEO to CS:GO line-up Dexerto",
+   "teams": [
+    "FaZe"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sportskeeda",
+   "title": "Paper Rex vs LOUD in Valorant Champions 2026 Playoffs: Prediction, head-to-head, and start time",
+   "link": "https://news.google.com/rss/articles/CBMivwFBVV95cUxQMFg5RUNGRmlhZHJqOXJIX1hMeWR2NEVzSUFDSzNLNGJKREktNHRJOTBQOER5YnpFdHREWmxiR3JaRUxwdUhUeFpoa2dVWEFYU2daZkZDck41ZndKOTdmNURzY2NDb1dEM2N4SGdneHZUNGdpd3lhNzYyM1FFYlVuTEFaS2VEaklCNmZlVEUzck1vZ0R5RXdSblRKZWtnTm54VjIxMVJZeUE3bDQza2xsc3dSYl83VXVoQ09nQU0wMA?oc=5",
+   "published": "2026-10-07T05:57:00+00:00",
+   "summary": "Paper Rex vs LOUD in Valorant Champions 2026 Playoffs: Prediction, head-to-head, and start time Sportskeeda",
+   "teams": [
+    "LOUD",
+    "Paper Rex"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Sofascore",
+   "title": "aimclub – ABT Esports - Live score",
+   "link": "https://news.google.com/rss/articles/CBMieEFVX3lxTFBidWlldHBZaUppV3NmLXk2aE9RNjFMY05JLXY1bi15NDJIcDgwdExRazJQb3FiNDRFRDVMWjFfMTNxejl4WW1GeU1LTFB6amlVVXFNZzBqOE4xVDI3YURIWmx1WWlTVE5RS2dUeUdCRlk2YWVSaFdwbw?oc=5",
+   "published": "2026-10-07T01:54:27+00:00",
+   "summary": "aimclub – ABT Esports - Live score Sofascore",
+   "teams": [
+    "aimclub",
+    "ABT"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "markets.businessinsider.com",
+   "title": "Owner 1win Rewards 1win CS2 Team With $100K Bonus After Team Spirit Upset",
+   "link": "https://news.google.com/rss/articles/CBMiywFBVV95cUxPbElpOUUxTktUOHZtMDF3WklOcHJZUWRWR3dWRGZpc1dFWFd4OEtSVXR0X1lYdFN5a3VVUmhOTTVZM2NTVmFRTlVhNC1QaXZRSkVyd2hIT2lXMUNUU2ZtR3ZiWWZZN2l0N3ZUejNETzBId2ZQOGQ0MkNWdUNHdFlsWUVsaS1WTm1tSHppWHdjYjFZbUwzREg5cWg1RnJyekMzTmUweFZsVHFrQUtSR2lBZkpGRHAwUlo2bEhOblRDOFJLTjFnNlZaZ1M2SQ?oc=5",
+   "published": "2026-10-07T01:13:12+00:00",
+   "summary": "Owner 1win Rewards 1win CS2 Team With $100K Bonus After Team Spirit Upset markets.businessinsider.com",
+   "teams": [
+    "Team Spirit"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Hotspawn",
+   "title": "Vivo Keyd Stars Clears Out Most Of Roster And Coaching Staff",
+   "link": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQdnNCQ0lKdnBuWUtLdHVuYS10b1EwWTdoNnNJTFpkWlYxUTBSbFZTekxlZVdBTE1idmk5UHE5OXNCeG83dGk4bHJIa3lydnZieVhyS25FVElsVVdLUUg3MzZfVE5uRGQ1aEFyVG5UeXRESk8yVll4dUJwanZObkJGdndTSDFabEtfUGlFQlZvcw?oc=5",
+   "published": "2026-10-06T22:50:32+00:00",
+   "summary": "Vivo Keyd Stars Clears Out Most Of Roster And Coaching Staff Hotspawn",
+   "teams": [
+    "Keyd Stars"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Hotspawn",
+   "title": "Vivo Keyd Stars Dismisses Almost The Entire Roster And Coaching Staff",
+   "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxPS2NfQXcxekF6Ykk3bkRGNXFwYzdxeXAzb1p2Z01VLXpVRmVmbnNNdDgyME13X1lXR2pXTTlTWkticWV1cWltaEpiSUFmM2lnVHYtZFJiTGM4X1QxOXdhZ2piTlhUU2ZqcmlrYmNCemlZOVd2eDBCdGZ6TWw5MWE0aE5pUGpFWGh4UGJSWTVoQVBFbFA1QjByZTB4NHJfbHdUT0Y1Z3BHNElMM1RSSmhWc0x2SHpOWnBv?oc=5",
+   "published": "2026-10-06T22:50:32+00:00",
+   "summary": "Vivo Keyd Stars Dismisses Almost The Entire Roster And Coaching Staff Hotspawn",
+   "teams": [
+    "Keyd Stars"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Insider Gaming",
+   "title": "Everything We Know About LoL Worlds Pick’Ems 2026",
+   "link": "https://news.google.com/rss/articles/CBMiggFBVV95cUxNcGlXVUdGM3BoV3FZeXl6cExmTnVLSzVkdm5CR0VKN0pkYVRVQTJMc2lZYnpmOXNDeUw5YmRMbHRlQmZ3V285VTRETm5VcHVTOURHaWZ6ZkZUY3doWko1WTN5Tk94a2p3RlJBdmpka1VhN2ZvTzdJMUFxOHBzZjA2bkxR?oc=5",
+   "published": "2026-10-06T19:28:14+00:00",
+   "summary": "Everything We Know About LoL Worlds Pick’Ems 2026 Insider Gaming",
+   "teams": [
+    "Team WE"
+   ],
+   "players": [
+    {
+     "name": "About",
+     "team": "Team WE"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Insider Gaming",
+   "title": "LoL Patch 26.20: Every Change That Will Impact the Worlds Meta",
+   "link": "https://news.google.com/rss/articles/CBMigAFBVV95cUxOMGNlSThpaWhjYzRRT2JUWnVRVVVjWV8zR0hIWTlqejVxak5ld1E0T00wUmozRVlRajlSQlBzeHIxYU91R0d6TUVHU3owSkYyU3dxT1MyU0JaaDhTUi1UODJ1QXpHT2FjSEZTbXZCdlE1SGZQLU85RTc5Y3pYTjMxbQ?oc=5",
+   "published": "2026-10-06T19:21:44+00:00",
+   "summary": "LoL Patch 26.20: Every Change That Will Impact the Worlds Meta Insider Gaming",
+   "teams": [
+    "Sentinels",
+    "SU Esports"
+   ],
+   "players": [
+    {
+     "name": "Impact",
+     "team": "Sentinels"
+    },
+    {
+     "name": "Patch",
+     "team": "SU Esports"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "patch"
+   ],
+   "reasons": [
+    "a game patch or meta change"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Insider Gaming",
+   "title": "TES Toplaner ZUIAN Set to Miss LoL Worlds 2026 With Visa Issues",
+   "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxObTlIUnNmVjdYTGN1Zlg4Nmo2aVhRcGIydGVldEUtSnRreVlsN3VNZzh2RWNicVJxM3lXLXVqN05vTlZjLXB5VzRLcWVWYUdGSWdPbEJ4TVRDR0pjeWJzU3ZzRUNBS3lRSlVDdjdtWG83TVB1TFFTWlJYc0lxMkxGN2xZdXA2M1N5Vm4wTDFQQ1ViVTZBWGc?oc=5",
+   "published": "2026-10-06T15:57:04+00:00",
+   "summary": "TES Toplaner ZUIAN Set to Miss LoL Worlds 2026 With Visa Issues Insider Gaming",
+   "teams": [
+    "Top Esports"
+   ],
+   "players": [
+    {
+     "name": "ZUIAN",
+     "team": "Top Esports"
+    }
+   ],
+   "score": -2,
+   "grade": "negative",
+   "rules": [
+    "visa"
+   ],
+   "reasons": [
+    "a player may not be able to travel or play"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Hotspawn",
+   "title": "LoL Worlds Top Lane Power Rankings 2026",
+   "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxQOUQ5c29VTUxZeS1velFoMG9LcXllTVh3WmRfalpPX1RKenBXVmptOUVHbjFqaWZYZTdPVkw0M2JndTNENDhmYTVudFRMN2tlOXpxcnA0MUJJSDhIQlJfOUlGY0I1Y0FuZEFuZFhuVHhGU1VBODFTakZ1X2hUYktRekZLY2g?oc=5",
+   "published": "2026-10-06T15:00:24+00:00",
+   "summary": "LoL Worlds Top Lane Power Rankings 2026 Hotspawn",
+   "teams": [
+    "Top Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "valorant",
    "source": "EGamersWorld",
    "title": "Team Heretics Add Jamelinho213 to Complete 2027 VCT Roster",
@@ -226,6 +2259,463 @@
    ],
    "score": 0,
    "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Spilled",
+   "title": "Dhokla gets honest about his performance after LYON loses the final to Team Liquid",
+   "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE5ZdXpNZk4tS1ZZeTBic1dnVDF5R1JHNjd1VV9Kd2hnVUhTb2NsRFE0MU8xWGk2RTVKQ3lQM1VTZ0lmR0xnMF95b3pXMWdpV2VjMFpKUy1VZVpBNzNUeEJZNG9pWm5RdlBUaWtQUldB?oc=5",
+   "published": "2026-10-06T11:11:44+00:00",
+   "summary": "Dhokla gets honest about his performance after LYON loses the final to Team Liquid Spilled",
+   "teams": [
+    "LYON",
+    "Team Liquid"
+   ],
+   "players": [
+    {
+     "name": "Dhokla",
+     "team": "LYON"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "GosuGamers",
+   "title": "Top Esports’ ZUIAN could miss Worlds 2026 after visa denial, 369 set to step in",
+   "link": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxPTjV1d19wLVJpMWhyUmVIUXpXQnZJa2x3YXVGNEh4OVU2MkdfMFJxekpHUTItWnBWdklqNUZNcXhOUjIycjhMS21yQ2lLRXBBWFlTQ1IzckZSY2h5NjhKN3RuTXdRdHZCd3FBb0FCOEU4d242dGFmMDh6aE9jeXZUczk1bmJDb1VXazdJbDRFdHNQRlUxTFVET2U4U1RyVkpsaWg5QTZnc0laX0ViT1lGWnd4eU80dFRUM3FJ?oc=5",
+   "published": "2026-10-06T11:03:49+00:00",
+   "summary": "Top Esports’ ZUIAN could miss Worlds 2026 after visa denial, 369 set to step in GosuGamers",
+   "teams": [
+    "Top Esports"
+   ],
+   "players": [
+    {
+     "name": "ZUIAN",
+     "team": "Top Esports"
+    }
+   ],
+   "score": -2,
+   "grade": "negative",
+   "rules": [
+    "visa"
+   ],
+   "reasons": [
+    "a player may not be able to travel or play"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "“What did we say about having Worlds in the US?” — Fans react to ZUIAN being ruled out due to visa issues",
+   "link": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxQb1RSVmxWbEh3NlZGcnlRTmJJRXUwWG12djhzeENMd2JTRXZaUktLMlNUcGdLQkFDWmYxdE9Ob2RGcUNBQkYtOGYtcXFCSlY3clJId1VTU1hETTdTcnEta3M4bXJLSUU5U2ZhdWNadFlKUXNBdnowMmltd3pXYXZOcHBKaS0yZnhRb2trWUNSSkVrS2hWcDNfUnBoZWxJanRFMDlRLXpCZHdnLXN6dkxDZ2FJVWhZUnY0c3FXTUtsaUNIcGNaS3ptak91ekp2cEE0Tkt3?oc=5",
+   "published": "2026-10-06T10:29:30+00:00",
+   "summary": "“What did we say about having Worlds in the US?” — Fans react to ZUIAN being ruled out due to visa issues Sheep Esports",
+   "teams": [
+    "Top Esports"
+   ],
+   "players": [
+    {
+     "name": "ZUIAN",
+     "team": "Top Esports"
+    }
+   ],
+   "score": -2,
+   "grade": "negative",
+   "rules": [
+    "visa"
+   ],
+   "reasons": [
+    "a player may not be able to travel or play"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "EGamersWorld",
+   "title": "TES Top Laner ZUIAN Denied Visa for Worlds 2026: 369 Steps In",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPdHhEc011U1lmZlFKc3ZyQWwyRklLaWpXazl5MjM5WWNyQWdSSkhGaXNZU2tQMzFseUJ1c2FUd2dNSnIzbG52dWl6TGc0NjZxOWIwMFU1dVk5cUtORGxrNU5nSWJsc3JwcTQtMWlERUpNZmhnU1NmRGE3VWVUcF9hbTBkMW9zN3pITm1RR2ozWXBoVW9IenNvbkhRS1dCM0lENXc?oc=5",
+   "published": "2026-10-06T09:03:28+00:00",
+   "summary": "TES Top Laner ZUIAN Denied Visa for Worlds 2026: 369 Steps In EGamersWorld",
+   "teams": [
+    "Top Esports"
+   ],
+   "players": [
+    {
+     "name": "ZUIAN",
+     "team": "Top Esports"
+    }
+   ],
+   "score": -2,
+   "grade": "negative",
+   "rules": [
+    "visa"
+   ],
+   "reasons": [
+    "a player may not be able to travel or play"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "ZUIAN unable to start for Top Esports at Worlds due to visa issues, 369 returns",
+   "link": "https://news.google.com/rss/articles/CBMivwFBVV95cUxQZGwwVXMxQ1FmOFFvMFZ6RE9qZ2tBTlhpZWlOYzV2NF92eFZOZWpYTzBNa25kSFNXOHcyaTJTaWlPaTM2OFQwOTlnY1p5cUxjVk43NVRjM2c3MWtISWRHclVvSXBGS3hmN1lFSlhFRlk3Ni1NTVp6dEN6bTlaMk1NNmpTUGxFWEhtR3pTRHJaWU9MTXZsSlh3aHBuOVZmRlpETVNzbnV2WGJvOXZEa3lUUXlnVmlyMl93eTZ5Vk82cw?oc=5",
+   "published": "2026-10-06T07:52:51+00:00",
+   "summary": "ZUIAN unable to start for Top Esports at Worlds due to visa issues, 369 returns Sheep Esports",
+   "teams": [
+    "Top Esports"
+   ],
+   "players": [
+    {
+     "name": "ZUIAN",
+     "team": "Top Esports"
+    }
+   ],
+   "score": -2,
+   "grade": "negative",
+   "rules": [
+    "visa"
+   ],
+   "reasons": [
+    "a player may not be able to travel or play"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Sources: Piero set to join GIANTX for the LEC 2027 Season",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOQTBXT1lMbUxwaHl1Z0l2Nm5jUVhpemlKblF0cW85c1dJbnB6ei1CQ2FwUFRodTdjRlNmWWZDQkt2em5KdHMxSm1EeWZoLVd3U01mWlhiQ0tMRERuc1M4b2R4S2hKbWdKSTFDZzV0RS1PcE9WMnJzbGxiMnZKdjlzYURURFhJdGVhc2FoeGF1VzM5LWpBRGhhZzFUbEs4VVg5Q2c?oc=5",
+   "published": "2026-10-06T04:17:11+00:00",
+   "summary": "Sources: Piero set to join GIANTX for the LEC 2027 Season Sheep Esports",
+   "teams": [
+    "GIANTX"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "valorant",
+   "source": "TalkEsport",
+   "title": "Every CS2 Team That Switched VRS Region: BC.Game, Liquid, Wildcard and Sashi",
+   "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9RLXRCOGdoSmV4enBraGUtNXB3ZE9nYjBnRHFzb3ltQ2U3eUF6eV9TZHhKZEFvWEJpOFNMN3UtR2JQU0JPVGo4N1FzWmxyNlNCR0RBT01VdWNHNThVbmNsSmpQeE4yTDVTMXhxa3JCQXdRSUhmMnZn?oc=5",
+   "published": "2026-10-05T20:40:11+00:00",
+   "summary": "Every CS2 Team That Switched VRS Region: BC.Game, Liquid, Wildcard and Sashi TalkEsport",
+   "teams": [
+    "Team Liquid"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "TalkEsport",
+   "title": "VRS Region Swap Loophole Explained: How Sashi Turned a Danish CS2 Team Into an Asian One",
+   "link": "https://news.google.com/rss/articles/CBMifkFVX3lxTE53VzJhRFJNTWg2S2JsVmoweS1fQzlseGJrWWNTbE83UmlGNlNxWjgzX3poMGtSdGpmWkdILU9MRV9xdkM0MWtnVUV4VDN1RkpiR2JWZjBJdVFuSmU2T2dRSWJRNVZ3UEFfUHl4SmxyNFFaaHFRc0dKbldtX3d6Zw?oc=5",
+   "published": "2026-10-05T20:15:48+00:00",
+   "summary": "VRS Region Swap Loophole Explained: How Sashi Turned a Danish CS2 Team Into an Asian One TalkEsport",
+   "teams": [
+    "Sashi"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "GINX TV",
+   "title": "OG CS2 Roster: New Five-Man Lineup Announced",
+   "link": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE9LbUN4Z19sOGFFSWtDLURSQkFFMnV3MnpOWXN6dEtOejI2OTZrcXNsai1CUkwtcGEtRUZzbXJldTdfcktNTGRuMURRSXdHeV9OdVZETllaRQ?oc=5",
+   "published": "2026-10-05T20:00:00+00:00",
+   "summary": "OG CS2 Roster: New Five-Man Lineup Announced GINX TV",
+   "teams": [
+    "OG"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Happy Gamer",
+   "title": "Team Liquid Win LCS 2026 Summer Championship, LoL Esports Confirms",
+   "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE1oZDNCRmZkS282bkFpdVlMNVY5MzlrS0V2WlVvajlfUmNvUGVWdGtpTDVYeGxyME52OGZaa1VmNzJuRzZDeUVnUkVXQWk5NWM3aTZMcWVhZzhhZ1dKT2JjUS1fQzE2WFBpd2pzTjZpZU9KMEpaS1Y4?oc=5",
+   "published": "2026-10-05T19:51:36+00:00",
+   "summary": "Team Liquid Win LCS 2026 Summer Championship, LoL Esports Confirms Happy Gamer",
+   "teams": [
+    "Team Liquid"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "Sources: Jamelinho213 set to join Team Heretics for 2027",
+   "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxOZlJka3pleUU3ZXlWaVZqajdFdkpPbUdQalZLX0pjMEtPNnFEbFJoelpiLTg4Y0ZmTWJPVDY4d1RMWnh2NTZwY2FpeWdyRDh0TDNSbE1PSDVmLXJESkVFX1V5dkdrNXVEZHltMWVrdUFIS09nbE1xdmZZSDZ5eFNMQlNMSnBBSHk0Vl95dnpCOTd5UmRNSkNEcWhFWUJSYWo2?oc=5",
+   "published": "2026-10-05T19:14:26+00:00",
+   "summary": "Sources: Jamelinho213 set to join Team Heretics for 2027 Sheep Esports",
+   "teams": [
+    "Team Heretics",
+    "Eintracht Frankfurt"
+   ],
+   "players": [
+    {
+     "name": "Jamelinho213",
+     "team": "Eintracht Frankfurt"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "Insider Gaming",
+   "title": "Sashi Esport Draws Counter-Strike Community Ire for Region Swap",
+   "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE9sZU1UeWpXTnFvZzJDNFkwNF9seUw5eTNOYThWaEF2YWFjSTFrUlJzQVRlVnR6ZlpzV2lrblM1YUk3akJmeHNQYVViN2FXY3FvWnMtV0JyNkkxOWNVQ2pESjdnOHp0WEF0bUQ1aVlB?oc=5",
+   "published": "2026-10-05T13:35:28+00:00",
+   "summary": "Sashi Esport Draws Counter-Strike Community Ire for Region Swap Insider Gaming",
+   "teams": [
+    "Sashi"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Players",
+   "title": "The MongolZ Sign nin9 and Bring Back cobrazera",
+   "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxQRlM1UXk2a0daLWRvS0R2d2d6emp0YzVGMVAzX3Y5VW16QlFKMG1FaUh5MkltbVdPZWRzNXpVNTZ2eWFDcWR0U1NHSHhFS1dmLVU2QWwtbFdFZ1JUZ0ZNMHZCTXdnTTBEYlhvTFRqeXJ3OHdBYklJNDM1NEpseHdiMjZEdUrSAYwBQVVfeXFMUGVkS0J5eTd6eFd2Q1kxSGk4ZFZtN3JMbUw3NjRyUFBNVzA2c0hpbThDbnBzeG9hWEZyNXFLQ2xNNWR1Tk0xT3MwbXFhNUp4NU1SRGNNUjgzQTc0SXh4WEt5c2RTLTUzQVhlZmlGcWVZb0NleHAtTXZhNU1JRExWaThsdFJkeEdFMEZsbXo?oc=5",
+   "published": "2026-10-05T09:24:46+00:00",
+   "summary": "The MongolZ Sign nin9 and Bring Back cobrazera Players",
+   "teams": [
+    "The MongolZ",
+    "The Huns"
+   ],
+   "players": [
+    {
+     "name": "nin9",
+     "team": "The Huns"
+    },
+    {
+     "name": "cobrazera",
+     "team": "The MongolZ"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "Esports News UK",
+   "title": "Wanted Goons sign LUKE4k as IGL to complete North American roster",
+   "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxPc3RKM0J4WDBvb3daMlpRVFU1d0xiRzl4Z01IWWt2b0QycDByekI4TzNYNDZpT1o5bkg5YkF0TWRjNkxwLTFXN0lIMExrT3o3c190cmVJMDdLaGxlY09TN2k2X2lWQjRjaUU1WGtJMVJ6WXF4TGp4anVUX0RDZEh3WGVqQkdQVHg3dVk3akxZZ1M3VjhWUW1vLWxkTFA2OHY3UW5XbjNrNA?oc=5",
+   "published": "2026-10-05T08:49:28+00:00",
+   "summary": "Wanted Goons sign LUKE4k as IGL to complete North American roster Esports News UK",
+   "teams": [
+    "Wanted Goons"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "Pley.gg",
+   "title": "The MongolZ finalizes roster with nin9",
+   "link": "https://news.google.com/rss/articles/CBMia0FVX3lxTE0xTFVWRlhIMUQxek81d1BEd1FwTFVVa2FGRFBhZTVoMDVnWU8xMFpxRkZTMWR6WmgtTDJjRjctV215bFNxeXpNNktXcE5PalFfVmUwcEs5Z3JQX094VDdQcUdNdlZ6MlZadFRV?oc=5",
+   "published": "2026-10-05T08:43:33+00:00",
+   "summary": "The MongolZ finalizes roster with nin9 Pley.gg",
+   "teams": [
+    "The MongolZ"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Insider Gaming",
+   "title": "Impressive Team Liquid Upset LYON to Take LCS Summer Trophy",
+   "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTFBnUUh2N2x1czlMUFpQMk5JZzhLeElhX1FMZHd4Ym9xN2gzWXduYjNqWWl0MzlrM3U2dEZ6c205NEF2am9zNnh0SWRMYjZ3UXpOUzQ1V182VU93ZlpKc2o4WHlVclotM1pVTnhIbC1R?oc=5",
+   "published": "2026-10-05T07:39:13+00:00",
+   "summary": "Impressive Team Liquid Upset LYON to Take LCS Summer Trophy Insider Gaming",
+   "teams": [
+    "LYON",
+    "Team Liquid",
+    "Fnatic"
+   ],
+   "players": [
+    {
+     "name": "Upset",
+     "team": "Fnatic"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Dexerto",
+   "title": "ScreaM officially joins Team Liquid Valorant with fish123 roster",
+   "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxNOWc4OHBUenVIS0hZYkc3TWtuZTZrQThnVWFZa1BwYi1ia3lpSzlMMWs0T1MxUTVGeS1NQTUtYmVBN0otazdpZ0NuajhOVDR0V2Q1SXhiX3JuYXRZR05KTnBwUHhJU0NOXzV3N2NMaW84MmdrN2JkWDBSeWtOb2JsOTJxUWo1Q0dQQ0ZoVG5hZFN1T1JPNmY0RHYxOG80UzcyWHI2OXBHZEFtdw?oc=5",
+   "published": "2026-10-05T07:00:00+00:00",
+   "summary": "ScreaM officially joins Team Liquid Valorant with fish123 roster Dexerto",
+   "teams": [
+    "Team Liquid"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "escorenews.com",
+   "title": "ALKA - team roster, matches, statistics",
+   "link": "https://news.google.com/rss/articles/CBMiW0FVX3lxTE1oaUs1QldvZ0c2NkdHZWN6N2hfSHBwX0dEV0lnd0w0QmRSTDJiOWZHT0NCWkxIM0hZYzFYbXQyUHhqVEdvV25CM24tbU5acEYwVllEYkxMTEl3am8?oc=5",
+   "published": "2026-10-05T05:40:48+00:00",
+   "summary": "ALKA - team roster, matches, statistics escorenews.com",
+   "teams": [
+    "ALKA"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Shane the Gamer",
+   "title": "The MongolZ Sign nin9 and Bring Back cobrazera to CS2 Roster",
+   "link": "https://news.google.com/rss/articles/CBMijwFBVV95cUxNU1N2Qmw1SWdtS1VTemc4S3o5Ylp3QjdmVlZLQ25SV3pWZWpBNG93R21TUC0wODF3Z2lSTFRjU0Rkdm5kTTFXeW9jUWhVTU1td1J0dVlEUXViWHBSLVdyMXpUUVdpblBzZ0lSR0F0Qy1hNGRfYWpEN2o0VG1jQklpVjdoWW9iNjlTcDFiR1dMSQ?oc=5",
+   "published": "2026-10-05T04:21:00+00:00",
+   "summary": "The MongolZ Sign nin9 and Bring Back cobrazera to CS2 Roster Shane the Gamer",
+   "teams": [
+    "The MongolZ",
+    "The Huns"
+   ],
+   "players": [
+    {
+     "name": "nin9",
+     "team": "The Huns"
+    },
+    {
+     "name": "cobrazera",
+     "team": "The MongolZ"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "valorant",
+   "source": "TalkEsport",
+   "title": "Global Esports at Valorant Champions 2026: Full Journey From Kickoff to Shanghai",
+   "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxPMzV2aGI0YUVEWE5xWXYtSnpmMjg2VmJrYXU0RHRzb1Y0dGVsMG1raVJLUERpcUpCMHBLUlNaSzIyYUZyUnJhdURIWnR5cEFiVkJGVEtVWkYybFlpaHJWNzZJQWZtNUl2VW0zYmtTLW5Rd0RkNmZEVGNoRVNSRFRmcHU3R05qWHlRTGRNMnE0VWpjdw?oc=5",
+   "published": "2026-10-04T12:04:31+00:00",
+   "summary": "Global Esports at Valorant Champions 2026: Full Journey From Kickoff to Shanghai TalkEsport",
+   "teams": [
+    "Global Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "TalkEsport",
+   "title": "Global Esports vs LOUD: GE Knocked Out of Valorant Champions 2026 as LOUD Reach Playoffs",
+   "link": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxNUkRqM2drZWY0QkgtRm1UeEpCd1M3V2hEVEZBM0Q1SHdXZ3NKTHVyU2NSd2owU190R2NnWWtzeGM1djlMRWxjdjdqZndGVTd6OS1kNDhZM1FZdlk3ZmtIam56YXk1dEgxaXdWQndrRW9sMzJEZnVWamh5ancyX214NXZlNEFsWHVQamlEdkJzX0VhbVZVWVZGYkVETUU1WXd1NlRkdnNCOXBiOWlnNjZWczZyM1hmMHlTTTFyMEVUR1EzNVZnRkNSMQ?oc=5",
+   "published": "2026-10-04T11:41:09+00:00",
+   "summary": "Global Esports vs LOUD: GE Knocked Out of Valorant Champions 2026 as LOUD Reach Playoffs TalkEsport",
+   "teams": [
+    "LOUD",
+    "Global Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "EGamersWorld",
+   "title": "LOUD Beat Global Esports and Reach Valorant Champions Playoffs",
+   "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxOUlJjb0RWX29TMFVlS2dab0ZHRWNJLVNSYkF2OHVHRnN6OEdMNDYzVWZaOGFHWHVYbzRVb3o0STZaVDJfalQ2RHdFMHY4TU1ubzBudGlYREZfOHp0NVhoY1VSb2p1VzVXQUVCNG01RFg2ektqWkVkZ25UOTBnX19TTzl2VHVSZVR3RkZBcjktbTM5MGJqWl9DVGV6WTNRRUtQVHo4UUgtWVY?oc=5",
+   "published": "2026-10-04T07:00:00+00:00",
+   "summary": "LOUD Beat Global Esports and Reach Valorant Champions Playoffs EGamersWorld",
+   "teams": [
+    "LOUD",
+    "Global Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
    "rules": [],
    "reasons": []
   },
@@ -240,6 +2730,185 @@
     "Liquid"
    ],
    "players": [],
+   "score": -1,
+   "grade": "negative",
+   "rules": [
+    "departure"
+   ],
+   "reasons": [
+    "a player or coach leaves"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Yahoo Sports",
+   "title": "Dodgers Announce NLDS Roster, Leave Several Notable Names Off",
+   "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxORGYxSmJQWmlQM1pIVGROMW5WNlBXQzB2ZDM3SnhGdDVLcFBHbWpoMHh1YU5OVVFKczVLNk9KZzVzRlg2b0U1QXk0bEY1N1FJdXRGVGlwR1VjMHhacVV5YlZtUTZsbFoyZ0dqT29GZUxiTWNjUkI4SkxnZF9keGxEbUY2RmdfejVnVGUw?oc=5",
+   "published": "2026-10-03T07:00:00+00:00",
+   "summary": "Dodgers Announce NLDS Roster, Leave Several Notable Names Off Yahoo Sports",
+   "teams": [
+    "EDward Gaming"
+   ],
+   "players": [
+    {
+     "name": "Leave",
+     "team": "EDward Gaming"
+    }
+   ],
+   "score": -1,
+   "grade": "negative",
+   "rules": [
+    "departure",
+    "signing"
+   ],
+   "reasons": [
+    "a player or coach leaves",
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "valorant",
+   "source": "Facebook",
+   "title": "Global Esports takes down local powerhouse EDward Gaming to seal its spot in the deciding stage of VALORANT Champions Shanghai, 2-0 [13-5 Summit, 13-6 Sunset]. The VCT China squad is the third Chinese team that has been eliminated from the group",
+   "link": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxOZ0NSZlhyWW5sOHZQMXhyU0x1V29HSnB1d1hCeUNNU0ZkTlVsU1BGZFBOdVg4MDN3b09zeUpKcG02MmYxM29lcm9pVGxuMnhaSm8wSkN1azFDZ2JUZmdpWXFyVTcwTFJCLXAxVXlKZUx5TzV1TmNUbkpKZTRTT1NYYXVRdmlJb0IzMEZFYnl3WXJTM2hnVWItVlN3ajhoSHhyd05fRVA2dzZFTmpNLUFLeGQ4T29nWW5lZTNzd2ZYeUpVSlg5OHhRbFg3QzBRbnFJT1hZZkEwcw?oc=5",
+   "published": "2026-10-02T10:49:17+00:00",
+   "summary": "Global Esports takes down local powerhouse EDward Gaming to seal its spot in the deciding stage of VALORANT Champions Shanghai, 2-0 [13-5 Summit, 13-6 Sunset]. The VCT China squad is the third Chinese team that has been eliminated from the group Facebook",
+   "teams": [
+    "Global Esports",
+    "EDward Gaming"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "TalkEsport",
+   "title": "TSG Pros Roster Reportedly Leaves Organisation After Qualifying for FFWS 2026",
+   "link": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxOUFI0U3E3a0x3b1F5REQwbWYxT2J0Qmhaa3Q2T0FnRV9oM0gzYmVYOGVKclRVMDB4ZmlFcTRjWGtjZk1DdlNoYTJqV0JrWjNRejBWSjNaQzhXYjRfdjZSZjI5UEpRSzk0YUE5SXpnS0hNVFlOVjNKQzhpNF9NSnZpM1hRcnpGWW1OMm53OTEzNHdZTENnR0JXT3pWYUVDYV9hSUlHUXJyNkRTckFIXzBzcWhBZUd2UTA5OXhN?oc=5",
+   "published": "2026-10-02T09:38:02+00:00",
+   "summary": "TSG Pros Roster Reportedly Leaves Organisation After Qualifying for FFWS 2026 TalkEsport",
+   "teams": [
+    "TSG"
+   ],
+   "players": [],
+   "score": -1,
+   "grade": "negative",
+   "rules": [
+    "departure"
+   ],
+   "reasons": [
+    "a player or coach leaves"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Sources: Rhuckz, Maxlore, and Samulek extend with GIANTX",
+   "link": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxOa2diTVkycF81LVVlQ1ludWhjeDBGRl9UTjZCdzh2VnB1bUNVZk1CZmdpQ2FSMmpMb0ZwZU1WMTAxTDZzOEtXV2Nta2I0bjNid1IzZ2ZCNmc2RE1WTkprVVZFTi1TRW04cmg2MlFyNXhMSktKXzN6aDRZWXBiREJFM3pmOUdveHpBUWNhX19VOEFYMmhTc1BacWlhLTFicWFJS1AwWkluNmJoRU15ZmVHb0pqLXVoQUVnTS1HWHlSM3laNkNmOVFnWQ?oc=5",
+   "published": "2026-10-02T07:00:00+00:00",
+   "summary": "Sources: Rhuckz, Maxlore, and Samulek extend with GIANTX Sheep Esports",
+   "teams": [
+    "GIANTX"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "extension"
+   ],
+   "reasons": [
+    "a contract is extended"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "Pley.gg",
+   "title": "HEROIC benches head coach doto despite recent tournament success",
+   "link": "https://news.google.com/rss/articles/CBMijgFBVV95cUxPdmZncmFtUUNMRnprc01CTm5ySHllWmdZcEhZZ3FES0VfZUtPZDlxN21UX0hPOUNSb3JSNG1GM1hiUkdSYzFNak9fVHNEV3N3TjlpaXNzdGpqVExLZG1aWklQMS1ReFhBUzlnMURxalFyY05KQjM1ZmJZREdiaUl1b2J4c1k1Q3pJdlRzX1J3?oc=5",
+   "published": "2026-10-01T12:46:13+00:00",
+   "summary": "HEROIC benches head coach doto despite recent tournament success Pley.gg",
+   "teams": [
+    "HEROIC"
+   ],
+   "players": [],
+   "score": -1,
+   "grade": "negative",
+   "rules": [
+    "benched",
+    "coach"
+   ],
+   "reasons": [
+    "a regular is out of the lineup",
+    "a coaching change"
+   ]
+  },
+  {
+   "game": "valorant",
+   "source": "Insider Gaming",
+   "title": "TYLOO Becomes the First Team Eliminated at Valorant Champions Shanghai",
+   "link": "https://news.google.com/rss/articles/CBMie0FVX3lxTE1yYks5TmVwXzJySDVQTzNURnFFQVhMYzFTdWZuNW9LUWl2aXotdHFISzBKMG5VOUdGU2NZNlFtcjRTM1BTd2NHNWV3WThUd1ljdGt6MXM2TTZvZjQ5aTNhdmx0MXdPMG8yZjBtTUJJNFQzcmlqcDJmZGpBbw?oc=5",
+   "published": "2026-10-01T11:44:43+00:00",
+   "summary": "TYLOO Becomes the First Team Eliminated at Valorant Champions Shanghai Insider Gaming",
+   "teams": [
+    "TYLOO"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Skin.Club Community",
+   "title": "Without a Roof officially looking for organization",
+   "link": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOWEZfcXg2UW5hOC1NaUItY0F4cmFqM0haN3R6WkFSbVF4bnJYRHZJMTZFdmkyNmdXQkZWMFRzMHoyRHE0SURVVEVKejZ5VXJFVFc5Vi1ob19JejA4YkwyeDVzbUs1blYzX0tBbVZmdks1elA2VDNjMkprVW0tNlpOM1pURjJqQVNRZkxKY2F0VQ?oc=5",
+   "published": "2026-10-01T10:58:47+00:00",
+   "summary": "Without a Roof officially looking for organization Skin.Club Community",
+   "teams": [
+    "Without a Roof"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "WIN.GG",
+   "title": "ENVY Returns to Counter-Strike After Five Years, Picking Up an “Unpaid” 3DMAX Roster",
+   "link": "https://news.google.com/rss/articles/CBMicEFVX3lxTFBlTTliRElmN3NFRHh3V3J3YTVWaXVlel9wZWx6WUUzWjBXODRjbTYyWmc3d3JzX21DUnlzRXA3TzRsdFgwaEwyQjVjUUtnblF6R2QzdzNKYlRWaERaeWRISUxhaVBfVk0xdkFobklCcDg?oc=5",
+   "published": "2026-10-01T08:24:42+00:00",
+   "summary": "ENVY Returns to Counter-Strike After Five Years, Picking Up an “Unpaid” 3DMAX Roster WIN.GG",
+   "teams": [
+    "3DMAX"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "“I don’t care about Riot” — yetujey refuses to attend FUT-100T post-match press conference after major tech issues",
+   "link": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxNNUJZSFdfNEQtdVE0T2UtazV0Z096amFKTUVNYzBzSWxfSGdzZWQ0cW9zMWlDZGxPNWh1bE0zVlB3NFdtbUpsUE1wdnUtbzBHb0NTRVVEUEpiY1NqU2FSYWtxRWFLWmVWSFVGcVlMNWtva0hyZ3ZkckRRbFhJZy1YNlM4OUZocUpLd2V1YmI4a3VTMVNPRjJrV0V3bTNuMFlPY2xEVWh5bVFxV3Rla1NDaGlVRWI2WUxGN3ZoN3VhVHFVeHB4VExrc1B4YlhWaHNiUXc?oc=5",
+   "published": "2026-09-30T15:38:21+00:00",
+   "summary": "“I don’t care about Riot” — yetujey refuses to attend FUT-100T post-match press conference after major tech issues Sheep Esports",
+   "teams": [
+    "FUT Esports"
+   ],
+   "players": [
+    {
+     "name": "yetujey",
+     "team": "FUT Esports"
+    }
+   ],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -254,6 +2923,77 @@
    "summary": "Roster Radar #2 | BC.Game Go Asian, Envy Re-enter CS Hotspawn",
    "teams": [
     "BC.Game"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Insider Gaming",
+   "title": "Team Vitality Reach Valorant Champions Shanghai Playoffs after LOUD Victory",
+   "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxOZGxYcmducXRqRjNOaHhXQnNDc3F6Z2NSVWp4Z1VYVHNNbWlYb0d5Xzc2MEUwNmgzejVucUU0ZFk5Ty12S2c4TWZsUXdFWWdTQUF4Z1dQajc2T1hZM2FRaVdpUkFTMVVHVDRMS2NFcHpic3pGbEhOU0FYOXR4cjAtUkswTE53N20wckFrdQ?oc=5",
+   "published": "2026-09-30T07:00:00+00:00",
+   "summary": "Team Vitality Reach Valorant Champions Shanghai Playoffs after LOUD Victory Insider Gaming",
+   "teams": [
+    "LOUD",
+    "Team Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "100 Thieves and Team Vitality on top of their group and qualified for VALORANT Champions playoffs",
+   "link": "https://news.google.com/rss/articles/CBMizAFBVV95cUxQdF9fSXVhOGFuV21BbHFQSTd6VlNwR3VKN2Q5OG9CRWRpSVpmNUwyS0s2UVNiSk41TGFOZDFOdUw3NEhyelkzWVBFOVZRU250M1MzWU1sUnpTdkdmbGg4czlmY25pR2ZfQllYWF9IOWkwcG55WWtPcDctQ3dZOUR0VGYya3BSQlNJRnlTekFyeTF5bEdZeGV4eHRZQXM5X1hXMFBFV3VYc3lnTzEtMFV1X0lNdnluenYtRWtTT0dFcGNWVi1DUmRBYmxEdDg?oc=5",
+   "published": "2026-09-30T07:00:00+00:00",
+   "summary": "100 Thieves and Team Vitality on top of their group and qualified for VALORANT Champions playoffs Sheep Esports",
+   "teams": [
+    "100 Thieves",
+    "Team Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Esports News UK",
+   "title": "Jinggg’s 61 Kills Power Paper Rex Into Shanghai Playoffs",
+   "link": "https://news.google.com/rss/articles/CBMidEFVX3lxTE1rQzV5b0ZOdW4xTkVSU2VHa08xZFR5d3kzSW80dUtvSXg0TkYwQWFpa2tuYXhDNWhnMURxWUF5bUFKeWtReVVwLWQ3TUJRbHFPSjE1emZCMDNtRUlhdDEwLVlnWlJJd3ZhYXRqUEY5YjFrYmk4?oc=5",
+   "published": "2026-09-30T07:00:00+00:00",
+   "summary": "Jinggg’s 61 Kills Power Paper Rex Into Shanghai Playoffs Esports News UK",
+   "teams": [
+    "Paper Rex"
+   ],
+   "players": [
+    {
+     "name": "Jinggg",
+     "team": "Paper Rex"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Shane the Gamer",
+   "title": "Envy Return to CS2 With Former 3DMAX Roster After Nearly Six Years",
+   "link": "https://news.google.com/rss/articles/CBMif0FVX3lxTE1Oa3lOdGJyUE5sZGpaVTk3QXBWNG5zSThodTFFblFzSVdLcXR1S0RJeWRUUXNSQnlIeENyUGF0eFNRVHdnQ3ozTHlQQ05sRmFOVHMwbml2NzVrbUE5V3hzQkFRWVpFTVUwU2VvUTdxN1lUM2Nhc2NQZ01SaV9nSjg?oc=5",
+   "published": "2026-09-30T03:41:00+00:00",
+   "summary": "Envy Return to CS2 With Former 3DMAX Roster After Nearly Six Years Shane the Gamer",
+   "teams": [
+    "3DMAX"
    ],
    "players": [],
    "score": 0,
@@ -292,32 +3032,90 @@
     "3DMAX"
    ],
    "players": [],
-   "score": 1,
-   "grade": "positive",
-   "rules": [
-    "return"
-   ],
-   "reasons": [
-    "a regular is back"
-   ]
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
   }
  ],
  "signals": {
-  "cs2": {
-   "MOUZ": {
-    "score": 1,
+  "lol": {
+   "T1": {
+    "score": -1,
     "items": 1,
     "rules": [
-     "return",
-     "coach"
+     "departure"
     ]
    },
-   "HEROIC": {
-    "score": 1,
+   "Top Esports": {
+    "score": -12,
+    "items": 6,
+    "rules": [
+     "visa"
+    ]
+   }
+  },
+  "valorant": {
+   "T1": {
+    "score": -1,
     "items": 1,
     "rules": [
-     "return",
-     "coach"
+     "departure"
+    ]
+   },
+   "Paper Rex": {
+    "score": -2,
+    "items": 2,
+    "rules": [
+     "departure"
+    ]
+   },
+   "GIANTX": {
+    "score": -2,
+    "items": 1,
+    "rules": [
+     "stand-in",
+     "signing"
+    ]
+   },
+   "Natus Vincere": {
+    "score": -2,
+    "items": 1,
+    "rules": [
+     "stand-in",
+     "signing"
+    ]
+   }
+  },
+  "cs2": {
+   "BBL": {
+    "score": -1,
+    "items": 1,
+    "rules": [
+     "benched",
+     "signing"
+    ]
+   },
+   "Sashi": {
+    "score": -1,
+    "items": 1,
+    "rules": [
+     "benched",
+     "signing"
+    ]
+   },
+   "Astralis": {
+    "score": -1,
+    "items": 1,
+    "rules": [
+     "benched"
+    ]
+   },
+   "BetBoom": {
+    "score": -1,
+    "items": 1,
+    "rules": [
+     "departure"
     ]
    }
   }
