@@ -1,0 +1,325 @@
+{
+ "generated_at": "2026-10-13T07:40:00.294600+00:00",
+ "rules": [
+  {
+   "name": "stand-in",
+   "effect": -2,
+   "meaning": "a stand-in plays; the team's record was built without them"
+  },
+  {
+   "name": "illness/injury",
+   "effect": -2,
+   "meaning": "a player is unwell or hurt"
+  },
+  {
+   "name": "visa",
+   "effect": -2,
+   "meaning": "a player may not be able to travel or play"
+  },
+  {
+   "name": "suspension",
+   "effect": -2,
+   "meaning": "a player or team is penalised"
+  },
+  {
+   "name": "benched",
+   "effect": -1,
+   "meaning": "a regular is out of the lineup"
+  },
+  {
+   "name": "departure",
+   "effect": -1,
+   "meaning": "a player or coach leaves"
+  },
+  {
+   "name": "return",
+   "effect": 1,
+   "meaning": "a regular is back"
+  },
+  {
+   "name": "signing",
+   "effect": 0,
+   "meaning": "a new player joins; no record with the team yet"
+  },
+  {
+   "name": "coach",
+   "effect": 0,
+   "meaning": "a coaching change"
+  },
+  {
+   "name": "patch",
+   "effect": 0,
+   "meaning": "a game patch or meta change"
+  }
+ ],
+ "feeds": [
+  {
+   "game": "lol",
+   "source": "Dot Esports",
+   "items": 0,
+   "error": "403 Client Error: Forbidden for url: https://dotesports.com/league-of-legends/feed"
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "items": 0,
+   "error": "403 Client Error: Forbidden for url: https://www.sheepesports.com/feed"
+  },
+  {
+   "game": "lol",
+   "source": "Google News",
+   "items": 100,
+   "error": null
+  },
+  {
+   "game": "valorant",
+   "source": "Dot Esports",
+   "items": 0,
+   "error": "403 Client Error: Forbidden for url: https://dotesports.com/valorant/feed"
+  },
+  {
+   "game": "valorant",
+   "source": "Google News",
+   "items": 100,
+   "error": null
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "items": 10,
+   "error": null
+  },
+  {
+   "game": "cs2",
+   "source": "Dot Esports",
+   "items": 0,
+   "error": "403 Client Error: Forbidden for url: https://dotesports.com/counter-strike/feed"
+  },
+  {
+   "game": "cs2",
+   "source": "Google News",
+   "items": 100,
+   "error": null
+  }
+ ],
+ "items": [
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "Falcons and Aurora players are most-picked in TWC 2026 Fantasy",
+   "link": "https://www.hltv.org/news/45710/falcons-and-aurora-players-are-most-picked-in-twc-2026-fantasy",
+   "published": "2026-10-12T20:05:00+00:00",
+   "summary": "The next Season game is just around the corner.",
+   "teams": [
+    "Aurora",
+    "Falcons",
+    "Procyon"
+   ],
+   "players": [
+    {
+     "name": "next",
+     "team": "Procyon"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "Falcons announce m0NESY contract extension",
+   "link": "https://www.hltv.org/news/45711/falcons-announce-m0nesy-contract-extension",
+   "published": "2026-10-12T16:36:00+00:00",
+   "summary": "The Russian sniper has committed his future to the Saudi organization.",
+   "teams": [
+    "Falcons"
+   ],
+   "players": [
+    {
+     "name": "m0NESY",
+     "team": "Falcons"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "TOBIZ returns to MOUZ as head of talent development",
+   "link": "https://www.hltv.org/news/45704/tobiz-returns-to-mouz-as-head-of-talent-development",
+   "published": "2026-10-12T10:34:00+00:00",
+   "summary": "After a year as the head coach of HEROIC, TOBIZ returns to the MOUZ fold.",
+   "teams": [
+    "MOUZ",
+    "HEROIC"
+   ],
+   "players": [],
+   "score": 1,
+   "grade": "positive",
+   "rules": [
+    "return",
+    "coach"
+   ],
+   "reasons": [
+    "a regular is back",
+    "a coaching change"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "Wildcard's Major chances soar with FRAG University title",
+   "link": "https://www.hltv.org/news/45703/wildcards-major-chances-soar-with-frag-university-title",
+   "published": "2026-10-12T09:17:00+00:00",
+   "summary": "With the Singapore Major invite cutoff looming, Wildcard have made significant strides in the race for a spot from the Americas region.",
+   "teams": [
+    "Wildcard"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "ZywOo: \"I love Cache too much\"",
+   "link": "https://www.hltv.org/news/45702/zywoo-i-love-cache-too-much",
+   "published": "2026-10-11T19:45:00+00:00",
+   "summary": "The French superstar averaged a 2.03 rating on Cache en route to yet another MVP.",
+   "teams": [
+    "Team Vitality"
+   ],
+   "players": [
+    {
+     "name": "ZywOo",
+     "team": "Team Vitality"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "EGamersWorld",
+   "title": "Team Heretics Add Jamelinho213 to Complete 2027 VCT Roster",
+   "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxQbEtvcTNxWUdMWnpMOTlPNkJPM1NkRWhaUTVKYzJFTnZLcG1YY0dhZXN2eXB5VjIyV0tSVFpFV0tQQ0lFOEpmTlA0ODhCVVl2M09sYngxZHBYRzFLanZDVnAzTHcyN21DbDlncE5mUXZ4cFUwREx6OFRuTGdQcUM0Mks2YUJYaVptR1d2a2l1OEw1YUc1R2d0c3BEVWhJSTZyNlY5aXZqNXE?oc=5",
+   "published": "2026-10-06T11:57:36+00:00",
+   "summary": "Team Heretics Add Jamelinho213 to Complete 2027 VCT Roster EGamersWorld",
+   "teams": [
+    "Team Heretics",
+    "Eintracht Frankfurt"
+   ],
+   "players": [
+    {
+     "name": "Jamelinho213",
+     "team": "Eintracht Frankfurt"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Esports Insider",
+   "title": "siuhy Free Agent After Liquid Exit",
+   "link": "https://news.google.com/rss/articles/CBMiakFVX3lxTE9nN1N0XzljcVIxTGlTX2ktaHJKN2c4aTNBcHliOVRuc1VKQVlaUkJfUjlTTkZGS3VvVHZmcDktOWNncDZUaVExaDR1SEFQbndfMUlJdnUwZURkQV9LLV92dXo0VjVDWHJINUE?oc=5",
+   "published": "2026-10-03T08:52:45+00:00",
+   "summary": "siuhy Free Agent After Liquid Exit Esports Insider",
+   "teams": [
+    "Liquid"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Hotspawn",
+   "title": "Roster Radar #2 | BC.Game Go Asian, Envy Re-enter CS",
+   "link": "https://news.google.com/rss/articles/CBMia0FVX3lxTFBPSG0ya182SWpIYnUtdnYyYktsMGRTRzNVSXdDVUpudXFMSDZPQUR2SmZaNENuSUJWUmd6NldCY3Jod2JscU04Y1lfYzR2NjBqTU9xazlIV2NFQmFCRTNIM2d3NnRaS0R6YTJR?oc=5",
+   "published": "2026-09-30T11:33:47+00:00",
+   "summary": "Roster Radar #2 | BC.Game Go Asian, Envy Re-enter CS Hotspawn",
+   "teams": [
+    "BC.Game"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "EGamersWorld",
+   "title": "Team Envy Is Back in CS2: Legendary Org Signs 3DMAX",
+   "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxQNFFBOHNqOTQxRlBHRW9YdmM1bmxFc0tubHRTVm5rUXlZU1prR1hDelU5b3RBQy1xVWhiTm1BZ2pPYVU0dnoteGI4a1dDa2xwbzNaU1d2RGlUMmJyN1dIZE1zWHlNZXBRWDRaMEdsR3JvenRNbHRYQmpVaWlqVy1UbmZkWVlBRllGdmV3YjhxbEM2VHhTanU0OU80TkxZVTRwejhFdjYtRmRWdw?oc=5",
+   "published": "2026-09-29T12:54:18+00:00",
+   "summary": "Team Envy Is Back in CS2: Legendary Org Signs 3DMAX EGamersWorld",
+   "teams": [
+    "3DMAX"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "Shane the Gamer",
+   "title": "Envy Tease CS2 Return as 3DMAX Roster Deal Reportedly Nears",
+   "link": "https://news.google.com/rss/articles/CBMickFVX3lxTE9uZlFrRlV0azFDdUwwU3FiZzN5ZWlScWRHUnppbG1IUTQ0Wld5cGlXTi1VTHUxWkhLUDFJRjVZelJMOTZTaUtTbHViczY0VWtTRHl1YnZJOHYzTkRNd0pqV1RRRmw4TE92T3FkbzRDalFnQQ?oc=5",
+   "published": "2026-09-24T07:00:00+00:00",
+   "summary": "Envy Tease CS2 Return as 3DMAX Roster Deal Reportedly Nears Shane the Gamer",
+   "teams": [
+    "3DMAX"
+   ],
+   "players": [],
+   "score": 1,
+   "grade": "positive",
+   "rules": [
+    "return"
+   ],
+   "reasons": [
+    "a regular is back"
+   ]
+  }
+ ],
+ "signals": {
+  "cs2": {
+   "MOUZ": {
+    "score": 1,
+    "items": 1,
+    "rules": [
+     "return",
+     "coach"
+    ]
+   },
+   "HEROIC": {
+    "score": 1,
+    "items": 1,
+    "rules": [
+     "return",
+     "coach"
+    ]
+   }
+  }
+ }
+}
