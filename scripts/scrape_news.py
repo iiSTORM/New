@@ -72,7 +72,7 @@ RULES = [
      "a player or team is penalised"),
     ("benched", r"\bbench(?:ed|es|ing)?\b|\binactive\b|\bmoved to (?:the )?reserves?\b", -1,
      "a regular is out of the lineup"),
-    ("departure", r"\bpart(?:s|ed)? ways\b|\bleaves?\b|\bleft the team\b|\breleas\w*|\bdeparts?\b|\bdeparture\b|\bretire\w*|\bstep(?:s|ped)? down\b|\bexit\w*|\bfree agen\w*|\bdropped\b", -1,
+    ("departure", r"\bpart(?:s|ed)? ways\b|\bleaves? the (?:team|roster|org\w*)\b|\bleft the team\b|\breleas(?:ed|es) (?:from|by)\b|\bhas been released\b|\bdeparts?\b|\bdeparture\b|\bretire\w*|\bstep(?:s|ped)? down\b|\bexits? (?:the|from) (?:team|roster|org\w*)\b|\bfree agen\w*|\bdropped\b", -1,
      "a player or coach leaves"),
     # A return FROM an absence, not an organisation "returning to CS2" or a
     # coach "returning to" a club in another role.
@@ -95,7 +95,8 @@ river rookie ruler score shadow sky smash snow star storm sun take tarzan
 tiger top vin viper zeus zest zeka jojo bean bear boo cat dog king lord
 next basic alpha blood blaze atom bang asap angel brave chef clear crazy
 dream flash fresh ghost hero honest jump kid lucky magic mad nice night
-pace rush silent smile sonic spirit swift tank true wild zero
+pace rush silent smile sonic spirit swift tank true wild zero carry
+support jungle mid bot
 """.split())
 # An all-lowercase handle right after one of these is an ordinary word in a
 # sentence ("the next", "a basic"), not a player.
@@ -208,6 +209,9 @@ def mentions(text, game_entities):
             continue
         found = [m for m in re.finditer(r"(?<![\w])" + re.escape(name) + r"(?![\w])", text)
                  if not (name.islower() and _ARTICLE_BEFORE.search(text[:m.start()]))]
+        if not found and len(name) >= 4 and name.lower() not in COMMON_WORDS:
+            # Headlines often shout a handle ("TES ZUIAN misses Worlds").
+            found = list(re.finditer(r"(?<![\w])" + re.escape(name.upper()) + r"(?![\w])", text))
         if not found:
             continue
         if name.lower() in COMMON_WORDS and team not in teams:
@@ -234,6 +238,11 @@ def label(score):
     return "negative" if score < 0 else "positive" if score > 0 else "neutral"
 
 
+# Listing pages and live-score stubs that name two teams and say nothing.
+NOISE = re.compile(r"live score|match stream|live broadcast|match result|match stats|\bvs\b.*\d{1,2}\.\d{1,2}\.\d{2}",
+                   re.IGNORECASE)
+
+
 def build(items, entities, now, dropped=None):
     """Graded items naming a tracked team, newest first. `dropped`, when
     given, counts what was left out and why, for the run log."""
@@ -244,6 +253,9 @@ def build(items, entities, now, dropped=None):
         when = parse_date(it.get("published")) if it.get("published") else None
         if when and when < cutoff:
             dropped["older than %d days" % KEEP_DAYS] = dropped.get("older than %d days" % KEEP_DAYS, 0) + 1
+            continue
+        if NOISE.search(it["title"]):
+            dropped["live-score or stream page"] = dropped.get("live-score or stream page", 0) + 1
             continue
         key = re.sub(r"[^a-z0-9]", "", it["title"].lower())[:90]
         if key in seen:
@@ -267,8 +279,13 @@ def build(items, entities, now, dropped=None):
 
 def team_signals(items, now, days=7):
     """{game: {team: {"score": n, "items": k, "rules": [...]}}} over the last
-    `days` days: the per-team summary a fixture card can show."""
+    `days` days: the per-team summary a fixture card can show.
+    One story is usually several articles (six outlets ran ZUIAN's visa
+    denial), so each KIND of news counts once per team: the score is the sum
+    of the distinct rules that fired, not of the items.
+    """
     cutoff = now - timedelta(days=days)
+    effect = {n: e for n, _, e, _ in COMPILED}
     out = {}
     for it in items:
         when = parse_date(it.get("published")) if it.get("published") else None
@@ -276,11 +293,11 @@ def team_signals(items, now, days=7):
             continue
         for team in it["teams"]:
             s = out.setdefault(it["game"], {}).setdefault(team, {"score": 0, "items": 0, "rules": []})
-            s["score"] += it["score"]
             s["items"] += 1
             for r in it["rules"]:
                 if r not in s["rules"]:
                     s["rules"].append(r)
+                    s["score"] += effect.get(r, 0)
     return out
 
 

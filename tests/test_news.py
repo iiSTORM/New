@@ -116,3 +116,30 @@ def test_the_first_live_run_grades():
     assert g("Falcons announce m0NESY contract extension")[1] == ["extension"]
     assert "signing" in g("Team Heretics Add Jamelinho213 to Complete 2027 VCT Roster")[1]
     assert g("ZywOo returns from illness")[0] > 0
+
+
+def test_second_live_run_grades():
+    g = lambda t: sn.grade(t)[0]
+    assert g("200% Cuteness: T1 Universal Minions Collection Released") == 0
+    assert g("Paper Rex Hold Unfortunate Record After Valorant Champions Exit") == 0
+    assert g("TES Top Laner ZUIAN Denied Visa for Worlds 2026: 369 Steps In") < 0
+    assert g("Astralis Roster Change: HooXi and jabbi Benched") < 0
+
+
+def test_one_story_in_many_outlets_counts_once_per_team():
+    xml = "<rss><channel>" + "".join(
+        f"<item><title>T1 visa trouble, report {i}</title><link>https://v/{i}</link>"
+        f"<pubDate>Sun, 12 Oct 2026 0{i}:00:00 GMT</pubDate></item>" for i in range(5)) + "</channel></rss>"
+    items = sn.build(sn.parse_feed(xml, "lol", "x"), ENTS, NOW)
+    assert len(items) == 5
+    assert sn.team_signals(items, NOW)["lol"]["T1"] == {"score": -2, "items": 5, "rules": ["visa"]}
+
+
+def test_shouted_handles_match_and_live_score_pages_are_dropped():
+    ents = {"teams": {"Top Esports": ["Top Esports"]}, "players": {"Zuian": "Top Esports"}}
+    assert sn.mentions("TES ZUIAN misses Worlds", ents)[1] == [{"name": "Zuian", "team": "Top Esports"}]
+    xml = ("<rss><channel><item><title>Top Esports - Foo - Live score</title><link>https://l/1</link>"
+           "<pubDate>Sun, 12 Oct 2026 10:00:00 GMT</pubDate></item></channel></rss>")
+    dropped = {}
+    assert sn.build(sn.parse_feed(xml, "lol", "x"), {"lol": ents}, NOW, dropped) == []
+    assert dropped == {"live-score or stream page": 1}
