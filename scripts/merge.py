@@ -364,6 +364,51 @@ def resolve_upcoming(region_schedule, lookup, region_key="?", aliases=None,
                       "uncovered": dropped_uncovered, "half": kept_half}
 
 
+def attach_start_times(past_matches, event):
+    """Give each played event match the start time the schedule has for it.
+
+    gol.gg, where results come from, gives a date and no clock. That is
+    enough until a team plays twice in a day -- every round-robin day at
+    an international event -- and then the grader cannot tell which of
+    the two matches a posted line belonged to, so it refuses both: about
+    75 Demacia Cup lines on 2026-10-07 sat ungraded for exactly that.
+    The LoL Esports schedule has the clock, so it is copied across.
+
+    Matched on the pair of teams and the nearest date within a day (gol.gg
+    dates are local to the event, the schedule's are UTC). Two scheduled
+    meetings of the same pair equally near leave the match untimed rather
+    than guessed. Never overwrites a time already present. Returns how
+    many matches were given one.
+    """
+    scheduled = {}
+    for stage in event.get("stages") or []:
+        for sec in stage.get("sections") or []:
+            for m in sec.get("matches") or []:
+                names = [t.get("team") for t in m.get("teams") or []]
+                if len(names) != 2 or not all(names) or not m.get("start"):
+                    continue
+                scheduled.setdefault(frozenset(names), []).append(m["start"])
+    count = 0
+    for match in past_matches:
+        if match.get("start_time") or not match.get("date"):
+            continue
+        starts = scheduled.get(frozenset((match.get("teamA"), match.get("teamB"))))
+        if not starts:
+            continue
+        try:
+            day = datetime.strptime(str(match["date"])[:10], "%Y-%m-%d").date()
+        except ValueError:
+            continue
+        near = sorted((abs((datetime.fromisoformat(s.replace("Z", "+00:00")).date() - day).days), s)
+                      for s in starts)
+        near = [pair for pair in near if pair[0] <= 1]
+        if not near or (len(near) > 1 and near[0][0] == near[1][0]):
+            continue
+        match["start_time"] = near[0][1]
+        count += 1
+    return count
+
+
 def merge_international(data, schedule):
     """Fold each international event into data.json as a region of its own.
 
@@ -408,6 +453,9 @@ def merge_international(data, schedule):
                         if not name:
                             unresolved.add(t["name"])
         region["event"] = event
+        timed = attach_start_times(region.get("past_matches") or [], event)
+        if timed:
+            print(f"{key}: start times attached to {timed} played match(es)")
         wanted = event_team_names(event) + [n for m in upcoming for n in (m["teamA"], m["teamB"])]
         borrowed, missing = lend_home_rosters(region, list(dict.fromkeys(wanted)), donors)
         print(f"{key}: {len(upcoming)} upcoming, {len(borrowed)} roster(s) from home leagues"

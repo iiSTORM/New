@@ -231,3 +231,34 @@ def test_the_two_event_lists_name_the_same_regions():
     pytest.importorskip("bs4")
     import scrape_lcs
     assert set(scrape_lcs.GOLGG_EVENTS) == set(intl.INTERNATIONAL_EVENTS)
+
+
+def _event_with(matches):
+    return {"stages": [{"sections": [{"matches": matches}]}]}
+
+
+def _sched(start, a, b):
+    return {"start": start, "teams": [{"name": a, "team": a}, {"name": b, "team": b}]}
+
+
+def test_played_matches_get_the_schedules_start_time():
+    """Two Demacia Cup matches for FlyQuest on 2026-10-07 left every line on
+    either ungraded until each result carried its clock."""
+    import merge
+    past = [{"date": "2026-10-07", "teamA": "FlyQuest", "teamB": "GAM Esports"},
+            {"date": "2026-10-07", "teamA": "Shopify Rebellion", "teamB": "FlyQuest"}]
+    event = _event_with([_sched("2026-10-07T07:00:00Z", "GAM Esports", "FlyQuest"),
+                         _sched("2026-10-07T11:00:00Z", "FlyQuest", "Shopify Rebellion")])
+    assert merge.attach_start_times(past, event) == 2
+    assert [m["start_time"] for m in past] == ["2026-10-07T07:00:00Z", "2026-10-07T11:00:00Z"]
+
+
+def test_start_times_are_never_guessed_or_overwritten():
+    import merge
+    past = [{"date": "2026-10-07", "teamA": "A", "teamB": "B"},               # two equally near meetings
+            {"date": "2026-10-07", "teamA": "C", "teamB": "D", "start_time": "kept"},
+            {"date": "2026-10-20", "teamA": "E", "teamB": "F"}]               # nothing within a day
+    event = _event_with([_sched("2026-10-06T07:00:00Z", "A", "B"), _sched("2026-10-08T07:00:00Z", "A", "B"),
+                         _sched("2026-10-07T09:00:00Z", "C", "D"), _sched("2026-10-07T09:00:00Z", "E", "F")])
+    assert merge.attach_start_times(past, event) == 0
+    assert "start_time" not in past[0] and past[1]["start_time"] == "kept" and "start_time" not in past[2]
