@@ -4257,9 +4257,9 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
 function Slider({ label, value, onChange, min, max, step, format, tooltip }) {
   const theme = useTheme();
   return (
-    <div style={{ marginBottom: 16 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: theme.textDim, marginBottom: 5, fontFamily: "'Inter', sans-serif" }}>
-        <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+    <div style={{ marginBottom: 14, padding: "12px 12px 14px", borderRadius: 14, background: theme.void, border: `1px solid ${theme.steelSoft}` }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 12, color: theme.text, fontWeight: 600, marginBottom: 12, fontFamily: "'Inter', sans-serif" }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
           {label}
           {tooltip && (
             <span
@@ -4274,9 +4274,11 @@ function Slider({ label, value, onChange, min, max, step, format, tooltip }) {
             </span>
           )}
         </span>
-        <span style={{ color: theme.accent, fontFamily: "'JetBrains Mono', monospace" }}>{format ? format(value) : value}</span>
+        <span style={{ alignSelf: "flex-start", color: theme.accent, fontFamily: "'JetBrains Mono', monospace", fontSize: 10.5, fontWeight: 700,
+          padding: "2px 8px", borderRadius: 8, background: theme.accentSoft, lineHeight: 1.45 }}>{format ? format(value) : value}</span>
       </div>
-      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(parseFloat(e.target.value))} style={{ width: "100%", accentColor: theme.accent }} />
+      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(parseFloat(e.target.value))}
+        style={{ width: "100%", "--pct": `${max > min ? ((value - min) / (max - min)) * 100 : 0}%` }} />
     </div>
   );
 }
@@ -5461,26 +5463,28 @@ function ProjectionsTab({ isDesktop }) {
             Not enough graded props yet to measure.
           </div>
         ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <table className="kp-table">
             <thead>
-              <tr style={{ color: theme.textDim, textAlign: "left" }}>
-                <th style={{ padding: "4px 6px" }}>cell</th>
-                <th style={{ padding: "4px 6px", textAlign: "right" }}>props</th>
-                <th style={{ padding: "4px 6px", textAlign: "right" }}>model</th>
-                <th style={{ padding: "4px 6px", textAlign: "right" }}>line</th>
-                <th style={{ padding: "4px 6px", textAlign: "right" }}>gap</th>
+              <tr style={{ textAlign: "left" }}>
+                <th>cell</th>
+                <th className="n">props</th>
+                <th className="n">model</th>
+                <th className="n">line</th>
+                <th className="n">gap</th>
               </tr>
             </thead>
             <tbody>
               {benchmark.map((b) => (
-                <tr key={b.cell} style={{ borderTop: `1px solid ${theme.steel}` }}>
-                  <td style={{ padding: "4px 6px" }}>{b.cell}</td>
-                  <td style={{ padding: "4px 6px", textAlign: "right" }}>{b.n}</td>
-                  <td style={{ padding: "4px 6px", textAlign: "right" }}>{b.model_mae.toFixed(2)}</td>
-                  <td style={{ padding: "4px 6px", textAlign: "right" }}>{b.line_mae.toFixed(2)}</td>
-                  <td style={{ padding: "4px 6px", textAlign: "right",
-                               color: b.ahead ? theme.good : theme.bad, fontWeight: 600 }}>
-                    {b.gap > 0 ? "+" : ""}{b.gap.toFixed(2)}
+                <tr key={b.cell}>
+                  <td style={{ fontWeight: 600 }}>{b.cell}</td>
+                  <td className="n" style={{ color: theme.textDim }}>{b.n}</td>
+                  <td className="n">{b.model_mae.toFixed(2)}</td>
+                  <td className="n" style={{ color: theme.textDim }}>{b.line_mae.toFixed(2)}</td>
+                  <td className="n">
+                    <span style={{ display: "inline-block", minWidth: 52, padding: "2px 8px", borderRadius: 999, fontWeight: 800,
+                      color: b.ahead ? theme.good : theme.bad, background: `${b.ahead ? theme.good : theme.bad}1a` }}>
+                      {b.gap > 0 ? "+" : ""}{b.gap.toFixed(2)}
+                    </span>
                   </td>
                 </tr>
               ))}
@@ -5497,21 +5501,18 @@ function ProjectionsTab({ isDesktop }) {
 
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
         <select value={game} onChange={(e) => setGame(e.target.value)}
-                style={{ padding: 6, background: theme.graphite, color: theme.text,
-                         border: `1px solid ${theme.steel}`, borderRadius: 6 }}>
+                className="kp-select">
           <option value="all">every game</option>
           {GAME_LIST.map((g) => <option key={g} value={g}>{GAMES[g].label}</option>)}
         </select>
         <select value={sort} onChange={(e) => setSort(e.target.value)}
-                style={{ padding: 6, background: theme.graphite, color: theme.text,
-                         border: `1px solid ${theme.steel}`, borderRadius: 6 }}>
+                className="kp-select">
           <option value="disagreement">biggest disagreement with the line</option>
           <option value="confidence">model's own confidence</option>
           <option value="start">soonest to lock</option>
         </select>
         <select value={minConfidence} onChange={(e) => setMinConfidence(e.target.value)}
-                style={{ padding: 6, background: theme.graphite, color: theme.text,
-                         border: `1px solid ${theme.steel}`, borderRadius: 6 }}>
+                className="kp-select">
           <option value="low">any amount of history</option>
           <option value="medium">8+ maps of history</option>
           <option value="high">20+ maps of history</option>
@@ -5521,50 +5522,69 @@ function ProjectionsTab({ isDesktop }) {
         </div>
       </div>
 
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+      <div style={{ overflowX: "auto", background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), padding: "4px 6px" }}>
+        <table className="kp-table">
           <thead>
-            <tr style={{ color: theme.textDim, textAlign: "left" }}>
-              <th style={{ padding: "6px 8px" }}>player</th>
-              <th style={{ padding: "6px 8px" }}>stat</th>
-              <th style={{ padding: "6px 8px", textAlign: "right" }}>line</th>
-              <th style={{ padding: "6px 8px", textAlign: "right" }}>projection</th>
-              <th style={{ padding: "6px 8px", textAlign: "right" }}>gap</th>
-              <th style={{ padding: "6px 8px" }}>side</th>
-              <th style={{ padding: "6px 8px", textAlign: "right" }}>model says</th>
-              <th style={{ padding: "6px 8px" }}>history</th>
+            <tr style={{ textAlign: "left" }}>
+              <th>player</th>
+              <th>stat</th>
+              <th className="n">line</th>
+              <th className="n">projection</th>
+              <th className="n">gap</th>
+              <th>side</th>
+              <th className="n">model says</th>
+              <th>history</th>
             </tr>
           </thead>
           <tbody>
-            {rows.slice(0, 200).map((r) => (
-              <tr key={r.prop_id} style={{ borderTop: `1px solid ${theme.steel}` }}>
-                <td style={{ padding: "6px 8px", fontWeight: 600 }}>
+            {rows.slice(0, 200).map((r) => {
+              const sideTone = /over/i.test(r.side || "") ? theme.good : /under/i.test(r.side || "") ? theme.bad : theme.textDim;
+              const histTone = r.confidence === "high" ? theme.good : r.confidence === "medium" ? theme.accent : theme.textFaint;
+              return (
+              <tr key={r.prop_id}>
+                <td style={{ fontWeight: 700, whiteSpace: "nowrap" }}>
                   {r.player}
-                  <span style={{ color: theme.textDim, fontWeight: 400 }}> {r.team}</span>
+                  <span style={{ color: theme.textFaint, fontWeight: 500, fontSize: 12 }}> {r.team}</span>
                   {r.odds_type !== "standard" && (
-                    <span style={{ color: theme.accent, marginLeft: 6, fontSize: 11 }}>
+                    <span style={{ marginLeft: 7, fontSize: 9.5, fontWeight: 800, letterSpacing: 0.5, textTransform: "uppercase",
+                      padding: "1px 6px", borderRadius: 999, color: r.odds_type === "demon" ? theme.bad : theme.good,
+                      border: `1px solid ${r.odds_type === "demon" ? theme.bad : theme.good}55` }}>
                       {r.odds_type}
                     </span>
                   )}
                 </td>
-                <td style={{ padding: "6px 8px", color: theme.textDim }}>
+                <td style={{ color: theme.textDim, whiteSpace: "nowrap" }}>
                   {r.stat} · {mapWindowLabel(r.maps, r.map || Number((/:\d+@(\d+):/.exec(r.prop_id || "") || [])[1]) || 1)}
                 </td>
-                <td style={{ padding: "6px 8px", textAlign: "right" }}>{r.line}</td>
-                <td style={{ padding: "6px 8px", textAlign: "right" }}>
+                <td className="n" style={{ fontWeight: 700 }}>{r.line}</td>
+                <td className="n" style={{ color: theme.textDim }}>
                   {r.projection === null ? "—" : r.projection.toFixed(1)}
                 </td>
-                <td style={{ padding: "6px 8px", textAlign: "right", fontWeight: 600 }}>
+                <td className="n" style={{ fontWeight: 800, color: r.gap === null ? theme.textFaint : r.gap > 0 ? theme.good : theme.bad }}>
                   {r.gap === null ? "—" : `${r.gap > 0 ? "+" : ""}${r.gap.toFixed(1)}`}
                 </td>
-                <td style={{ padding: "6px 8px", textTransform: "uppercase",
-                             fontSize: 11, letterSpacing: 0.5 }}>{r.side}</td>
-                <td style={{ padding: "6px 8px", textAlign: "right" }}>
-                  {(r.p_win * 100).toFixed(0)}%
+                <td>
+                  <span style={{ textTransform: "uppercase", fontSize: 10.5, fontWeight: 800, letterSpacing: 0.6,
+                    padding: "2px 8px", borderRadius: 999, color: sideTone, background: `${sideTone}1a` }}>{r.side}</span>
                 </td>
-                <td style={{ padding: "6px 8px", color: theme.textDim }}>{r.confidence}</td>
+                <td className="n">
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+                    <span aria-hidden="true" style={{ width: 42, height: 5, borderRadius: 999, background: theme.steelSoft, overflow: "hidden" }}>
+                      <span style={{ display: "block", width: `${Math.max(0, Math.min(100, r.p_win * 100))}%`, height: "100%",
+                        background: theme.grad, borderRadius: 999 }} />
+                    </span>
+                    {(r.p_win * 100).toFixed(0)}%
+                  </span>
+                </td>
+                <td>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: theme.textDim }}>
+                    <span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: "50%", background: histTone }} />
+                    {r.confidence}
+                  </span>
+                </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -6585,18 +6605,22 @@ function WeightControls({ weights, onChangeWeight, expanded, onToggleExpanded, s
     : [];
   const LABELS = { history: "History", opponent: "Opponent", kp: "KP", recencyHalfLife: "Recency", patchDiscount: "Patch", career: "Career", share: "Team share", shrink: "Shrinkage" };
   return (
-    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), padding: 18, marginBottom: 22 }}>
+    <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), padding: 14, marginBottom: 14 }}>
       <div
-        className="kp-clickable"
+        role="button" tabIndex={0} aria-expanded={expanded}
         onClick={onToggleExpanded}
-        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: expanded ? 12 : 0 }}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onToggleExpanded(); } }}
+        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, cursor: "pointer", marginBottom: expanded ? 12 : 4 }}
       >
-        <div style={{ fontSize: 13, color: theme.text, fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>
-          Advanced tuning <span style={{ color: theme.textFaint, fontWeight: 400 }}>· {statLabel} · optional</span>
+        <span style={{ width: 30, height: 30, borderRadius: 10, display: "grid", placeItems: "center", flexShrink: 0,
+          background: expanded ? theme.grad : theme.graphiteLight, border: `1px solid ${expanded ? "transparent" : theme.steel}` }}>
+          <Icon name="pulse" size={15} stroke={2} color={expanded ? theme.onAccent : theme.accent} />
+        </span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13.5, color: theme.text, fontFamily: "'Sora', sans-serif", fontWeight: 700 }}>Advanced tuning</div>
+          <div style={{ fontSize: 10.5, color: theme.textFaint, letterSpacing: 0.3 }}>{statLabel} · optional</div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 14, color: theme.textDim, transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}>▾</span>
-        </div>
+        <Chevron open={expanded} color={theme.textDim} />
       </div>
       {!expanded && (
         <div style={{ fontSize: 11, color: theme.textFaint, lineHeight: 1.55, marginTop: 2 }}>
@@ -6941,8 +6965,11 @@ function sortGroupsByProgression(groups) {
 function WeekHeader({ label }) {
   const theme = useTheme();
   return (
-    <div style={{ fontSize: 12, fontWeight: 600, color: theme.textDim, fontFamily: "'Inter', sans-serif", margin: "18px 0 10px" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 10.5, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase",
+      color: theme.textDim, fontFamily: "'Inter', sans-serif", margin: "20px 0 10px" }}>
+      <span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: 2, background: theme.grad || theme.accent, transform: "rotate(45deg)" }} />
       {label}
+      <span aria-hidden="true" style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${theme.steel}, transparent)` }} />
     </div>
   );
 }
@@ -6967,10 +6994,10 @@ function StageBadge({ stage }) {
   return (
     <span
       style={{
-        fontSize: 11, fontWeight: s.weight, padding: "4px 11px", borderRadius: 20,
+        fontSize: 10.5, fontWeight: 800, padding: "4px 11px", borderRadius: 20, letterSpacing: 0.5, textTransform: "uppercase",
         fontFamily: "'Inter', sans-serif",
-        color: isFeatured ? theme.accent : theme.textFaint,
-        background: isFeatured ? theme.accentSoft : theme.steelSoft,
+        color: isFeatured ? (theme.onAccent || theme.void) : theme.textDim,
+        background: isFeatured ? (theme.grad || theme.accent) : theme.steelSoft,
       }}
     >
       {s.label}
@@ -6981,8 +7008,12 @@ function StageBadge({ stage }) {
 function TournamentHeader({ tournament, stage }) {
   const theme = useTheme();
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "28px 0 12px", paddingBottom: 10, borderBottom: `1px solid ${theme.steel}` }}>
-      <span style={{ fontSize: 18, fontWeight: 600, color: theme.text, fontFamily: "'Sora', sans-serif" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "30px 0 12px", flexWrap: "wrap" }}>
+      <span style={{ width: 30, height: 30, borderRadius: 10, display: "grid", placeItems: "center", flexShrink: 0,
+        background: theme.graphiteLight, border: `1px solid ${theme.steel}` }}>
+        <Icon name="trophy" size={15} stroke={2} color={theme.accent} />
+      </span>
+      <span style={{ fontSize: 20, fontWeight: 800, color: theme.text, fontFamily: "'Sora', sans-serif", letterSpacing: -0.4 }}>
         {tournament}
       </span>
       <StageBadge stage={stage} />
@@ -7025,13 +7056,14 @@ function DayPicker({ dates, activeDate, onChange, counts }) {
       style={{
         flex: "0 0 auto", minWidth: 74, padding: "8px 13px", cursor: "pointer",
         borderRadius: 12, fontFamily: "'Inter', sans-serif", textAlign: "center",
-        border: `1px solid ${selected ? theme.accent : theme.steel}`,
-        background: selected ? theme.accentSoft : theme.graphite,
-        color: selected ? theme.accent : theme.textDim,
+        border: `1px solid ${selected ? "transparent" : theme.steel}`,
+        background: selected ? theme.grad : theme.graphite,
+        color: selected ? theme.onAccent : theme.textDim,
+        boxShadow: selected ? `0 8px 22px -10px ${theme.accent}` : "inset 0 1px 0 rgba(255,255,255,0.04)",
         scrollSnapAlign: "start",
       }}
     >
-      <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>{top}</div>
+      <div style={{ fontSize: 13, fontWeight: selected ? 800 : 600, whiteSpace: "nowrap" }}>{top}</div>
       <div style={{ fontSize: 10.5, whiteSpace: "nowrap", marginTop: 2, opacity: 0.8 }}>
         {bottom ? <>{bottom} <span aria-hidden="true">·</span> </> : null}
         <span className="kp-num">{count}</span>
@@ -7307,26 +7339,34 @@ function ConsistencyTab({ teams, pastMatches, statType, isDesktop }) {
       </div>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 16 }}>
-        {[["consistency", "Most consistent"], ["volume", "Highest average"]].map(([id, label]) => (
+        <div role="group" aria-label="Sort" style={{ display: "inline-flex", gap: 2, padding: 4, borderRadius: 14,
+          background: `${theme.graphite}d9`, border: `1px solid ${theme.steel}` }}>
+        {[["consistency", "Most consistent", "pulse"], ["volume", "Highest average", "chart"]].map(([id, label, icon]) => (
           <button
             key={id}
+            className="kp-btn"
+            aria-pressed={sortBy === id}
             onClick={() => setSortBy(id)}
             style={{
-              fontSize: 12, fontWeight: 600, padding: "6px 13px", borderRadius: 20,
+              display: "inline-flex", alignItems: "center", gap: 7,
+              fontSize: 12.5, fontWeight: 700, padding: "7px 13px", borderRadius: 10,
               fontFamily: "'Inter', sans-serif", cursor: "pointer", border: "none",
-              color: sortBy === id ? theme.accent : theme.textDim,
-              background: sortBy === id ? theme.accentSoft : theme.steelSoft,
+              color: sortBy === id ? theme.onAccent : theme.textDim,
+              background: sortBy === id ? theme.grad : "transparent",
             }}
           >
+            <Icon name={icon} size={14} stroke={2} color={sortBy === id ? theme.onAccent : theme.textFaint} />
             {label}
           </button>
         ))}
-        <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: theme.textFaint }}>
-          last {effectiveWindow} matches
+        </div>
+        <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10, fontSize: 11.5, color: theme.textDim,
+          padding: "8px 14px", borderRadius: 999, background: theme.graphite, border: `1px solid ${theme.steel}` }}>
+          <span>last <strong className="kp-num" style={{ color: theme.text }}>{effectiveWindow}</strong> matches</span>
           <input
             type="range" min={3} max={maxWindow} step={1} value={effectiveWindow}
             onChange={(e) => setWindowSize(parseInt(e.target.value, 10))}
-            style={{ width: 110, accentColor: theme.accent }}
+            style={{ width: 110, "--pct": `${((effectiveWindow - 3) / Math.max(1, maxWindow - 3)) * 100}%` }}
           />
           <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>max {maxWindow}</span>
         </span>
@@ -7337,7 +7377,7 @@ function ConsistencyTab({ teams, pastMatches, statType, isDesktop }) {
           No players have 3+ recent matches on record yet — there isn't enough match history loaded to score consistency.
         </div>
       ) : (
-        <div style={isDesktop ? { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 10, alignItems: "start" } : {}}>
+        <div style={isDesktop ? { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 12, alignItems: "start" } : {}}>
           {top.map((row, i) => (
             <ConsistencyCard key={row.team + row.name} row={row} rank={i + 1} cfg={cfg} />
           ))}
@@ -7349,59 +7389,99 @@ function ConsistencyTab({ teams, pastMatches, statType, isDesktop }) {
   );
 }
 
+const PODIUM = { 1: ["#FFD66B", "#F5A623"], 2: ["#E3E7F2", "#9AA3B8"], 3: ["#F0A673", "#B5652E"] };
+
+/* Score as a ring: the arc is the score out of 100, coloured by band. */
+function ScoreRing({ score, color, size = 56 }) {
+  const theme = useTheme();
+  const r = size / 2 - 4;
+  const c = 2 * Math.PI * r;
+  return (
+    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }} aria-hidden="true">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={theme.steelSoft} strokeWidth="5" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth="5" strokeLinecap="round"
+          strokeDasharray={`${(Math.max(0, Math.min(100, score)) / 100) * c} ${c}`}
+          style={{ filter: `drop-shadow(0 0 4px ${color}88)` }} />
+      </svg>
+      <div className="kp-num" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center",
+        fontSize: size * 0.32, fontWeight: 800, color: theme.text }}>
+        {score.toFixed(0)}
+      </div>
+    </div>
+  );
+}
+
 function ConsistencyCard({ row, rank, cfg }) {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
   const barColor = row.score >= 70 ? theme.good : row.score >= 45 ? theme.accent : theme.bad;
+  const medal = PODIUM[rank];
+  // Oldest to newest, scaled to the player's own best, for the sparkline.
+  const spark = [...row.values].reverse().slice(-12);
+  const sparkMax = Math.max(...spark, 1);
   return (
     <div
       className="kp-clickable"
+      role="button" tabIndex={0} aria-expanded={open}
       onClick={() => setOpen(!open)}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen(!open); } }}
       style={{
-        background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme),
-        ...elevation(), marginBottom: 10, padding: "14px 16px", cursor: "pointer",
+        background: medal ? `radial-gradient(120% 100% at 0% 0%, ${medal[0]}1c, transparent 55%), ${theme.graphite}` : theme.graphite,
+        border: `1px solid ${medal ? medal[0] + "55" : theme.steel}`, ...cardShape(theme),
+        ...elevation(), marginBottom: 12, padding: "14px 16px", cursor: "pointer", position: "relative",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ fontSize: 11, color: theme.textFaint, fontFamily: "'JetBrains Mono', monospace", width: 20 }}>
-          {rank}
-        </span>
-        <span style={{
-          width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          background: `${row.color}22`, border: `1.5px solid ${row.color}`,
-          color: row.color, fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 12,
-        }}>
-          {initialsFor(row.name)}
-        </span>
+        <div style={{ position: "relative", flexShrink: 0 }}>
+          <span style={{
+            width: 42, height: 42, borderRadius: 13,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: `linear-gradient(140deg, ${row.color}55, ${row.color}12)`, border: `1px solid ${row.color}77`,
+            color: theme.text, fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 13,
+          }}>
+            {initialsFor(row.name)}
+          </span>
+          <span className="kp-num" style={{
+            position: "absolute", top: -7, left: -7, minWidth: 20, height: 20, padding: "0 4px", borderRadius: 999,
+            display: "grid", placeItems: "center", fontSize: 10, fontWeight: 800,
+            background: medal ? `linear-gradient(135deg, ${medal[0]}, ${medal[1]})` : theme.graphiteLight,
+            color: medal ? "#1a1205" : theme.textDim, border: medal ? "none" : `1px solid ${theme.steel}`,
+            boxShadow: medal ? `0 4px 12px -4px ${medal[1]}` : "none",
+          }}>
+            {rank}
+          </span>
+        </div>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: theme.text, fontFamily: "'Sora', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          <div style={{ fontSize: 15.5, fontWeight: 700, color: theme.text, fontFamily: "'Sora', sans-serif", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {row.name}
           </div>
-          <div style={{ fontSize: 11, color: theme.textFaint }}>
-            {row.team}{row.role ? ` · ${row.role}` : ""}
+          <div style={{ fontSize: 11, color: theme.textFaint, display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+            <span aria-hidden="true" style={{ width: 3, height: 10, borderRadius: 2, background: row.color }} />
+            <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{row.team}{row.role ? ` · ${row.role}` : ""}</span>
           </div>
         </div>
-        <div style={{ textAlign: "right", flexShrink: 0 }}>
-          <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 600, color: barColor }}>
-            {row.score.toFixed(0)}
-          </div>
-          <div style={{ fontSize: 10, color: theme.textFaint }}>consistency</div>
-        </div>
+        <ScoreRing score={row.score} color={barColor} />
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
-        <div style={{ flex: 1, height: 5, background: theme.steelSoft, borderRadius: 3, overflow: "hidden" }}>
-          <div style={{ width: `${row.score}%`, height: "100%", background: barColor, borderRadius: 3 }} />
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 12, marginTop: 12 }}>
+        {/* Recent output as a sparkline of bars: steadiness you can see. */}
+        <div aria-hidden="true" style={{ flex: 1, display: "flex", alignItems: "flex-end", gap: 2, height: 26 }}>
+          {spark.map((v, i) => (
+            <span key={i} style={{ flex: 1, height: `${Math.max(8, (v / sparkMax) * 100)}%`, borderRadius: 2,
+              background: `linear-gradient(180deg, ${barColor}, ${barColor}33)`, opacity: 0.45 + 0.55 * ((i + 1) / spark.length) }} />
+          ))}
         </div>
-        <span style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: theme.textDim }}>
-          avg {row.mean.toFixed(1)} {cfg.key}
-        </span>
-        <span style={{ fontSize: 11, color: theme.textFaint }}>{row.n}g</span>
+        <div style={{ textAlign: "right", flexShrink: 0 }}>
+          <div className="kp-num" style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>
+            {row.mean.toFixed(1)} <span style={{ color: theme.textFaint, fontWeight: 400, fontSize: 11 }}>{cfg.key}/m</span>
+          </div>
+          <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: "uppercase", color: theme.textFaint, fontWeight: 700 }}>avg · {row.n}g</div>
+        </div>
       </div>
 
       {open && (
-        <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${theme.steelSoft}` }}>
+        <div className="kp-rise" style={{ marginTop: 14, padding: 14, borderRadius: 14, background: theme.void, border: `1px solid ${theme.steelSoft}` }}>
           <RecentFormChart rows={row.form.slice(0, 8)} line={row.mean} statLabel={cfg.label.toLowerCase()} />
           <div style={{ marginTop: 8, fontSize: 11, color: theme.textFaint, fontFamily: "'JetBrains Mono', monospace" }}>
             spread ±{(row.cv * row.mean).toFixed(1)} around a {row.mean.toFixed(1)} average
@@ -7646,7 +7726,7 @@ function FutureTab({ teams, pastMatches, upcomingMatches, weights, statType, isD
         <div style={{ marginTop: 16 }}>
           <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
             {[[customA, setCustomA], [customB, setCustomB]].map(([val, setter], i) => (
-              <select key={i} value={val} onChange={(e) => setter(e.target.value)} style={{ flex: 1, background: theme.graphiteLight, color: theme.text, border: `1px solid ${teams[val] ? teams[val].color : theme.steel}55`, ...cardShape(theme), padding: "10px 8px", fontSize: 14, fontWeight: 600 }}>
+              <select key={i} value={val} onChange={(e) => setter(e.target.value)} className="kp-select" style={{ flex: 1, minWidth: 0, borderColor: `${teams[val] ? teams[val].color : theme.steel}88`, fontSize: 14 }}>
                 {teamNames.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             ))}
@@ -7968,13 +8048,15 @@ function DataStatus({ status, lastUpdated, errorDetail, onRetry, regions }) {
     status === "no-url" ? "Using bundled snapshot (no live source configured)" :
     "Live fetch failed — using bundled snapshot";
   return (
-    <div style={{ marginBottom: 16, padding: "8px 12px", background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation() }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+    <div style={{ marginBottom: 14, padding: "8px 8px 8px 12px", background: theme.graphite, border: `1px solid ${theme.steel}`, borderRadius: 999,
+      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
         <div
-          style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: stale ? theme.accent : theme.textDim }}
+          style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11, color: stale ? theme.accent : theme.textDim, minWidth: 0 }}
           title={lastUpdated ? new Date(lastUpdated).toLocaleString() : undefined}
         >
-          <span style={{ width: 6, height: 6, borderRadius: "50%", background: stale ? theme.accent : color, flexShrink: 0 }} />
+          <span className={status === "live" && !stale ? "kp-live-dot" : undefined}
+            style={{ width: 7, height: 7, borderRadius: "50%", background: stale ? theme.accent : color, flexShrink: 0, color: `${theme.good}88` }} />
           {label}
           {lagging && (
             <span style={{ color: theme.accent }}>
@@ -7983,7 +8065,8 @@ function DataStatus({ status, lastUpdated, errorDetail, onRetry, regions }) {
           )}
         </div>
         {status !== "loading" && (
-          <button onClick={onRetry} style={{ background: "none", border: "none", color: theme.textFaint, fontSize: 11, cursor: "pointer", textDecoration: "underline" }}>
+          <button className="kp-btn" onClick={onRetry} style={{ background: theme.graphiteLight, border: `1px solid ${theme.steel}`, borderRadius: 999,
+            color: theme.textDim, fontSize: 10.5, fontWeight: 700, cursor: "pointer", padding: "3px 10px", flexShrink: 0 }}>
             refresh
           </button>
         )}
@@ -8825,25 +8908,33 @@ function SettingsPanel({ theme, accentOverride, setAccentOverride, cornerStyle, 
   return (
     <div style={{ marginBottom: 16 }}>
       <button
+        className="kp-btn"
         onClick={() => setOpen(!open)}
+        aria-expanded={open}
         style={{
-          display: "flex", alignItems: "center", gap: 6, background: "none", border: "none",
-          color: theme.textDim, fontSize: 12, cursor: "pointer", padding: 0, fontFamily: "'Inter', sans-serif", fontWeight: 500,
+          width: "100%", display: "flex", alignItems: "center", gap: 9, background: open ? theme.graphite : "transparent",
+          border: `1px solid ${open ? theme.steel : theme.steelSoft}`, borderRadius: 999,
+          color: theme.textDim, fontSize: 12.5, cursor: "pointer", padding: "7px 12px 7px 8px", fontFamily: "'Inter', sans-serif", fontWeight: 600,
         }}
       >
-        <span style={{ fontSize: 13 }}>⚙</span> Customize {open ? "▴" : "▾"}
+        <span style={{ width: 22, height: 22, borderRadius: "50%", display: "grid", placeItems: "center", background: theme.graphiteLight }}>
+          <Icon name="gear" size={13} color={theme.accent} stroke={2} />
+        </span>
+        <span style={{ flex: 1, textAlign: "left" }}>Customize</span>
+        <span aria-hidden="true" style={{ width: 12, height: 12, borderRadius: "50%", background: theme.grad }} />
+        <Chevron open={open} color={theme.textFaint} size={11} />
       </button>
       {open && (
-        <div style={{ marginTop: 12, background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), padding: 16 }}>
-          <div style={{ fontSize: 12, color: theme.textDim, marginBottom: 10, fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>Accent color</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+        <div className="kp-menu-anim" style={{ marginTop: 10, background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme), ...elevation(), padding: 16 }}>
+          <div style={{ fontSize: 10.5, letterSpacing: 1.3, textTransform: "uppercase", color: theme.textFaint, marginBottom: 10, fontFamily: "'Inter', sans-serif", fontWeight: 700 }}>Accent color</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6, marginBottom: 12 }}>
             <button
               onClick={() => { setAccentOverride(null); setCustomHex(""); }}
               title="Automatic (follows selected game)"
               style={{
-                width: 28, height: 28, borderRadius: "50%", cursor: "pointer",
-                border: !accentOverride ? `2px solid ${theme.text}` : `1px solid ${theme.steel}`,
-                background: "conic-gradient(#F6C45E, #FF5C74, #4FD8E8, #7FE07A, #B07FE0, #E08A4F, #F6C45E)",
+                width: "100%", aspectRatio: "1", borderRadius: "50%", cursor: "pointer", padding: 0,
+                border: "none", boxShadow: !accentOverride ? `0 0 0 2px ${theme.graphite}, 0 0 0 4px ${theme.text}` : "none",
+                background: "conic-gradient(#F6C45E, #FF5C74, #4CD9FF, #5EEAB0, #B58CFF, #FF9A5C, #F6C45E)",
               }}
             />
             {ACCENT_SWATCHES.map((s) => (
@@ -8852,8 +8943,9 @@ function SettingsPanel({ theme, accentOverride, setAccentOverride, cornerStyle, 
                 onClick={() => { setAccentOverride(s.hex); setCustomHex(s.hex); }}
                 title={s.name}
                 style={{
-                  width: 28, height: 28, borderRadius: "50%", cursor: "pointer", background: s.hex,
-                  border: accentOverride === s.hex ? `2px solid ${theme.text}` : "1px solid rgba(255,255,255,0.15)",
+                  width: "100%", aspectRatio: "1", borderRadius: "50%", cursor: "pointer", padding: 0,
+                  background: `linear-gradient(135deg, ${s.hex}, ${s.hex}99)`, border: "none",
+                  boxShadow: accentOverride === s.hex ? `0 0 0 2px ${theme.graphite}, 0 0 0 4px ${s.hex}` : `inset 0 0 0 1px rgba(255,255,255,0.15)`,
                 }}
               />
             ))}
@@ -8864,27 +8956,28 @@ function SettingsPanel({ theme, accentOverride, setAccentOverride, cornerStyle, 
               value={customHex}
               onChange={(e) => setCustomHex(e.target.value)}
               placeholder="#RRGGBB"
-              style={{ flex: 1, background: theme.graphiteLight, border: `1px solid ${theme.steel}`, borderRadius: 8, color: theme.text, padding: "7px 10px", fontSize: 12, fontFamily: "'JetBrains Mono', monospace" }}
+              style={{ flex: 1, minWidth: 0, background: theme.void, border: `1px solid ${theme.steel}`, borderRadius: 10, color: theme.text, padding: "8px 11px", fontSize: 12, fontFamily: "'JetBrains Mono', monospace" }}
             />
             <button
+              className="kp-btn"
               onClick={() => { if (/^#[0-9a-fA-F]{6}$/.test(customHex)) setAccentOverride(customHex); }}
-              style={{ background: theme.steel, border: "none", borderRadius: 8, color: theme.text, padding: "7px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Inter', sans-serif" }}
+              style={{ background: theme.grad, border: "none", borderRadius: 10, color: theme.onAccent, padding: "8px 14px", fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "'Inter', sans-serif" }}
             >
               Use
             </button>
           </div>
-          <div style={{ fontSize: 12, color: theme.textDim, marginBottom: 10, fontFamily: "'Inter', sans-serif", fontWeight: 600 }}>Card corners</div>
+          <div style={{ fontSize: 10.5, letterSpacing: 1.3, textTransform: "uppercase", color: theme.textFaint, marginBottom: 10, fontFamily: "'Inter', sans-serif", fontWeight: 700 }}>Card corners</div>
           <div style={{ display: "flex", gap: 8 }}>
             {[["angular", "Angular"], ["rounded", "Rounded"]].map(([id, label]) => (
               <button
                 key={id}
                 onClick={() => setCornerStyle(id)}
                 style={{
-                  flex: 1, padding: "9px 0", border: "1px solid " + (cornerStyle === id ? theme.accent : theme.steel),
-                  background: cornerStyle === id ? theme.accentSoft : theme.graphiteLight,
-                  color: cornerStyle === id ? theme.accent : theme.textDim,
-                  fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Inter', sans-serif",
-                  ...(id === "angular" ? { clipPath: `polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))` } : { borderRadius: 8 }),
+                  flex: 1, padding: "10px 0", border: "1px solid " + (cornerStyle === id ? "transparent" : theme.steel),
+                  background: cornerStyle === id ? theme.grad : theme.void,
+                  color: cornerStyle === id ? theme.onAccent : theme.textDim,
+                  fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "'Inter', sans-serif",
+                  ...(id === "angular" ? { clipPath: `polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))` } : { borderRadius: 10 }),
                 }}
               >
                 {label}
@@ -8912,9 +9005,28 @@ const KP_STYLES = `
           .kp-btn:active { transform: scale(0.97); }
           .kp-clickable { transition: border-color 0.2s ease, filter 0.2s ease, transform 0.2s ease; cursor: pointer; }
           .kp-clickable:hover { filter: brightness(1.1); transform: translateY(-1px); border-color: var(--kp-accent-live, rgba(255,255,255,0.2)) !important; }
-          input[type="range"] { cursor: pointer; }
-          input[type="range"]::-webkit-slider-thumb { transition: transform 0.15s ease; }
-          input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.25); }
+          /* Range inputs: a filled gradient track up to --pct, a white
+             thumb ringed in the accent. --pct is set inline per slider. */
+          input[type="range"] { cursor: pointer; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 999px;
+            background: linear-gradient(90deg, var(--kp-accent-live, #F6C45E), var(--kp-accent2-live, #FF5FA2)) 0 0 / var(--pct, 50%) 100% no-repeat,
+                        rgba(255,255,255,0.08); outline-offset: 4px; }
+          input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+            background: #fff; border: 3px solid var(--kp-accent-live, #F6C45E); box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            transition: transform 0.15s ease; }
+          input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: #fff;
+            border: 3px solid var(--kp-accent-live, #F6C45E); }
+          input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.2); }
+          .kp-select { -webkit-appearance: none; appearance: none; cursor: pointer; font: 600 12.5px 'Inter', sans-serif;
+            color: #F3F4FB; background: #12141F url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23AEB3CE' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center;
+            border: 1px solid #2B2F48; border-radius: 12px; padding: 9px 34px 9px 14px; }
+          .kp-select:hover { border-color: var(--kp-accent-live); }
+          .kp-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+          .kp-table th { font: 700 10px 'Inter', sans-serif; letter-spacing: 1.2px; text-transform: uppercase; color: #7C82A6;
+            padding: 10px 10px; border-bottom: 1px solid #2B2F48; white-space: nowrap; }
+          .kp-table td { padding: 9px 10px; border-top: 1px solid rgba(255,255,255,0.045); }
+          .kp-table tbody tr { transition: background 0.15s ease; }
+          .kp-table tbody tr:hover { background: rgba(255,255,255,0.035); }
+          .kp-table td.n, .kp-table th.n { text-align: right; font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
           @keyframes kp-fade-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
           @keyframes kp-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
           .kp-menu-anim { animation: kp-fade-in 0.16s ease; }
@@ -9295,6 +9407,7 @@ function KillProjector({ onHome } = {}) {
         // Exposed to CSS so the stylesheet's focus rings track the live
         // accent without a rule per game.
         "--kp-accent-live": theme.accent,
+        "--kp-accent2-live": theme.accent2,
         ...pageBackground(theme),
       }}>
         <style>{KP_STYLES}</style>
@@ -11402,6 +11515,7 @@ function AppShell() {
   const page = {
     minHeight: "100vh", color: theme.text, fontFamily: "'Inter', -apple-system, sans-serif",
     "--kp-accent-live": theme.accent,
+    "--kp-accent2-live": theme.accent2,
     ...pageBackground(theme),
   };
   return (
