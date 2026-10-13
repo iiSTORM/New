@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-13T07:47:28.922182+00:00",
+ "generated_at": "2026-10-13T07:49:00.907515+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -135,14 +135,10 @@
     "T1"
    ],
    "players": [],
-   "score": -1,
-   "grade": "negative",
-   "rules": [
-    "departure"
-   ],
-   "reasons": [
-    "a player or coach leaves"
-   ]
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
   },
   {
    "game": "lol",
@@ -186,23 +182,6 @@
    "summary": "Maryville University Faces Disguised for a Spot in the LCS, One Win from a College Esports First Maryville University",
    "teams": [
     "Disguised"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "Sofascore",
-   "title": "Inner Circle Academy – The Golden Horde - Live score",
-   "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxOVkEwWVFJTWZBb3Q2YWV1MDJYQ01wZlhjdXBpMVpmcUdwZ2V5bE1nQ3RnR2dPWEhENENJbzMwdUVyNVhjSWhENWg4emhiWG5qRWc3Q3ZYdzNBWUhEN0JFY0ZuVTNPZ3IyNmZFYnoyNGFkd1JWOTJKYXI0UjRFZXFfbVZVQUpjTkF6WWVGbVpMbno?oc=5",
-   "published": "2026-10-12T16:48:06+00:00",
-   "summary": "Inner Circle Academy – The Golden Horde - Live score Sofascore",
-   "teams": [
-    "Inner Circle",
-    "Inner Circle Academy"
    ],
    "players": [],
    "score": 0,
@@ -303,23 +282,6 @@
   },
   {
    "game": "cs2",
-   "source": "EGamersWorld",
-   "title": "Chicken Coop Esports VS Zomblers live score and match stats - 12.10.26 21:00",
-   "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxNZGxSZUhWQmtacThlVG9XNWUtVUYzSGdLazdqalltT1ExWVlKempLQTF4a3pfakIyRDc3YndiQUF0S0RvYURLZGY2VUk4M3o2LVVIN29SNGtXTFZ1Zm83encxU0dVaWJvQkNZekxWMzVvaW9CTk51V1RjeDRtZVZULVd2QUV3ZW84bGVUbktXNE1oQkVFczBBeGk5OWtuRXM?oc=5",
-   "published": "2026-10-12T13:18:18+00:00",
-   "summary": "Chicken Coop Esports VS Zomblers live score and match stats - 12.10.26 21:00 EGamersWorld",
-   "teams": [
-    "Chicken Coop",
-    "Zomblers"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
    "source": "HLTV",
    "title": "TOBIZ returns to MOUZ as head of talent development",
    "link": "https://www.hltv.org/news/45704/tobiz-returns-to-mouz-as-head-of-talent-development",
@@ -327,9 +289,15 @@
    "summary": "After a year as the head coach of HEROIC, TOBIZ returns to the MOUZ fold.",
    "teams": [
     "MOUZ",
-    "HEROIC"
+    "HEROIC",
+    "Orion Wanderers"
    ],
-   "players": [],
+   "players": [
+    {
+     "name": "Heroic",
+     "team": "Orion Wanderers"
+    }
+   ],
    "score": 0,
    "grade": "neutral",
    "rules": [
@@ -500,6 +468,27 @@
    "reasons": []
   },
   {
+   "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "G2 JAWGEMO: \"All the news about the roster changes kind of helped us out in one way\"",
+   "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxNNDhQb2lTbmk4YjB6bTlBcHB0QTBQWWxnTFBYeFBBbjlyRHdQaER3aHFrV2cwX2RLSm9CcGluZ0g5Z3gtZnZBMkdmdFNQbXVVRlhBd01mNjlhZFR4UVhEMnFPcm9MUzd4QUlHTU5Pcl9JZldhdHQzRlg1MHZDSnpoR2ZlTm1pZ29GZjQ3aWNhMFJfYWR3ZGRzNkNiM3ZmMVBqTlFfX2JiYm91MmxiZWtRZktkV0NSVlpfM01qTEt1QWdkMVU?oc=5",
+   "published": "2026-10-12T01:09:49+00:00",
+   "summary": "G2 JAWGEMO: \"All the news about the roster changes kind of helped us out in one way\" Sheep Esports",
+   "teams": [
+    "G2 Esports"
+   ],
+   "players": [
+    {
+     "name": "jawgemo",
+     "team": "G2 Esports"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "cs2",
    "source": "HLTV",
    "title": "ZywOo: \"I love Cache too much\"",
@@ -513,93 +502,6 @@
     {
      "name": "ZywOo",
      "team": "Team Vitality"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "Sofascore",
-   "title": "Vitality Academy – Royal Foxes Esports - Live score",
-   "link": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQbzBNVVU1RTVoTW80OS00N1lOcExuZl81djVFUlJiaXFvVzUzVmcyaXFLR1htRjEyNUpqOE56RU5LWW1ya0IwY0JSVkhNOFFGNWpHWFpONGlMUXByUUFUYjdOZFU4V2ZrbHVHNkhQeVA4OW0tT0p1YjI2OThMd2g1SHgwaU5pWWZyajE5VVZKUQ?oc=5",
-   "published": "2026-10-11T19:11:46+00:00",
-   "summary": "Vitality Academy – Royal Foxes Esports - Live score Sofascore",
-   "teams": [
-    "Team Vitality",
-    "Vitality Academy"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "escorenews.com",
-   "title": "FLY - MIBR FEM, October 14, 2026 - match stream, live broadcast - VCT 2026 GC Championship - Valorant",
-   "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxPaFUxQ3A2NE5DV2RzQWM5US1KRkt1UjVuellyb2hpcFIzY1VvNTJzRVE3V3dENU1LNVlXd0lwNG90TG5GYmJucVZ3N1lvYVpnV1F0QlNHTHlIZXBLRUdTWlNEaGRkcmxFMDZ3c1VoSGRLblVhcENHaURHbFVGYUJMWmVXM01fd1FpRUJDNFVXNl9ucGNIcl9TX01xRC1pSWFZVXBvUWw0VXdRUQ?oc=5",
-   "published": "2026-10-11T18:33:22+00:00",
-   "summary": "FLY - MIBR FEM, October 14, 2026 - match stream, live broadcast - VCT 2026 GC Championship - Valorant escorenews.com",
-   "teams": [
-    "MIBR"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "escorenews.com",
-   "title": "AKV.GC - MIBR FEM, October 14, 2026 - match stream, live broadcast - VCT 2026 GC Championship - Valorant",
-   "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxNYnFXTmhxd3RYWjNjZHNLZEZRX1JXQm54RmtyaDY3bGdCYlpMR3JPT0ZJV0JMdFB3VnRmOEMxZXJVZmJvd0I0NlY1Mi1zN2xOZ1haQnlWdktYRGE5N3ZEZl9QcDJsN2RIcFR0ekppbXh3R29lb3ZURVlyZjdCM3JhdXo4OXF4a3RuT2JNMmN0clJoMldoOVpqZ0VpT0JGYW9tMXNZdXlCN0M?oc=5",
-   "published": "2026-10-11T18:33:22+00:00",
-   "summary": "AKV.GC - MIBR FEM, October 14, 2026 - match stream, live broadcast - VCT 2026 GC Championship - Valorant escorenews.com",
-   "teams": [
-    "MIBR"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "EGamersWorld",
-   "title": "XI Esport VS ASTRAL Esports match result - 11.10.26 13:00",
-   "link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxQTGhHa2NhN21LVHFzNTRmZzl1R0hrTm9YeFFpSU5fTXFjZ2NRYXFUVHB1NmFHQTE0ekhZdFg5WkxFd2Q2bEhyVldLeUp4LUJER0c4dGM1b2VIUGdZMVZKX3d6ckFNZHFnX1lEbVpncjFSaXpBcE1xZXA0d202Wl9jMnFwdzRmckdlVnZsVHlPQ3NRR05FS3ZwWQ?oc=5",
-   "published": "2026-10-11T18:04:48+00:00",
-   "summary": "XI Esport VS ASTRAL Esports match result - 11.10.26 13:00 EGamersWorld",
-   "teams": [
-    "ASTRAL",
-    "XI"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Sheep Esports",
-   "title": "Worlds 2026 - Meet the players: AD Carry (4/5)",
-   "link": "https://news.google.com/rss/articles/CBMijgFBVV95cUxPRk1IZGtNWVA0WEVCMHQ2OFAtSmVKVF9hbXBXU29MdFVoeEZXXzJxODBQbmJkM1ZPWFg4aTBQZUd4OHBnQ1hIZzVjWGN6YzF6REFmRHBOUXREd3kwYzFiekhzRVl6TmU2X0xlTW83TWluUjFQS3RJYWxoNkdxTk9PNjJKQVVhZHN5c1ptRzVn?oc=5",
-   "published": "2026-10-11T15:03:30+00:00",
-   "summary": "Worlds 2026 - Meet the players: AD Carry (4/5) Sheep Esports",
-   "teams": [
-    "Bushido Wildcats"
-   ],
-   "players": [
-    {
-     "name": "Carry",
-     "team": "Bushido Wildcats"
     }
    ],
    "score": 0,
@@ -652,22 +554,6 @@
    "summary": "Meet SOORI: Hanwha Life Esports Reveal New Official Mascot for Worlds 2026 EGamersWorld",
    "teams": [
     "Hanwha Life Esports"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "Sofascore",
-   "title": "Gothic – Esport Academy Copenhagen - Live score",
-   "link": "https://news.google.com/rss/articles/CBMiigFBVV95cUxQRjhOejZya0hsYlJTWnBWY0xmY01HbllVWU5QNXBpTTM3OVdVbVZOM0JyblFLR1hmRkxWa01pMGlOcVRUTmdJYU51OXBvQnNQUXVhb1ppYmRVR21xYWdoR1FwbWpwOFRwelRsaXh3RkFQbTdhdkxYcnZ2cjRkc3VIVlhFSGZta3JLNnc?oc=5",
-   "published": "2026-10-11T13:37:07+00:00",
-   "summary": "Gothic – Esport Academy Copenhagen - Live score Sofascore",
-   "teams": [
-    "Gothic"
    ],
    "players": [],
    "score": 0,
@@ -752,24 +638,6 @@
    "teams": [
     "G2 Esports",
     "Team Vitality"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "Sofascore",
-   "title": "Metizport – Spirit Academy Black - Live score",
-   "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxPYlYyeXFWVFcwbm9STlNkZDJiZ0I1aTF1WXVNdWNqaVRxQkZJRGtRNlB1RTdadnQ0M04yWkRqUHhNa3dta3JjZVlpQ1ptdUlqSG03N1l0WkhoU0xtRWtBOXN6RkgzaW5TaUhNUmI2V2FSVGZJcHdudUc1cElSREN3dGExS3FoNWs?oc=5",
-   "published": "2026-10-11T07:17:53+00:00",
-   "summary": "Metizport – Spirit Academy Black - Live score Sofascore",
-   "teams": [
-    "Team Spirit",
-    "Metizport",
-    "Spirit Academy"
    ],
    "players": [],
    "score": 0,
@@ -876,22 +744,6 @@
    "teams": [
     "NRG",
     "LOUD"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "Sofascore",
-   "title": "madlikewizards – Mindfreak - Live score",
-   "link": "https://news.google.com/rss/articles/CBMif0FVX3lxTFBDVlRJOXZIUUYzaHB3cmZjYU1zUFFpckgxVmJaNlZGMFRicGJ1Q3gtMXRTOGxrYzFENzdQREtJMVRXanZjUEo1YUM0Y2plTGRhU3hMbG10XzhrMjZLM2luYTlRMVViN29heWRvMG1iR1lfWTdfZnB1S2xCbG1vQzQ?oc=5",
-   "published": "2026-10-10T12:30:13+00:00",
-   "summary": "madlikewizards – Mindfreak - Live score Sofascore",
-   "teams": [
-    "Mindfreak"
    ],
    "players": [],
    "score": 0,
@@ -1044,23 +896,6 @@
    "reasons": []
   },
   {
-   "game": "cs2",
-   "source": "EGamersWorld",
-   "title": "Chicken Coop Esports VS Detonate: 09.10.2026 at 01:00. Counter-Strike (CS2) ➥ Betting Tips, Stream, LiveScore, Results on EGW☕",
-   "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxOOFhlX2hQdEttbGhKS2ltVnZPQmRwOXRVa0UxN2pWZWZkdGtOTk9yOUJ5dG5oMDY0Zm5NZDgtbXRtVzRLVkszTDVOc3BrSE0yUXpSOGtxTFhkeTl2U1NqM2JBMWRFbzQycENYbTZHRXMzenRENmV0bzVDN2pZcWowWTN6TmxuRUp4cjJpV2hvNkFzNW52WkxiWThQWVBPX0k?oc=5",
-   "published": "2026-10-10T04:37:57+00:00",
-   "summary": "Chicken Coop Esports VS Detonate: 09.10.2026 at 01:00. Counter-Strike (CS2) ➥ Betting Tips, Stream, LiveScore, Results on EGW☕ EGamersWorld",
-   "teams": [
-    "Chicken Coop",
-    "DETONATE"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
    "game": "valorant",
    "source": "Dot Esports",
    "title": "PRX end VALORANT Champions 2026 run after T1 comeback",
@@ -1103,14 +938,10 @@
     "Paper Rex"
    ],
    "players": [],
-   "score": -1,
-   "grade": "negative",
-   "rules": [
-    "departure"
-   ],
-   "reasons": [
-    "a player or coach leaves"
-   ]
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
   },
   {
    "game": "valorant",
@@ -1123,14 +954,10 @@
     "Paper Rex"
    ],
    "players": [],
-   "score": -1,
-   "grade": "negative",
-   "rules": [
-    "departure"
-   ],
-   "reasons": [
-    "a player or coach leaves"
-   ]
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
   },
   {
    "game": "valorant",
@@ -1725,6 +1552,23 @@
    "reasons": []
   },
   {
+   "game": "valorant",
+   "source": "VALORANT Esports",
+   "title": "NRG VS T1",
+   "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTFBneHd2ZkFhZk81aElLU3RqOWFBbVdRZnJwanAyRTFlcTJFRDIxdmVCNjVNS0FXZ3Q4OHFRUG9GX21iNU9nV0Jnby1Qa0dvQ2UxWG1yRFBTLTJlV0ZDM1ZlRTRueXNsdV9FQThTVlBDV2hoQk9SRUpXMmpB?oc=5",
+   "published": "2026-10-08T04:00:34+00:00",
+   "summary": "NRG VS T1 VALORANT Esports",
+   "teams": [
+    "NRG",
+    "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "lol",
    "source": "Dot Esports",
    "title": "Riot delays controversial LoL replay changes to Patch 26.21",
@@ -1810,14 +1654,10 @@
     "BetBoom"
    ],
    "players": [],
-   "score": -1,
-   "grade": "negative",
-   "rules": [
-    "departure"
-   ],
-   "reasons": [
-    "a player or coach leaves"
-   ]
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
   },
   {
    "game": "cs2",
@@ -1962,6 +1802,22 @@
   },
   {
    "game": "valorant",
+   "source": "Pley.gg",
+   "title": "VCT Drama: Broken Agreements, Heretics Leaks",
+   "link": "https://news.google.com/rss/articles/CBMiUkFVX3lxTFA3OGpGcW16SEtqa0RLYzFZOVpOSEhnRlpjS2ZzcXhBcm9wbm5mZGhDVW4ySkw0OG9HMUcxcTRxaUVYUlZYZ1JKSDZmSk5QWnQwSGc?oc=5",
+   "published": "2026-10-07T13:32:50+00:00",
+   "summary": "VCT Drama: Broken Agreements, Heretics Leaks Pley.gg",
+   "teams": [
+    "Team Heretics"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
    "source": "Insider Gaming",
    "title": "LOUD Stun Paper Rex, NRG Outclass T1 in Valorant Champions Playoffs",
    "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQMERjREVVNy1ETjktQ2JCc28zQzQzdXpvV01pLVlvOU1kOFNpa0lGNHFvRjZNRm1VVE0ta1RZbUFnQVpFY3ByRjlmaFhmd2RZRHhrN0lfS012d0s3TU0yOVRfd2YyTlhLUEZZem1PRFVRaHAwUEdzb3FsYnNFcjRXTTY0dVI5Ql9Uai11LXhvN2VZSXI5bDdoenN3?oc=5",
@@ -2076,23 +1932,6 @@
    "teams": [
     "LOUD",
     "Paper Rex"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "Sofascore",
-   "title": "aimclub – ABT Esports - Live score",
-   "link": "https://news.google.com/rss/articles/CBMieEFVX3lxTFBidWlldHBZaUppV3NmLXk2aE9RNjFMY05JLXY1bi15NDJIcDgwdExRazJQb3FiNDRFRDVMWjFfMTNxejl4WW1GeU1LTFB6amlVVXFNZzBqOE4xVDI3YURIWmx1WWlTVE5RS2dUeUdCRlk2YWVSaFdwbw?oc=5",
-   "published": "2026-10-07T01:54:27+00:00",
-   "summary": "aimclub – ABT Esports - Live score Sofascore",
-   "teams": [
-    "aimclub",
-    "ABT"
    ],
    "players": [],
    "score": 0,
@@ -2516,6 +2355,22 @@
   },
   {
    "game": "cs2",
+   "source": "Cision News",
+   "title": "Nordic Partners Gaming sets sights on CS2 Top 50 with new documentary series",
+   "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxOVDZhamgxNXdiXzctM1VjZTdGaXFiRXBicjQ3V1UtUVRXaDlUY1NKNDFvWWZXRTdQc0tJbk84ZlVKQW1zbzA0VWI4RFhFUDQ2blY2M1RZV3FiZm05VHVxRGxSaW04Y3pzbGNKTWhPV0ktWGhteW9RTWQwemVMUHNTbkVNMHR5blhRUUpnX1hjQ2hobHNhUEo1eG1peEc5VXFQLUF6R2l6N0lkR0diT0NXTGF0b1JwYUJBRGotbmZCXzdsdw?oc=5",
+   "published": "2026-10-05T13:35:01+00:00",
+   "summary": "Nordic Partners Gaming sets sights on CS2 Top 50 with new documentary series Cision News",
+   "teams": [
+    "Nordic Partners Gaming"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
    "source": "Players",
    "title": "The MongolZ Sign nin9 and Bring Back cobrazera",
    "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxQRlM1UXk2a0daLWRvS0R2d2d6emp0YzVGMVAzX3Y5VW16QlFKMG1FaUh5MkltbVdPZWRzNXpVNTZ2eWFDcWR0U1NHSHhFS1dmLVU2QWwtbFdFZ1JUZ0ZNMHZCTXdnTTBEYlhvTFRqeXJ3OHdBYklJNDM1NEpseHdiMjZEdUrSAYwBQVVfeXFMUGVkS0J5eTd6eFd2Q1kxSGk4ZFZtN3JMbUw3NjRyUFBNVzA2c0hpbThDbnBzeG9hWEZyNXFLQ2xNNWR1Tk0xT3MwbXFhNUp4NU1SRGNNUjgzQTc0SXh4WEt5c2RTLTUzQVhlZmlGcWVZb0NleHAtTXZhNU1JRExWaThsdFJkeEdFMEZsbXo?oc=5",
@@ -2755,14 +2610,12 @@
      "team": "EDward Gaming"
     }
    ],
-   "score": -1,
-   "grade": "negative",
+   "score": 0,
+   "grade": "neutral",
    "rules": [
-    "departure",
     "signing"
    ],
    "reasons": [
-    "a player or coach leaves",
     "a new player joins; no record with the team yet"
    ]
   },
@@ -2794,14 +2647,10 @@
     "TSG"
    ],
    "players": [],
-   "score": -1,
-   "grade": "negative",
-   "rules": [
-    "departure"
-   ],
-   "reasons": [
-    "a player or coach leaves"
-   ]
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
   },
   {
    "game": "lol",
@@ -2831,9 +2680,15 @@
    "published": "2026-10-01T12:46:13+00:00",
    "summary": "HEROIC benches head coach doto despite recent tournament success Pley.gg",
    "teams": [
-    "HEROIC"
+    "HEROIC",
+    "Orion Wanderers"
    ],
-   "players": [],
+   "players": [
+    {
+     "name": "Heroic",
+     "team": "Orion Wanderers"
+    }
+   ],
    "score": -1,
    "grade": "negative",
    "rules": [
@@ -3039,33 +2894,10 @@
   }
  ],
  "signals": {
-  "lol": {
-   "T1": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "departure"
-    ]
-   },
-   "Top Esports": {
-    "score": -12,
-    "items": 6,
-    "rules": [
-     "visa"
-    ]
-   }
-  },
   "valorant": {
    "T1": {
     "score": -1,
     "items": 1,
-    "rules": [
-     "departure"
-    ]
-   },
-   "Paper Rex": {
-    "score": -2,
-    "items": 2,
     "rules": [
      "departure"
     ]
@@ -3110,12 +2942,14 @@
     "rules": [
      "benched"
     ]
-   },
-   "BetBoom": {
-    "score": -1,
-    "items": 1,
+   }
+  },
+  "lol": {
+   "Top Esports": {
+    "score": -2,
+    "items": 6,
     "rules": [
-     "departure"
+     "visa"
     ]
    }
   }
