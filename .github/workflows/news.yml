@@ -1,0 +1,58 @@
+name: Update news
+
+# Free RSS feeds for every game the app tracks, filtered to items that name
+# a tracked team or player, and graded by the rules in scripts/scrape_news.py.
+# Every three hours, offset from the scrape and the grader.
+on:
+  schedule:
+    - cron: "40 */3 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: news
+  cancel-in-progress: true
+
+jobs:
+  news:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Fetch and grade
+        run: python scripts/scrape_news.py
+
+      - name: Commit news.json
+        run: |
+          git config user.name "esports-data-bot"
+          git config user.email "actions@github.com"
+          git add news.json
+          if git diff --quiet --cached; then
+            echo "No new news"
+            exit 0
+          fi
+          git commit -m "Update news $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          # news.json is regenerated end to end; on a rejected push the
+          # freshest copy wins rather than attempting a line-level merge.
+          for i in 1 2 3; do
+            git push && exit 0
+            echo "Push rejected ($i/3) — resetting to latest remote and reapplying..."
+            cp news.json /tmp/news.json.new
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/news.json.new news.json
+            git add news.json
+            if git diff --quiet --cached; then exit 0; fi
+            git commit -m "Update news $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            sleep $((RANDOM % 5 + 1))
+          done
+          git push
