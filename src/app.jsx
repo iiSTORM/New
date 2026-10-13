@@ -5672,11 +5672,33 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
       {/* The honest headline, above everything, because it decides how to read
           every row below it. */}
       <div style={{ background: theme.graphite, border: `1px solid ${validated ? theme.steel : theme.steelSoft || theme.steel}`,
-                    ...cardShape(theme), ...elevation(), padding: "14px 16px",
-                    marginBottom: 14, fontSize: 12.5, color: theme.textDim, lineHeight: 1.6 }}>
-        <div style={{ color: theme.text, fontWeight: 600, marginBottom: 6 }}>
-          {validated ? "Our per-leg probabilities are shown"
-                     : "Our per-leg probabilities are withheld"}
+                    ...cardShape(theme), ...elevation(), padding: isDesktop ? "20px 22px" : "16px",
+                    marginBottom: 14, fontSize: 12.5, color: theme.textDim, lineHeight: 1.6,
+                    display: "flex", gap: isDesktop ? 24 : 16, flexWrap: "wrap", alignItems: "center" }}>
+        {measured && (
+          <div style={{ flexShrink: 0, padding: "14px 18px", borderRadius: 16, minWidth: 150,
+            background: `radial-gradient(120% 120% at 0% 0%, ${theme.accent}22, transparent 60%), ${theme.void}`,
+            border: `1px solid ${theme.accentBorder}` }}>
+            <div style={{ fontSize: 9.5, letterSpacing: 1.4, textTransform: "uppercase", fontWeight: 700, color: theme.textFaint }}>Legs landed</div>
+            <div className="kp-num" style={{ display: "inline-block", fontSize: 40, fontWeight: 800, letterSpacing: -1.5, lineHeight: 1.1, ...gradText(theme) }}>
+              {(measured.mean * 100).toFixed(1)}%
+            </div>
+            <div className="kp-num" style={{ fontSize: 11, color: theme.textFaint }}>
+              {(measured.lo * 100).toFixed(1)}–{(measured.hi * 100).toFixed(1)}% · {measured.n} matches
+            </div>
+          </div>
+        )}
+        <div style={{ flex: "1 1 320px", minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
+          <span style={{ color: theme.text, fontWeight: 800, fontSize: 17, fontFamily: "'Sora', sans-serif", letterSpacing: -0.3 }}>
+            {validated ? "Our per-leg probabilities are shown"
+                       : "Our per-leg probabilities are withheld"}
+          </span>
+          <span className="kp-chip" style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.8, textTransform: "uppercase",
+            background: `${validated ? theme.good : theme.textFaint}1f`, color: validated ? theme.good : theme.textDim,
+            border: `1px solid ${validated ? theme.good : theme.textFaint}40` }}>
+            {validated ? "Validated" : "Not yet separated"}
+          </span>
         </div>
         {evidence ? (
           <>
@@ -5694,13 +5716,18 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
         ) : (
           <div>The graded record has not loaded, so nothing here has been checked against it.</div>
         )}
+        </div>
       </div>
 
       {/* What the board pays. Editable because it cannot be fetched. */}
       <div style={{ background: theme.graphite, border: `1px solid ${theme.steel}`,
                     ...cardShape(theme), ...elevation(), padding: "14px 16px",
                     marginBottom: 14, fontSize: 12.5, color: theme.textDim }}>
-        <div style={{ color: theme.text, fontWeight: 600, marginBottom: 2 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 9, color: theme.text, fontWeight: 800, marginBottom: 4,
+          fontFamily: "'Sora', sans-serif", fontSize: 15 }}>
+          <span style={{ width: 28, height: 28, borderRadius: 9, display: "grid", placeItems: "center", background: theme.grad }}>
+            <Icon name="layers" size={15} stroke={2.2} color={theme.onAccent} />
+          </span>
           What your board pays
         </div>
         <div style={{ marginBottom: 10, color: theme.textFaint, fontSize: 11.5 }}>
@@ -5712,23 +5739,29 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-end" }}>
           {Object.keys(PAYOUT_MULTIPLIERS).map((size) => (
-            <label key={size} style={{ display: "flex", flexDirection: "column", gap: 3,
-                                       fontSize: 11.5, color: theme.textDim }}>
+            <label key={size} style={{ display: "flex", flexDirection: "column", gap: 5,
+                                       fontSize: 10, letterSpacing: 1, textTransform: "uppercase", fontWeight: 700, color: theme.textFaint,
+                                       padding: "10px 12px", borderRadius: 14, background: theme.void, border: `1px solid ${theme.steelSoft}` }}>
               <span>{size} picks</span>
+              <span style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
               <input type="number" step="0.5" min="1"
                      value={payoutOverrides[size] !== undefined && payoutOverrides[size] !== ""
                        ? payoutOverrides[size] : ""}
                      placeholder={String(PAYOUT_MULTIPLIERS[size])}
                      onChange={(e) => setPayoutOverrides(
                        (prev) => ({ ...prev, [size]: e.target.value }))}
-                     style={{ width: 74, padding: "5px 7px", fontSize: 12.5,
-                              background: theme.void, color: theme.text,
-                              border: `1px solid ${theme.steel}`, borderRadius: 3 }} />
+                     className="kp-num"
+                     style={{ width: 62, padding: "4px 0", fontSize: 20, fontWeight: 800,
+                              background: "transparent", color: theme.text,
+                              border: "none", borderBottom: `1px solid ${theme.steel}`, borderRadius: 0 }} />
+              <span style={{ fontSize: 14, color: theme.accent, fontWeight: 800, textTransform: "none" }}>×</span>
+              </span>
             </label>
           ))}
           {!usingDefaults && (
             <button className="kp-btn" onClick={() => setPayoutOverrides({})}
-                    style={{ fontSize: 11.5, padding: "6px 10px" }}>
+                    style={{ fontSize: 12, fontWeight: 700, padding: "8px 14px", borderRadius: 999, cursor: "pointer",
+                             background: theme.graphiteLight, color: theme.text, border: `1px solid ${theme.steel}` }}>
               Back to defaults
             </button>
           )}
@@ -5755,9 +5788,9 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
                          placeholder="not set"
                          onChange={(e) => setOddsOverrides(
                            (prev) => ({ ...prev, [type]: e.target.value }))}
-                         style={{ width: 88, padding: "5px 7px", fontSize: 12.5,
+                         style={{ width: 96, padding: "7px 10px", fontSize: 13,
                                   background: theme.void, color: theme.text,
-                                  border: `1px solid ${theme.steel}`, borderRadius: 3 }} />
+                                  border: `1px solid ${theme.steel}`, borderRadius: 10 }} />
                 </label>
               ))}
             </div>
@@ -5790,92 +5823,156 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
         const shapeLabel = { spread: "one leg per fixture",
                              fixture: "all on one fixture",
                              team: "all on one roster" }[rung.shape] || rung.shape;
+        const payoutText = rung.multiplier
+          ? `${Number(rung.multiplier.toFixed(2))}×`
+          : rung.unpricedTypes && rung.unpricedTypes.length ? "?" : "—";
+        const evTone = evAtMeasured === null ? theme.textDim : evAtMeasured >= 0 ? theme.good : theme.bad;
         return (
-          <div key={`${rung.size}-${rung.shape}`}
+          <div key={`${rung.size}-${rung.shape}`} className="kp-ticket"
                style={{ background: theme.graphite, border: `1px solid ${theme.steel}`,
-                        ...cardShape(theme), ...elevation(), marginBottom: 10,
-                        padding: "14px 16px" }}>
-            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline",
-                          gap: 10, marginBottom: 10 }}>
-              <span style={{ color: theme.text, fontWeight: 700, fontSize: 14 }}>
-                {rung.size} legs
-              </span>
-              <span style={{ fontSize: 11.5, padding: "2px 7px",
-                             borderRadius: 3, border: `1px solid ${theme.steel}`,
-                             color: rung.concentrated ? theme.bad : theme.textDim }}>
-                {shapeLabel}
-              </span>
-              <span style={{ color: theme.textDim, fontSize: 12 }}>
-                {rung.multiplier
-                  ? `pays ${Number(rung.multiplier.toFixed(2))}x`
-                  : rung.unpricedTypes && rung.unpricedTypes.length
-                    ? `payout unknown — enter what a ${rung.unpricedTypes.join(" and a ")} pays`
-                    : "no multiplier on file"}
-              </span>
-              {rung.breakEven !== null && (
-                <span style={{ color: theme.textDim, fontSize: 12 }}>
-                  · needs <strong style={{ color: theme.text }}>
-                    {(rung.breakEven * 100).toFixed(1)}%
-                  </strong> a leg
-                </span>
-              )}
-              {shortfall !== null && (
-                <span style={{ fontSize: 12,
-                               color: shortfall > 0 ? theme.bad : theme.good }}>
-                  · {shortfall > 0
-                      ? `${(shortfall * 100).toFixed(1)} points short of that`
-                      : `${(-shortfall * 100).toFixed(1)} points clear of that`}
-                </span>
-              )}
+                        ...cardShape(theme), ...elevation(), marginBottom: 14, overflow: "hidden" }}>
+            {/* Slip header: leg count, shape, payout. */}
+            <div style={{ display: "flex", alignItems: "center", gap: 14, padding: isDesktop ? "16px 20px" : "14px 16px",
+              flexWrap: "wrap",
+              background: `linear-gradient(90deg, ${rung.concentrated ? theme.bad : theme.accent}14, transparent 55%)` }}>
+              <div style={{ width: 52, height: 52, borderRadius: 16, flexShrink: 0, display: "flex", flexDirection: "column",
+                alignItems: "center", justifyContent: "center", background: theme.grad, color: theme.onAccent,
+                boxShadow: `0 10px 24px -10px ${theme.accent}` }}>
+                <span className="kp-num" style={{ fontSize: 22, fontWeight: 800, lineHeight: 1 }}>{rung.size}</span>
+                <span style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: 1.2 }}>LEGS</span>
+              </div>
+              <div style={{ flex: "1 1 200px", minWidth: 0 }}>
+                <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 5 }}>
+                  <span className="kp-chip" style={{ fontSize: 11, fontWeight: 700,
+                    background: rung.concentrated ? `${theme.bad}1a` : theme.graphiteLight,
+                    border: `1px solid ${rung.concentrated ? theme.bad + "44" : theme.steel}`,
+                    color: rung.concentrated ? theme.bad : theme.textDim }}>
+                    {shapeLabel}
+                  </span>
+                  {rung.breakEven !== null && (
+                    <span style={{ color: theme.textDim, fontSize: 12 }}>
+                      needs <strong className="kp-num" style={{ color: theme.text }}>
+                        {(rung.breakEven * 100).toFixed(1)}%
+                      </strong> a leg
+                    </span>
+                  )}
+                  {shortfall !== null && (
+                    <span className="kp-chip kp-num" style={{ fontSize: 11, fontWeight: 700,
+                      color: shortfall > 0 ? theme.bad : theme.good,
+                      background: `${shortfall > 0 ? theme.bad : theme.good}1a` }}>
+                      {shortfall > 0
+                        ? `${(shortfall * 100).toFixed(1)} pts short`
+                        : `${(-shortfall * 100).toFixed(1)} pts clear`}
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: 12, color: theme.textFaint, lineHeight: 1.5 }}>
+                  {rung.shape === "spread"
+                    ? `${rung.matches} different fixtures, so the legs are independent`
+                    : rung.shape === "team"
+                      ? `every leg on one roster — correlated at 0.143, the highest this `
+                        + `record measures, and the reason this rung prices differently`
+                      : `${rung.matches} fixture across ${rung.sides} sides — legs on one side `
+                        + `correlate at 0.143, across the fixture at 0.043`}
+                </div>
+              </div>
+              <div style={{ textAlign: "right", flexShrink: 0 }}
+                   title={rung.multiplier ? undefined
+                     : rung.unpricedTypes && rung.unpricedTypes.length
+                       ? `payout unknown — enter what a ${rung.unpricedTypes.join(" and a ")} pays`
+                       : "no multiplier on file"}>
+                <div style={{ fontSize: 9.5, letterSpacing: 1.3, textTransform: "uppercase", fontWeight: 700, color: theme.textFaint }}>Pays</div>
+                <div className="kp-num" style={{ display: "inline-block", fontSize: 30, fontWeight: 800, letterSpacing: -1, lineHeight: 1.05,
+                  ...gradText(theme) }}>{payoutText}</div>
+              </div>
             </div>
+            {!rung.multiplier && rung.unpricedTypes && rung.unpricedTypes.length > 0 && (
+              <div style={{ padding: "0 20px 10px", fontSize: 11.5, color: theme.textFaint }}>
+                payout unknown — enter what a {rung.unpricedTypes.join(" and a ")} pays
+              </div>
+            )}
 
-            <div style={{ fontSize: 12, color: theme.textDim, marginBottom: 8 }}>
-              {rung.shape === "spread"
-                ? `${rung.matches} different fixtures, so the legs are independent`
-                : rung.shape === "team"
-                  ? `every leg on one roster — correlated at 0.143, the highest this `
-                    + `record measures, and the reason this rung prices differently`
-                  : `${rung.matches} fixture across ${rung.sides} sides — legs on one side `
-                    + `correlate at 0.143, across the fixture at 0.043`}
-            </div>
-
-            <div style={{ display: "grid", gap: 4, marginBottom: 10 }}>
+            {/* Legs */}
+            <div style={{ borderTop: `1px solid ${theme.steelSoft}` }}>
               {rung.legs.map((leg, i) => {
                 const type = oddsTypeOf(leg);
                 const nonStandard = type !== STANDARD_ODDS_TYPE;
+                const over = leg.projection > leg.prop.line;
+                const dir = over ? theme.good : theme.bad;
                 return (
-                  <div key={i} style={{ display: "flex", flexWrap: "wrap", gap: 8,
-                                        fontSize: 12, color: theme.textDim }}>
-                    <span style={{ color: theme.text, minWidth: 110 }}>{leg.name}</span>
-                    {/* The marker. A demon and a goblin are different bets at
-                        different prices and a row that does not say which is a
-                        row you could stake the wrong money on. */}
-                    {nonStandard && (
-                      <span style={{ fontSize: 10, letterSpacing: 0.4, padding: "1px 5px",
-                                     borderRadius: 3, textTransform: "uppercase",
-                                     border: `1px solid ${type === "demon" ? theme.bad : theme.good}`,
-                                     color: type === "demon" ? theme.bad : theme.good }}>
-                        {type}
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
+                    padding: isDesktop ? "11px 20px" : "11px 16px", borderTop: i ? `1px solid ${theme.steelSoft}` : "none" }}>
+                    <span className="kp-num" style={{ width: 22, height: 22, borderRadius: 7, flexShrink: 0, display: "grid", placeItems: "center",
+                      fontSize: 11, fontWeight: 800, color: theme.textDim, background: theme.graphiteLight, border: `1px solid ${theme.steel}` }}>{i + 1}</span>
+                    <div style={{ flex: "1 1 180px", minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                        <span style={{ color: theme.text, fontWeight: 700, fontSize: 14, fontFamily: "'Sora', sans-serif" }}>{leg.name}</span>
+                        {/* The marker. A demon and a goblin are different bets at
+                            different prices and a row that does not say which is a
+                            row you could stake the wrong money on. */}
+                        {nonStandard && (
+                          <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 0.6, padding: "1px 6px",
+                                         borderRadius: 999, textTransform: "uppercase",
+                                         border: `1px solid ${type === "demon" ? theme.bad : theme.good}`,
+                                         color: type === "demon" ? theme.bad : theme.good }}>
+                            {type}
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 11.5, color: theme.textFaint, marginTop: 2 }}>
+                        {leg.team} vs {leg.opponent} · {STAT_TYPES[leg.statType].label} {mapWindowLabel(leg.maps, leg.prop && leg.prop.map)}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
+                      <div style={{ textAlign: "right" }}>
+                        <div className="kp-num" style={{ fontSize: 14, fontWeight: 700, color: theme.text }}>{leg.prop.line}</div>
+                        <div style={{ fontSize: 9, letterSpacing: 1, color: theme.textFaint, fontWeight: 700 }}>LINE</div>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <div className="kp-num" style={{ fontSize: 14, fontWeight: 700, color: theme.textDim }}>{leg.projection.toFixed(1)}</div>
+                        <div style={{ fontSize: 9, letterSpacing: 1, color: theme.textFaint, fontWeight: 700 }}>WE SAY</div>
+                      </div>
+                      <span title={`${Math.abs(standardisedEdge(leg)).toFixed(2)} error-widths`}
+                        style={{ minWidth: 76, textAlign: "center", padding: "5px 10px", borderRadius: 10,
+                          background: `${dir}1a`, border: `1px solid ${dir}44` }}>
+                        <span style={{ display: "block", fontSize: 11.5, fontWeight: 800, color: dir, letterSpacing: 0.6 }}>
+                          {over ? "OVER" : "UNDER"}
+                        </span>
+                        <span className="kp-num" style={{ display: "block", fontSize: 9.5, color: theme.textFaint }}>
+                          {Math.abs(standardisedEdge(leg)).toFixed(2)} σ
+                        </span>
                       </span>
-                    )}
-                    <span>{leg.team} vs {leg.opponent}</span>
-                    <span>{STAT_TYPES[leg.statType].label} {mapWindowLabel(leg.maps, leg.prop && leg.prop.map)}</span>
-                    <span>
-                      line {leg.prop.line} · we say {leg.projection.toFixed(1)}
-                      {" "}<strong style={{ color: theme.text }}>
-                        {leg.projection > leg.prop.line ? "OVER" : "UNDER"}
-                      </strong>
-                    </span>
-                    <span style={{ color: theme.textFaint }}>
-                      {Math.abs(standardisedEdge(leg)).toFixed(2)} error-widths
-                    </span>
+                    </div>
                   </div>
                 );
               })}
             </div>
 
-            <div style={{ borderTop: `1px solid ${theme.steel}`, paddingTop: 8,
-                          fontSize: 12, color: theme.textDim }}>
+            {/* Perforation: the slip's tear line. */}
+            <div aria-hidden="true" className="kp-perf" style={{ position: "relative", height: 1, margin: "0 18px",
+              borderTop: `2px dashed ${theme.steel}` }} />
+
+            <div style={{ padding: isDesktop ? "14px 20px 16px" : "14px 16px", display: "flex", gap: 18, flexWrap: "wrap", alignItems: "center",
+              background: `${theme.void}80` }}>
+              {atMeasured !== null && (
+                <div style={{ display: "flex", gap: 18, flexShrink: 0 }}>
+                  <div>
+                    <div className="kp-num" style={{ fontSize: 22, fontWeight: 800, color: theme.text, lineHeight: 1 }}>
+                      {(atMeasured * 100).toFixed(1)}%
+                    </div>
+                    <div style={{ fontSize: 9.5, letterSpacing: 1.1, textTransform: "uppercase", color: theme.textFaint, fontWeight: 700, marginTop: 4 }}>lands</div>
+                  </div>
+                  {rung.multiplier !== null && evAtMeasured !== null && (
+                    <div>
+                      <div className="kp-num" style={{ fontSize: 22, fontWeight: 800, color: evTone, lineHeight: 1 }}>
+                        {evAtMeasured >= 0 ? "+" : ""}{(evAtMeasured * 100).toFixed(0)}%
+                      </div>
+                      <div style={{ fontSize: 9.5, letterSpacing: 1.1, textTransform: "uppercase", color: theme.textFaint, fontWeight: 700, marginTop: 4 }}>return / unit</div>
+                    </div>
+                  )}
+                </div>
+              )}
+              <div style={{ flex: "1 1 280px", minWidth: 0, fontSize: 12, color: theme.textDim, lineHeight: 1.55 }}>
               {validated ? (
                 <span>Our chance: shown once wired to per-leg probabilities.</span>
               ) : (
@@ -5919,6 +6016,7 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
                   )}
                 </div>
               )}
+              </div>
             </div>
           </div>
         );
@@ -8237,16 +8335,20 @@ function EventSide({ side, teams, won, lost, showScore, compact }) {
   const label = !key ? "TBD" : compact ? (side.code || key) : key;
   return (
     <div title={key ? `${side.name}${team && team.from_home_region ? ` · ${team.from_home_region}` : ""}` : "Not decided yet"}
-      style={{ display: "flex", alignItems: "center", gap: 7, padding: "5px 8px", minWidth: 0,
-        opacity: lost ? 0.55 : 1 }}>
-      <span aria-hidden="true" style={{ width: 3, height: 14, borderRadius: 2, background: color, flexShrink: 0 }} />
+      style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 9px", minWidth: 0,
+        opacity: lost ? 0.5 : 1,
+        background: won ? `linear-gradient(90deg, ${theme.accent}1f, transparent 80%)` : "transparent" }}>
+      <span aria-hidden="true" style={{ width: 4, height: 16, borderRadius: 2, background: key ? color : theme.steel, flexShrink: 0,
+        boxShadow: key ? `0 0 8px ${color}66` : "none" }} />
       <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-        fontSize: 12.5, fontWeight: won ? 700 : 600, color: key ? theme.text : theme.textFaint,
-        fontFamily: "'Inter', sans-serif" }}>
+        fontSize: 12.5, fontWeight: won ? 800 : 600, color: key ? theme.text : theme.textFaint,
+        fontStyle: key ? "normal" : "italic", fontFamily: "'Inter', sans-serif" }}>
         {label}
       </span>
       {showScore && (
-        <span className="kp-num" style={{ fontSize: 12.5, fontWeight: 700, color: won ? theme.accent : theme.textDim }}>
+        <span className="kp-num" style={{ fontSize: 12, fontWeight: 800, minWidth: 20, textAlign: "center",
+          padding: "1px 5px", borderRadius: 6,
+          background: won ? (theme.grad || theme.accent) : theme.steelSoft, color: won ? (theme.onAccent || theme.void) : theme.textDim }}>
           {Number.isFinite(side.wins) ? side.wins : "–"}
         </span>
       )}
@@ -8261,16 +8363,20 @@ function EventMatchBox({ m, teams, compact, width }) {
   const done = eventMatchDone(m);
   const live = m.state === "inProgress";
   return (
-    <div style={{ width, background: theme.graphiteLight, border: `1px solid ${live ? theme.accentBorder : theme.steel}`,
-      borderRadius: 8, overflow: "hidden", flexShrink: 0 }}>
+    <div className="kp-matchbox" style={{ width, background: theme.graphiteLight, border: `1px solid ${live ? theme.accentBorder : theme.steel}`,
+      backgroundImage: "linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 50%)",
+      borderRadius: 12, overflow: "hidden", flexShrink: 0,
+      boxShadow: live ? `0 0 0 1px ${theme.accent}33, 0 10px 26px -12px ${theme.accent}` : "0 8px 20px -14px rgba(0,0,0,0.9)" }}>
       <EventSide side={a || {}} teams={teams} compact={compact} showScore={done || live}
         won={win && win === eventSideKey(a)} lost={win && win !== eventSideKey(a)} />
       <div style={{ height: 1, background: theme.steelSoft }} />
       <EventSide side={b || {}} teams={teams} compact={compact} showScore={done || live}
         won={win && win === eventSideKey(b)} lost={win && win !== eventSideKey(b)} />
-      <div style={{ borderTop: `1px solid ${theme.steelSoft}`, padding: "3px 8px", fontSize: 10.5,
-        color: live ? theme.accent : theme.textFaint, display: "flex", justifyContent: "space-between", gap: 6 }}>
-        <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+      <div style={{ borderTop: `1px solid ${theme.steelSoft}`, padding: "4px 9px", fontSize: 10.5, fontWeight: 600,
+        color: live ? theme.accent : theme.textFaint, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6,
+        background: "rgba(0,0,0,0.18)" }}>
+        <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "inline-flex", alignItems: "center", gap: 5 }}>
+          {live && <span className="kp-live-dot" style={{ width: 6, height: 6, borderRadius: "50%", background: theme.accent, color: `${theme.accent}88` }} />}
           {live ? "Live" : done ? "Final" : eventWhen(m, compact)}
         </span>
         {m.best_of ? <span className="kp-num">Bo{m.best_of}</span> : null}
@@ -8296,17 +8402,19 @@ function SwissView({ stage, laterTeams, teams, isDesktop }) {
     <div>
       {model.standings.length > 0 && (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 11, letterSpacing: 1.2, color: theme.textFaint, fontWeight: 700, marginBottom: 6 }}>RECORDS</div>
+          <div style={{ fontSize: 10.5, letterSpacing: 1.4, color: theme.textFaint, fontWeight: 800, marginBottom: 8 }}>RECORDS</div>
           <div role="table" aria-label={`${stage.name} records`}
-            style={{ display: "grid", gridTemplateColumns: isDesktop ? "repeat(2, minmax(0, 1fr))" : "minmax(0, 1fr)", columnGap: 18 }}>
+            style={{ display: "grid", gridTemplateColumns: isDesktop ? "repeat(2, minmax(0, 1fr))" : "minmax(0, 1fr)", gap: 6 }}>
             {model.standings.map((row) => {
               const team = teams && teams[row.key];
               const st = EVENT_STATUS[row.status];
               const tone = row.status === "advanced" ? theme.good : row.status === "out" ? theme.bad : theme.textFaint;
               return (
-                <div key={row.key} role="row" className="kp-row"
-                  style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", fontSize: 13 }}>
-                  <span aria-hidden="true" style={{ width: 3, height: 14, borderRadius: 2, background: team ? team.color : theme.steel }} />
+                <div key={row.key} role="row"
+                  style={{ display: "flex", alignItems: "center", gap: 9, padding: "8px 12px", fontSize: 13, borderRadius: 12,
+                    background: `linear-gradient(90deg, ${tone}12, transparent 70%), ${theme.void}`,
+                    border: `1px solid ${row.status === "alive" ? theme.steelSoft : tone + "33"}` }}>
+                  <span aria-hidden="true" style={{ width: 4, height: 16, borderRadius: 2, background: team ? team.color : theme.steel }} />
                   <span role="cell" style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 600 }}>
                     {row.key}
                   </span>
@@ -8314,8 +8422,9 @@ function SwissView({ stage, laterTeams, teams, isDesktop }) {
                     <span role="cell" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: theme.textFaint,
                       border: `1px solid ${theme.steel}`, borderRadius: 4, padding: "0 4px" }}>{team.from_home_region}</span>
                   )}
-                  <span role="cell" className="kp-num" style={{ width: 34, textAlign: "right", fontWeight: 700 }}>{row.w}–{row.l}</span>
-                  <span role="cell" style={{ width: 62, textAlign: "right", fontSize: 11.5, color: tone }}>
+                  <span role="cell" className="kp-num" style={{ width: 38, textAlign: "right", fontWeight: 800, fontSize: 14 }}>{row.w}–{row.l}</span>
+                  <span role="cell" style={{ width: 76, textAlign: "center", fontSize: 10.5, fontWeight: 800, letterSpacing: 0.4, color: tone,
+                    padding: "2px 0", borderRadius: 999, background: `${tone}1a` }}>
                     <span aria-hidden="true">{st.glyph} </span>{st.label}
                   </span>
                 </div>
@@ -8327,10 +8436,14 @@ function SwissView({ stage, laterTeams, teams, isDesktop }) {
       <div className="kp-dayscroll" style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 8, alignItems: "flex-start" }}>
         {model.rounds.map((r) => (
           <div key={r.round} style={{ flexShrink: 0 }}>
-            <div style={{ fontSize: 11, letterSpacing: 1.2, color: theme.textFaint, fontWeight: 700, marginBottom: 8 }}>ROUND {r.round}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <span style={{ fontSize: 10.5, letterSpacing: 1.4, color: theme.text, fontWeight: 800 }}>ROUND {r.round}</span>
+              <span aria-hidden="true" style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${theme.accent}66, transparent)` }} />
+            </div>
             {r.pools.map((p) => (
               <div key={p.pool} style={{ marginBottom: 12 }}>
-                <div className="kp-num" style={{ fontSize: 11, color: theme.textDim, marginBottom: 6 }}>{p.pool} pool</div>
+                <div className="kp-num" style={{ display: "inline-block", fontSize: 10.5, fontWeight: 700, color: theme.textDim, marginBottom: 7,
+                  padding: "1px 8px", borderRadius: 999, background: theme.void, border: `1px solid ${theme.steelSoft}` }}>{p.pool} pool</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {p.matches.map((m) => <EventMatchBox key={m.id} m={m} teams={teams} compact={!isDesktop} width={boxW} />)}
                 </div>
@@ -8378,9 +8491,9 @@ function BracketView({ stage, teams, isDesktop }) {
   const theme = useTheme();
   const { rounds, tree } = bracketRounds(stage.matches);
   // Sized so a phone shows quarterfinals to final without scrolling.
-  const boxW = isDesktop ? 180 : 100;
-  const gap = isDesktop ? 36 : 12;
-  const slot = 92;                                    // px per first-round match
+  const boxW = isDesktop ? 190 : 100;
+  const gap = isDesktop ? 44 : 12;
+  const slot = 104;                                   // px per first-round match
   const height = Math.max(1, rounds[0] ? rounds[0].matches.length : 1) * slot;
   return (
     <div className="kp-dayscroll" style={{ overflowX: "auto", paddingBottom: 8 }}>
@@ -8399,14 +8512,15 @@ function BracketView({ stage, teams, isDesktop }) {
                     const y1 = y(2 * i, p), y2 = y(2 * i + 1, p), yc = y(i, n), mid = gap / 2;
                     return (
                       <path key={i} d={`M0 ${y1} H${mid} V${y2} H0 M${mid} ${yc} H${gap}`}
-                        fill="none" stroke={theme.steel} strokeWidth="1.5" />
+                        fill="none" stroke={`${theme.accent}77`} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />
                     );
                   })}
                 </svg>
               ) : <div style={{ width: gap / 2, flexShrink: 0 }} />
             )}
             <div style={{ display: "flex", flexDirection: "column", flexShrink: 0 }}>
-              <div style={{ height: 22, width: boxW, fontSize: 11, letterSpacing: 1.2, color: theme.textFaint, fontWeight: 700,
+              <div style={{ height: 22, width: boxW, fontSize: 10.5, letterSpacing: 1.4, fontWeight: 800,
+                color: ri === rounds.length - 1 ? theme.accent : theme.textFaint,
                 whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={r.name}>
                 {(isDesktop ? String(r.name) : shortRoundName(r.name)).toUpperCase()}
               </div>
@@ -8490,38 +8604,74 @@ function EventTab({ event, teams, isDesktop }) {
   const statusText = { done: "Done", live: "Live", upcoming: "Upcoming" };
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
-        <div style={{ fontFamily: "'Sora', sans-serif", fontSize: isDesktop ? 22 : 18, fontWeight: 600 }}>{event.name}</div>
-        {event.start && <div style={{ fontSize: 12.5, color: theme.textDim }}>{fmtDay(event.start)} – {fmtDay(event.end)}</div>}
+      <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", marginBottom: 16 }}>
+        <span style={{ width: isDesktop ? 52 : 44, height: isDesktop ? 52 : 44, borderRadius: 16, display: "grid", placeItems: "center", flexShrink: 0,
+          background: theme.grad || theme.accent, boxShadow: `0 12px 28px -12px ${theme.accent}` }}>
+          <Icon name="trophy" size={isDesktop ? 26 : 22} stroke={2} color={theme.onAccent || theme.void} />
+        </span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: "'Sora', sans-serif", fontSize: isDesktop ? 30 : 22, fontWeight: 800, letterSpacing: -0.8, lineHeight: 1.1 }}>{event.name}</div>
+          {event.start && <div style={{ fontSize: 12.5, color: theme.textDim, marginTop: 3 }}>{fmtDay(event.start)} – {fmtDay(event.end)}</div>}
+        </div>
       </div>
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 18 }}>
+      {/* The stages as a stepper: done, live, then upcoming. */}
+      <div className="kp-dayscroll" style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto", marginBottom: 18, paddingBottom: 4 }}>
         {stages.map((st, i) => {
           const status = eventStageStatus(st);
           const first = (st.matches || []).map(eventStartOf).filter((t) => t !== null).sort((a, b) => a - b)[0];
+          const tone = status === "live" ? theme.accent : status === "done" ? theme.good : theme.textFaint;
           return (
-            <a key={i} href={`#event-stage-${i}`} className="kp-chip"
-              onClick={(e) => {
-                const el = typeof document !== "undefined" && document.getElementById(`event-stage-${i}`);
-                if (el && el.scrollIntoView) { e.preventDefault(); el.scrollIntoView({ behavior: "smooth", block: "start" }); }
-              }}
-              style={{ textDecoration: "none", fontSize: 11.5, padding: "4px 10px",
-                background: status === "live" ? theme.accentSoft : "transparent",
-                color: status === "live" ? theme.accent : status === "done" ? theme.textFaint : theme.textDim,
-                border: `1px solid ${status === "live" ? theme.accentBorder : theme.steel}` }}>
-              {st.name} · {status === "upcoming" && first ? new Date(first).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : statusText[status]}
-            </a>
+            <React.Fragment key={i}>
+              {i > 0 && <span aria-hidden="true" style={{ width: 22, height: 2, flexShrink: 0, borderRadius: 1,
+                background: status === "upcoming" ? theme.steel : `${theme.good}88` }} />}
+              <a href={`#event-stage-${i}`}
+                onClick={(e) => {
+                  const el = typeof document !== "undefined" && document.getElementById(`event-stage-${i}`);
+                  if (el && el.scrollIntoView) { e.preventDefault(); el.scrollIntoView({ behavior: "smooth", block: "start" }); }
+                }}
+                style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8, flexShrink: 0,
+                  fontSize: 12, fontWeight: 700, padding: "6px 12px 6px 6px", borderRadius: 999,
+                  background: status === "live" ? theme.accentSoft : theme.graphite,
+                  color: status === "upcoming" ? theme.textDim : theme.text,
+                  border: `1px solid ${status === "live" ? theme.accentBorder : theme.steel}` }}>
+                <span className="kp-num" style={{ width: 20, height: 20, borderRadius: "50%", display: "grid", placeItems: "center",
+                  fontSize: 10.5, fontWeight: 800,
+                  background: status === "upcoming" ? theme.steelSoft : status === "live" ? (theme.grad || tone) : `${tone}26`,
+                  color: status === "live" ? (theme.onAccent || theme.void) : tone }}>
+                  {status === "done" ? "✓" : i + 1}
+                </span>
+                {st.name} · {status === "upcoming" && first ? new Date(first).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : statusText[status]}
+              </a>
+            </React.Fragment>
           );
         })}
       </div>
       {stages.map((st, i) => (
         <div key={i} id={`event-stage-${i}`} style={{ background: theme.graphite, border: `1px solid ${theme.steel}`,
           ...cardShape(theme), ...elevation(), padding: isDesktop ? "16px 18px" : "14px 12px", marginBottom: 14 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12, gap: 8 }}>
-            <div style={{ fontWeight: 700, fontSize: 15 }}>{st.name}</div>
-            <div style={{ fontSize: 11.5, color: theme.textFaint }}>
-              {(st.matches || []).filter(eventMatchDone).length}/{(st.matches || []).length} played
-            </div>
-          </div>
+          {(() => {
+            const played = (st.matches || []).filter(eventMatchDone).length;
+            const total = (st.matches || []).length;
+            return (
+              <div style={{ display: "flex", alignItems: "center", marginBottom: 16, gap: 12, flexWrap: "wrap" }}>
+                <span style={{ width: 32, height: 32, borderRadius: 10, display: "grid", placeItems: "center", flexShrink: 0,
+                  background: theme.graphiteLight, border: `1px solid ${theme.steel}` }}>
+                  <Icon name={st.kind === "bracket" ? "bracket" : st.kind === "swiss" ? "layers" : st.kind === "groups" ? "chart" : "calendar"}
+                    size={16} color={theme.accent} stroke={2} />
+                </span>
+                <div style={{ fontWeight: 800, fontSize: 18, fontFamily: "'Sora', sans-serif", letterSpacing: -0.3, flex: 1 }}>{st.name}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                  <div aria-hidden="true" style={{ width: 90, height: 6, borderRadius: 999, background: theme.steelSoft, overflow: "hidden" }}>
+                    <div style={{ width: `${total ? (played / total) * 100 : 0}%`, height: "100%", borderRadius: 999,
+                      background: theme.grad || theme.accent }} />
+                  </div>
+                  <div className="kp-num" style={{ fontSize: 11.5, color: theme.textDim }}>
+                    {played}/{total} played
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
           {st.kind === "swiss" ? <SwissView stage={st} laterTeams={eventTeamsAfter(stages, i)} teams={teams} isDesktop={isDesktop} />
             : st.kind === "bracket" ? <BracketView stage={st} teams={teams} isDesktop={isDesktop} />
             : st.kind === "groups" ? <GroupsView stage={st} teams={teams} isDesktop={isDesktop} />
@@ -8842,6 +8992,12 @@ const KP_STYLES = `
           .kp-tile:hover .kp-arrow { transform: translateX(3px) rotate(-45deg); background: var(--kp-accent-live) !important; }
           .kp-tile:hover .kp-arrow path { stroke: #0A0B14; }
           .kp-tile:hover { transform: translateY(-3px); }
+          .kp-perf::before, .kp-perf::after { content: ""; position: absolute; top: -9px; width: 16px; height: 16px; border-radius: 50%;
+            background: #0A0B14; border: 1px solid rgba(255,255,255,0.08); }
+          .kp-perf::before { left: -27px; }
+          .kp-perf::after { right: -27px; }
+          .kp-matchbox { transition: transform 0.2s ease, border-color 0.2s ease; }
+          .kp-matchbox:hover { transform: translateY(-1px); border-color: var(--kp-accent-live) !important; }
           .kp-news { transition: transform 0.2s ease, border-color 0.2s ease; }
           .kp-news:hover { transform: translateY(-2px); border-color: var(--kp-accent-live) !important; }
           .kp-news a:hover { text-decoration: underline; text-decoration-color: var(--kp-accent-live); text-underline-offset: 3px; }

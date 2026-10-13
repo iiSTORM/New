@@ -5619,19 +5619,82 @@ try {
         border: `1px solid ${validated ? theme.steel : theme.steelSoft || theme.steel}`,
         ...cardShape(theme),
         ...elevation(),
-        padding: "14px 16px",
+        padding: isDesktop ? "20px 22px" : "16px",
         marginBottom: 14,
         fontSize: 12.5,
         color: theme.textDim,
-        lineHeight: 1.6
+        lineHeight: 1.6,
+        display: "flex",
+        gap: isDesktop ? 24 : 16,
+        flexWrap: "wrap",
+        alignItems: "center"
+      }
+    }, measured && React.createElement("div", {
+      style: {
+        flexShrink: 0,
+        padding: "14px 18px",
+        borderRadius: 16,
+        minWidth: 150,
+        background: `radial-gradient(120% 120% at 0% 0%, ${theme.accent}22, transparent 60%), ${theme.void}`,
+        border: `1px solid ${theme.accentBorder}`
       }
     }, React.createElement("div", {
       style: {
-        color: theme.text,
-        fontWeight: 600,
-        marginBottom: 6
+        fontSize: 9.5,
+        letterSpacing: 1.4,
+        textTransform: "uppercase",
+        fontWeight: 700,
+        color: theme.textFaint
       }
-    }, validated ? "Our per-leg probabilities are shown" : "Our per-leg probabilities are withheld"), evidence ? React.createElement(React.Fragment, null, React.createElement("div", null, evidence.reason, "."), measured && React.createElement("div", {
+    }, "Legs landed"), React.createElement("div", {
+      className: "kp-num",
+      style: {
+        display: "inline-block",
+        fontSize: 40,
+        fontWeight: 800,
+        letterSpacing: -1.5,
+        lineHeight: 1.1,
+        ...gradText(theme)
+      }
+    }, (measured.mean * 100).toFixed(1), "%"), React.createElement("div", {
+      className: "kp-num",
+      style: {
+        fontSize: 11,
+        color: theme.textFaint
+      }
+    }, (measured.lo * 100).toFixed(1), "\u2013", (measured.hi * 100).toFixed(1), "% \xB7 ", measured.n, " matches")), React.createElement("div", {
+      style: {
+        flex: "1 1 320px",
+        minWidth: 0
+      }
+    }, React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        marginBottom: 8,
+        flexWrap: "wrap"
+      }
+    }, React.createElement("span", {
+      style: {
+        color: theme.text,
+        fontWeight: 800,
+        fontSize: 17,
+        fontFamily: "'Sora', sans-serif",
+        letterSpacing: -0.3
+      }
+    }, validated ? "Our per-leg probabilities are shown" : "Our per-leg probabilities are withheld"), React.createElement("span", {
+      className: "kp-chip",
+      style: {
+        fontSize: 10,
+        fontWeight: 800,
+        letterSpacing: 0.8,
+        textTransform: "uppercase",
+        background: `${validated ? theme.good : theme.textFaint}1f`,
+        color: validated ? theme.good : theme.textDim,
+        border: `1px solid ${validated ? theme.good : theme.textFaint}40`
+      }
+    }, validated ? "Validated" : "Not yet separated")), evidence ? React.createElement(React.Fragment, null, React.createElement("div", null, evidence.reason, "."), measured && React.createElement("div", {
       style: {
         marginTop: 6
       }
@@ -5639,7 +5702,7 @@ try {
       style: {
         color: theme.text
       }
-    }, (measured.mean * 100).toFixed(1), "%"), " ", "of the time (", (measured.lo * 100).toFixed(1), "\u2013", (measured.hi * 100).toFixed(1), "%, clustered on the match). Every rung below is priced against that rate, not against a model number.")) : React.createElement("div", null, "The graded record has not loaded, so nothing here has been checked against it.")), React.createElement("div", {
+    }, (measured.mean * 100).toFixed(1), "%"), " ", "of the time (", (measured.lo * 100).toFixed(1), "\u2013", (measured.hi * 100).toFixed(1), "%, clustered on the match). Every rung below is priced against that rate, not against a model number.")) : React.createElement("div", null, "The graded record has not loaded, so nothing here has been checked against it."))), React.createElement("div", {
       style: {
         background: theme.graphite,
         border: `1px solid ${theme.steel}`,
@@ -5652,11 +5715,30 @@ try {
       }
     }, React.createElement("div", {
       style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 9,
         color: theme.text,
-        fontWeight: 600,
-        marginBottom: 2
+        fontWeight: 800,
+        marginBottom: 4,
+        fontFamily: "'Sora', sans-serif",
+        fontSize: 15
       }
-    }, "What your board pays"), React.createElement("div", {
+    }, React.createElement("span", {
+      style: {
+        width: 28,
+        height: 28,
+        borderRadius: 9,
+        display: "grid",
+        placeItems: "center",
+        background: theme.grad
+      }
+    }, React.createElement(Icon, {
+      name: "layers",
+      size: 15,
+      stroke: 2.2,
+      color: theme.onAccent
+    })), "What your board pays"), React.createElement("div", {
       style: {
         marginBottom: 10,
         color: theme.textFaint,
@@ -5674,11 +5756,24 @@ try {
       style: {
         display: "flex",
         flexDirection: "column",
-        gap: 3,
-        fontSize: 11.5,
-        color: theme.textDim
+        gap: 5,
+        fontSize: 10,
+        letterSpacing: 1,
+        textTransform: "uppercase",
+        fontWeight: 700,
+        color: theme.textFaint,
+        padding: "10px 12px",
+        borderRadius: 14,
+        background: theme.void,
+        border: `1px solid ${theme.steelSoft}`
       }
-    }, React.createElement("span", null, size, " picks"), React.createElement("input", {
+    }, React.createElement("span", null, size, " picks"), React.createElement("span", {
+      style: {
+        display: "flex",
+        alignItems: "baseline",
+        gap: 4
+      }
+    }, React.createElement("input", {
       type: "number",
       step: "0.5",
       min: "1",
@@ -5688,21 +5783,37 @@ try {
         ...prev,
         [size]: e.target.value
       })),
+      className: "kp-num",
       style: {
-        width: 74,
-        padding: "5px 7px",
-        fontSize: 12.5,
-        background: theme.void,
+        width: 62,
+        padding: "4px 0",
+        fontSize: 20,
+        fontWeight: 800,
+        background: "transparent",
         color: theme.text,
-        border: `1px solid ${theme.steel}`,
-        borderRadius: 3
+        border: "none",
+        borderBottom: `1px solid ${theme.steel}`,
+        borderRadius: 0
       }
-    }))), !usingDefaults && React.createElement("button", {
+    }), React.createElement("span", {
+      style: {
+        fontSize: 14,
+        color: theme.accent,
+        fontWeight: 800,
+        textTransform: "none"
+      }
+    }, "\xD7")))), !usingDefaults && React.createElement("button", {
       className: "kp-btn",
       onClick: () => setPayoutOverrides({}),
       style: {
-        fontSize: 11.5,
-        padding: "6px 10px"
+        fontSize: 12,
+        fontWeight: 700,
+        padding: "8px 14px",
+        borderRadius: 999,
+        cursor: "pointer",
+        background: theme.graphiteLight,
+        color: theme.text,
+        border: `1px solid ${theme.steel}`
       }
     }, "Back to defaults")), NON_STANDARD_ODDS_TYPES.some(t => (ladder.availableOddsTypes || {})[t]) && React.createElement("div", {
       style: {
@@ -5743,13 +5854,13 @@ try {
         [type]: e.target.value
       })),
       style: {
-        width: 88,
-        padding: "5px 7px",
-        fontSize: 12.5,
+        width: 96,
+        padding: "7px 10px",
+        fontSize: 13,
         background: theme.void,
         color: theme.text,
         border: `1px solid ${theme.steel}`,
-        borderRadius: 3
+        borderRadius: 10
       }
     })))), React.createElement("div", {
       style: {
@@ -5771,111 +5882,334 @@ try {
         fixture: "all on one fixture",
         team: "all on one roster"
       }[rung.shape] || rung.shape;
+      const payoutText = rung.multiplier ? `${Number(rung.multiplier.toFixed(2))}×` : rung.unpricedTypes && rung.unpricedTypes.length ? "?" : "—";
+      const evTone = evAtMeasured === null ? theme.textDim : evAtMeasured >= 0 ? theme.good : theme.bad;
       return React.createElement("div", {
         key: `${rung.size}-${rung.shape}`,
+        className: "kp-ticket",
         style: {
           background: theme.graphite,
           border: `1px solid ${theme.steel}`,
           ...cardShape(theme),
           ...elevation(),
-          marginBottom: 10,
-          padding: "14px 16px"
+          marginBottom: 14,
+          overflow: "hidden"
         }
       }, React.createElement("div", {
         style: {
           display: "flex",
+          alignItems: "center",
+          gap: 14,
+          padding: isDesktop ? "16px 20px" : "14px 16px",
           flexWrap: "wrap",
-          alignItems: "baseline",
-          gap: 10,
-          marginBottom: 10
+          background: `linear-gradient(90deg, ${rung.concentrated ? theme.bad : theme.accent}14, transparent 55%)`
+        }
+      }, React.createElement("div", {
+        style: {
+          width: 52,
+          height: 52,
+          borderRadius: 16,
+          flexShrink: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          background: theme.grad,
+          color: theme.onAccent,
+          boxShadow: `0 10px 24px -10px ${theme.accent}`
         }
       }, React.createElement("span", {
+        className: "kp-num",
         style: {
-          color: theme.text,
-          fontWeight: 700,
-          fontSize: 14
+          fontSize: 22,
+          fontWeight: 800,
+          lineHeight: 1
         }
-      }, rung.size, " legs"), React.createElement("span", {
+      }, rung.size), React.createElement("span", {
         style: {
-          fontSize: 11.5,
-          padding: "2px 7px",
-          borderRadius: 3,
-          border: `1px solid ${theme.steel}`,
+          fontSize: 8.5,
+          fontWeight: 800,
+          letterSpacing: 1.2
+        }
+      }, "LEGS")), React.createElement("div", {
+        style: {
+          flex: "1 1 200px",
+          minWidth: 0
+        }
+      }, React.createElement("div", {
+        style: {
+          display: "flex",
+          gap: 8,
+          alignItems: "center",
+          flexWrap: "wrap",
+          marginBottom: 5
+        }
+      }, React.createElement("span", {
+        className: "kp-chip",
+        style: {
+          fontSize: 11,
+          fontWeight: 700,
+          background: rung.concentrated ? `${theme.bad}1a` : theme.graphiteLight,
+          border: `1px solid ${rung.concentrated ? theme.bad + "44" : theme.steel}`,
           color: rung.concentrated ? theme.bad : theme.textDim
         }
-      }, shapeLabel), React.createElement("span", {
+      }, shapeLabel), rung.breakEven !== null && React.createElement("span", {
         style: {
           color: theme.textDim,
           fontSize: 12
         }
-      }, rung.multiplier ? `pays ${Number(rung.multiplier.toFixed(2))}x` : rung.unpricedTypes && rung.unpricedTypes.length ? `payout unknown — enter what a ${rung.unpricedTypes.join(" and a ")} pays` : "no multiplier on file"), rung.breakEven !== null && React.createElement("span", {
-        style: {
-          color: theme.textDim,
-          fontSize: 12
-        }
-      }, "\xB7 needs ", React.createElement("strong", {
+      }, "needs ", React.createElement("strong", {
+        className: "kp-num",
         style: {
           color: theme.text
         }
       }, (rung.breakEven * 100).toFixed(1), "%"), " a leg"), shortfall !== null && React.createElement("span", {
+        className: "kp-chip kp-num",
+        style: {
+          fontSize: 11,
+          fontWeight: 700,
+          color: shortfall > 0 ? theme.bad : theme.good,
+          background: `${shortfall > 0 ? theme.bad : theme.good}1a`
+        }
+      }, shortfall > 0 ? `${(shortfall * 100).toFixed(1)} pts short` : `${(-shortfall * 100).toFixed(1)} pts clear`)), React.createElement("div", {
         style: {
           fontSize: 12,
-          color: shortfall > 0 ? theme.bad : theme.good
+          color: theme.textFaint,
+          lineHeight: 1.5
         }
-      }, "\xB7 ", shortfall > 0 ? `${(shortfall * 100).toFixed(1)} points short of that` : `${(-shortfall * 100).toFixed(1)} points clear of that`)), React.createElement("div", {
+      }, rung.shape === "spread" ? `${rung.matches} different fixtures, so the legs are independent` : rung.shape === "team" ? `every leg on one roster — correlated at 0.143, the highest this ` + `record measures, and the reason this rung prices differently` : `${rung.matches} fixture across ${rung.sides} sides — legs on one side ` + `correlate at 0.143, across the fixture at 0.043`)), React.createElement("div", {
         style: {
-          fontSize: 12,
-          color: theme.textDim,
-          marginBottom: 8
+          textAlign: "right",
+          flexShrink: 0
+        },
+        title: rung.multiplier ? undefined : rung.unpricedTypes && rung.unpricedTypes.length ? `payout unknown — enter what a ${rung.unpricedTypes.join(" and a ")} pays` : "no multiplier on file"
+      }, React.createElement("div", {
+        style: {
+          fontSize: 9.5,
+          letterSpacing: 1.3,
+          textTransform: "uppercase",
+          fontWeight: 700,
+          color: theme.textFaint
         }
-      }, rung.shape === "spread" ? `${rung.matches} different fixtures, so the legs are independent` : rung.shape === "team" ? `every leg on one roster — correlated at 0.143, the highest this ` + `record measures, and the reason this rung prices differently` : `${rung.matches} fixture across ${rung.sides} sides — legs on one side ` + `correlate at 0.143, across the fixture at 0.043`), React.createElement("div", {
+      }, "Pays"), React.createElement("div", {
+        className: "kp-num",
         style: {
-          display: "grid",
-          gap: 4,
-          marginBottom: 10
+          display: "inline-block",
+          fontSize: 30,
+          fontWeight: 800,
+          letterSpacing: -1,
+          lineHeight: 1.05,
+          ...gradText(theme)
+        }
+      }, payoutText))), !rung.multiplier && rung.unpricedTypes && rung.unpricedTypes.length > 0 && React.createElement("div", {
+        style: {
+          padding: "0 20px 10px",
+          fontSize: 11.5,
+          color: theme.textFaint
+        }
+      }, "payout unknown \u2014 enter what a ", rung.unpricedTypes.join(" and a "), " pays"), React.createElement("div", {
+        style: {
+          borderTop: `1px solid ${theme.steelSoft}`
         }
       }, rung.legs.map((leg, i) => {
         const type = oddsTypeOf(leg);
         const nonStandard = type !== STANDARD_ODDS_TYPE;
+        const over = leg.projection > leg.prop.line;
+        const dir = over ? theme.good : theme.bad;
         return React.createElement("div", {
           key: i,
           style: {
             display: "flex",
+            alignItems: "center",
+            gap: 12,
             flexWrap: "wrap",
-            gap: 8,
-            fontSize: 12,
-            color: theme.textDim
+            padding: isDesktop ? "11px 20px" : "11px 16px",
+            borderTop: i ? `1px solid ${theme.steelSoft}` : "none"
+          }
+        }, React.createElement("span", {
+          className: "kp-num",
+          style: {
+            width: 22,
+            height: 22,
+            borderRadius: 7,
+            flexShrink: 0,
+            display: "grid",
+            placeItems: "center",
+            fontSize: 11,
+            fontWeight: 800,
+            color: theme.textDim,
+            background: theme.graphiteLight,
+            border: `1px solid ${theme.steel}`
+          }
+        }, i + 1), React.createElement("div", {
+          style: {
+            flex: "1 1 180px",
+            minWidth: 0
+          }
+        }, React.createElement("div", {
+          style: {
+            display: "flex",
+            alignItems: "center",
+            gap: 7
           }
         }, React.createElement("span", {
           style: {
             color: theme.text,
-            minWidth: 110
+            fontWeight: 700,
+            fontSize: 14,
+            fontFamily: "'Sora', sans-serif"
           }
         }, leg.name), nonStandard && React.createElement("span", {
           style: {
-            fontSize: 10,
-            letterSpacing: 0.4,
-            padding: "1px 5px",
-            borderRadius: 3,
+            fontSize: 9.5,
+            fontWeight: 800,
+            letterSpacing: 0.6,
+            padding: "1px 6px",
+            borderRadius: 999,
             textTransform: "uppercase",
             border: `1px solid ${type === "demon" ? theme.bad : theme.good}`,
             color: type === "demon" ? theme.bad : theme.good
           }
-        }, type), React.createElement("span", null, leg.team, " vs ", leg.opponent), React.createElement("span", null, STAT_TYPES[leg.statType].label, " ", mapWindowLabel(leg.maps, leg.prop && leg.prop.map)), React.createElement("span", null, "line ", leg.prop.line, " \xB7 we say ", leg.projection.toFixed(1), " ", React.createElement("strong", {
+        }, type)), React.createElement("div", {
           style: {
+            fontSize: 11.5,
+            color: theme.textFaint,
+            marginTop: 2
+          }
+        }, leg.team, " vs ", leg.opponent, " \xB7 ", STAT_TYPES[leg.statType].label, " ", mapWindowLabel(leg.maps, leg.prop && leg.prop.map))), React.createElement("div", {
+          style: {
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            flexShrink: 0
+          }
+        }, React.createElement("div", {
+          style: {
+            textAlign: "right"
+          }
+        }, React.createElement("div", {
+          className: "kp-num",
+          style: {
+            fontSize: 14,
+            fontWeight: 700,
             color: theme.text
           }
-        }, leg.projection > leg.prop.line ? "OVER" : "UNDER")), React.createElement("span", {
+        }, leg.prop.line), React.createElement("div", {
           style: {
+            fontSize: 9,
+            letterSpacing: 1,
+            color: theme.textFaint,
+            fontWeight: 700
+          }
+        }, "LINE")), React.createElement("div", {
+          style: {
+            textAlign: "right"
+          }
+        }, React.createElement("div", {
+          className: "kp-num",
+          style: {
+            fontSize: 14,
+            fontWeight: 700,
+            color: theme.textDim
+          }
+        }, leg.projection.toFixed(1)), React.createElement("div", {
+          style: {
+            fontSize: 9,
+            letterSpacing: 1,
+            color: theme.textFaint,
+            fontWeight: 700
+          }
+        }, "WE SAY")), React.createElement("span", {
+          title: `${Math.abs(standardisedEdge(leg)).toFixed(2)} error-widths`,
+          style: {
+            minWidth: 76,
+            textAlign: "center",
+            padding: "5px 10px",
+            borderRadius: 10,
+            background: `${dir}1a`,
+            border: `1px solid ${dir}44`
+          }
+        }, React.createElement("span", {
+          style: {
+            display: "block",
+            fontSize: 11.5,
+            fontWeight: 800,
+            color: dir,
+            letterSpacing: 0.6
+          }
+        }, over ? "OVER" : "UNDER"), React.createElement("span", {
+          className: "kp-num",
+          style: {
+            display: "block",
+            fontSize: 9.5,
             color: theme.textFaint
           }
-        }, Math.abs(standardisedEdge(leg)).toFixed(2), " error-widths"));
+        }, Math.abs(standardisedEdge(leg)).toFixed(2), " \u03C3"))));
       })), React.createElement("div", {
+        "aria-hidden": "true",
+        className: "kp-perf",
         style: {
-          borderTop: `1px solid ${theme.steel}`,
-          paddingTop: 8,
+          position: "relative",
+          height: 1,
+          margin: "0 18px",
+          borderTop: `2px dashed ${theme.steel}`
+        }
+      }), React.createElement("div", {
+        style: {
+          padding: isDesktop ? "14px 20px 16px" : "14px 16px",
+          display: "flex",
+          gap: 18,
+          flexWrap: "wrap",
+          alignItems: "center",
+          background: `${theme.void}80`
+        }
+      }, atMeasured !== null && React.createElement("div", {
+        style: {
+          display: "flex",
+          gap: 18,
+          flexShrink: 0
+        }
+      }, React.createElement("div", null, React.createElement("div", {
+        className: "kp-num",
+        style: {
+          fontSize: 22,
+          fontWeight: 800,
+          color: theme.text,
+          lineHeight: 1
+        }
+      }, (atMeasured * 100).toFixed(1), "%"), React.createElement("div", {
+        style: {
+          fontSize: 9.5,
+          letterSpacing: 1.1,
+          textTransform: "uppercase",
+          color: theme.textFaint,
+          fontWeight: 700,
+          marginTop: 4
+        }
+      }, "lands")), rung.multiplier !== null && evAtMeasured !== null && React.createElement("div", null, React.createElement("div", {
+        className: "kp-num",
+        style: {
+          fontSize: 22,
+          fontWeight: 800,
+          color: evTone,
+          lineHeight: 1
+        }
+      }, evAtMeasured >= 0 ? "+" : "", (evAtMeasured * 100).toFixed(0), "%"), React.createElement("div", {
+        style: {
+          fontSize: 9.5,
+          letterSpacing: 1.1,
+          textTransform: "uppercase",
+          color: theme.textFaint,
+          fontWeight: 700,
+          marginTop: 4
+        }
+      }, "return / unit"))), React.createElement("div", {
+        style: {
+          flex: "1 1 280px",
+          minWidth: 0,
           fontSize: 12,
-          color: theme.textDim
+          color: theme.textDim,
+          lineHeight: 1.55
         }
       }, validated ? React.createElement("span", null, "Our chance: shown once wired to per-leg probabilities.") : React.createElement("span", null, "Our chance of this landing: ", React.createElement("strong", null, "withheld"), " \u2014 the ranking has not been shown to separate, so a number here would be a label with nothing behind it."), atMeasured !== null && rung.multiplier === null && React.createElement("div", {
         style: {
@@ -5905,7 +6239,7 @@ try {
         style: {
           color: theme.bad
         }
-      }, " ", "\u2014 which crosses zero, so the record does not determine whether this rung is worth making."), !signUndetermined && evHi < 0 && " — negative across all of it."))));
+      }, " ", "\u2014 which crosses zero, so the record does not determine whether this rung is worth making."), !signUndetermined && evHi < 0 && " — negative across all of it.")))));
     }), React.createElement("div", {
       style: {
         fontSize: 11.5,
@@ -9204,19 +9538,21 @@ try {
       style: {
         display: "flex",
         alignItems: "center",
-        gap: 7,
-        padding: "5px 8px",
+        gap: 8,
+        padding: "7px 9px",
         minWidth: 0,
-        opacity: lost ? 0.55 : 1
+        opacity: lost ? 0.5 : 1,
+        background: won ? `linear-gradient(90deg, ${theme.accent}1f, transparent 80%)` : "transparent"
       }
     }, React.createElement("span", {
       "aria-hidden": "true",
       style: {
-        width: 3,
-        height: 14,
+        width: 4,
+        height: 16,
         borderRadius: 2,
-        background: color,
-        flexShrink: 0
+        background: key ? color : theme.steel,
+        flexShrink: 0,
+        boxShadow: key ? `0 0 8px ${color}66` : "none"
       }
     }), React.createElement("span", {
       style: {
@@ -9226,16 +9562,22 @@ try {
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
         fontSize: 12.5,
-        fontWeight: won ? 700 : 600,
+        fontWeight: won ? 800 : 600,
         color: key ? theme.text : theme.textFaint,
+        fontStyle: key ? "normal" : "italic",
         fontFamily: "'Inter', sans-serif"
       }
     }, label), showScore && React.createElement("span", {
       className: "kp-num",
       style: {
-        fontSize: 12.5,
-        fontWeight: 700,
-        color: won ? theme.accent : theme.textDim
+        fontSize: 12,
+        fontWeight: 800,
+        minWidth: 20,
+        textAlign: "center",
+        padding: "1px 5px",
+        borderRadius: 6,
+        background: won ? theme.grad || theme.accent : theme.steelSoft,
+        color: won ? theme.onAccent || theme.void : theme.textDim
       }
     }, Number.isFinite(side.wins) ? side.wins : "–"));
   }
@@ -9251,13 +9593,16 @@ try {
     const done = eventMatchDone(m);
     const live = m.state === "inProgress";
     return React.createElement("div", {
+      className: "kp-matchbox",
       style: {
         width,
         background: theme.graphiteLight,
         border: `1px solid ${live ? theme.accentBorder : theme.steel}`,
-        borderRadius: 8,
+        backgroundImage: "linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 50%)",
+        borderRadius: 12,
         overflow: "hidden",
-        flexShrink: 0
+        flexShrink: 0,
+        boxShadow: live ? `0 0 0 1px ${theme.accent}33, 0 10px 26px -12px ${theme.accent}` : "0 8px 20px -14px rgba(0,0,0,0.9)"
       }
     }, React.createElement(EventSide, {
       side: a || {},
@@ -9281,20 +9626,35 @@ try {
     }), React.createElement("div", {
       style: {
         borderTop: `1px solid ${theme.steelSoft}`,
-        padding: "3px 8px",
+        padding: "4px 9px",
         fontSize: 10.5,
+        fontWeight: 600,
         color: live ? theme.accent : theme.textFaint,
         display: "flex",
         justifyContent: "space-between",
-        gap: 6
+        alignItems: "center",
+        gap: 6,
+        background: "rgba(0,0,0,0.18)"
       }
     }, React.createElement("span", {
       style: {
         whiteSpace: "nowrap",
         overflow: "hidden",
-        textOverflow: "ellipsis"
+        textOverflow: "ellipsis",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 5
       }
-    }, live ? "Live" : done ? "Final" : eventWhen(m, compact)), m.best_of ? React.createElement("span", {
+    }, live && React.createElement("span", {
+      className: "kp-live-dot",
+      style: {
+        width: 6,
+        height: 6,
+        borderRadius: "50%",
+        background: theme.accent,
+        color: `${theme.accent}88`
+      }
+    }), live ? "Live" : done ? "Final" : eventWhen(m, compact)), m.best_of ? React.createElement("span", {
       className: "kp-num"
     }, "Bo", m.best_of) : null));
   }
@@ -9328,11 +9688,11 @@ try {
       }
     }, React.createElement("div", {
       style: {
-        fontSize: 11,
-        letterSpacing: 1.2,
+        fontSize: 10.5,
+        letterSpacing: 1.4,
         color: theme.textFaint,
-        fontWeight: 700,
-        marginBottom: 6
+        fontWeight: 800,
+        marginBottom: 8
       }
     }, "RECORDS"), React.createElement("div", {
       role: "table",
@@ -9340,7 +9700,7 @@ try {
       style: {
         display: "grid",
         gridTemplateColumns: isDesktop ? "repeat(2, minmax(0, 1fr))" : "minmax(0, 1fr)",
-        columnGap: 18
+        gap: 6
       }
     }, model.standings.map(row => {
       const team = teams && teams[row.key];
@@ -9349,19 +9709,21 @@ try {
       return React.createElement("div", {
         key: row.key,
         role: "row",
-        className: "kp-row",
         style: {
           display: "flex",
           alignItems: "center",
-          gap: 8,
-          padding: "6px 0",
-          fontSize: 13
+          gap: 9,
+          padding: "8px 12px",
+          fontSize: 13,
+          borderRadius: 12,
+          background: `linear-gradient(90deg, ${tone}12, transparent 70%), ${theme.void}`,
+          border: `1px solid ${row.status === "alive" ? theme.steelSoft : tone + "33"}`
         }
       }, React.createElement("span", {
         "aria-hidden": "true",
         style: {
-          width: 3,
-          height: 14,
+          width: 4,
+          height: 16,
           borderRadius: 2,
           background: team ? team.color : theme.steel
         }
@@ -9389,17 +9751,23 @@ try {
         role: "cell",
         className: "kp-num",
         style: {
-          width: 34,
+          width: 38,
           textAlign: "right",
-          fontWeight: 700
+          fontWeight: 800,
+          fontSize: 14
         }
       }, row.w, "\u2013", row.l), React.createElement("span", {
         role: "cell",
         style: {
-          width: 62,
-          textAlign: "right",
-          fontSize: 11.5,
-          color: tone
+          width: 76,
+          textAlign: "center",
+          fontSize: 10.5,
+          fontWeight: 800,
+          letterSpacing: 0.4,
+          color: tone,
+          padding: "2px 0",
+          borderRadius: 999,
+          background: `${tone}1a`
         }
       }, React.createElement("span", {
         "aria-hidden": "true"
@@ -9420,13 +9788,26 @@ try {
       }
     }, React.createElement("div", {
       style: {
-        fontSize: 11,
-        letterSpacing: 1.2,
-        color: theme.textFaint,
-        fontWeight: 700,
-        marginBottom: 8
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        marginBottom: 10
       }
-    }, "ROUND ", r.round), r.pools.map(p => React.createElement("div", {
+    }, React.createElement("span", {
+      style: {
+        fontSize: 10.5,
+        letterSpacing: 1.4,
+        color: theme.text,
+        fontWeight: 800
+      }
+    }, "ROUND ", r.round), React.createElement("span", {
+      "aria-hidden": "true",
+      style: {
+        flex: 1,
+        height: 1,
+        background: `linear-gradient(90deg, ${theme.accent}66, transparent)`
+      }
+    })), r.pools.map(p => React.createElement("div", {
       key: p.pool,
       style: {
         marginBottom: 12
@@ -9434,9 +9815,15 @@ try {
     }, React.createElement("div", {
       className: "kp-num",
       style: {
-        fontSize: 11,
+        display: "inline-block",
+        fontSize: 10.5,
+        fontWeight: 700,
         color: theme.textDim,
-        marginBottom: 6
+        marginBottom: 7,
+        padding: "1px 8px",
+        borderRadius: 999,
+        background: theme.void,
+        border: `1px solid ${theme.steelSoft}`
       }
     }, p.pool, " pool"), React.createElement("div", {
       style: {
@@ -9515,9 +9902,9 @@ try {
       rounds,
       tree
     } = bracketRounds(stage.matches);
-    const boxW = isDesktop ? 180 : 100;
-    const gap = isDesktop ? 36 : 12;
-    const slot = 92;
+    const boxW = isDesktop ? 190 : 100;
+    const gap = isDesktop ? 44 : 12;
+    const slot = 104;
     const height = Math.max(1, rounds[0] ? rounds[0].matches.length : 1) * slot;
     return React.createElement("div", {
       className: "kp-dayscroll",
@@ -9552,8 +9939,10 @@ try {
         key: i,
         d: `M0 ${y1} H${mid} V${y2} H0 M${mid} ${yc} H${gap}`,
         fill: "none",
-        stroke: theme.steel,
-        strokeWidth: "1.5"
+        stroke: `${theme.accent}77`,
+        strokeWidth: "1.6",
+        strokeLinejoin: "round",
+        strokeLinecap: "round"
       });
     })) : React.createElement("div", {
       style: {
@@ -9570,10 +9959,10 @@ try {
       style: {
         height: 22,
         width: boxW,
-        fontSize: 11,
-        letterSpacing: 1.2,
-        color: theme.textFaint,
-        fontWeight: 700,
+        fontSize: 10.5,
+        letterSpacing: 1.4,
+        fontWeight: 800,
+        color: ri === rounds.length - 1 ? theme.accent : theme.textFaint,
         whiteSpace: "nowrap",
         overflow: "hidden",
         textOverflow: "ellipsis"
@@ -9743,37 +10132,73 @@ try {
     return React.createElement("div", null, React.createElement("div", {
       style: {
         display: "flex",
-        alignItems: "baseline",
-        justifyContent: "space-between",
-        gap: 10,
+        alignItems: "center",
+        gap: 14,
         flexWrap: "wrap",
-        marginBottom: 12
+        marginBottom: 16
+      }
+    }, React.createElement("span", {
+      style: {
+        width: isDesktop ? 52 : 44,
+        height: isDesktop ? 52 : 44,
+        borderRadius: 16,
+        display: "grid",
+        placeItems: "center",
+        flexShrink: 0,
+        background: theme.grad || theme.accent,
+        boxShadow: `0 12px 28px -12px ${theme.accent}`
+      }
+    }, React.createElement(Icon, {
+      name: "trophy",
+      size: isDesktop ? 26 : 22,
+      stroke: 2,
+      color: theme.onAccent || theme.void
+    })), React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
       }
     }, React.createElement("div", {
       style: {
         fontFamily: "'Sora', sans-serif",
-        fontSize: isDesktop ? 22 : 18,
-        fontWeight: 600
+        fontSize: isDesktop ? 30 : 22,
+        fontWeight: 800,
+        letterSpacing: -0.8,
+        lineHeight: 1.1
       }
     }, event.name), event.start && React.createElement("div", {
       style: {
         fontSize: 12.5,
-        color: theme.textDim
+        color: theme.textDim,
+        marginTop: 3
       }
-    }, fmtDay(event.start), " \u2013 ", fmtDay(event.end))), React.createElement("div", {
+    }, fmtDay(event.start), " \u2013 ", fmtDay(event.end)))), React.createElement("div", {
+      className: "kp-dayscroll",
       style: {
         display: "flex",
-        gap: 6,
-        flexWrap: "wrap",
-        marginBottom: 18
+        alignItems: "center",
+        gap: 0,
+        overflowX: "auto",
+        marginBottom: 18,
+        paddingBottom: 4
       }
     }, stages.map((st, i) => {
       const status = eventStageStatus(st);
       const first = (st.matches || []).map(eventStartOf).filter(t => t !== null).sort((a, b) => a - b)[0];
-      return React.createElement("a", {
-        key: i,
+      const tone = status === "live" ? theme.accent : status === "done" ? theme.good : theme.textFaint;
+      return React.createElement(React.Fragment, {
+        key: i
+      }, i > 0 && React.createElement("span", {
+        "aria-hidden": "true",
+        style: {
+          width: 22,
+          height: 2,
+          flexShrink: 0,
+          borderRadius: 1,
+          background: status === "upcoming" ? theme.steel : `${theme.good}88`
+        }
+      }), React.createElement("a", {
         href: `#event-stage-${i}`,
-        className: "kp-chip",
         onClick: e => {
           const el = typeof document !== "undefined" && document.getElementById(`event-stage-${i}`);
           if (el && el.scrollIntoView) {
@@ -9786,16 +10211,35 @@ try {
         },
         style: {
           textDecoration: "none",
-          fontSize: 11.5,
-          padding: "4px 10px",
-          background: status === "live" ? theme.accentSoft : "transparent",
-          color: status === "live" ? theme.accent : status === "done" ? theme.textFaint : theme.textDim,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          flexShrink: 0,
+          fontSize: 12,
+          fontWeight: 700,
+          padding: "6px 12px 6px 6px",
+          borderRadius: 999,
+          background: status === "live" ? theme.accentSoft : theme.graphite,
+          color: status === "upcoming" ? theme.textDim : theme.text,
           border: `1px solid ${status === "live" ? theme.accentBorder : theme.steel}`
         }
-      }, st.name, " \xB7 ", status === "upcoming" && first ? new Date(first).toLocaleDateString(undefined, {
+      }, React.createElement("span", {
+        className: "kp-num",
+        style: {
+          width: 20,
+          height: 20,
+          borderRadius: "50%",
+          display: "grid",
+          placeItems: "center",
+          fontSize: 10.5,
+          fontWeight: 800,
+          background: status === "upcoming" ? theme.steelSoft : status === "live" ? theme.grad || tone : `${tone}26`,
+          color: status === "live" ? theme.onAccent || theme.void : tone
+        }
+      }, status === "done" ? "✓" : i + 1), st.name, " \xB7 ", status === "upcoming" && first ? new Date(first).toLocaleDateString(undefined, {
         month: "short",
         day: "numeric"
-      }) : statusText[status]);
+      }) : statusText[status]));
     })), stages.map((st, i) => React.createElement("div", {
       key: i,
       id: `event-stage-${i}`,
@@ -9807,25 +10251,71 @@ try {
         padding: isDesktop ? "16px 18px" : "14px 12px",
         marginBottom: 14
       }
-    }, React.createElement("div", {
-      style: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "baseline",
-        marginBottom: 12,
-        gap: 8
-      }
-    }, React.createElement("div", {
-      style: {
-        fontWeight: 700,
-        fontSize: 15
-      }
-    }, st.name), React.createElement("div", {
-      style: {
-        fontSize: 11.5,
-        color: theme.textFaint
-      }
-    }, (st.matches || []).filter(eventMatchDone).length, "/", (st.matches || []).length, " played")), st.kind === "swiss" ? React.createElement(SwissView, {
+    }, (() => {
+      const played = (st.matches || []).filter(eventMatchDone).length;
+      const total = (st.matches || []).length;
+      return React.createElement("div", {
+        style: {
+          display: "flex",
+          alignItems: "center",
+          marginBottom: 16,
+          gap: 12,
+          flexWrap: "wrap"
+        }
+      }, React.createElement("span", {
+        style: {
+          width: 32,
+          height: 32,
+          borderRadius: 10,
+          display: "grid",
+          placeItems: "center",
+          flexShrink: 0,
+          background: theme.graphiteLight,
+          border: `1px solid ${theme.steel}`
+        }
+      }, React.createElement(Icon, {
+        name: st.kind === "bracket" ? "bracket" : st.kind === "swiss" ? "layers" : st.kind === "groups" ? "chart" : "calendar",
+        size: 16,
+        color: theme.accent,
+        stroke: 2
+      })), React.createElement("div", {
+        style: {
+          fontWeight: 800,
+          fontSize: 18,
+          fontFamily: "'Sora', sans-serif",
+          letterSpacing: -0.3,
+          flex: 1
+        }
+      }, st.name), React.createElement("div", {
+        style: {
+          display: "flex",
+          alignItems: "center",
+          gap: 9
+        }
+      }, React.createElement("div", {
+        "aria-hidden": "true",
+        style: {
+          width: 90,
+          height: 6,
+          borderRadius: 999,
+          background: theme.steelSoft,
+          overflow: "hidden"
+        }
+      }, React.createElement("div", {
+        style: {
+          width: `${total ? played / total * 100 : 0}%`,
+          height: "100%",
+          borderRadius: 999,
+          background: theme.grad || theme.accent
+        }
+      })), React.createElement("div", {
+        className: "kp-num",
+        style: {
+          fontSize: 11.5,
+          color: theme.textDim
+        }
+      }, played, "/", total, " played")));
+    })(), st.kind === "swiss" ? React.createElement(SwissView, {
       stage: st,
       laterTeams: eventTeamsAfter(stages, i),
       teams: teams,
@@ -10259,6 +10749,12 @@ try {
           .kp-tile:hover .kp-arrow { transform: translateX(3px) rotate(-45deg); background: var(--kp-accent-live) !important; }
           .kp-tile:hover .kp-arrow path { stroke: #0A0B14; }
           .kp-tile:hover { transform: translateY(-3px); }
+          .kp-perf::before, .kp-perf::after { content: ""; position: absolute; top: -9px; width: 16px; height: 16px; border-radius: 50%;
+            background: #0A0B14; border: 1px solid rgba(255,255,255,0.08); }
+          .kp-perf::before { left: -27px; }
+          .kp-perf::after { right: -27px; }
+          .kp-matchbox { transition: transform 0.2s ease, border-color 0.2s ease; }
+          .kp-matchbox:hover { transform: translateY(-1px); border-color: var(--kp-accent-live) !important; }
           .kp-news { transition: transform 0.2s ease, border-color 0.2s ease; }
           .kp-news:hover { transform: translateY(-2px); border-color: var(--kp-accent-live) !important; }
           .kp-news a:hover { text-decoration: underline; text-decoration-color: var(--kp-accent-live); text-underline-offset: 3px; }
