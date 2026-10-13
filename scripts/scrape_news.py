@@ -39,16 +39,19 @@ KEEP_DAYS = 21
 MAX_ITEMS = 400
 
 GOOGLE = "https://news.google.com/rss/search?hl=en-US&gl=US&ceid=US:en&q="
+# Dot Esports and Sheep Esports answer 403 to the GitHub runner, so they are
+# not here. Google News search is asked for recent items only ("when:7d"):
+# without it, most of what comes back is weeks old and ages straight out.
 FEEDS = [
     # (game, source label, url)
-    ("lol", "Dot Esports", "https://dotesports.com/league-of-legends/feed"),
-    ("lol", "Sheep Esports", "https://www.sheepesports.com/feed"),
-    ("lol", "Google News", GOOGLE + "%22League+of+Legends%22+esports+roster+OR+stand-in+OR+benched+OR+signs"),
-    ("valorant", "Dot Esports", "https://dotesports.com/valorant/feed"),
-    ("valorant", "Google News", GOOGLE + "VCT+Valorant+roster+OR+stand-in+OR+benched+OR+signs"),
+    ("lol", "Google News", GOOGLE + "%22League+of+Legends%22+esports+when:7d"),
+    ("lol", "Google News", GOOGLE + "LCK+OR+LPL+OR+LEC+OR+LCS+roster+when:14d"),
+    ("lol", "Google News", GOOGLE + "%22Worlds+2026%22+League+of+Legends+when:7d"),
+    ("valorant", "Google News", GOOGLE + "VCT+Valorant+when:7d"),
+    ("valorant", "Google News", GOOGLE + "Valorant+esports+roster+when:14d"),
     ("cs2", "HLTV", "https://www.hltv.org/rss/news"),
-    ("cs2", "Dot Esports", "https://dotesports.com/counter-strike/feed"),
-    ("cs2", "Google News", GOOGLE + "CS2+Counter-Strike+roster+OR+stand-in+OR+benched+OR+signs"),
+    ("cs2", "Google News", GOOGLE + "%22Counter-Strike%22+esports+when:7d"),
+    ("cs2", "Google News", GOOGLE + "CS2+roster+when:14d"),
 ]
 
 DATA_FILES = {"lol": "data.json", "valorant": "valorant_data.json", "cs2": "cs2_data.json"}
@@ -69,12 +72,15 @@ RULES = [
      "a player or team is penalised"),
     ("benched", r"\bbench(?:ed|es|ing)?\b|\binactive\b|\bmoved to (?:the )?reserves?\b", -1,
      "a regular is out of the lineup"),
-    ("departure", r"\bpart(?:s|ed)? ways\b|\bleaves?\b|\bleft the team\b|\breleas\w*|\bdeparts?\b|\bretire\w*|\bstep(?:s|ped)? down\b", -1,
+    ("departure", r"\bpart(?:s|ed)? ways\b|\bleaves?\b|\bleft the team\b|\breleas\w*|\bdeparts?\b|\bdeparture\b|\bretire\w*|\bstep(?:s|ped)? down\b|\bexit\w*|\bfree agen\w*|\bdropped\b", -1,
      "a player or coach leaves"),
-    ("return", r"\breturns?\b|\bback in the (?:lineup|starting)\b|\brecover(?:ed|s)\b|\bcleared to play\b|\breinstat\w*", +1,
+    # A return FROM an absence, not an organisation "returning to CS2" or a
+    # coach "returning to" a club in another role.
+    ("return", r"\breturns? (?:from|after)\b|\breturning from\b|\bback in the (?:lineup|starting)\b|\brecover(?:ed|s) from\b|\bcleared to play\b|\breinstat\w*", +1,
      "a regular is back"),
-    ("signing", r"\bsigns?\b|\bsigned\b|\bsigning\b|\bjoins?\b|\bacquir\w*|\bpromot\w*|\bannounce[sd]? .{0,30}roster\b", 0,
+    ("signing", r"\bsigns?\b|\bsigned\b|\bsigning\b|\bjoins?\b|\badds?\b|\bacquir\w*|\bpromot\w*|\bannounce[sd]? .{0,30}roster\b", 0,
      "a new player joins; no record with the team yet"),
+    ("extension", r"\bextension\b|\bextends?\b|\bre-?signs?\b", 0, "a contract is extended"),
     ("coach", r"\b(?:head )?coach\b", 0, "a coaching change"),
     ("patch", r"\bpatch \d+(?:\.\d+)*\b|\bmeta\b|\bnerf\w*|\bbuff\w*", 0, "a game patch or meta change"),
 ]
@@ -87,7 +93,14 @@ ace ale bin bo can cold deft do east echo fade faker fly frost gate go hope
 ice is jack keen kai kiin light max meteor mist neo nova one peak pure ray
 river rookie ruler score shadow sky smash snow star storm sun take tarzan
 tiger top vin viper zeus zest zeka jojo bean bear boo cat dog king lord
+next basic alpha blood blaze atom bang asap angel brave chef clear crazy
+dream flash fresh ghost hero honest jump kid lucky magic mad nice night
+pace rush silent smile sonic spirit swift tank true wild zero
 """.split())
+# An all-lowercase handle right after one of these is an ordinary word in a
+# sentence ("the next", "a basic"), not a player.
+_ARTICLE_BEFORE = re.compile(r"\b(?:the|a|an|of|to|in|for|and|is|be|this|that|its|their|his|her|our|"
+                             r"your|on|at|with|by|from|as|or|but|very|most|more|so)\s+$", re.IGNORECASE)
 
 
 def parse_date(text):
@@ -193,7 +206,9 @@ def mentions(text, game_entities):
     for name, team in game_entities["players"].items():
         if len(name) < 3:
             continue
-        if not re.search(r"(?<![\w])" + re.escape(name) + r"(?![\w])", text):
+        found = [m for m in re.finditer(r"(?<![\w])" + re.escape(name) + r"(?![\w])", text)
+                 if not (name.islower() and _ARTICLE_BEFORE.search(text[:m.start()]))]
+        if not found:
             continue
         if name.lower() in COMMON_WORDS and team not in teams:
             continue
@@ -219,15 +234,20 @@ def label(score):
     return "negative" if score < 0 else "positive" if score > 0 else "neutral"
 
 
-def build(items, entities, now):
+def build(items, entities, now, dropped=None):
+    """Graded items naming a tracked team, newest first. `dropped`, when
+    given, counts what was left out and why, for the run log."""
     cutoff = now - timedelta(days=KEEP_DAYS)
     seen, out = set(), []
+    dropped = dropped if dropped is not None else {}
     for it in items:
         when = parse_date(it.get("published")) if it.get("published") else None
         if when and when < cutoff:
+            dropped["older than %d days" % KEEP_DAYS] = dropped.get("older than %d days" % KEEP_DAYS, 0) + 1
             continue
         key = re.sub(r"[^a-z0-9]", "", it["title"].lower())[:90]
         if key in seen:
+            dropped["duplicate"] = dropped.get("duplicate", 0) + 1
             continue
         ents = entities.get(it["game"])
         if not ents:
@@ -235,7 +255,8 @@ def build(items, entities, now):
         text = f"{it['title']}. {it.get('summary', '')}"
         teams, players = mentions(text, ents)
         if not teams:
-            continue          # names nobody this app tracks
+            dropped["names no tracked team or player"] = dropped.get("names no tracked team or player", 0) + 1
+            continue
         seen.add(key)
         score, rules, reasons = grade(text)
         out.append({**it, "teams": teams, "players": players, "score": score,
@@ -297,7 +318,9 @@ def main():
     # Fresh items first, so a re-fetched story keeps its newest wording;
     # earlier ones are kept until they age out, since feeds only carry the
     # last few dozen stories.
-    items = build(raw + previous, entities, now)
+    dropped = {}
+    items = build(raw + previous, entities, now, dropped)
+    print("  left out: " + (", ".join(f"{n} {why}" for why, n in sorted(dropped.items())) or "nothing"))
     if not raw and previous:
         print("! every feed failed; keeping the previous file's items")
     payload = {

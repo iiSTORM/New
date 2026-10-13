@@ -47,7 +47,7 @@ const EXPORTS = [
   "payoutTableFrom", "payoutTableIsDefault", "PAYOUT_MULTIPLIERS", "legIsStandardPriced",
   "oddsTypeOf", "oddsFactorsFrom", "rungMultiplier", "ODDS_TYPE_FACTORS",
   "NON_STANDARD_ODDS_TYPES",
-  "AppShell", "MainMenu", "TrackerPage", "PeSlipForm", "PeOpenSlip", "PeSummary",
+  "AppShell", "MainMenu", "NewsPage", "newsWatchList", "filterNews", "newsAgo", "TrackerPage", "PeSlipForm", "PeOpenSlip", "PeSummary",
   "PeSettledList", "PeLedgerList", "PeConnect", "peEmptyStore", "pePlace", "peGradeLegs",
   "peSettle", "peMoney", "pePending",
 ];
@@ -1694,6 +1694,7 @@ if (app.ParlaysTab && app.buildParlays && app.parlayEvidence) {
   renders("the main menu, nothing cached", wrap(React.createElement(app.MainMenu, { isDesktop: false, go: noop })));
   fakeWindow.localStorage.setItem("pe.lastSeen", JSON.stringify({ balance: 4530, open: 2, at: "2026-10-03T10:00:00-04:00" }));
   renders("the main menu, a cached balance", wrap(React.createElement(app.MainMenu, { isDesktop: true, go: noop })));
+  renders("the news page, loading", wrap(React.createElement(app.NewsPage, { isDesktop: false, onHome: noop })));
   renders("the tracker, not connected", wrap(React.createElement(app.TrackerPage, { isDesktop: false, onHome: noop })));
   fakeWindow.localStorage.setItem("pe.token", JSON.stringify("github_pat_test"));
   renders("the tracker, connected and loading", wrap(React.createElement(app.TrackerPage, { isDesktop: true, onHome: noop })));
@@ -1709,7 +1710,7 @@ if (app.ParlaysTab && app.buildParlays && app.parlayEvidence) {
   renders("the ledger", wrap(React.createElement(app.PeLedgerList, { store: s })));
   renders("the slip form", wrap(React.createElement(app.PeSlipForm, { table: s.payout_table, busy: false, onSubmit: noop, onCancel: noop })));
   renders("the slip form, every toggle on", wrapOpen(React.createElement(appOpen.PeSlipForm, { table: s.payout_table, busy: true, onSubmit: noop, onCancel: noop })));
-  for (const hash of ["", "#/", "#/tracker", "#/projections", "#/nonsense"]) {
+  for (const hash of ["", "#/", "#/tracker", "#/news", "#/projections", "#/nonsense"]) {
     fakeWindow.location = { hash };
     renders(`the app shell at "${hash}"`, React.createElement(app.AppShell));
   }
@@ -1718,7 +1719,9 @@ if (app.ParlaysTab && app.buildParlays && app.parlayEvidence) {
   /* Rendering without throwing is not the same as rendering the right page.
      Each of these is what a user would see first in that state. */
   const expect = [
-    ["the main menu, a cached balance", "$45.30"],
+    ["the main menu, a cached balance", "News"],
+    ["the news page, loading", "Loading news"],
+    ["the app shell at \"#/news\"", "What changed this week"],
     ["the tracker, not connected", "Connect your private tracker"],
     ["the tracker, connected and loading", "Opening iiSTORM/propedge"],
     ["the bankroll summary", "BANKROLL"],
@@ -1730,6 +1733,21 @@ if (app.ParlaysTab && app.buildParlays && app.parlayEvidence) {
     if (markup[label] === undefined) continue;   // its render already failed above
     if (markup[label].includes(text)) pass++;
     else { fail++; console.error(`FAIL  ${label} does not show "${text}"`); }
+  }
+  // The tracker is off the menu: a cached balance must not bring it back.
+  if (markup["the main menu, a cached balance"] && markup["the main menu, a cached balance"].includes("$45.30")) {
+    fail++; console.error("FAIL  the hidden tracker's balance is back on the menu");
+  } else pass++;
+  // News helpers: the watch list is worst first and only net-negative teams.
+  {
+    const sig = { lol: { T1: { score: -4, items: 1, rules: ["stand-in"] }, GEN: { score: 1, items: 1, rules: ["return"] } },
+                  cs2: { Vitality: { score: -1, items: 2, rules: ["benched"] } } };
+    const w = app.newsWatchList(sig, "all").map((x) => x.team).join(",");
+    const items = [{ game: "lol", grade: "negative" }, { game: "cs2", grade: "positive" }];
+    const ok = w === "T1,Vitality" && app.newsWatchList(sig, "cs2").length === 1
+      && app.filterNews(items, "lol", "all").length === 1 && app.filterNews(items, "all", "positive")[0].game === "cs2"
+      && app.newsAgo("2026-10-13T10:00:00Z", Date.parse("2026-10-13T12:00:00Z")) === "120m ago".replace("120m", "2h");
+    if (ok) pass++; else { fail++; console.error(`FAIL  news helpers (${w})`); }
   }
   const settledOpen = Object.keys(markup).find((k) => k.startsWith("an open slip (won,lost,dnp)"));
   if (!settledOpen || !markup[settledOpen].includes("Expected")) {

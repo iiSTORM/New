@@ -98,3 +98,21 @@ def test_the_real_data_files_give_every_game_teams_and_players():
         os.chdir(cwd)
     for game in ("lol", "valorant", "cs2"):
         assert len(ents[game]["teams"]) > 10 and len(ents[game]["players"]) > 50
+
+
+def test_an_ordinary_word_after_an_article_is_not_a_player():
+    ents = {"teams": {"Procyon": ["Procyon"]}, "players": {"next": "Procyon", "ropz": "Procyon"}}
+    assert sn.mentions("Procyon look ahead to the next event", ents)[1] == []
+    assert sn.mentions("Procyon: ropz on form", ents)[1] == [{"name": "ropz", "team": "Procyon"}]
+
+
+def test_the_first_live_run_grades():
+    """Headlines from the first real run, graded as a reader would."""
+    def g(title):
+        return sn.grade(title)
+    assert g("siuhy Free Agent After Liquid Exit")[0] < 0
+    assert g("Envy Tease CS2 Return as 3DMAX Roster Deal Reportedly Nears")[0] == 0
+    assert g("TOBIZ returns to MOUZ as head of talent development")[0] == 0
+    assert g("Falcons announce m0NESY contract extension")[1] == ["extension"]
+    assert "signing" in g("Team Heretics Add Jamelinho213 to Complete 2027 VCT Roster")[1]
+    assert g("ZywOo returns from illness")[0] > 0

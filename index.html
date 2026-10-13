@@ -1834,6 +1834,7 @@ try {
   const DATA_URL_SCHEDULE = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/schedule.json";
   const DATA_URL_RESULTS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props_results.json";
   const DATA_URL_PROJECTIONS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/model_projections.json";
+  const DATA_URL_NEWS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/news.json";
   const PROPS_MAX_AGE_MINUTES = 90;
   const FALLBACK_TEAMS = {
     LYON: {
@@ -6907,6 +6908,9 @@ try {
       name: match.teamA,
       color: teamColorOf(teams, match.teamA, theme.textDim),
       region: homeRegion(match.teamA)
+    }), React.createElement(NewsFlag, {
+      game: game,
+      team: match.teamA
     }), React.createElement("span", {
       style: {
         color: theme.textFaint,
@@ -6917,6 +6921,9 @@ try {
       name: match.teamB,
       color: teamColorOf(teams, match.teamB, theme.textDim),
       region: homeRegion(match.teamB)
+    }), React.createElement(NewsFlag, {
+      game: game,
+      team: match.teamB
     })), React.createElement("div", {
       style: {
         marginTop: 7,
@@ -12727,7 +12734,7 @@ try {
   }) {
     const theme = useTheme();
     const board = useBoardStatus();
-    const seen = loadStored("pe.lastSeen", null);
+    const news = useNews();
     const card = (key, title, body, extra) => React.createElement("div", {
       role: "button",
       tabIndex: 0,
@@ -12812,22 +12819,297 @@ try {
         color: theme.text,
         fontWeight: 700
       }
-    }, board.open), " open lines \xB7 board ", ageLabel(board.age) || "just saved") : React.createElement(React.Fragment, null, "Board saved ", peWhen(board.saved), " \u2014 every line on it has started. Upload a fresh one for edges and parlays.")) : null), card("tracker", "Tracker", "Log slips as you place them, mark results, and keep your bankroll straight.", seen && typeof seen.balance === "number" ? React.createElement("div", {
+    }, board.open), " open lines \xB7 board ", ageLabel(board.age) || "just saved") : React.createElement(React.Fragment, null, "Board saved ", peWhen(board.saved), " \u2014 every line on it has started. Upload a fresh one for edges and parlays.")) : null), card("news", "News", "Roster moves, stand-ins, illness and patches for every team we track, graded for whether they help or hurt.", news && news.items ? React.createElement("div", {
       style: {
         marginTop: 12,
-        fontSize: 13,
+        fontSize: 12.5,
         color: theme.textDim
       }
     }, React.createElement("span", {
       className: "kp-num",
       style: {
         color: theme.text,
-        fontSize: 18,
         fontWeight: 700
       }
-    }, peFmt(seen.balance)), " ", "\xB7 ", seen.open, " open \xB7 as of ", peWhen(seen.at)) : null)));
+    }, news.items.filter(i => Date.parse(i.published || "") > Date.now() - 7 * 864e5).length), " items this week \xB7 ", newsWatchList(news.signals, "all").length, " team(s) on the watch list") : null)));
   }
-  const PE_ROUTES = ["menu", "projections", "tracker"];
+  const NEWS_GAMES = {
+    lol: "LoL",
+    valorant: "Valorant",
+    cs2: "CS2"
+  };
+  let newsRequest = null;
+  function useNews() {
+    const [payload, setPayload] = useState(undefined);
+    useEffect(() => {
+      let live = true;
+      if (!newsRequest) {
+        newsRequest = fetch(DATA_URL_NEWS, {
+          cache: "no-store"
+        }).then(res => res.ok ? res.json() : null).catch(() => null);
+      }
+      newsRequest.then(data => {
+        if (live) setPayload(data);
+      });
+      return () => {
+        live = false;
+      };
+    }, []);
+    return payload;
+  }
+  function NewsFlag({
+    game,
+    team
+  }) {
+    const theme = useTheme();
+    const news = useNews();
+    const s = news && news.signals && news.signals[game] && news.signals[game][team];
+    if (!s || s.score >= 0) return null;
+    return React.createElement("span", {
+      title: `News this week for ${team}: ${s.rules.join(", ")} (${s.items} item${s.items === 1 ? "" : "s"}). See the News page.`,
+      style: {
+        fontSize: 10.5,
+        fontWeight: 600,
+        padding: "1px 6px",
+        borderRadius: 999,
+        background: theme.bad + "1c",
+        color: theme.bad,
+        whiteSpace: "nowrap"
+      }
+    }, "news ", s.score);
+  }
+  function newsAgo(iso, now = Date.now()) {
+    const t = Date.parse(iso || "");
+    if (!Number.isFinite(t)) return "";
+    const min = Math.max(0, Math.round((now - t) / 60000));
+    if (min < 60) return `${min}m ago`;
+    if (min < 48 * 60) return `${Math.round(min / 60)}h ago`;
+    return `${Math.round(min / 1440)}d ago`;
+  }
+  function filterNews(items, game, grade) {
+    return (items || []).filter(it => (game === "all" || it.game === game) && (grade === "all" || it.grade === grade));
+  }
+  function newsWatchList(signals, game) {
+    const out = [];
+    for (const [g, teams] of Object.entries(signals || {})) {
+      if (game !== "all" && g !== game) continue;
+      for (const [team, s] of Object.entries(teams)) if (s.score < 0) out.push({
+        game: g,
+        team,
+        ...s
+      });
+    }
+    return out.sort((a, b) => a.score - b.score || b.items - a.items);
+  }
+  function NewsPage({
+    isDesktop,
+    onHome
+  }) {
+    const theme = useTheme();
+    const payload = useNews();
+    const [game, setGame] = useState(() => loadStored("news.game", "all"));
+    const [grade, setGrade] = useState("all");
+    const pick = g => {
+      setGame(g);
+      saveStored("news.game", g);
+    };
+    const items = payload ? filterNews(payload.items, game, grade) : [];
+    const watch = payload ? newsWatchList(payload.signals, game) : [];
+    const tone = g => g === "negative" ? theme.bad : g === "positive" ? theme.good : theme.textFaint;
+    const chip = (active, label, onClick, key) => React.createElement("button", {
+      key: key || label,
+      type: "button",
+      className: "kp-btn",
+      onClick: onClick,
+      style: {
+        cursor: "pointer",
+        borderRadius: 999,
+        padding: "5px 11px",
+        fontSize: 12.5,
+        fontWeight: 600,
+        background: active ? theme.accentSoft : "transparent",
+        color: active ? theme.text : theme.textDim,
+        border: `1px solid ${active ? theme.accentBorder : theme.steel}`
+      }
+    }, label);
+    const tag = (text, color, title, key) => React.createElement("span", {
+      key: key || text,
+      title: title,
+      style: {
+        fontSize: 11,
+        padding: "2px 7px",
+        borderRadius: 999,
+        background: (color || theme.textFaint) + "1c",
+        color: color || theme.textDim,
+        whiteSpace: "nowrap"
+      }
+    }, text);
+    const card = {
+      background: theme.graphite,
+      border: `1px solid ${theme.steel}`,
+      ...cardShape(theme.cornerStyle),
+      ...elevation()
+    };
+    return React.createElement("div", {
+      style: {
+        maxWidth: 760,
+        margin: "0 auto",
+        padding: isDesktop ? "32px 24px 60px" : "18px 16px 56px"
+      }
+    }, React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        marginBottom: 16
+      }
+    }, React.createElement(PeButton, {
+      small: true,
+      onClick: onHome
+    }, "\u2190 Menu"), React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 7,
+        fontSize: 10.5,
+        letterSpacing: 2,
+        color: theme.accent,
+        fontWeight: 600
+      }
+    }, React.createElement(Reticle, {
+      size: 13,
+      color: theme.accent,
+      active: true
+    }), "NEWS"), payload && payload.generated_at && React.createElement("span", {
+      style: {
+        marginLeft: "auto",
+        fontSize: 11.5,
+        color: theme.textFaint
+      }
+    }, "updated ", newsAgo(payload.generated_at))), React.createElement("h1", {
+      style: {
+        fontSize: isDesktop ? 26 : 21,
+        fontWeight: 600,
+        margin: "0 0 14px",
+        fontFamily: "'Fraunces', serif",
+        letterSpacing: -0.2
+      }
+    }, "What changed this week"), React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 6,
+        flexWrap: "wrap",
+        marginBottom: 8
+      }
+    }, chip(game === "all", "All games", () => pick("all")), Object.entries(NEWS_GAMES).map(([id, label]) => chip(game === id, label, () => pick(id), id))), React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 6,
+        flexWrap: "wrap",
+        marginBottom: 16
+      }
+    }, chip(grade === "all", "Everything", () => setGrade("all")), chip(grade === "negative", "Negative", () => setGrade("negative")), chip(grade === "positive", "Positive", () => setGrade("positive")), chip(grade === "neutral", "Noted", () => setGrade("neutral"))), payload === undefined && React.createElement("div", {
+      style: {
+        ...card,
+        padding: 18,
+        color: theme.textDim
+      }
+    }, "Loading news\u2026"), payload === null && React.createElement("div", {
+      style: {
+        ...card,
+        padding: 18,
+        color: theme.textDim,
+        lineHeight: 1.6
+      }
+    }, "No news file yet. It is written by ", React.createElement("code", null, "scripts/scrape_news.py"), " every three hours; it appears after the first run."), payload && watch.length > 0 && React.createElement("div", {
+      style: {
+        ...card,
+        padding: "12px 14px",
+        marginBottom: 14
+      }
+    }, React.createElement("div", {
+      style: {
+        fontSize: 12.5,
+        fontWeight: 600,
+        color: theme.text,
+        marginBottom: 8
+      }
+    }, "Watch list ", React.createElement("span", {
+      style: {
+        fontWeight: 400,
+        color: theme.textFaint
+      }
+    }, "\xB7 net-negative news in the last 7 days")), React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 6,
+        flexWrap: "wrap"
+      }
+    }, watch.slice(0, 16).map(w => tag(`${w.team} ${w.score}`, theme.bad, `${NEWS_GAMES[w.game]}: ${w.items} item(s) — ${w.rules.join(", ")}`, `${w.game}|${w.team}`)))), payload && !items.length && React.createElement("div", {
+      style: {
+        ...card,
+        padding: 18,
+        color: theme.textDim
+      }
+    }, "Nothing here for this filter."), payload && items.length > 0 && React.createElement("div", {
+      style: {
+        ...card,
+        overflow: "hidden"
+      }
+    }, items.map(it => React.createElement("div", {
+      key: it.link,
+      style: {
+        display: "flex",
+        gap: 12,
+        padding: "12px 14px",
+        borderBottom: `1px solid ${theme.steel}`
+      }
+    }, React.createElement("div", {
+      style: {
+        width: 4,
+        borderRadius: 2,
+        flex: "0 0 4px",
+        background: tone(it.grade)
+      }
+    }), React.createElement("div", {
+      style: {
+        minWidth: 0,
+        flex: 1
+      }
+    }, React.createElement("a", {
+      href: it.link,
+      target: "_blank",
+      rel: "noopener noreferrer",
+      style: {
+        color: theme.text,
+        fontSize: 14.5,
+        fontWeight: 600,
+        lineHeight: 1.4,
+        textDecoration: "none",
+        overflowWrap: "anywhere"
+      }
+    }, it.title), React.createElement("div", {
+      style: {
+        fontSize: 11.5,
+        color: theme.textFaint,
+        margin: "4px 0 6px"
+      }
+    }, NEWS_GAMES[it.game] || it.game, " \xB7 ", it.source, it.published ? ` · ${newsAgo(it.published)}` : ""), React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 5,
+        flexWrap: "wrap"
+      }
+    }, it.grade !== "neutral" && tag(`${it.grade} ${it.score > 0 ? "+" : ""}${it.score}`, tone(it.grade)), (it.rules || []).map((r, i) => tag(r, it.grade === "neutral" ? null : tone(it.grade), (it.reasons || [])[i], `r${r}`)), (it.teams || []).map(t => tag(t, null, null, `t${t}`)), (it.players || []).map(p => tag(p.name, theme.accent, p.team, `p${p.name}`))))))), React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: theme.textFaint,
+        marginTop: 12,
+        lineHeight: 1.6
+      }
+    }, "Grades come from fixed rules, not a reading of the article: a stand-in, illness, visa problem or suspension is \u22122 for the team it names, a benching or departure \u22121, a return +1; signings, coaching changes and patches are noted but not graded. The rules that fired are on each item \u2014 hover or tap one for what it means. Nothing here feeds the projections yet; once enough items are graded, whether a negative one predicts a miss will be measured first."));
+  }
+  const PE_ROUTES = ["menu", "projections", "news", "tracker"];
   function peRouteFromHash() {
     const h = (typeof window !== "undefined" && window.location && window.location.hash || "").replace(/^#\/?/, "");
     const route = h.split("?")[0];
@@ -12890,6 +13172,9 @@ try {
     }, React.createElement("div", {
       style: page
     }, React.createElement("style", null, KP_STYLES), route === "tracker" ? React.createElement(TrackerPage, {
+      isDesktop: isDesktop,
+      onHome: () => go("menu")
+    }) : route === "news" ? React.createElement(NewsPage, {
       isDesktop: isDesktop,
       onHome: () => go("menu")
     }) : React.createElement(MainMenu, {

@@ -667,6 +667,34 @@ CI fails if `index.html` does not match `src/`. A stale `index.html` would
 ship an app that disagrees with its own source, and the diff would be
 invisible in review because it would simply be missing.
 
+## News
+
+The menu's **News** page collects news for every game in one place.
+`scripts/scrape_news.py` runs every three hours (`.github/workflows/news.yml`),
+reads free feeds (Google News searches per game, limited to the last week or
+two, and HLTV's RSS), and keeps only items that name a team or player this app
+tracks. Dot Esports and Sheep Esports were tried and answer 403 to the GitHub
+runner.
+
+Each item is graded by fixed, named rules rather than a reading of the article,
+so every grade can be checked:
+
+| rule | effect for the team named |
+|---|---|
+| stand-in, illness/injury, visa, suspension | −2 |
+| benched, departure | −1 |
+| return (from an absence) | +1 |
+| signing, extension, coach, patch | noted, 0 |
+
+The page shows the rules that fired on each item and a **watch list** of teams
+with net-negative news in the last seven days. The same signal puts a small red
+"news −N" chip beside a team on its fixture card. None of it feeds the
+projections: once enough items are graded, whether a negative one predicts a
+miss against the line will be measured first, like every other signal here.
+
+The Tracker page is off the menu (it opens at `#/tracker`; the private store
+and the CLI are unchanged).
+
 ## Impact ± (a swing-style stat)
 
 The Consistency tab (CS2 and Valorant) lists each player's **Impact ±**: their

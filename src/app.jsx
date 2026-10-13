@@ -2239,6 +2239,7 @@ const DATA_URL_PROPS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads
 const DATA_URL_SCHEDULE = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/schedule.json";
 const DATA_URL_RESULTS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props_results.json";
 const DATA_URL_PROJECTIONS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/model_projections.json";
+const DATA_URL_NEWS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/news.json";
 
 // Lines move continuously and get pulled when news breaks, so an old one
 // can be misleading in the expensive direction — it still looks
@@ -6570,9 +6571,11 @@ function FutureMatchCard({ teams, pastMatches, match, weights, statType, games: 
           <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
             <TeamTag name={match.teamA} color={teamColorOf(teams, match.teamA, theme.textDim)}
                      region={homeRegion(match.teamA)} />
+            <NewsFlag game={game} team={match.teamA} />
             <span style={{ color: theme.textFaint, fontSize: 10.5, fontWeight: 500 }}>vs</span>
             <TeamTag name={match.teamB} color={teamColorOf(teams, match.teamB, theme.textDim)}
                      region={homeRegion(match.teamB)} />
+            <NewsFlag game={game} team={match.teamB} />
           </div>
           <div style={{ marginTop: 7, fontSize: 11.5, color: theme.textFaint, display: "flex", alignItems: "center", gap: 7 }}>
             <span>{match.date}{match.time ? ` · ${match.time}` : ""}</span>
@@ -10686,7 +10689,7 @@ function useBoardStatus() {
 function MainMenu({ isDesktop, go }) {
   const theme = useTheme();
   const board = useBoardStatus();
-  const seen = loadStored("pe.lastSeen", null);
+  const news = useNews();
   const card = (key, title, body, extra) => (
     <div role="button" tabIndex={0} className="kp-clickable" onClick={() => go(key)}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(key); } }}
@@ -10717,12 +10720,13 @@ function MainMenu({ isDesktop, go }) {
                 : <>Board saved {peWhen(board.saved)} — every line on it has started. Upload a fresh one for edges and parlays.</>}
             </div>
           ) : null)}
-        {card("tracker", "Tracker",
-          "Log slips as you place them, mark results, and keep your bankroll straight.",
-          seen && typeof seen.balance === "number" ? (
-            <div style={{ marginTop: 12, fontSize: 13, color: theme.textDim }}>
-              <span className="kp-num" style={{ color: theme.text, fontSize: 18, fontWeight: 700 }}>{peFmt(seen.balance)}</span>
-              {" "}· {seen.open} open · as of {peWhen(seen.at)}
+        {card("news", "News",
+          "Roster moves, stand-ins, illness and patches for every team we track, graded for whether they help or hurt.",
+          news && news.items ? (
+            <div style={{ marginTop: 12, fontSize: 12.5, color: theme.textDim }}>
+              <span className="kp-num" style={{ color: theme.text, fontWeight: 700 }}>
+                {news.items.filter((i) => Date.parse(i.published || "") > Date.now() - 7 * 864e5).length}
+              </span> items this week · {newsWatchList(news.signals, "all").length} team(s) on the watch list
             </div>
           ) : null)}
       </div>
@@ -10730,9 +10734,188 @@ function MainMenu({ isDesktop, go }) {
   );
 }
 
+/* ---------------------------------------------------------------- news
+
+   Every game's news in one place, from free feeds, kept only when it names
+   a team or player this app tracks (scripts/scrape_news.py, every three
+   hours). Each item is graded by named rules -- a stand-in, an illness or
+   a visa problem is a negative for the team it names, a return a positive
+   -- and shows which rules fired, so a grade can always be checked.
+
+   Not used by the projections. The grades are being collected so that,
+   once there are enough, whether a negative item predicts a miss can be
+   measured before anything acts on it. */
+const NEWS_GAMES = { lol: "LoL", valorant: "Valorant", cs2: "CS2" };
+
+// One fetch per page load, shared: every fixture card asks for it.
+let newsRequest = null;
+function useNews() {
+  const [payload, setPayload] = useState(undefined);
+  useEffect(() => {
+    let live = true;
+    if (!newsRequest) {
+      newsRequest = fetch(DATA_URL_NEWS, { cache: "no-store" })
+        .then((res) => (res.ok ? res.json() : null))
+        .catch(() => null);
+    }
+    newsRequest.then((data) => { if (live) setPayload(data); });
+    return () => { live = false; };
+  }, []);
+  return payload;
+}
+
+/* A team's net-negative news this week, as a chip for its fixture card. */
+function NewsFlag({ game, team }) {
+  const theme = useTheme();
+  const news = useNews();
+  const s = news && news.signals && news.signals[game] && news.signals[game][team];
+  if (!s || s.score >= 0) return null;
+  return (
+    <span title={`News this week for ${team}: ${s.rules.join(", ")} (${s.items} item${s.items === 1 ? "" : "s"}). See the News page.`}
+      style={{ fontSize: 10.5, fontWeight: 600, padding: "1px 6px", borderRadius: 999,
+        background: theme.bad + "1c", color: theme.bad, whiteSpace: "nowrap" }}>
+      news {s.score}
+    </span>
+  );
+}
+
+function newsAgo(iso, now = Date.now()) {
+  const t = Date.parse(iso || "");
+  if (!Number.isFinite(t)) return "";
+  const min = Math.max(0, Math.round((now - t) / 60000));
+  if (min < 60) return `${min}m ago`;
+  if (min < 48 * 60) return `${Math.round(min / 60)}h ago`;
+  return `${Math.round(min / 1440)}d ago`;
+}
+
+/* Items for the chosen game and grade, newest first. */
+function filterNews(items, game, grade) {
+  return (items || []).filter((it) => (game === "all" || it.game === game)
+    && (grade === "all" || it.grade === grade));
+}
+
+/* Teams with a net-negative week of news, worst first. */
+function newsWatchList(signals, game) {
+  const out = [];
+  for (const [g, teams] of Object.entries(signals || {})) {
+    if (game !== "all" && g !== game) continue;
+    for (const [team, s] of Object.entries(teams)) if (s.score < 0) out.push({ game: g, team, ...s });
+  }
+  return out.sort((a, b) => a.score - b.score || b.items - a.items);
+}
+
+function NewsPage({ isDesktop, onHome }) {
+  const theme = useTheme();
+  const payload = useNews();
+  const [game, setGame] = useState(() => loadStored("news.game", "all"));
+  const [grade, setGrade] = useState("all");
+  const pick = (g) => { setGame(g); saveStored("news.game", g); };
+  const items = payload ? filterNews(payload.items, game, grade) : [];
+  const watch = payload ? newsWatchList(payload.signals, game) : [];
+  const tone = (g) => (g === "negative" ? theme.bad : g === "positive" ? theme.good : theme.textFaint);
+  const chip = (active, label, onClick, key) => (
+    <button key={key || label} type="button" className="kp-btn" onClick={onClick}
+      style={{ cursor: "pointer", borderRadius: 999, padding: "5px 11px", fontSize: 12.5, fontWeight: 600,
+        background: active ? theme.accentSoft : "transparent", color: active ? theme.text : theme.textDim,
+        border: `1px solid ${active ? theme.accentBorder : theme.steel}` }}>{label}</button>
+  );
+  const tag = (text, color, title, key) => (
+    <span key={key || text} title={title} style={{ fontSize: 11, padding: "2px 7px", borderRadius: 999,
+      background: (color || theme.textFaint) + "1c", color: color || theme.textDim, whiteSpace: "nowrap" }}>{text}</span>
+  );
+  const card = { background: theme.graphite, border: `1px solid ${theme.steel}`, ...cardShape(theme.cornerStyle), ...elevation() };
+
+  return (
+    <div style={{ maxWidth: 760, margin: "0 auto", padding: isDesktop ? "32px 24px 60px" : "18px 16px 56px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+        <PeButton small onClick={onHome}>← Menu</PeButton>
+        <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 10.5, letterSpacing: 2,
+          color: theme.accent, fontWeight: 600 }}>
+          <Reticle size={13} color={theme.accent} active />
+          NEWS
+        </div>
+        {payload && payload.generated_at && (
+          <span style={{ marginLeft: "auto", fontSize: 11.5, color: theme.textFaint }}>updated {newsAgo(payload.generated_at)}</span>
+        )}
+      </div>
+      <h1 style={{ fontSize: isDesktop ? 26 : 21, fontWeight: 600, margin: "0 0 14px",
+        fontFamily: "'Fraunces', serif", letterSpacing: -0.2 }}>What changed this week</h1>
+
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+        {chip(game === "all", "All games", () => pick("all"))}
+        {Object.entries(NEWS_GAMES).map(([id, label]) => chip(game === id, label, () => pick(id), id))}
+      </div>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
+        {chip(grade === "all", "Everything", () => setGrade("all"))}
+        {chip(grade === "negative", "Negative", () => setGrade("negative"))}
+        {chip(grade === "positive", "Positive", () => setGrade("positive"))}
+        {chip(grade === "neutral", "Noted", () => setGrade("neutral"))}
+      </div>
+
+      {payload === undefined && <div style={{ ...card, padding: 18, color: theme.textDim }}>Loading news…</div>}
+      {payload === null && (
+        <div style={{ ...card, padding: 18, color: theme.textDim, lineHeight: 1.6 }}>
+          No news file yet. It is written by <code>scripts/scrape_news.py</code> every three hours; it appears after the first run.
+        </div>
+      )}
+
+      {payload && watch.length > 0 && (
+        <div style={{ ...card, padding: "12px 14px", marginBottom: 14 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 600, color: theme.text, marginBottom: 8 }}>
+            Watch list <span style={{ fontWeight: 400, color: theme.textFaint }}>· net-negative news in the last 7 days</span>
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {watch.slice(0, 16).map((w) => tag(`${w.team} ${w.score}`, theme.bad,
+              `${NEWS_GAMES[w.game]}: ${w.items} item(s) — ${w.rules.join(", ")}`, `${w.game}|${w.team}`))}
+          </div>
+        </div>
+      )}
+
+      {payload && !items.length && (
+        <div style={{ ...card, padding: 18, color: theme.textDim }}>Nothing here for this filter.</div>
+      )}
+      {payload && items.length > 0 && (
+        <div style={{ ...card, overflow: "hidden" }}>
+          {items.map((it) => (
+            <div key={it.link} style={{ display: "flex", gap: 12, padding: "12px 14px",
+              borderBottom: `1px solid ${theme.steel}` }}>
+              <div style={{ width: 4, borderRadius: 2, flex: "0 0 4px", background: tone(it.grade) }} />
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <a href={it.link} target="_blank" rel="noopener noreferrer"
+                  style={{ color: theme.text, fontSize: 14.5, fontWeight: 600, lineHeight: 1.4, textDecoration: "none",
+                    overflowWrap: "anywhere" }}>{it.title}</a>
+                <div style={{ fontSize: 11.5, color: theme.textFaint, margin: "4px 0 6px" }}>
+                  {NEWS_GAMES[it.game] || it.game} · {it.source}{it.published ? ` · ${newsAgo(it.published)}` : ""}
+                </div>
+                <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                  {it.grade !== "neutral" && tag(`${it.grade} ${it.score > 0 ? "+" : ""}${it.score}`, tone(it.grade))}
+                  {(it.rules || []).map((r, i) => tag(r, it.grade === "neutral" ? null : tone(it.grade),
+                    (it.reasons || [])[i], `r${r}`))}
+                  {(it.teams || []).map((t) => tag(t, null, null, `t${t}`))}
+                  {(it.players || []).map((p) => tag(p.name, theme.accent, p.team, `p${p.name}`))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{ fontSize: 11, color: theme.textFaint, marginTop: 12, lineHeight: 1.6 }}>
+        Grades come from fixed rules, not a reading of the article: a stand-in, illness, visa problem or suspension is
+        −2 for the team it names, a benching or departure −1, a return +1; signings, coaching changes and patches are
+        noted but not graded. The rules that fired are on each item — hover or tap one for what it means. Nothing here
+        feeds the projections yet; once enough items are graded, whether a negative one predicts a miss will be
+        measured first.
+      </div>
+    </div>
+  );
+}
+
 /* -------------------------------------------------------- the app shell */
 
-const PE_ROUTES = ["menu", "projections", "tracker"];
+// The tracker is off the menu (unused) but still opens at #/tracker, and its
+// store and the CLI are untouched.
+const PE_ROUTES = ["menu", "projections", "news", "tracker"];
 function peRouteFromHash() {
   const h = (typeof window !== "undefined" && window.location && window.location.hash || "").replace(/^#\/?/, "");
   const route = h.split("?")[0];
@@ -10798,7 +10981,9 @@ function AppShell() {
             <style>{KP_STYLES}</style>
             {route === "tracker"
               ? <TrackerPage isDesktop={isDesktop} onHome={() => go("menu")} />
-              : <MainMenu isDesktop={isDesktop} go={go} />}
+              : route === "news"
+                ? <NewsPage isDesktop={isDesktop} onHome={() => go("menu")} />
+                : <MainMenu isDesktop={isDesktop} go={go} />}
           </div>
         </ThemeContext.Provider>
       )}
