@@ -529,6 +529,45 @@ def per_map_entry(row):
     return entry
 
 
+# Players per side in CS2. A side with fewer is a box score that lost a row,
+# not a team that played short: NEXORA vs Glitchtech (2026-08-12) came back
+# with four NEXORA players while Glitchtech scored 67 kills against 54 NEXORA
+# deaths -- the 13 missing deaths, and 13 missing kills the other way, are
+# the fifth player. Stored, that match drags the league pace every
+# projection is scaled by (tests/model_tiers.test.mjs checks this).
+CS2_SIDE_SIZE = 5
+
+
+def short_side(sides):
+    """The team in one box score that is missing a player, or None.
+
+    `sides` is {team: {player: stats}}. A side counts as short only when
+    it has SOME players but fewer than five while the other side has a
+    full five (six with a substitution is fine). The comparison is what
+    identifies a dropped row: real box scores are five against five, and
+    a side with no rows at all is a different failure, handled where the
+    team count is checked.
+    """
+    counts = {team: len(players or {}) for team, players in (sides or {}).items()}
+    if not any(c >= CS2_SIDE_SIZE for c in counts.values()):
+        return None
+    for team, count in counts.items():
+        if 0 < count < CS2_SIDE_SIZE:
+            return team
+    return None
+
+
+def match_short_side(match):
+    """(team, where) for the first short side anywhere in a stored match --
+    any map of its per-map breakdown, or its series total -- else None."""
+    for index, game in enumerate(match.get("per_game") or []):
+        team = short_side(game)
+        if team:
+            return team, f"map {index + 1}"
+    team = short_side(match.get("actual"))
+    return (team, "series total") if team else None
+
+
 async def fetch_match_actuals(session, match_slug, canonical_name_by_team_id):
     """Fetches one finished match's games (maps), per-player.
 
@@ -590,6 +629,15 @@ async def fetch_match_actuals(session, match_slug, canonical_name_by_team_id):
     team_names = list(totals.keys())
     if len(team_names) != 2:
         return None  # incomplete data for this match — better to skip than build a lopsided entry
+    # The same refusal one level down: both teams present, one of them a
+    # player short on some map. Skipped rather than stored with four,
+    # for the reason CS2_SIDE_SIZE gives.
+    for index, this_map in enumerate(per_game):
+        team = short_side(this_map)
+        if team:
+            print(f"  ! {match_slug}: {team} has fewer than {CS2_SIDE_SIZE} players "
+                  f"on map {index + 1} — a box-score row is missing, skipped")
+            return None
 
     id_by_name = {v: k for k, v in name_by_team_id.items()}
     team1_id = id_by_name.get(team_names[0])
@@ -1585,7 +1633,20 @@ def load_previous_matches(path="cs2_data.json"):
         print(f"  no previous cs2_data.json to merge with ({e.__class__.__name__}) — "
               f"this run starts from the feed alone")
         return []
-    return ((data.get("regions") or {}).get("CS2") or {}).get("past_matches") or []
+    stored = ((data.get("regions") or {}).get("CS2") or {}).get("past_matches") or []
+    # Matches stored before short sides were refused at fetch time would
+    # otherwise be carried forward by every run indefinitely: merging only
+    # ever lets a fresh fetch REPLACE a stored match, and the fetch now
+    # skips these, so nothing would ever replace them.
+    kept = []
+    for match in stored:
+        short = match_short_side(match)
+        if short:
+            print(f"  dropping stored match {match.get('match_id') or match.get('date')}: "
+                  f"{short[0]} is a player short ({short[1]}) — a box-score row is missing")
+            continue
+        kept.append(match)
+    return kept
 
 
 def add_team_players(matches, past_matches, teams_payload, color_state, only=None):

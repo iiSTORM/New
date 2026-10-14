@@ -213,3 +213,66 @@ def test_the_committed_file_holds_no_match_twice():
     for region in json.loads(path.read_text())["regions"].values():
         matches = region.get("past_matches") or []
         assert len(sc.drop_superseded_legacy(matches)) == len(matches)
+
+
+def side(team, n, k=15):
+    return {f"{team}{i}": {"k": k, "d": 15, "a": 4} for i in range(n)}
+
+
+class TestShortSides:
+    """A box score that lost a player row. Seven were stored before this
+    was checked -- NEXORA vs Glitchtech among them, four NEXORA players
+    whose kills fell 13 short of Glitchtech's deaths -- and each one drags
+    the league pace every projection is scaled by."""
+
+    def test_four_against_five_is_short(self):
+        assert sc.short_side({"A": side("a", 4), "B": side("b", 5)}) == "A"
+
+    def test_five_against_five_is_not(self):
+        assert sc.short_side({"A": side("a", 5), "B": side("b", 5)}) is None
+
+    def test_a_substitution_is_not_short(self):
+        assert sc.short_side({"A": side("a", 6), "B": side("b", 5)}) is None
+
+    def test_an_empty_side_is_left_to_the_team_count_check(self):
+        assert sc.short_side({"A": side("a", 5), "B": {}}) is None
+
+    def test_without_a_full_side_there_is_nothing_to_compare(self):
+        """Simplified records (one player a side) are not box scores."""
+        assert sc.short_side({"A": side("a", 1), "B": side("b", 1)}) is None
+
+    def test_a_short_map_inside_a_full_series_total_is_found(self):
+        """Six of the seven had five in the series total and a player
+        missing on one map, which understates that player's total too."""
+        rec = m("x", "2026-08-17", actual={"A": side("a", 5), "B": side("b", 5)},
+                per_game=[{"A": side("a", 5), "B": side("b", 5)},
+                          {"A": side("a", 4), "B": side("b", 5)}])
+        assert sc.match_short_side(rec) == ("A", "map 2")
+
+    def test_a_short_series_total_is_found(self):
+        rec = m("x", "2026-08-12", actual={"A": side("a", 4), "B": side("b", 5)})
+        assert sc.match_short_side(rec) == ("A", "series total")
+
+    def test_loading_drops_stored_short_matches(self, tmp_path, capsys):
+        """Merging only lets a fresh fetch replace a stored match, and the
+        fetch now skips these, so without this they would be carried
+        forward by every run."""
+        good = m("good", "2026-09-01", actual={"A": side("a", 5), "B": side("b", 5)})
+        bad = m("bad", "2026-08-12", actual={"A": side("a", 4), "B": side("b", 5)})
+        path = tmp_path / "cs2.json"
+        path.write_text(json.dumps({"regions": {"CS2": {"past_matches": [good, bad]}}}))
+        assert [r["match_id"] for r in sc.load_previous_matches(str(path))] == ["good"]
+        assert "dropping stored match bad" in capsys.readouterr().out
+
+
+def test_the_committed_data_has_no_short_sides():
+    """Guards the file itself, the way model_tiers.test.mjs does for the
+    series totals -- this also covers every map of the breakdown."""
+    path = Path(__file__).resolve().parent.parent / "cs2_data.json"
+    if not path.exists():
+        pytest.skip("no cs2_data.json")
+    data = json.loads(path.read_text())
+    short = [(r.get("match_id"), sc.match_short_side(r))
+             for region in data["regions"].values()
+             for r in (region.get("past_matches") or []) if sc.match_short_side(r)]
+    assert short == []

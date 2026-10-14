@@ -71,6 +71,21 @@ def three_map_series():
     ]
 
 
+class TestCs2ShortSides:
+    def test_a_map_with_a_player_row_missing_is_skipped(self, monkeypatch, capsys):
+        """Stored, it would understate the short team's totals and the
+        league pace; skipped, the match is simply absent."""
+        full = {f"s{i}": map_row("Sashi", 15, 15, 3, 7, 75) for i in range(5)}
+        short = {f"f{i}": map_row("FOKUS", 15, 15, 3, 7, 60) for i in range(4)}
+        assert cs2_series(monkeypatch, [{**full, **short}]) is None
+        assert "fewer than 5 players" in capsys.readouterr().out
+
+    def test_five_a_side_is_kept(self, monkeypatch):
+        full_a = {f"s{i}": map_row("Sashi", 15, 15, 3, 7, 75) for i in range(5)}
+        full_b = {f"f{i}": map_row("FOKUS", 15, 15, 3, 7, 75) for i in range(5)}
+        assert cs2_series(monkeypatch, [{**full_a, **full_b}]) is not None
+
+
 class TestCs2:
     def test_every_map_played_is_kept(self, monkeypatch):
         """Including map 3, which the old slice dropped before it was even
