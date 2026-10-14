@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-14T05:19:25.850057+00:00",
+ "generated_at": "2026-10-14T12:18:24.735037+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,13 +61,13 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 72,
+   "items": 74,
    "error": null
   },
   {
    "game": "lol",
    "source": "Google News",
-   "items": 52,
+   "items": 51,
    "error": null
   },
   {
@@ -85,7 +85,7 @@
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 45,
+   "items": 46,
    "error": null
   },
   {
@@ -97,17 +97,50 @@
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 34,
+   "items": 37,
    "error": null
   },
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 41,
+   "items": 39,
    "error": null
   }
  ],
  "items": [
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "9z beat Aurora 2-0 to kick off TWC 2026",
+   "link": "https://www.hltv.org/news/45718/9z-beat-aurora-2-0-to-kick-off-twc-2026",
+   "published": "2026-10-14T11:49:00+00:00",
+   "summary": "The Latin American team tallied a big opening win in Malta after struggling to get their season underway.",
+   "teams": [
+    "Aurora",
+    "9z"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Pley.gg",
+   "title": "Has anyone won Valorant Champions twice? LOUD can make history in Shanghai",
+   "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxQNy1MVndPRldJOEtUTkppSk9KR0JUT084OWRiOVdmX0IzUXJRZ3RjNTN6OWZ1bWtfd04wVE11SFRaS0pUd2hDek1KbjFGX2hGS2NjUVkxZ0FCUEFpcDNjTWs5R3RjNTgxbzdrREUwOUN6NUUzbFpQc3prMUc0UmxQeUxDbHl5V1dzblFPRlBsbjFxYTNCWC0zUlp4U2JtOFFI?oc=5",
+   "published": "2026-10-14T07:58:28+00:00",
+   "summary": "Has anyone won Valorant Champions twice? LOUD can make history in Shanghai Pley.gg",
+   "teams": [
+    "LOUD"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
   {
    "game": "lol",
    "source": "Sheep Esports",
@@ -187,6 +220,31 @@
    "reasons": []
   },
   {
+   "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "Sources: Proxh set to join Barça eSports for the 2027 VCT Season",
+   "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxNMzc2THNlb0pteUtmYUo4eEJaWXFRbVJyZnI3ZGRZQ1YxbzQxOTdkOVpRSWFPOVZ5aWp2eE9FSFF6aGRnLWJSdFN0QTBUWXVPUnZEUmgycTl2X3ZJcURZRUhBLWRhdWlFSkNtTjVrTzduLUp4NC1nc2llTldvVWJGNUtOZjRpLUxDV3VwX2Z2dEVIVkM2cENuek9MX1o1TEFrZVNZeVJnb0tURHM?oc=5",
+   "published": "2026-10-13T20:38:11+00:00",
+   "summary": "Sources: Proxh set to join Barça eSports for the 2027 VCT Season Sheep Esports",
+   "teams": [
+    "Gentle Mates"
+   ],
+   "players": [
+    {
+     "name": "Proxh",
+     "team": "Gentle Mates"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
    "game": "cs2",
    "source": "HLTV",
    "title": "brnz4n departs MIBR",
@@ -225,6 +283,22 @@
    "reasons": [
     "a new player joins; no record with the team yet"
    ]
+  },
+  {
+   "game": "valorant",
+   "source": "VALORANT Esports",
+   "title": "LOUD",
+   "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTFBtZF9MQVlBXzBTVW9IN3d1QmNmWFpUWFFXa1hZd3VBb1JfOWRnaG51X3JxcG5hd3dXUWlmMlBvaVpqZGhQM0E5Q2g1VFR6SlYtTDNXTER6UWRxN1RSV1llZ3lmX1FDUlAtUFBnZFhHTXM4UXlCcW5aNmdR?oc=5",
+   "published": "2026-10-13T19:45:26+00:00",
+   "summary": "LOUD VALORANT Esports",
+   "teams": [
+    "LOUD"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
   },
   {
    "game": "cs2",
@@ -279,29 +353,20 @@
    "reasons": []
   },
   {
-   "game": "valorant",
-   "source": "Sheep Esports",
-   "title": "Sources: Proxh set to join Barça eSports for the 2027 VCT Season",
-   "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPOTlFTlVyOEM2d0pSMWZJb0o0Y3ZpcWhQbGI4eURvS0xzOTN3aHBiXzFtNVJ4RXkzS1h1RGVvMFZYOWQ4SHBmaXlHdk8yS0thbzI0d3ZKeVFoS3RwZUw4dmVrUTZmcW5DNGpMdldEMDVlOEQ2RFVDSk5ZNmVvUjZSbVpGUDE2aHVHX0NFZ1JlREhUeDRYSm9QeDNUdERINmlfdFJEMXBIbURCc0E?oc=5",
-   "published": "2026-10-13T15:26:38+00:00",
-   "summary": "Sources: Proxh set to join Barça eSports for the 2027 VCT Season Sheep Esports",
+   "game": "lol",
+   "source": "Flashscore.com",
+   "title": "FURIA Esports",
+   "link": "https://news.google.com/rss/articles/CBMivgFBVV95cUxPSXpEV3luZ2tYVGVFcHBkb2ZvZFhQaUVreUk5U2dqOThSeTVrTnE3eFJ6Q2tOWWtoMlc2aE1tdlRpNURIeUU5VmFDMEdGMzNlRnRnS0gtc3hKeFhPNHp0N0FSaEtWQTZ2eGpKWW12aFpfZkRKdEtOVWhwOEVEQ0d0bWZNaXlNc1RpNUx0dHFEVWtIX29fNzNlc21GejNYd21lNnNFeEEyYkozVmZrMFFaLXRsbHQzMzZHcGpFbUVB?oc=5",
+   "published": "2026-10-13T15:27:20+00:00",
+   "summary": "FURIA Esports Flashscore.com",
    "teams": [
-    "Gentle Mates"
+    "FURIA"
    ],
-   "players": [
-    {
-     "name": "Proxh",
-     "team": "Gentle Mates"
-    }
-   ],
+   "players": [],
    "score": 0,
    "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
+   "rules": [],
+   "reasons": []
   },
   {
    "game": "lol",
@@ -404,6 +469,22 @@
    "summary": "CYBERSHOKE Disband CS2 Roster and Plan Full Rebuild for Next Season Shane the Gamer",
    "teams": [
     "CYBERSHOKE"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Sofascore",
+   "title": "Glitchtech Esports",
+   "link": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxQZkxOS3l6WFFsZWpncFBSdEpfSTJwczdRSnhuXzN3bldNc213Wi1UaUJlWVNHMThPcE1UN0JJVm8wX19wQ05VUzdtNGJpck1DSHlTSTJKUF9JQmpGdFBnOFRRQkttQXZKem9lZFdUUk5xcHIxYkRoMGkzS0pWWmZLdXFXNWl5Nncx?oc=5",
+   "published": "2026-10-13T08:11:20+00:00",
+   "summary": "Glitchtech Esports Sofascore",
+   "teams": [
+    "Glitchtech"
    ],
    "players": [],
    "score": 0,
@@ -566,7 +647,7 @@
    "reasons": []
   },
   {
-   "game": "cs2",
+   "game": "valorant",
    "source": "TalkEsport",
    "title": "Vitality Becomes the Richest Team in Counter-Strike History",
    "link": "https://news.google.com/rss/articles/CBMifkFVX3lxTE9NdXdua1I0TzZxWDBSMzd0cVJSejRZV19rSzBMS2l1S2hTSEEyeDgzTUpDOGswRHdJVnNMYlk3QUF1NVFCUzVzS2VtU0F1c3U1eW1NMnhxRWc4bDZjd21WNjBkWXlDUVVyWjNKV29ac09Nd1BJU2VoTHhlSHBaQQ?oc=5",
@@ -856,12 +937,44 @@
   {
    "game": "lol",
    "source": "Red Bull",
+   "title": "Take a look back at T1's biggest esports moments of 2025",
+   "link": "https://news.google.com/rss/articles/CBMickFVX3lxTE0yOG1fS1NrUjlrakNMNWVDZGRwaVF3QTBrQkJWOEJ5ZlZrUlp0T3RuNlRIVzZ5R1lwNHM4UUdCd1dMcDlENjBvTE9rTDFrMlFTWU14clVBUk9oMWI1NllSYjVxQzRoOXZETjNDWXBwQ3pEUQ?oc=5",
+   "published": "2026-10-11T23:00:00+00:00",
+   "summary": "Take a look back at T1's biggest esports moments of 2025 Red Bull",
+   "teams": [
+    "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Red Bull",
    "title": "T1's road to defending their League of Legends Worlds crown",
    "link": "https://news.google.com/rss/articles/CBMickFVX3lxTE5qZFNVTFdmWGpwOXhRTHdicGhySWZtQWh1NHZuTWJuNlZCTDI0d1pFTllIX2RTNjZPaV9QaTBLSGdMVDhaRXpOSVJUNjIwS2ltZXBudjJoQnZtS3RjWG9yZ29TQ1dfeG90SXJFa05nb0haUQ?oc=5",
    "published": "2026-10-11T23:00:00+00:00",
    "summary": "T1's road to defending their League of Legends Worlds crown Red Bull",
    "teams": [
     "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Dexerto",
+   "title": "FaZe Clan stun fans with surprise addition of NEO to CS:GO line-up",
+   "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxQOEFja3JpM2Y1dVJsMk5Qc1EzVkZGc3JxRnpuR1BlTS1FcmhlLUk5ZFE3VTF4dGtOWWRVOFRoU0hKM2RxSlIwRzc0cjNoTVlYRXNlS2s5VU9CZ3hoNXQtb2Y5aUc3MDhiRm8xRFlzSWtCcmRQOGxBQVkwM05IN2x0aktDZWltaFBBWXhUNA?oc=5",
+   "published": "2026-10-11T21:41:02+00:00",
+   "summary": "FaZe Clan stun fans with surprise addition of NEO to CS:GO line-up Dexerto",
+   "teams": [
+    "FaZe"
    ],
    "players": [],
    "score": 0,
@@ -2524,22 +2637,6 @@
    "reasons": []
   },
   {
-   "game": "cs2",
-   "source": "Dexerto",
-   "title": "FaZe Clan stun fans with surprise addition of NEO to CS:GO line-up",
-   "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxQOEFja3JpM2Y1dVJsMk5Qc1EzVkZGc3JxRnpuR1BlTS1FcmhlLUk5ZFE3VTF4dGtOWWRVOFRoU0hKM2RxSlIwRzc0cjNoTVlYRXNlS2s5VU9CZ3hoNXQtb2Y5aUc3MDhiRm8xRFlzSWtCcmRQOGxBQVkwM05IN2x0aktDZWltaFBBWXhUNA?oc=5",
-   "published": "2026-10-07T07:00:00+00:00",
-   "summary": "FaZe Clan stun fans with surprise addition of NEO to CS:GO line-up Dexerto",
-   "teams": [
-    "FaZe"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
    "game": "valorant",
    "source": "Sportskeeda",
    "title": "Paper Rex vs LOUD in Valorant Champions 2026 Playoffs: Prediction, head-to-head, and start time",
@@ -3184,6 +3281,40 @@
   },
   {
    "game": "valorant",
+   "source": "Facebook",
+   "title": "LOUD stays alive! 📢 VCT Americas' LOUD eliminates Global Esports in a high-stakes decider to secure the playoff spot in VALORANT Champions Shanghai, 2-0 [13-8 Split, 13-9 Sunset]. GE was the first Pacific squad to exit from the tournament. (📸: Riot Game",
+   "link": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxPemZ0Q0NmNlJyWWlCcmRWeTNsZGsyMHF6UExXS1BxVHVPSnJWaFBCaWJzQk5yYjNEMWpQWlAwdEM4eTNoREtSOGpMN0s1eDdOQXFHN2Jadl9ZUUtiS3FwaEc2UWczd21WOTYyLWQ1Z1o0UXZmbU1IajlLYTdGX3Uwak1pTmVFSXI0Nnk0V0ZRbHpkb2hld0tWLVNhdG9DQ2l1M3RWRGxNWFBPYzNXWjJ4eVM2cUhaU2FZTlZKQ3FacGpUbXVoRzJuVzhfZC0wa2NTYnVjQmpZSQ?oc=5",
+   "published": "2026-10-04T07:00:00+00:00",
+   "summary": "LOUD stays alive! 📢 VCT Americas' LOUD eliminates Global Esports in a high-stakes decider to secure the playoff spot in VALORANT Champions Shanghai, 2-0 [13-8 Split, 13-9 Sunset]. GE was the first Pacific squad to exit from the tournament. (📸: Riot Game Facebook",
+   "teams": [
+    "LOUD",
+    "Global Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "ABS-CBN",
+   "title": "Global Esports exits VALORANT Champions Shanghai after heartbreaking loss to LOUD",
+   "link": "https://news.google.com/rss/articles/CBMivgFBVV95cUxPTkQ0SFdVZ1BnMGJybFRRQzZCY0s1LXRDcjZTeExicm9Oekh5UUZ1a0FmRm5qeTRhTkxuM05jZzkxYjlGR2lDTDM1YmtIUVExSkY1VkJTN3lnb1VqTVlRSFdHY09VdlF6RHFQczJiZ1JmcXloQ21HYi1pa1hfOU0yWHJPdlVEeGtnS0ZmUi1TZ2FSNWR1Y0ZMYkozMXFiaUN6UHpTVlBhcUtwVVZCN09oX1BmRGVjQWhDdlJ4RXFB?oc=5",
+   "published": "2026-10-04T07:00:00+00:00",
+   "summary": "Global Esports exits VALORANT Champions Shanghai after heartbreaking loss to LOUD ABS-CBN",
+   "teams": [
+    "LOUD",
+    "Global Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
    "source": "TalkEsport",
    "title": "Global Esports vs LOUD: GE Knocked Out of Valorant Champions 2026 as LOUD Reach Playoffs",
    "link": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxNUkRqM2drZWY0QkgtRm1UeEpCd1M3V2hEVEZBM0Q1SHdXZ3NKTHVyU2NSd2owU190R2NnWWtzeGM1djlMRWxjdjdqZndGVTd6OS1kNDhZM1FZdlk3ZmtIam56YXk1dEgxaXdWQndrRW9sMzJEZnVWamh5ancyX214NXZlNEFsWHVQamlEdkJzX0VhbVZVWVZGYkVETUU1WXd1NlRkdnNCOXBiOWlnNjZWczZyM1hmMHlTTTFyMEVUR1EzNVZnRkNSMQ?oc=5",
@@ -3206,23 +3337,6 @@
    "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxOUlJjb0RWX29TMFVlS2dab0ZHRWNJLVNSYkF2OHVHRnN6OEdMNDYzVWZaOGFHWHVYbzRVb3o0STZaVDJfalQ2RHdFMHY4TU1ubzBudGlYREZfOHp0NVhoY1VSb2p1VzVXQUVCNG01RFg2ektqWkVkZ25UOTBnX19TTzl2VHVSZVR3RkZBcjktbTM5MGJqWl9DVGV6WTNRRUtQVHo4UUgtWVY?oc=5",
    "published": "2026-10-04T07:00:00+00:00",
    "summary": "LOUD Beat Global Esports and Reach Valorant Champions Playoffs EGamersWorld",
-   "teams": [
-    "LOUD",
-    "Global Esports"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "ABS-CBN",
-   "title": "Global Esports exits VALORANT Champions Shanghai after heartbreaking loss to LOUD",
-   "link": "https://news.google.com/rss/articles/CBMivgFBVV95cUxPTkQ0SFdVZ1BnMGJybFRRQzZCY0s1LXRDcjZTeExicm9Oekh5UUZ1a0FmRm5qeTRhTkxuM05jZzkxYjlGR2lDTDM1YmtIUVExSkY1VkJTN3lnb1VqTVlRSFdHY09VdlF6RHFQczJiZ1JmcXloQ21HYi1pa1hfOU0yWHJPdlVEeGtnS0ZmUi1TZ2FSNWR1Y0ZMYkozMXFiaUN6UHpTVlBhcUtwVVZCN09oX1BmRGVjQWhDdlJ4RXFB?oc=5",
-   "published": "2026-10-04T07:00:00+00:00",
-   "summary": "Global Esports exits VALORANT Champions Shanghai after heartbreaking loss to LOUD ABS-CBN",
    "teams": [
     "LOUD",
     "Global Esports"
