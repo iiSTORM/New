@@ -428,3 +428,59 @@ class TestMatchCombos:
         assert pm.parse_combo_stat("MAPS 1-2 Kills (Combo)") == ("kills", 2)
         assert pm.parse_combo_stat("Kills (Combo)") == ("kills", None)
         assert pm.parse_combo_stat("MAPS 1-2 Kills") == (None, None)
+
+
+class TestMatchCombosCs2AndValorant:
+    """The same combo path for the other two games, on the things that
+    differ there: CS2's many handles shared across rosters, and headshots."""
+
+    CS2 = pm.build_roster_index({"CS2": {"teams": {
+        "ECSTATIC": {"players": [{"name": "Anlelele"}, {"name": "Nodios"}]},
+        "Sashi": {"players": [{"name": "Anlelele"}, {"name": "acoR"}]},
+    }}})[0]
+    VAL = pm.build_roster_index({
+        "VCT EMEA": {"teams": {"Team Vitality": {"players": [{"name": "Derke"}, {"name": "Chronicle"}]}}},
+        "VCT Americas": {"teams": {"LOUD": {"players": [{"name": "Darker"}]}}},
+    })[0]
+
+    def prop(self, name, team, label="MAPS 1-2 Kills (Combo)", line=50.5):
+        return {"player_name": name, "stat_label": label, "line": line, "team": team,
+                "provider": "test", "start_time": "2026-10-14T10:00:00Z", "odds_type": "standard"}
+
+    def test_a_shared_cs2_handle_is_settled_by_its_own_team(self):
+        """Anlelele is on two rosters; one team per player in the combo's
+        team field picks the right one for each."""
+        matched, unmatched = pm.match_combos(
+            [self.prop("Anlelele + acoR", "Sashi/Sashi")], self.CS2, game="cs2", alias_index={})
+        assert unmatched == []
+        assert [p["team"] for p in matched[0]["players"]] == ["Sashi", "Sashi"]
+
+    def test_a_shared_handle_with_one_team_named_for_the_pair(self):
+        matched, _ = pm.match_combos(
+            [self.prop("Anlelele + Nodios", "ECSTATIC")], self.CS2, game="cs2", alias_index={})
+        assert [p["team"] for p in matched[0]["players"]] == ["ECSTATIC", "ECSTATIC"]
+
+    def test_a_shared_handle_no_team_can_settle_is_refused(self):
+        _, unmatched = pm.match_combos(
+            [self.prop("Anlelele + Nodios", "FUR")], self.CS2, game="cs2", alias_index={})
+        assert "Anlelele" in unmatched[0]["reason"]
+        assert "more than one roster" in unmatched[0]["reason"]
+
+    def test_a_cs2_headshots_combo_on_map_1(self):
+        matched, _ = pm.match_combos(
+            [self.prop("Anlelele + acoR", "Sashi", label="MAP 1 Headshots (Combo)", line=12.5)],
+            self.CS2, game="cs2", alias_index={})
+        assert (matched[0]["stat"], matched[0]["maps"]) == ("headshots", 1)
+
+    def test_valorant_players_from_two_regions(self):
+        matched, _ = pm.match_combos(
+            [self.prop("Darker + Derke", "LOUD/VIT")], self.VAL, game="valorant", alias_index={})
+        assert [(p["region"], p["team"]) for p in matched[0]["players"]] == [
+            ("VCT Americas", "LOUD"), ("VCT EMEA", "Team Vitality")]
+
+    def test_valorant_combo_without_a_window_is_refused(self):
+        """The real fixture's Valorant combo is posted as plain 'Kills (Combo)'."""
+        _, unmatched = pm.match_combos(
+            [self.prop("Derke + Chronicle", "VIT", label="Kills (Combo)")], self.VAL,
+            game="valorant", alias_index={})
+        assert unmatched[0]["reason"] == "combo map window not stated"

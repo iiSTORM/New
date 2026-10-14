@@ -99,5 +99,24 @@ check("no legs is no combo", lib.comboEdge([], 18, "lol", "kills", 3), null);
         lib.fixtureForLine(dated, "FUR", "2026-10-15T14:00:00-04:00").teamB, "MVK");
 }
 
+// CS2 and Valorant: each game, stat and window uses its own measured scale.
+for (const [game, stat, maps] of [["cs2", "kills", 1], ["cs2", "headshots", 1], ["cs2", "kills", 2],
+                                  ["valorant", "kills", 2], ["valorant", "assists", 2]]) {
+  const sc = lib.residualScale(game, stat, maps);
+  const r = lib.comboEdge([{ projection: 15, team: "A", fixture: "m" }, { projection: 14, team: "B", fixture: "m" }],
+                          30.5, game, stat, maps);
+  check(`${game} ${stat} maps ${maps}: opposing-sides spread on its own scale`,
+        near(r.spread, Math.sqrt(2 * sc * sc * (1 + lib.OPPOSING_TEAMS_CORRELATION))), true);
+}
+{
+  // A window never measured (CS2 maps 1-3) is stretched from the nearest, not refused.
+  const r = lib.comboEdge([{ projection: 40, team: "A", fixture: "m" }, { projection: 38, team: "A", fixture: "m" }],
+                          80.5, "cs2", "kills", 3);
+  check("cs2 maps 1-3 still has a spread", typeof r.spread === "number" && r.spread > 0, true);
+  check("and it is wider than maps 1-2",
+        r.spread > lib.comboEdge([{ projection: 40, team: "A", fixture: "m" }, { projection: 38, team: "A", fixture: "m" }],
+                                 80.5, "cs2", "kills", 2).spread, true);
+}
+
 console.log(`${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

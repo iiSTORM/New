@@ -468,3 +468,61 @@ class TestComboGrading:
     def test_ordinary_grading_is_unchanged_by_the_refactor(self):
         rows, _ = sc.grade([obs(line=8.5)], {"lol": {"regions": regions(lol_match(kills=(5, 4, 6)))}})
         assert rows[0]["actual"] == 9
+
+
+class TestComboGradingCs2AndValorant:
+    """Combo grading on the record shapes CS2 and Valorant actually carry."""
+
+    def cs2(self, maps=(16, 14, 11), hs=(8, 7, 5)):
+        return {"date": "2026-10-14", "teamA": "Sashi", "teamB": "FOKUS",
+                "per_game": [{"Sashi": {"acoR": {"k": k, "d": 10, "a": 2, "hs": h},
+                                        "Nodios": {"k": k - 4, "d": 10, "a": 2, "hs": h - 2}}}
+                             for k, h in zip(maps, hs)]}
+
+    def valorant_total_only(self):
+        """No per-map breakdown: one total covering maps 1-2."""
+        return {"date": "2026-10-16", "teamA": "Team Vitality", "teamB": "LOUD",
+                "actual": {"Team Vitality": {"Derke": {"k": 34, "d": 25, "a": 6}},
+                           "LOUD": {"Darker": {"k": 29, "d": 28, "a": 8}}}}
+
+    def combo(self, game, players, start, **kw):
+        base = {"game": game, "player": " + ".join(p for p, _ in players),
+                "players": [{"player": p, "team": t} for p, t in players],
+                "stat": "kills", "maps": 2, "line": 40.5, "start_time": start}
+        base.update(kw)
+        return base
+
+    def test_cs2_map_1_kills(self):
+        rows, _ = sc.grade_combos(
+            [self.combo("cs2", [("acoR", "Sashi"), ("Nodios", "Sashi")], "2026-10-14T10:00:00Z",
+                        maps=1, line=27.5)],
+            {"cs2": {"regions": regions(self.cs2())}})
+        assert rows[0]["actual"] == 16 + 12 and rows[0]["result"] == "over"
+
+    def test_cs2_headshots_over_maps_1_2(self):
+        rows, _ = sc.grade_combos(
+            [self.combo("cs2", [("acoR", "Sashi"), ("Nodios", "Sashi")], "2026-10-14T10:00:00Z",
+                        stat="headshots", line=26.5)],
+            {"cs2": {"regions": regions(self.cs2())}})
+        assert rows[0]["actual"] == (8 + 7) + (6 + 5) and rows[0]["result"] == "under"
+
+    def test_cs2_a_map_3_combo_on_a_two_map_series_is_refused(self):
+        rows, refused = sc.grade_combos(
+            [self.combo("cs2", [("acoR", "Sashi"), ("Nodios", "Sashi")], "2026-10-14T10:00:00Z",
+                        maps=1, map=3, line=20.5)],
+            {"cs2": {"regions": regions(self.cs2(maps=(16, 14), hs=(8, 7)))}})
+        assert rows == [] and "line was on map 3" in " ".join(refused)
+
+    def test_valorant_from_a_series_total(self):
+        rows, _ = sc.grade_combos(
+            [self.combo("valorant", [("Darker", "LOUD"), ("Derke", "Team Vitality")],
+                        "2026-10-16T02:00:00-04:00", line=62.5)],
+            {"valorant": {"regions": regions(self.valorant_total_only())}})
+        assert rows[0]["actual"] == 63 and rows[0]["result"] == "over"
+
+    def test_valorant_a_window_the_total_does_not_cover_is_refused(self):
+        rows, refused = sc.grade_combos(
+            [self.combo("valorant", [("Darker", "LOUD"), ("Derke", "Team Vitality")],
+                        "2026-10-16T02:00:00-04:00", maps=1, line=30.5)],
+            {"valorant": {"regions": regions(self.valorant_total_only())}})
+        assert rows == [] and "no per-map" in " ".join(refused)
