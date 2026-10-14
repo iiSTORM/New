@@ -11,7 +11,8 @@ projection, and getting any of them wrong produces a confident, wrong edge:
 
   player  — names differ between the stats source and the sportsbook.
   stat    — "Kills" and "MAPS 1-2 Kills" are kills; "Kills (Combo)" is
-            NOT, it is two players added together.
+            NOT, it is two players added together. Combos go through
+            match_combos instead, which resolves every player in one.
   window  — and this is the one that silently ruins everything: a line for
             maps 1-2 must be compared against a projection over maps 1-2.
             This repo already learned that lesson once, when predicting two
@@ -68,6 +69,42 @@ UNMODELLED_STATS = {
 # hit, so the combo marker would never be reached -- which is exactly how 18
 # of these passed as ordinary kills lines in a real payload.
 COMBO_PATTERN = re.compile(r"\bcombo\b", re.I)
+
+# How the provider names the players in a combo: one display name with the
+# handles joined, "Berserker + Blaber". Split on the plus sign only. A slash
+# or an ampersand can sit inside a real handle, and a split that guessed
+# wrong would hand half a line to someone who is not in it.
+COMBO_NAME_SPLIT = re.compile(r"\s*\+\s*")
+
+
+def combo_names(display_name):
+    """The handles in a combo's display name, or [] if it does not name two.
+
+    "Berserker + Blaber" -> ["Berserker", "Blaber"]. A single name, an empty
+    side ("Faker + "), or the same handle twice is not a combo this can
+    attribute, and [] makes the caller refuse it rather than guess.
+    """
+    if not isinstance(display_name, str):
+        return []
+    names = [n.strip() for n in COMBO_NAME_SPLIT.split(display_name.strip())]
+    if len(names) < 2 or any(not n for n in names):
+        return []
+    if len({normalize_name(n) for n in names}) != len(names):
+        return []
+    return names
+
+
+def parse_combo_stat(label):
+    """('kills', 2) from 'MAPS 1-2 Kills (Combo)'; (None, None) otherwise.
+
+    The combo marker is removed and the rest read exactly as a single
+    player's label is, so a combo gets no looser a reading of its stat or
+    window than an ordinary line does.
+    """
+    if not isinstance(label, str) or not COMBO_PATTERN.search(label):
+        return None, None
+    stripped = re.sub(r"\(?\s*\bcombo\b\s*\)?", " ", label, flags=re.I)
+    return parse_stat(stripped)
 
 # Map-window phrasing -> how many maps the line covers. Providers write this
 # into the stat label rather than a separate field.
@@ -253,6 +290,60 @@ def unmatched_by_team(unmatched, regions, reason="player not on any roster"):
     return sorted(tracked, key=key), sorted(untracked, key=key)
 
 
+def resolve_player(name, stated_team, roster_index, alias_index, game_key):
+    """(roster entry, None) for a provider handle, or (None, refusal reason).
+
+    The one place a posted handle becomes a rostered player, shared by
+    ordinary lines and by each player inside a combo so the two cannot
+    disagree about who someone is. `stated_team` is the team the provider
+    names on the line.
+    """
+    key = normalize_name(name)
+    target = roster_index.get(key)
+    # A curated alias may know that on THIS team the provider's spelling
+    # means a differently-spelled player -- see scripts/player_aliases.py
+    # for why this is a table and not a fuzzy match. The team is part of
+    # the key rather than a check on the result, so a row can only ever
+    # fire for props naming that team.
+    #
+    # It is consulted when nobody matches ON THE STATED TEAM, not merely
+    # when nobody matches at all, and that distinction is the whole point.
+    # A handle that exists on some OTHER roster is matched here without
+    # regard to the team, deliberately -- team names differ between
+    # sources, which is what team_aliases.py exists for. So a real board
+    # with Butterfly's "Kurama" and another org's "Kurama" would hand
+    # Butterfly's line to the other org's player, silently and
+    # plausibly. A row scoped to Butterfly is a human saying otherwise,
+    # and it has to outrank that.
+    stated = normalize_name(stated_team)
+    aliased = alias_index.get((game_key, stated, key))
+    if aliased:
+        on_stated_team = [e for e in (target or [])
+                          if normalize_name(e[1]) == stated]
+        if not on_stated_team:
+            target = roster_index.get(aliased)
+            if not target:
+                # The row points at a name no roster carries any more, so
+                # the alias is stale rather than the board being wrong.
+                # Reported under its own reason so it can be pruned, and
+                # NOT quietly fallen back to whatever else shares the
+                # handle -- the row exists precisely to say that other
+                # player is the wrong one.
+                return None, "alias points at a name that is not on any roster"
+    if not target:
+        return None, "player not on any roster"
+    if len({entry[1] for entry in target}) > 1:
+        # The handle is on more than one team. The provider names the
+        # team on the prop, so use it: without that the line would land
+        # on whichever match happened to be nearest in time, which is
+        # the wrong team's opponent half the time.
+        narrowed = [e for e in target if stated and normalize_name(e[1]) == stated]
+        if len(narrowed) != 1:
+            return None, "handle is on more than one roster"
+        target = narrowed
+    return target[0], None
+
+
 def match_props(raw_props, roster_index, game=None, alias_index=None):
     """Attach each prop to a rostered player.
 
@@ -278,8 +369,6 @@ def match_props(raw_props, roster_index, game=None, alias_index=None):
             unmatched.append({**prop, "reason": "combo line covers more than one player"})
             continue
         stat, window = parse_stat(label)
-        key = normalize_name(prop.get("player_name"))
-        target = roster_index.get(key)
         if stat is None:
             known = unmodelled_stat(label)
             reason = (f"{known} is not a stat this app projects yet"
@@ -289,55 +378,11 @@ def match_props(raw_props, roster_index, game=None, alias_index=None):
         if window is None:
             unmatched.append({**prop, "reason": "map window not stated"})
             continue
-        # A curated alias may know that on THIS team the provider's spelling
-        # means a differently-spelled player -- see scripts/player_aliases.py
-        # for why this is a table and not a fuzzy match. The team is part of
-        # the key rather than a check on the result, so a row can only ever
-        # fire for props naming that team.
-        #
-        # It is consulted when nobody matches ON THE STATED TEAM, not merely
-        # when nobody matches at all, and that distinction is the whole point.
-        # A handle that exists on some OTHER roster is matched here without
-        # regard to the team, deliberately -- team names differ between
-        # sources, which is what team_aliases.py exists for. So a real board
-        # with Butterfly's "Kurama" and another org's "Kurama" would hand
-        # Butterfly's line to the other org's player, silently and
-        # plausibly. A row scoped to Butterfly is a human saying otherwise,
-        # and it has to outrank that.
-        aliased = alias_index.get(
-            (game_key, normalize_name(prop.get("team")), key))
-        if aliased:
-            stated = normalize_name(prop.get("team"))
-            on_stated_team = [e for e in (target or [])
-                              if normalize_name(e[1]) == stated]
-            if not on_stated_team:
-                target = roster_index.get(aliased)
-                if not target:
-                    # The row points at a name no roster carries any more, so
-                    # the alias is stale rather than the board being wrong.
-                    # Reported under its own reason so it can be pruned, and
-                    # NOT quietly fallen back to whatever else shares the
-                    # handle -- the row exists precisely to say that other
-                    # player is the wrong one.
-                    unmatched.append({**prop,
-                                      "reason": "alias points at a name that "
-                                                "is not on any roster"})
-                    continue
-        if not target:
-            unmatched.append({**prop, "reason": "player not on any roster"})
+        entry, reason = resolve_player(prop.get("player_name"), prop.get("team"),
+                                       roster_index, alias_index, game_key)
+        if entry is None:
+            unmatched.append({**prop, "reason": reason})
             continue
-        if len({entry[1] for entry in target}) > 1:
-            # The handle is on more than one team. The provider names the
-            # team on the prop, so use it: without that the line would land
-            # on whichever match happened to be nearest in time, which is
-            # the wrong team's opponent half the time.
-            team_key = normalize_name(prop.get("team"))
-            narrowed = [e for e in target if team_key and normalize_name(e[1]) == team_key]
-            if len(narrowed) != 1:
-                unmatched.append({**prop, "reason": "handle is on more than one roster"})
-                continue
-            target = narrowed
-        entry = target[0]
         try:
             line = float(prop.get("line"))
         except (TypeError, ValueError):
@@ -359,6 +404,94 @@ def match_props(raw_props, roster_index, game=None, alias_index=None):
             "start_time": prop.get("start_time"),
             # Only when it is not map 1, so every row that was already right
             # keeps the exact shape (and id) it had.
+            **({"map": first_map(label)} if first_map(label) > 1 else {}),
+        })
+    return matched, unmatched
+
+
+def combo_team_hints(stated_team, count):
+    """Which team to try for each player in a combo, as a list of lists.
+
+    The provider states one team field for the whole combo. When it names
+    one team per player ("T1/GEN" for two players) each player gets their
+    own; otherwise every player is tried against every team named, which is
+    only ever used to break a tie between two rosters sharing a handle.
+    """
+    parts = [p.strip() for p in str(stated_team or "").split("/") if p.strip()]
+    if len(parts) == count:
+        return [[part] for part in parts]
+    return [parts or [stated_team] for _ in range(count)]
+
+
+def match_combos(raw_props, roster_index, game=None, alias_index=None):
+    """Attach each COMBO line to every player it adds together.
+
+    Returns (matched, unmatched) over the combo lines in `raw_props` only;
+    ordinary lines are ignored here and handled by match_props, which goes
+    on refusing combos so neither path can double-count a line.
+
+    A combo matches only when EVERY player in it resolves, through exactly
+    the rules an ordinary line uses. Half a combo is not a smaller combo: a
+    two-player line compared with one player's projection is the confident
+    wrong number COMBO_PATTERN exists to prevent.
+    """
+    matched, unmatched = [], []
+    if alias_index is None:
+        alias_index = build_alias_index()
+    game_key = str(game or "").strip().lower()
+    for prop in raw_props or []:
+        label = prop.get("stat_label")
+        if not (isinstance(label, str) and COMBO_PATTERN.search(label)):
+            continue
+        stat, window = parse_combo_stat(label)
+        if stat is None:
+            known = unmodelled_stat(label)
+            unmatched.append({**prop, "reason": (f"combo on {known}, which this app "
+                                                 f"does not project" if known
+                                                 else "combo on an unrecognised stat")})
+            continue
+        if window is None:
+            unmatched.append({**prop, "reason": "combo map window not stated"})
+            continue
+        names = combo_names(prop.get("player_name"))
+        if not names:
+            unmatched.append({**prop, "reason": "combo does not name its players"})
+            continue
+        hints = combo_team_hints(prop.get("team"), len(names))
+        legs, refusal = [], None
+        for name, tries in zip(names, hints):
+            entry, reason = None, None
+            for team in tries:
+                entry, reason = resolve_player(name, team, roster_index,
+                                               alias_index, game_key)
+                if entry is not None:
+                    break
+            if entry is None:
+                refusal = f"combo player {name!r}: {reason}"
+                break
+            legs.append(entry)
+        if refusal:
+            unmatched.append({**prop, "reason": refusal})
+            continue
+        if len({(e[1], normalize_name(e[2])) for e in legs}) != len(legs):
+            unmatched.append({**prop, "reason": "combo names the same player twice"})
+            continue
+        try:
+            line = float(prop.get("line"))
+        except (TypeError, ValueError):
+            unmatched.append({**prop, "reason": "line is not a number"})
+            continue
+        matched.append({
+            # Display name and grouping key: the real roster spellings, in
+            # the provider's order, so two postings of one combo agree.
+            "player": " + ".join(e[2] for e in legs),
+            "players": [{"player": e[2], "region": e[0], "team": e[1]} for e in legs],
+            "stat": stat,
+            "maps": window,
+            "line": line,
+            "odds_type": prop.get("odds_type"),
+            "provider": prop.get("provider"),
+            "start_time": prop.get("start_time"),
             **({"map": first_map(label)} if first_map(label) > 1 else {}),
         })
     return matched, unmatched

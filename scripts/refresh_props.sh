@@ -156,8 +156,15 @@ fi
 # By path only: whatever else is in the tree is not this job's. The board,
 # its history (what grading reads; it was being committed by hand after
 # each run) and the projections built from it go in one commit.
-FILES="props.json props_history.jsonl model_projections.json"
-git add -- $FILES 2>/dev/null || git add -- props.json
+# Only the ones that exist: git add fails outright on a missing path, and
+# combo_history.jsonl does not exist until the first combo is seen -- the
+# old fallback would then have committed props.json alone and left the
+# history behind.
+FILES=""
+for f in props.json props_history.jsonl combo_history.jsonl model_projections.json; do
+  [ -e "$f" ] && FILES="$FILES $f"
+done
+git add -- $FILES
 if git diff --quiet --cached -- $FILES; then
   log "lines unchanged since the last run"
   exit 0

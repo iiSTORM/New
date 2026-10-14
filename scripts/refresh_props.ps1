@@ -99,7 +99,7 @@ function Invoke-Refresh {
     # By path only: whatever else is in the tree is not this job's business.
     # The board, its history (what grading reads) and the projections built
     # from it go in one commit.
-    $files = @("props.json", "props_history.jsonl", "model_projections.json") | Where-Object { Test-Path $_ }
+    $files = @("props.json", "props_history.jsonl", "combo_history.jsonl", "model_projections.json") | Where-Object { Test-Path $_ }
     & git add -- @files
     & git diff --quiet --cached -- @files
     if ($LASTEXITCODE -eq 0) {

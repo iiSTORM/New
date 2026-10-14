@@ -52,6 +52,8 @@ def never_touch_the_committed_history(tmp_path, monkeypatch):
     Autouse, because remembering to opt in is exactly the thing that failed.
     """
     monkeypatch.setattr(sp, "HISTORY_PATH", str(tmp_path / "history.jsonl"))
+    # The combo record is the same kind of file with the same exposure.
+    monkeypatch.setattr(sp, "COMBO_HISTORY_PATH", str(tmp_path / "combo_history.jsonl"))
 
 
 def test_the_committed_history_holds_only_real_boards():
@@ -861,3 +863,49 @@ class TestUnmatchedDiagnosis:
         out = capsys.readouterr().out
         assert "DOES track" in out and "does not cover" in out
         assert "the other 1" in out, "wording must acknowledge both groups"
+
+
+class TestComboHistory:
+    """combo_history.jsonl: the combo lines' own record, kept out of
+    props_history.jsonl because every reader of that file treats a row as
+    one player's line."""
+
+    def board(self, line=19.5, at="2026-09-21T01:00:00+00:00", players=("Faker", "Keria")):
+        return {"fetched_at": at, "source": "test", "props": {}, "combos": {"lol": [
+            {"player": " + ".join(players),
+             "players": [{"player": p, "region": "LCK", "team": "T1"} for p in players],
+             "stat": "kills", "maps": 3, "line": line, "odds_type": "standard",
+             "provider": "prizepicks", "start_time": "2026-09-21T06:00:00-04:00"}]}}
+
+    def test_a_combo_is_recorded_once(self, tmp_path):
+        h = tmp_path / "combo_history.jsonl"
+        assert sp.archive_combos(self.board(), str(h)) == 1
+        assert sp.archive_combos(self.board(at="2026-09-21T02:00:00+00:00"), str(h)) == 0
+        rec = json.loads(h.read_text().strip())
+        assert rec["game"] == "lol" and len(rec["players"]) == 2
+
+    def test_a_different_pair_at_the_same_line_is_a_different_posting(self, tmp_path):
+        h = tmp_path / "combo_history.jsonl"
+        sp.archive_combos(self.board(), str(h))
+        assert sp.archive_combos(self.board(players=("Faker", "Gumayusi")), str(h)) == 1
+
+    def test_a_moved_line_is_a_new_observation(self, tmp_path):
+        h = tmp_path / "combo_history.jsonl"
+        sp.archive_combos(self.board(line=19.5), str(h))
+        assert sp.archive_combos(self.board(line=18.5), str(h)) == 1
+
+    def test_end_to_end_a_combo_reaches_props_json_and_not_props(self, tmp_path, monkeypatch):
+        """Through the real main(): the fixture's LoL combo names two real
+        LCS handles, so it lands under `combos` -- and never under `props`,
+        where every reader would take "A + B" for one player."""
+        out = tmp_path / "props.json"
+        assert run(monkeypatch, ["--fixture", str(FIXTURE), "--out", str(out)]) == 0
+        written = json.loads(out.read_text())
+        assert set(written["combos"]) == set(written["props"])
+        names = [p for game in written["props"].values() for p in game]
+        assert not any("+" in n for n in names)
+        lol = written["combos"]["lol"]
+        assert [len(c["players"]) for c in lol] == [2]
+        assert lol[0]["maps"] == 3 and lol[0]["stat"] == "kills"
+        # And the guard above sent the record to the temporary file.
+        assert (tmp_path / "combo_history.jsonl").exists()

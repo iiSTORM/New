@@ -1717,6 +1717,147 @@ function rankEdges(rows) {
   });
 }
 
+/* ---------- Combo lines --------------------------------------------------
+
+   A combo is one line on two or more players added together ("Faker + Keria
+   MAPS 1-3 Kills (Combo)"). scripts/props_match.py resolves every player in
+   it through the same rules an ordinary line uses and writes it under
+   props.json's `combos`, never `props`, so nothing that reads one player's
+   line can mistake it for one.
+
+   The projection is the sum of each player's own projection over the line's
+   maps. The SPREAD is not a sum: two players on one roster move together,
+   so their errors partly add rather than partly cancel. Each player's error
+   is residualScale for the game, stat and window, and pairs are combined at
+   the latent correlations the parlay record measured (0.143 same team, 0.043
+   opposing sides of one fixture, 0 across fixtures). Those were measured on
+   whether lines landed together, not on the errors themselves, so using
+   them here is an approximation and is labelled as one on screen.
+
+   UNVALIDATED. No combo line has been graded yet. scrape_props.py records
+   every one in combo_history.jsonl and score_props.py grades them into
+   props_results.json under `combos`; until that has a sample, this is a
+   number with nothing measured behind it, and the board says so. */
+
+/* The upcoming fixture a line on `team` belongs to, by the same rule
+   propsFor uses for one player: nearest start within the window when both
+   sides have a clock, the same day when the fixture has only a date. */
+function fixtureForLine(rd, team, startTime) {
+  const lineMs = new Date(startTime).getTime();
+  const own = ((rd && rd.upcoming_matches) || []).filter((m) => m.teamA === team || m.teamB === team);
+  if (!own.length || isNaN(lineMs)) return null;
+  let best = null, bestDelta = Infinity;
+  for (const m of own) {
+    const when = String(m._sortKey || m.date || "");
+    const ms = new Date(when).getTime();
+    if (isNaN(ms)) continue;
+    if (/\d{1,2}:\d{2}/.test(when)) {
+      const delta = Math.abs(ms - lineMs);
+      if (delta <= PROP_MATCH_WINDOW_HOURS * 3600000 && delta < bestDelta) { best = m; bestDelta = delta; }
+    } else if (when.slice(0, 10) === new Date(lineMs).toISOString().slice(0, 10) && bestDelta === Infinity) {
+      best = m;
+    }
+  }
+  return best;
+}
+
+/* Projection, error scale and edge for a combo, from its legs.
+
+   legs: [{ projection, team, fixture }] -- fixture is any value equal for
+   two legs in the same match. Pure, so tests/combo_edges.test.mjs can pin
+   the arithmetic without a dataset. */
+function comboEdge(legs, line, game, statType, maps) {
+  if (!legs.length || legs.some((l) => typeof l.projection !== "number")) return null;
+  const projection = legs.reduce((sum, l) => sum + l.projection, 0);
+  const scale = residualScale(game, statType, maps);
+  let variance = null;
+  if (scale) {
+    variance = 0;
+    for (let i = 0; i < legs.length; i++) {
+      variance += scale * scale;
+      for (let j = i + 1; j < legs.length; j++) {
+        const rho = legs[i].fixture !== legs[j].fixture ? 0
+          : legs[i].team === legs[j].team ? SAME_TEAM_CORRELATION : OPPOSING_TEAMS_CORRELATION;
+        variance += 2 * rho * scale * scale;
+      }
+    }
+  }
+  const spread = variance === null ? null : Math.sqrt(variance);
+  const edge = typeof line === "number" ? projection - line : null;
+  return { projection, spread, edge, z: edge !== null && spread ? edge / spread : null };
+}
+
+/* Every combo on the board for this game and stat, projected.
+
+   One row per combo market: alternate payouts of the same players, window
+   and fixture are folded the way propsFor folds them, and where several
+   lines are posted with none named the market one, no edge is drawn. A
+   combo whose players cannot all be projected keeps its row with the
+   reason, rather than vanishing. */
+function collectComboEdges(regionsData, propsData, weights, statType, game) {
+  const posted = ((propsData && propsData.combos) || {})[game] || [];
+  const groups = new Map();
+  for (const c of posted) {
+    if (c.stat !== statType || !Array.isArray(c.players) || c.players.length < 2) continue;
+    const key = [c.players.map((p) => `${p.team}|${p.player}`).join("+"), windowKey(c), c.start_time].join("@");
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(c);
+  }
+  const rows = [];
+  for (const group of groups.values()) {
+    const market = group.filter((c) => String(c.odds_type || "").toLowerCase() === "standard");
+    const pick = market.length ? market : group;
+    const combo = { ...pick[0], lineCount: new Set(pick.map((c) => c.line)).size };
+    const legs = [];
+    let reason = null;
+    for (const p of combo.players) {
+      /* The fixture can be listed in a different region from the one the
+         player is rostered in: an international event carries its teams'
+         rosters and lists their matches, while the matcher filed the line
+         under the home region. Every region that rosters the team is
+         searched, the player's own first, the way the single-player board
+         finds a line by walking every region's fixtures. */
+      const order = [p.region, ...Object.keys(regionsData || {}).filter((k) => k !== p.region)];
+      let found = null;
+      for (const key of order) {
+        const rd = regionsData && regionsData[key];
+        const teamData = rd && rd.teams && rd.teams[p.team];
+        const player = teamData && (teamData.players || []).find((x) => x.name === p.player);
+        if (!player) continue;
+        const match = fixtureForLine(rd, p.team, combo.start_time);
+        if (match) { found = { key, rd, player, match }; break; }
+      }
+      if (!found) { reason = `no upcoming ${p.team} fixture with ${p.player} at this line's start time`; break; }
+      const { key: regionKey, rd, player, match } = found;
+      const opponent = match.teamA === p.team ? match.teamB : match.teamA;
+      const breakdown = project(rd.teams, historyPool(regionsData, regionKey), player, p.team,
+                                opponent, combo.maps, weights, statType);
+      const projection = projectionOverWindow(breakdown, combo);
+      if (projection === null) { reason = `${p.player} could not be projected`; break; }
+      legs.push({
+        name: p.player, team: p.team, opponent, projection,
+        evidence: breakdown.evidenceGames,
+        // Order-free and region-free, so two legs on one match agree on it
+        // however each region happens to list the pairing.
+        fixture: `${[match.teamA, match.teamB].sort().join("|")}|${String(match._sortKey || match.date).slice(0, 10)}`,
+      });
+    }
+    const result = reason ? null : comboEdge(legs, combo.line, game, statType, combo.maps);
+    rows.push({
+      combo, legs: reason ? [] : legs, reason,
+      projection: result ? result.projection : null,
+      spread: result ? result.spread : null,
+      edge: result && combo.lineCount === 1 ? result.edge : null,
+      z: result && combo.lineCount === 1 ? result.z : null,
+      sameTeam: !reason && new Set(legs.map((l) => l.team)).size === 1,
+    });
+  }
+  return rows.sort((a, b) => {
+    const ka = a.z === null ? -1 : Math.abs(a.z), kb = b.z === null ? -1 : Math.abs(b.z);
+    return kb - ka;
+  });
+}
+
 /* The only claim that matters commercially: when the projection disagreed
    with the line, which one was right.
 
@@ -5282,6 +5423,8 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
           </Fragment>
         ))}
       </div>
+      <ComboSection regionsData={regionsData} propsData={propsData} weights={weights}
+                    statType={statType} game={game} cfg={cfg} isDesktop={isDesktop} />
       <div style={{ fontSize: 11, color: theme.textFaint, marginTop: 10, lineHeight: 1.6 }}>
         Edge is the projection minus the line, over the line’s own map window, discounted by how much evidence
         the projection rests on. Measured over past seasons, a disagreement built on fewer than four games
@@ -5290,6 +5433,109 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
         It is a model disagreeing with a market, not a prediction of the result — and the model is the same one
         the accuracy figures on the Future tab describe.
       </div>
+    </div>
+  );
+}
+
+/* The combo lines for this game and stat, under the single-player board and
+   visibly apart from it: they are a different product with no graded record
+   yet, and sitting inside the ranked list would lend them that list's
+   evidence. Renders nothing when the board carries no combos. */
+function ComboSection({ regionsData, propsData, weights, statType, game, cfg, isDesktop }) {
+  const theme = useTheme();
+  const rows = useMemo(() => collectComboEdges(regionsData, propsData, weights, statType, game),
+                       [regionsData, propsData, weights, statType, game]);
+  const results = useGradedResults();
+  if (!rows.length) return null;
+  const graded = ((results && results.combos && results.combos.graded) || []).filter((r) => r.game === game);
+  const pad = isDesktop ? "12px 18px" : "12px 14px";
+  return (
+    <div style={{ marginTop: 16, background: theme.graphite, border: `1px solid ${theme.steel}`,
+                  ...cardShape(theme), ...elevation(), overflow: "hidden" }}>
+      <div style={{ padding: "14px 18px", borderBottom: `1px solid ${theme.steel}`, display: "flex",
+                    alignItems: "center", gap: 10, flexWrap: "wrap",
+                    background: `linear-gradient(90deg, ${theme.accent2}14, transparent 60%)` }}>
+        <span style={{ width: 30, height: 30, borderRadius: 10, display: "grid", placeItems: "center",
+                       background: theme.grad, flexShrink: 0 }}>
+          <Icon name="layers" size={15} stroke={2.2} color={theme.onAccent} />
+        </span>
+        <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 15 }}>Combos</span>
+        <span style={{ fontSize: 11.5, color: theme.textFaint }}>
+          {rows.length} posted {rows.length === 1 ? "line" : "lines"} · two or more players added together
+        </span>
+        <span className="kp-chip" style={{ marginLeft: "auto", fontSize: 10, fontWeight: 800, letterSpacing: 0.8,
+          textTransform: "uppercase", color: theme.accent, background: theme.accentSoft, border: `1px solid ${theme.accentBorder}` }}>
+          Unvalidated
+        </span>
+      </div>
+      <div style={{ padding: "10px 18px", borderBottom: `1px solid ${theme.steel}`, fontSize: 11.5,
+                    lineHeight: 1.6, color: theme.textDim }}>
+        Each player is projected over the line’s maps and the projections are added. The σ beside an
+        edge is the model’s combined error for those players, with teammates’ errors treated as moving
+        together, using a correlation measured on single lines rather than on combos.{" "}
+        <strong style={{ color: theme.text }}>
+          {graded.length
+            ? `${graded.length} combo ${graded.length === 1 ? "line has" : "lines have"} been graded so far — too few to say anything about these edges.`
+            : "No combo line has been graded yet, so nothing here is measured."}
+        </strong>{" "}
+        Every combo on the board is now being recorded so that changes.
+      </div>
+      {rows.map((row, i) => {
+        const c = row.combo;
+        const live = propIsLive(c);
+        const over = row.edge !== null && row.edge > 0;
+        const tone = row.edge === null || !live ? theme.textFaint : over ? theme.good : theme.bad;
+        return (
+          <div key={`${c.player}-${windowKey(c)}-${c.start_time}-${i}`}
+               style={{ padding: pad, borderTop: i ? `1px solid ${theme.steelSoft}` : "none",
+                        display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", opacity: live ? 1 : 0.6 }}>
+            <div style={{ flex: "1 1 240px", minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                {c.players.map((p, j) => (
+                  <Fragment key={p.team + p.player}>
+                    {j > 0 && <span style={{ color: theme.textFaint, fontWeight: 700 }}>+</span>}
+                    <TeamTag name={p.player} size={14}
+                      color={teamColorOf((regionsData[p.region] || {}).teams, p.team, theme.textDim)} />
+                  </Fragment>
+                ))}
+              </div>
+              <div style={{ fontSize: 11.5, color: theme.textFaint, marginTop: 4 }}>
+                {row.reason
+                  ? row.reason
+                  : <>{row.legs.map((l) => `${l.name} ${l.projection.toFixed(1)}`).join(" + ")}
+                      {" · "}{mapWindowLabel(c.maps, c.map)}{" · "}
+                      {row.sameTeam ? "same roster" : "across rosters"}
+                      {!live && " · started"}</>}
+              </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
+              <div style={{ textAlign: "right" }}>
+                <div className="kp-num" style={{ fontSize: 15, fontWeight: 700 }}>{c.line}</div>
+                <div style={{ fontSize: 9, letterSpacing: 1, color: theme.textFaint, fontWeight: 700 }}>
+                  {c.lineCount > 1 ? `${c.lineCount} LINES` : "LINE"}
+                </div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div className="kp-num" style={{ fontSize: 15, fontWeight: 700, color: theme.textDim }}>
+                  {row.projection === null ? "—" : row.projection.toFixed(1)}
+                </div>
+                <div style={{ fontSize: 9, letterSpacing: 1, color: theme.textFaint, fontWeight: 700 }}>PROJ</div>
+              </div>
+              <span title={row.spread ? `combined error ±${row.spread.toFixed(1)} ${cfg.label.toLowerCase()}` : undefined}
+                style={{ minWidth: 86, textAlign: "center", padding: "5px 10px", borderRadius: 10,
+                         background: `${tone}1a`, border: `1px solid ${tone}44` }}>
+                <span className="kp-num" style={{ display: "block", fontSize: 12, fontWeight: 800, color: tone }}>
+                  {row.edge === null ? "no edge" : !live ? "started"
+                    : `${over ? "OVER" : "UNDER"} ${over ? "+" : ""}${row.edge.toFixed(1)}`}
+                </span>
+                <span className="kp-num" style={{ display: "block", fontSize: 9.5, color: theme.textFaint }}>
+                  {row.z === null ? (c.lineCount > 1 ? "market line not named" : "\u00a0") : `${Math.abs(row.z).toFixed(2)} σ`}
+                </span>
+              </span>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """Fetches live player prop lines and matches them onto this app's players.
 
-Writes props.json: {fetched_at, source, props: {game: {player: [...]}}, ...}.
+Writes props.json: {fetched_at, source, props: {game: {player: [...]}},
+combos: {game: [...]}}.
+
+Combo lines -- two or more players added into one line -- are kept apart
+from `props` on purpose. Everything that reads `props` treats each row as
+one player's line, and a "Faker + Chovy" row there would be read as a
+player called that. They get their own key and their own history file.
 
 WHY THIS IS A SEPARATE SCRIPT AND A SEPARATE SCHEDULE
 -----------------------------------------------------
@@ -73,8 +79,8 @@ except ImportError:
     # is the only route that works.
     requests = None
 
-from props_match import (build_alias_index, build_roster_index, dedupe_rows, match_props,
-                         unmatched_by_team)
+from props_match import (build_alias_index, build_roster_index, dedupe_rows, match_combos,
+                         match_props, unmatched_by_team)
 
 OUTPUT_PATH = "props.json"
 
@@ -92,6 +98,13 @@ OUTPUT_PATH = "props.json"
 # and an edge that vanishes as the market moves toward it is a different
 # thing from one that survives.
 HISTORY_PATH = "props_history.jsonl"
+
+# The same record for combo lines, in its own file. props_history.jsonl has
+# readers well beyond the grader -- closing-line analytics, the fill-rate
+# check, the CS2 scraper's choice of which results to fetch -- and every one
+# of them reads a row as one player's line. A combo row there would be a
+# player named "Faker + Chovy" to all of them.
+COMBO_HISTORY_PATH = "combo_history.jsonl"
 
 # Which app game each configured league feeds, and the roster file to match
 # against. League ids are configurable rather than hardcoded guesses: they
@@ -256,8 +269,10 @@ def existing_prop_count(path):
     try:
         with open(path) as f:
             existing = json.load(f)
-        return sum(len(props) for game in (existing.get("props") or {}).values()
-                   for props in game.values())
+        singles = sum(len(props) for game in (existing.get("props") or {}).values()
+                      for props in game.values())
+        combos = sum(len(rows) for rows in (existing.get("combos") or {}).values())
+        return singles + combos
     except (OSError, ValueError, AttributeError, TypeError):
         # Unreadable or not the shape we write is the same answer as absent:
         # there is nothing here worth protecting, because the frontend cannot
@@ -423,6 +438,46 @@ def archive_props(result, path=HISTORY_PATH):
     return len(fresh)
 
 
+def combo_history_key(record):
+    """What makes two combo observations the same posting. The players are
+    part of it, in order, because "A + B" at 19.5 and "A + C" at 19.5 are
+    two different lines."""
+    players = tuple((p.get("team"), p.get("player")) for p in record.get("players") or [])
+    return (record.get("game"), players, record.get("stat"), record.get("maps"),
+            record.get("start_time"), record.get("line"), record.get("map") or 1)
+
+
+def archive_combos(result, path=COMBO_HISTORY_PATH):
+    """archive_props for combo lines: append what is not already on file."""
+    seen = set()
+    try:
+        with open(path) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    seen.add(combo_history_key(json.loads(line)))
+                except ValueError:
+                    continue
+    except OSError:
+        pass
+    fresh = []
+    for game, rows in (result.get("combos") or {}).items():
+        for row in rows:
+            record = {"observed_at": result.get("fetched_at"), "game": game, **row}
+            key = combo_history_key(record)
+            if key in seen:
+                continue
+            seen.add(key)
+            fresh.append(record)
+    if fresh:
+        with open(path, "a") as f:
+            for record in fresh:
+                f.write(json.dumps(record, separators=(",", ":"), sort_keys=True) + "\n")
+    return len(fresh)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--provider", choices=sorted(PROVIDERS), default="prizepicks")
@@ -440,6 +495,9 @@ def main():
     ap.add_argument("--history", default=HISTORY_PATH,
                      help=f"append-only record of every board seen "
                           f"(default {HISTORY_PATH}; empty string disables)")
+    ap.add_argument("--combo-history", default=COMBO_HISTORY_PATH,
+                     help=f"the same record for combo lines "
+                          f"(default {COMBO_HISTORY_PATH}; empty string disables)")
     ap.add_argument("--allow-empty", action="store_true",
                      help="write a props file with nothing in it even when one "
                           "with lines already exists (see the refusal below)")
@@ -452,8 +510,9 @@ def main():
         "fetched_at": fetched_at.isoformat(),
         "source": args.provider,
         "props": {},
+        "combos": {},
     }
-    total_matched = total_unmatched = 0
+    total_matched = total_unmatched = total_combos = 0
 
     if args.fixture:
         # "-" means stdin. The provider refuses this script from any
@@ -516,6 +575,16 @@ def main():
         if doubled:
             print(f"{game}: {doubled} line(s) appeared twice, identical in every "
                   f"field — kept once", file=sys.stderr)
+
+        # Combos, through the same player resolution. match_props refused
+        # them above under their own reason; they are counted from here
+        # instead so the single-player funnel below reads as before.
+        combos, combo_refused = match_combos(raw, index, game=game)
+        combos, _ = dedupe_rows(combos)
+        unmatched = [p for p in unmatched
+                     if p.get("reason") != "combo line covers more than one player"]
+        result["combos"][game] = combos
+        total_combos += len(combos)
         total_matched += len(matched)
         total_unmatched += len(unmatched)
 
@@ -557,6 +626,14 @@ def main():
             lead = "the other" if tracked else "all"
             print(f"      {lead} {lost} are on {len(untracked)} team(s) this app "
                   f"does not cover: {teams}{more}")
+        if combos or combo_refused:
+            print(f"  combos: {len(combos) + len(combo_refused)} posted -> "
+                  f"{len(combos)} matched, {len(combo_refused)} refused")
+            combo_reasons = {}
+            for prop in combo_refused:
+                combo_reasons[prop["reason"]] = combo_reasons.get(prop["reason"], 0) + 1
+            for reason, count in sorted(combo_reasons.items(), key=lambda kv: -kv[1]):
+                print(f"    {count:4d}  {reason}")
 
     if age_minutes > MAX_AGE_MINUTES:
         print(f"\n! These lines are already {age_minutes:.0f} minutes old, past "
@@ -570,7 +647,7 @@ def main():
     # Printed before the --dry-run exit below, because reporting this is
     # most of what a dry run is for: the smoke check in CI runs one, and a
     # silent zero there would read as a clean bill of health.
-    if total_matched == 0:
+    if total_matched + total_combos == 0:
         print("\n! No props matched for any game. Either there is genuinely "
               "nothing posted right now, or the provider changed shape — "
               "check the unmatched reasons above before assuming the former.",
@@ -580,7 +657,7 @@ def main():
         print("\n--dry-run: not writing props.json")
         return 0
 
-    if total_matched == 0:
+    if total_matched + total_combos == 0:
         # The payload-was-unusable path above already declines to overwrite a
         # good file. This is the same failure arriving one step later: a
         # payload that parses fine but matches nothing is what a renamed stat
@@ -599,13 +676,16 @@ def main():
 
     with open(args.out, "w") as f:
         json.dump(result, f, separators=(",", ":"))
-    print(f"\nWrote {args.out}: {total_matched} prop(s), "
+    print(f"\nWrote {args.out}: {total_matched} prop(s), {total_combos} combo(s), "
           f"{total_unmatched} unmatched, fetched_at {result['fetched_at']}")
 
     if args.history:
         added = archive_props(result, args.history)
         print(f"Recorded {added} new observation(s) in {args.history} "
               f"({'first board on file' if added == total_matched else 'the rest were already there'})")
+    if args.combo_history and total_combos:
+        added = archive_combos(result, args.combo_history)
+        print(f"Recorded {added} new combo observation(s) in {args.combo_history}")
     return 0
 
 

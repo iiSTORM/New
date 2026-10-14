@@ -128,6 +128,12 @@ jobs:
       - name: Check the Impact ± stat
         run: node tests/impact.test.mjs
 
+      # Combo lines: the sum of each player's projection and the spread with
+      # teammates' errors moving together. Treating them as independent would
+      # make a same-roster combo look surer than it is.
+      - name: Check combo projections
+        run: node tests/combo_edges.test.mjs
+
       # The league average is computed in one cached pass rather than one
       # scan per team (Parlays took 38s to open). It must stay bit-identical
       # to the per-team definition, which is what this checks.

@@ -29,6 +29,7 @@ on:
     branches: [main]
     paths:
       - "props_history.jsonl"
+      - "combo_history.jsonl"
       - "data.json"
       - "cs2_data.json"
       - "valorant_data.json"

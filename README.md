@@ -208,8 +208,22 @@ Three things must line up before a line can be compared with a projection, and
   reported, not mapped to the nearest guess.
 - **map window** — the one that silently ruins everything. A line for maps 1-2
   is only comparable with a projection over maps 1-2, so a prop is shown
-  against a projection only when the windows match; `Kills (Combo)`, which
-  doesn't state a window, is refused outright.
+  against a projection only when the windows match. A line that doesn't state
+  a window is refused outright.
+
+**Combo lines** (`MAPS 1-3 Kills (Combo)`, posted as `Faker + Keria`) add two
+or more players into one line. They go through `match_combos`, which resolves
+*every* player with the same rules as an ordinary line and refuses the combo
+whole if any one fails. Matched combos are written under `combos` in
+`props.json`, never under `props`, because everything reading `props` treats a
+row as one player. Each one is also appended to `combo_history.jsonl` (kept
+apart from `props_history.jsonl` for the same reason), and `score_props.py`
+grades them into `props_results.json` under `combos` by summing each player's
+result over the line's maps. The Edges tab shows them in their own Combos
+section: the projection is the sum of each player's, and the σ is their
+combined error with teammates' errors moving together. That correlation was
+measured on single lines, not combos, and no combo has a graded record yet,
+so the section is labelled unvalidated.
 
 Nothing is dropped quietly — every unmatched prop is counted by reason, because
 a rising unmatched count is how a provider renaming its labels shows up, and it
@@ -387,7 +401,8 @@ numbers fail in distinguishable ways:
 | `raw > 0`, `0 matched` | Parsing works, matching does not. The reasons underneath name which of the three — player, stat, map window — is off. |
 | `player not on any roster`, a handful | Normal. The provider posts players from leagues this app does not track. |
 | `player not on any roster`, nearly all | Two very different things, and the funnel cannot tell them apart. Either a roster file scraped badly, or the slate is a league this repo does not track — LoL covers LCS, LEC, LCK, LPL, LCP, CBLOL and TCL, so a board of European regional teams (LFL, Superliga, Prime League) matches nothing and correctly shows no lines. Run the inspector with `--names`: you will either recognise the players immediately or not. |
-| `map window not stated` | Lines posted as `Kills (Combo)`. Refused on purpose — see the map window note above. |
+| `map window not stated` | The label names no maps. Refused on purpose — see the map window note above. |
+| `combos: N posted -> M matched` | Combo lines, counted on their own line. A refused combo names the reason and, where one player failed, which one. |
 
 **The map window comes off the line itself.** A fixture is a Bo1, Bo3 or
 Bo5 and the provider posts `Map 1`, `Maps 1-2` or `Maps 1-3` to match — a

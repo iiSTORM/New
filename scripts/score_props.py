@@ -273,6 +273,34 @@ def nearest_by_start_time(candidates, line_start):
     return timed[0][1]
 
 
+def find_match(index, team, start_time):
+    """(the completed match a line on `team` belongs to, None) or
+    (None, refusal reason). Shared by single lines and by each player in a
+    combo, so the two settle a fixture by the same rule."""
+    date = utc_date(start_time)
+    if date is None:
+        return None, "unreadable start time"
+    candidates = index.get((team, date)) or []
+    if not candidates:
+        # The overwhelmingly common case early on: the match simply has
+        # not been played or scraped yet.
+        return None, "no completed match on that date"
+    if len(candidates) > 1:
+        # Teams do play twice in a day in CS2 tournaments. A calendar
+        # date cannot say which match a line belonged to -- but a
+        # CLOCK can, and both sides carry one now: the posted line
+        # has always had start_time, and the scraper stores the
+        # match's full timestamp rather than truncating it to a day.
+        #
+        # Still refuses when the times cannot settle it, because
+        # picking one would be a coin flip recorded as a result.
+        match = nearest_by_start_time(candidates, start_time)
+        if match is None:
+            return None, "team played more than once that day"
+        return match, None
+    return candidates[0], None
+
+
 def grade(records, data_by_game):
     """Attach an outcome to every observation that can carry one."""
     graded, refused = [], collections.Counter()
@@ -284,32 +312,10 @@ def grade(records, data_by_game):
         if index is None:
             refused[f"no result data for {game}"] += 1
             continue
-        date = utc_date(rec.get("start_time"))
-        if date is None:
-            refused["unreadable start time"] += 1
+        match, reason = find_match(index, rec.get("team"), rec.get("start_time"))
+        if match is None:
+            refused[reason] += 1
             continue
-
-        candidates = index.get((rec.get("team"), date)) or []
-        if not candidates:
-            # The overwhelmingly common case early on: the match simply has
-            # not been played or scraped yet.
-            refused["no completed match on that date"] += 1
-            continue
-        if len(candidates) > 1:
-            # Teams do play twice in a day in CS2 tournaments. A calendar
-            # date cannot say which match a line belonged to -- but a
-            # CLOCK can, and both sides carry one now: the posted line
-            # has always had start_time, and the scraper stores the
-            # match's full timestamp rather than truncating it to a day.
-            #
-            # Still refuses when the times cannot settle it, because
-            # picking one would be a coin flip recorded as a result.
-            match = nearest_by_start_time(candidates, rec.get("start_time"))
-            if match is None:
-                refused["team played more than once that day"] += 1
-                continue
-        else:
-            match = candidates[0]
         value, reason = actual_over_window(
             match, rec.get("team"), rec.get("player"),
             rec.get("stat"), rec.get("maps"), game, rec.get("map") or 1)
@@ -332,6 +338,62 @@ def grade(records, data_by_game):
             "result": "over" if value > line else "under" if value < line else "push",
             "match_date": str(match.get("date")),
             "opponent": match.get("teamB") if match.get("teamA") == rec.get("team") else match.get("teamA"),
+        })
+    return graded, refused
+
+
+def grade_combos(records, data_by_game):
+    """grade() for combo lines: every player settled on their own match,
+    over the line's own maps, and the values summed.
+
+    Refused unless EVERY player settles. A combo with one player's result
+    missing is not a smaller combo, and grading the half that is known
+    would record a guaranteed under as a result.
+    """
+    graded, refused = [], collections.Counter()
+    indexes = {g: index_matches(d.get("regions")) for g, d in data_by_game.items()}
+    for rec in records:
+        game = rec.get("game")
+        index = indexes.get(game)
+        if index is None:
+            refused[f"no result data for {game}"] += 1
+            continue
+        players = rec.get("players") or []
+        if len(players) < 2:
+            refused["combo does not list its players"] += 1
+            continue
+        line = rec.get("line")
+        if not isinstance(line, (int, float)):
+            refused["line is not a number"] += 1
+            continue
+        total, legs, refusal, first_match = 0, [], None, None
+        for leg in players:
+            match, reason = find_match(index, leg.get("team"), rec.get("start_time"))
+            if match is None:
+                refusal = reason
+                break
+            value, reason = actual_over_window(
+                match, leg.get("team"), leg.get("player"),
+                rec.get("stat"), rec.get("maps"), game, rec.get("map") or 1)
+            if value is None:
+                refusal = reason
+                break
+            first_match = first_match or match
+            total += value
+            legs.append({**leg, "actual": value})
+        if refusal:
+            refused[refusal] += 1
+            continue
+        graded.append({
+            **rec,
+            "players": legs,
+            # The first player's team and match, so carry_forward can tell
+            # whether this combo's result is still in the data files.
+            "team": players[0].get("team"),
+            "actual": total,
+            "margin": round(total - line, 2),
+            "result": "over" if total > line else "under" if total < line else "push",
+            "match_date": str(first_match.get("date")),
         })
     return graded, refused
 
@@ -443,6 +505,9 @@ def main():
     ap.add_argument("--history", default="props_history.jsonl")
     ap.add_argument("--json", dest="json_out",
                     help="write the graded rows and summary here")
+    ap.add_argument("--combo-history", default="combo_history.jsonl",
+                    help="combo lines, written by scrape_props.py; graded "
+                         "into the same --json file under 'combos'")
     ap.add_argument("--min-sample", type=int, default=30,
                     help="below this many graded lines, rates are withheld "
                          "rather than printed (default 30)")
@@ -521,12 +586,43 @@ def main():
           "projection as it stood when the line\n  was posted, which is the "
           "next piece.")
 
+    combos = grade_combo_history(args, data_by_game)
+
     if args.json_out:
+        out = {"summary": summary, "by_window": by_window,
+               "graded": graded, "refused": dict(refused)}
+        if combos is not None:
+            out["combos"] = combos
         with open(args.json_out, "w") as f:
-            json.dump({"summary": summary, "by_window": by_window,
-                       "graded": graded, "refused": dict(refused)}, f, indent=2)
+            json.dump(out, f, indent=2)
         print(f"\nWrote {args.json_out}")
     return 0
+
+
+def grade_combo_history(args, data_by_game):
+    """Grade combo_history.jsonl, print a short report, and return what goes
+    under "combos" in the --json file -- or None when there is no combo
+    history, so a file written before combos existed keeps its shape."""
+    records = load_history(args.combo_history)
+    if not records:
+        return None
+    graded, refused = grade_combos(records, data_by_game)
+    if args.json_out:
+        try:
+            with open(args.json_out) as f:
+                previous = ((json.load(f).get("combos") or {}).get("graded")) or []
+        except (OSError, ValueError, AttributeError):
+            previous = []
+        graded, _ = carry_forward(previous, graded, data_by_game)
+    print(f"\nCOMBOS: {len(records)} observation(s) on file, {len(graded)} graded")
+    for reason, count in refused.most_common():
+        print(f"  {count:5d}  {reason}")
+    summary = summarise(graded) if graded else {}
+    for game, s in summary.items():
+        rate = "—" if s["graded"] < args.min_sample or s["over_rate"] is None \
+            else f"{s['over_rate'] * 100:.1f}% over"
+        print(f"  {s['graded']:6d} graded  {rate:>10}  mean margin {s['mean_margin']:.2f}   {game}")
+    return {"summary": summary, "graded": graded, "refused": dict(refused)}
 
 
 if __name__ == "__main__":

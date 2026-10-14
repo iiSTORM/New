@@ -421,3 +421,50 @@ class TestDoubleHeaders:
         """Two legs of a double-header sit further apart than this, and
         scheduled-versus-actual start disagrees by minutes."""
         assert 1 <= sc.DOUBLE_HEADER_TOLERANCE_HOURS <= 6
+
+
+class TestComboGrading:
+    """A combo is settled only when every player settles, each on their own
+    match and over the line's own maps, and the values are summed."""
+
+    def match(self, date="2026-09-21"):
+        return {"date": date, "teamA": "T1", "teamB": "GEN", "maps_counted": 3,
+                "per_game": [{"T1": {"Faker": {"k": 5, "d": 1, "a": 3},
+                                     "Keria": {"k": 1, "d": 2, "a": 9}},
+                              "GEN": {"Chovy": {"k": 4, "d": 2, "a": 2}}} for _ in range(3)]}
+
+    def combo(self, players=(("Faker", "T1"), ("Keria", "T1")), **kw):
+        base = {"game": "lol", "player": " + ".join(p for p, _ in players),
+                "players": [{"player": p, "team": t, "region": "LCK"} for p, t in players],
+                "stat": "kills", "maps": 2, "line": 11.5,
+                "start_time": "2026-09-21T06:00:00-04:00"}
+        base.update(kw)
+        return base
+
+    def data(self):
+        return {"lol": {"regions": regions(self.match())}}
+
+    def test_the_players_are_summed_over_the_window(self):
+        rows, refused = sc.grade_combos([self.combo()], self.data())
+        assert not refused
+        # Faker 5+5, Keria 1+1 over maps 1-2.
+        assert rows[0]["actual"] == 12 and rows[0]["result"] == "over"
+        assert [p["actual"] for p in rows[0]["players"]] == [10, 2]
+
+    def test_players_on_opposing_teams(self):
+        rows, _ = sc.grade_combos([self.combo(players=(("Faker", "T1"), ("Chovy", "GEN")),
+                                              line=18.5)], self.data())
+        assert rows[0]["actual"] == 18 and rows[0]["result"] == "under"
+
+    def test_one_missing_player_refuses_the_combo(self):
+        rows, refused = sc.grade_combos(
+            [self.combo(players=(("Faker", "T1"), ("Oner", "T1")))], self.data())
+        assert rows == [] and sum(refused.values()) == 1
+
+    def test_a_combo_without_its_players_is_refused(self):
+        rows, refused = sc.grade_combos([self.combo(players=())], self.data())
+        assert rows == [] and "does not list its players" in " ".join(refused)
+
+    def test_ordinary_grading_is_unchanged_by_the_refactor(self):
+        rows, _ = sc.grade([obs(line=8.5)], {"lol": {"regions": regions(lol_match(kills=(5, 4, 6)))}})
+        assert rows[0]["actual"] == 9

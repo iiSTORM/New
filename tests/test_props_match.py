@@ -352,3 +352,79 @@ class TestUnmatchedByTeam:
     def test_empty_input_is_not_an_error(self):
         assert pm.unmatched_by_team([], self.REGIONS) == ([], [])
         assert pm.unmatched_by_team(None, None) == ([], [])
+
+
+class TestMatchCombos:
+    """Combo lines: every player must resolve, through the same rules an
+    ordinary line uses, or the combo is refused whole."""
+
+    REGIONS = {"LCK": {"teams": {
+        "T1": {"players": [{"name": "Faker"}, {"name": "Keria"}]},
+        "Gen.G": {"players": [{"name": "Chovy"}]},
+    }}}
+    INDEX = pm.build_roster_index(REGIONS)[0]
+
+    def _prop(self, **kw):
+        base = {"player_name": "Faker + Keria", "stat_label": "MAPS 1-3 Kills (Combo)",
+                "line": 19.5, "team": "T1", "provider": "test",
+                "start_time": "2026-09-20T10:00:00Z", "odds_type": "standard"}
+        base.update(kw)
+        return base
+
+    def match(self, *props):
+        return pm.match_combos(list(props), self.INDEX, game="lol", alias_index={})
+
+    def test_both_players_resolve(self):
+        matched, unmatched = self.match(self._prop())
+        assert unmatched == []
+        row = matched[0]
+        assert row["player"] == "Faker + Keria"
+        assert [(p["player"], p["team"]) for p in row["players"]] == [("Faker", "T1"), ("Keria", "T1")]
+        assert (row["stat"], row["maps"], row["line"]) == ("kills", 3, 19.5)
+
+    def test_players_on_opposing_teams(self):
+        matched, _ = self.match(self._prop(player_name="Faker + Chovy", team="T1/GEN"))
+        assert [p["team"] for p in matched[0]["players"]] == ["T1", "Gen.G"]
+
+    def test_one_unknown_player_refuses_the_whole_combo(self):
+        """Half a combo is not a smaller combo: one player's projection
+        against a two-player line is the confident wrong number."""
+        matched, unmatched = self.match(self._prop(player_name="Faker + Nobody"))
+        assert matched == []
+        assert "Nobody" in unmatched[0]["reason"]
+        assert "not on any roster" in unmatched[0]["reason"]
+
+    def test_an_unstated_window_is_refused(self):
+        _, unmatched = self.match(self._prop(stat_label="Kills (Combo)"))
+        assert unmatched[0]["reason"] == "combo map window not stated"
+
+    def test_a_display_name_without_two_players_is_refused(self):
+        _, unmatched = self.match(self._prop(player_name="Faker"))
+        assert unmatched[0]["reason"] == "combo does not name its players"
+
+    def test_the_same_player_twice_is_refused(self):
+        _, unmatched = self.match(self._prop(player_name="Faker + faker"))
+        assert unmatched[0]["reason"] == "combo does not name its players"
+
+    def test_ordinary_lines_are_ignored_here(self):
+        """match_props owns them; neither path may count a line twice."""
+        assert self.match(self._prop(stat_label="MAPS 1-3 Kills", player_name="Faker")) == ([], [])
+
+    def test_match_props_still_refuses_every_combo(self):
+        _, unmatched = pm.match_props([self._prop()], self.INDEX, alias_index={})
+        assert unmatched[0]["reason"] == "combo line covers more than one player"
+
+    def test_a_map_3_combo_keeps_its_map(self):
+        matched, _ = self.match(self._prop(stat_label="MAP 3 Kills (Combo)", line=7.5))
+        assert matched[0]["maps"] == 1 and matched[0]["map"] == 3
+
+    def test_combo_names_split_on_plus_only(self):
+        assert pm.combo_names("A + B") == ["A", "B"]
+        assert pm.combo_names("A+B+C") == ["A", "B", "C"]
+        assert pm.combo_names("A/B") == []
+        assert pm.combo_names("A + ") == []
+
+    def test_parse_combo_stat_reads_like_parse_stat(self):
+        assert pm.parse_combo_stat("MAPS 1-2 Kills (Combo)") == ("kills", 2)
+        assert pm.parse_combo_stat("Kills (Combo)") == ("kills", None)
+        assert pm.parse_combo_stat("MAPS 1-2 Kills") == (None, None)
