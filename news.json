@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-16T21:38:43.682741+00:00",
+ "generated_at": "2026-10-16T23:51:26.587225+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,13 +61,13 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 75,
+   "items": 76,
    "error": null
   },
   {
    "game": "lol",
    "source": "Google News",
-   "items": 56,
+   "items": 57,
    "error": null
   },
   {
@@ -79,13 +79,13 @@
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 99,
+   "items": 100,
    "error": null
   },
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 43,
+   "items": 44,
    "error": null
   },
   {
@@ -109,12 +109,54 @@
  ],
  "items": [
   {
+   "game": "cs2",
+   "source": "Dust2.us",
+   "title": "twigs steps down from Zomblers amidst further roster woes",
+   "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxNTWdNcEFMalNzckpjbTM3U1RKeXM3dmdpdlEzQWNsS2Z5bmNJNXhYZEpHYWY5VXVHcmVwYTJnMHMxaWNibEJBa3lSeTg0V29yYmlJV050MmlCWVNIZVRCbXBiTnpGRDN6Zk5VdXRXdG80RzZJRDc3QWwyNmE4ekNYS1V4QVNTRU45RkVRVEdNMnc3cnc?oc=5",
+   "published": "2026-10-16T22:22:46+00:00",
+   "summary": "twigs steps down from Zomblers amidst further roster woes Dust2.us",
+   "teams": [
+    "Zomblers"
+   ],
+   "players": [
+    {
+     "name": "twigs",
+     "team": "Zomblers"
+    }
+   ],
+   "score": -1,
+   "grade": "negative",
+   "rules": [
+    "departure"
+   ],
+   "reasons": [
+    "a player or coach leaves"
+   ]
+  },
+  {
    "game": "lol",
    "source": "Insider Gaming",
    "title": "Karmine Corp Sweep MVK to Reach LoL Worlds Play-Ins Final",
    "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTE82X0NGeGZkU05rMDJJenROcmJVUENKeG5YcG9vOWVaRG41elVnNVQybm5LVnFQWXpuTF9GWldVeXMwc25VVmtEeVZUVzAyQWQwSDA3RDczWmhiZl8ybDhvMHQwR2JhRnJ1NWsyckZfT0g5RzBpNy14X0t3?oc=5",
    "published": "2026-10-16T20:57:27+00:00",
    "summary": "Karmine Corp Sweep MVK to Reach LoL Worlds Play-Ins Final Insider Gaming",
+   "teams": [
+    "Karmine Corp",
+    "MVK Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "EGamersWorld",
+   "title": "One Win From Swiss Stage: Karmine Corp Dominate MVK 3-0 at Worlds 2026",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxNemhRVDJ5NmE1S3VEbXVRcW9vVW4tdEdhYnl4Y1c1RXVfMllEUE5RbXRmcEg1R1cwVDR2T1lFYlQ2ZTl6RTRoeHFnN1JxQkdxdnI2eVp2N2VuYnB6ZTNpREtfb2l5UDhvUnV1ZENIa3A3R1ZGUnZyRFBMajFCYzhxSEstLTlxdUhoWE5oNmQzZVdxWWRHdjJmbFpGNGx5R3JvVEE?oc=5",
+   "published": "2026-10-16T20:49:50+00:00",
+   "summary": "One Win From Swiss Stage: Karmine Corp Dominate MVK 3-0 at Worlds 2026 EGamersWorld",
    "teams": [
     "Karmine Corp",
     "MVK Esports"
@@ -190,6 +232,28 @@
   },
   {
    "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "Sources: ANGE1 set to join Fnatic as head coach for the 2027 VCT Season",
+   "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxPckk4OVV4VUY5Q3ZJRVI0MXJucXJXTGlMTHZpdE9JQ3o5b2VtUTNMZ1lrZHBaZXNUMi1vbGpSU1lCMXpzRzNtXzZZTktnRXhMcXliQ3RxdElPdlhSaEJHRHpPUWpqcXRBMGxmdlhPZkU2UDVNSm12Y0FVcnpPaWdFUU56OFQ0QU10LVIzYVd2OUQ2Nm9CdEVfeDdyb3R0Vm9kbGJyY0lvV3F4ZmNvbUt2SDFtVFk?oc=5",
+   "published": "2026-10-16T17:20:10+00:00",
+   "summary": "Sources: ANGE1 set to join Fnatic as head coach for the 2027 VCT Season Sheep Esports",
+   "teams": [
+    "FNATIC"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing",
+    "coach"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet",
+    "a coaching change"
+   ]
+  },
+  {
+   "game": "valorant",
    "source": "TalkEsport",
    "title": "100 Thieves Eliminate G2 From Valorant Champions 2026 to Secure Lower Finals Spot",
    "link": "https://news.google.com/rss/articles/CBMif0FVX3lxTE9ZSXVZX1RYeVo0NHBmcTd1clo1Z2dGUHhkdWtSTkdsOWttSzZoZkFDQVRsY2NvZ3pWcVU4OUVHVUx2ZVZNZU9WUzBZT2dMSmZtRUhEUGpaZ1BqLTdPVTF5dE5iNDJKM1VhNGl4T0V5WFdLOG5VaDRLdndJWVNxTjA?oc=5",
@@ -212,8 +276,8 @@
    "published": "2026-10-16T16:21:00+00:00",
    "summary": "A rematch against FURIA awaits ash's charges in the semi-finals.",
    "teams": [
-    "Aurora",
     "9z",
+    "Aurora",
     "FURIA"
    ],
    "players": [],
@@ -496,6 +560,23 @@
   },
   {
    "game": "lol",
+   "source": "Flashscore.com",
+   "title": "FURIA Esports - MVK Esports 0-3",
+   "link": "https://news.google.com/rss/articles/CBMivgFBVV95cUxPSXpEV3luZ2tYVGVFcHBkb2ZvZFhQaUVreUk5U2dqOThSeTVrTnE3eFJ6Q2tOWWtoMlc2aE1tdlRpNURIeUU5VmFDMEdGMzNlRnRnS0gtc3hKeFhPNHp0N0FSaEtWQTZ2eGpKWW12aFpfZkRKdEtOVWhwOEVEQ0d0bWZNaXlNc1RpNUx0dHFEVWtIX29fNzNlc21GejNYd21lNnNFeEEyYkozVmZrMFFaLXRsbHQzMzZHcGpFbUVB?oc=5",
+   "published": "2026-10-16T02:09:26+00:00",
+   "summary": "FURIA Esports - MVK Esports 0-3 Flashscore.com",
+   "teams": [
+    "MVK Esports",
+    "FURIA"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
    "source": "GosuGamers",
    "title": "Karmine Corp, MVK Esports start strong in Worlds 2026 Play-In Stage opening day",
    "link": "https://news.google.com/rss/articles/CBMixwFBVV95cUxQZExCcHgyMGI4UXZNeFZnWDFRUUxwaG12Q2Q3T1Izb3d4b2s2YXh4SjFEYzRJZ3Z3Z3lLSWV4cnFiRTJDRDJrX1NRbWNEV0R2YldSc3VIVUVIb3RKUlRoUXR6WHVFcjF2LUhyeXlab2ZfeDI4T3h6SW5MamNtbF9kT0FLbHRoUXV6OWFwZ1N3eG02RkpSem9QdU1hYzV2T1E4c1hpNTlQUTBGNTlkMy1obExEeHdtdDlLS0V2b3l1VkVOQWlubl9J?oc=5",
@@ -689,9 +770,9 @@
    "published": "2026-10-15T14:34:00+00:00",
    "summary": "9z will rematch Aurora in the lower bracket final for a last shot at making it out of the groups alive.",
    "teams": [
+    "9z",
     "Aurora",
-    "Falcons",
-    "9z"
+    "Falcons"
    ],
    "players": [],
    "score": 0,
@@ -1404,8 +1485,8 @@
    "published": "2026-10-14T11:49:00+00:00",
    "summary": "The Latin American team tallied a big opening win in Malta after struggling to get their season underway.",
    "teams": [
-    "Aurora",
-    "9z"
+    "9z",
+    "Aurora"
    ],
    "players": [],
    "score": 0,
@@ -2051,8 +2132,8 @@
    "published": "2026-10-12T10:34:00+00:00",
    "summary": "After a year as the head coach of HEROIC, TOBIZ returns to the MOUZ fold.",
    "teams": [
-    "MOUZ",
-    "HEROIC"
+    "HEROIC",
+    "MOUZ"
    ],
    "players": [],
    "score": 0,
@@ -3064,8 +3145,8 @@
    "published": "2026-10-09T23:18:07+00:00",
    "summary": "T1 and 100T send PRX and Nongshim RedForce home from VALORANT Champions Shanghai Sheep Esports",
    "teams": [
-    "T1",
-    "Nongshim RedForce"
+    "Nongshim RedForce",
+    "T1"
    ],
    "players": [],
    "score": 0,
@@ -3130,8 +3211,8 @@
    "published": "2026-10-09T18:19:26+00:00",
    "summary": "VALORANT Champions 2026: Nongshim RedForce and Paper Rex Eliminated Players",
    "teams": [
-    "Paper Rex",
-    "Nongshim RedForce"
+    "Nongshim RedForce",
+    "Paper Rex"
    ],
    "players": [],
    "score": 0,
@@ -3975,22 +4056,6 @@
    ]
   },
   {
-   "game": "cs2",
-   "source": "TalkEsport",
-   "title": "BC.Game CEO Asks Valve to Reset VRS Points Ahead of Major",
-   "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTE5qU0RZOV9lLWNtN25BZTlMUzFCdW54eUtLM0pYNzV1XzVKX0FFSjBnRlUzSFpMd3dZY3hCZzZlMFpLcVAxYXVJX0hDbTVXR1pNTXotMmVuM3JEckhETHFDeVdJNXZnZ08xWU82REF0VE4wNkhISFRwUkFR?oc=5",
-   "published": "2026-10-07T16:08:54+00:00",
-   "summary": "BC.Game CEO Asks Valve to Reset VRS Points Ahead of Major TalkEsport",
-   "teams": [
-    "BC.Game"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
    "game": "valorant",
    "source": "Esports.gg",
    "title": "LOUD sweep Paper Rex 2-0 to open VALORANT Champions 2026 playoffs in Shanghai",
@@ -4746,8 +4811,8 @@
    "published": "2026-10-05T07:00:00+00:00",
    "summary": "9z vs BetBoom Team Prediction & Betting Tip | Counter-Strike (CS2) EGamersWorld",
    "teams": [
-    "BetBoom",
-    "9z"
+    "9z",
+    "BetBoom"
    ],
    "players": [],
    "score": 0,
@@ -4949,28 +5014,6 @@
   },
   {
    "game": "cs2",
-   "source": "Esports News UK",
-   "title": "LOUD and Keyd Stars exit Counter-Strike as Brazil cracks down on betting",
-   "link": "https://news.google.com/rss/articles/CBMisAFBVV95cUxNRlo2RUxRUjZvTnlOQnRUNUljNmZ0MHdLMkp0QkFtR282NllwcTVtRlJFYzg3LXZoWExzb2ZyV3FKUFBXR0s0YktPMTNHMC15TE1jWU5oUEJzdnpGSm80dk9XNGxwdi1pZUpwc0dTRXo2N0V1SzRadkh5R25vLU96V0ZHVmpuTE5OaHVJdGpkSGgzU1VRWXROWkpjX1JCM2ZJZEZxRVVqc0dYTFFaMjF1Wg?oc=5",
-   "published": "2026-10-03T07:15:35+00:00",
-   "summary": "LOUD and Keyd Stars exit Counter-Strike as Brazil cracks down on betting Esports News UK",
-   "teams": [
-    "Keyd Stars",
-    "Fluxo"
-   ],
-   "players": [
-    {
-     "name": "exit",
-     "team": "Fluxo"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
    "source": "Esports Insider",
    "title": "siuhy Free Agent After Liquid Exit",
    "link": "https://news.google.com/rss/articles/CBMiakFVX3lxTE9nN1N0XzljcVIxTGlTX2ktaHJKN2c4aTNBcHliOVRuc1VKQVlaUkJfUjlTTkZGS3VvVHZmcDktOWNncDZUaVExaDR1SEFQbndfMUlJdnUwZURkQV9LLV92dXo0VjVDWHJINUE?oc=5",
@@ -4994,6 +5037,28 @@
    "reasons": [
     "a player or coach leaves"
    ]
+  },
+  {
+   "game": "cs2",
+   "source": "Esports News UK",
+   "title": "LOUD and Keyd Stars exit Counter-Strike as Brazil cracks down on betting",
+   "link": "https://news.google.com/rss/articles/CBMisAFBVV95cUxNRlo2RUxRUjZvTnlOQnRUNUljNmZ0MHdLMkp0QkFtR282NllwcTVtRlJFYzg3LXZoWExzb2ZyV3FKUFBXR0s0YktPMTNHMC15TE1jWU5oUEJzdnpGSm80dk9XNGxwdi1pZUpwc0dTRXo2N0V1SzRadkh5R25vLU96V0ZHVmpuTE5OaHVJdGpkSGgzU1VRWXROWkpjX1JCM2ZJZEZxRVVqc0dYTFFaMjF1Wg?oc=5",
+   "published": "2026-10-03T07:00:00+00:00",
+   "summary": "LOUD and Keyd Stars exit Counter-Strike as Brazil cracks down on betting Esports News UK",
+   "teams": [
+    "Keyd Stars",
+    "Fluxo"
+   ],
+   "players": [
+    {
+     "name": "exit",
+     "team": "Fluxo"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
   },
   {
    "game": "lol",
@@ -5161,8 +5226,8 @@
    "published": "2026-10-01T08:24:42+00:00",
    "summary": "ENVY Returns to Counter-Strike After Five Years, Picking Up an “Unpaid” 3DMAX Roster WIN.GG",
    "teams": [
-    "3DMAX",
-    "ENVY"
+    "ENVY",
+    "3DMAX"
    ],
    "players": [],
    "score": 0,
@@ -5186,22 +5251,6 @@
      "team": "FUT Esports"
     }
    ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "Hotspawn",
-   "title": "Roster Radar #2 | BC.Game Go Asian, Envy Re-enter CS",
-   "link": "https://news.google.com/rss/articles/CBMia0FVX3lxTFBPSG0ya182SWpIYnUtdnYyYktsMGRTRzNVSXdDVUpudXFMSDZPQUR2SmZaNENuSUJWUmd6NldCY3Jod2JscU04Y1lfYzR2NjBqTU9xazlIV2NFQmFCRTNIM2d3NnRaS0R6YTJR?oc=5",
-   "published": "2026-09-30T11:33:47+00:00",
-   "summary": "Roster Radar #2 | BC.Game Go Asian, Envy Re-enter CS Hotspawn",
-   "teams": [
-    "BC.Game"
-   ],
-   "players": [],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -5301,6 +5350,13 @@
  ],
  "signals": {
   "cs2": {
+   "Zomblers": {
+    "score": -1,
+    "items": 1,
+    "rules": [
+     "departure"
+    ]
+   },
    "K27": {
     "score": -1,
     "items": 1,
