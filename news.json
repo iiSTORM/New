@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-16T16:54:43.138445+00:00",
+ "generated_at": "2026-10-16T21:38:43.682741+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,7 +61,7 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 79,
+   "items": 75,
    "error": null
   },
   {
@@ -85,7 +85,7 @@
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 42,
+   "items": 43,
    "error": null
   },
   {
@@ -103,11 +103,107 @@
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 39,
+   "items": 40,
    "error": null
   }
  ],
  "items": [
+  {
+   "game": "lol",
+   "source": "Insider Gaming",
+   "title": "Karmine Corp Sweep MVK to Reach LoL Worlds Play-Ins Final",
+   "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTE82X0NGeGZkU05rMDJJenROcmJVUENKeG5YcG9vOWVaRG41elVnNVQybm5LVnFQWXpuTF9GWldVeXMwc25VVmtEeVZUVzAyQWQwSDA3RDczWmhiZl8ybDhvMHQwR2JhRnJ1NWsyckZfT0g5RzBpNy14X0t3?oc=5",
+   "published": "2026-10-16T20:57:27+00:00",
+   "summary": "Karmine Corp Sweep MVK to Reach LoL Worlds Play-Ins Final Insider Gaming",
+   "teams": [
+    "Karmine Corp",
+    "MVK Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "BETBOOM qualify for TWC playoffs over Legacy",
+   "link": "https://www.hltv.org/news/45739/betboom-qualify-for-twc-playoffs-over-legacy",
+   "published": "2026-10-16T20:48:00+00:00",
+   "summary": "The Russian squad has secured a Singapore Major spot as per HLTV's invite predictor.",
+   "teams": [
+    "BetBoom",
+    "Legacy"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Esports Insider",
+   "title": "Team Liquid Roster Adds Malr1ne for New Season",
+   "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTFBnQ2ZXaUg5UXc0NmVwTXkwQm9LSm9neTZKVVBSY19TT3JudncyT1lnSUx6Q1d2VjFwc0JjeWxVRFBVRERnLWJPYTBva1FqSWt6SlBTWmJWRWdmWVFqRGlhZ3dRcnB1bWJtR0lYQVRR?oc=5",
+   "published": "2026-10-16T20:03:30+00:00",
+   "summary": "Team Liquid Roster Adds Malr1ne for New Season Esports Insider",
+   "teams": [
+    "Liquid"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "ash: \"Maybe Wicadia gets top 20 this year, maybe not, but there's potential to be significantly more than that\"",
+   "link": "https://www.hltv.org/news/45737/ash-maybe-wicadia-gets-top-20-this-year-maybe-not-but-theres-potential-to-be-significantly-more-than-that",
+   "published": "2026-10-16T18:11:00+00:00",
+   "summary": "The Turkish player has earned the \"star player treatment,\" according to his coach.",
+   "teams": [
+    "MAYBE",
+    "Aurora"
+   ],
+   "players": [
+    {
+     "name": "Wicadia",
+     "team": "Aurora"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "coach"
+   ],
+   "reasons": [
+    "a coaching change"
+   ]
+  },
+  {
+   "game": "valorant",
+   "source": "TalkEsport",
+   "title": "100 Thieves Eliminate G2 From Valorant Champions 2026 to Secure Lower Finals Spot",
+   "link": "https://news.google.com/rss/articles/CBMif0FVX3lxTE9ZSXVZX1RYeVo0NHBmcTd1clo1Z2dGUHhkdWtSTkdsOWttSzZoZkFDQVRsY2NvZ3pWcVU4OUVHVUx2ZVZNZU9WUzBZT2dMSmZtRUhEUGpaZ1BqLTdPVTF5dE5iNDJKM1VhNGl4T0V5WFdLOG5VaDRLdndJWVNxTjA?oc=5",
+   "published": "2026-10-16T17:12:02+00:00",
+   "summary": "100 Thieves Eliminate G2 From Valorant Champions 2026 to Secure Lower Finals Spot TalkEsport",
+   "teams": [
+    "100 Thieves"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
   {
    "game": "cs2",
    "source": "HLTV",
@@ -128,27 +224,10 @@
   },
   {
    "game": "valorant",
-   "source": "EGamersWorld",
-   "title": "100 Thieves Beat G2 Esports 2-1 at Valorant Champions 2026",
-   "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxQb1dlZTVtYTVOc0Y5ZVcwV2FiRGJsZzVtUmZSLTUwcVhfQU05VmEtUlp6LXVpMGhvaDlXS1BOTzVFNnhCeGVBT3BzbEpKTGlKemd6dlhBN2tNcldMelpRd2dqallWSzhNdGJVdERpUWxCalJmbHZ2N3RyNnFDYjNGcGtLMUJaZVZjbFNyOEtza09FdmhrV0hTaW9wYXRVeEZuaGRtUEZUR3A?oc=5",
-   "published": "2026-10-16T14:25:31+00:00",
-   "summary": "100 Thieves Beat G2 Esports 2-1 at Valorant Champions 2026 EGamersWorld",
-   "teams": [
-    "G2 Esports",
-    "100 Thieves"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
    "source": "Sheep Esports",
    "title": "LOUD erde: \"I think I'm destined to do great things or that's what I'm here for\"",
    "link": "https://news.google.com/rss/articles/CBMivgFBVV95cUxOdWJuUHJlSzdBcVY4SWFNbDNnQzA0WGZmdFphcnFZdU9Oa1BuOV9BLTE5T0M1eE8wcTZ5R2pKUU5LeEJXV2JUNGxhdWVLVEhqbVE1blUtR2FSeE9oR2NtN0M3cVZYUHItNzNOdU00c1g3dkktZGlWZ04tdlZSSzdPY21PWGJjd3VwUmxUb0w1ejRESmJ2NERXT2tYZGZoUmNBX0l5RVk2U1NCaWIybF9mQ2U3YUpnYkdQOFJ2WHpB?oc=5",
-   "published": "2026-10-16T14:23:47+00:00",
+   "published": "2026-10-16T14:28:55+00:00",
    "summary": "LOUD erde: \"I think I'm destined to do great things or that's what I'm here for\" Sheep Esports",
    "teams": [
     "LOUD"
@@ -159,6 +238,45 @@
      "team": "LOUD"
     }
    ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "EGamersWorld",
+   "title": "All Five Stay: HANJIN BRION Re-Signs Roster for LCK 2027",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxQdVQzREtRYjhBWlNsXzlmZTNKcGVVelowRHNSdUtEWTBDZzVKeDRmNGxrQ09aUEFkQVRubXNiYklpa2hjaDNUV0YwTEtRbTRlVDh2LU9PU3ZzaUkyei1PV1pjWHZPTnMzNUFPVkhCTXV2eldiS0JFNXh2ak5JTS1GMEJqZVJEUGwwOEp5bmExTndzdzNha1JZUFM2V1UxdUJoU3c?oc=5",
+   "published": "2026-10-16T14:26:46+00:00",
+   "summary": "All Five Stay: HANJIN BRION Re-Signs Roster for LCK 2027 EGamersWorld",
+   "teams": [
+    "HANJIN BRION"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing",
+    "extension"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet",
+    "a contract is extended"
+   ]
+  },
+  {
+   "game": "valorant",
+   "source": "EGamersWorld",
+   "title": "100 Thieves Beat G2 Esports 2-1 at Valorant Champions 2026",
+   "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxQb1dlZTVtYTVOc0Y5ZVcwV2FiRGJsZzVtUmZSLTUwcVhfQU05VmEtUlp6LXVpMGhvaDlXS1BOTzVFNnhCeGVBT3BzbEpKTGlKemd6dlhBN2tNcldMelpRd2dqallWSzhNdGJVdERpUWxCalJmbHZ2N3RyNnFDYjNGcGtLMUJaZVZjbFNyOEtza09FdmhrV0hTaW9wYXRVeEZuaGRtUEZUR3A?oc=5",
+   "published": "2026-10-16T14:25:31+00:00",
+   "summary": "100 Thieves Beat G2 Esports 2-1 at Valorant Champions 2026 EGamersWorld",
+   "teams": [
+    "G2 Esports",
+    "100 Thieves"
+   ],
+   "players": [],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -277,6 +395,32 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Skin.Club Community",
+   "title": "Why FaZe Should Do Everything They Can to Sign HooXi",
+   "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxPblFWRC1YZ3V5bzR3eWNDVk9nVE1zOEhiZDVsY3pBXzlOcTB4TFBuWTBTdS1mcWYyQk50dUVyd251bzlJdmg5bmp2MDQxZ2FQYXNNYS04VGp2Ujk5WVAxLXA3YnRZVnVBUkM0Ym1ERk16bFYzbjVzOV9TNDEzWjdoQ3BJX0ZTeThvb2FUeDBUZjYwTllqQ1NV?oc=5",
+   "published": "2026-10-16T10:00:59+00:00",
+   "summary": "Why FaZe Should Do Everything They Can to Sign HooXi Skin.Club Community",
+   "teams": [
+    "FaZe",
+    "Astralis"
+   ],
+   "players": [
+    {
+     "name": "HooXi",
+     "team": "Astralis"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
   },
   {
    "game": "lol",
@@ -1800,6 +1944,27 @@
     "Falcons"
    ],
    "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Skin.Club Community",
+   "title": "Rumour: m0NESY May Leave Falcons for a Tier 1 Team (Updated)",
+   "link": "https://news.google.com/rss/articles/CBMijgFBVV95cUxPMVd4UXdpLTBmcm84aUxSUXVjU3Mxc0tKdlJqckdxdnVPOWxDVGRDTy1iMWI3NHg0Tjd1VEJjT3h1aWVMMGg0UFI3Y0FiSkMwWElfQlhEZXN2S05jUDRVeUltQ3VTRXRJZjA5R3E4cW5tamZqZ0JvdHZMSFBfMktkNmNMTm9Ld1VnTHdJSDdB?oc=5",
+   "published": "2026-10-12T17:50:03+00:00",
+   "summary": "Rumour: m0NESY May Leave Falcons for a Tier 1 Team (Updated) Skin.Club Community",
+   "teams": [
+    "Falcons"
+   ],
+   "players": [
+    {
+     "name": "m0NESY",
+     "team": "Falcons"
+    }
+   ],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -4574,6 +4739,23 @@
    "reasons": []
   },
   {
+   "game": "cs2",
+   "source": "EGamersWorld",
+   "title": "9z vs BetBoom Team Prediction & Betting Tip | Counter-Strike (CS2)",
+   "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxOUTF0WGdqZm5BUmdkMTJZNHhjTWsxeHk4R215WTVVTW1VMXdCU2x1OEIwVjd2Y2RSSzRMRGxEVWpGU0RJaUNEZGhWcGRfNTZka3pkMjFzTTdwVldqX2ZRdWlqUkVzUGxwTGNKNXNqN0VxYld3VjJPU3RieUVsb1pnYWpfcUE5bzZiSVdr?oc=5",
+   "published": "2026-10-05T07:00:00+00:00",
+   "summary": "9z vs BetBoom Team Prediction & Betting Tip | Counter-Strike (CS2) EGamersWorld",
+   "teams": [
+    "BetBoom",
+    "9z"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "valorant",
    "source": "Sheep Esports",
    "title": "Sources: Jamelinho213 set to join Team Heretics for 2027",
@@ -4767,32 +4949,6 @@
   },
   {
    "game": "cs2",
-   "source": "Esports Insider",
-   "title": "siuhy Free Agent After Liquid Exit",
-   "link": "https://news.google.com/rss/articles/CBMiakFVX3lxTE9nN1N0XzljcVIxTGlTX2ktaHJKN2c4aTNBcHliOVRuc1VKQVlaUkJfUjlTTkZGS3VvVHZmcDktOWNncDZUaVExaDR1SEFQbndfMUlJdnUwZURkQV9LLV92dXo0VjVDWHJINUE?oc=5",
-   "published": "2026-10-03T08:52:45+00:00",
-   "summary": "siuhy Free Agent After Liquid Exit Esports Insider",
-   "teams": [
-    "Liquid",
-    "Astralis"
-   ],
-   "players": [
-    {
-     "name": "siuhy",
-     "team": "Astralis"
-    }
-   ],
-   "score": -1,
-   "grade": "negative",
-   "rules": [
-    "departure"
-   ],
-   "reasons": [
-    "a player or coach leaves"
-   ]
-  },
-  {
-   "game": "cs2",
    "source": "Esports News UK",
    "title": "LOUD and Keyd Stars exit Counter-Strike as Brazil cracks down on betting",
    "link": "https://news.google.com/rss/articles/CBMisAFBVV95cUxNRlo2RUxRUjZvTnlOQnRUNUljNmZ0MHdLMkp0QkFtR282NllwcTVtRlJFYzg3LXZoWExzb2ZyV3FKUFBXR0s0YktPMTNHMC15TE1jWU5oUEJzdnpGSm80dk9XNGxwdi1pZUpwc0dTRXo2N0V1SzRadkh5R25vLU96V0ZHVmpuTE5OaHVJdGpkSGgzU1VRWXROWkpjX1JCM2ZJZEZxRVVqc0dYTFFaMjF1Wg?oc=5",
@@ -4812,6 +4968,32 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Esports Insider",
+   "title": "siuhy Free Agent After Liquid Exit",
+   "link": "https://news.google.com/rss/articles/CBMiakFVX3lxTE9nN1N0XzljcVIxTGlTX2ktaHJKN2c4aTNBcHliOVRuc1VKQVlaUkJfUjlTTkZGS3VvVHZmcDktOWNncDZUaVExaDR1SEFQbndfMUlJdnUwZURkQV9LLV92dXo0VjVDWHJINUE?oc=5",
+   "published": "2026-10-03T07:00:00+00:00",
+   "summary": "siuhy Free Agent After Liquid Exit Esports Insider",
+   "teams": [
+    "Liquid",
+    "Astralis"
+   ],
+   "players": [
+    {
+     "name": "siuhy",
+     "team": "Astralis"
+    }
+   ],
+   "score": -1,
+   "grade": "negative",
+   "rules": [
+    "departure"
+   ],
+   "reasons": [
+    "a player or coach leaves"
+   ]
   },
   {
    "game": "lol",
