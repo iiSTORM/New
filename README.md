@@ -755,6 +755,25 @@ bracket order. `tests/event_views.test.mjs` checks that against the real
 Worlds 2025 bracket. Fixture cards cap the projected game count at the
 series length, so a Bo1 projects one game.
 
+### The class gap at international events
+
+Every player is projected from home-league form, and home-league form does not
+know the LCK is stronger than the LCS. At Demacia Cup and the Worlds play-ins
+(2026-10-03 to 10-16), every LCK/LPL team that met an LCS, LCP or CBLOL team
+out-killed its projection — **6 matches of 6**, the stronger side at 1.63× and
+the weaker at 0.61× — while LCK/LPL against LEC (0.98 / 0.99) and LEC against
+the rest (mixed) showed no gap. The posted lines priced it; the model did not,
+and those were its worst bets at the events (36 of 73).
+
+So League **kills** projections at an international event get a factor of
+**1.25** (`classGapMultiplier`, mirrored in `optimize_weights.py`): ×1.25 for an
+LCK/LPL player facing an LCS/LCP/CBLOL/TCL team, ÷1.25 the other way, nothing
+for any other pairing or for league play. Fitted leaving each match out and
+halved to stay conservative on six matches, it improved the held-out
+projection on all six (error −19.5%) and those lines' record to 39 of 73.
+Re-measure it as Worlds plays; the factor should rise toward the full fitted
+value (~1.45) only if it keeps holding.
+
 ## Data flow
 
 Three jobs run in parallel on separate runners, one per game. They write

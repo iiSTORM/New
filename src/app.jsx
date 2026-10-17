@@ -3290,13 +3290,14 @@ function project(teams, pastMatches, player, team, opponentTeam, games, weights,
   const { base, careerRate } = applyCareerTier(recentFormRate, player, weights, cfg, null);
   const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, null);
   const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams, pastMatches, team, null) : 1;
-  const blended = blendShareTier(base * oppMult * kpMult, weights, pastMatches, teams,
+  const classMult = classGapMultiplier(teams, team, opponentTeam, cfg);
+  const blended = blendShareTier(base * oppMult * kpMult * classMult, weights, pastMatches, teams,
                                  team, player.name, cfg.key, null);
   const shrunk = shrinkToPrior(blended.perGame, weights, weighted.games || 0, pastMatches,
                                teams, cfg.key, null);
   const perGame = shrunk.perGame;
   const priorGames = weighted.games || 0;
-  return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult,
+  return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult, classMult,
            shareTier: blended.shareTier, sharePct: blended.sharePct, shareWeight: weights.share || 0,
            shrunkTo: shrunk.shrunkTo, shrinkPull: shrunk.shrinkPull, priorGames,
            evidenceGames: evidenceGamesFor(player, weights, careerRate, priorGames),
@@ -3735,6 +3736,36 @@ function gameHasRoleData(teams) {
   return Object.values(teams).some((team) => team.players.some((p) => p.role));
 }
 
+/* The class gap at international League events, for kills only.
+
+   Everyone is projected from home-league form, and home-league form does
+   not know the LCK is stronger than the LCS. At Demacia Cup and the Worlds
+   play-ins (2026-10-03 to 10-16) every LCK/LPL team that met an LCS, LCP or
+   CBLOL team out-killed its projection, 6 matches of 6: the stronger side
+   landed at 1.63x and the weaker at 0.61x, while LCK/LPL against LEC (0.98
+   / 0.99) and LEC against the rest (mixed, 4 of 6) showed no gap. The posted
+   lines priced it and the model did not.
+
+   Fitted leaving each match out and halved to stay conservative, a factor
+   of about 1.25 improved the held-out projection on all 6 matches (MAE
+   -19.5%) and the record on those lines from 36/73 to 39/73. Applied only
+   when both sides carry a home region (an event roster lent by
+   merge_international), so league play is untouched. Mirrored in
+   scripts/dev/optimize_weights.py. Six matches is a small base: re-measure
+   as Worlds plays (scripts/dev/role_correction.mjs-style, held out). */
+const CLASS_GAP_KILLS = 1.25;
+const CLASS_TOP = new Set(["LCK", "LPL"]);
+const CLASS_BOTTOM = new Set(["LCS", "LCP", "CBLOL", "TCL"]);
+function classGapMultiplier(teams, team, opponentTeam, cfg) {
+  if (!cfg || cfg.key !== "k" || !teams) return 1;
+  const mine = teams[team] && teams[team].from_home_region;
+  const theirs = teams[opponentTeam] && teams[opponentTeam].from_home_region;
+  if (!mine || !theirs) return 1;
+  if (CLASS_TOP.has(mine) && CLASS_BOTTOM.has(theirs)) return CLASS_GAP_KILLS;
+  if (CLASS_BOTTOM.has(mine) && CLASS_TOP.has(theirs)) return 1 / CLASS_GAP_KILLS;
+  return 1;
+}
+
 function resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, oppStrength, cfg, cutoffDate) {
   if (cfg.laneSpecific && gameHasRoleData(teams)) {
     // Only reached for games that actually track roles (LoL, Valorant).
@@ -3797,12 +3828,13 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
   // KP multiplier is the one piece still using full-season data — see note above.
   const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams, pastMatches, team, cutoffDate) : 1;
 
-  const blendedPT = blendShareTier(base * oppMult * kpMult, weights, pastMatches, teams,
+  const classMult = classGapMultiplier(teams, team, opponentTeam, cfg);
+  const blendedPT = blendShareTier(base * oppMult * kpMult * classMult, weights, pastMatches, teams,
                                    team, player.name, cfg.key, cutoffDate);
   const shrunkPT = shrinkToPrior(blendedPT.perGame, weights, pt.games || 0, pastMatches,
                                  teams, cfg.key, cutoffDate);
   const perGame = shrunkPT.perGame;
-  return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult,
+  return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult, classMult,
            shareTier: blendedPT.shareTier, sharePct: blendedPT.sharePct, shareWeight: weights.share || 0,
            shrunkTo: shrunkPT.shrunkTo, shrinkPull: shrunkPT.shrinkPull,
            perGame, total: perGame * games, priorGames: pt.games };

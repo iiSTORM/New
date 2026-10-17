@@ -3591,7 +3591,8 @@ try {
     } = applyCareerTier(recentFormRate, player, weights, cfg, null);
     const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, null);
     const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams, pastMatches, team, null) : 1;
-    const blended = blendShareTier(base * oppMult * kpMult, weights, pastMatches, teams, team, player.name, cfg.key, null);
+    const classMult = classGapMultiplier(teams, team, opponentTeam, cfg);
+    const blended = blendShareTier(base * oppMult * kpMult * classMult, weights, pastMatches, teams, team, player.name, cfg.key, null);
     const shrunk = shrinkToPrior(blended.perGame, weights, weighted.games || 0, pastMatches, teams, cfg.key, null);
     const perGame = shrunk.perGame;
     const priorGames = weighted.games || 0;
@@ -3602,6 +3603,7 @@ try {
       careerWeight: weights.career,
       oppMult,
       kpMult,
+      classMult,
       shareTier: blended.shareTier,
       sharePct: blended.sharePct,
       shareWeight: weights.share || 0,
@@ -3806,6 +3808,18 @@ try {
   function gameHasRoleData(teams) {
     return Object.values(teams).some(team => team.players.some(p => p.role));
   }
+  const CLASS_GAP_KILLS = 1.25;
+  const CLASS_TOP = new Set(["LCK", "LPL"]);
+  const CLASS_BOTTOM = new Set(["LCS", "LCP", "CBLOL", "TCL"]);
+  function classGapMultiplier(teams, team, opponentTeam, cfg) {
+    if (!cfg || cfg.key !== "k" || !teams) return 1;
+    const mine = teams[team] && teams[team].from_home_region;
+    const theirs = teams[opponentTeam] && teams[opponentTeam].from_home_region;
+    if (!mine || !theirs) return 1;
+    if (CLASS_TOP.has(mine) && CLASS_BOTTOM.has(theirs)) return CLASS_GAP_KILLS;
+    if (CLASS_BOTTOM.has(mine) && CLASS_TOP.has(theirs)) return 1 / CLASS_GAP_KILLS;
+    return 1;
+  }
   function resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, oppStrength, cfg, cutoffDate) {
     if (cfg.laneSpecific && gameHasRoleData(teams)) {
       const laneMult = laneOpponentMultiplier(pastMatches, teams, player, opponentTeam, oppStrength, cfg.oppBasis, cutoffDate);
@@ -3840,7 +3854,8 @@ try {
     } = applyCareerTier(recentFormRate, player, weights, cfg, cutoffDate);
     const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, cutoffDate);
     const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams, pastMatches, team, cutoffDate) : 1;
-    const blendedPT = blendShareTier(base * oppMult * kpMult, weights, pastMatches, teams, team, player.name, cfg.key, cutoffDate);
+    const classMult = classGapMultiplier(teams, team, opponentTeam, cfg);
+    const blendedPT = blendShareTier(base * oppMult * kpMult * classMult, weights, pastMatches, teams, team, player.name, cfg.key, cutoffDate);
     const shrunkPT = shrinkToPrior(blendedPT.perGame, weights, pt.games || 0, pastMatches, teams, cfg.key, cutoffDate);
     const perGame = shrunkPT.perGame;
     return {
@@ -3850,6 +3865,7 @@ try {
       careerWeight: weights.career,
       oppMult,
       kpMult,
+      classMult,
       shareTier: blendedPT.shareTier,
       sharePct: blendedPT.sharePct,
       shareWeight: weights.share || 0,

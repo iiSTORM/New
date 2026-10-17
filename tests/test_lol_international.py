@@ -262,3 +262,20 @@ def test_start_times_are_never_guessed_or_overwritten():
                          _sched("2026-10-07T09:00:00Z", "C", "D"), _sched("2026-10-07T09:00:00Z", "E", "F")])
     assert merge.attach_start_times(past, event) == 0
     assert "start_time" not in past[0] and past[1]["start_time"] == "kept" and "start_time" not in past[2]
+
+
+def test_the_class_gap_applies_only_to_lck_lpl_against_the_smaller_leagues():
+    import importlib
+    ow = importlib.import_module("optimize_weights") if "optimize_weights" in sys.modules else None
+    if ow is None:
+        sys.path.insert(0, str(REPO_ROOT / "scripts" / "dev"))
+        import optimize_weights as ow
+    teams = {"T1": {"from_home_region": "LCK"}, "C9": {"from_home_region": "LCS"},
+             "KC": {"from_home_region": "LEC"}, "Home": {}}
+    kills, deaths = {"key": "k"}, {"key": "d"}
+    assert ow.class_gap_multiplier(teams, "T1", "C9", kills) == ow.CLASS_GAP_KILLS
+    assert ow.class_gap_multiplier(teams, "C9", "T1", kills) == 1 / ow.CLASS_GAP_KILLS
+    assert ow.class_gap_multiplier(teams, "T1", "KC", kills) == 1.0       # LEC: no gap measured
+    assert ow.class_gap_multiplier(teams, "KC", "C9", kills) == 1.0
+    assert ow.class_gap_multiplier(teams, "T1", "C9", deaths) == 1.0      # kills only
+    assert ow.class_gap_multiplier(teams, "T1", "Home", kills) == 1.0     # league play: untouched

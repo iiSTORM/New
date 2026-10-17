@@ -78,7 +78,7 @@ SOURCES = {"cs2": "cs2_data.json", "lol": "data.json",
 #: `for reg in (league_region, 'VCT Champions')` -- and leaving it out cost 78
 #: of 79 Valorant props on the 2026-09-29 board: every one resolved to two
 #: candidate rosters with the same team name and was dropped as ambiguous.
-INTERNATIONAL_REGIONS = {"valorant": ("VCT Champions",)}
+INTERNATIONAL_REGIONS = {"valorant": ("VCT Champions",), "lol": ("Demacia Cup", "Worlds")}
 
 #: Maps of evidence at which the disagreement with the line is taken at half
 #: strength. Chosen on the FIRST half of the graded record and reported on the
@@ -331,6 +331,11 @@ class EsportsModel:
                 seen.add(key)
                 matches.append(match)
             for team_name, info in (other.get("teams") or {}).items():
+                # A league roster says which league it is, as an event's lent
+                # roster already does, so the class gap (classGapMultiplier)
+                # can see both sides of a cross-region fixture.
+                if name not in INTERNATIONAL_REGIONS.get(game, ()) and "from_home_region" not in info:
+                    info = {**info, "from_home_region": name}
                 teams.setdefault(team_name, info)
         matches.sort(key=lambda match: str(match.get("date") or ""))
         return (matches, teams)

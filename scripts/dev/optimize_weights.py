@@ -537,6 +537,27 @@ def game_has_role_data(teams):
     return _game_has_role_data_cache[key]
 
 
+# The class gap at international League events, for kills only. Mirrors
+# classGapMultiplier in src/app.jsx, which carries the measurement.
+CLASS_GAP_KILLS = 1.25
+CLASS_TOP = {"LCK", "LPL"}
+CLASS_BOTTOM = {"LCS", "LCP", "CBLOL", "TCL"}
+
+
+def class_gap_multiplier(teams, team, opponent_team, cfg):
+    if not cfg or cfg.get("key") != "k" or not teams:
+        return 1.0
+    mine = (teams.get(team) or {}).get("from_home_region")
+    theirs = (teams.get(opponent_team) or {}).get("from_home_region")
+    if not mine or not theirs:
+        return 1.0
+    if mine in CLASS_TOP and theirs in CLASS_BOTTOM:
+        return CLASS_GAP_KILLS
+    if mine in CLASS_BOTTOM and theirs in CLASS_TOP:
+        return 1 / CLASS_GAP_KILLS
+    return 1.0
+
+
 def resolve_opponent_multiplier(teams, past_matches, player, opponent_team, opp_strength, cfg, cutoff_date):
     if cfg["laneSpecific"] and game_has_role_data(teams):
         # Only reached for games that actually track roles (LoL,
@@ -1016,7 +1037,7 @@ def project_point_in_time(past_matches, teams, player, team, opponent_team, game
     kp_mult = kp_multiplier(player, weights["history"], weights["kp"], teams,
                               past_matches, team, cutoff_date) if cfg["useKP"] else 1.0
 
-    per_game = base * opp_mult * kp_mult
+    per_game = base * opp_mult * kp_mult * class_gap_multiplier(teams, team, opponent_team, cfg)
     per_game = blend_share_tier(per_game, weights.get("share", 0), past_matches, teams,
                                 team, player["name"], cfg["key"], cutoff_date)
     per_game = shrink_to_prior(per_game, weights.get("shrink", 0), pt_games,
