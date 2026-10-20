@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-20T05:13:06.886003+00:00",
+ "generated_at": "2026-10-20T12:03:22.362010+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,13 +61,13 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 81,
+   "items": 80,
    "error": null
   },
   {
    "game": "lol",
    "source": "Google News",
-   "items": 55,
+   "items": 56,
    "error": null
   },
   {
@@ -85,7 +85,7 @@
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 34,
+   "items": 37,
    "error": null
   },
   {
@@ -97,7 +97,7 @@
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 29,
+   "items": 31,
    "error": null
   },
   {
@@ -108,6 +108,65 @@
   }
  ],
  "items": [
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "IEM Beijing groups and opening matchups set",
+   "link": "https://www.hltv.org/news/45759/iem-beijing-groups-and-opening-matchups-set",
+   "published": "2026-10-20T11:29:00+00:00",
+   "summary": "NAVI will face Falcons in the standout opener.",
+   "teams": [
+    "Falcons"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Skin.Club Community",
+   "title": "Why FaZe Should Do Everything They Can to Sign HooXi",
+   "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxPblFWRC1YZ3V5bzR3eWNDVk9nVE1zOEhiZDVsY3pBXzlOcTB4TFBuWTBTdS1mcWYyQk50dUVyd251bzlJdmg5bmp2MDQxZ2FQYXNNYS04VGp2Ujk5WVAxLXA3YnRZVnVBUkM0Ym1ERk16bFYzbjVzOV9TNDEzWjdoQ3BJX0ZTeThvb2FUeDBUZjYwTllqQ1NV?oc=5",
+   "published": "2026-10-20T11:04:44+00:00",
+   "summary": "Why FaZe Should Do Everything They Can to Sign HooXi Skin.Club Community",
+   "teams": [
+    "FaZe",
+    "Astralis"
+   ],
+   "players": [
+    {
+     "name": "HooXi",
+     "team": "Astralis"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "valorant",
+   "source": "Pley.gg",
+   "title": "Cloud9, NAVI, FURIA and a Masters champion miss out on VCT partnership for 2027",
+   "link": "https://news.google.com/rss/articles/CBMipgFBVV95cUxQVEZmc0czcHJ2NkhUaEhiQzlyY3dUSkZ4X1BrWWdlWmhZdTlrRDVka3dIOTBzZWRLM0sxWVJRRDVXb1FzYzE1Sk4wLVh2RnRzVTBpTUNYOXFwRmF5Mk5zbVdDam8yM1h4TFR1UXhCTVRpUktsNXlWX2JnbGFpdDR1aXYyN2w4SzE0cG1YSjlsTC1MZ2hVRHI1WVRaNzd2czFxc2ZCZ3dR?oc=5",
+   "published": "2026-10-20T07:46:01+00:00",
+   "summary": "Cloud9, NAVI, FURIA and a Masters champion miss out on VCT partnership for 2027 Pley.gg",
+   "teams": [
+    "FURIA",
+    "Cloud9"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
   {
    "game": "lol",
    "source": "Sheep Esports",
@@ -179,6 +238,22 @@
    "summary": "SportsBetExpert Exit CS2 as Owner PETE187 Ends 17-Month Run Skin.Club Community",
    "teams": [
     "SportsBetExpert"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Esports.net",
+   "title": "VALORANT Champions: LOUD claim second trophy",
+   "link": "https://news.google.com/rss/articles/CBMifkFVX3lxTE0xS0JQaTVHQk9QbF9vNHpURFc1TUVudnpCWWFIRjFZWE82aFRvZUM4ME80MTJFWV9JZ01rd2Q3ZkpaYVB3ajFENWtZdFRGeFhZamN1cUNXT2lNeWYxUTVxMF9LNVNNM2RaNGxaNlV2ZzM0em5oR2wwVlRxWnZldw?oc=5",
+   "published": "2026-10-19T20:06:51+00:00",
+   "summary": "VALORANT Champions: LOUD claim second trophy Esports.net",
+   "teams": [
+    "LOUD"
    ],
    "players": [],
    "score": 0,
@@ -305,7 +380,7 @@
    "reasons": []
   },
   {
-   "game": "lol",
+   "game": "valorant",
    "source": "Sheep Esports",
    "title": "Sources: Karmine Corp have been selected as a VCT EMEA partner team for the 2027-2028 cycle",
    "link": "https://news.google.com/rss/articles/CBMixAFBVV95cUxPMWN6b09XdEFTR3NNaEZhbk13VFFrSUxxT2RYTFJwemIwdW01d1daZ1NObTRpR3VDc2tlWFVnZW9qV0ptRTdxNy1VZU1HZE1PZTM0LV9oMnZJS1YyRnYyTmVwenI5RXctMHZVRG5zdTFJejdiZ1Q3cEJ4WFc5cWVtaDJfVHU4V1ItaFBEV1RsekcxQzhmN3E3dWdwR2I4VEpBbmdjVU8yVmhfUXVzUXh5Y2FLZVpzeXllUENvOGFXYlVqOFVw?oc=5",
@@ -355,6 +430,22 @@
   {
    "game": "valorant",
    "source": "Sheep Esports",
+   "title": "Sources: Gen.G Esports have been selected as a VCT Pacific partner team for the 2027-2028 cycle",
+   "link": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxQNk1GX1RlOGMyUEEzMnppTjVxTDdCZk82TWhvQWNnaG9tTE1PanpsVW9hbGhUbTQ1WEFhRm1rNGVzREd2NVhieWFiVXYtU2N4dGtmR0FjY09DZFN5b0FqbGR5d1FJdG9iZFgtWUZZeHpaSTdnQzI4dWVUU2NIQ2t2NGJORTRISlIwS1EzWFQxVWNIYVJwQkZwc1dvT2FhcDZYRUtfeE5VSFVCVU9PVldqMi02ajM5Rk53cmNPTTI5cnh4R1ljV3VWakRhQWxlcldxcjloUmJn?oc=5",
+   "published": "2026-10-19T12:42:32+00:00",
+   "summary": "Sources: Gen.G Esports have been selected as a VCT Pacific partner team for the 2027-2028 cycle Sheep Esports",
+   "teams": [
+    "Gen.G"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sheep Esports",
    "title": "Sources: Gen.G Esports have been selected as a VCT Americas partner team for the 2027-2028 cycle",
    "link": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxQNk1GX1RlOGMyUEEzMnppTjVxTDdCZk82TWhvQWNnaG9tTE1PanpsVW9hbGhUbTQ1WEFhRm1rNGVzREd2NVhieWFiVXYtU2N4dGtmR0FjY09DZFN5b0FqbGR5d1FJdG9iZFgtWUZZeHpaSTdnQzI4dWVUU2NIQ2t2NGJORTRISlIwS1EzWFQxVWNIYVJwQkZwc1dvT2FhcDZYRUtfeE5VSFVCVU9PVldqMi02ajM5Rk53cmNPTTI5cnh4R1ljV3VWakRhQWxlcldxcjloUmJn?oc=5",
    "published": "2026-10-19T12:42:32+00:00",
@@ -373,7 +464,7 @@
    "source": "Sheep Esports",
    "title": "Global Esports CEO announce the end of their esports operation",
    "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxNRFUyeG0zX3V0cEFFZ2cxVmwwLTA0UWo5d3VPNlJKSl8zSWJFSEppeXhIdXBiU0oyc014SGZnR0tmNXItenlfZ0dpZW9yZHI3NVotTjl1NFlsUEFUem9vUUp2MURhcmlzNno5TkV3a3lJMmZYc2tPeS14NFBfcGFiWEVBYmlLRGZTN1lMamtPcVhRcEN5OHJjN3pzRFcyLVZCQXJqQndCTmcxUQ?oc=5",
-   "published": "2026-10-19T12:22:04+00:00",
+   "published": "2026-10-19T12:07:24+00:00",
    "summary": "Global Esports CEO announce the end of their esports operation Sheep Esports",
    "teams": [
     "Global Esports"
@@ -2267,7 +2358,7 @@
    "source": "GosuGamers",
    "title": "Karmine Corp sweep MVK Esports, FURIA eliminate Cloud9 KIA in Day 2 of Worlds 2026 Play-Ins",
    "link": "https://news.google.com/rss/articles/CBMizAFBVV95cUxQLU5tZkhpMEFRYnBfMmppbnRma3E4ZDZyalZDYmxWWUxzc1BfNjNOanBKMC1qcFBJNG4xWDNFbmJKaTEzLWxhd0M4MmNKdWR0STktcmpkTzZtdTVhYThfSXZOVks4Y2hJc0JUNWxuYlBlQkVKMm9uWjB4MTZfQ1REMFJLaFY5c19rQTdSR1JEOFhtcUtQRVZwZ1llUE5DaERSdzdkVDBHTnJINEplaUJMSW1yc2VFSkxTbmtLOFhPZ1ljWHZGOGlublRqRGw?oc=5",
-   "published": "2026-10-17T01:26:17+00:00",
+   "published": "2026-10-17T01:34:57+00:00",
    "summary": "Karmine Corp sweep MVK Esports, FURIA eliminate Cloud9 KIA in Day 2 of Worlds 2026 Play-Ins GosuGamers",
    "teams": [
     "Cloud9",
@@ -2770,30 +2861,21 @@
    "reasons": []
   },
   {
-   "game": "cs2",
-   "source": "Skin.Club Community",
-   "title": "Why FaZe Should Do Everything They Can to Sign HooXi",
-   "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxPblFWRC1YZ3V5bzR3eWNDVk9nVE1zOEhiZDVsY3pBXzlOcTB4TFBuWTBTdS1mcWYyQk50dUVyd251bzlJdmg5bmp2MDQxZ2FQYXNNYS04VGp2Ujk5WVAxLXA3YnRZVnVBUkM0Ym1ERk16bFYzbjVzOV9TNDEzWjdoQ3BJX0ZTeThvb2FUeDBUZjYwTllqQ1NV?oc=5",
-   "published": "2026-10-16T10:00:59+00:00",
-   "summary": "Why FaZe Should Do Everything They Can to Sign HooXi Skin.Club Community",
+   "game": "lol",
+   "source": "GosuGamers",
+   "title": "Karmine Corp, MVK Esports start strong in Worlds 2026 Play-In Stage opening day",
+   "link": "https://news.google.com/rss/articles/CBMixwFBVV95cUxQZExCcHgyMGI4UXZNeFZnWDFRUUxwaG12Q2Q3T1Izb3d4b2s2YXh4SjFEYzRJZ3Z3Z3lLSWV4cnFiRTJDRDJrX1NRbWNEV0R2YldSc3VIVUVIb3RKUlRoUXR6WHVFcjF2LUhyeXlab2ZfeDI4T3h6SW5MamNtbF9kT0FLbHRoUXV6OWFwZ1N3eG02RkpSem9QdU1hYzV2T1E4c1hpNTlQUTBGNTlkMy1obExEeHdtdDlLS0V2b3l1VkVOQWlubl9J?oc=5",
+   "published": "2026-10-16T08:08:25+00:00",
+   "summary": "Karmine Corp, MVK Esports start strong in Worlds 2026 Play-In Stage opening day GosuGamers",
    "teams": [
-    "FaZe",
-    "Astralis"
+    "Karmine Corp",
+    "MVK Esports"
    ],
-   "players": [
-    {
-     "name": "HooXi",
-     "team": "Astralis"
-    }
-   ],
+   "players": [],
    "score": 0,
    "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
+   "rules": [],
+   "reasons": []
   },
   {
    "game": "cs2",
@@ -2872,16 +2954,21 @@
   },
   {
    "game": "lol",
-   "source": "Coinbase",
-   "title": "Cloud9 vs. FURIA Esports | Prediction Markets",
-   "link": "https://news.google.com/rss/articles/CBMieEFVX3lxTE9paWRvSXJZdUdvX1prS2ltbUZraVhfbXU4WkhlTEVCcFh1dV8wOTlNY3BhaTNqMTk4TEppYXptT3huQU5Kd1hDRUNsYm9IMktCb3pWcllqMC1rbWVTbFRSS3FHa1p6SDFEOFFfS2w5Y3Z2S3FreDlEdQ?oc=5",
-   "published": "2026-10-16T02:45:00+00:00",
-   "summary": "Cloud9 vs. FURIA Esports | Prediction Markets Coinbase",
+   "source": "Hotspawn",
+   "title": "FURIA Ayu On The MVK Loss: \"It Felt Like Everything Was Burning\"",
+   "link": "https://news.google.com/rss/articles/CBMihgFBVV95cUxQZDlsVWpQRmxyaHdIVmVWajE5Tmg4MzdwcmFDQ1lBcVZYaURtYk4zUVg5NW51WURzVmljTm00RWVEUWc2MUJHdWdkQUtfOXNFMWpaUnl1dWVIb1NHaFBMUEd4UUdpcmJWamhBQUt5TlRCaUxBZks2TUFJRVRTQXMySHpoSEhRZw?oc=5",
+   "published": "2026-10-16T02:50:52+00:00",
+   "summary": "FURIA Ayu On The MVK Loss: \"It Felt Like Everything Was Burning\" Hotspawn",
    "teams": [
-    "Cloud9",
+    "MVK Esports",
     "FURIA"
    ],
-   "players": [],
+   "players": [
+    {
+     "name": "Ayu",
+     "team": "FURIA"
+    }
+   ],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -2889,13 +2976,13 @@
   },
   {
    "game": "lol",
-   "source": "EGamersWorld",
-   "title": "MVK Crush FURIA 3-0 to Set Up Play-In Upper Final vs KC",
-   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxQaHZhdm5DcWdBR3BjNmIwN09DMllnQWRfakZRU3RNbW1rX1dicmxhVi1RS3BZNHpDUkJTaFIyMUtsMmQ4RUNNX3NibFd6dXZfTXNEMWhmQ3NXeHZrTEFPNXlYdFFBOVVXdmFEMkhFbDNCa2RBaHF2UnBDRE9WbVJkWHkwT0ZyRUhFRXFaaGRiTHpmTVU1cXVLY2xLS0x0STRKQnc?oc=5",
-   "published": "2026-10-16T02:25:12+00:00",
-   "summary": "MVK Crush FURIA 3-0 to Set Up Play-In Upper Final vs KC EGamersWorld",
+   "source": "Coinbase",
+   "title": "Cloud9 vs. FURIA Esports | Prediction Markets",
+   "link": "https://news.google.com/rss/articles/CBMieEFVX3lxTE9paWRvSXJZdUdvX1prS2ltbUZraVhfbXU4WkhlTEVCcFh1dV8wOTlNY3BhaTNqMTk4TEppYXptT3huQU5Kd1hDRUNsYm9IMktCb3pWcllqMC1rbWVTbFRSS3FHa1p6SDFEOFFfS2w5Y3Z2S3FreDlEdQ?oc=5",
+   "published": "2026-10-16T02:45:00+00:00",
+   "summary": "Cloud9 vs. FURIA Esports | Prediction Markets Coinbase",
    "teams": [
-    "MVK Esports",
+    "Cloud9",
     "FURIA"
    ],
    "players": [],
@@ -2923,30 +3010,14 @@
   },
   {
    "game": "lol",
-   "source": "GosuGamers",
-   "title": "Karmine Corp, MVK Esports start strong in Worlds 2026 Play-In Stage opening day",
-   "link": "https://news.google.com/rss/articles/CBMixwFBVV95cUxQZExCcHgyMGI4UXZNeFZnWDFRUUxwaG12Q2Q3T1Izb3d4b2s2YXh4SjFEYzRJZ3Z3Z3lLSWV4cnFiRTJDRDJrX1NRbWNEV0R2YldSc3VIVUVIb3RKUlRoUXR6WHVFcjF2LUhyeXlab2ZfeDI4T3h6SW5MamNtbF9kT0FLbHRoUXV6OWFwZ1N3eG02RkpSem9QdU1hYzV2T1E4c1hpNTlQUTBGNTlkMy1obExEeHdtdDlLS0V2b3l1VkVOQWlubl9J?oc=5",
-   "published": "2026-10-16T02:09:22+00:00",
-   "summary": "Karmine Corp, MVK Esports start strong in Worlds 2026 Play-In Stage opening day GosuGamers",
-   "teams": [
-    "Karmine Corp",
-    "MVK Esports"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
    "source": "EGamersWorld",
-   "title": "KC Edge Out Cloud9 3-2 in Worlds 2026 Fearless Draft Opener",
-   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxNQW8xd1BiNDVlTTNRT3pTUFRwVHNKLW5nUnRycUYtbDZ1LWpsNm00VWktQlRPRkIxS1hoMkFjTmhENVptRFl0bFZYTXVKenpwU2o5Qm9sd2dWZlJRQUlBWF9WM0M3N2ROWXZuYnE3S0RHTUdlZ2xOVXFiZGFzTEhVQ3BYUktVWlAwdnRfSWd3VFR4S0lSU0pRanVremthMnVZUHc?oc=5",
-   "published": "2026-10-16T00:37:19+00:00",
-   "summary": "KC Edge Out Cloud9 3-2 in Worlds 2026 Fearless Draft Opener EGamersWorld",
+   "title": "MVK Crush FURIA 3-0 to Set Up Play-In Upper Final vs KC",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxQaHZhdm5DcWdBR3BjNmIwN09DMllnQWRfakZRU3RNbW1rX1dicmxhVi1RS3BZNHpDUkJTaFIyMUtsMmQ4RUNNX3NibFd6dXZfTXNEMWhmQ3NXeHZrTEFPNXlYdFFBOVVXdmFEMkhFbDNCa2RBaHF2UnBDRE9WbVJkWHkwT0ZyRUhFRXFaaGRiTHpmTVU1cXVLY2xLS0x0STRKQnc?oc=5",
+   "published": "2026-10-16T01:34:57+00:00",
+   "summary": "MVK Crush FURIA 3-0 to Set Up Play-In Upper Final vs KC EGamersWorld",
    "teams": [
-    "Cloud9"
+    "MVK Esports",
+    "FURIA"
    ],
    "players": [],
    "score": 0,
@@ -2979,6 +3050,22 @@
    "summary": "*DEBUT de KARMINE CORP en WORLDS 2026* - League Of Legends YouTube",
    "teams": [
     "Karmine Corp"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "EGamersWorld",
+   "title": "KC Edge Out Cloud9 3-2 in Worlds 2026 Fearless Draft Opener",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxNQW8xd1BiNDVlTTNRT3pTUFRwVHNKLW5nUnRycUYtbDZ1LWpsNm00VWktQlRPRkIxS1hoMkFjTmhENVptRFl0bFZYTXVKenpwU2o5Qm9sd2dWZlJRQUlBWF9WM0M3N2ROWXZuYnE3S0RHTUdlZ2xOVXFiZGFzTEhVQ3BYUktVWlAwdnRfSWd3VFR4S0lSU0pRanVremthMnVZUHc?oc=5",
+   "published": "2026-10-15T23:03:19+00:00",
+   "summary": "KC Edge Out Cloud9 3-2 in Worlds 2026 Fearless Draft Opener EGamersWorld",
+   "teams": [
+    "Cloud9"
    ],
    "players": [],
    "score": 0,
@@ -3761,6 +3848,22 @@
    "summary": "Why LOUD Are The Most Incredible Story Of VALORANT Champions Shanghai Hotspawn",
    "teams": [
     "LOUD"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Red Bull",
+   "title": "T1's road to defending their League of Legends Worlds crown",
+   "link": "https://news.google.com/rss/articles/CBMickFVX3lxTE1DVTc2UnpqZTdTcHZmVXhFWlM0TWg5eUtQTTh2aUEzTjdiZ284VlJYX2I3YUc2cEJFbWx1X0dkUWJBUmdzS1oyTURsbThxRjZabUtHSlc0cXphNDhJZzZ3ajlRR3FjTWRubXdMZVBkeEI3QQ?oc=5",
+   "published": "2026-10-14T15:00:00+00:00",
+   "summary": "T1's road to defending their League of Legends Worlds crown Red Bull",
+   "teams": [
+    "T1"
    ],
    "players": [],
    "score": 0,
@@ -4899,22 +5002,6 @@
      "team": "G2 Esports"
     }
    ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Red Bull",
-   "title": "T1's road to defending their League of Legends Worlds crown",
-   "link": "https://news.google.com/rss/articles/CBMickFVX3lxTE53MlBrTGgzMlY2S3JJbk5xSGFHZVcteVhxaURPQ3lBZC1oQm5HcEEtOUR4U1pnTEJyTEhqclNHZU5CNXRvdlJGcXlxNmVlZFJYM3NpaF9PVllWQThTQlAweFZTODB5a0JhVEZEeGQyRGRHQQ?oc=5",
-   "published": "2026-10-11T23:00:00+00:00",
-   "summary": "T1's road to defending their League of Legends Worlds crown Red Bull",
-   "teams": [
-    "T1"
-   ],
-   "players": [],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -6710,28 +6797,6 @@
    "reasons": []
   },
   {
-   "game": "lol",
-   "source": "EGamersWorld",
-   "title": "FlyQuest Eliminate Shopify Rebellion 2-1 Behind Gryffinn's Shyvana Masterclass",
-   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxNbUlWSVR6Uk50SkVJYkR0RXNtbnNMSXdYdlNVM0hva09vSWkwQVhhOXZEZEZhNi1wbmNaSHc5d281WlY2WnBGS1d5SEI2V0UxdFFBTC1tSktrNjdLRjVOWE5lLUp1VHJHeDdHRWNOWGkyeGxmemQwX1pnbDhZQy1NN2d2bVVhQ0swblRrVTJpS0ZrQmgzWEQ1dlFmX1dwQjBlRGc?oc=5",
-   "published": "2026-10-07T12:38:29+00:00",
-   "summary": "FlyQuest Eliminate Shopify Rebellion 2-1 Behind Gryffinn's Shyvana Masterclass EGamersWorld",
-   "teams": [
-    "Shopify Rebellion",
-    "FlyQuest"
-   ],
-   "players": [
-    {
-     "name": "Gryffinn",
-     "team": "FlyQuest"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
    "game": "valorant",
    "source": "EGamersWorld",
    "title": "NRG Beat T1 2-0 at Valorant Champions 2026 Playoffs",
@@ -6792,6 +6857,28 @@
   {
    "game": "lol",
    "source": "EGamersWorld",
+   "title": "FlyQuest Eliminate Shopify Rebellion 2-1 Behind Gryffinn's Shyvana Masterclass",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxNbUlWSVR6Uk50SkVJYkR0RXNtbnNMSXdYdlNVM0hva09vSWkwQVhhOXZEZEZhNi1wbmNaSHc5d281WlY2WnBGS1d5SEI2V0UxdFFBTC1tSktrNjdLRjVOWE5lLUp1VHJHeDdHRWNOWGkyeGxmemQwX1pnbDhZQy1NN2d2bVVhQ0swblRrVTJpS0ZrQmgzWEQ1dlFmX1dwQjBlRGc?oc=5",
+   "published": "2026-10-07T07:00:00+00:00",
+   "summary": "FlyQuest Eliminate Shopify Rebellion 2-1 Behind Gryffinn's Shyvana Masterclass EGamersWorld",
+   "teams": [
+    "Shopify Rebellion",
+    "FlyQuest"
+   ],
+   "players": [
+    {
+     "name": "Gryffinn",
+     "team": "FlyQuest"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "EGamersWorld",
    "title": "Gryffinn Masterclass Powers FlyQuest Past GAM Esports in High-Stakes Demacia Cup 2026 Swiss Clash",
    "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxNLVFWQWJVR3dCU0xKTm5OVWt4akNWTV9ndDBXcmhDcDJiNk5nZEFPdG9INVJmb2dkRWhwVkJaX3hOLWJWRkZ0Y2N0anVobm9PR1R5amFTQU9rcldqOXhyVXpoeFk0NkZ4YnJ2N1A3MkVqU3EyOElRZlhSdXQtV3IzdGxtMTJQRm5PaDlMbHkzQnFIeUVaMDF1MHphUDd0M3ZFOEE?oc=5",
    "published": "2026-10-07T07:00:00+00:00",
@@ -6820,6 +6907,38 @@
    "summary": "FlyQuest Survive Demacia Cup Elimination Group Insider Gaming",
    "teams": [
     "FlyQuest"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "The Block",
+   "title": "Owner 1win Rewards 1win CS2 Team With $100K Bonus After Team Spirit Upset",
+   "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxOTktHYkJRNDNqZFc0ZjhlVVJ5amhpOHN3RTdndTFpdGZxQmt2TU9RNEx5TksxbjhPbXZEeTBvTXhuenY5R080dXN5a09MY1BDN0s3NHo4WDJ4aGVxUGdPa2xwRkt0ckhNcHpaZlJ1Y3FMU2VieFlfWE9oa2ktdGtONTl0ellzSlRYNTdVb0NsMW03SmtJNnkyT091dUZnWW55aUF5TElkdXp6VzdTa094UUMwTHhFb3hpbVE?oc=5",
+   "published": "2026-10-07T07:00:00+00:00",
+   "summary": "Owner 1win Rewards 1win CS2 Team With $100K Bonus After Team Spirit Upset The Block",
+   "teams": [
+    "Spirit"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Pley.gg",
+   "title": "Valve make exception for BC.Game to qualify to the Singapore Major through Asia VRS",
+   "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxPSGtMMjZlcHdtRzNzQ09JT25uOGx0MGtNbTRlRF9mMGdyd042UGVkdEtBT1Y3ZllxeFZVaDVKY0JaeG1VVjMwTjlFZERPTEktYTZBdmVBVEh1MmUyU0czeWxwaDdUVzE0TUVSV1A2UnVIMFJIODlsdlRHOVlBbGtqN3FUU05BaTA5ZFNMTjlyYzJqU3ptejVJX2Fla2F2Ukl0V3I4Qi1jNA?oc=5",
+   "published": "2026-10-07T07:00:00+00:00",
+   "summary": "Valve make exception for BC.Game to qualify to the Singapore Major through Asia VRS Pley.gg",
+   "teams": [
+    "BC.Game"
    ],
    "players": [],
    "score": 0,
@@ -7163,22 +7282,6 @@
   },
   {
    "game": "cs2",
-   "source": "markets.businessinsider.com",
-   "title": "Owner 1win Rewards 1win CS2 Team With $100K Bonus After Team Spirit Upset",
-   "link": "https://news.google.com/rss/articles/CBMiywFBVV95cUxPbElpOUUxTktUOHZtMDF3WklOcHJZUWRWR3dWRGZpc1dFWFd4OEtSVXR0X1lYdFN5a3VVUmhOTTVZM2NTVmFRTlVhNC1QaXZRSkVyd2hIT2lXMUNUU2ZtR3ZiWWZZN2l0N3ZUejNETzBId2ZQOGQ0MkNWdUNHdFlsWUVsaS1WTm1tSHppWHdjYjFZbUwzREg5cWg1RnJyekMzTmUweFZsVHFrQUtSR2lBZkpGRHAwUlo2bEhOblRDOFJLTjFnNlZaZ1M2SQ?oc=5",
-   "published": "2026-10-06T07:00:00+00:00",
-   "summary": "Owner 1win Rewards 1win CS2 Team With $100K Bonus After Team Spirit Upset markets.businessinsider.com",
-   "teams": [
-    "Spirit"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
    "source": "Hotspawn",
    "title": "Vivo Keyd Stars Clears Out Most Of Roster And Coaching Staff",
    "link": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQdnNCQ0lKdnBuWUtLdHVuYS10b1EwWTdoNnNJTFpkWlYxUTBSbFZTekxlZVdBTE1idmk5UHE5OXNCeG83dGk4bHJIa3lydnZieVhyS25FVElsVVdLUUg3MzZfVE5uRGQ1aEFyVG5UeXRESk8yVll4dUJwanZObkJGdndTSDFabEtfUGlFQlZvcw?oc=5",
@@ -7268,114 +7371,6 @@
    "summary": "Sashi's Scandalous Maneuver: Temporary Move to Asian Region for Major Sparks Community Outrage Players",
    "teams": [
     "Sashi"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "TalkEsport",
-   "title": "Every CS2 Team That Switched VRS Region: BC.Game, Liquid, Wildcard and Sashi",
-   "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9RLXRCOGdoSmV4enBraGUtNXB3ZE9nYjBnRHFzb3ltQ2U3eUF6eV9TZHhKZEFvWEJpOFNMN3UtR2JQU0JPVGo4N1FzWmxyNlNCR0RBT01VdWNHNThVbmNsSmpQeE4yTDVTMXhxa3JCQXdRSUhmMnZn?oc=5",
-   "published": "2026-10-05T20:40:11+00:00",
-   "summary": "Every CS2 Team That Switched VRS Region: BC.Game, Liquid, Wildcard and Sashi TalkEsport",
-   "teams": [
-    "Liquid",
-    "BC.Game",
-    "Sashi",
-    "Wildcard"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "TalkEsport",
-   "title": "VRS Region Swap Loophole Explained: How Sashi Turned a Danish CS2 Team Into an Asian One",
-   "link": "https://news.google.com/rss/articles/CBMifkFVX3lxTE53VzJhRFJNTWg2S2JsVmoweS1fQzlseGJrWWNTbE83UmlGNlNxWjgzX3poMGtSdGpmWkdILU9MRV9xdkM0MWtnVUV4VDN1RkpiR2JWZjBJdVFuSmU2T2dRSWJRNVZ3UEFfUHl4SmxyNFFaaHFRc0dKbldtX3d6Zw?oc=5",
-   "published": "2026-10-05T20:15:48+00:00",
-   "summary": "VRS Region Swap Loophole Explained: How Sashi Turned a Danish CS2 Team Into an Asian One TalkEsport",
-   "teams": [
-    "Sashi"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "GINX TV",
-   "title": "OG CS2 Roster: New Five-Man Lineup Announced",
-   "link": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE9LbUN4Z19sOGFFSWtDLURSQkFFMnV3MnpOWXN6dEtOejI2OTZrcXNsai1CUkwtcGEtRUZzbXJldTdfcktNTGRuMURRSXdHeV9OdVZETllaRQ?oc=5",
-   "published": "2026-10-05T20:00:00+00:00",
-   "summary": "OG CS2 Roster: New Five-Man Lineup Announced GINX TV",
-   "teams": [
-    "OG"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "TalkEsport",
-   "title": "Sashi Esport Moves to Asia VRS With TjP and Hatz Ahead of PGL Major Singapore",
-   "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxOV0NPY0dGTWxnOVMzSUxCNkV4SXlfb2dacDJkbmJDalBWX0xveFhKdVoySFlOOFJkWDRZSWowVmRWek1IZWpzMzVpSzBwbFlGVDBldk1kSFJGRUJWLUJKSTZGMHpiR19SanFGdFIzTmtPQ2k3OVNIdmhxVDd0VDA3Z3Y4enZIdlBjRWtUbTRMVm9VQQ?oc=5",
-   "published": "2026-10-05T19:43:10+00:00",
-   "summary": "Sashi Esport Moves to Asia VRS With TjP and Hatz Ahead of PGL Major Singapore TalkEsport",
-   "teams": [
-    "Sashi"
-   ],
-   "players": [
-    {
-     "name": "Hatz",
-     "team": "Sashi"
-    },
-    {
-     "name": "TjP",
-     "team": "Sashi"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "Cision News",
-   "title": "Nordic Partners Gaming sets sights on CS2 Top 50 with new documentary series",
-   "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxOVDZhamgxNXdiXzctM1VjZTdGaXFiRXBicjQ3V1UtUVRXaDlUY1NKNDFvWWZXRTdQc0tJbk84ZlVKQW1zbzA0VWI4RFhFUDQ2blY2M1RZV3FiZm05VHVxRGxSaW04Y3pzbGNKTWhPV0ktWGhteW9RTWQwemVMUHNTbkVNMHR5blhRUUpnX1hjQ2hobHNhUEo1eG1peEc5VXFQLUF6R2l6N0lkR0diT0NXTGF0b1JwYUJBRGotbmZCXzdsdw?oc=5",
-   "published": "2026-10-05T13:35:01+00:00",
-   "summary": "Nordic Partners Gaming sets sights on CS2 Top 50 with new documentary series Cision News",
-   "teams": [
-    "Nordic Partners Gaming"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "Hawk Live",
-   "title": "Belchonokk Accuses PARIVISION of Setting Unreasonably High Standards for Its CS2 Roster",
-   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOZUJRNnVvc0ZaS2VEUHpwNk1GeGRVeEJXU0M2S2gtWkZiNkdsbVV0czhWNGpNTXFla0dFOHhJdDRYYkNPY25TRHoyUWxCS1gtNGhCRjMzOG1ZcGxaem91M3AwWXN2LWRHRE9xZWNRNlZmZTdWTEFhX1NqU1k5d3VlNmJxRFF2a1ZCOGRQYmJ5bWRTREFVdlB1alg2cmVIMnJsa0E?oc=5",
-   "published": "2026-10-05T12:05:00+00:00",
-   "summary": "Belchonokk Accuses PARIVISION of Setting Unreasonably High Standards for Its CS2 Roster Hawk Live",
-   "teams": [
-    "PARIVISION"
    ],
    "players": [],
    "score": 0,
