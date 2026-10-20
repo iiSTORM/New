@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-20T12:03:22.362010+00:00",
+ "generated_at": "2026-10-20T17:29:11.232468+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,7 +61,7 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 80,
+   "items": 76,
    "error": null
   },
   {
@@ -85,7 +85,7 @@
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 37,
+   "items": 41,
    "error": null
   },
   {
@@ -97,17 +97,137 @@
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 31,
+   "items": 33,
    "error": null
   },
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 50,
-   "error": null
+   "items": 0,
+   "error": "HTTPSConnectionPool(host='news.google.com', port=443): Max retries exceeded with url: /rss/search?hl=en-US&gl=US&ceid=US"
   }
  ],
  "items": [
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "BBL and Betclic qualify for PGL Bucharest 2027",
+   "link": "https://www.hltv.org/news/45762/bbl-and-betclic-qualify-for-pgl-bucharest-2027",
+   "published": "2026-10-20T17:12:00+00:00",
+   "summary": "Both organizations can now look forward to a rare tier-one event appearance.",
+   "teams": [
+    "Betclic",
+    "BBL"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "\"It breaks my heart to leave\" says M80 CEO Marco as team departs VALORANT",
+   "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxOX19pcGFMLUM1TGVsM20tdjViOFMwVEw0RVBENEloVE9WMWEwYkFaY25GeVJwUFluRGhQSEI0bVVZZ3BCcG9tN1RhOENFd01oRXpGRGJ4UGszanpRYVpqNVNxQzVMYkVVNGpGYzlzNnYyQjlLdUtVWnlTUGN3R2dVblJtWFlaSFZ6ZWhKLUpfdGF4WnBNSldKMm42cWdvNGtKUU9MZlBoaXlRZ2JIOXUySkc3elZMdw?oc=5",
+   "published": "2026-10-20T15:49:58+00:00",
+   "summary": "\"It breaks my heart to leave\" says M80 CEO Marco as team departs VALORANT Sheep Esports",
+   "teams": [
+    "M80"
+   ],
+   "players": [],
+   "score": -1,
+   "grade": "negative",
+   "rules": [
+    "departure"
+   ],
+   "reasons": [
+    "a player or coach leaves"
+   ]
+  },
+  {
+   "game": "valorant",
+   "source": "Facebook",
+   "title": "Chinese Duelist Hush was introduced during the VALORANT Champions Shanghai grand finals between Loud and Team Vitality. Story in the comments section.",
+   "link": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxNMXVzRWJHRGxrQV8zTTFJcFBlWjI3SWFuSFY0NHVSRmJVNjZMX3ZVa243WTdlRm5WeGY2NmJSY25ETnhzdFQwXzYzcG9SMzdzeG9udmJpQkxhNmdkZ1FYYVctZ1VNd1FHcWlPbW1pOFlVQ1lQTjBxcDMyUllIS1kxbEFlcm9ZUk9SMi1kWjhsZGY2RmZ3YTh0aWd0bXRoZlNkRk45Z1V6UFRnOW9WNTVzVm1nUlM0eUc2WENxeEVYME93SEZiX2gzTHMxSlI4X2R0dDZhcEVubw?oc=5",
+   "published": "2026-10-20T15:45:04+00:00",
+   "summary": "Chinese Duelist Hush was introduced during the VALORANT Champions Shanghai grand finals between Loud and Team Vitality. Story in the comments section. Facebook",
+   "teams": [
+    "Team Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "EGamersWorld",
+   "title": "Valorant Champions 2026 Recap: LOUD Win, Results & Prizes",
+   "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxPc19wbFNLaDlway1OS19Pc2RJOUpHeXBoVWNaSHkyeHpocTRnVVRqNGd0RGJhSUY4OUp5bFl2Z1dUOUNmWnp2Q3BncTh6dm9GdzFDSmZhZ1pxay1TMm1GR3Y3ejFGVVRQTlBEQmotSlhaaUFEQjFGUVc0T2F3YUtWTUp0ZEJBcWFrS1JWRURBeE5LYmNO?oc=5",
+   "published": "2026-10-20T15:17:18+00:00",
+   "summary": "Valorant Champions 2026 Recap: LOUD Win, Results & Prizes EGamersWorld",
+   "teams": [
+    "LOUD"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "WIN.GG",
+   "title": "Team Secret Whales vs LYON: Worlds 2026 Predictions and Best Odds",
+   "link": "https://news.google.com/rss/articles/CBMidEFVX3lxTE5NRjRuU1h5enhUbUdJVkJfTjZva2gzal9ubzFXWEJvbHRoRm1HUEpNTHVvWkdqOWRkME1ZRXVqXzgycXVGcU5xengySDFoQWZNSHJOMTJSWmluaHFTNDNJa3JfTUZIa3BKV0VCRkREejBYZVBy?oc=5",
+   "published": "2026-10-20T13:25:01+00:00",
+   "summary": "Team Secret Whales vs LYON: Worlds 2026 Predictions and Best Odds WIN.GG",
+   "teams": [
+    "LYON",
+    "Team Secret Whales"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Esports Insider",
+   "title": "Karmine Corp sweep MVK to reach first Worlds Swiss Stage and draw Anyone’s Legend",
+   "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxQY01kc29pVE5wU2Q1Z2txLWhuczU0MnVEcVlYYkFxQTl5djNRLWVXY3JJWWtNSGF6MmhKT3BlZEVrUVVDZk5QOE9kVUZVSFRuOXdIUHhBZ1MtOU5pR09DcGtDVmJxNlcwWnoxcTg5NGtpSUcyQU16aGx1MjJlbDU0UmJUTE9JWW9ES3IwNzZIMUVkU3E2SHhnYkdNNVZ0ZUpfWUxLWVFmTXdTaXNxYkhNNmRlaXg?oc=5",
+   "published": "2026-10-20T13:07:30+00:00",
+   "summary": "Karmine Corp sweep MVK to reach first Worlds Swiss Stage and draw Anyone’s Legend Esports Insider",
+   "teams": [
+    "Karmine Corp",
+    "MVK Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "Vitality to meet Falcons in BLAST Rivals opener",
+   "link": "https://www.hltv.org/news/45760/vitality-to-meet-falcons-in-blast-rivals-opener",
+   "published": "2026-10-20T12:31:00+00:00",
+   "summary": "Two heavyweights will meet in the Group A opening match.",
+   "teams": [
+    "Falcons",
+    "Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
   {
    "game": "cs2",
    "source": "HLTV",
@@ -153,13 +273,29 @@
   {
    "game": "valorant",
    "source": "Pley.gg",
+   "title": "Global Esports quit esports to become an AI studio, six weeks after winning VCT Pacific",
+   "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxOVjRkZ3NaNXp5Nm55MnBDZXRDb0poMUhnRFR4UGpyS2xCekZlQjVGMlhGN3Y3ZGtwZ3JEUFc5V2hVZjVRYXRkMDlyVGFHZ3dsTVFDYUlpZHJNdUxrenBBZW9rd3hWYU9qSlF6bjI3bGFCdzlVekNhT0ktZ28zNEhlaFJsM2ZpOUk0b2dVVVdCV2JZVXB0SUVUUS1BTVhKb0FxbExhazFLOFEyNmpHNGVtMEV3?oc=5",
+   "published": "2026-10-20T10:57:45+00:00",
+   "summary": "Global Esports quit esports to become an AI studio, six weeks after winning VCT Pacific Pley.gg",
+   "teams": [
+    "Global Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Pley.gg",
    "title": "Cloud9, NAVI, FURIA and a Masters champion miss out on VCT partnership for 2027",
    "link": "https://news.google.com/rss/articles/CBMipgFBVV95cUxQVEZmc0czcHJ2NkhUaEhiQzlyY3dUSkZ4X1BrWWdlWmhZdTlrRDVka3dIOTBzZWRLM0sxWVJRRDVXb1FzYzE1Sk4wLVh2RnRzVTBpTUNYOXFwRmF5Mk5zbVdDam8yM1h4TFR1UXhCTVRpUktsNXlWX2JnbGFpdDR1aXYyN2w4SzE0cG1YSjlsTC1MZ2hVRHI1WVRaNzd2czFxc2ZCZ3dR?oc=5",
    "published": "2026-10-20T07:46:01+00:00",
    "summary": "Cloud9, NAVI, FURIA and a Masters champion miss out on VCT partnership for 2027 Pley.gg",
    "teams": [
-    "FURIA",
-    "Cloud9"
+    "Cloud9",
+    "FURIA"
    ],
    "players": [],
    "score": 0,
@@ -307,8 +443,8 @@
    "published": "2026-10-19T17:24:00+00:00",
    "summary": "We dove into issues with the VRS and the Sashi-BC.Game scandal in the latest Come Here episode.",
    "teams": [
-    "BC.Game",
-    "Sashi"
+    "Sashi",
+    "BC.Game"
    ],
    "players": [],
    "score": 0,
@@ -380,7 +516,7 @@
    "reasons": []
   },
   {
-   "game": "valorant",
+   "game": "lol",
    "source": "Sheep Esports",
    "title": "Sources: Karmine Corp have been selected as a VCT EMEA partner team for the 2027-2028 cycle",
    "link": "https://news.google.com/rss/articles/CBMixAFBVV95cUxPMWN6b09XdEFTR3NNaEZhbk13VFFrSUxxT2RYTFJwemIwdW01d1daZ1NObTRpR3VDc2tlWFVnZW9qV0ptRTdxNy1VZU1HZE1PZTM0LV9oMnZJS1YyRnYyTmVwenI5RXctMHZVRG5zdTFJejdiZ1Q3cEJ4WFc5cWVtaDJfVHU4V1ItaFBEV1RsekcxQzhmN3E3dWdwR2I4VEpBbmdjVU8yVmhfUXVzUXh5Y2FLZVpzeXllUENvOGFXYlVqOFVw?oc=5",
@@ -430,22 +566,6 @@
   {
    "game": "valorant",
    "source": "Sheep Esports",
-   "title": "Sources: Gen.G Esports have been selected as a VCT Pacific partner team for the 2027-2028 cycle",
-   "link": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxQNk1GX1RlOGMyUEEzMnppTjVxTDdCZk82TWhvQWNnaG9tTE1PanpsVW9hbGhUbTQ1WEFhRm1rNGVzREd2NVhieWFiVXYtU2N4dGtmR0FjY09DZFN5b0FqbGR5d1FJdG9iZFgtWUZZeHpaSTdnQzI4dWVUU2NIQ2t2NGJORTRISlIwS1EzWFQxVWNIYVJwQkZwc1dvT2FhcDZYRUtfeE5VSFVCVU9PVldqMi02ajM5Rk53cmNPTTI5cnh4R1ljV3VWakRhQWxlcldxcjloUmJn?oc=5",
-   "published": "2026-10-19T12:42:32+00:00",
-   "summary": "Sources: Gen.G Esports have been selected as a VCT Pacific partner team for the 2027-2028 cycle Sheep Esports",
-   "teams": [
-    "Gen.G"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Sheep Esports",
    "title": "Sources: Gen.G Esports have been selected as a VCT Americas partner team for the 2027-2028 cycle",
    "link": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxQNk1GX1RlOGMyUEEzMnppTjVxTDdCZk82TWhvQWNnaG9tTE1PanpsVW9hbGhUbTQ1WEFhRm1rNGVzREd2NVhieWFiVXYtU2N4dGtmR0FjY09DZFN5b0FqbGR5d1FJdG9iZFgtWUZZeHpaSTdnQzI4dWVUU2NIQ2t2NGJORTRISlIwS1EzWFQxVWNIYVJwQkZwc1dvT2FhcDZYRUtfeE5VSFVCVU9PVldqMi02ajM5Rk53cmNPTTI5cnh4R1ljV3VWakRhQWxlcldxcjloUmJn?oc=5",
    "published": "2026-10-19T12:42:32+00:00",
@@ -462,9 +582,25 @@
   {
    "game": "valorant",
    "source": "Sheep Esports",
+   "title": "Sources: Gen.G Esports have been selected as a VCT Pacific partner team for the 2027-2028 cycle",
+   "link": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxQNk1GX1RlOGMyUEEzMnppTjVxTDdCZk82TWhvQWNnaG9tTE1PanpsVW9hbGhUbTQ1WEFhRm1rNGVzREd2NVhieWFiVXYtU2N4dGtmR0FjY09DZFN5b0FqbGR5d1FJdG9iZFgtWUZZeHpaSTdnQzI4dWVUU2NIQ2t2NGJORTRISlIwS1EzWFQxVWNIYVJwQkZwc1dvT2FhcDZYRUtfeE5VSFVCVU9PVldqMi02ajM5Rk53cmNPTTI5cnh4R1ljV3VWakRhQWxlcldxcjloUmJn?oc=5",
+   "published": "2026-10-19T12:42:32+00:00",
+   "summary": "Sources: Gen.G Esports have been selected as a VCT Pacific partner team for the 2027-2028 cycle Sheep Esports",
+   "teams": [
+    "Gen.G"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sheep Esports",
    "title": "Global Esports CEO announce the end of their esports operation",
    "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxNRFUyeG0zX3V0cEFFZ2cxVmwwLTA0UWo5d3VPNlJKSl8zSWJFSEppeXhIdXBiU0oyc014SGZnR0tmNXItenlfZ0dpZW9yZHI3NVotTjl1NFlsUEFUem9vUUp2MURhcmlzNno5TkV3a3lJMmZYc2tPeS14NFBfcGFiWEVBYmlLRGZTN1lMamtPcVhRcEN5OHJjN3pzRFcyLVZCQXJqQndCTmcxUQ?oc=5",
-   "published": "2026-10-19T12:07:24+00:00",
+   "published": "2026-10-19T12:22:04+00:00",
    "summary": "Global Esports CEO announce the end of their esports operation Sheep Esports",
    "teams": [
     "Global Esports"
@@ -1567,7 +1703,7 @@
    "game": "valorant",
    "source": "Sheep Esports",
    "title": "Sources: LOUD have been selected as a VCT Americas partner team for the 2027-2028 cycle",
-   "link": "https://news.google.com/rss/articles/CBMiygFBVV95cUxOZUtXWjRhSDFmZF9IS1g4Z0liUk85UUw3SmVGNUZ4cktyaWdLQk5lQkJVdU5lUzZiVnhtckstblpHSUZpNkNyOE9heWNiTHpGaTRPNU11VFB6aEx3UHp4S2RkWkhydFU3aUwza3Jxb256WEVJaUZIOVN2eW1ZdzJJWXRuNFRvenhJMWJhNXM5N3JzWE45bEVPUnlIT1FwX0FjLWZwNW9qUmdONWxUME5raUFyMk13X082WWlQeldNR0xRYUhJejY3TC1R?oc=5",
+   "link": "https://news.google.com/rss/articles/CBMiygFBVV95cUxNaDk5eWI3NWs0LU9leEwtNGt2eF9CM0gzNm1pUjNUS3d1Z3k3bVdfalpMVEJHZ00wUUdORENCLUl0Ni05UGw4a1k3R0YwY1dfUFNkMFAyR3JHcjMwTk5Ma2EtVFNsTHJKU3g5Nkg1andnZkdRSDRud2dhTkh5UDRCNzF6WjNZWl9ZMTVlbndTYWV6UnlYTXNQSXY1VG15cU5vNFg2N2phc2t5Y0xFXy1wRzQ3MUxEcE1mdndWTURVcWl1U2NYanhKM3J3?oc=5",
    "published": "2026-10-18T10:31:10+00:00",
    "summary": "Sources: LOUD have been selected as a VCT Americas partner team for the 2027-2028 cycle Sheep Esports",
    "teams": [
@@ -3171,8 +3307,8 @@
    "published": "2026-10-15T18:15:00+00:00",
    "summary": "Boombl4's men are up to an 89.1% chance of qualifying for the Singapore Major after the win.",
    "teams": [
-    "BetBoom",
     "PARIVISION",
+    "BetBoom",
     "LAG"
    ],
    "players": [
@@ -3776,9 +3912,9 @@
    "published": "2026-10-14T16:28:00+00:00",
    "summary": "The team beat HOTU and Sashi on their debut with siuhy and cmtry.",
    "teams": [
+    "Sashi",
     "Astralis",
-    "HOTU",
-    "Sashi"
+    "HOTU"
    ],
    "players": [],
    "score": 0,
@@ -4066,6 +4202,23 @@
    "summary": "Has anyone won Valorant Champions twice? LOUD can make history in Shanghai Pley.gg",
    "teams": [
     "LOUD"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Flashscore.com",
+   "title": "Legacy - PARIVISION 2-0",
+   "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxQTDE5RlBtRE5fQjR5NjdmdmhvYXJ3VDY1cDI5dmNvTzhidkYzZWw3bWQtalJsTFE0Nlh6MkJaOGNjS2FrX0VJbG1uRl9NQ3g5Mkc2UGtvdjhyZnUwMVlndHlfNUVrYVd6dzFZaGVPUHRla3QtR0I2bS1Wd2FXTEtDVTVWS1FkNXFUTjFRaWNVMVJrVWQ5a1lQeTJ1RG5Fb09fbjJyQXU4UWtPTkU?oc=5",
+   "published": "2026-10-14T07:00:00+00:00",
+   "summary": "Legacy - PARIVISION 2-0 Flashscore.com",
+   "teams": [
+    "PARIVISION",
+    "Legacy"
    ],
    "players": [],
    "score": 0,
@@ -4813,8 +4966,8 @@
    "published": "2026-10-12T09:32:44+00:00",
    "summary": "100 Thieves knock reigning world champions NRG out of VALORANT Champions Pley.gg",
    "teams": [
-    "100 Thieves",
-    "NRG"
+    "NRG",
+    "100 Thieves"
    ],
    "players": [],
    "score": 0,
@@ -4830,9 +4983,9 @@
    "published": "2026-10-12T09:23:52+00:00",
    "summary": "100 Thieves and G2 Esports advance to the lower bracket semifinals of Champions Shanghai, NRG and T1 are eliminated from the tournament Players",
    "teams": [
+    "NRG",
     "G2 Esports",
     "100 Thieves",
-    "NRG",
     "T1"
    ],
    "players": [],
@@ -5134,9 +5287,9 @@
    "published": "2026-10-11T14:08:00+00:00",
    "summary": "100 Thieves and G2 Esports advance to the Lower Bracket Semifinals as NRG and T1 bow out Sheep Esports",
    "teams": [
+    "NRG",
     "G2 Esports",
     "100 Thieves",
-    "NRG",
     "T1"
    ],
    "players": [],
@@ -5169,8 +5322,8 @@
    "published": "2026-10-11T11:17:34+00:00",
    "summary": "100 Thieves Eliminate NRG at Valorant Champions 2026 EGamersWorld",
    "teams": [
-    "100 Thieves",
-    "NRG"
+    "NRG",
+    "100 Thieves"
    ],
    "players": [],
    "score": 0,
@@ -5475,8 +5628,8 @@
    "published": "2026-10-10T15:02:14+00:00",
    "summary": "LOUD and Team Vitality set for a rematch as NRG and G2 Esports falter Sheep Esports",
    "teams": [
-    "G2 Esports",
     "NRG",
+    "G2 Esports",
     "LOUD",
     "Team Vitality"
    ],
@@ -6261,23 +6414,6 @@
    "reasons": []
   },
   {
-   "game": "lol",
-   "source": "EGamersWorld",
-   "title": "FlyQuest Eliminate RED Canids from Demacia Cup Global Invitational 2026",
-   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPcTdHLS1Nd1dXaHliNDhBM0p3VmpwQml4ZEQ5eG16X3FlYkJiSE1LU3hsYlZiVkN3cFhMdDZMQm5MWVJTaTgwWWpGeUtvdUk1R0NRRDZuLTZjNlVsMHk0dnUwZU1sbUxsdmxodlBsZVRJUk13bGZpeGs5YWV6RU1sWmxtZkVfQVpyZVdHcTRVMDJoRi1tUEtQaUtoZy0wcHZBUGc?oc=5",
-   "published": "2026-10-08T10:46:55+00:00",
-   "summary": "FlyQuest Eliminate RED Canids from Demacia Cup Global Invitational 2026 EGamersWorld",
-   "teams": [
-    "FlyQuest",
-    "RED Canids"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
    "game": "cs2",
    "source": "EGamersWorld",
    "title": "The Audacity vs The Huns Esports Prediction & Betting Tip | Counter-Strike (CS2)",
@@ -6358,6 +6494,23 @@
   {
    "game": "lol",
    "source": "EGamersWorld",
+   "title": "FlyQuest Eliminate RED Canids from Demacia Cup Global Invitational 2026",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPcTdHLS1Nd1dXaHliNDhBM0p3VmpwQml4ZEQ5eG16X3FlYkJiSE1LU3hsYlZiVkN3cFhMdDZMQm5MWVJTaTgwWWpGeUtvdUk1R0NRRDZuLTZjNlVsMHk0dnUwZU1sbUxsdmxodlBsZVRJUk13bGZpeGs5YWV6RU1sWmxtZkVfQVpyZVdHcTRVMDJoRi1tUEtQaUtoZy0wcHZBUGc?oc=5",
+   "published": "2026-10-08T07:00:00+00:00",
+   "summary": "FlyQuest Eliminate RED Canids from Demacia Cup Global Invitational 2026 EGamersWorld",
+   "teams": [
+    "FlyQuest",
+    "RED Canids"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "EGamersWorld",
    "title": "Bdd and PerfecT Commit to KT Rolster with New Two-Year Extensions",
    "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPcVlQODN3dnVmMFpUZGV1M1V4TDVfZmZKR1hWWVh4VE41V3RYMlZVc1A0NmE1ZzBhU0RRQ1ZJaWRReDhBWUN6a1VpLUpKZWV6SzA0NFBUZWd0UlF3NmRlb1NoSmVWbEQ4Qm01d0RpVkxOMC14bG5zaUxuNU5HajJtWEpuUDgxVjlzQTBmV2lVeUVrUEU1Mkt0YWt2RURTNEFRN0E?oc=5",
    "published": "2026-10-08T07:00:00+00:00",
@@ -6410,6 +6563,22 @@
     "a new player joins; no record with the team yet",
     "a contract is extended"
    ]
+  },
+  {
+   "game": "lol",
+   "source": "EGamersWorld",
+   "title": "JD Gaming Reverse Sweep NAVI 2:1 to Secure Demacia Cup Knockout Stage Berth",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxNYUJCN1VydWNsZzdHMXZtTEMtTHFhRGl0Z1dlVDZ0aWdUOEJUVmU2Z0RhdlVsZlNCX2JuSDBaNlZnc05hN29XTU53Uld5dFlWWm05TWROclZfVlhnTzFGcHYzdWp0aGVLdXhsSnF5dEJiZ3BhUkdUZ0M4NFR6bm9SXzZmRURabHZ1MTV3M01FclpUMzNvbVd6NGo4ZEhmZHAyV3c?oc=5",
+   "published": "2026-10-08T07:00:00+00:00",
+   "summary": "JD Gaming Reverse Sweep NAVI 2:1 to Secure Demacia Cup Knockout Stage Berth EGamersWorld",
+   "teams": [
+    "JD Gaming"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
   },
   {
    "game": "valorant",
@@ -7165,221 +7334,18 @@
    "reasons": [
     "a player may not be able to travel or play"
    ]
-  },
-  {
-   "game": "lol",
-   "source": "Hotspawn",
-   "title": "LoL Worlds Top Lane Power Rankings 2026",
-   "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxQOUQ5c29VTUxZeS1velFoMG9LcXllTVh3WmRfalpPX1RKenBXVmptOUVHbjFqaWZYZTdPVkw0M2JndTNENDhmYTVudFRMN2tlOXpxcnA0MUJJSDhIQlJfOUlGY0I1Y0FuZEFuZFhuVHhGU1VBODFTakZ1X2hUYktRekZLY2g?oc=5",
-   "published": "2026-10-06T15:00:24+00:00",
-   "summary": "LoL Worlds Top Lane Power Rankings 2026 Hotspawn",
-   "teams": [
-    "Top Esports"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Spilled",
-   "title": "Dhokla gets honest about his performance after LYON loses the final to Team Liquid",
-   "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE5ZdXpNZk4tS1ZZeTBic1dnVDF5R1JHNjd1VV9Kd2hnVUhTb2NsRFE0MU8xWGk2RTVKQ3lQM1VTZ0lmR0xnMF95b3pXMWdpV2VjMFpKUy1VZVpBNzNUeEJZNG9pWm5RdlBUaWtQUldB?oc=5",
-   "published": "2026-10-06T11:11:44+00:00",
-   "summary": "Dhokla gets honest about his performance after LYON loses the final to Team Liquid Spilled",
-   "teams": [
-    "LYON",
-    "Team Liquid"
-   ],
-   "players": [
-    {
-     "name": "Dhokla",
-     "team": "LYON"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "EGamersWorld",
-   "title": "TES Top Laner ZUIAN Denied Visa for Worlds 2026: 369 Steps In",
-   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPdHhEc011U1lmZlFKc3ZyQWwyRklLaWpXazl5MjM5WWNyQWdSSkhGaXNZU2tQMzFseUJ1c2FUd2dNSnIzbG52dWl6TGc0NjZxOWIwMFU1dVk5cUtORGxrNU5nSWJsc3JwcTQtMWlERUpNZmhnU1NmRGE3VWVUcF9hbTBkMW9zN3pITm1RR2ozWXBoVW9IenNvbkhRS1dCM0lENXc?oc=5",
-   "published": "2026-10-06T09:03:28+00:00",
-   "summary": "TES Top Laner ZUIAN Denied Visa for Worlds 2026: 369 Steps In EGamersWorld",
-   "teams": [
-    "Top Esports"
-   ],
-   "players": [
-    {
-     "name": "ZUIAN",
-     "team": "Top Esports"
-    }
-   ],
-   "score": -2,
-   "grade": "negative",
-   "rules": [
-    "visa"
-   ],
-   "reasons": [
-    "a player may not be able to travel or play"
-   ]
-  },
-  {
-   "game": "lol",
-   "source": "Sheep Esports",
-   "title": "ZUIAN unable to start for Top Esports at Worlds due to visa issues, 369 returns",
-   "link": "https://news.google.com/rss/articles/CBMivwFBVV95cUxQZGwwVXMxQ1FmOFFvMFZ6RE9qZ2tBTlhpZWlOYzV2NF92eFZOZWpYTzBNa25kSFNXOHcyaTJTaWlPaTM2OFQwOTlnY1p5cUxjVk43NVRjM2c3MWtISWRHclVvSXBGS3hmN1lFSlhFRlk3Ni1NTVp6dEN6bTlaMk1NNmpTUGxFWEhtR3pTRHJaWU9MTXZsSlh3aHBuOVZmRlpETVNzbnV2WGJvOXZEa3lUUXlnVmlyMl93eTZ5Vk82cw?oc=5",
-   "published": "2026-10-06T07:52:51+00:00",
-   "summary": "ZUIAN unable to start for Top Esports at Worlds due to visa issues, 369 returns Sheep Esports",
-   "teams": [
-    "Top Esports"
-   ],
-   "players": [
-    {
-     "name": "ZUIAN",
-     "team": "Top Esports"
-    }
-   ],
-   "score": -2,
-   "grade": "negative",
-   "rules": [
-    "visa"
-   ],
-   "reasons": [
-    "a player may not be able to travel or play"
-   ]
-  },
-  {
-   "game": "valorant",
-   "source": "EGamersWorld",
-   "title": "Team Heretics Add Jamelinho213 to Complete 2027 VCT Roster",
-   "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxQbEtvcTNxWUdMWnpMOTlPNkJPM1NkRWhaUTVKYzJFTnZLcG1YY0dhZXN2eXB5VjIyV0tSVFpFV0tQQ0lFOEpmTlA0ODhCVVl2M09sYngxZHBYRzFLanZDVnAzTHcyN21DbDlncE5mUXZ4cFUwREx6OFRuTGdQcUM0Mks2YUJYaVptR1d2a2l1OEw1YUc1R2d0c3BEVWhJSTZyNlY5aXZqNXE?oc=5",
-   "published": "2026-10-06T07:00:00+00:00",
-   "summary": "Team Heretics Add Jamelinho213 to Complete 2027 VCT Roster EGamersWorld",
-   "teams": [
-    "Team Heretics",
-    "Eintracht Frankfurt"
-   ],
-   "players": [
-    {
-     "name": "Jamelinho213",
-     "team": "Eintracht Frankfurt"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
-   "game": "cs2",
-   "source": "Hotspawn",
-   "title": "Vivo Keyd Stars Clears Out Most Of Roster And Coaching Staff",
-   "link": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQdnNCQ0lKdnBuWUtLdHVuYS10b1EwWTdoNnNJTFpkWlYxUTBSbFZTekxlZVdBTE1idmk5UHE5OXNCeG83dGk4bHJIa3lydnZieVhyS25FVElsVVdLUUg3MzZfVE5uRGQ1aEFyVG5UeXRESk8yVll4dUJwanZObkJGdndTSDFabEtfUGlFQlZvcw?oc=5",
-   "published": "2026-10-06T07:00:00+00:00",
-   "summary": "Vivo Keyd Stars Clears Out Most Of Roster And Coaching Staff Hotspawn",
-   "teams": [
-    "Keyd Stars"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "GosuGamers",
-   "title": "Top Esports’ ZUIAN could miss Worlds 2026 after visa denial, 369 set to step in",
-   "link": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxPTjV1d19wLVJpMWhyUmVIUXpXQnZJa2x3YXVGNEh4OVU2MkdfMFJxekpHUTItWnBWdklqNUZNcXhOUjIycjhMS21yQ2lLRXBBWFlTQ1IzckZSY2h5NjhKN3RuTXdRdHZCd3FBb0FCOEU4d242dGFmMDh6aE9jeXZUczk1bmJDb1VXazdJbDRFdHNQRlUxTFVET2U4U1RyVkpsaWg5QTZnc0laX0ViT1lGWnd4eU80dFRUM3FJ?oc=5",
-   "published": "2026-10-06T07:00:00+00:00",
-   "summary": "Top Esports’ ZUIAN could miss Worlds 2026 after visa denial, 369 set to step in GosuGamers",
-   "teams": [
-    "Top Esports"
-   ],
-   "players": [
-    {
-     "name": "ZUIAN",
-     "team": "Top Esports"
-    }
-   ],
-   "score": -2,
-   "grade": "negative",
-   "rules": [
-    "visa"
-   ],
-   "reasons": [
-    "a player may not be able to travel or play"
-   ]
-  },
-  {
-   "game": "lol",
-   "source": "Sheep Esports",
-   "title": "“What did we say about having Worlds in the US?” — Fans react to ZUIAN being ruled out due to visa issues",
-   "link": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxQb1RSVmxWbEh3NlZGcnlRTmJJRXUwWG12djhzeENMd2JTRXZaUktLMlNUcGdLQkFDWmYxdE9Ob2RGcUNBQkYtOGYtcXFCSlY3clJId1VTU1hETTdTcnEta3M4bXJLSUU5U2ZhdWNadFlKUXNBdnowMmltd3pXYXZOcHBKaS0yZnhRb2trWUNSSkVrS2hWcDNfUnBoZWxJanRFMDlRLXpCZHdnLXN6dkxDZ2FJVWhZUnY0c3FXTUtsaUNIcGNaS3ptak91ekp2cEE0Tkt3?oc=5",
-   "published": "2026-10-06T07:00:00+00:00",
-   "summary": "“What did we say about having Worlds in the US?” — Fans react to ZUIAN being ruled out due to visa issues Sheep Esports",
-   "teams": [
-    "Top Esports"
-   ],
-   "players": [
-    {
-     "name": "ZUIAN",
-     "team": "Top Esports"
-    }
-   ],
-   "score": -2,
-   "grade": "negative",
-   "rules": [
-    "visa"
-   ],
-   "reasons": [
-    "a player may not be able to travel or play"
-   ]
-  },
-  {
-   "game": "cs2",
-   "source": "EGamersWorld",
-   "title": "PARIVISION vs NaVi Prediction & Betting Tip | Counter-Strike (CS2)",
-   "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxNYWM0a3p4N1M3NEFLZnE2eVJCV2VQYnFoaElZSW10ZkFlWTlwNXdqaGNRR1lhUzFvVWlJc2RWbTBzbTlmaHpXQVd6czZxdjFKTlB0M0IwVUkzX2NWWGJURGlWeXFFTnhOaXBseXB5cHRMWkZUQU03c1hEa1AzQ0lHdzNQRnJORWxrSDNR?oc=5",
-   "published": "2026-10-06T07:00:00+00:00",
-   "summary": "PARIVISION vs NaVi Prediction & Betting Tip | Counter-Strike (CS2) EGamersWorld",
-   "teams": [
-    "PARIVISION"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "Players",
-   "title": "Sashi's Scandalous Maneuver: Temporary Move to Asian Region for Major Sparks Community Outrage",
-   "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxNRHFDR09sU0t2NHdnZ1J0ZFdQeDQyOC1vX2tCa1hmcjJKSk43T0syYUZULXQtNnZuMmdsc19oS1JjTmRIUk9Ed3V6YjJ3RnlzbDBfSmVTS0xZM2xkZXNFbmRnSUluSVV0XzdldzFoZE5qaEpaZ0NQWW1TR29keGxPejQ5R3EybTNfcWVqcGd3VkdvUGZKc1FGVU1iS19vSzJ5TlgzaWVUaDktcTVTcHA2WklmQnR3SkVqZWpKS2d0cGNjLUHSAcsBQVVfeXFMUHlSY2xxb190bVZjOWprRkttSndVVlhIRVU2YXhfeWJIQUx5X0t4Ti1DX2Fzdkg0OHRSVnNMSVVVNi1BSjV6NFpwTnNFSHZiYnVfLXBES21hWkFUaGRsVjJwZ2Mtc1lTRkVsa1BuN19MVTZOaVRJUlpJZW9KOUtyUkc5Uk01a3g0cjFZaTdEYVVxWkJDa2xXQk9saXFWM1RhNVotOEF0Y1F0RDF1aHA5dmM1eGpoT0R4TFI0TjFSLThncUd4TmFock1kSGs?oc=5",
-   "published": "2026-10-06T07:00:00+00:00",
-   "summary": "Sashi's Scandalous Maneuver: Temporary Move to Asian Region for Major Sparks Community Outrage Players",
-   "teams": [
-    "Sashi"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
   }
  ],
  "signals": {
+  "valorant": {
+   "M80": {
+    "score": -1,
+    "items": 1,
+    "rules": [
+     "departure"
+    ]
+   }
+  },
   "lol": {
    "Cloud9": {
     "score": -1,
