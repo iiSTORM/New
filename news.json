@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-19T20:41:38.933812+00:00",
+ "generated_at": "2026-10-20T00:36:39.035414+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,13 +61,13 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 79,
+   "items": 80,
    "error": null
   },
   {
    "game": "lol",
    "source": "Google News",
-   "items": 56,
+   "items": 55,
    "error": null
   },
   {
@@ -85,7 +85,7 @@
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 31,
+   "items": 33,
    "error": null
   },
   {
@@ -103,11 +103,73 @@
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 48,
+   "items": 49,
    "error": null
   }
  ],
  "items": [
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Sources: Cloud9 parts ways with APA and Zven",
+   "link": "https://news.google.com/rss/articles/CBMijgFBVV95cUxONzk5dWxaaDgyWnNWd0NrdzBqQ2gzYmxrRmQ5N3dKQ3Q2aVJFMWxvVy1uZW9KbUpEWUpDWjM5bTdpdzRjUEtTajZMd1F2VW9IQlpFSHBCXzZ0Rmo1a3lLemJCWmRZcmRKWkhuaFFRa3Q0YlVCX245Wkp5VnFlamt3MTlfTktSTnNrWnBxRlZR?oc=5",
+   "published": "2026-10-19T21:26:15+00:00",
+   "summary": "Sources: Cloud9 parts ways with APA and Zven Sheep Esports",
+   "teams": [
+    "Cloud9"
+   ],
+   "players": [],
+   "score": -1,
+   "grade": "negative",
+   "rules": [
+    "departure"
+   ],
+   "reasons": [
+    "a player or coach leaves"
+   ]
+  },
+  {
+   "game": "valorant",
+   "source": "Insider Gaming",
+   "title": "VCT Partnered Teams: Cloud9 and Global Esports Among Major Names To Miss Out",
+   "link": "https://news.google.com/rss/articles/CBMipgFBVV95cUxPSUk2bjdKeU9CSU9wWjdxUlZUMkw2NWI0eHU1YWwzQjNBeUZmQmhzcWJ2TC0xZDN4cWZDREswdWZLM3YyQzdnVXNNUk5ERWdKdVFSbkphem1nMzZwNGNqeFNWYk52dVVhbjdSUzU2X2tZcFlsWDJtNnFBdm9qNnR5bUIwS0gxakNtcFo5VUR6R1JLWFlacVgwczNJNTduY0lMYWVEWWR3?oc=5",
+   "published": "2026-10-19T21:04:52+00:00",
+   "summary": "VCT Partnered Teams: Cloud9 and Global Esports Among Major Names To Miss Out Insider Gaming",
+   "teams": [
+    "Cloud9",
+    "Global Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "Magnojez extends BETBOOM contract",
+   "link": "https://www.hltv.org/news/45758/magnojez-extends-betboom-contract",
+   "published": "2026-10-19T21:00:00+00:00",
+   "summary": "The Russian rifler committed his future to the organization during the off-season.",
+   "teams": [
+    "BetBoom"
+   ],
+   "players": [
+    {
+     "name": "Magnojez",
+     "team": "BetBoom"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "extension"
+   ],
+   "reasons": [
+    "a contract is extended"
+   ]
+  },
   {
    "game": "cs2",
    "source": "Skin.Club Community",
@@ -157,22 +219,6 @@
      "team": "Fluxo"
     }
    ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "The Esports Advocate",
-   "title": "Riot Cuts VCT Partner Slots to 32 as Cloud9 and DRX Lose Their Seats",
-   "link": "https://news.google.com/rss/articles/CBMieEFVX3lxTE5rWnNRYkdQVTVPWm1XOHIzTUFIU1haZ25tUDVWRUlPbHBGOVBYVnNZVlM2S2JVekw3akFaSFVGTWRYcHZvbkxvTlFxU1B2YnFYRENtSmNDR1VFOGdISUo4dWZhUWVaX1Nya3JQd29QaDBlaHVuSmxwMQ?oc=5",
-   "published": "2026-10-19T18:03:54+00:00",
-   "summary": "Riot Cuts VCT Partner Slots to 32 as Cloud9 and DRX Lose Their Seats The Esports Advocate",
-   "teams": [
-    "Cloud9"
-   ],
-   "players": [],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -247,7 +293,7 @@
    "source": "Sheep Esports",
    "title": "Sources: FUT Esports have been selected as VCT EMEA partner team for the 2027-2028 cycle",
    "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxPeHZkdE41S3pieVVQR3hOUGZTeXpBUWE3NGczNVZGMDdNamNPOEpfLUo2Ump2VUcwS2Iwa0tHaWNLV1dJNG1DRU9IOXkyM0NwVEphSjFCS2tMMlcwT1JNM0pjcmp0WWFTRFFmX244N0RET3dPcVYxSlY5TEJfVU9QWW1uWVVpc1FDVGZGZ2tRQjhQVElVZE5YeGZzYldQRUZ1bjZ5NXd2UHRzMG9EUENwMjVqRmg5ckhsWE8xcHhLZGdTdm8?oc=5",
-   "published": "2026-10-19T14:48:24+00:00",
+   "published": "2026-10-19T14:45:29+00:00",
    "summary": "Sources: FUT Esports have been selected as VCT EMEA partner team for the 2027-2028 cycle Sheep Esports",
    "teams": [
     "FUT Esports"
@@ -259,7 +305,7 @@
    "reasons": []
   },
   {
-   "game": "lol",
+   "game": "valorant",
    "source": "Sheep Esports",
    "title": "Sources: Karmine Corp have been selected as a VCT EMEA partner team for the 2027-2028 cycle",
    "link": "https://news.google.com/rss/articles/CBMixAFBVV95cUxPMWN6b09XdEFTR3NNaEZhbk13VFFrSUxxT2RYTFJwemIwdW01d1daZ1NObTRpR3VDc2tlWFVnZW9qV0ptRTdxNy1VZU1HZE1PZTM0LV9oMnZJS1YyRnYyTmVwenI5RXctMHZVRG5zdTFJejdiZ1Q3cEJ4WFc5cWVtaDJfVHU4V1ItaFBEV1RsekcxQzhmN3E3dWdwR2I4VEpBbmdjVU8yVmhfUXVzUXh5Y2FLZVpzeXllUENvOGFXYlVqOFVw?oc=5",
@@ -267,6 +313,22 @@
    "summary": "Sources: Karmine Corp have been selected as a VCT EMEA partner team for the 2027-2028 cycle Sheep Esports",
    "teams": [
     "Karmine Corp"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "The Esports Advocate",
+   "title": "Riot Cuts VCT Partner Slots to 32 as Cloud9 and DRX Lose Their Seats",
+   "link": "https://news.google.com/rss/articles/CBMieEFVX3lxTE5rWnNRYkdQVTVPWm1XOHIzTUFIU1haZ25tUDVWRUlPbHBGOVBYVnNZVlM2S2JVekw3akFaSFVGTWRYcHZvbkxvTlFxU1B2YnFYRENtSmNDR1VFOGdISUo4dWZhUWVaX1Nya3JQd29QaDBlaHVuSmxwMQ?oc=5",
+   "published": "2026-10-19T14:03:54+00:00",
+   "summary": "Riot Cuts VCT Partner Slots to 32 as Cloud9 and DRX Lose Their Seats The Esports Advocate",
+   "teams": [
+    "Cloud9"
    ],
    "players": [],
    "score": 0,
@@ -357,6 +419,22 @@
   {
    "game": "lol",
    "source": "Hotspawn",
+   "title": "Worlds 2026: Karmine Corp Qualify For The Main Stage As Day 1 Matchups Are Revealed",
+   "link": "https://news.google.com/rss/articles/CBMifEFVX3lxTFBfbE9DN2hnd0VOQXdWRE5ZVjhndHFKTTZqTnlwZjZmRVlETG90TS1la01ldDlSaGpkaHBHSmxzZGVtMTl1blp0b00wbnV5Y3pHRm1CS2E1cl9FQWtLdUlQYldDSGJ3TjRiXzFGVHVfMjFrNzlxcURTcEJ0TUw?oc=5",
+   "published": "2026-10-19T10:48:44+00:00",
+   "summary": "Worlds 2026: Karmine Corp Qualify For The Main Stage As Day 1 Matchups Are Revealed Hotspawn",
+   "teams": [
+    "Karmine Corp"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Hotspawn",
    "title": "Karmine Corp Qualify For The Worlds 2026 Swiss Stage, Day 1 Matchups Locked In",
    "link": "https://news.google.com/rss/articles/CBMie0FVX3lxTE5GWWtWLUFtQ2tNU2drQUpCV0FQR1RabGFhWHVTWndjc1d0aGRUQTNBZWw4RHJ6SzJ3VEswd3lnNHdoNTlQY2JaZHFzaGRwVkREMDJEZzJnMTJ5cXhiaXpMT0JrR2VhUmoxbDVCenN3ZVRkNm5IeFBSZEhOSQ?oc=5",
    "published": "2026-10-19T10:48:44+00:00",
@@ -371,14 +449,14 @@
    "reasons": []
   },
   {
-   "game": "lol",
-   "source": "Hotspawn",
-   "title": "Worlds 2026: Karmine Corp Qualify For The Main Stage As Day 1 Matchups Are Revealed",
-   "link": "https://news.google.com/rss/articles/CBMifEFVX3lxTFBfbE9DN2hnd0VOQXdWRE5ZVjhndHFKTTZqTnlwZjZmRVlETG90TS1la01ldDlSaGpkaHBHSmxzZGVtMTl1blp0b00wbnV5Y3pHRm1CS2E1cl9FQWtLdUlQYldDSGJ3TjRiXzFGVHVfMjFrNzlxcURTcEJ0TUw?oc=5",
-   "published": "2026-10-19T10:48:44+00:00",
-   "summary": "Worlds 2026: Karmine Corp Qualify For The Main Stage As Day 1 Matchups Are Revealed Hotspawn",
+   "game": "cs2",
+   "source": "Esports.net",
+   "title": "Thunderpick World Championship: FURIA retain title",
+   "link": "https://news.google.com/rss/articles/CBMifkFVX3lxTFBfNjd3SFdmRmdfMmhpcnNlLTIzZ3dkOS1XZFR1ZEpJNWFHUWtObjl6RHFhcVQxcWZKRUxqMjgzN0p6Z3N0M0VDWTdPb3pHamdyWjJhMXdBVTRwVWVfRHBBZnd2OGg2SG1fQkE0SkNCUEowb05uaFh2UVFNVUpidw?oc=5",
+   "published": "2026-10-19T10:47:40+00:00",
+   "summary": "Thunderpick World Championship: FURIA retain title Esports.net",
    "teams": [
-    "Karmine Corp"
+    "FURIA"
    ],
    "players": [],
    "score": 0,
@@ -522,6 +600,22 @@
    "reasons": []
   },
   {
+   "game": "cs2",
+   "source": "Esports.gg",
+   "title": "FURIA win CS2 Thunderpick World Championship 2026: Results, recap",
+   "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxOUjVaX1VqazlXdGtZNGlXQ092YVl2SUJMY09EdXZlem93bHRlWl9yWXdDQ0FZTVRhaUJla1ZmZmVYWVduTWs3akZCZVFETE1zdnp3Q1M5a2tMZU9hdmJpYjFoN3JabHMzUGcwUUtJTWhIeXhCM0ZmMG9UdU9EM0d0eEQ0bXFTU2llTVNmOW9jNFJuYnc?oc=5",
+   "published": "2026-10-19T07:25:42+00:00",
+   "summary": "FURIA win CS2 Thunderpick World Championship 2026: Results, recap Esports.gg",
+   "teams": [
+    "FURIA"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "lol",
    "source": "Esports.net",
    "title": "MVK Esports vs Karmine Corp Play-In Decider",
@@ -557,12 +651,12 @@
   {
    "game": "valorant",
    "source": "Sheep Esports",
-   "title": "Sources: T1 have been selected as a VCT Pacific partner team for the 2027-2028 cycle",
-   "link": "https://news.google.com/rss/articles/CBMixgFBVV95cUxNVEM5SDBaTjlnckFzM0doeExOMWdBaVNnbHRKVVJGS1JkbVM0OEt2SU1yT0U0T0ljVHZmd0pJTUg1T2o3TWZnYndtTGprd01EdEw2cVFpdGNDYm9zaHZ0X3V2ajgyejlYTlA5aE1HQ2Nsem16Z29fV2Y3ZzZGa1NCTklRd2otVHlWTUhGN3ZmRFBOMkk5WEVKazQ4N1VYVHpOSU5Ha1JSVURVQ2VtZUU2NFFLWXVrbTU3a3FpTHlPM1VnQjlQTlE?oc=5",
-   "published": "2026-10-19T04:34:17+00:00",
-   "summary": "Sources: T1 have been selected as a VCT Pacific partner team for the 2027-2028 cycle Sheep Esports",
+   "title": "Sources: Paper Rex have been selected as a VCT Pacific partner team for the 2027-2028 cycle",
+   "link": "https://news.google.com/rss/articles/CBMizwFBVV95cUxNYkpBUG5MMTdjZDhKM2M0emdTUjZ2b1RkTENiRVMyQnk2X0J5N0gtMHFiRlB5OU9aWU1nU180dW1ObGRFUldGRWRLR0FQem5KQ0NRdkVlSl81ZHFpakdHaEhKNmkwcWxkUURZczZSZ2V3VUlYdjhzUFZSdVJxdXY2NkdnRWM3d01EYlNFNGp6aFJObkpfeUFwdGZGbmNMYmZFaUtPYlhKNnJOckR2enktUkh1THJ4aDNfNWRET1Jrdno1Tm9fNjdnc1ZTWXpHOEk?oc=5",
+   "published": "2026-10-19T04:54:26+00:00",
+   "summary": "Sources: Paper Rex have been selected as a VCT Pacific partner team for the 2027-2028 cycle Sheep Esports",
    "teams": [
-    "T1"
+    "Paper Rex"
    ],
    "players": [],
    "score": 0,
@@ -573,12 +667,12 @@
   {
    "game": "valorant",
    "source": "Sheep Esports",
-   "title": "Sources: Paper Rex have been selected as a VCT Pacific partner team for the 2027-2028 cycle",
-   "link": "https://news.google.com/rss/articles/CBMizwFBVV95cUxNYkpBUG5MMTdjZDhKM2M0emdTUjZ2b1RkTENiRVMyQnk2X0J5N0gtMHFiRlB5OU9aWU1nU180dW1ObGRFUldGRWRLR0FQem5KQ0NRdkVlSl81ZHFpakdHaEhKNmkwcWxkUURZczZSZ2V3VUlYdjhzUFZSdVJxdXY2NkdnRWM3d01EYlNFNGp6aFJObkpfeUFwdGZGbmNMYmZFaUtPYlhKNnJOckR2enktUkh1THJ4aDNfNWRET1Jrdno1Tm9fNjdnc1ZTWXpHOEk?oc=5",
-   "published": "2026-10-19T04:33:50+00:00",
-   "summary": "Sources: Paper Rex have been selected as a VCT Pacific partner team for the 2027-2028 cycle Sheep Esports",
+   "title": "Sources: T1 have been selected as a VCT Pacific partner team for the 2027-2028 cycle",
+   "link": "https://news.google.com/rss/articles/CBMixgFBVV95cUxNVEM5SDBaTjlnckFzM0doeExOMWdBaVNnbHRKVVJGS1JkbVM0OEt2SU1yT0U0T0ljVHZmd0pJTUg1T2o3TWZnYndtTGprd01EdEw2cVFpdGNDYm9zaHZ0X3V2ajgyejlYTlA5aE1HQ2Nsem16Z29fV2Y3ZzZGa1NCTklRd2otVHlWTUhGN3ZmRFBOMkk5WEVKazQ4N1VYVHpOSU5Ha1JSVURVQ2VtZUU2NFFLWXVrbTU3a3FpTHlPM1VnQjlQTlE?oc=5",
+   "published": "2026-10-19T04:34:17+00:00",
+   "summary": "Sources: T1 have been selected as a VCT Pacific partner team for the 2027-2028 cycle Sheep Esports",
    "teams": [
-    "Paper Rex"
+    "T1"
    ],
    "players": [],
    "score": 0,
@@ -1725,8 +1819,8 @@
    "published": "2026-10-17T20:30:24+00:00",
    "summary": "Team Vitality knock out 100 Thieves to set up a LOUD rematch in the Valorant Champions 2026 grand final Spilled",
    "teams": [
-    "LOUD",
     "100 Thieves",
+    "LOUD",
     "Team Vitality"
    ],
    "players": [],
@@ -2564,6 +2658,22 @@
    "teams": [
     "LOUD",
     "Team Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Valorant esports",
+   "title": "LOUD VS VIT",
+   "link": "https://news.google.com/rss/articles/CBMiakFVX3lxTE1vQ2JjZC1EMWZtbDh5VkNtNUliN3V4OUduLVFldlA4eUxmTVVWTWZLcnZfMTM3bEYwRjZMVFRzNzJMdVVLblA5WVY2dVFPeHhZTl9QaTBZWW1TWWJhVDdwa2pBandabEdIQUE?oc=5",
+   "published": "2026-10-16T10:26:14+00:00",
+   "summary": "LOUD VS VIT Valorant esports",
+   "teams": [
+    "LOUD"
    ],
    "players": [],
    "score": 0,
@@ -4545,8 +4655,8 @@
    "published": "2026-10-12T09:32:44+00:00",
    "summary": "100 Thieves knock reigning world champions NRG out of VALORANT Champions Pley.gg",
    "teams": [
-    "NRG",
-    "100 Thieves"
+    "100 Thieves",
+    "NRG"
    ],
    "players": [],
    "score": 0,
@@ -4562,9 +4672,9 @@
    "published": "2026-10-12T09:23:52+00:00",
    "summary": "100 Thieves and G2 Esports advance to the lower bracket semifinals of Champions Shanghai, NRG and T1 are eliminated from the tournament Players",
    "teams": [
-    "NRG",
     "G2 Esports",
     "100 Thieves",
+    "NRG",
     "T1"
    ],
    "players": [],
@@ -4882,9 +4992,9 @@
    "published": "2026-10-11T14:08:00+00:00",
    "summary": "100 Thieves and G2 Esports advance to the Lower Bracket Semifinals as NRG and T1 bow out Sheep Esports",
    "teams": [
-    "NRG",
     "G2 Esports",
     "100 Thieves",
+    "NRG",
     "T1"
    ],
    "players": [],
@@ -4917,8 +5027,8 @@
    "published": "2026-10-11T11:17:34+00:00",
    "summary": "100 Thieves Eliminate NRG at Valorant Champions 2026 EGamersWorld",
    "teams": [
-    "NRG",
-    "100 Thieves"
+    "100 Thieves",
+    "NRG"
    ],
    "players": [],
    "score": 0,
@@ -5223,9 +5333,9 @@
    "published": "2026-10-10T15:02:14+00:00",
    "summary": "LOUD and Team Vitality set for a rematch as NRG and G2 Esports falter Sheep Esports",
    "teams": [
+    "G2 Esports",
     "NRG",
     "LOUD",
-    "G2 Esports",
     "Team Vitality"
    ],
    "players": [],
@@ -6993,31 +7103,6 @@
    ]
   },
   {
-   "game": "lol",
-   "source": "GosuGamers",
-   "title": "Top Esports’ ZUIAN could miss Worlds 2026 after visa denial, 369 set to step in",
-   "link": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxPTjV1d19wLVJpMWhyUmVIUXpXQnZJa2x3YXVGNEh4OVU2MkdfMFJxekpHUTItWnBWdklqNUZNcXhOUjIycjhMS21yQ2lLRXBBWFlTQ1IzckZSY2h5NjhKN3RuTXdRdHZCd3FBb0FCOEU4d242dGFmMDh6aE9jeXZUczk1bmJDb1VXazdJbDRFdHNQRlUxTFVET2U4U1RyVkpsaWg5QTZnc0laX0ViT1lGWnd4eU80dFRUM3FJ?oc=5",
-   "published": "2026-10-06T07:00:00+00:00",
-   "summary": "Top Esports’ ZUIAN could miss Worlds 2026 after visa denial, 369 set to step in GosuGamers",
-   "teams": [
-    "Top Esports"
-   ],
-   "players": [
-    {
-     "name": "ZUIAN",
-     "team": "Top Esports"
-    }
-   ],
-   "score": -2,
-   "grade": "negative",
-   "rules": [
-    "visa"
-   ],
-   "reasons": [
-    "a player may not be able to travel or play"
-   ]
-  },
-  {
    "game": "valorant",
    "source": "EGamersWorld",
    "title": "Team Heretics Add Jamelinho213 to Complete 2027 VCT Roster",
@@ -7045,6 +7130,22 @@
   },
   {
    "game": "cs2",
+   "source": "markets.businessinsider.com",
+   "title": "Owner 1win Rewards 1win CS2 Team With $100K Bonus After Team Spirit Upset",
+   "link": "https://news.google.com/rss/articles/CBMiywFBVV95cUxPbElpOUUxTktUOHZtMDF3WklOcHJZUWRWR3dWRGZpc1dFWFd4OEtSVXR0X1lYdFN5a3VVUmhOTTVZM2NTVmFRTlVhNC1QaXZRSkVyd2hIT2lXMUNUU2ZtR3ZiWWZZN2l0N3ZUejNETzBId2ZQOGQ0MkNWdUNHdFlsWUVsaS1WTm1tSHppWHdjYjFZbUwzREg5cWg1RnJyekMzTmUweFZsVHFrQUtSR2lBZkpGRHAwUlo2bEhOblRDOFJLTjFnNlZaZ1M2SQ?oc=5",
+   "published": "2026-10-06T07:00:00+00:00",
+   "summary": "Owner 1win Rewards 1win CS2 Team With $100K Bonus After Team Spirit Upset markets.businessinsider.com",
+   "teams": [
+    "Spirit"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
    "source": "Hotspawn",
    "title": "Vivo Keyd Stars Clears Out Most Of Roster And Coaching Staff",
    "link": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQdnNCQ0lKdnBuWUtLdHVuYS10b1EwWTdoNnNJTFpkWlYxUTBSbFZTekxlZVdBTE1idmk5UHE5OXNCeG83dGk4bHJIa3lydnZieVhyS25FVElsVVdLUUg3MzZfVE5uRGQ1aEFyVG5UeXRESk8yVll4dUJwanZObkJGdndTSDFabEtfUGlFQlZvcw?oc=5",
@@ -7060,20 +7161,29 @@
    "reasons": []
   },
   {
-   "game": "cs2",
-   "source": "GlobeNewswire",
-   "title": "Owner 1win Rewards 1win CS2 Team With $100K Bonus After Team Spirit Upset",
-   "link": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxOd0h3U05vVDZ2Wk9yU1FGakl5SmNSODJwVWp0ZG9RdGhvNmV5S193X3JzY2N2R0JGMlZMSERIZnJDdnd6RjF0VlhsSV91ajFiWXVtTloxUHlVbzh4S3BOZ1lXSWpLZWd4VUZpbnI0YVpYVjdvTF9IaDVoS25XR2dsQ3JDQmpLSkY0LXlXU0lfNEVUN0FjS0JBb2VrVHFETmI0ZVptZEpqY1V4NzQzdW5KQjlvOXVrelZzNDBKemZVbTZRcEQ4Ri1od0liZFNiREw0bFB5QXo2QTFjdDVU?oc=5",
+   "game": "lol",
+   "source": "GosuGamers",
+   "title": "Top Esports’ ZUIAN could miss Worlds 2026 after visa denial, 369 set to step in",
+   "link": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxPTjV1d19wLVJpMWhyUmVIUXpXQnZJa2x3YXVGNEh4OVU2MkdfMFJxekpHUTItWnBWdklqNUZNcXhOUjIycjhMS21yQ2lLRXBBWFlTQ1IzckZSY2h5NjhKN3RuTXdRdHZCd3FBb0FCOEU4d242dGFmMDh6aE9jeXZUczk1bmJDb1VXazdJbDRFdHNQRlUxTFVET2U4U1RyVkpsaWg5QTZnc0laX0ViT1lGWnd4eU80dFRUM3FJ?oc=5",
    "published": "2026-10-06T07:00:00+00:00",
-   "summary": "Owner 1win Rewards 1win CS2 Team With $100K Bonus After Team Spirit Upset GlobeNewswire",
+   "summary": "Top Esports’ ZUIAN could miss Worlds 2026 after visa denial, 369 set to step in GosuGamers",
    "teams": [
-    "Spirit"
+    "Top Esports"
    ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
+   "players": [
+    {
+     "name": "ZUIAN",
+     "team": "Top Esports"
+    }
+   ],
+   "score": -2,
+   "grade": "negative",
+   "rules": [
+    "visa"
+   ],
+   "reasons": [
+    "a player may not be able to travel or play"
+   ]
   },
   {
    "game": "lol",
@@ -7271,134 +7381,18 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "Players",
-   "title": "The MongolZ Sign nin9 and Bring Back cobrazera",
-   "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxQRlM1UXk2a0daLWRvS0R2d2d6emp0YzVGMVAzX3Y5VW16QlFKMG1FaUh5MkltbVdPZWRzNXpVNTZ2eWFDcWR0U1NHSHhFS1dmLVU2QWwtbFdFZ1JUZ0ZNMHZCTXdnTTBEYlhvTFRqeXJ3OHdBYklJNDM1NEpseHdiMjZEdUrSAYwBQVVfeXFMUGVkS0J5eTd6eFd2Q1kxSGk4ZFZtN3JMbUw3NjRyUFBNVzA2c0hpbThDbnBzeG9hWEZyNXFLQ2xNNWR1Tk0xT3MwbXFhNUp4NU1SRGNNUjgzQTc0SXh4WEt5c2RTLTUzQVhlZmlGcWVZb0NleHAtTXZhNU1JRExWaThsdFJkeEdFMEZsbXo?oc=5",
-   "published": "2026-10-05T09:24:46+00:00",
-   "summary": "The MongolZ Sign nin9 and Bring Back cobrazera Players",
-   "teams": [
-    "The MongolZ",
-    "The Huns"
-   ],
-   "players": [
-    {
-     "name": "nin9",
-     "team": "The Huns"
-    },
-    {
-     "name": "cobrazera",
-     "team": "The MongolZ"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
-   "game": "cs2",
-   "source": "Esports News UK",
-   "title": "Wanted Goons sign LUKE4k as IGL to complete North American roster",
-   "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxPc3RKM0J4WDBvb3daMlpRVFU1d0xiRzl4Z01IWWt2b0QycDByekI4TzNYNDZpT1o5bkg5YkF0TWRjNkxwLTFXN0lIMExrT3o3c190cmVJMDdLaGxlY09TN2k2X2lWQjRjaUU1WGtJMVJ6WXF4TGp4anVUX0RDZEh3WGVqQkdQVHg3dVk3akxZZ1M3VjhWUW1vLWxkTFA2OHY3UW5XbjNrNA?oc=5",
-   "published": "2026-10-05T08:49:28+00:00",
-   "summary": "Wanted Goons sign LUKE4k as IGL to complete North American roster Esports News UK",
-   "teams": [
-    "Wanted Goons"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
-   "game": "cs2",
-   "source": "Pley.gg",
-   "title": "The MongolZ finalizes roster with nin9",
-   "link": "https://news.google.com/rss/articles/CBMia0FVX3lxTE0xTFVWRlhIMUQxek81d1BEd1FwTFVVa2FGRFBhZTVoMDVnWU8xMFpxRkZTMWR6WmgtTDJjRjctV215bFNxeXpNNktXcE5PalFfVmUwcEs5Z3JQX094VDdQcUdNdlZ6MlZadFRV?oc=5",
-   "published": "2026-10-05T08:43:33+00:00",
-   "summary": "The MongolZ finalizes roster with nin9 Pley.gg",
-   "teams": [
-    "The MongolZ"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Sheep Esports",
-   "title": "Sources: Piero set to join GIANTX for the LEC 2027 Season",
-   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOQTBXT1lMbUxwaHl1Z0l2Nm5jUVhpemlKblF0cW85c1dJbnB6ei1CQ2FwUFRodTdjRlNmWWZDQkt2em5KdHMxSm1EeWZoLVd3U01mWlhiQ0tMRERuc1M4b2R4S2hKbWdKSTFDZzV0RS1PcE9WMnJzbGxiMnZKdjlzYURURFhJdGVhc2FoeGF1VzM5LWpBRGhhZzFUbEs4VVg5Q2c?oc=5",
-   "published": "2026-10-05T07:00:00+00:00",
-   "summary": "Sources: Piero set to join GIANTX for the LEC 2027 Season Sheep Esports",
-   "teams": [
-    "GIANTX"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
-   "game": "lol",
-   "source": "Insider Gaming",
-   "title": "Impressive Team Liquid Upset LYON to Take LCS Summer Trophy",
-   "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTFBnUUh2N2x1czlMUFpQMk5JZzhLeElhX1FMZHd4Ym9xN2gzWXduYjNqWWl0MzlrM3U2dEZ6c205NEF2am9zNnh0SWRMYjZ3UXpOUzQ1V182VU93ZlpKc2o4WHlVclotM1pVTnhIbC1R?oc=5",
-   "published": "2026-10-05T07:00:00+00:00",
-   "summary": "Impressive Team Liquid Upset LYON to Take LCS Summer Trophy Insider Gaming",
-   "teams": [
-    "LYON",
-    "Team Liquid",
-    "Fnatic"
-   ],
-   "players": [
-    {
-     "name": "Upset",
-     "team": "Fnatic"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Happy Gamer",
-   "title": "Team Liquid Win LCS 2026 Summer Championship, LoL Esports Confirms",
-   "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE1oZDNCRmZkS282bkFpdVlMNVY5MzlrS0V2WlVvajlfUmNvUGVWdGtpTDVYeGxyME52OGZaa1VmNzJuRzZDeUVnUkVXQWk5NWM3aTZMcWVhZzhhZ1dKT2JjUS1fQzE2WFBpd2pzTjZpZU9KMEpaS1Y4?oc=5",
-   "published": "2026-10-05T07:00:00+00:00",
-   "summary": "Team Liquid Win LCS 2026 Summer Championship, LoL Esports Confirms Happy Gamer",
-   "teams": [
-    "Team Liquid"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
   }
  ],
  "signals": {
+  "lol": {
+   "Cloud9": {
+    "score": -1,
+    "items": 1,
+    "rules": [
+     "departure"
+    ]
+   }
+  },
   "cs2": {
    "ENCE": {
     "score": -1,
