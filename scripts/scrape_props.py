@@ -138,6 +138,11 @@ GAMES = {
             "league_id": 265},
     "valorant": {"data": "valorant_data.json", "leagues": {"VAL", "VALORANT"},
                  "league_id": 159},
+    # The id is believed to be 174 and not yet confirmed from a real board;
+    # matching is on the league NAME, so a wrong id only affects a
+    # league-filtered fetch, never which saved lines are kept.
+    "dota2": {"data": "dota_data.json", "leagues": {"Dota2", "DOTA2", "Dota 2", "DOTA 2"},
+              "league_id": 174},
 }
 
 PRIZEPICKS_URL = "https://api.prizepicks.com/projections"

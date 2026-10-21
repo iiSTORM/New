@@ -21,7 +21,7 @@ Three things are checked:
                    not catch.
 
 Usage:
-    python scripts/check_data.py lol|valorant|cs2 [options]
+    python scripts/check_data.py lol|valorant|cs2|dota2 [options]
 
 Exits non-zero (failing the job) on any hard failure. Softer anomalies are
 printed as warnings and do not fail the run.
@@ -45,6 +45,7 @@ TARGETS = {
     "lol": "data.json",
     "valorant": "valorant_data.json",
     "cs2": "cs2_data.json",
+    "dota2": "dota_data.json",
 }
 
 # Scheduled runs are 12h apart and job timeouts cap a single run at well
@@ -72,6 +73,7 @@ AUX_FILES = {
     "lol": ["career_data.json", "champion_stats.json"],
     "cs2": ["cs2_career_data.json"],
     "valorant": [],
+    "dota2": [],
 }
 
 

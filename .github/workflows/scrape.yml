@@ -315,6 +315,61 @@ jobs:
           done
           git push
 
+  scrape-dota:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      # OpenDota, free and keyless. Incremental: games already in
+      # dota_data.json are never fetched again, so after the first few runs
+      # each one costs only the new games. See scripts/scrape_dota.py.
+      - name: Scrape OpenDota (Dota 2 pro series)
+        run: python scripts/scrape_dota.py
+
+      # OpenDota has no schedule at all, so every Dota fixture the app shows
+      # comes from the posted board. Additive and never fatal.
+      - name: Add fixtures the posted board implies (Dota 2)
+        id: board_fixtures
+        run: python scripts/infer_fixtures.py dota2
+        continue-on-error: true
+
+      - name: Check dota_data.json is fresh and complete
+        run: python scripts/check_data.py dota2
+
+      - name: Commit dota_data.json
+        run: |
+          git config user.name "esports-data-bot"
+          git config user.email "actions@github.com"
+          [ -f dota_data.json ] || { echo "dota_data.json wasn't produced"; exit 0; }
+          git add dota_data.json
+          if git diff --quiet --cached; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Update Dota 2 data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          # Regenerated end to end; on a rejected push the fresh snapshot is
+          # reapplied on top of the latest remote, as the other jobs do.
+          for i in 1 2 3 4 5; do
+            git push && exit 0
+            echo "Push rejected ($i/5) — resetting to latest remote and reapplying..."
+            cp dota_data.json /tmp/dota_data.json.new
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/dota_data.json.new dota_data.json
+            git add dota_data.json
+            if git diff --quiet --cached; then exit 0; fi
+            git commit -m "Update Dota 2 data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            sleep $((RANDOM % 5 + 1))
+          done
+          git push
+
   scrape-cs2:
     runs-on: ubuntu-24.04
     steps:

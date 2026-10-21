@@ -130,13 +130,23 @@ class TestTheGamesWithNoShrinkAreTheCalibratedOnes:
 
 class TestTheFloorIsNotVacuous:
     def test_the_floor_would_have_caught_the_defect_it_was_written_for(self):
-        """shrink 8 on cs2/kills has to FAIL. A floor the old value passes is
-        a floor that would not have found this."""
-        got = sc.measure("cs2", "kills", {"shrink": 8.0})
+        """A clearly over-shrunk cs2/kills has to FAIL. A floor the bad value
+        passes is a floor that would not have found the defect.
+
+        The defect was shrink 8 against a median of 6 prior series. The
+        history has deepened since (9,877 scoreable rows on 2026-10-21), so 8
+        is no longer above the sample and measured 0.56, passing; the test
+        went red on data, not on a change. It is anchored to the SHIPPED value
+        instead -- three times it, which is over-shrinking at any depth this
+        file has had (0.47 on 2026-10-21) -- so it keeps testing the floor
+        rather than the size of the history."""
+        shipped = ow.SHIPPED_WEIGHTS["cs2"]["kills"].get("shrink") or 0
+        assert shipped > 0, "cs2/kills ships no shrink; this test needs a new anchor"
+        got = sc.measure("cs2", "kills", {"shrink": 3 * shipped})
         if got is None:
             pytest.skip("no cs2 data")
         assert got["ratio"] < sc.MIN_SPREAD_RATIO, (
-            f"shrink 8 measures {got['ratio']:.2f}, which passes the "
+            f"shrink {3 * shipped} measures {got['ratio']:.2f}, which passes the "
             f"{sc.MIN_SPREAD_RATIO} floor — the floor has stopped binding")
 
     def test_the_floor_leaves_room_for_legitimate_shrinkage(self):
