@@ -82,12 +82,46 @@ def test_a_bo1_covers_one_map():
 
 
 def test_only_finished_series_count():
-    now = 1_760_100_000
-    one_win = [{"winner": "A", "start_time": now - 3600}]
-    assert not sd.is_finished(one_win, 3, now)                # 1-0 in a Bo3, an hour ago
-    assert sd.is_finished(one_win + [{"winner": "A", "start_time": now - 1800}], 3, now)
-    assert sd.is_finished(one_win, 1, now)
-    assert sd.is_finished([{"winner": "A", "start_time": now - 13 * 3600}], 3, now)   # abandoned
+    one_win = [{"winner": "A"}]
+    assert not sd.is_finished(one_win, 3)                     # 1-0 in a Bo3
+    assert sd.is_finished(one_win * 2, 3)
+    assert sd.is_finished(one_win, 1)
+    assert not sd.is_finished([], 1)
+
+
+def summary(mid, sid, start, rad=1, dire=2, radiant_win=True, series_type=1, league=7):
+    return {"match_id": mid, "series_id": sid, "start_time": start, "radiant_team_id": rad,
+            "dire_team_id": dire, "radiant_win": radiant_win, "series_type": series_type,
+            "leagueid": league}
+
+
+def test_a_bo3_split_across_series_ids_is_put_back_together():
+    """Chandogs v Team Revenant, 2026-10-20: one Bo3, two series ids."""
+    t = 1_760_900_000
+    got = sd.group_series([summary(1, 100, t), summary(2, 101, t + 4200, rad=2, dire=1, radiant_win=False)])
+    assert [(k, bo, [g["match_id"] for g in gs]) for k, bo, gs in got] == [("s100", 3, [1, 2])]
+
+
+def test_a_finished_series_and_a_far_later_one_are_not_merged():
+    t = 1_760_900_000
+    done = [summary(1, 100, t), summary(2, 100, t + 3600)]                 # 2-0, finished
+    rematch = [summary(3, 200, t + 7200)]
+    far = [summary(4, 300, t + 20 * 3600)]
+    got = sd.group_series(done + rematch + far)
+    assert [k for k, _, _ in got] == ["s100", "s200", "s300"]
+
+
+def test_other_teams_or_leagues_are_never_merged():
+    t = 1_760_900_000
+    got = sd.group_series([summary(1, 100, t), summary(2, 101, t + 3600, rad=3),
+                           summary(3, 102, t + 3600, league=8)])
+    assert len(got) == 3
+
+
+def test_a_stored_series_that_never_finished_is_dropped():
+    assert sd.series_complete({"score": "2-1", "best_of": 3})
+    assert not sd.series_complete({"score": "1-0", "best_of": 3})
+    assert sd.series_complete({"score": "1-0", "best_of": 1})
 
 
 def test_rosters_rates_and_usual_position():

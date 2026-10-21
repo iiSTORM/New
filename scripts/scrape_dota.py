@@ -40,6 +40,9 @@ import sys
 import time
 from datetime import datetime, timedelta, timezone
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from team_aliases import reconcile  # noqa: E402
+
 try:
     import requests
 except ImportError:  # the tests exercise the pure functions without it
@@ -50,6 +53,9 @@ HEADERS = {"User-Agent": "esports-projections/1.0 (+https://github.com/iiSTORM/N
 OUT = "dota_data.json"
 REGION = "Dota 2"
 TIERS = {"premium", "professional"}
+# Leagues OpenDota tiers as professional that are not pro play: the first
+# run picked up 22 series of "1win Streamers League #3".
+EXCLUDED_LEAGUE_WORDS = {"streamers", "streamer", "showmatch", "charity", "all-star", "allstar"}
 SIDE_SIZE = 5
 COLLAPSED_WINDOW_MAPS = 2       # `actual` covers maps 1-2, as in CS2
 MAX_MAPS_STORED = 5
@@ -173,14 +179,69 @@ def series_key(game):
     return f"s{sid}" if sid else f"m{game['match_id']}"
 
 
-def is_finished(games, best_of, now_ts):
-    """Whether a series is over: a side has won enough games, or nothing has
-    happened in it for twelve hours (an abandoned or misrecorded series)."""
+def is_finished(games, best_of, now_ts=None):
+    """Whether a series is over: one side has won enough games.
+
+    Only that. An earlier version also called a series over after twelve
+    quiet hours, and the first live run stored 17 "Bo3s" at 1-0: one game
+    of a series whose other games OpenDota had filed under a different
+    series id (see group_series). A series that never reaches a winner is
+    refused, never stored short."""
     need = best_of // 2 + 1
     wins = collections.Counter(g["winner"] for g in games if g.get("winner"))
-    if wins and max(wins.values()) >= need:
-        return True
-    return now_ts - max(g["start_time"] for g in games) > 12 * 3600
+    return bool(wins) and max(wins.values()) >= need
+
+
+SPLIT_SERIES_GAP_SECONDS = 3 * 3600
+
+
+def summary_winner(g):
+    """The winning team's id in a /proMatches summary."""
+    return g.get("radiant_team_id") if g.get("radiant_win") else g.get("dire_team_id")
+
+
+def group_series(summaries):
+    """[(key, best_of, games)] from /proMatches summaries.
+
+    By series_id first. OpenDota sometimes files the games of one series
+    under different ids (a lobby recreated between games): on 2026-10-20
+    Chandogs and Team Revenant played a Bo3's games 70 minutes apart under
+    series 1157384 and 1157387. So an unfinished group is merged into
+    another unfinished group of the same two teams in the same league when
+    its first game starts within three hours of the other's last. A genuine
+    rematch the same day is a FINISHED series by then and is never merged."""
+    groups = collections.defaultdict(list)
+    for g in summaries:
+        groups[series_key(g)].append(g)
+    items = []
+    for key, games in groups.items():
+        games.sort(key=lambda g: g["start_time"])
+        items.append({"key": key, "games": games,
+                      "best_of": BEST_OF.get(games[0].get("series_type"), 1)})
+    items.sort(key=lambda it: it["games"][0]["start_time"])
+
+    def pair(it):
+        g = it["games"][0]
+        return (g.get("leagueid"), frozenset((g.get("radiant_team_id"), g.get("dire_team_id"))))
+
+    def done(it):
+        return is_finished([{"winner": summary_winner(g)} for g in it["games"]], it["best_of"])
+
+    merged = []
+    for it in items:
+        target = None
+        if not done(it):
+            for prev in reversed(merged):
+                if (pair(prev) == pair(it) and not done(prev) and prev["best_of"] == it["best_of"]
+                        and 0 <= it["games"][0]["start_time"] - prev["games"][-1]["start_time"]
+                        <= SPLIT_SERIES_GAP_SECONDS):
+                    target = prev
+                    break
+        if target:
+            target["games"].extend(it["games"])
+        else:
+            merged.append(it)
+    return [(it["key"], it["best_of"], it["games"]) for it in merged]
 
 
 def build_series(key, games, best_of, league):
@@ -306,13 +367,29 @@ def stored_game_ids(past_matches):
 
 # ---------------------------------------------------------------------- run
 
+def series_complete(m):
+    """Whether a STORED series reached a winner, read off its score."""
+    try:
+        wins = [int(x) for x in str(m.get("score") or "").split("-")]
+    except ValueError:
+        return False
+    return len(wins) == 2 and max(wins) >= (m.get("best_of") or 1) // 2 + 1
+
+
 def load_previous(path=OUT):
+    """Last run's series and teams. A stored series that never reached a
+    winner (the first run kept 17 such Bo3s at 1-0) is dropped here, so its
+    games are fetched again and grouped with the rest of their series."""
     try:
         with open(path) as f:
             region = (json.load(f).get("regions") or {}).get(REGION) or {}
-        return region.get("past_matches") or [], region.get("teams") or {}
     except (OSError, ValueError):
         return [], {}
+    kept = [m for m in region.get("past_matches") or [] if series_complete(m)]
+    dropped = len(region.get("past_matches") or []) - len(kept)
+    if dropped:
+        print(f"  dropped {dropped} stored series that never reached a winner")
+    return kept, region.get("teams") or {}
 
 
 def main():
@@ -338,21 +415,19 @@ def main():
 
     # Whole series only: every game of a series is needed to build it, so a
     # series is fetched as a unit, newest first, until the budget runs out.
-    by_series = collections.defaultdict(list)
-    for g in summaries:
-        by_series[series_key(g)].append(g)
+    series = group_series(summaries)
     stored_series = {m["match_id"] for m in previous}
     pro = get("/proPlayers") or []
     pro_names = {p["account_id"]: p["name"] for p in pro if p.get("account_id") and p.get("name")}
     team_names = {}
 
     fresh, fetched, skipped = [], 0, collections.Counter()
-    for key, games in sorted(by_series.items(), key=lambda kv: -max(g["start_time"] for g in kv[1])):
-        best_of = BEST_OF.get(games[0].get("series_type"), 1)
-        quick = [{"winner": (g.get("radiant_name") if g.get("radiant_win") else g.get("dire_name")),
-                  "start_time": g["start_time"]} for g in games]
-        if not is_finished(quick, best_of, now.timestamp()):
-            skipped["still being played"] += 1
+    for key, best_of, games in sorted(series, key=lambda s: -s[2][-1]["start_time"]):
+        if any(EXCLUDED_LEAGUE_WORDS & set(str(g.get("league_name") or "").lower().split()) for g in games):
+            skipped["a streamer or show league"] += 1
+            continue
+        if not is_finished([{"winner": summary_winner(g)} for g in games], best_of):
+            skipped["unfinished (still being played, or never completed)"] += 1
             continue
         if f"dota-{key}" in stored_series and all(g["match_id"] in have for g in games):
             continue
@@ -382,9 +457,15 @@ def main():
         fresh.append(build_series(key, built, best_of, games[0].get("league_name")))
 
     past = merge_past_matches(previous, fresh)
-    teams = build_teams(past, previous_teams)
-    payload = {"teams": teams, "past_matches": past, "upcoming_matches": [],
-               "refreshed_at": now.isoformat()}
+    payload = {"teams": build_teams(past, previous_teams), "past_matches": past,
+               "upcoming_matches": [], "refreshed_at": now.isoformat()}
+    # One team, one name, as CS2 learned: "SHADOW DANCE" and "Shadow Dance"
+    # were two teams on the first run, each projecting off half its games.
+    renames, _ = reconcile(payload)
+    if renames:
+        print(f"folded {len(renames)} duplicate team spelling(s): {renames}")
+        payload["teams"] = build_teams(payload["past_matches"], previous_teams)
+    teams = payload["teams"]
     with open(OUT, "w") as f:
         json.dump({"generated_at": now.isoformat(), "regions": {REGION: payload}}, f, separators=(",", ":"))
     print(f"wrote {OUT}: {len(teams)} teams, {len(past)} series "
