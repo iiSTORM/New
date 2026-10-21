@@ -331,9 +331,9 @@ class TestEndToEnd:
         written = json.loads(out.read_text())
         datetime.fromisoformat(written["fetched_at"])  # raises if malformed
         assert written["source"] == "prizepicks"
-        # All three games, because a payload covering three and a props.json
+        # Every game, because a payload covering four and a props.json
         # covering one is the shape of a silently half-broken run.
-        assert set(written["props"]) == {"lol", "cs2", "valorant"}
+        assert set(written["props"]) == {"lol", "cs2", "valorant", "dota2"}
 
         total = 0
         for game, players in written["props"].items():
@@ -645,7 +645,7 @@ class TestRefusesToWipeGoodLines:
         assert run(monkeypatch, ["--fixture", str(self._empty_payload(tmp_path)),
                                  "--out", str(out)]) == 0
         assert json.loads(out.read_text())["props"] == {
-            "cs2": {}, "lol": {}, "valorant": {}}
+            "cs2": {}, "lol": {}, "valorant": {}, "dota2": {}}
 
     def test_wiping_an_existing_file_fails_the_run(self, tmp_path, monkeypatch, live_payload):
         saved = tmp_path / "payload.json"
@@ -909,3 +909,27 @@ class TestComboHistory:
         assert lol[0]["maps"] == 3 and lol[0]["stat"] == "kills"
         # And the guard above sent the record to the temporary file.
         assert (tmp_path / "combo_history.jsonl").exists()
+
+
+def test_a_dota_line_reaches_the_board(tmp_path, monkeypatch):
+    """A Dota 2 line on a saved board, for a player on the committed roster,
+    is parsed under the Dota league (either spelling) and lands in
+    props["dota2"], matched to the player's team."""
+    data = json.loads((Path(__file__).resolve().parent.parent / "dota_data.json").read_text())
+    teams = data["regions"]["Dota 2"]["teams"]
+    team, roster = next((t, v) for t, v in teams.items() if v["players"])
+    name = roster["players"][0]["name"]
+    for league in ("Dota2", "DOTA 2"):
+        payload = {"data": [{"type": "projection", "id": "d1", "attributes":
+                             {"stat_type": "MAPS 1-2 Kills", "line_score": 9.5,
+                              "start_time": "2099-01-01T10:00:00-04:00", "odds_type": "standard"},
+                             "relationships": {"new_player": {"data": {"type": "new_player", "id": "1"}}}}],
+                   "included": [{"type": "new_player", "id": "1", "attributes":
+                                 {"display_name": name, "team": team, "league": league}}]}
+        assert sp.parse_prizepicks(payload, sp.GAMES["dota2"]["leagues"]), league
+        saved, out = tmp_path / f"{league}.json", tmp_path / f"props_{league}.json"
+        saved.write_text(json.dumps(payload))
+        assert run(monkeypatch, ["--fixture", str(saved), "--out", str(out)]) == 0
+        written = json.loads(out.read_text())
+        lines = [l for ls in written["props"].get("dota2", {}).values() for l in ls]
+        assert lines and lines[0]["team"] == team and lines[0]["maps"] == 2, league

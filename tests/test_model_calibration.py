@@ -68,9 +68,9 @@ def test_the_kp_baseline_comes_from_the_data_not_a_constant(game):
     the old literal 66 is nowhere near that range, so anyone who pins a
     constant back in — for any of the perfectly reasonable-sounding
     reasons a constant gets pinned in — trips this rather than shipping
-    another silent one-sided layer. LoL is exempt from the second check
-    by measurement, not by exception: 66 really is its scale, which is
-    exactly why the bug survived so long.
+    another silent one-sided layer. LoL and Dota 2 are exempt from the
+    second check by measurement, not by exception: 66 really is the MOBA
+    scale, which is exactly why the bug survived so long.
     """
     kps = [p["cur"]["kp"] for p in _players(game)
            if isinstance(p.get("cur", {}).get("kp"), (int, float)) and p["cur"]["kp"] > 0]
@@ -81,8 +81,11 @@ def test_the_kp_baseline_comes_from_the_data_not_a_constant(game):
         f"{game}: baseline {baseline:.1f} sits outside the observed range "
         f"{min(kps):.1f}-{max(kps):.1f}")
     fallback_fits = min(kps) <= ow.LEAGUE_AVG_KP_FALLBACK <= max(kps)
-    if game == "lol":
-        assert fallback_fits, "the fallback should still suit the game it was written for"
+    if game in ("lol", "dota2"):
+        # Dota is a MOBA too: kills plus assists over the team's score sits
+        # on League's scale (13-100%, around the same 66), measured on the
+        # first OpenDota backfill.
+        assert fallback_fits, "the fallback should still suit the MOBA scale it was written for"
     else:
         assert not fallback_fits, (
             f"{game}: kp runs {min(kps):.1f}-{max(kps):.1f}, so the "

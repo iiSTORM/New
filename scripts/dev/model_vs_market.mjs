@@ -97,7 +97,7 @@ const app = new Function("React", "ReactDOM", "window", "document", "fetch", "lo
 
 const resultsPath = process.argv[2] || path.join(root, "props_results.json");
 const results = JSON.parse(fs.readFileSync(resultsPath, "utf8"));
-const FILES = { lol: "data.json", valorant: "valorant_data.json", cs2: "cs2_data.json" };
+const FILES = { lol: "data.json", valorant: "valorant_data.json", cs2: "cs2_data.json", dota2: "dota_data.json" };
 const W = app.DEFAULT_WEIGHTS_BY_GAME_AND_STAT;
 
 let all = [];

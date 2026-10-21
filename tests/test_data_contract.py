@@ -26,6 +26,7 @@ SERVED_FILES = {
     "data.json": "career",
     "valorant_data.json": None,
     "cs2_data.json": "career_games",
+    "dota_data.json": None,
 }
 CORE_PLAYER_FIELDS = {"name", "role", "cur", "hist"}
 

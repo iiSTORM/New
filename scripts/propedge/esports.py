@@ -67,9 +67,9 @@ sys.path.insert(0, os.path.join(jsconfig.REPO_ROOT, "scripts", "dev"))
 #: Imported rather than reimplemented: one model, one set of weights.
 import optimize_weights as ow  # noqa: E402
 
-GAMES = ("cs2", "valorant", "lol")
+GAMES = ("cs2", "valorant", "lol", "dota2")
 SOURCES = {"cs2": "cs2_data.json", "lol": "data.json",
-           "valorant": "valorant_data.json"}
+           "valorant": "valorant_data.json", "dota2": "dota_data.json"}
 #: Regions that are an EVENT rather than a league, whose matches belong to the
 #: form of players who mostly play elsewhere. A Valorant team is listed in its
 #: league and again at Champions, so a player's recent form is split across two

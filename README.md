@@ -682,6 +682,45 @@ CI fails if `index.html` does not match `src/`. A stale `index.html` would
 ship an app that disagrees with its own source, and the diff would be
 invisible in review because it would simply be missing.
 
+## Dota 2
+
+Dota 2 is the fourth game. `scripts/scrape_dota.py` (the `scrape-dota` job,
+twice a day with the others) reads **OpenDota**, which is free and needs no
+key, and writes `dota_data.json` in exactly the shape of `cs2_data.json`: one
+region, "Dota 2", covering tier 1 and 2 pro play (OpenDota's league tiers
+"premium" and "professional").
+
+It is built on what the other three games taught:
+
+- **Series, not games.** Games are grouped by series and put in map order; the
+  `actual` total covers maps 1-2 and `per_game` keeps every map, so map-1,
+  maps 1-2 and maps 1-3 lines can all be graded against the maps they name.
+- **A start time on every series**, so a team's two series in one day are
+  told apart (75 League lines went ungraded for want of it).
+- **Only finished series**, never a 1-0 in a Bo3 still being played.
+- **Teams by id**, named by their latest name; **short sides refused**.
+- **Positions 1-5** from each player's lane and farm, so the Record tab splits
+  Dota by position the way it splits League by lane.
+- **Incremental**: a game already stored is never fetched again, so each run
+  costs only the new games and the first runs backfill sixty days.
+
+**The model.** Same model as the other games, with Dota's own weights, chosen
+walk-forward on the first backfill (2,235 player-series, 6 chronological
+folds, a value adopted only when it wins a majority of folds): kills error
+4.73 → 4.65 (−1.7%), deaths 3.81 → 3.77, assists 8.10 → 7.97. Team kill share
+and lighter shrinkage carry most of it; career and history are inert, as in
+CS2. Kill participation is on League's scale (it is a MOBA), and is measured
+against the team's score, since a tower or creep kill credits assists. Every
+set is recorded in `validated_weights.json`, the app and the Python port agree
+on every Dota projection (`model_parity`), and the error scale per map window
+is in `RESIDUAL_SCALE`. All of it was fitted on a short window: re-run
+`sweep_weight.py --game dota2` once the 60-day backfill is complete.
+
+OpenDota has no schedule, so Dota fixtures come from the posted board
+(`infer_fixtures.py dota2`). Lines are read from the board under the
+PrizePicks league "Dota2"; the league id (believed 174) is used only for a
+league-filtered fetch. Dota news comes from two Google News searches.
+
 ## News
 
 The menu's **News** page collects news for every game in one place.

@@ -38,7 +38,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import optimize_weights as ow  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-GAMES = {"lol": "data.json", "valorant": "valorant_data.json", "cs2": "cs2_data.json"}
+GAMES = {"lol": "data.json", "valorant": "valorant_data.json", "cs2": "cs2_data.json",
+         "dota2": "dota_data.json"}
 
 
 def shipped_weights():

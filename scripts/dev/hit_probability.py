@@ -35,7 +35,8 @@ import optimize_weights as ow
 import evidence_vs_accuracy as ev
 import edge_realization as er
 
-SOURCES = {"lol": "data.json", "valorant": "valorant_data.json", "cs2": "cs2_data.json"}
+SOURCES = {"lol": "data.json", "valorant": "valorant_data.json", "cs2": "cs2_data.json",
+           "dota2": "dota_data.json"}
 
 # The same buckets edge_realization uses, so a row's evidence tier means one
 # thing across the whole measurement apparatus.

@@ -23,6 +23,7 @@ Outputs:
      the average down or behaving very differently from the rest.
 """
 import argparse
+import os
 import json
 import re
 import sys
@@ -67,6 +68,12 @@ SHIPPED_WEIGHTS = {
         "deaths":   {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0, "share": 0.4, "shrink": 3.0},
         "assists":  {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 1.0, "share": 0.0, "shrink": 4.0},
         "headshots": {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 0.8, "share": 0.3, "shrink": 3.0},
+    },
+    "dota2": {
+        "kills":    {"history": 0.0, "opponent": 0.6, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 0.0, "share": 0.6, "shrink": 2.0},
+        "deaths":   {"history": 0.0, "opponent": 0.1, "kp": 0.0, "recencyHalfLife": 6, "patchDiscount": 0.0, "career": 0.0, "share": 0.3, "shrink": 2.0},
+        "assists":  {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 6, "patchDiscount": 0.0, "career": 0.0, "share": 0.7, "shrink": 2.0},
+        "headshots": {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 0.0, "share": 0.0, "shrink": 0.0},
     },
 }
 
@@ -1497,10 +1504,11 @@ def main():
     # Derived, not listed: a stat added to STAT_TYPES is immediately
     # available here rather than failing on an "invalid choice" from a
     # copy of the list that nobody remembered to update.
-    ap.add_argument("--game", choices=["lol", "valorant", "cs2", "all"], default="all")
+    ap.add_argument("--game", choices=["lol", "valorant", "cs2", "dota2", "all"], default="all")
     ap.add_argument("--data", default="data.json")
     ap.add_argument("--valorant-data", default="valorant_data.json")
     ap.add_argument("--cs2-data", default="cs2_data.json")
+    ap.add_argument("--dota-data", default="dota_data.json")
     ap.add_argument("--diagnose-opponent", action="store_true",
                      help="Investigate whether the opponent-strength signal correlates with real "
                           "outcomes, and whether it improves once the opponent has more prior games "
@@ -1527,6 +1535,8 @@ def main():
         region_data.update(load_region_data(args.valorant_data))
     if args.game in ("cs2", "all"):
         region_data.update(load_region_data(args.cs2_data))
+    if args.game in ("dota2", "all") and os.path.exists(args.dota_data):
+        region_data.update(load_region_data(args.dota_data))
 
     if not region_data:
         print("No region data loaded — check --data / --valorant-data / --cs2-data paths point at "

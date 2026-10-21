@@ -138,7 +138,7 @@ class TestEachRecordSaysSomething:
     def test_the_only_unreachable_sets_are_headshots_outside_cs2(self, recorded, shipped):
         unreachable = {(game, stat) for game, stats in recorded.items()
                        for stat, record in stats.items() if record.get("unreachable")}
-        assert unreachable == {("lol", "headshots"), ("valorant", "headshots")}, \
+        assert unreachable == {("lol", "headshots"), ("valorant", "headshots"), ("dota2", "headshots")}, \
             f"unexpected set marked unreachable: {sorted(unreachable)}"
 
 

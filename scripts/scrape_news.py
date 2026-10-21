@@ -52,9 +52,12 @@ FEEDS = [
     ("cs2", "HLTV", "https://www.hltv.org/rss/news"),
     ("cs2", "Google News", GOOGLE + "%22Counter-Strike%22+esports+when:7d"),
     ("cs2", "Google News", GOOGLE + "CS2+roster+when:14d"),
+    ("dota2", "Google News", GOOGLE + "%22Dota+2%22+esports+when:7d"),
+    ("dota2", "Google News", GOOGLE + "Dota+2+roster+OR+stand-in+when:14d"),
 ]
 
-DATA_FILES = {"lol": "data.json", "valorant": "valorant_data.json", "cs2": "cs2_data.json"}
+DATA_FILES = {"lol": "data.json", "valorant": "valorant_data.json", "cs2": "cs2_data.json",
+              "dota2": "dota_data.json"}
 
 # ---------------------------------------------------------------- the rules
 #

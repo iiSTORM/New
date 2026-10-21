@@ -153,6 +153,13 @@ try {
       accentSoft: "#4CD9FF1c",
       accentBorder: "#4CD9FF5c",
       name: "Ion Cyan"
+    },
+    dota2: {
+      accent: "#FF6B4A",
+      accent2: "#C9302C",
+      accentSoft: "#FF6B4A1c",
+      accentBorder: "#FF6B4A5c",
+      name: "Ember"
     }
   };
   const OVERRIDE_PARTNER = "#B58CFF";
@@ -647,9 +654,13 @@ try {
       if (entry && entry.from_home_region) {
         home = entry.from_home_region;
       } else {
+        const isEvent = key => /champions/i.test(key) || Object.values(GAMES).some(g => (g.optionalRegions || []).includes(key));
+        const holders = Object.keys(regionsData).filter(k => regionsData[k] && (regionsData[k].teams || {})[teamName]);
+        const leaguesOnly = holders.some(k => !isEvent(k));
         let best = -1;
         for (const [key, rd] of Object.entries(regionsData)) {
           if (!rd || !(rd.teams || {})[teamName]) continue;
+          if (leaguesOnly && isEvent(key)) continue;
           let played = 0;
           for (const m of rd.past_matches || []) {
             if (m.teamA === teamName || m.teamB === teamName) played += 1;
@@ -771,6 +782,20 @@ try {
       },
       assists: {
         2: 4.31
+      }
+    },
+    dota2: {
+      kills: {
+        1: 4.08,
+        2: 5.20
+      },
+      deaths: {
+        1: 2.71,
+        2: 4.71
+      },
+      assists: {
+        1: 7.15,
+        2: 10.24
       }
     }
   };
@@ -1760,7 +1785,7 @@ try {
     byKey.set(key, roles);
     return roles;
   }
-  const ROLE_ORDER = ["TOP", "JNG", "MID", "BOT", "SUP"];
+  const ROLE_ORDER = ["TOP", "JNG", "MID", "BOT", "SUP", "POS1", "POS2", "POS3", "POS4", "POS5"];
   function recordByRole(rows) {
     return recordByGroup(rows, r => r.role ? {
       label: r.role,
@@ -1988,7 +2013,8 @@ try {
     gear: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1",
     lol: "M12 2 21 7v10l-9 5-9-5V7zM12 7l4.5 2.5v5L12 17l-4.5-2.5v-5z",
     valorant: "M3 4l8.5 16H15L6.5 4zM21 4h-3.6l-4.2 8 1.8 3.4z",
-    cs2: "M12 3v5M12 16v5M3 12h5M16 12h5M12 7.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z"
+    cs2: "M12 3v5M12 16v5M3 12h5M16 12h5M12 7.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z",
+    dota2: "M4 4l5 1 10 10 1 5-5-1L5 9zM4 20l4-4M20 4l-4 4"
   };
   function Icon({
     name,
@@ -2074,6 +2100,7 @@ try {
   const DATA_URL_LOL = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/data.json";
   const DATA_URL_VALORANT = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/valorant_data.json";
   const DATA_URL_CS2 = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/cs2_data.json";
+  const DATA_URL_DOTA = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/dota_data.json";
   const DATA_URL_CHAMPION_STATS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/champion_stats.json";
   const DATA_URL_PROPS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props.json";
   const DATA_URL_SCHEDULE = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/schedule.json";
@@ -3208,6 +3235,13 @@ try {
       upcoming_matches: []
     }
   };
+  const FALLBACK_REGIONS_DOTA = {
+    "Dota 2": {
+      teams: {},
+      past_matches: [],
+      upcoming_matches: []
+    }
+  };
   const GAMES = {
     lol: {
       label: "League of Legends",
@@ -3251,6 +3285,15 @@ try {
         CS2: "Top Teams"
       },
       fallbackRegions: FALLBACK_REGIONS_CS2
+    },
+    dota2: {
+      label: "Dota 2",
+      dataUrl: DATA_URL_DOTA,
+      regionList: ["Dota 2"],
+      regionLabels: {
+        "Dota 2": "Pro Teams"
+      },
+      fallbackRegions: FALLBACK_REGIONS_DOTA
     }
   };
   const GAME_LIST = Object.keys(GAMES);
@@ -4001,6 +4044,48 @@ try {
         career: 0.8,
         share: 0.3,
         shrink: 3.0
+      }
+    },
+    dota2: {
+      kills: {
+        history: 0.0,
+        opponent: 0.6,
+        kp: 0.0,
+        recencyHalfLife: 20,
+        patchDiscount: 0.0,
+        career: 0.0,
+        share: 0.6,
+        shrink: 2.0
+      },
+      deaths: {
+        history: 0.0,
+        opponent: 0.1,
+        kp: 0.0,
+        recencyHalfLife: 6,
+        patchDiscount: 0.0,
+        career: 0.0,
+        share: 0.3,
+        shrink: 2.0
+      },
+      assists: {
+        history: 0.0,
+        opponent: 0.0,
+        kp: 0.0,
+        recencyHalfLife: 6,
+        patchDiscount: 0.0,
+        career: 0.0,
+        share: 0.7,
+        shrink: 2.0
+      },
+      headshots: {
+        history: 0.0,
+        opponent: 0.0,
+        kp: 0.0,
+        recencyHalfLife: 20,
+        patchDiscount: 0.0,
+        career: 0.0,
+        share: 0.0,
+        shrink: 0.0
       }
     }
   };
@@ -9735,7 +9820,8 @@ try {
   const GAME_SHORT = {
     lol: "LoL",
     valorant: "Valorant",
-    cs2: "CS2"
+    cs2: "CS2",
+    dota2: "Dota 2"
   };
   function GameSwitcher({
     game,
@@ -9748,7 +9834,7 @@ try {
       "aria-label": "Game",
       style: {
         display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
+        gridTemplateColumns: "repeat(2, 1fr)",
         gap: 8,
         marginBottom: 14
       }
@@ -11845,7 +11931,7 @@ try {
         color: theme.textFaint,
         lineHeight: 1.6
       }
-    }, "Data: ", game === "lol" ? "box scores (gol.gg) and schedule (LoL Esports API)" : game === "cs2" ? "match stats and schedule (bo3.gg)" : "match stats (VLR.gg)", "."))))))));
+    }, "Data: ", game === "lol" ? "box scores (gol.gg) and schedule (LoL Esports API)" : game === "cs2" ? "match stats and schedule (bo3.gg)" : game === "dota2" ? "pro match stats (OpenDota); fixtures from the posted board" : "match stats (VLR.gg)", "."))))))));
   }
   const PE_SIGN = {
     deposit: 1,
@@ -14357,7 +14443,8 @@ try {
   const NEWS_GAMES = {
     lol: "LoL",
     valorant: "Valorant",
-    cs2: "CS2"
+    cs2: "CS2",
+    dota2: "Dota 2"
   };
   let newsRequest = null;
   function useNews() {

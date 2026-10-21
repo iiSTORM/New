@@ -47,7 +47,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import optimize_weights as ow
 
-SOURCES = {"lol": "data.json", "valorant": "valorant_data.json", "cs2": "cs2_data.json"}
+SOURCES = {"lol": "data.json", "valorant": "valorant_data.json", "cs2": "cs2_data.json",
+           "dota2": "dota_data.json"}
 
 # A player needs a real sample before their own mean is an estimate of
 # anything; below this they contribute noise to the denominator instead.

@@ -91,7 +91,7 @@ const app = new Function("React", "ReactDOM", "window", "document", "fetch", "lo
   { getElementById: () => null, addEventListener() {}, removeEventListener() {} },
   () => new Promise(() => {}), win.localStorage, console);
 
-const FILES = { lol: "data.json", cs2: "cs2_data.json", valorant: "valorant_data.json" };
+const FILES = { lol: "data.json", cs2: "cs2_data.json", valorant: "valorant_data.json", dota2: "dota_data.json" };
 const GRID = Array.from({ length: 81 }, (_, i) => 0.5 + 0.01 * i);
 const absErr = (rows, m) => rows.reduce((a, r) => a + Math.abs(r.actual - m * r.proj), 0);
 const bestMultiplier = (rows) => (rows.length < 100 ? 1 : GRID.reduce((best, m) => (absErr(rows, m) < absErr(rows, best) ? m : best), 1));
@@ -99,6 +99,7 @@ const results = JSON.parse(fs.readFileSync(path.join(root, "props_results.json")
 
 for (const [game, file] of Object.entries(FILES)) {
   if (ONLY && game !== ONLY) continue;
+  if (!fs.existsSync(path.join(root, file))) continue;
   const data = JSON.parse(fs.readFileSync(path.join(root, file), "utf8"));
   const weights = app.DEFAULT_WEIGHTS_BY_GAME_AND_STAT[game].kills;
 

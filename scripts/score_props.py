@@ -57,6 +57,7 @@ GAME_DATA = {
     "lol": "data.json",
     "cs2": "cs2_data.json",
     "valorant": "valorant_data.json",
+    "dota2": "dota_data.json",
 }
 
 # What a series total covers when the match carries no per-map breakdown

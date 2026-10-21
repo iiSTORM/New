@@ -35,6 +35,7 @@ const GAME_ACCENTS = {
   lol: { accent: "#F6C45E", accent2: "#FF5FA2", accentSoft: "#F6C45E1c", accentBorder: "#F6C45E5c", name: "Solar Amber" },
   valorant: { accent: "#FF5C74", accent2: "#FFB05C", accentSoft: "#FF5C741c", accentBorder: "#FF5C745c", name: "Coral Red" },
   cs2: { accent: "#4CD9FF", accent2: "#8B6CFF", accentSoft: "#4CD9FF1c", accentBorder: "#4CD9FF5c", name: "Ion Cyan" },
+  dota2: { accent: "#FF6B4A", accent2: "#C9302C", accentSoft: "#FF6B4A1c", accentBorder: "#FF6B4A5c", name: "Ember" },
 };
 const OVERRIDE_PARTNER = "#B58CFF";
 
@@ -440,9 +441,20 @@ function homeRegionLookup(regionsData, regionKey) {
       // tagged as a visitor in its own league. Counting the tab too
       // makes Pacific win on matches and the tag disappear, which is
       // the same comparison answering both questions.
+      //
+      // AN EVENT IS NEVER A HOME. A team that goes deep at Champions can
+      // have more stored matches there than in its league (Team Vitality,
+      // 2026-10-21), and "most matches" then named the event itself, so the
+      // team went untagged on the event's own board. Events are counted only
+      // for a team that appears nowhere else.
+      const isEvent = (key) => /champions/i.test(key)
+        || Object.values(GAMES).some((g) => (g.optionalRegions || []).includes(key));
+      const holders = Object.keys(regionsData).filter((k) => regionsData[k] && (regionsData[k].teams || {})[teamName]);
+      const leaguesOnly = holders.some((k) => !isEvent(k));
       let best = -1;
       for (const [key, rd] of Object.entries(regionsData)) {
         if (!rd || !(rd.teams || {})[teamName]) continue;
+        if (leaguesOnly && isEvent(key)) continue;
         let played = 0;
         for (const m of rd.past_matches || []) {
           if (m.teamA === teamName || m.teamB === teamName) played += 1;
@@ -626,6 +638,14 @@ const RESIDUAL_SCALE = {
     kills:   { 2: 7.49 },
     deaths:  { 2: 5.17 },
     assists: { 2: 4.31 },
+  },
+  // Dota 2, from the first OpenDota backfill (313 series). The one-map
+  // scale is measured on the 32 Bo1 series only, so a map-1 line in a Bo3
+  // borrows it; re-measure once the backfill is complete.
+  dota2: {
+    kills:   { 1: 4.08, 2: 5.20 },
+    deaths:  { 1: 2.71, 2: 4.71 },
+    assists: { 1: 7.15, 2: 10.24 },
   },
 };
 
@@ -2141,7 +2161,8 @@ function cs2RolesBefore(pastMatches, teams, team, cutoffDate) {
   return roles;
 }
 
-const ROLE_ORDER = ["TOP", "JNG", "MID", "BOT", "SUP"];
+// League lanes, then Dota positions 1-5 (scripts/scrape_dota.py: lane and farm).
+const ROLE_ORDER = ["TOP", "JNG", "MID", "BOT", "SUP", "POS1", "POS2", "POS3", "POS4", "POS5"];
 function recordByRole(rows) {
   // League rows group by position; CS2 and Valorant rows, which have none,
   // by kill rank on the team (teamKillSeat). A row with neither is left out.
@@ -2432,6 +2453,7 @@ const ICON_PATHS = {
   lol: "M12 2 21 7v10l-9 5-9-5V7zM12 7l4.5 2.5v5L12 17l-4.5-2.5v-5z",
   valorant: "M3 4l8.5 16H15L6.5 4zM21 4h-3.6l-4.2 8 1.8 3.4z",
   cs2: "M12 3v5M12 16v5M3 12h5M16 12h5M12 7.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z",
+  dota2: "M4 4l5 1 10 10 1 5-5-1L5 9zM4 20l4-4M20 4l-4 4",
 };
 function Icon({ name, size = 16, color = "currentColor", stroke = 1.8, style }) {
   return (
@@ -2465,6 +2487,7 @@ function Reticle({ size = 16, color, active = false }) {
 const DATA_URL_LOL = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/data.json";
 const DATA_URL_VALORANT = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/valorant_data.json";
 const DATA_URL_CS2 = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/cs2_data.json";
+const DATA_URL_DOTA = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/dota_data.json";
 // Champion-level stat baselines (scripts/aggregate_champion_stats.py) —
 // LoL-only for now, and not tied to the per-game GAMES fetch loop below
 // since it's a standalone reference table, not one game's live snapshot.
@@ -2700,6 +2723,10 @@ const FALLBACK_REGIONS_CS2 = {
   CS2: { teams: {}, past_matches: [], upcoming_matches: [] },
 };
 
+const FALLBACK_REGIONS_DOTA = {
+  "Dota 2": { teams: {}, past_matches: [], upcoming_matches: [] },
+};
+
 /* ============================================================
    GAMES — everything that differs between League of Legends and
    Valorant lives in this one config. Every component below this
@@ -2744,6 +2771,17 @@ const GAMES = {
     regionList: ["CS2"],
     regionLabels: { CS2: "Top Teams" },
     fallbackRegions: FALLBACK_REGIONS_CS2,
+  },
+  dota2: {
+    label: "Dota 2",
+    dataUrl: DATA_URL_DOTA,
+    // Global like CS2: tier 1 and 2 pro series (OpenDota league tiers
+    // "premium" and "professional") in one region. OpenDota has no
+    // schedule, so fixtures come from the posted board
+    // (scripts/infer_fixtures.py dota2).
+    regionList: ["Dota 2"],
+    regionLabels: { "Dota 2": "Pro Teams" },
+    fallbackRegions: FALLBACK_REGIONS_DOTA,
   },
 };
 const GAME_LIST = Object.keys(GAMES);
@@ -4420,6 +4458,25 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // to noise. Recency is likewise flat — 6, 12 and 20 sit within 0.3pp
     // — and pinned at the no-decay end.
     headshots: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 0.8, share: 0.3, shrink: 3.0 },
+  },
+  // Dota 2, chosen walk-forward on the first OpenDota backfill (2,235
+  // player-series, 6 chronological folds; scripts/dev/sweep_weight.py's
+  // rule, coordinate by coordinate: a value is adopted only when it wins a
+  // MAJORITY of folds and lowers the mean). No career file and no
+  // previous-split history (hist is null), so career and history are inert,
+  // as for CS2. What each set bought is in validated_weights.json:
+  //   kills   4.728 -> 4.648 (-1.7%): shrink 4 -> 2, share 0.2 -> 0.6,
+  //           opponent 0.2 -> 0.6, kp 0.3 -> 0, recency 6 -> 20 (no decay)
+  //   deaths  3.812 -> 3.768 (-1.2%): shrink 4 -> 2, share 0.3, opponent 0.1
+  //   assists 8.099 -> 7.968 (-1.6%): share 0.7, shrink 2, opponent 0, kp 0
+  // A sub-noise step (kills shrink 2 -> 1, 0.0003 of a kill) was NOT taken.
+  // Spread ratios 0.79 / 0.90 / 0.72 clear the 0.55 floor. Fitted on a
+  // short window: re-run once the 60-day backfill is complete.
+  dota2: {
+    kills:     { history: 0.0, opponent: 0.6, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 0.0, share: 0.6, shrink: 2.0 },
+    deaths:    { history: 0.0, opponent: 0.1, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.0, career: 0.0, share: 0.3, shrink: 2.0 },
+    assists:   { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.0, career: 0.0, share: 0.7, shrink: 2.0 },
+    headshots: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 0.0, share: 0.0, shrink: 0.0 },  // unreachable: CS2-only stat
   },
 };
 
@@ -8384,14 +8441,15 @@ function formatUpcoming(rawList) {
    button row, so choosing a game feels like a real mode switch rather than
    just another selector competing for space with region/view/stat. ---------- */
 
-const GAME_SHORT = { lol: "LoL", valorant: "Valorant", cs2: "CS2" };
+const GAME_SHORT = { lol: "LoL", valorant: "Valorant", cs2: "CS2", dota2: "Dota 2" };
 
-/* Three tiles rather than a dropdown: there are only three games, and a
-   menu hid two of them behind a click. Each tile wears its own game's
-   gradient, so the switcher previews where it leads. */
+/* Tiles rather than a dropdown: there are only four games, and a menu hid
+   them behind a click. Each tile wears its own game's gradient, so the
+   switcher previews where it leads. Two by two: three across left Dota alone
+   on a second row, and four across does not fit the sidebar. */
 function GameSwitcher({ game, selectGame, statusByGame, theme }) {
   return (
-    <div role="group" aria-label="Game" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 14 }}>
+    <div role="group" aria-label="Game" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, marginBottom: 14 }}>
       {GAME_LIST.map((id) => {
         const g = GAME_ACCENTS[id];
         const on = id === game;
@@ -9868,7 +9926,8 @@ function KillProjector({ onHome } = {}) {
 
             <div style={{ marginTop: 20, fontSize: 11, color: theme.textFaint, lineHeight: 1.6 }}>
               Data: {game === "lol" ? "box scores (gol.gg) and schedule (LoL Esports API)"
-                : game === "cs2" ? "match stats and schedule (bo3.gg)" : "match stats (VLR.gg)"}.
+                : game === "cs2" ? "match stats and schedule (bo3.gg)"
+                : game === "dota2" ? "pro match stats (OpenDota); fixtures from the posted board" : "match stats (VLR.gg)"}.
             </div>
           </div>
         </div>
@@ -11483,7 +11542,7 @@ function MainMenu({ isDesktop, go }) {
    Not used by the projections. The grades are being collected so that,
    once there are enough, whether a negative item predicts a miss can be
    measured before anything acts on it. */
-const NEWS_GAMES = { lol: "LoL", valorant: "Valorant", cs2: "CS2" };
+const NEWS_GAMES = { lol: "LoL", valorant: "Valorant", cs2: "CS2", dota2: "Dota 2" };
 
 // One fetch per page load, shared: every fixture card asks for it.
 let newsRequest = null;

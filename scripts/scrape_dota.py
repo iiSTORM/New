@@ -153,13 +153,19 @@ def game_box(detail, pro_names, team_names):
         tid = t.get("team_id") or detail.get("radiant_team_id" if is_radiant else "dire_team_id")
         if not tid:
             return None
-        names[is_radiant] = team_names.get(tid) or t.get("name") or f"team {tid}"
+        names[is_radiant] = (team_names.get(tid) or t.get("name") or f"team {tid}").strip()
     box = {names[True]: {}, names[False]: {}}
     for is_radiant in (True, False):
         side = [p for p in detail.get("players") or [] if bool(p.get("isRadiant")) == is_radiant]
         if len(side) != SIDE_SIZE or any(p.get("account_id") is None for p in side):
             return None
-        team_kills = sum(p.get("kills") or 0 for p in side)
+        # The TEAM'S score, not the sum of its players' kills: a hero finished
+        # by a tower or a creep scores for the team and credits assists, so
+        # kills plus assists can exceed the players' kills and kill
+        # participation ran to 114% on the first backfill.
+        score = detail.get("radiant_score" if is_radiant else "dire_score")
+        team_kills = max(sum(p.get("kills") or 0 for p in side), score or 0,
+                         max((p.get("kills") or 0) + (p.get("assists") or 0) for p in side))
         pos = assign_positions(side)
         for p in side:
             name = player_name(p, pro_names)
@@ -386,6 +392,16 @@ def load_previous(path=OUT):
     except (OSError, ValueError):
         return [], {}
     kept = [m for m in region.get("past_matches") or [] if series_complete(m)]
+    # Series stored before kill participation used the team's score could
+    # put a player's kills + assists above the denominator (114% on the
+    # first backfill). Their per-map rows carry no team score to recompute
+    # it from, so the denominator is raised to at least the numerator;
+    # every Dota stat ships kp 0, so this only keeps the stored rates valid.
+    for m in kept:
+        for rows in (m.get("actual") or {}).values():
+            for row in rows.values():
+                if row.get("kp_denominator", 0) < row.get("kp_numerator", 0):
+                    row["kp_denominator"] = row["kp_numerator"]
     dropped = len(region.get("past_matches") or []) - len(kept)
     if dropped:
         print(f"  dropped {dropped} stored series that never reached a winner")

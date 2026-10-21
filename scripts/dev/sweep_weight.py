@@ -21,7 +21,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import optimize_weights as ow
 
-SOURCES = {"lol": "data.json", "valorant": "valorant_data.json", "cs2": "cs2_data.json"}
+SOURCES = {"lol": "data.json", "valorant": "valorant_data.json", "cs2": "cs2_data.json",
+           "dota2": "dota_data.json"}
 
 DEFAULT_VALUES = {
     "shrink": [0.0, 1.0, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 16.0, 24.0],

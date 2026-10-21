@@ -41,7 +41,7 @@ const app = new Function(
 )(React, { createRoot: () => ({ render() {} }) }, fakeWindow, { getElementById: () => null },
   () => new Promise(() => {}), fakeWindow.localStorage, console);
 
-const FILES = { lol: "data.json", valorant: "valorant_data.json", cs2: "cs2_data.json" };
+const FILES = { lol: "data.json", valorant: "valorant_data.json", cs2: "cs2_data.json", dota2: "dota_data.json" };
 const STAT_KEY = { kills: "k", deaths: "d", assists: "a" };
 const PER_COMBO = 400;   // enough to cover every code path; the full set is slow in CI
 
