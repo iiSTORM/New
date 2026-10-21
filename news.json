@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-21T05:14:27.967982+00:00",
+ "generated_at": "2026-10-21T12:18:05.420280+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,7 +61,7 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 80,
+   "items": 71,
    "error": null
   },
   {
@@ -85,7 +85,7 @@
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 47,
+   "items": 45,
    "error": null
   },
   {
@@ -97,13 +97,13 @@
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 34,
+   "items": 37,
    "error": null
   },
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 51,
+   "items": 48,
    "error": null
   }
  ],
@@ -117,6 +117,48 @@
    "summary": "Chinese Duelist Hush was introduced during the VALORANT Champions Shanghai grand finals between Loud and Team Vitality. Story in the comments section. Facebook",
    "teams": [
     "Team Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Skin.Club Community",
+   "title": "Why FaZe Should Do Everything They Can to Sign HooXi",
+   "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxPblFWRC1YZ3V5bzR3eWNDVk9nVE1zOEhiZDVsY3pBXzlOcTB4TFBuWTBTdS1mcWYyQk50dUVyd251bzlJdmg5bmp2MDQxZ2FQYXNNYS04VGp2Ujk5WVAxLXA3YnRZVnVBUkM0Ym1ERk16bFYzbjVzOV9TNDEzWjdoQ3BJX0ZTeThvb2FUeDBUZjYwTllqQ1NV?oc=5",
+   "published": "2026-10-21T01:25:19+00:00",
+   "summary": "Why FaZe Should Do Everything They Can to Sign HooXi Skin.Club Community",
+   "teams": [
+    "FaZe",
+    "Astralis"
+   ],
+   "players": [
+    {
+     "name": "HooXi",
+     "team": "Astralis"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "valorant",
+   "source": "Shacknews",
+   "title": "Esports team Evil Geniuses is ending 'competitive and day-to-day operations' in November",
+   "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxQeDlXcEh3S1lEbVpodUlFNFloR0pyNk5EQjdnb0NGeDVzOFdOdnpnSzBCNk5GMUFXd09TdkFRZENZQXQwOFJwQV8xS1hnN0xGU1ZpZlIwNjFaN2RmTFZhdG9xQmd1R2t3YzVTLWwtYTZ4NEl4S2hXRVVkRnFfNmJoVW1MU0twaHdtem1jc1dCMnEzMDVCUG9hN1hYQQ?oc=5",
+   "published": "2026-10-20T23:57:00+00:00",
+   "summary": "Esports team Evil Geniuses is ending 'competitive and day-to-day operations' in November Shacknews",
+   "teams": [
+    "Evil Geniuses"
    ],
    "players": [],
    "score": 0,
@@ -303,32 +345,6 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "Skin.Club Community",
-   "title": "Why FaZe Should Do Everything They Can to Sign HooXi",
-   "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxPblFWRC1YZ3V5bzR3eWNDVk9nVE1zOEhiZDVsY3pBXzlOcTB4TFBuWTBTdS1mcWYyQk50dUVyd251bzlJdmg5bmp2MDQxZ2FQYXNNYS04VGp2Ujk5WVAxLXA3YnRZVnVBUkM0Ym1ERk16bFYzbjVzOV9TNDEzWjdoQ3BJX0ZTeThvb2FUeDBUZjYwTllqQ1NV?oc=5",
-   "published": "2026-10-20T11:04:44+00:00",
-   "summary": "Why FaZe Should Do Everything They Can to Sign HooXi Skin.Club Community",
-   "teams": [
-    "FaZe",
-    "Astralis"
-   ],
-   "players": [
-    {
-     "name": "HooXi",
-     "team": "Astralis"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
   },
   {
    "game": "valorant",
@@ -720,6 +736,23 @@
    "reasons": []
   },
   {
+   "game": "cs2",
+   "source": "Esports News UK",
+   "title": "FURIA come from 2-1 down to beat BetBoom Team in Thunderpick World Championship final",
+   "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxOQVJTU2NzNnVtXzN4THN6T2NRdGxOSlZpOGhoTGl0RUFHUGtwOTk5M0hjZnJvRVRtdmZDbG9GMXBVOU1lQmIxZUk1WllsYk5FX1RZZDluZDhncnBILWIxSzE0N0hIOXM5eHNmMUJESDhKOWdFZmpyR1psRWVucWl2Yi1fNncwNzFhelRQY0ZPX1UzdTVwcnplQlF6QXQ1WTlaeTBsQ05iQ2FrbW5vZUNId2pCRlAwc3BzRDJBSHdCaHpvdw?oc=5",
+   "published": "2026-10-19T11:04:14+00:00",
+   "summary": "FURIA come from 2-1 down to beat BetBoom Team in Thunderpick World Championship final Esports News UK",
+   "teams": [
+    "FURIA",
+    "BetBoom"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "lol",
    "source": "Hotspawn",
    "title": "Karmine Corp Qualify For The Worlds 2026 Swiss Stage, Day 1 Matchups Locked In",
@@ -960,22 +993,6 @@
    "summary": "Valorant Champions 2026 finals peaks at 1.49 million viewers as LOUD makes history Esports Charts",
    "teams": [
     "LOUD"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Freetips.com",
-   "title": "2026 League of Legends World Championship Tournament Betting Preview & Guide – Dplus KIA Can Deliver, and BLG Are Overlooked",
-   "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxQRVZueXZ0LVVYbWFxaG9SSWJXSUNNdktIa0xaQTlJWDZQTjlmY1MxUmp1OFo3Q2daM0ZuLWZIcXM3RDhDaEliS0stRWwxZHQwT0o0ZVJLUjRkYTZTU3dsdGNlUUstVGlHQWptSUxaTThCRk45UlZ6eVh4YkpUbFVDQkxmZXo2bXprcHBDUlk2WkZyaDBQM28yLXllaERSdU92Sm5MR2RhejdDOUhjenBPY1RHU3Bld2c?oc=5",
-   "published": "2026-10-19T07:00:00+00:00",
-   "summary": "2026 League of Legends World Championship Tournament Betting Preview & Guide – Dplus KIA Can Deliver, and BLG Are Overlooked Freetips.com",
-   "teams": [
-    "Dplus KIA"
    ],
    "players": [],
    "score": 0,
@@ -1348,8 +1365,8 @@
    "game": "lol",
    "source": "Sheep Esports",
    "title": "Karmine Corp qualifies to Worlds 2026 Main Stage by sweeping MVK",
-   "link": "https://news.google.com/rss/articles/CBMirAFBVV95cUxPWDNGcXFIQUVBOVpSa1BtckVSdGxTRy1jcjdzcFlnTlZaS2daek5VM3NDT0FGQWRwbC1INEdkUzRyOTk0UlBvTGRJYmoxZXNzTHYwOEF0QUJxQWFYTUI3dUEwTUotRGRYZnozbzNsUTJrYi0zSWlOZzl5RDNBNU52UEtkNmwwSzFrZ2hZY19fT0FyVFNIUFZRTWJzbmxESU1SSE5nQWhWbHpPNVcx?oc=5",
-   "published": "2026-10-18T20:20:26+00:00",
+   "link": "https://news.google.com/rss/articles/CBMirAFBVV95cUxOaE5idmFoV2o2WFUyQ0FScGEwSS1xOG1Ha193ejhOQUdSTWJzY2VuNjNxWS1BZGx1VnpjTjEwcFI5TkE1R3dMX1ZKOHk2NlhKeEpKYVVjYXlHTnIwZGpfdFFsbno3SExUekRRNjU3UjhCZDljSWRXR0gxakF5cE5WNVhzU2d1bGVGTXZLX1RPbnhDTmxma2gxSnNCUzJfLVNicmFUbnFZaDROWUdS?oc=5",
+   "published": "2026-10-18T20:20:28+00:00",
    "summary": "Karmine Corp qualifies to Worlds 2026 Main Stage by sweeping MVK Sheep Esports",
    "teams": [
     "Karmine Corp",
@@ -1564,7 +1581,7 @@
    "game": "valorant",
    "source": "Valorant esports",
    "title": "VIT VS LOUD",
-   "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTE9fRHZXUkU5enNhMzBRRkNFdWYwbml2eGx4Q2FZRk5HT3FmY0htYzJ2d1ZidjFzdVdvRDNrMmVfR0ZPSzRkb3o5eC1QZkt0Tkc0X0E4T3l0a1ZTejFaLVl5YmkwMV80X1NtaXBhb2FvNWVQYlVUbTdHU1R3?oc=5",
+   "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTE51NDV5N01TWFVzd09UQ2ZCOFRJM2RyZllUcE5xZTFWVWM4MlV3c1QxaExWWXNJR3FGTk02MFcxd2RiSm91eDZ0TFM1N3UxYUdRNGs5UHhWanI4aTlzRzBfRTh0bjVrTFh5NGV4VlprSWdBWXdCTmcxbHhB?oc=5",
    "published": "2026-10-18T15:21:50+00:00",
    "summary": "VIT VS LOUD Valorant esports",
    "teams": [
@@ -1594,11 +1611,11 @@
   },
   {
    "game": "cs2",
-   "source": "FreeTips",
+   "source": "Freetips.com",
    "title": "DraculaN Season 7 Betting Odds – All Eyes on HEROIC and FaZe Clan",
    "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxQUWxyT2RhcFpFU1poVzhQTlJlOHFUNVpZTG5hWkl6OWMyTkRqZE1IVkREYnVyS1NXdGtSNU5WaFRaN1ljVDRpSVE1S1JTd28tdFF1bDRaQ093cGwxRDl2ZGZCMHgxNy1mNmR4cUlPcm9XcUxkZGRHY3JkUnhwdVlaaGx5a0U?oc=5",
    "published": "2026-10-18T14:45:47+00:00",
-   "summary": "DraculaN Season 7 Betting Odds – All Eyes on HEROIC and FaZe Clan FreeTips",
+   "summary": "DraculaN Season 7 Betting Odds – All Eyes on HEROIC and FaZe Clan Freetips.com",
    "teams": [
     "HEROIC",
     "FaZe"
@@ -1778,7 +1795,7 @@
    "source": "GosuGamers",
    "title": "LOUD defeat Team Vitality to win VALORANT Champions 2026",
    "link": "https://news.google.com/rss/articles/CBMipgFBVV95cUxOdXhEQmtGZzlHT2pqQVJNMTNPMTRlTXZ0U0NTd2toSW9CSXpMdHVhUkVBU2kzNzZjck9HdFpFYkpyc1ZGWkViZjMwTTE4ekJVRmJrRVBWbEdYa3BMR0t2M2N2X0ozMXRZdHJUZDZ5dktiemEwQVBIY3IwTzN4cEJuS21TVlJoc3BMcUM0azRIaFB2UTZPbnNmamN1blBJb3hUS3ExRmd3?oc=5",
-   "published": "2026-10-18T10:48:44+00:00",
+   "published": "2026-10-18T10:49:50+00:00",
    "summary": "LOUD defeat Team Vitality to win VALORANT Champions 2026 GosuGamers",
    "teams": [
     "LOUD",
@@ -1931,6 +1948,28 @@
     "FURIA"
    ],
    "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Dot Esports",
+   "title": "Diable transfer reportedly underway as BNK FearX talk with LCK orgs",
+   "link": "https://news.google.com/rss/articles/CBMijwFBVV95cUxNQXBKZ0RsNUhqZHI2SmFKenJTVHZpR3Q3OHRScGU3UzJ5cFVCSEhKWXg4SDFIYTc2dHpmQzFZOTV2ZFNseXdpWWkwd3VoOFFmWnRqNXRYWmt2RHBUdzh3VVdET2gwamoxT3lvRXBGMWVJRDNCR0x0UmNIanRLemxrNDBIQlpSX1hRTjBYNExWcw?oc=5",
+   "published": "2026-10-18T07:00:00+00:00",
+   "summary": "Diable transfer reportedly underway as BNK FearX talk with LCK orgs Dot Esports",
+   "teams": [
+    "BNK FearX",
+    "Nongshim RedForce"
+   ],
+   "players": [
+    {
+     "name": "Diable",
+     "team": "Nongshim RedForce"
+    }
+   ],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -3106,6 +3145,28 @@
    "reasons": []
   },
   {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "MVK Harky on facing FURIA: \"I don’t care who we face. We’ll come out on top either way\"",
+   "link": "https://news.google.com/rss/articles/CBMixgFBVV95cUxOYXNZWkl6NkZ5SEhOMmROT0ZvM2FCdFFRZlR5MTBlVk1oY3hNUkM1LWdOZ2JITlBXc1JTRTd1VGo2UF8wYWhCQkJkcW9wbEJHWFhZMnBIZFhEaXQ5RlpVekdtZWhnQkFlVGpocE1IcW5rdzdQMUNWWDNIVXQyeU1sSm5YNWx0Nmo4clhSU1NfRG5JVWtzT2szTi1pRHkyOFNUTlY3Z25pOTBIVk1YcXdlcFJsOWhUQmxCOGRwZWVQd1BzemhMNkE?oc=5",
+   "published": "2026-10-16T07:00:00+00:00",
+   "summary": "MVK Harky on facing FURIA: \"I don’t care who we face. We’ll come out on top either way\" Sheep Esports",
+   "teams": [
+    "MVK Esports",
+    "FURIA"
+   ],
+   "players": [
+    {
+     "name": "Harky",
+     "team": "MVK Esports"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "cs2",
    "source": "Dexerto",
    "title": "G2 Esports CSGO coach explains bomb defuse fail at Berlin Major",
@@ -3961,6 +4022,22 @@
    ]
   },
   {
+   "game": "lol",
+   "source": "Freetips.com",
+   "title": "2026 League of Legends World Championship Tournament Betting Preview & Guide – Dplus KIA Can Deliver, and BLG Are Overlooked",
+   "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxQRVZueXZ0LVVYbWFxaG9SSWJXSUNNdktIa0xaQTlJWDZQTjlmY1MxUmp1OFo3Q2daM0ZuLWZIcXM3RDhDaEliS0stRWwxZHQwT0o0ZVJLUjRkYTZTU3dsdGNlUUstVGlHQWptSUxaTThCRk45UlZ6eVh4YkpUbFVDQkxmZXo2bXprcHBDUlk2WkZyaDBQM28yLXllaERSdU92Sm5MR2RhejdDOUhjenBPY1RHU3Bld2c?oc=5",
+   "published": "2026-10-14T17:30:29+00:00",
+   "summary": "2026 League of Legends World Championship Tournament Betting Preview & Guide – Dplus KIA Can Deliver, and BLG Are Overlooked Freetips.com",
+   "teams": [
+    "Dplus KIA"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "cs2",
    "source": "Skin.Club Community",
    "title": "MIBR Announce brnz4n Departure After Long Spell With the Team",
@@ -4471,22 +4548,6 @@
   {
    "game": "lol",
    "source": "Sheep Esports",
-   "title": "PapaSmithy hints at possible changes for FlyQuest in 2027",
-   "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxPWHgtTmtsQUJaNzJQR3ZmaDBuVE5OTy1sT2liSzdHbHU3SG93Nm1TdDlKS01DS1hPZUlwcUlFbVpzZ25NdUlzMWhfQlBUVEpnbU52MjVqSDVIaHNxeEtSRmhwYlVBR195X0RTWEpzVkJFZURiWmdVNDRFaEtTWlp0M1EybHVzZlZIczM4bkVtRUJ5ek9DeFpoU1Rfc2ZBZUkyVlZR?oc=5",
-   "published": "2026-10-13T18:39:43+00:00",
-   "summary": "PapaSmithy hints at possible changes for FlyQuest in 2027 Sheep Esports",
-   "teams": [
-    "FlyQuest"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Sheep Esports",
    "title": "League of Legends Worlds 2026: Top 20 Players",
    "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxNNE1BcE1aeTc3WE9rdk9iaks4TmthRGlvUFJjMDFXS0pSaktNVVFmNmh0VE9hWWpzMjRMaUR6RGV0ZHB0UFkyWVlMNVVDWFBRQVRSRUVtT3NJYUx5SVlHNjlCamZXb1pnb09WSDRFeVJrQ0N4MzZvUXFvVVpRRXp5Um1NM2w0dUgxY1VPbklIWkowdw?oc=5",
    "published": "2026-10-13T18:09:48+00:00",
@@ -4724,6 +4785,22 @@
      "team": "Falcons"
     }
    ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "PapaSmithy hints at possible changes for FlyQuest in 2027",
+   "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxPWHgtTmtsQUJaNzJQR3ZmaDBuVE5OTy1sT2liSzdHbHU3SG93Nm1TdDlKS01DS1hPZUlwcUlFbVpzZ25NdUlzMWhfQlBUVEpnbU52MjVqSDVIaHNxeEtSRmhwYlVBR195X0RTWEpzVkJFZURiWmdVNDRFaEtTWlp0M1EybHVzZlZIczM4bkVtRUJ5ek9DeFpoU1Rfc2ZBZUkyVlZR?oc=5",
+   "published": "2026-10-13T07:00:00+00:00",
+   "summary": "PapaSmithy hints at possible changes for FlyQuest in 2027 Sheep Esports",
+   "teams": [
+    "FlyQuest"
+   ],
+   "players": [],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -6544,6 +6621,23 @@
   },
   {
    "game": "lol",
+   "source": "EGamersWorld",
+   "title": "FlyQuest Eliminate RED Canids from Demacia Cup Global Invitational 2026",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPcTdHLS1Nd1dXaHliNDhBM0p3VmpwQml4ZEQ5eG16X3FlYkJiSE1LU3hsYlZiVkN3cFhMdDZMQm5MWVJTaTgwWWpGeUtvdUk1R0NRRDZuLTZjNlVsMHk0dnUwZU1sbUxsdmxodlBsZVRJUk13bGZpeGs5YWV6RU1sWmxtZkVfQVpyZVdHcTRVMDJoRi1tUEtQaUtoZy0wcHZBUGc?oc=5",
+   "published": "2026-10-08T07:00:00+00:00",
+   "summary": "FlyQuest Eliminate RED Canids from Demacia Cup Global Invitational 2026 EGamersWorld",
+   "teams": [
+    "FlyQuest",
+    "RED Canids"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
    "source": "Sheep Esports",
    "title": "Bdd and Perfect extend with KT Rolster until 2028",
    "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxPVUhTenRiaUh2NklJNE1KWEFsYWlQV1JORWEzX3ZNZE42d190Sm5ZX09TWEMxNHFQLVotRlZZcTRUR1FQN0ljSWowcWpEVU8xWEcxR3NPWW9sY2ljOE9CSUtkVmxuclFJbHE2cmZxSTd4RHBqNmh2Z3RJOVZoVEI1QktMRTNUcEV4VDRkdmNvM3J3UDA?oc=5",
@@ -6673,21 +6767,30 @@
    "reasons": []
   },
   {
-   "game": "lol",
-   "source": "EGamersWorld",
-   "title": "FlyQuest Eliminate RED Canids from Demacia Cup Global Invitational 2026",
-   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPcTdHLS1Nd1dXaHliNDhBM0p3VmpwQml4ZEQ5eG16X3FlYkJiSE1LU3hsYlZiVkN3cFhMdDZMQm5MWVJTaTgwWWpGeUtvdUk1R0NRRDZuLTZjNlVsMHk0dnUwZU1sbUxsdmxodlBsZVRJUk13bGZpeGs5YWV6RU1sWmxtZkVfQVpyZVdHcTRVMDJoRi1tUEtQaUtoZy0wcHZBUGc?oc=5",
+   "game": "cs2",
+   "source": "Skin.Club Community",
+   "title": "Sashi Sign chelleos and Reset VRS in Bid for the Singapore Major",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOOUI1aXdNOWNjdjVBUGNEZlhNQk0wMWlfbnpMZ3g1Y0xGdVdzMHpVS1pPa1k0X3VKYlJ3NjdzV3ZHd1BiRDA0bm1iU0JjdUJzXzdreTZfTF9vUEIyMzV1ZUw4NTBwSGJtakl6aVJDZzZySTAwelpqYXJ2czRrSWdCbUZlWXNqckVYdklTMWt3TV9wdHRGNFlZU0Z2MjFubGRWTkE?oc=5",
    "published": "2026-10-08T07:00:00+00:00",
-   "summary": "FlyQuest Eliminate RED Canids from Demacia Cup Global Invitational 2026 EGamersWorld",
+   "summary": "Sashi Sign chelleos and Reset VRS in Bid for the Singapore Major Skin.Club Community",
    "teams": [
-    "FlyQuest",
-    "RED Canids"
+    "Sashi",
+    "Rooster"
    ],
-   "players": [],
+   "players": [
+    {
+     "name": "chelleos",
+     "team": "Rooster"
+    }
+   ],
    "score": 0,
    "grade": "neutral",
-   "rules": [],
-   "reasons": []
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
   },
   {
    "game": "valorant",
@@ -7225,88 +7328,6 @@
      "team": "FURIA"
     }
    ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "TalkEsport",
-   "title": "BC.Game CEO Asks Valve to Reset VRS Points Ahead of Major",
-   "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTE5qU0RZOV9lLWNtN25BZTlMUzFCdW54eUtLM0pYNzV1XzVKX0FFSjBnRlUzSFpMd3dZY3hCZzZlMFpLcVAxYXVJX0hDbTVXR1pNTXotMmVuM3JEckhETHFDeVdJNXZnZ08xWU82REF0VE4wNkhISFRwUkFR?oc=5",
-   "published": "2026-10-07T07:00:00+00:00",
-   "summary": "BC.Game CEO Asks Valve to Reset VRS Points Ahead of Major TalkEsport",
-   "teams": [
-    "BC.Game"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "EGamersWorld",
-   "title": "1WIN vs Aurora Prediction & Betting Tip | Counter-Strike (CS2)",
-   "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxQeGVrMnBzMnZkelZnSWUwcmQ5aGtFN1F4LXUzZi02U1JrY0FESDRnemlDc2R5NW5VWmVaN1ZHdU5lV3A0bFJtZmYyQmNINjlDWV9ycFY4TERkTVdVSnNMb18temdpLW5XZzR5TVVKcVVpTlkweUp3SGpidEpyQncyUkpBTDJRY0U?oc=5",
-   "published": "2026-10-07T07:00:00+00:00",
-   "summary": "1WIN vs Aurora Prediction & Betting Tip | Counter-Strike (CS2) EGamersWorld",
-   "teams": [
-    "Aurora"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "ABS-CBN",
-   "title": "Paper Rex defeated by LOUD at VALORANT Champions",
-   "link": "https://news.google.com/rss/articles/CBMipAFBVV95cUxQM1hkZXJKTDNwQ3VSRUVzUDhURmotNHZadVlwSmFQQWZhejJVaGxNSW9WdkV4Yy04S0o3LU9fUS1XMVdXN0cteU1VaDktM1RyZFBuRTBkOTJ0c2N4djMtVFZVSVNFWTNwQ2c5WVpMTkRsS0dRdUF0LUlwM3R6QlAxc1AyYVVDb2Q1OU96aVk0NFRzSk00eTE5Wm96cXd2cC1Za0xjWA?oc=5",
-   "published": "2026-10-07T07:00:00+00:00",
-   "summary": "Paper Rex defeated by LOUD at VALORANT Champions ABS-CBN",
-   "teams": [
-    "LOUD",
-    "Paper Rex"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Sportskeeda",
-   "title": "Paper Rex vs LOUD in Valorant Champions 2026 Playoffs: Prediction, head-to-head, and start time",
-   "link": "https://news.google.com/rss/articles/CBMivwFBVV95cUxQMFg5RUNGRmlhZHJqOXJIX1hMeWR2NEVzSUFDSzNLNGJKREktNHRJOTBQOER5YnpFdHREWmxiR3JaRUxwdUhUeFpoa2dVWEFYU2daZkZDck41ZndKOTdmNURzY2NDb1dEM2N4SGdneHZUNGdpd3lhNzYyM1FFYlVuTEFaS2VEaklCNmZlVEUzck1vZ0R5RXdSblRKZWtnTm54VjIxMVJZeUE3bDQza2xsc3dSYl83VXVoQ09nQU0wMA?oc=5",
-   "published": "2026-10-07T05:57:00+00:00",
-   "summary": "Paper Rex vs LOUD in Valorant Champions 2026 Playoffs: Prediction, head-to-head, and start time Sportskeeda",
-   "teams": [
-    "LOUD",
-    "Paper Rex"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "Hotspawn",
-   "title": "Vivo Keyd Stars Dismisses Almost The Entire Roster And Coaching Staff",
-   "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxPS2NfQXcxekF6Ykk3bkRGNXFwYzdxeXAzb1p2Z01VLXpVRmVmbnNNdDgyME13X1lXR2pXTTlTWkticWV1cWltaEpiSUFmM2lnVHYtZFJiTGM4X1QxOXdhZ2piTlhUU2ZqcmlrYmNCemlZOVd2eDBCdGZ6TWw5MWE0aE5pUGpFWGh4UGJSWTVoQVBFbFA1QjByZTB4NHJfbHdUT0Y1Z3BHNElMM1RSSmhWc0x2SHpOWnBv?oc=5",
-   "published": "2026-10-06T22:50:32+00:00",
-   "summary": "Vivo Keyd Stars Dismisses Almost The Entire Roster And Coaching Staff Hotspawn",
-   "teams": [
-    "Keyd Stars"
-   ],
-   "players": [],
    "score": 0,
    "grade": "neutral",
    "rules": [],
