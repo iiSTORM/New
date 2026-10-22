@@ -159,12 +159,25 @@ TABLE = f"""
  <tr><td><span class="timer-object" data-timestamp="{NOW + 30 * 86400}"></span></td></tr>
 </table>"""
 DIVS = f"""
-<div class="match-info"><div class="match-info-header">
-  <div class="match-info-header-opponent"><span data-highlightingclass="PARIVISION">PARI</span></div>
-  <div class="match-info-header-scoreholder">(Bo5)</div>
-  <div class="match-info-header-opponent"><span data-highlightingclass="Team Falcons">FLC</span></div></div>
-  <div class="match-info-tournament"><a href="/dota2/BLAST/Slam/8" title="BLAST Slam VIII">BLAST Slam</a></div>
-  <span class="timer-object" data-timestamp="{NOW + 3600}"></span></div>"""
+<div data-switch-group-container="countdown"><div class="">
+<div class="match-info"><span class="match-info-countdown"><span class="timer-object" data-format="full"
+  data-timestamp="{NOW + 3600}">October 22, 2026 - 11:00 <abbr title="Singapore Time (UTC+8)">SGT</abbr></span></span>
+ <div class="match-info-header">
+  <div class="match-info-header-opponent match-info-header-opponent-left"><div class="block-team flipped">
+    <span class="team-template-image-icon"><a href="/dota2/PARIVISION" title="PARIVISION"><img alt=""/></a></span>
+    <span class="name"><a href="/dota2/PARIVISION" title="PARIVISION">PARIVISION</a></span></div></div>
+  <div class="match-info-header-scoreholder"><span class="match-info-header-scoreholder-lower">(Bo5)</span></div>
+  <div class="match-info-header-opponent"><div class="block-team">
+    <span class="name"><a href="/dota2/index.php?title=Cloud_Dawning&amp;action=edit&amp;redlink=1"
+      title="Cloud Dawning (page does not exist)">Cloud Dawning</a></span></div></div></div>
+ <div class="match-info-tournament"><a href="/dota2/BLAST/Slam/8" title="BLAST Slam VIII">BLAST Slam</a></div></div>
+<div class="match-info"><span class="timer-object" data-timestamp="{NOW + 3600}"></span>
+ <div class="match-info-header-opponent"><span class="name">PARIVISION</span></div>
+ <div class="match-info-header-opponent"><span class="name">Cloud Dawning</span></div></div>
+<div class="match-info"><span class="timer-object" data-timestamp="{NOW + 5000}"></span>
+ <div class="match-info-header-opponent"><span class="name">TBD</span></div>
+ <div class="match-info-header-opponent"><span class="name">Team Liquid</span></div></div>
+</div></div>"""
 
 
 def test_the_schedule_reads_the_table_layout():
@@ -173,7 +186,9 @@ def test_the_schedule_reads_the_table_layout():
 
 
 def test_the_schedule_reads_the_div_layout():
-    assert sd.parse_schedule(DIVS, NOW) == [(NOW + 3600, "PARIVISION", "Team Falcons", "BLAST Slam VIII", 5)]
+    # The live layout: one row although the match is listed in two filter
+    # views, a red-link team read from its visible name, a TBD slot dropped.
+    assert sd.parse_schedule(DIVS, NOW) == [(NOW + 3600, "PARIVISION", "Cloud Dawning", "BLAST Slam VIII", 5)]
 
 
 def test_fixtures_resolve_to_tracked_names_and_need_one_tracked_side():

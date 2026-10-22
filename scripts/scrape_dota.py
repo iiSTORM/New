@@ -427,25 +427,67 @@ def carry_upcoming(previous_upcoming, now_ts):
     return kept
 
 
+def _opponent_name(block):
+    """A team's name in one opponent block: the visible name first, then a
+    link title, never a page-does-not-exist suffix or a TBD slot."""
+    el = block.find(class_="name")
+    name = el.get_text(" ", strip=True) if el else ""
+    if not name:
+        a = block.find("a", title=True)
+        name = (a["title"] if a else "").replace(" (page does not exist)", "").strip()
+    return None if not name or name.upper() == "TBD" else name
+
+
 def parse_schedule(html, now_ts, window_days=UPCOMING_WINDOW_DAYS):
     """[(start_ts, team_a, team_b, tournament, best_of)] from the matches page.
 
-    Anchored on what every match on that page carries whatever its layout:
-    a countdown with a data-timestamp, and team templates marked with
-    data-highlightingclass. The block holding exactly one countdown and two
-    teams is a match; anything else (a header, a TBD slot) is skipped."""
+    The page as Liquipedia serves it (read off a live run on 2026-10-22):
+    one div.match-info per match, holding a countdown span with a
+    data-timestamp, two match-info-header-opponent blocks with the team in
+    span.name, the format as "(Bo3)" and the event in match-info-tournament.
+    The same match appears once per filter view, so rows are de-duplicated.
+    An older layout keyed on data-highlightingclass is still read, for
+    pages that carry it."""
     from bs4 import BeautifulSoup
+    import re as _re
     soup = BeautifulSoup(html or "", "html.parser")
     out, seen = [], set()
-    for timer in soup.find_all(attrs={"data-timestamp": True}):
+
+    def keep(ts, a, b, tournament, bo):
+        if ts < now_ts - 3600 or ts > now_ts + window_days * 86400:
+            return
+        key = (ts, frozenset((a, b)))
+        if key not in seen:
+            seen.add(key)
+            out.append((ts, a, b, tournament, bo))
+
+    for box in soup.find_all("div", class_="match-info"):
+        timer = box.find(attrs={"data-timestamp": True})
+        if not timer:
+            continue
         try:
             ts = int(timer["data-timestamp"])
         except (TypeError, ValueError):
             continue
-        if ts < now_ts - 3600 or ts > now_ts + window_days * 86400:
+        sides = box.find_all("div", class_=lambda c: c and "match-info-header-opponent" in c.split())
+        names = [n for n in (_opponent_name(b) for b in sides) if n]
+        if len(names) != 2:
             continue
-        box = timer
-        teams = []
+        found = _re.search(r"\bBo\s?(\d)\b", box.get_text(" ", strip=True))
+        tour = box.find(class_=lambda c: c and "match-info-tournament" in c)
+        link = tour.find_all("a", title=True)[-1] if tour and tour.find_all("a", title=True) else None
+        tournament = (link["title"] if link else (tour.get_text(" ", strip=True) if tour else None)) or None
+        keep(ts, names[0], names[1], tournament, int(found.group(1)) if found else None)
+
+    # The older layout: team templates marked with data-highlightingclass.
+    for timer in soup.find_all(attrs={"data-timestamp": True}):
+        if timer.find_parent("div", class_="match-info"):
+            continue
+        try:
+            ts = int(timer["data-timestamp"])
+        except (TypeError, ValueError):
+            continue
+        box, teams = timer, []
         for _ in range(8):
             box = box.parent
             if box is None:
@@ -462,20 +504,12 @@ def parse_schedule(html, now_ts, window_days=UPCOMING_WINDOW_DAYS):
                 break
         if len(teams) != 2:
             continue
-        text = box.get_text(" ", strip=True)
-        bo = None
-        for token in ("Bo1", "Bo2", "Bo3", "Bo5"):
-            if token in text or token.lower() in text.lower():
-                bo = int(token[2]); break
+        found = _re.search(r"\bBo\s?(\d)\b", box.get_text(" ", strip=True))
         tournament = None
         for a in box.find_all("a", title=True):
             if a.get("title") not in teams and not a.get("title", "").startswith(("Special:", "File:")):
                 tournament = a["title"]
-        key = (ts, frozenset(teams))
-        if key in seen:
-            continue
-        seen.add(key)
-        out.append((ts, teams[0], teams[1], tournament, bo))
+        keep(ts, teams[0], teams[1], tournament, int(found.group(1)) if found else None)
     return sorted(out)
 
 
