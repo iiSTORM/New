@@ -41,7 +41,7 @@ import time
 from datetime import datetime, timedelta, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from team_aliases import reconcile  # noqa: E402
+from team_aliases import alias_key, reconcile  # noqa: E402
 
 try:
     import requests
@@ -371,6 +371,108 @@ def stored_game_ids(past_matches):
     return {gid for m in past_matches for gid in m.get("game_ids") or []}
 
 
+# ----------------------------------------------------------------- schedule
+#
+# OpenDota has no schedule. Liquipedia publishes one ("Liquipedia:Matches")
+# through its documented MediaWiki API, free, asking only for a User-Agent
+# that says who is calling and for action=parse to be used sparingly: this
+# makes ONE request per run. Never fatal -- without it the fixtures still
+# come from the posted board, as before.
+LIQUIPEDIA_API = "https://liquipedia.net/dota2/api.php"
+LIQUIPEDIA_HEADERS = {
+    "User-Agent": "esports-projections/1.0 (https://github.com/iiSTORM/New; schedule only, one request per run)",
+    "Accept-Encoding": "gzip",
+}
+UPCOMING_WINDOW_DAYS = 7
+
+
+def fetch_schedule_html():
+    if requests is None:
+        return None
+    try:
+        r = requests.get(LIQUIPEDIA_API, headers=LIQUIPEDIA_HEADERS, timeout=30,
+                         params={"action": "parse", "page": "Liquipedia:Matches",
+                                 "format": "json", "prop": "text"})
+        r.raise_for_status()
+        return ((r.json().get("parse") or {}).get("text") or {}).get("*")
+    except Exception as e:  # noqa: BLE001 -- the schedule is optional
+        print(f"  ! Liquipedia schedule unavailable: {e}", file=sys.stderr)
+        return None
+
+
+def parse_schedule(html, now_ts, window_days=UPCOMING_WINDOW_DAYS):
+    """[(start_ts, team_a, team_b, tournament, best_of)] from the matches page.
+
+    Anchored on what every match on that page carries whatever its layout:
+    a countdown with a data-timestamp, and team templates marked with
+    data-highlightingclass. The block holding exactly one countdown and two
+    teams is a match; anything else (a header, a TBD slot) is skipped."""
+    from bs4 import BeautifulSoup
+    soup = BeautifulSoup(html or "", "html.parser")
+    out, seen = [], set()
+    for timer in soup.find_all(attrs={"data-timestamp": True}):
+        try:
+            ts = int(timer["data-timestamp"])
+        except (TypeError, ValueError):
+            continue
+        if ts < now_ts - 3600 or ts > now_ts + window_days * 86400:
+            continue
+        box = timer
+        teams = []
+        for _ in range(8):
+            box = box.parent
+            if box is None:
+                break
+            names = []
+            for el in box.find_all(attrs={"data-highlightingclass": True}):
+                n = el["data-highlightingclass"].strip()
+                if n and n.upper() != "TBD" and n not in names:
+                    names.append(n)
+            if len(box.find_all(attrs={"data-timestamp": True})) > 1:
+                break
+            if len(names) >= 2:
+                teams = names[:2]
+                break
+        if len(teams) != 2:
+            continue
+        text = box.get_text(" ", strip=True)
+        bo = None
+        for token in ("Bo1", "Bo2", "Bo3", "Bo5"):
+            if token in text or token.lower() in text.lower():
+                bo = int(token[2]); break
+        tournament = None
+        for a in box.find_all("a", title=True):
+            if a.get("title") not in teams and not a.get("title", "").startswith(("Special:", "File:")):
+                tournament = a["title"]
+        key = (ts, frozenset(teams))
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append((ts, teams[0], teams[1], tournament, bo))
+    return sorted(out)
+
+
+def upcoming_from_schedule(rows, known_teams):
+    """Upcoming fixtures in the app's shape, Liquipedia names resolved to the
+    teams this file tracks by alias (spacing, case, "Team"/"Esports"). Kept
+    when either side is tracked, as for CS2: a fixture against a team we
+    have no roster for still projects our side."""
+    by_alias = {}
+    for t in known_teams:
+        by_alias.setdefault(alias_key(t), t)
+    out = []
+    for ts, a, b, tournament, bo in rows:
+        if tournament and EXCLUDED_LEAGUE_WORDS & set(tournament.lower().split()):
+            continue
+        ra, rb = by_alias.get(alias_key(a), a), by_alias.get(alias_key(b), b)
+        if ra not in known_teams and rb not in known_teams:
+            continue
+        when = datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
+        out.append({"date": when, "start_time": when, "teamA": ra, "teamB": rb,
+                    "block": tournament, "best_of": bo, "odds": None})
+    return out
+
+
 # ---------------------------------------------------------------------- run
 
 def series_complete(m):
@@ -482,6 +584,12 @@ def main():
         print(f"folded {len(renames)} duplicate team spelling(s): {renames}")
         payload["teams"] = build_teams(payload["past_matches"], previous_teams)
     teams = payload["teams"]
+    html = fetch_schedule_html()
+    if html:
+        rows = parse_schedule(html, now.timestamp())
+        payload["upcoming_matches"] = upcoming_from_schedule(rows, set(teams))
+        print(f"Liquipedia schedule: {len(rows)} match(es) in the next {UPCOMING_WINDOW_DAYS} days, "
+              f"{len(payload['upcoming_matches'])} involving a tracked team")
     with open(OUT, "w") as f:
         json.dump({"generated_at": now.isoformat(), "regions": {REGION: payload}}, f, separators=(",", ":"))
     print(f"wrote {OUT}: {len(teams)} teams, {len(past)} series "

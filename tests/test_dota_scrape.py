@@ -139,3 +139,46 @@ def test_merge_keeps_a_fresh_copy_and_caps_history_per_team():
     merged = sd.merge_past_matches(old[:15], old[10:], per_team=12)
     assert len(merged) == 12 and merged[0]["match_id"] == "dota-s19"
     assert sd.stored_game_ids(merged) == set(range(8, 20))
+
+
+NOW = 1_761_000_000
+TABLE = f"""
+<table class="wikitable infobox_matches_content">
+ <tr><td class="team-left"><span data-highlightingclass="Team Spirit"><a title="Team Spirit">Spirit</a></span></td>
+     <td class="versus"><abbr title="Best of 3">Bo3</abbr></td>
+     <td class="team-right"><span data-highlightingclass="Xtreme Gaming"><a title="Xtreme Gaming">XG</a></span></td></tr>
+ <tr><td class="match-filler"><span class="timer-object" data-timestamp="{NOW + 7200}">soon</span>
+     <a href="/dota2/PGL/Wallachia" title="PGL Wallachia Season 6">PGL</a></td></tr>
+</table>
+<table class="wikitable infobox_matches_content">
+ <tr><td class="team-left"><span data-highlightingclass="TBD">TBD</span></td><td class="team-right"><span data-highlightingclass="Tundra Esports">T</span></td></tr>
+ <tr><td><span class="timer-object" data-timestamp="{NOW + 9000}"></span></td></tr>
+</table>
+<table class="wikitable infobox_matches_content">
+ <tr><td><span data-highlightingclass="Team Liquid">L</span></td><td><span data-highlightingclass="Nigma Galaxy">N</span></td></tr>
+ <tr><td><span class="timer-object" data-timestamp="{NOW + 30 * 86400}"></span></td></tr>
+</table>"""
+DIVS = f"""
+<div class="match-info"><div class="match-info-header">
+  <div class="match-info-header-opponent"><span data-highlightingclass="PARIVISION">PARI</span></div>
+  <div class="match-info-header-scoreholder">(Bo5)</div>
+  <div class="match-info-header-opponent"><span data-highlightingclass="Team Falcons">FLC</span></div></div>
+  <div class="match-info-tournament"><a href="/dota2/BLAST/Slam/8" title="BLAST Slam VIII">BLAST Slam</a></div>
+  <span class="timer-object" data-timestamp="{NOW + 3600}"></span></div>"""
+
+
+def test_the_schedule_reads_the_table_layout():
+    rows = sd.parse_schedule(TABLE, NOW)
+    assert rows == [(NOW + 7200, "Team Spirit", "Xtreme Gaming", "PGL Wallachia Season 6", 3)]   # TBD and 30 days out dropped
+
+
+def test_the_schedule_reads_the_div_layout():
+    assert sd.parse_schedule(DIVS, NOW) == [(NOW + 3600, "PARIVISION", "Team Falcons", "BLAST Slam VIII", 5)]
+
+
+def test_fixtures_resolve_to_tracked_names_and_need_one_tracked_side():
+    rows = [(NOW, "Team Spirit", "Xtreme Gaming", "PGL", 3), (NOW, "Nobody", "Also Nobody", "PGL", 3),
+            (NOW, "Team Spirit", "Someone", "1win Streamers League #4", 3)]
+    got = sd.upcoming_from_schedule(rows, {"Spirit", "Xtreme Gaming"})
+    assert [(m["teamA"], m["teamB"], m["best_of"]) for m in got] == [("Spirit", "Xtreme Gaming", 3)]
+    assert got[0]["date"].startswith("2025-10-20T")

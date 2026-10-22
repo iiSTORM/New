@@ -325,7 +325,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install requests
+        run: pip install requests beautifulsoup4
 
       # OpenDota, free and keyless. Incremental: games already in
       # dota_data.json are never fetched again, so after the first few runs

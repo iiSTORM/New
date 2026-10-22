@@ -716,8 +716,10 @@ on every Dota projection (`model_parity`), and the error scale per map window
 is in `RESIDUAL_SCALE`. All of it was fitted on a short window: re-run
 `sweep_weight.py --game dota2` once the 60-day backfill is complete.
 
-OpenDota has no schedule, so Dota fixtures come from the posted board
-(`infer_fixtures.py dota2`). Lines are read from the board under the
+OpenDota has no schedule, so upcoming Dota fixtures come from Liquipedia's
+"Liquipedia:Matches" page through its documented API (one request per run,
+an identifying User-Agent, never fatal), resolved to tracked teams by alias,
+plus anything the posted board implies (`infer_fixtures.py dota2`). Lines are read from the board under the
 PrizePicks league "Dota2"; the league id (believed 174) is used only for a
 league-filtered fetch. Dota news comes from two Google News searches.
 
