@@ -272,6 +272,9 @@ const collectEdges = new Function(`
   ${extractConst("EDGE_REALIZATION")}
   ${extract("edgeMultiplier")}
   ${extract("adjustEdge")}
+  ${extractConst("LINE_REALIZATION")}
+  ${extract("lineRealization")}
+  ${extract("scaleEdge")}
   ${extractConst("STAT_TYPES")}
   ${extractConst("EVIDENCE_SOLID")}
   ${extractConst("EVIDENCE_BORROWED_CAP")}
@@ -479,6 +482,9 @@ const collectEdgesSpy = new Function(`
   ${extractConst("EDGE_REALIZATION")}
   ${extract("edgeMultiplier")}
   ${extract("adjustEdge")}
+  ${extractConst("LINE_REALIZATION")}
+  ${extract("lineRealization")}
+  ${extract("scaleEdge")}
   ${extractConst("STAT_TYPES")}
   ${extractConst("EVIDENCE_SOLID")}
   ${extractConst("EVIDENCE_BORROWED_CAP")}

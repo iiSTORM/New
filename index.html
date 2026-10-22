@@ -1404,7 +1404,7 @@ try {
                 borrowedContext: borrowed,
                 evidence: effectiveEvidence(breakdown.evidenceGames, borrowed),
                 edge: prop.lineCount > 1 ? null : projection - prop.line,
-                adjustedEdge: prop.lineCount > 1 ? null : adjustEdge(projection - prop.line, effectiveEvidence(breakdown.evidenceGames, borrowed), projection, prop.line, leagueRate === null ? null : leagueRate * prop.maps)
+                adjustedEdge: prop.lineCount > 1 ? null : scaleEdge(lineRealization(game, statType), adjustEdge(projection - prop.line, effectiveEvidence(breakdown.evidenceGames, borrowed), projection, prop.line, leagueRate === null ? null : leagueRate * prop.maps))
               });
             }
           }
@@ -3738,6 +3738,23 @@ try {
     }
     return EDGE_REALIZATION[EDGE_REALIZATION.length - 1].factor;
   }
+  const LINE_REALIZATION = {
+    cs2: {
+      kills: 0.35,
+      headshots: 0.29
+    },
+    valorant: {
+      kills: 0
+    }
+  };
+  function scaleEdge(factor, edge) {
+    return typeof edge === "number" && isFinite(edge) ? factor * edge : null;
+  }
+  function lineRealization(game, statType) {
+    const byStat = LINE_REALIZATION[game];
+    const v = byStat ? byStat[statType] : undefined;
+    return typeof v === "number" && isFinite(v) ? v : 1;
+  }
   function adjustEdge(edge, games, projection, line, mean) {
     if (edge === null || typeof edge !== "number" || !isFinite(edge)) return null;
     if (typeof mean !== "number" || !isFinite(mean) || typeof projection !== "number" || typeof line !== "number") {
@@ -5125,7 +5142,8 @@ try {
     const shown = row.adjustedEdge !== null && row.adjustedEdge !== undefined ? row.adjustedEdge : edge;
     const evidence = row.evidence !== undefined && row.evidence !== null ? row.evidence : row.breakdown ? row.breakdown.evidenceGames : null;
     const MATERIAL_DISCOUNT = 0.9;
-    const discounted = !ambiguous && typeof shown === "number" && edgeMultiplier(evidence) < MATERIAL_DISCOUNT;
+    const realization = lineRealization(row.game, row.statType);
+    const discounted = !ambiguous && typeof shown === "number" && (edgeMultiplier(evidence) < MATERIAL_DISCOUNT || realization < MATERIAL_DISCOUNT);
     const tone = ambiguous || !live ? theme.textFaint : shown > 0 ? theme.good : shown < 0 ? theme.bad : theme.textDim;
     const when = row.when ? new Date(row.when) : null;
     const clock = when && !isNaN(when) ? when.toLocaleString(undefined, {
@@ -5256,7 +5274,7 @@ try {
         fontWeight: 700,
         color: tone
       },
-      title: discounted ? `Raw edge ${edge > 0 ? "+" : ""}${edge.toFixed(1)}, cut to ` + `${shown > 0 ? "+" : ""}${shown.toFixed(1)} because it rests on ` + `${Math.round(evidence || 0)} games. Measured on past seasons, about ` + `${Math.round(100 * edgeMultiplier(evidence))}% of a claimed edge at that ` + `sample size actually materialises.` : undefined
+      title: discounted ? `Raw edge ${edge > 0 ? "+" : ""}${edge.toFixed(1)}, cut to ` + `${shown > 0 ? "+" : ""}${shown.toFixed(1)}. It rests on ` + `${Math.round(evidence || 0)} games, and measured on past seasons about ` + `${Math.round(100 * edgeMultiplier(evidence))}% of a claimed edge at that ` + `sample size actually materialises.` + (realization < 1 ? ` Against posted lines, ${Math.round(100 * realization)}% of this stat's ` + `edges have shown up on the graded record.` : "") : undefined
     }, ambiguous ? `${prop.lineCount} lines` : !live ? "started" : `${shown > 0 ? "OVER +" : shown < 0 ? "UNDER " : ""}${shown === 0 ? "0.0" : Math.abs(shown).toFixed(1)}`), React.createElement("div", {
       style: {
         fontSize: 9,
@@ -5336,7 +5354,7 @@ try {
     }
     const withEdge = rows.filter(r => r.edge !== null);
     const best = withEdge.length ? Math.abs(withEdge[0].adjustedEdge !== null && withEdge[0].adjustedEdge !== undefined ? withEdge[0].adjustedEdge : withEdge[0].edge) : 0;
-    const anyDiscounted = withEdge.some(r => r.breakdown && edgeMultiplier(r.evidence !== undefined ? r.evidence : r.breakdown.evidenceGames) < 0.9);
+    const anyDiscounted = withEdge.some(r => r.breakdown && (edgeMultiplier(r.evidence !== undefined ? r.evidence : r.breakdown.evidenceGames) < 0.9 || lineRealization(r.game, r.statType) < 0.9));
     const ONE_SIDED_MIN_ROWS = 10;
     const ONE_SIDED_SHARE = 0.7;
     const decided = fresh ? withEdge.filter(r => r.edge !== 0) : [];
@@ -5469,7 +5487,7 @@ try {
         marginTop: 10,
         lineHeight: 1.6
       }
-    }, "Edge is the projection minus the line, over the line\u2019s own map window, discounted by how much evidence the projection rests on. Measured over past seasons, a disagreement built on fewer than four games realises about a third of its face value, and one built on twelve or more realises almost all of it \u2014 so ranking on the raw number promoted the rows the model knew least about. ", anyDiscounted && "A row that was cut shows the figure it came from beside its map window. ", "It is a model disagreeing with a market, not a prediction of the result \u2014 and the model is the same one the accuracy figures on the Future tab describe."));
+    }, "Edge is the projection minus the line, over the line\u2019s own map window, discounted by how much evidence the projection rests on. Measured over past seasons, a disagreement built on fewer than four games realises about a third of its face value, and one built on twelve or more realises almost all of it \u2014 so ranking on the raw number promoted the rows the model knew least about. ", lineRealization(game, statType) < 1 && `This stat's edges are also cut to ${Math.round(100 * lineRealization(game, statType))}%: that is the share of past edges against posted lines that actually showed up. `, anyDiscounted && "A row that was cut shows the figure it came from beside its map window. ", "It is a model disagreeing with a market, not a prediction of the result \u2014 and the model is the same one the accuracy figures on the Future tab describe."));
   }
   function ComboSection({
     regionsData,

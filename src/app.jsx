@@ -1711,12 +1711,12 @@ function collectEdges(regionsData, regionList, propsData, weights, statType, gam
               // printed above it, and a ranking that cannot be checked
               // against them is worth less than one that can.
               adjustedEdge: prop.lineCount > 1 ? null
-                : adjustEdge(projection - prop.line,
+                : scaleEdge(lineRealization(game, statType), adjustEdge(projection - prop.line,
                              effectiveEvidence(breakdown.evidenceGames, borrowed),
                              projection, prop.line,
                              // The league rate over this line's own window,
                              // which is what "a typical player" means here.
-                             leagueRate === null ? null : leagueRate * prop.maps),
+                             leagueRate === null ? null : leagueRate * prop.maps)),
             });
           }
         }
@@ -3578,6 +3578,49 @@ function edgeMultiplier(games) {
   return EDGE_REALIZATION[EDGE_REALIZATION.length - 1].factor;
 }
 
+/* How much of a shown edge against the LINE is real, per game and stat.
+
+   EDGE_REALIZATION above asks how far a player lands from a typical
+   player, and well-evidenced players land almost where the model says.
+   The line knows that too. What a bet needs is the part of the model's
+   opinion the line does not already have, and on the graded record that
+   is much less than the board was showing:
+
+       cell            slope   95%            walk-forward MAE
+                                              line / as shown / x slope
+       cs2 kills       0.35    0.11 to 0.56   5.266 / 5.344 / 5.255
+       cs2 headshots   0.29    0.10 to 0.49   3.532 / 3.586 / 3.527
+       valorant kills  -0.06   -0.64 to 0.47  5.425 / 5.570 / 5.430
+       lol kills       0.72    0.15 to 1.33   3.340 / 3.207 / 3.247
+
+   slope = sum(claim x realised) / sum(claim^2), claim = shown edge,
+   realised = actual - line, clustered on the match. CS2's edges carry
+   real information but about three times too much of it: at face value
+   they lost to the line out of sample, and scaled by the slope they beat
+   it. Valorant's carry none. LoL's interval includes 1 and scaling it
+   made it worse, so it is left alone, as is every cell without enough
+   graded props to say.
+
+   Applied only where the interval excludes 1, clamped to [0, 1] -- this
+   may discount an edge and must never inflate one. Measured by
+   scripts/dev/line_realization.py into scripts/dev/line_realization.json,
+   and pinned to that file by tests/test_line_realization.py, so re-running
+   the script after the weights move is what keeps this honest. */
+const LINE_REALIZATION = {
+  cs2: { kills: 0.35, headshots: 0.29 },
+  valorant: { kills: 0 },
+};
+
+function scaleEdge(factor, edge) {
+  return typeof edge === "number" && isFinite(edge) ? factor * edge : null;
+}
+
+function lineRealization(game, statType) {
+  const byStat = LINE_REALIZATION[game];
+  const v = byStat ? byStat[statType] : undefined;
+  return typeof v === "number" && isFinite(v) ? v : 1;
+}
+
 /* The calibrated projection, then the edge from it -- not the edge
    scaled directly.
 
@@ -5313,8 +5356,9 @@ function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop, againstGap }) 
   // chip was shaped to avoid. Only the bands that change the story
   // (0.34 and 0.72) say so.
   const MATERIAL_DISCOUNT = 0.9;
+  const realization = lineRealization(row.game, row.statType);
   const discounted = !ambiguous && typeof shown === "number"
-    && edgeMultiplier(evidence) < MATERIAL_DISCOUNT;
+    && (edgeMultiplier(evidence) < MATERIAL_DISCOUNT || realization < MATERIAL_DISCOUNT);
   const tone = ambiguous || !live ? theme.textFaint
     : shown > 0 ? theme.good : shown < 0 ? theme.bad : theme.textDim;
   const when = row.when ? new Date(row.when) : null;
@@ -5384,10 +5428,14 @@ function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop, againstGap }) 
         <div className="kp-num" style={{ fontSize: 15, fontWeight: 700, color: tone }}
              title={discounted
                ? `Raw edge ${edge > 0 ? "+" : ""}${edge.toFixed(1)}, cut to `
-                 + `${shown > 0 ? "+" : ""}${shown.toFixed(1)} because it rests on `
-                 + `${Math.round(evidence || 0)} games. Measured on past seasons, about `
+                 + `${shown > 0 ? "+" : ""}${shown.toFixed(1)}. It rests on `
+                 + `${Math.round(evidence || 0)} games, and measured on past seasons about `
                  + `${Math.round(100 * edgeMultiplier(evidence))}% of a claimed edge at that `
                  + `sample size actually materialises.`
+                 + (realization < 1
+                   ? ` Against posted lines, ${Math.round(100 * realization)}% of this stat's `
+                     + `edges have shown up on the graded record.`
+                   : "")
                : undefined}>
           {ambiguous ? `${prop.lineCount} lines`
             : !live ? "started"
@@ -5495,7 +5543,8 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
         ? withEdge[0].adjustedEdge : withEdge[0].edge)
     : 0;
   const anyDiscounted = withEdge.some((r) => r.breakdown
-    && edgeMultiplier(r.evidence !== undefined ? r.evidence : r.breakdown.evidenceGames) < 0.9);
+    && (edgeMultiplier(r.evidence !== undefined ? r.evidence : r.breakdown.evidenceGames) < 0.9
+        || lineRealization(r.game, r.statType) < 0.9));
 
   /* A board that nearly all points one way is a statement about the
      model, not a list of opportunities.
@@ -5629,7 +5678,8 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
         Edge is the projection minus the line, over the line’s own map window, discounted by how much evidence
         the projection rests on. Measured over past seasons, a disagreement built on fewer than four games
         realises about a third of its face value, and one built on twelve or more realises almost all of it — so
-        ranking on the raw number promoted the rows the model knew least about. {anyDiscounted && "A row that was cut shows the figure it came from beside its map window. "}
+        ranking on the raw number promoted the rows the model knew least about. {lineRealization(game, statType) < 1
+          && `This stat's edges are also cut to ${Math.round(100 * lineRealization(game, statType))}%: that is the share of past edges against posted lines that actually showed up. `}{anyDiscounted && "A row that was cut shows the figure it came from beside its map window. "}
         It is a model disagreeing with a market, not a prediction of the result — and the model is the same one
         the accuracy figures on the Future tab describe.
       </div>

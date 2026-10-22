@@ -52,7 +52,7 @@ import optimize_weights as ow                      # noqa: E402
 from propedge import analytics, esports            # noqa: E402
 
 SOURCES = {"cs2": "cs2_data.json", "lol": "data.json",
-           "valorant": "valorant_data.json"}
+           "valorant": "valorant_data.json", "dota2": "dota_data.json"}
 #: Same grid the MAE search uses, so a difference in the answer is a difference
 #: in the OBJECTIVE and not in where each was allowed to look.
 GRID = {

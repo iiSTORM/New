@@ -257,7 +257,7 @@ def series_rows(game, stat, graded, data, index, maps=2):
                   if h["date"] < date][-10:]
         made = {
             "line": row["line"], "actual": row["actual"],
-            "model": projected.get(id(row)),
+            "model": projected.get(id(row)), "date": date or None,
             "form3": rate(prior[-3:]), "form10": rate(prior[-10:]),
             "history": len(prior),
             "team_rate": team_rate(mine), "opp_rate": team_rate(theirs),

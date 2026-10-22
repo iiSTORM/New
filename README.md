@@ -1691,6 +1691,38 @@ hundred. That is weeks away, not minutes.
 That is the whole list. Five items answered by measurement, one collected and
 waiting on data, three closed off as unreachable from the providers in use.
 
+### Re-measured on Oct 22: CS2's model now carries information, at a third of its size
+
+`python scripts/dev/line_realization.py --json scripts/dev/line_realization.json`
+
+The blend test above found zero model weight optimal on the record as it stood
+then. On 1,981 graded CS2 kills props it no longer does. The regression gives
+the model t +4.27 next to the line. The question that matters for the board is
+narrower: of the edge it **shows** (evidence discount included), how much turns
+up against the line? That is the slope of (actual − line) on (shown edge),
+clustered on the match:
+
+| cell | props | slope | 95% | walk-forward MAE: line / as shown / × slope |
+| --- | ---: | ---: | --- | --- |
+| CS2 kills | 1,981 | **0.35** | 0.11 to 0.56 | 5.266 / 5.344 / **5.255** |
+| CS2 headshots | 1,743 | **0.29** | 0.10 to 0.49 | 3.532 / 3.586 / **3.527** |
+| Valorant kills | 385 | −0.06 | −0.64 to 0.47 | 5.425 / 5.570 / 5.430 |
+| LoL kills | 280 | 0.72 | 0.15 to 1.33 | 3.340 / **3.207** / 3.247 |
+
+- **CS2:** real information, overstated about threefold. At face value the
+  board lost to the line out of sample. Scaled, it beats the line.
+- **Valorant:** nothing.
+- **LoL:** worth about face value, and scaling it hurt.
+
+The app now carries these as `LINE_REALIZATION`, applied inside the
+adjusted edge. A cell gets a factor only when its interval excludes 1, the
+factor is clamped to [0, 1], and `tests/test_line_realization.py` pins it to the
+JSON file. A cut row prints the figure it came from, as an evidence cut does.
+None of this changes which side a row points to, because blend − line =
+w × (model − line). It changes how big the edge reads, where the row ranks, and
+what the parlay builder thinks a leg is worth. Re-run the script after the
+weights move or the record grows.
+
 ### Why the weights are now searched against outcomes
 
 `scripts/dev/search_weights_by_outcome.py` replaces MAE as the objective with
