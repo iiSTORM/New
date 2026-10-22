@@ -104,6 +104,21 @@ PRIOR_WEIGHT = 0.0
 PRIOR_SHRINK_N = 150.0
 #: Below this many maps of history, no projection is offered at all.
 MIN_MAPS = 3
+#: Of the disagreement left after shrink_toward_line, the share that has shown
+#: up against posted lines on the graded record, per game and stat. CS2 keeps
+#: about half; Valorant none, because its edges have carried no information the
+#: line lacked. Cells whose interval includes 1 (LoL) or that are too thin to
+#: say are left out and keep all of it. Measured by
+#: `scripts/dev/line_realization.py --slate` into line_realization_slate.json,
+#: and pinned to that file by tests/test_line_realization.py.
+LINE_REALIZATION = {
+    "cs2": {"kills": 0.46, "headshots": 0.53},
+    "valorant": {"kills": 0.0},
+}
+
+
+def line_realization(game, stat):
+    return LINE_REALIZATION.get(game, {}).get(stat, 1.0)
 
 EXACT = statistics.NormalDist()
 
@@ -238,8 +253,11 @@ class EsportsModel:
 
     def __init__(self, data_by_game=None, graded=None, shrink_maps=SHRINK_MAPS,
                  prior_weight=PRIOR_WEIGHT, prior_shrink_n=PRIOR_SHRINK_N,
-                 min_maps=MIN_MAPS, weights=None, scales=None, exponent=None):
+                 min_maps=MIN_MAPS, weights=None, scales=None, exponent=None,
+                 realize=True):
         self.data = data_by_game or {}
+        #: Apply LINE_REALIZATION. Off only for measuring the tool without it.
+        self.realize = realize
         self.rates = under_rates(graded)
         self.shrink_maps = shrink_maps
         self.prior_weight = prior_weight
@@ -367,6 +385,8 @@ class EsportsModel:
         if not sigma:
             return None
         shrunk = shrink_toward_line(mu, line, evidence, self.shrink_maps)
+        if self.realize:
+            shrunk = line + (shrunk - line) * line_realization(game, stat)
         split = outcome_probabilities(shrunk, sigma, line)
         if split is None:
             return None

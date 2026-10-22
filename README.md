@@ -1723,6 +1723,15 @@ w × (model − line). It changes how big the edge reads, where the row ranks, a
 what the parlay builder thinks a leg is worth. Re-run the script after the
 weights move or the record grows.
 
+The slate tool (`propedge/esports.py`) builds its legs a different way: the raw
+projection, pulled toward the line by `maps / (maps + 4)`. So it is measured
+separately (`line_realization.py --slate`). Of what survives that pull, CS2
+kills keep **0.46** (0.12 to 0.77), headshots **0.53** (0.25 to 0.82),
+Valorant nothing, and LoL is left whole (0.74, interval spans 1). It carries
+those as its own `LINE_REALIZATION`, pinned to `line_realization_slate.json`.
+That moves CS2 and Valorant legs' probabilities toward 50%. Fewer of them
+will clear the bar, which is the measured truth about those legs.
+
 ### Why the weights are now searched against outcomes
 
 `scripts/dev/search_weights_by_outcome.py` replaces MAE as the objective with

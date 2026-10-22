@@ -10,6 +10,8 @@ import re
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts" / "dev"))
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -56,3 +58,19 @@ def test_the_adjusted_projection_matches_the_apps_adjust_edge():
     # adjustEdge: (mean + multiplier * (projection - mean)) - line
     assert lr.adjusted(20.0, 10, 16.0) == 16.0 + 0.93 * 4.0
     assert lr.adjusted(20.0, 2, None) == 20.0
+
+
+def test_the_slate_tool_carries_its_own_measured_factors():
+    from propedge import esports
+    shipped = json.loads((ROOT / "scripts" / "dev" / "line_realization_slate.json").read_text())["shipped"]
+    assert esports.LINE_REALIZATION == shipped
+    assert esports.line_realization("lol", "kills") == 1.0
+
+
+def test_the_slate_tool_applies_it_to_the_shrunk_mean():
+    from propedge import esports
+    scales = {"cs2": {"kills": {"2": 6.0}}}
+    on_ = esports.EsportsModel(scales=scales).probabilities("cs2", "kills", 2, 40.0, 30.5, 40)
+    off_ = esports.EsportsModel(scales=scales, realize=False).probabilities("cs2", "kills", 2, 40.0, 30.5, 40)
+    assert on_[0] < off_[0]                    # a smaller over edge is a less confident over
+    assert on_[3].shrunk - 30.5 == pytest.approx((off_[3].shrunk - 30.5) * 0.46)

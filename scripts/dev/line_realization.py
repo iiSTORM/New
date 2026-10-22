@@ -74,7 +74,18 @@ def match_key(row):
             tuple(sorted((str(row.get("team")), str(row.get("opponent") or "?")))))
 
 
-def cell_points(game, stat, graded, weights=None):
+def board_claim(mu, evidence, mean, line):
+    """The Edges board's shown edge, before any LINE_REALIZATION."""
+    return adjusted(mu, evidence, mean) - line
+
+
+def slate_claim(mu, evidence, mean, line):
+    """The slate tool's disagreement: propedge.esports.shrink_toward_line."""
+    from propedge import esports
+    return esports.shrink_toward_line(mu, line, evidence) - line
+
+
+def cell_points(game, stat, graded, weights=None, claim=board_claim):
     """[(match key, claim, realised)] for one cell, oldest first."""
     data, index = sw.load(game)
     if not data:
@@ -99,7 +110,7 @@ def cell_points(game, stat, graded, weights=None):
                                                  row.get("match_date"))
         rate = rates[cache]
         mean = rate * row["maps"] if rate is not None else None
-        out.append((match_key(row), adjusted(mu, evidence, mean) - row["line"],
+        out.append((match_key(row), claim(mu, evidence, mean, row["line"]),
                     row["actual"] - row["line"]))
     out.sort(key=lambda p: p[0][0])
     return out
@@ -146,8 +157,8 @@ def walk_forward(points, folds=FOLDS):
     return statistics.mean(line), statistics.mean(board), statistics.mean(blend)
 
 
-def measure(game, stat, graded):
-    points = cell_points(game, stat, graded)
+def measure(game, stat, graded, claim=board_claim):
+    points = cell_points(game, stat, graded, claim=claim)
     if len(points) < MIN_PROPS:
         return {"game": game, "stat": stat, "n": len(points)}
     lo, hi, matches = clustered_interval(points)
@@ -173,13 +184,16 @@ def main(argv=None):
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--results", default="props_results.json")
     ap.add_argument("--json")
+    ap.add_argument("--slate", action="store_true",
+                    help="measure the slate tool's shrunk disagreement instead of the board's")
     args = ap.parse_args(argv)
+    claim = slate_claim if args.slate else board_claim
     graded = json.load(open(args.results))["graded"]
     out = []
     print(f"  {'cell':<18} {'n':>5} {'matches':>7} {'slope':>6}  {'95%':<14}"
           f"  walk-forward MAE: line / board / blend")
     for game, stat in CELLS:
-        got = measure(game, stat, graded)
+        got = measure(game, stat, graded, claim)
         out.append(got)
         if "slope" not in got:
             print(f"  {game + ' ' + stat:<18} {got['n']:>5}  too few graded props")
