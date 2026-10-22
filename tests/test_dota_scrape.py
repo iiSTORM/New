@@ -165,7 +165,7 @@ DIVS = f"""
  <div class="match-info-header">
   <div class="match-info-header-opponent match-info-header-opponent-left"><div class="block-team flipped">
     <span class="team-template-image-icon"><a href="/dota2/PARIVISION" title="PARIVISION"><img alt=""/></a></span>
-    <span class="name"><a href="/dota2/PARIVISION" title="PARIVISION">PARIVISION</a></span></div></div>
+    <span class="name"><a href="/dota2/PARIVISION" title="PARIVISION">PARI</a></span></div></div>
   <div class="match-info-header-scoreholder"><span class="match-info-header-scoreholder-lower">(Bo5)</span></div>
   <div class="match-info-header-opponent"><div class="block-team">
     <span class="name"><a href="/dota2/index.php?title=Cloud_Dawning&amp;action=edit&amp;redlink=1"
@@ -187,7 +187,8 @@ def test_the_schedule_reads_the_table_layout():
 
 def test_the_schedule_reads_the_div_layout():
     # The live layout: one row although the match is listed in two filter
-    # views, a red-link team read from its visible name, a TBD slot dropped.
+    # views, full names from link titles rather than the short tag shown
+    # ("PARI"), a red link's title without its suffix, a TBD slot dropped.
     assert sd.parse_schedule(DIVS, NOW) == [(NOW + 3600, "PARIVISION", "Cloud Dawning", "BLAST Slam VIII", 5)]
 
 

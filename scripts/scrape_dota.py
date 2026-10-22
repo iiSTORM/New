@@ -428,13 +428,15 @@ def carry_upcoming(previous_upcoming, now_ts):
 
 
 def _opponent_name(block):
-    """A team's name in one opponent block: the visible name first, then a
-    link title, never a page-does-not-exist suffix or a TBD slot."""
-    el = block.find(class_="name")
-    name = el.get_text(" ", strip=True) if el else ""
+    """A team's name in one opponent block, never a page-does-not-exist
+    suffix or a TBD slot. The link title comes first: it is the full name
+    ("Team Spirit"), while the visible text is often the short tag the
+    compact view shows ("TSpirit", "GL", "1w")."""
+    el = block.find(class_="name") or block
+    a = el.find("a", title=True) or block.find("a", title=True)
+    name = (a["title"] if a else "").replace(" (page does not exist)", "").strip()
     if not name:
-        a = block.find("a", title=True)
-        name = (a["title"] if a else "").replace(" (page does not exist)", "").strip()
+        name = el.get_text(" ", strip=True) if el is not block else ""
     return None if not name or name.upper() == "TBD" else name
 
 
