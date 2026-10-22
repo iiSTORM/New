@@ -3180,16 +3180,36 @@ function teamTotal(match, team, statKey) {
   return seen >= 5 ? total : null;
 }
 
-function priorMatches(pastMatches, team, cutoffDate) {
-  const out = [];
-  for (const m of pastMatches) {
-    if (!m.actual) continue;
-    if (m.teamA !== team && m.teamB !== team) continue;
-    if (cutoffDate !== null && cutoffDate !== undefined && (!m.date || m.date >= cutoffDate)) continue;
-    out.push(m);
+/* Each team's completed matches, sorted once per match list rather than
+   filtered and sorted out of the whole list on every call: the Parlays and
+   Record tabs project every graded line at its own cutoff, and this was a
+   full scan plus a sort per team per line. Filtering a stably sorted list
+   keeps the order a stable sort of the filtered one would give, so the
+   result is the same array, in the same order, as before. */
+const teamMatchesCache = new WeakMap();
+function sortedTeamMatches(pastMatches, team) {
+  let byTeam = teamMatchesCache.get(pastMatches);
+  if (!byTeam) {
+    byTeam = new Map();
+    for (const m of pastMatches) {
+      if (!m.actual) continue;
+      for (const t of m.teamA === m.teamB ? [m.teamA] : [m.teamA, m.teamB]) {
+        if (!byTeam.has(t)) byTeam.set(t, []);
+        byTeam.get(t).push(m);
+      }
+    }
+    for (const list of byTeam.values()) {
+      list.sort((a, b) => ((a.date || "") < (b.date || "") ? -1 : (a.date || "") > (b.date || "") ? 1 : 0));
+    }
+    teamMatchesCache.set(pastMatches, byTeam);
   }
-  out.sort((a, b) => ((a.date || "") < (b.date || "") ? -1 : (a.date || "") > (b.date || "") ? 1 : 0));
-  return out;
+  return byTeam.get(team) || [];
+}
+
+function priorMatches(pastMatches, team, cutoffDate) {
+  const all = sortedTeamMatches(pastMatches, team);
+  if (cutoffDate === null || cutoffDate === undefined) return all.slice();
+  return all.filter((m) => m.date && m.date < cutoffDate);
 }
 
 function decayedMean(values) {
@@ -3728,7 +3748,20 @@ function applyCareerTier(base, player, weights, cfg, cutoffDate) {
    refinement, not implemented here.
    ============================================================ */
 
+const teamStatCache = new WeakMap();
 function pointInTimeTeamStat(pastMatches, team, statKey, cutoffDate) {
+  // Cached like the league averages: the same team at the same cutoff is
+  // asked for once per opposing player, and every call scanned every match.
+  let memo = teamStatCache.get(pastMatches);
+  if (!memo) { memo = new Map(); teamStatCache.set(pastMatches, memo); }
+  const key = `${team}\u0001${statKey}\u0001${cutoffDate}`;
+  if (memo.has(key)) return memo.get(key);
+  const out = pointInTimeTeamStatUncached(pastMatches, team, statKey, cutoffDate);
+  memo.set(key, out);
+  return out;
+}
+
+function pointInTimeTeamStatUncached(pastMatches, team, statKey, cutoffDate) {
   // "opponent's kills" and "opponent's deaths" are two different vantage
   // points on the same match: a team's deaths = the *other* team's kills
   // in that game, so statKey="d" sums the opponent's actual k values, and
@@ -3813,7 +3846,34 @@ function pointInTimeLeagueAvgStat(pastMatches, teams, statKey, cutoffDate) {
    *strongest* team-wide signal of the three stats).
    ============================================================ */
 
+/* Both below are cached the way pointInTimeLeagueAvgStat is, keyed on the
+   match list and teams by identity and on everything else by value, for
+   the same reason: the role average walks every team's every match, and a
+   Future tab calls it once per player per card. Dota's 140 teams in one
+   pool took 1.6s of a 4s first load in this function alone on a desktop,
+   several times that on a phone. The arithmetic is untouched, so a cached
+   answer is the same number to the last bit. */
+const roleStatCache = new WeakMap();
+function roleMemo(pastMatches, teams) {
+  let byTeams = roleStatCache.get(pastMatches);
+  if (!byTeams) { byTeams = new WeakMap(); roleStatCache.set(pastMatches, byTeams); }
+  let memo = byTeams.get(teams);
+  if (!memo) { memo = new Map(); byTeams.set(teams, memo); }
+  return memo;
+}
+
+const playerNamesStatCache = new WeakMap();
 function pointInTimePlayerNamesStat(pastMatches, team, playerNames, statKey, cutoffDate) {
+  let memo = playerNamesStatCache.get(pastMatches);
+  if (!memo) { memo = new Map(); playerNamesStatCache.set(pastMatches, memo); }
+  const key = `${team}\u0001${playerNames.join("\u0001")}\u0001${statKey}\u0001${cutoffDate}`;
+  if (memo.has(key)) return memo.get(key);
+  const out = pointInTimePlayerNamesStatUncached(pastMatches, team, playerNames, statKey, cutoffDate);
+  memo.set(key, out);
+  return out;
+}
+
+function pointInTimePlayerNamesStatUncached(pastMatches, team, playerNames, statKey, cutoffDate) {
   let total = 0, games = 0;
   for (const m of pastMatches) {
     if (cutoffDate !== null && (!m.date || m.date >= cutoffDate)) continue;
@@ -3830,6 +3890,15 @@ function pointInTimePlayerNamesStat(pastMatches, team, playerNames, statKey, cut
 }
 
 function pointInTimeLeagueAvgForRole(pastMatches, teams, role, statKey, cutoffDate) {
+  const memo = roleMemo(pastMatches, teams);
+  const key = `${role}|${statKey}|${cutoffDate}`;
+  if (memo.has(key)) return memo.get(key);
+  const out = pointInTimeLeagueAvgForRoleUncached(pastMatches, teams, role, statKey, cutoffDate);
+  memo.set(key, out);
+  return out;
+}
+
+function pointInTimeLeagueAvgForRoleUncached(pastMatches, teams, role, statKey, cutoffDate) {
   const rates = [];
   for (const teamName in teams) {
     const roleNames = teams[teamName].players.filter((p) => p.role === role).map((p) => p.name);
@@ -3850,7 +3919,13 @@ function laneOpponentMultiplier(pastMatches, teams, player, opponentTeam, oppStr
   return 1 + oppStrength * (oppStat / leagueAvg - 1);
 }
 
+const roleDataCache = new WeakMap();
 function gameHasRoleData(teams) {
+  if (!roleDataCache.has(teams)) roleDataCache.set(teams, gameHasRoleDataUncached(teams));
+  return roleDataCache.get(teams);
+}
+
+function gameHasRoleDataUncached(teams) {
   // True if ANY player in this dataset has role info at all — used to
   // distinguish "this specific player is missing a role" (LoL/Valorant,
   // where a real diagnostic found team-wide as a FALLBACK for that case
@@ -6145,9 +6220,25 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
 
   /* The record, across every game and stat, for the gate. Same re-projection
      the Record tab does, pooled rather than per stat, because the question
-     "does our ranking separate" is about the ranking and not about kills. */
-  const recordRows = useMemo(() => {
-    if (!results) return [];
+     "does our ranking separate" is about the ranking and not about kills.
+
+     Computed after the tab has painted, not during the click: it re-projects
+     every graded line in every game and stat, about half a second on a
+     desktop the first time, and doing that inside the render froze the tab
+     on the way in. null means "still measuring", [] means "nothing graded". */
+  // Rendered without a DOM (the smoke test renders to a string) there is
+  // no paint to protect and no effect will ever run, so it is measured in
+  // place there.
+  const [recordRows, setRecordRows] = useState(() =>
+    (typeof document === "undefined" || typeof document.createElement !== "function"
+      ? (results ? pooledRecord() : []) : null));
+  useEffect(() => {
+    if (!results) { setRecordRows([]); return undefined; }
+    setRecordRows(null);
+    const id = setTimeout(() => setRecordRows(pooledRecord()), 0);
+    return () => clearTimeout(id);
+  }, [results, dataByGame, weightsByGameAndStat]);
+  function pooledRecord() {
     const all = [];
     for (const gameId of GAME_LIST) {
       const cfg = GAMES[gameId];
@@ -6161,10 +6252,10 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
       }
     }
     return all;
-  }, [results, dataByGame, weightsByGameAndStat]);
+  }
 
   const evidence = useMemo(
-    () => (recordRows.length ? parlayEvidence(recordRows) : null), [recordRows]);
+    () => (recordRows && recordRows.length ? parlayEvidence(recordRows) : null), [recordRows]);
   const ladder = useMemo(() => buildParlays(rows, { multipliers, oddsFactors }),
                          [rows, multipliers, oddsFactors]);
 
@@ -6182,6 +6273,11 @@ function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) 
     return shell(`${rows.length} live line(s) across every game, which is not enough distinct `
       + `players to fill even a two-leg entry. The ladder needs one leg per player.`);
   }
+
+  // Every rung is priced against the measured rate, so nothing is shown
+  // until it is in: a ladder drawn without it would read "withheld" for a
+  // moment and then change its mind.
+  if (recordRows === null) return shell("Measuring how past picks landed across every game…");
 
   const measured = evidence && evidence.overall;
   const validated = !!(evidence && evidence.validated);

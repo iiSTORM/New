@@ -3510,16 +3510,29 @@ try {
     }
     return seen >= 5 ? total : null;
   }
-  function priorMatches(pastMatches, team, cutoffDate) {
-    const out = [];
-    for (const m of pastMatches) {
-      if (!m.actual) continue;
-      if (m.teamA !== team && m.teamB !== team) continue;
-      if (cutoffDate !== null && cutoffDate !== undefined && (!m.date || m.date >= cutoffDate)) continue;
-      out.push(m);
+  const teamMatchesCache = new WeakMap();
+  function sortedTeamMatches(pastMatches, team) {
+    let byTeam = teamMatchesCache.get(pastMatches);
+    if (!byTeam) {
+      byTeam = new Map();
+      for (const m of pastMatches) {
+        if (!m.actual) continue;
+        for (const t of m.teamA === m.teamB ? [m.teamA] : [m.teamA, m.teamB]) {
+          if (!byTeam.has(t)) byTeam.set(t, []);
+          byTeam.get(t).push(m);
+        }
+      }
+      for (const list of byTeam.values()) {
+        list.sort((a, b) => (a.date || "") < (b.date || "") ? -1 : (a.date || "") > (b.date || "") ? 1 : 0);
+      }
+      teamMatchesCache.set(pastMatches, byTeam);
     }
-    out.sort((a, b) => (a.date || "") < (b.date || "") ? -1 : (a.date || "") > (b.date || "") ? 1 : 0);
-    return out;
+    return byTeam.get(team) || [];
+  }
+  function priorMatches(pastMatches, team, cutoffDate) {
+    const all = sortedTeamMatches(pastMatches, team);
+    if (cutoffDate === null || cutoffDate === undefined) return all.slice();
+    return all.filter(m => m.date && m.date < cutoffDate);
   }
   function decayedMean(values) {
     const n = values.length;
@@ -3798,7 +3811,20 @@ try {
       careerRate
     };
   }
+  const teamStatCache = new WeakMap();
   function pointInTimeTeamStat(pastMatches, team, statKey, cutoffDate) {
+    let memo = teamStatCache.get(pastMatches);
+    if (!memo) {
+      memo = new Map();
+      teamStatCache.set(pastMatches, memo);
+    }
+    const key = `${team}\u0001${statKey}\u0001${cutoffDate}`;
+    if (memo.has(key)) return memo.get(key);
+    const out = pointInTimeTeamStatUncached(pastMatches, team, statKey, cutoffDate);
+    memo.set(key, out);
+    return out;
+  }
+  function pointInTimeTeamStatUncached(pastMatches, team, statKey, cutoffDate) {
     let total = 0,
       games = 0;
     for (const m of pastMatches) {
@@ -3860,7 +3886,34 @@ try {
     memo.set(key, out);
     return out;
   }
+  const roleStatCache = new WeakMap();
+  function roleMemo(pastMatches, teams) {
+    let byTeams = roleStatCache.get(pastMatches);
+    if (!byTeams) {
+      byTeams = new WeakMap();
+      roleStatCache.set(pastMatches, byTeams);
+    }
+    let memo = byTeams.get(teams);
+    if (!memo) {
+      memo = new Map();
+      byTeams.set(teams, memo);
+    }
+    return memo;
+  }
+  const playerNamesStatCache = new WeakMap();
   function pointInTimePlayerNamesStat(pastMatches, team, playerNames, statKey, cutoffDate) {
+    let memo = playerNamesStatCache.get(pastMatches);
+    if (!memo) {
+      memo = new Map();
+      playerNamesStatCache.set(pastMatches, memo);
+    }
+    const key = `${team}\u0001${playerNames.join("\u0001")}\u0001${statKey}\u0001${cutoffDate}`;
+    if (memo.has(key)) return memo.get(key);
+    const out = pointInTimePlayerNamesStatUncached(pastMatches, team, playerNames, statKey, cutoffDate);
+    memo.set(key, out);
+    return out;
+  }
+  function pointInTimePlayerNamesStatUncached(pastMatches, team, playerNames, statKey, cutoffDate) {
     let total = 0,
       games = 0;
     for (const m of pastMatches) {
@@ -3877,6 +3930,14 @@ try {
     return games > 0 ? total / games : null;
   }
   function pointInTimeLeagueAvgForRole(pastMatches, teams, role, statKey, cutoffDate) {
+    const memo = roleMemo(pastMatches, teams);
+    const key = `${role}|${statKey}|${cutoffDate}`;
+    if (memo.has(key)) return memo.get(key);
+    const out = pointInTimeLeagueAvgForRoleUncached(pastMatches, teams, role, statKey, cutoffDate);
+    memo.set(key, out);
+    return out;
+  }
+  function pointInTimeLeagueAvgForRoleUncached(pastMatches, teams, role, statKey, cutoffDate) {
     const rates = [];
     for (const teamName in teams) {
       const roleNames = teams[teamName].players.filter(p => p.role === role).map(p => p.name);
@@ -3895,7 +3956,12 @@ try {
     if (oppStat === null || !leagueAvg) return null;
     return 1 + oppStrength * (oppStat / leagueAvg - 1);
   }
+  const roleDataCache = new WeakMap();
   function gameHasRoleData(teams) {
+    if (!roleDataCache.has(teams)) roleDataCache.set(teams, gameHasRoleDataUncached(teams));
+    return roleDataCache.get(teams);
+  }
+  function gameHasRoleDataUncached(teams) {
     return Object.values(teams).some(team => team.players.some(p => p.role));
   }
   const CLASS_GAP_KILLS = 1.25;
@@ -6093,8 +6159,17 @@ try {
       }
       return all;
     }, [dataByGame, propsData, weightsByGameAndStat]);
-    const recordRows = useMemo(() => {
-      if (!results) return [];
+    const [recordRows, setRecordRows] = useState(() => typeof document === "undefined" || typeof document.createElement !== "function" ? results ? pooledRecord() : [] : null);
+    useEffect(() => {
+      if (!results) {
+        setRecordRows([]);
+        return undefined;
+      }
+      setRecordRows(null);
+      const id = setTimeout(() => setRecordRows(pooledRecord()), 0);
+      return () => clearTimeout(id);
+    }, [results, dataByGame, weightsByGameAndStat]);
+    function pooledRecord() {
       const all = [];
       for (const gameId of GAME_LIST) {
         const cfg = GAMES[gameId];
@@ -6112,8 +6187,8 @@ try {
         }
       }
       return all;
-    }, [results, dataByGame, weightsByGameAndStat]);
-    const evidence = useMemo(() => recordRows.length ? parlayEvidence(recordRows) : null, [recordRows]);
+    }
+    const evidence = useMemo(() => recordRows && recordRows.length ? parlayEvidence(recordRows) : null, [recordRows]);
     const ladder = useMemo(() => buildParlays(rows, {
       multipliers,
       oddsFactors
@@ -6135,6 +6210,7 @@ try {
     if (!ladder.length) {
       return shell(`${rows.length} live line(s) across every game, which is not enough distinct ` + `players to fill even a two-leg entry. The ladder needs one leg per player.`);
     }
+    if (recordRows === null) return shell("Measuring how past picks landed across every game…");
     const measured = evidence && evidence.overall;
     const validated = !!(evidence && evidence.validated);
     return React.createElement("div", null, React.createElement("div", {
