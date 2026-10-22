@@ -70,9 +70,9 @@ SHIPPED_WEIGHTS = {
         "headshots": {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 0.8, "share": 0.3, "shrink": 3.0},
     },
     "dota2": {
-        "kills":    {"history": 0.0, "opponent": 0.6, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 0.0, "share": 0.6, "shrink": 2.0},
-        "deaths":   {"history": 0.0, "opponent": 0.1, "kp": 0.0, "recencyHalfLife": 6, "patchDiscount": 0.0, "career": 0.0, "share": 0.3, "shrink": 2.0},
-        "assists":  {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 6, "patchDiscount": 0.0, "career": 0.0, "share": 0.7, "shrink": 2.0},
+        "kills":    {"history": 0.0, "opponent": 0.6, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 0.0, "share": 0.3, "shrink": 8.0},
+        "deaths":   {"history": 0.0, "opponent": 0.1, "kp": 0.0, "recencyHalfLife": 6, "patchDiscount": 0.0, "career": 0.0, "share": 0.1, "shrink": 8.0},
+        "assists":  {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 6, "patchDiscount": 0.0, "career": 0.0, "share": 0.7, "shrink": 4.0},
         "headshots": {"history": 0.0, "opponent": 0.0, "kp": 0.0, "recencyHalfLife": 20, "patchDiscount": 0.0, "career": 0.0, "share": 0.0, "shrink": 0.0},
     },
 }
@@ -248,6 +248,7 @@ def clear_point_in_time_caches():
     _team_total_cache.clear()
     _share_rate_cache.clear()
     _league_pace_cache.clear()
+    _position_share_cache.clear()
     _cache_keepalive.clear()
 
 
@@ -944,7 +945,37 @@ def league_player_rate(past_matches, teams, stat_key, cutoff_date):
     return pace / ROSTER_SIZE if pace else None
 
 
-def shrink_to_prior(per_map, k, prior_games, past_matches, teams, stat_key, cutoff_date):
+_position_share_cache = {}
+
+
+def position_share(past_matches, teams, role, stat_key, cutoff_date):
+    """A position's pooled share of its team's output before the cutoff.
+    Mirrors positionShare in src/app.jsx, summation order included."""
+    if not role:
+        return None
+    key = (_pin(past_matches), _pin(teams), role, stat_key, cutoff_date)
+    if key in _position_share_cache:
+        return _position_share_cache[key]
+    num = den = 0
+    for team in teams:
+        for p in teams[team].get("players") or []:
+            if p.get("role") != role:
+                continue
+            for m in _prior(past_matches, team, cutoff_date):
+                got = get_actual_stat(m, team, p["name"], stat_key)
+                if got is None or got == "unavailable":
+                    continue
+                total = team_total(m, team, stat_key)
+                if not total:
+                    continue
+                num += got
+                den += total
+    share = num / den if den > 0 else None
+    _position_share_cache[key] = share
+    return share
+
+
+def shrink_to_prior(per_map, k, prior_games, past_matches, teams, stat_key, cutoff_date, role=None):
     """Pull a per-map rate toward the league's average player.
 
     Applied to the FINAL per-map figure, after the opponent, kp and share
@@ -954,7 +985,11 @@ def shrink_to_prior(per_map, k, prior_games, past_matches, teams, stat_key, cuto
     """
     if not k:
         return per_map
-    prior = league_player_rate(past_matches, teams, stat_key, cutoff_date)
+    # The player's position when the roster names one (Dota), the league's
+    # average player otherwise -- see shrinkToPrior in src/app.jsx.
+    share = position_share(past_matches, teams, role, stat_key, cutoff_date)
+    pace = league_pace_per_map(past_matches, teams, stat_key, cutoff_date) if share is not None else None
+    prior = pace * share if share is not None and pace else league_player_rate(past_matches, teams, stat_key, cutoff_date)
     if not prior:
         return per_map
     weight = prior_games / (prior_games + k)
@@ -1048,7 +1083,7 @@ def project_point_in_time(past_matches, teams, player, team, opponent_team, game
     per_game = blend_share_tier(per_game, weights.get("share", 0), past_matches, teams,
                                 team, player["name"], cfg["key"], cutoff_date)
     per_game = shrink_to_prior(per_game, weights.get("shrink", 0), pt_games,
-                               past_matches, teams, cfg["key"], cutoff_date)
+                               past_matches, teams, cfg["key"], cutoff_date, player.get("role"))
     return per_game * games, pt_games
 
 

@@ -649,12 +649,13 @@ const RESIDUAL_SCALE = {
   // one-map scale is measured on MAP 1 OF EVERY SERIES (2,575 rows per
   // stat), not on Bo1s alone: the first fit used 32-39 Bo1 series and moved
   // by a kill between runs (kills 4.08 -> 3.40, deaths 2.71 -> 3.78), and a
-  // map-1 line in a Bo3 settles on exactly this. 3.26 x 2^0.63 = 5.04
-  // against a measured 5.16 for maps 1-2, in line with RESIDUAL_SCALE_EXPONENT.
+  // map-1 line in a Bo3 settles on exactly this. 3.21 x 2^0.63 = 4.97
+  // against a measured 4.94 for maps 1-2, in line with RESIDUAL_SCALE_EXPONENT.
+  // Re-measured 2026-10-22 after the position prior and re-tuned weights.
   dota2: {
-    kills:   { 1: 3.26, 2: 5.16 },
-    deaths:  { 1: 3.25, 2: 4.73 },
-    assists: { 1: 7.01, 2: 10.15 },
+    kills:   { 1: 3.21, 2: 4.94 },
+    deaths:  { 1: 3.20, 2: 4.65 },
+    assists: { 1: 6.97, 2: 10.00 },
   },
 };
 
@@ -3311,10 +3312,47 @@ function leaguePlayerRate(pastMatches, teams, statKey, cutoffDate) {
    layers, because that is the number actually being trusted and where
    this was measured. Falls through unchanged when there is no league to
    compare against. */
-function shrinkToPrior(perGame, weights, priorGames, pastMatches, teams, statKey, cutoffDate) {
+/* A position's pooled share of its team's output, from matches before the
+   cutoff: every rostered player holding that role, their stat over their
+   team's total, summed then divided. Null when the role is unknown or has
+   no history yet. Feeds the shrink prior below. */
+function positionShare(pastMatches, teams, role, statKey, cutoffDate) {
+  if (!role) return null;
+  const cache = tierCache(pastMatches, "position");
+  const key = `${role}|${statKey}|${cutoffDate || ""}`;
+  if (cache.has(key)) return cache.get(key);
+  let num = 0, den = 0;
+  for (const team of Object.keys(teams || {})) {
+    for (const p of teams[team].players || []) {
+      if (p.role !== role) continue;
+      for (const m of priorMatches(pastMatches, team, cutoffDate)) {
+        const got = getActualStat(m, team, p.name, statKey);
+        if (got === undefined || got === null) continue;
+        const total = teamTotal(m, team, statKey);
+        if (!total) continue;
+        num += got; den += total;
+      }
+    }
+  }
+  const share = den > 0 ? num / den : null;
+  cache.set(key, share);
+  return share;
+}
+
+/* The shrink target is the player's POSITION, not the league's average
+   player, when the roster says what position that is. Shrinking a Dota
+   carry and a hard support toward the same number flattened them: with
+   shrink on, position 1 out-killed its projection by 14% and position 5
+   fell 17% short (2026-10-22, 3,415 player-series), while the same
+   projections without shrink sat within 5% everywhere. League ships no
+   shrink and CS2/Valorant rosters carry no role, so this only reaches
+   Dota. Mirrored in scripts/dev/optimize_weights.py. */
+function shrinkToPrior(perGame, weights, priorGames, pastMatches, teams, statKey, cutoffDate, role) {
   const k = weights.shrink || 0;
   if (!k) return { perGame, shrunkTo: null };
-  const prior = leaguePlayerRate(pastMatches, teams, statKey, cutoffDate);
+  const share = positionShare(pastMatches, teams, role, statKey, cutoffDate);
+  const pace = share !== null ? leaguePacePerMap(pastMatches, teams, statKey, cutoffDate) : null;
+  const prior = share !== null && pace ? pace * share : leaguePlayerRate(pastMatches, teams, statKey, cutoffDate);
   if (!prior) return { perGame, shrunkTo: null };
   const w = priorGames / (priorGames + k);
   return { perGame: w * perGame + (1 - w) * prior, shrunkTo: prior, shrinkPull: 1 - w };
@@ -3342,7 +3380,7 @@ function project(teams, pastMatches, player, team, opponentTeam, games, weights,
   const blended = blendShareTier(base * oppMult * kpMult * classMult, weights, pastMatches, teams,
                                  team, player.name, cfg.key, null);
   const shrunk = shrinkToPrior(blended.perGame, weights, weighted.games || 0, pastMatches,
-                               teams, cfg.key, null);
+                               teams, cfg.key, null, player.role);
   const perGame = shrunk.perGame;
   const priorGames = weighted.games || 0;
   return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult, classMult,
@@ -3923,7 +3961,7 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
   const blendedPT = blendShareTier(base * oppMult * kpMult * classMult, weights, pastMatches, teams,
                                    team, player.name, cfg.key, cutoffDate);
   const shrunkPT = shrinkToPrior(blendedPT.perGame, weights, pt.games || 0, pastMatches,
-                                 teams, cfg.key, cutoffDate);
+                                 teams, cfg.key, cutoffDate, player.role);
   const perGame = shrunkPT.perGame;
   return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult, classMult,
            shareTier: blendedPT.shareTier, sharePct: blendedPT.sharePct, shareWeight: weights.share || 0,
@@ -4512,23 +4550,25 @@ const DEFAULT_WEIGHTS_BY_GAME_AND_STAT = {
     // — and pinned at the no-decay end.
     headshots: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 0.8, share: 0.3, shrink: 3.0 },
   },
-  // Dota 2, chosen walk-forward on the first OpenDota backfill (2,235
-  // player-series, 6 chronological folds; scripts/dev/sweep_weight.py's
-  // rule, coordinate by coordinate: a value is adopted only when it wins a
-  // MAJORITY of folds and lowers the mean). No career file and no
-  // previous-split history (hist is null), so career and history are inert,
-  // as for CS2. What each set bought is in validated_weights.json:
-  //   kills   4.728 -> 4.648 (-1.7%): shrink 4 -> 2, share 0.2 -> 0.6,
-  //           opponent 0.2 -> 0.6, kp 0.3 -> 0, recency 6 -> 20 (no decay)
-  //   deaths  3.812 -> 3.768 (-1.2%): shrink 4 -> 2, share 0.3, opponent 0.1
-  //   assists 8.099 -> 7.968 (-1.6%): share 0.7, shrink 2, opponent 0, kp 0
-  // A sub-noise step (kills shrink 2 -> 1, 0.0003 of a kill) was NOT taken.
-  // Spread ratios 0.79 / 0.90 / 0.72 clear the 0.55 floor. Fitted on a
-  // short window: re-run once the 60-day backfill is complete.
+  // Dota 2, walk-forward on the completed 60-day OpenDota backfill (2,587
+  // player-series, 6 chronological folds; a value adopted only when it wins
+  // a MAJORITY of folds). No career file and no previous-split history, so
+  // career and history are inert, as for CS2.
+  //
+  // Shrink now pulls toward the player's POSITION (shrinkToPrior), not the
+  // league's average player. That alone won 6/6 folds on kills and deaths
+  // (4.468 -> 4.382, 3.742 -> 3.676), and with a target that is right for
+  // the player, heavier shrink pays: kills and deaths plateau at 8-12 and
+  // take 8, the lightest point on the plateau.
+  //   kills   4.468 -> 4.296 (-3.8%): shrink 2 -> 8, share 0.6 -> 0.3
+  //   deaths  3.742 -> 3.614 (-3.4%): shrink 2 -> 8, share 0.3 -> 0.1
+  //   assists 7.735 -> 7.626 (-1.4%): shrink 2 -> 4
+  // Spread ratios 0.90 / 0.99 / 0.81 clear the 0.55 floor. Sub-noise steps
+  // (assists kp 0 -> 0.7 and recency 6 -> 4, under 0.001) were not taken.
   dota2: {
-    kills:     { history: 0.0, opponent: 0.6, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 0.0, share: 0.6, shrink: 2.0 },
-    deaths:    { history: 0.0, opponent: 0.1, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.0, career: 0.0, share: 0.3, shrink: 2.0 },
-    assists:   { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.0, career: 0.0, share: 0.7, shrink: 2.0 },
+    kills:     { history: 0.0, opponent: 0.6, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 0.0, share: 0.3, shrink: 8.0 },
+    deaths:    { history: 0.0, opponent: 0.1, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.0, career: 0.0, share: 0.1, shrink: 8.0 },
+    assists:   { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 6, patchDiscount: 0.0, career: 0.0, share: 0.7, shrink: 4.0 },
     headshots: { history: 0.0, opponent: 0.0, kp: 0.0, recencyHalfLife: 20, patchDiscount: 0.0, career: 0.0, share: 0.0, shrink: 0.0 },  // unreachable: CS2-only stat
   },
 };

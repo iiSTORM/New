@@ -789,16 +789,16 @@ try {
     },
     dota2: {
       kills: {
-        1: 3.26,
-        2: 5.16
+        1: 3.21,
+        2: 4.94
       },
       deaths: {
-        1: 3.25,
-        2: 4.73
+        1: 3.20,
+        2: 4.65
       },
       assists: {
-        1: 7.01,
-        2: 10.15
+        1: 6.97,
+        2: 10.00
       }
     }
   };
@@ -3606,13 +3606,39 @@ try {
     const pace = leaguePacePerMap(pastMatches, teams, statKey, cutoffDate);
     return pace ? pace / ROSTER_SIZE : null;
   }
-  function shrinkToPrior(perGame, weights, priorGames, pastMatches, teams, statKey, cutoffDate) {
+  function positionShare(pastMatches, teams, role, statKey, cutoffDate) {
+    if (!role) return null;
+    const cache = tierCache(pastMatches, "position");
+    const key = `${role}|${statKey}|${cutoffDate || ""}`;
+    if (cache.has(key)) return cache.get(key);
+    let num = 0,
+      den = 0;
+    for (const team of Object.keys(teams || {})) {
+      for (const p of teams[team].players || []) {
+        if (p.role !== role) continue;
+        for (const m of priorMatches(pastMatches, team, cutoffDate)) {
+          const got = getActualStat(m, team, p.name, statKey);
+          if (got === undefined || got === null) continue;
+          const total = teamTotal(m, team, statKey);
+          if (!total) continue;
+          num += got;
+          den += total;
+        }
+      }
+    }
+    const share = den > 0 ? num / den : null;
+    cache.set(key, share);
+    return share;
+  }
+  function shrinkToPrior(perGame, weights, priorGames, pastMatches, teams, statKey, cutoffDate, role) {
     const k = weights.shrink || 0;
     if (!k) return {
       perGame,
       shrunkTo: null
     };
-    const prior = leaguePlayerRate(pastMatches, teams, statKey, cutoffDate);
+    const share = positionShare(pastMatches, teams, role, statKey, cutoffDate);
+    const pace = share !== null ? leaguePacePerMap(pastMatches, teams, statKey, cutoffDate) : null;
+    const prior = share !== null && pace ? pace * share : leaguePlayerRate(pastMatches, teams, statKey, cutoffDate);
     if (!prior) return {
       perGame,
       shrunkTo: null
@@ -3640,7 +3666,7 @@ try {
     const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams, pastMatches, team, null) : 1;
     const classMult = classGapMultiplier(teams, team, opponentTeam, cfg);
     const blended = blendShareTier(base * oppMult * kpMult * classMult, weights, pastMatches, teams, team, player.name, cfg.key, null);
-    const shrunk = shrinkToPrior(blended.perGame, weights, weighted.games || 0, pastMatches, teams, cfg.key, null);
+    const shrunk = shrinkToPrior(blended.perGame, weights, weighted.games || 0, pastMatches, teams, cfg.key, null, player.role);
     const perGame = shrunk.perGame;
     const priorGames = weighted.games || 0;
     return {
@@ -3940,7 +3966,7 @@ try {
     const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams, pastMatches, team, cutoffDate) : 1;
     const classMult = classGapMultiplier(teams, team, opponentTeam, cfg);
     const blendedPT = blendShareTier(base * oppMult * kpMult * classMult, weights, pastMatches, teams, team, player.name, cfg.key, cutoffDate);
-    const shrunkPT = shrinkToPrior(blendedPT.perGame, weights, pt.games || 0, pastMatches, teams, cfg.key, cutoffDate);
+    const shrunkPT = shrinkToPrior(blendedPT.perGame, weights, pt.games || 0, pastMatches, teams, cfg.key, cutoffDate, player.role);
     const perGame = shrunkPT.perGame;
     return {
       base,
@@ -4095,8 +4121,8 @@ try {
         recencyHalfLife: 20,
         patchDiscount: 0.0,
         career: 0.0,
-        share: 0.6,
-        shrink: 2.0
+        share: 0.3,
+        shrink: 8.0
       },
       deaths: {
         history: 0.0,
@@ -4105,8 +4131,8 @@ try {
         recencyHalfLife: 6,
         patchDiscount: 0.0,
         career: 0.0,
-        share: 0.3,
-        shrink: 2.0
+        share: 0.1,
+        shrink: 8.0
       },
       assists: {
         history: 0.0,
@@ -4116,7 +4142,7 @@ try {
         patchDiscount: 0.0,
         career: 0.0,
         share: 0.7,
-        shrink: 2.0
+        shrink: 4.0
       },
       headshots: {
         history: 0.0,

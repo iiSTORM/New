@@ -192,12 +192,12 @@
         "recencyHalfLife": 20,
         "patchDiscount": 0.0,
         "career": 0.0,
-        "share": 0.6,
-        "shrink": 2.0
+        "share": 0.3,
+        "shrink": 8.0
       },
-      "measured": "Re-validated 2026-10-22 on the completed 60-day backfill (2,580 player-series, 6 folds): held: no change won a fold majority (MAE 4.468). First fit: Coordinate walk-forward search on the first OpenDota backfill (2,235 player-series, 6 chronological folds), each step adopted only on a fold majority: shrink 4->2 (5/6), share 0.2->0.6 (5/6, the peak of 0.4-1.0), opponent 0.2->0.6 (4/6), kp 0.3->0 (4/6), recencyHalfLife 6->20 (4/6). MAE 4.728 -> 4.648 (-1.7%). Spread ratio 0.79 against the 0.55 floor. A further shrink 2->1 won 4/6 by 0.0003 of a kill and was not taken. Short window (2026-10-11 to 10-21): re-run once the 60-day backfill completes.",
+      "measured": "Position prior: shrink now pulls toward the player's position (positionShare x league pace), not the league's average player; with shrink on, the old prior left pos 1 out-killing its projection by 14% and pos 5 falling 17% short. On the completed 60-day backfill (2,587 player-series, 6 chronological folds, fold-majority rule): the prior alone 4.468 -> 4.382 (6/6); then shrink 2 -> 8 (6/6, plateau 8-12 within 0.005, the lightest taken), share 0.6 -> 0.3 (4/6). MAE 4.468 -> 4.296 (-3.8%). Spread 0.90.",
       "validated": "2026-10-22",
-      "command": "python scripts/dev/sweep_weight.py --game dota2 --stat kills --param PARAM (coordinate search, majority-of-6-folds rule)"
+      "command": "python scripts/dev/sweep_weight.py --game dota2 --stat kills --param shrink"
     },
     "deaths": {
       "weights": {
@@ -207,12 +207,12 @@
         "recencyHalfLife": 6,
         "patchDiscount": 0.0,
         "career": 0.0,
-        "share": 0.3,
-        "shrink": 2.0
+        "share": 0.1,
+        "shrink": 8.0
       },
-      "measured": "Re-validated 2026-10-22 on the completed 60-day backfill (2,580 player-series, 6 folds): held: no change won a fold majority (MAE 3.743). First fit: Same coordinate walk-forward search (2,235 player-series, 6 folds, fold-majority rule): shrink 4->2 (4/6), share 0.2->0.3 (4/6; 0.4 won only 3/6), opponent 0.2->0.1 (4/6). MAE 3.812 -> 3.768 (-1.2%). Spread ratio 0.90. Short window: re-run after the backfill.",
+      "measured": "Position prior: shrink now pulls toward the player's position (positionShare x league pace), not the league's average player; with shrink on, the old prior left pos 1 out-killing its projection by 14% and pos 5 falling 17% short. On the completed 60-day backfill (2,587 player-series, 6 chronological folds, fold-majority rule): the prior alone 3.742 -> 3.676 (6/6); then shrink 2 -> 8 (6/6, plateau 8-12), share 0.3 -> 0.1 (4/6). MAE 3.742 -> 3.614 (-3.4%). Spread 0.99.",
       "validated": "2026-10-22",
-      "command": "python scripts/dev/sweep_weight.py --game dota2 --stat deaths --param PARAM (coordinate search, majority-of-6-folds rule)"
+      "command": "python scripts/dev/sweep_weight.py --game dota2 --stat deaths --param shrink"
     },
     "assists": {
       "weights": {
@@ -223,11 +223,11 @@
         "patchDiscount": 0.0,
         "career": 0.0,
         "share": 0.7,
-        "shrink": 2.0
+        "shrink": 4.0
       },
-      "measured": "Re-validated 2026-10-22 on the completed 60-day backfill (2,580 player-series, 6 folds): held as shipped: shrink 2->1 (4/6, -0.13%) and recency 6->3 (4/6, -0.02%) nominally qualified; the second is noise and no assists line has been posted, so the set was not churned (MAE 7.735). First fit: Same coordinate walk-forward search (2,235 player-series, 6 folds, fold-majority rule): share 0.2->0.6 (5/6) then 0.7 (5/6, the peak), opponent 0.2->0 (4/6), shrink 4->2 (5/6), kp 0.3->0.7->0 (back to neutral, 4/6). MAE 8.099 -> 7.968 (-1.6%). Spread ratio 0.72. No assists lines posted yet. Short window: re-run after the backfill.",
+      "measured": "Position prior: shrink now pulls toward the player's position (positionShare x league pace), not the league's average player; with shrink on, the old prior left pos 1 out-killing its projection by 14% and pos 5 falling 17% short. On the completed 60-day backfill (2,587 player-series, 6 chronological folds, fold-majority rule): the prior alone 7.735 -> 7.648 (5/6); then shrink 2 -> 4 (5/6, the peak). MAE 7.735 -> 7.626 (-1.4%). kp 0 -> 0.7 and recency 6 -> 4 won 4/6 by under 0.001 and were not taken. Spread 0.81. No assists lines posted yet.",
       "validated": "2026-10-22",
-      "command": "python scripts/dev/sweep_weight.py --game dota2 --stat assists --param PARAM (coordinate search, majority-of-6-folds rule)"
+      "command": "python scripts/dev/sweep_weight.py --game dota2 --stat assists --param shrink"
     },
     "headshots": {
       "weights": {

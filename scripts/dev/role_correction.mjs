@@ -121,7 +121,7 @@ for (const [game, file] of Object.entries(FILES)) {
           if (typeof actual !== "number") continue;
           const b = app.projectPointInTime(pool, rd.teams, p, team, opp, games, weights, m.date, "kills", m.patch);
           if (!b || typeof b.perGame !== "number") continue;
-          const role = game === "lol" ? p.role : game === "cs2" ? (cs2.get(p.name) || null)
+          const role = (game === "lol" || game === "dota2") ? p.role : game === "cs2" ? (cs2.get(p.name) || null)
             : app.agentClassBefore(pool, team, p.name, m.date);
           bt.push({ date: m.date, team, opp, role, proj: b.perGame * games, actual });
         }

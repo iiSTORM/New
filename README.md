@@ -704,17 +704,21 @@ It is built on what the other three games taught:
 - **Incremental**: a game already stored is never fetched again, so each run
   costs only the new games and the first runs backfill sixty days.
 
-**The model.** Same model as the other games, with Dota's own weights, chosen
-walk-forward on the first backfill (2,235 player-series, 6 chronological
-folds, a value adopted only when it wins a majority of folds): kills error
-4.73 → 4.65 (−1.7%), deaths 3.81 → 3.77, assists 8.10 → 7.97. Team kill share
-and lighter shrinkage carry most of it; career and history are inert, as in
-CS2. Kill participation is on League's scale (it is a MOBA), and is measured
-against the team's score, since a tower or creep kill credits assists. Every
-set is recorded in `validated_weights.json`, the app and the Python port agree
-on every Dota projection (`model_parity`), and the error scale per map window
-is in `RESIDUAL_SCALE`. All of it was fitted on a short window: re-run
-`sweep_weight.py --game dota2` once the 60-day backfill is complete.
+**The model.** Same model as the other games, with Dota's own weights chosen
+walk-forward on the completed 60-day backfill (2,587 player-series, 6
+chronological folds, a value adopted only when it wins a majority of folds).
+One change is Dota's own and was measured first: **shrinkage pulls toward the
+player's position**, not the league's average player. Shrinking a carry and a
+hard support toward the same number flattened them — position 1 out-killed its
+projection by 14% and position 5 fell 17% short — and with the right target,
+heavier shrink pays. Kills error 4.47 → 4.30 (−3.8%), deaths 3.74 → 3.61
+(−3.4%), assists 7.73 → 7.63 (−1.4%). League ships no shrink and the CS2 and
+Valorant rosters carry no position, so the change reaches only Dota. Career and
+history are inert, as in CS2. Kill participation is on League's scale (it is a
+MOBA), measured against the team's score. Every set is recorded in
+`validated_weights.json`, the app and the Python port agree on every Dota
+projection (`model_parity`), and the per-window error scale is in
+`RESIDUAL_SCALE`.
 
 OpenDota has no schedule, so upcoming Dota fixtures come from Liquipedia's
 "Liquipedia:Matches" page through its documented API (one request per run,
