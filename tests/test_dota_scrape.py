@@ -200,6 +200,12 @@ def test_fixtures_resolve_to_tracked_names_and_need_one_tracked_side():
     assert got[0]["date"].startswith("2025-10-20T")
 
 
+def test_fixture_names_drop_disambiguators_and_use_the_explicit_map():
+    rows = [(NOW, "LEGION (stack)", "1w Team", "DreamLeague", 3)]
+    got = sd.upcoming_from_schedule(rows, {"LEGION", "1win"})
+    assert [(m["teamA"], m["teamB"]) for m in got] == [("LEGION", "1win")]
+
+
 def test_a_failed_schedule_fetch_keeps_unstarted_fixtures():
     from datetime import datetime, timezone
     iso = lambda ts: datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()

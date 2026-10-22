@@ -36,6 +36,7 @@ import argparse
 import collections
 import json
 import os
+import re
 import sys
 import time
 from datetime import datetime, timedelta, timezone
@@ -515,6 +516,20 @@ def parse_schedule(html, now_ts, window_days=UPCOMING_WINDOW_DAYS):
     return sorted(out)
 
 
+# Liquipedia spellings no alias rule reaches: {Liquipedia name: OpenDota name}.
+LIQUIPEDIA_NAMES = {"1w Team": "1win"}
+
+
+def _resolve(name, by_alias):
+    """A Liquipedia team name as this file spells it: the explicit map, then
+    the alias key, then the same without a disambiguator ("LEGION (stack)")."""
+    name = LIQUIPEDIA_NAMES.get(name, name)
+    for n in (name, re.sub(r"\s*\([^)]*\)\s*$", "", name)):
+        if alias_key(n) in by_alias:
+            return by_alias[alias_key(n)]
+    return name
+
+
 def upcoming_from_schedule(rows, known_teams):
     """Upcoming fixtures in the app's shape, Liquipedia names resolved to the
     teams this file tracks by alias (spacing, case, "Team"/"Esports"). Kept
@@ -527,7 +542,7 @@ def upcoming_from_schedule(rows, known_teams):
     for ts, a, b, tournament, bo in rows:
         if tournament and EXCLUDED_LEAGUE_WORDS & set(tournament.lower().split()):
             continue
-        ra, rb = by_alias.get(alias_key(a), a), by_alias.get(alias_key(b), b)
+        ra, rb = _resolve(a, by_alias), _resolve(b, by_alias)
         if ra not in known_teams and rb not in known_teams:
             continue
         when = datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
