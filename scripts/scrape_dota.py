@@ -614,6 +614,16 @@ def main():
     html = fetch_schedule_html()
     if html:
         rows = parse_schedule(html, now.timestamp())
+        if not rows:
+            # Say what the page looked like, so a markup change is visible
+            # in the run log instead of reading as "no matches this week".
+            import re as _re
+            markers = {m: html.count(m) for m in ("data-timestamp", "data-highlightingclass", "timer-object",
+                                                   "match-info", "infobox_matches_content", "team-template")}
+            print(f"  ! schedule parsed to 0 matches from {len(html)} bytes; markers {markers}")
+            at = next((html.find(m) for m in ("timer-object", "data-timestamp", "match-info") if html.find(m) >= 0), -1)
+            if at >= 0:
+                print("  sample: " + _re.sub(r"\s+", " ", html[max(0, at - 700): at + 900]))
         payload["upcoming_matches"] = upcoming_from_schedule(rows, set(teams))
         print(f"Liquipedia schedule: {len(rows)} match(es) in the next {UPCOMING_WINDOW_DAYS} days, "
               f"{len(payload['upcoming_matches'])} involving a tracked team")
