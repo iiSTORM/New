@@ -211,3 +211,13 @@ def test_a_failed_schedule_fetch_keeps_unstarted_fixtures():
     iso = lambda ts: datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
     prev = [{"date": iso(NOW - 60), "teamA": "A", "teamB": "B"}, {"date": iso(NOW + 3600), "teamA": "C", "teamB": "D"}]
     assert [m["teamA"] for m in sd.carry_upcoming(prev, NOW)] == ["C"]
+
+
+def test_a_refused_game_says_why():
+    assert "fetched" in sd.box_problem(None, {})
+    d = detail(1, 1_760_000_000)
+    d["players"][0]["account_id"] = None
+    assert sd.game_box(d, {}, {}) is None and "anonymous" in sd.box_problem(d, {})
+    d = detail(1, 1_760_000_000)
+    d["players"] = d["players"][:-1]
+    assert "4 players" in sd.box_problem(d, {})

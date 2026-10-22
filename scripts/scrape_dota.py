@@ -181,6 +181,24 @@ def game_box(detail, pro_names, team_names):
     return box, names[True], names[False]
 
 
+def box_problem(detail, pro_names):
+    """Why game_box refused a game, for the run log."""
+    if not detail:
+        return "a game could not be fetched (rate limit or error)"
+    for is_radiant in (True, False):
+        t = detail.get("radiant_team" if is_radiant else "dire_team") or {}
+        if not (t.get("team_id") or detail.get("radiant_team_id" if is_radiant else "dire_team_id")):
+            return "a game has no team id on one side"
+        side = [p for p in detail.get("players") or [] if bool(p.get("isRadiant")) == is_radiant]
+        if len(side) != SIDE_SIZE:
+            return f"a game lists {len(side)} players on one side"
+        if any(p.get("account_id") is None for p in side):
+            return "a game has an anonymous player"
+        if any(not player_name(p, pro_names) for p in side):
+            return "a game has a player with no name"
+    return "a game's box score was incomplete"
+
+
 def series_key(game):
     sid = game.get("series_id")
     return f"s{sid}" if sid else f"m{game['match_id']}"
@@ -630,11 +648,12 @@ def main():
         if fetched + len(games) > args.max_fetch:
             skipped["over this run's fetch budget"] += 1
             continue
-        built = []
+        built, problem = [], None
         for g in games:
             detail = get(f"/matches/{g['match_id']}")
             fetched += 1
             if not detail:
+                problem = box_problem(detail, pro_names)
                 break
             for side in ("radiant_team", "dire_team"):
                 t = detail.get(side) or {}
@@ -642,13 +661,14 @@ def main():
                     team_names[t["team_id"]] = t["name"]
             got = game_box(detail, pro_names, team_names)
             if not got:
+                problem = box_problem(detail, pro_names)
                 break
             box, radiant, dire = got
             built.append({"match_id": g["match_id"], "start_time": detail.get("start_time") or g["start_time"],
                           "box": box, "radiant": radiant, "dire": dire,
                           "winner": radiant if detail.get("radiant_win") else dire})
         if len(built) != len(games):
-            skipped["a game's box score was incomplete"] += 1
+            skipped[problem or "a game's box score was incomplete"] += 1
             continue
         fresh.append(build_series(key, built, best_of, games[0].get("league_name")))
 
