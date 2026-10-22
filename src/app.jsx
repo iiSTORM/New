@@ -1,6 +1,6 @@
 try {
 
-const { useState, useEffect, useMemo, useContext, createContext, Fragment } = React;
+const { useState, useEffect, useMemo, useContext, createContext, Fragment, useRef } = React;
 
 
 /* ============================================================
@@ -5883,15 +5883,25 @@ const RECORD_MIN_SAMPLE = 30;
    away is the kind of thing a paying reader is entitled to be annoyed
    about.
 
-   undefined = still loading, null = unavailable. */
+   undefined = still loading, null = unavailable.
+
+   One request per page load, shared, as useNews does. Each tab used to
+   fetch its own copy on every visit, and the graded record is cached on
+   the results object's identity, so every visit to Edges, Record or
+   Parlays re-projected the whole record from scratch. */
+let gradedResultsRequest = null;
+let gradedResultsValue;
 function useGradedResults() {
-  const [results, setResults] = useState(undefined);
+  const [results, setResults] = useState(gradedResultsValue);
   useEffect(() => {
     let live = true;
-    fetch(DATA_URL_RESULTS, { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => { if (live) setResults(data); })
-      .catch(() => { if (live) setResults(null); });
+    if (!gradedResultsRequest) {
+      gradedResultsRequest = fetch(DATA_URL_RESULTS, { cache: "no-store" })
+        .then((res) => (res.ok ? res.json() : null))
+        .catch(() => null)
+        .then((data) => { gradedResultsValue = data; return data; });
+    }
+    gradedResultsRequest.then((data) => { if (live) setResults(data); });
     return () => { live = false; };
   }, []);
   return results;
@@ -9841,7 +9851,7 @@ function KillProjector({ onHome } = {}) {
           throw err;
         });
 
-    attemptFetch(1)
+    return attemptFetch(1)
       .then((data) => {
         const fetchedRegions = data.regions || {};
         const anyTeams = Object.values(fetchedRegions).some(
@@ -9882,10 +9892,26 @@ function KillProjector({ onHome } = {}) {
       });
   };
 
+  /* The game on screen first, every other game once it has landed.
+     All four used to start together, and the phone parsing CS2's 11MB
+     file was what a tap on another game waited behind. The rest still
+     load straight after, because Edges and Parlays read every game. A
+     game picked before its turn is fetched on the spot. Retry goes
+     through fetchGameData directly and always refetches. */
+  const startedFetches = useRef(new Set());
+  const ensureFetched = (gameId) => {
+    if (startedFetches.current.has(gameId)) return Promise.resolve();
+    startedFetches.current.add(gameId);
+    return fetchGameData(gameId) || Promise.resolve();
+  };
   useEffect(() => {
-    GAME_LIST.forEach(fetchGameData);
+    ensureFetched(game).finally(() => GAME_LIST.forEach(ensureFetched));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  useEffect(() => {
+    ensureFetched(game);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [game]);
 
   // Separate, simple fetch for champion_stats.json — a standalone
   // reference table, not tied to any one game's live snapshot, so it

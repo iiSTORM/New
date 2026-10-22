@@ -118,7 +118,8 @@ try {
     useMemo,
     useContext,
     createContext,
-    Fragment
+    Fragment,
+    useRef
   } = React;
   const BASE_TOKENS = {
     void: "#0A0B14",
@@ -5756,16 +5757,22 @@ try {
     }));
   }
   const RECORD_MIN_SAMPLE = 30;
+  let gradedResultsRequest = null;
+  let gradedResultsValue;
   function useGradedResults() {
-    const [results, setResults] = useState(undefined);
+    const [results, setResults] = useState(gradedResultsValue);
     useEffect(() => {
       let live = true;
-      fetch(DATA_URL_RESULTS, {
-        cache: "no-store"
-      }).then(res => res.ok ? res.json() : null).then(data => {
+      if (!gradedResultsRequest) {
+        gradedResultsRequest = fetch(DATA_URL_RESULTS, {
+          cache: "no-store"
+        }).then(res => res.ok ? res.json() : null).catch(() => null).then(data => {
+          gradedResultsValue = data;
+          return data;
+        });
+      }
+      gradedResultsRequest.then(data => {
         if (live) setResults(data);
-      }).catch(() => {
-        if (live) setResults(null);
       });
       return () => {
         live = false;
@@ -11739,7 +11746,7 @@ try {
         }
         throw err;
       });
-      attemptFetch(1).then(data => {
+      return attemptFetch(1).then(data => {
         const fetchedRegions = data.regions || {};
         const anyTeams = Object.values(fetchedRegions).some(r => r.teams && Object.keys(r.teams).length > 0);
         if (!anyTeams) {
@@ -11782,9 +11789,18 @@ try {
         }));
       });
     };
+    const startedFetches = useRef(new Set());
+    const ensureFetched = gameId => {
+      if (startedFetches.current.has(gameId)) return Promise.resolve();
+      startedFetches.current.add(gameId);
+      return fetchGameData(gameId) || Promise.resolve();
+    };
     useEffect(() => {
-      GAME_LIST.forEach(fetchGameData);
+      ensureFetched(game).finally(() => GAME_LIST.forEach(ensureFetched));
     }, []);
+    useEffect(() => {
+      ensureFetched(game);
+    }, [game]);
     const [championStats, setChampionStats] = useState(null);
     const [propsData, setPropsData] = useState(null);
     useEffect(() => {

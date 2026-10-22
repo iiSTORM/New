@@ -115,7 +115,7 @@ class TestPropsFile:
         assert isinstance(data.get("props"), dict)
 
     def test_games_are_ones_the_app_knows(self):
-        assert set(self.props()["props"]) <= {"lol", "cs2", "valorant"}
+        assert set(self.props()["props"]) <= {"lol", "cs2", "valorant", "dota2"}
 
     def test_prop_shape(self):
         """The fields propFor() in src/app.jsx filters on. `maps` is
