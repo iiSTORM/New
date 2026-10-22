@@ -5538,9 +5538,12 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
   // The biggest number on the board is the biggest ADJUSTED one, because
   // that is the order the board is in. Quoting the raw maximum beside a
   // list sorted the other way would describe a screen nobody is looking at.
-  const best = withEdge.length
-    ? Math.abs(withEdge[0].adjustedEdge !== null && withEdge[0].adjustedEdge !== undefined
-        ? withEdge[0].adjustedEdge : withEdge[0].edge)
+  // And a LIVE one: a started row prints "started" instead of its edge,
+  // so quoting it described a number nobody could find on the screen.
+  const top = withEdge.find((r) => propIsLive(r.prop)) || null;
+  const best = top
+    ? Math.abs(top.adjustedEdge !== null && top.adjustedEdge !== undefined
+        ? top.adjustedEdge : top.edge)
     : 0;
   const anyDiscounted = withEdge.some((r) => r.breakdown
     && (edgeMultiplier(r.evidence !== undefined ? r.evidence : r.breakdown.evidenceGames) < 0.9

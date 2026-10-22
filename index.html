@@ -5353,7 +5353,8 @@ try {
       return note(React.createElement(React.Fragment, null, "Lines are loaded, but none of them belong to a player in an upcoming ", cfg.label.toLowerCase(), " fixture this app tracks. That is usually the board being a league outside the tracked regions rather than anything broken \u2014 ", React.createElement("code", null, "scripts/dev/inspect_props_payload.py --names"), " says which."));
     }
     const withEdge = rows.filter(r => r.edge !== null);
-    const best = withEdge.length ? Math.abs(withEdge[0].adjustedEdge !== null && withEdge[0].adjustedEdge !== undefined ? withEdge[0].adjustedEdge : withEdge[0].edge) : 0;
+    const top = withEdge.find(r => propIsLive(r.prop)) || null;
+    const best = top ? Math.abs(top.adjustedEdge !== null && top.adjustedEdge !== undefined ? top.adjustedEdge : top.edge) : 0;
     const anyDiscounted = withEdge.some(r => r.breakdown && (edgeMultiplier(r.evidence !== undefined ? r.evidence : r.breakdown.evidenceGames) < 0.9 || lineRealization(r.game, r.statType) < 0.9));
     const ONE_SIDED_MIN_ROWS = 10;
     const ONE_SIDED_SHARE = 0.7;
