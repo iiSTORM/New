@@ -81,7 +81,7 @@ RULES = [
     # coach "returning to" a club in another role.
     ("return", r"\breturns? (?:from|after)\b|\breturning from\b|\bback in the (?:lineup|starting)\b|\brecover(?:ed|s) from\b|\bcleared to play\b|\breinstat\w*", +1,
      "a regular is back"),
-    ("signing", r"\bsigns?\b|\bsigned\b|\bsigning\b|\bjoins?\b|\badds?\b|\bacquir\w*|\bpromot\w*|\bannounce[sd]? .{0,30}roster\b", 0,
+    ("signing", r"\bsigns?\b|\bsigned\b|\bsigning\b|\bjoins?\b|\badds?\b|\bintroduc(?:es|ed|ing)\b|\bunveil\w*|\bacquir\w*|\bpromot\w*|\bannounce[sd]? .{0,30}roster\b", 0,
      "a new player joins; no record with the team yet"),
     ("extension", r"\bextension\b|\bextends?\b|\bre-?signs?\b", 0, "a contract is extended"),
     ("coach", r"\b(?:head )?coach\b", 0, "a coaching change"),

@@ -148,3 +148,7 @@ def test_shouted_handles_match_and_live_score_pages_are_dropped():
 def test_a_handle_that_is_a_team_name_is_not_matched_when_shouted():
     ents = {"teams": {"HEROIC": ["HEROIC"], "Orion": ["Orion"]}, "players": {"Heroic": "Orion"}}
     assert sn.mentions("HEROIC benches head coach doto", ents) == (["HEROIC"], [])
+
+
+def test_an_introduced_player_is_a_signing():
+    assert "signing" in sn.grade("Team Liquid Officially Introduces Its New Dota 2 Mid Laner")[1]
