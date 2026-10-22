@@ -386,18 +386,45 @@ LIQUIPEDIA_HEADERS = {
 UPCOMING_WINDOW_DAYS = 7
 
 
-def fetch_schedule_html():
+def fetch_schedule_html(retries=1):
+    """The matches page's HTML, or None. GitHub's runners share addresses,
+    so the first live call met a 429 that was other people's traffic: one
+    retry after the wait the server asks for (capped), then give up."""
     if requests is None:
         return None
-    try:
-        r = requests.get(LIQUIPEDIA_API, headers=LIQUIPEDIA_HEADERS, timeout=30,
-                         params={"action": "parse", "page": "Liquipedia:Matches",
-                                 "format": "json", "prop": "text"})
-        r.raise_for_status()
-        return ((r.json().get("parse") or {}).get("text") or {}).get("*")
-    except Exception as e:  # noqa: BLE001 -- the schedule is optional
-        print(f"  ! Liquipedia schedule unavailable: {e}", file=sys.stderr)
-        return None
+    for attempt in range(retries + 1):
+        try:
+            r = requests.get(LIQUIPEDIA_API, headers=LIQUIPEDIA_HEADERS, timeout=30,
+                             params={"action": "parse", "page": "Liquipedia:Matches",
+                                     "format": "json", "prop": "text"})
+            if r.status_code == 429 and attempt < retries:
+                try:
+                    wait = min(int(r.headers.get("Retry-After", "60")), 120)
+                except ValueError:
+                    wait = 60
+                print(f"  Liquipedia asked us to wait (429); retrying in {wait}s")
+                time.sleep(wait)
+                continue
+            r.raise_for_status()
+            return ((r.json().get("parse") or {}).get("text") or {}).get("*")
+        except Exception as e:  # noqa: BLE001 -- the schedule is optional
+            print(f"  ! Liquipedia schedule unavailable: {e}", file=sys.stderr)
+            return None
+    return None
+
+
+def carry_upcoming(previous_upcoming, now_ts):
+    """Last run's fixtures that have not started, for a run whose schedule
+    fetch failed: a refused request should not empty the Future tab."""
+    kept = []
+    for m in previous_upcoming or []:
+        try:
+            when = datetime.fromisoformat(str(m.get("date")).replace("Z", "+00:00")).timestamp()
+        except ValueError:
+            continue
+        if when > now_ts:
+            kept.append(m)
+    return kept
 
 
 def parse_schedule(html, now_ts, window_days=UPCOMING_WINDOW_DAYS):
@@ -492,7 +519,7 @@ def load_previous(path=OUT):
         with open(path) as f:
             region = (json.load(f).get("regions") or {}).get(REGION) or {}
     except (OSError, ValueError):
-        return [], {}
+        return [], {}, []
     kept = [m for m in region.get("past_matches") or [] if series_complete(m)]
     # Series stored before kill participation used the team's score could
     # put a player's kills + assists above the denominator (114% on the
@@ -507,7 +534,7 @@ def load_previous(path=OUT):
     dropped = len(region.get("past_matches") or []) - len(kept)
     if dropped:
         print(f"  dropped {dropped} stored series that never reached a winner")
-    return kept, region.get("teams") or {}
+    return kept, region.get("teams") or {}, region.get("upcoming_matches") or []
 
 
 def main():
@@ -520,7 +547,7 @@ def main():
         print("! requests is not installed", file=sys.stderr)
         return 1
     now = datetime.now(timezone.utc)
-    previous, previous_teams = load_previous()
+    previous, previous_teams, previous_upcoming = load_previous()
     have = stored_game_ids(previous)
 
     leagues = tracked_league_ids()
@@ -590,6 +617,9 @@ def main():
         payload["upcoming_matches"] = upcoming_from_schedule(rows, set(teams))
         print(f"Liquipedia schedule: {len(rows)} match(es) in the next {UPCOMING_WINDOW_DAYS} days, "
               f"{len(payload['upcoming_matches'])} involving a tracked team")
+    else:
+        payload["upcoming_matches"] = carry_upcoming(previous_upcoming, now.timestamp())
+        print(f"  kept {len(payload['upcoming_matches'])} unstarted fixture(s) from the last run")
     with open(OUT, "w") as f:
         json.dump({"generated_at": now.isoformat(), "regions": {REGION: payload}}, f, separators=(",", ":"))
     print(f"wrote {OUT}: {len(teams)} teams, {len(past)} series "

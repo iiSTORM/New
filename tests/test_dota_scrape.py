@@ -182,3 +182,10 @@ def test_fixtures_resolve_to_tracked_names_and_need_one_tracked_side():
     got = sd.upcoming_from_schedule(rows, {"Spirit", "Xtreme Gaming"})
     assert [(m["teamA"], m["teamB"], m["best_of"]) for m in got] == [("Spirit", "Xtreme Gaming", 3)]
     assert got[0]["date"].startswith("2025-10-20T")
+
+
+def test_a_failed_schedule_fetch_keeps_unstarted_fixtures():
+    from datetime import datetime, timezone
+    iso = lambda ts: datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
+    prev = [{"date": iso(NOW - 60), "teamA": "A", "teamB": "B"}, {"date": iso(NOW + 3600), "teamA": "C", "teamB": "D"}]
+    assert [m["teamA"] for m in sd.carry_upcoming(prev, NOW)] == ["C"]
