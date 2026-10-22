@@ -917,8 +917,13 @@ def test_a_dota_line_reaches_the_board(tmp_path, monkeypatch):
     props["dota2"], matched to the player's team."""
     data = json.loads((Path(__file__).resolve().parent.parent / "dota_data.json").read_text())
     teams = data["regions"]["Dota 2"]["teams"]
-    team, roster = next((t, v) for t, v in teams.items() if v["players"])
-    name = roster["players"][0]["name"]
+    # A handle on exactly one roster: one on two is refused as ambiguous,
+    # correctly, and which handles those are changes with every scrape.
+    seen = {}
+    for t, v in teams.items():
+        for p in v["players"]:
+            seen.setdefault(p["name"].lower(), []).append((t, p["name"]))
+    team, name = next(v[0] for v in seen.values() if len(v) == 1)
     for league in ("Dota2", "DOTA 2"):
         payload = {"data": [{"type": "projection", "id": "d1", "attributes":
                              {"stat_type": "MAPS 1-2 Kills", "line_score": 9.5,

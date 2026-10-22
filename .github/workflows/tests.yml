@@ -145,3 +145,8 @@ jobs:
       # fails here rather than as a silently missing card.
       - name: Check the record by position
         run: node tests/record_by_role.test.mjs
+
+      # The class gap at international League events: sides, the graded
+      # record on bets against it, and the Edges board's caution.
+      - name: Check the class gap and its caution
+        run: node tests/class_gap.test.mjs

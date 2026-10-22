@@ -642,6 +642,9 @@ try {
   function shortRegionLabel(key) {
     return String(key || "").replace(/^(VCT|LTA)\s+/i, "").trim() || String(key || "");
   }
+  function isEventRegion(key) {
+    return /champions/i.test(key || "") || Object.values(GAMES).some(g => (g.optionalRegions || []).includes(key));
+  }
   function homeRegionLookup(regionsData, regionKey) {
     if (!regionsData || !regionsData[regionKey]) return () => null;
     const here = regionsData[regionKey].teams || {};
@@ -654,7 +657,7 @@ try {
       if (entry && entry.from_home_region) {
         home = entry.from_home_region;
       } else {
-        const isEvent = key => /champions/i.test(key) || Object.values(GAMES).some(g => (g.optionalRegions || []).includes(key));
+        const isEvent = isEventRegion;
         const holders = Object.keys(regionsData).filter(k => regionsData[k] && (regionsData[k].teams || {})[teamName]);
         const leaguesOnly = holders.some(k => !isEvent(k));
         let best = -1;
@@ -786,16 +789,16 @@ try {
     },
     dota2: {
       kills: {
-        1: 4.08,
-        2: 5.20
+        1: 3.26,
+        2: 5.16
       },
       deaths: {
-        1: 2.71,
-        2: 4.71
+        1: 3.25,
+        2: 4.73
       },
       assists: {
-        1: 7.15,
-        2: 10.24
+        1: 7.01,
+        2: 10.15
       }
     }
   };
@@ -1392,6 +1395,7 @@ try {
                 projection,
                 breakdown,
                 oppKnown,
+                classGap: classGapSide(rd.teams, team, opponent),
                 game,
                 statType,
                 maps: prop.maps,
@@ -3854,6 +3858,43 @@ try {
   const CLASS_GAP_KILLS = 1.25;
   const CLASS_TOP = new Set(["LCK", "LPL"]);
   const CLASS_BOTTOM = new Set(["LCS", "LCP", "CBLOL", "TCL"]);
+  function classGapSide(teams, team, opponentTeam) {
+    if (!teams) return null;
+    const mine = teams[team] && teams[team].from_home_region;
+    const theirs = teams[opponentTeam] && teams[opponentTeam].from_home_region;
+    if (!mine || !theirs) return null;
+    if (CLASS_TOP.has(mine) && CLASS_BOTTOM.has(theirs)) return "stronger";
+    if (CLASS_BOTTOM.has(mine) && CLASS_TOP.has(theirs)) return "weaker";
+    return null;
+  }
+  function againstClassGapRecord(graded, regionsData) {
+    const home = {};
+    for (const [key, rd] of Object.entries(regionsData || {})) {
+      if (!rd || isEventRegion(key)) continue;
+      for (const t of Object.keys(rd.teams || {})) if (!home[t]) home[t] = key;
+    }
+    const events = new Set();
+    for (const [key, rd] of Object.entries(regionsData || {})) {
+      if (!rd || !isEventRegion(key)) continue;
+      for (const m of rd.past_matches || []) events.add(`${m.date}|${[m.teamA, m.teamB].sort().join("|")}`);
+    }
+    const out = {
+      n: 0,
+      won: 0
+    };
+    for (const r of graded || []) {
+      if (!events.has(`${r.match_date}|${[r.team, r.opponent].sort().join("|")}`)) continue;
+      const mine = home[r.team],
+        theirs = home[r.opponent];
+      const weaker = CLASS_BOTTOM.has(mine) && CLASS_TOP.has(theirs);
+      const stronger = CLASS_TOP.has(mine) && CLASS_BOTTOM.has(theirs);
+      if (weaker && r.side === "over" || stronger && r.side === "under") {
+        out.n++;
+        if (r.won) out.won++;
+      }
+    }
+    return out;
+  }
   function classGapMultiplier(teams, team, opponentTeam, cfg) {
     if (!cfg || cfg.key !== "k" || !teams) return 1;
     const mine = teams[team] && teams[team].from_home_region;
@@ -5041,7 +5082,8 @@ try {
     cfg,
     fresh,
     ageMinutes,
-    isDesktop
+    isDesktop,
+    againstGap
   }) {
     const {
       prop,
@@ -5110,7 +5152,18 @@ try {
       games: evidence,
       compact: true,
       borrowed: row.borrowedContext
-    })), React.createElement("div", {
+    }), row.edge !== null && (row.classGap === "weaker" && row.edge > 0 || row.classGap === "stronger" && row.edge < 0) && React.createElement("span", {
+      title: `${row.team} is the ${row.classGap === "weaker" ? "smaller-region" : "LCK/LPL"} side against ${row.opponent}. At Demacia Cup and Worlds, LCK/LPL out-killed the smaller leagues' projections in every such match; the projection is adjusted for half of that gap. Bets against the gap (overs on the smaller side, unders on the LCK/LPL side) have gone ${againstGap && againstGap.n ? `${againstGap.won} of ${againstGap.n}` : "untested"} on graded lines.`,
+      style: {
+        fontSize: 10.5,
+        fontWeight: 600,
+        padding: "1px 7px",
+        borderRadius: 999,
+        background: theme.bad + "1c",
+        color: theme.bad,
+        whiteSpace: "nowrap"
+      }
+    }, "against the class gap", againstGap && againstGap.n ? ` · ${againstGap.won}/${againstGap.n}` : "")), React.createElement("div", {
       style: {
         fontSize: 11,
         color: theme.textFaint,
@@ -5233,6 +5286,7 @@ try {
     const results = useGradedResults();
     const graded = useMemo(() => results ? modelRecord(regionsData, regionList, results, weights, statType) : [], [results, regionsData, regionList, weights, statType]);
     const record = useMemo(() => graded.length ? recordVsLine(graded) : null, [graded]);
+    const againstGap = useMemo(() => againstClassGapRecord(graded, regionsData), [graded, regionsData]);
     const ranking = useMemo(() => graded.length ? rankingIsInformative(graded) : null, [graded]);
     const BREAKEVEN = 0.524;
     const note = text => React.createElement("div", {
@@ -5370,6 +5424,7 @@ try {
       row: row,
       theme: theme,
       cfg: cfg,
+      againstGap: againstGap,
       fresh: fresh,
       ageMinutes: ageMinutes,
       isDesktop: isDesktop

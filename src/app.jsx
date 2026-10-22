@@ -415,6 +415,13 @@ function shortRegionLabel(key) {
   return String(key || "").replace(/^(VCT|LTA)\s+/i, "").trim() || String(key || "");
 }
 
+/* An event region (Worlds, MSI, Champions...) rather than a league: a team
+   visits it, and it is never anyone's home. */
+function isEventRegion(key) {
+  return /champions/i.test(key || "")
+    || Object.values(GAMES).some((g) => (g.optionalRegions || []).includes(key));
+}
+
 function homeRegionLookup(regionsData, regionKey) {
   if (!regionsData || !regionsData[regionKey]) return () => null;
   const here = regionsData[regionKey].teams || {};
@@ -447,8 +454,7 @@ function homeRegionLookup(regionsData, regionKey) {
       // 2026-10-21), and "most matches" then named the event itself, so the
       // team went untagged on the event's own board. Events are counted only
       // for a team that appears nowhere else.
-      const isEvent = (key) => /champions/i.test(key)
-        || Object.values(GAMES).some((g) => (g.optionalRegions || []).includes(key));
+      const isEvent = isEventRegion;
       const holders = Object.keys(regionsData).filter((k) => regionsData[k] && (regionsData[k].teams || {})[teamName]);
       const leaguesOnly = holders.some((k) => !isEvent(k));
       let best = -1;
@@ -639,13 +645,16 @@ const RESIDUAL_SCALE = {
     deaths:  { 2: 5.17 },
     assists: { 2: 4.31 },
   },
-  // Dota 2, from the first OpenDota backfill (313 series). The one-map
-  // scale is measured on the 32 Bo1 series only, so a map-1 line in a Bo3
-  // borrows it; re-measure once the backfill is complete.
+  // Dota 2, on the completed 60-day OpenDota backfill (366 series). The
+  // one-map scale is measured on MAP 1 OF EVERY SERIES (2,575 rows per
+  // stat), not on Bo1s alone: the first fit used 32-39 Bo1 series and moved
+  // by a kill between runs (kills 4.08 -> 3.40, deaths 2.71 -> 3.78), and a
+  // map-1 line in a Bo3 settles on exactly this. 3.26 x 2^0.63 = 5.04
+  // against a measured 5.16 for maps 1-2, in line with RESIDUAL_SCALE_EXPONENT.
   dota2: {
-    kills:   { 1: 4.08, 2: 5.20 },
-    deaths:  { 1: 2.71, 2: 4.71 },
-    assists: { 1: 7.15, 2: 10.24 },
+    kills:   { 1: 3.26, 2: 5.16 },
+    deaths:  { 1: 3.25, 2: 4.73 },
+    assists: { 1: 7.01, 2: 10.15 },
   },
 };
 
@@ -1673,6 +1682,7 @@ function collectEdges(regionsData, regionList, propsData, weights, statType, gam
             rows.push({
               region: regionKey, name: player.name, role: player.role,
               team, opponent, when, prop, projection, breakdown, oppKnown,
+              classGap: classGapSide(rd.teams, team, opponent),
               // Carried so a row can be put in units of the model's own error
               // (residualScale) without the caller's arguments coming with it.
               // The parlay builder mixes rows from every game on one list and
@@ -3794,6 +3804,49 @@ function gameHasRoleData(teams) {
 const CLASS_GAP_KILLS = 1.25;
 const CLASS_TOP = new Set(["LCK", "LPL"]);
 const CLASS_BOTTOM = new Set(["LCS", "LCP", "CBLOL", "TCL"]);
+/* Which side of the class gap a team is on in this fixture: "weaker",
+   "stronger", or null when the pairing is not LCK/LPL against the smaller
+   leagues (or either home is unknown). Shared by the multiplier below and
+   the Edges board's caution. */
+function classGapSide(teams, team, opponentTeam) {
+  if (!teams) return null;
+  const mine = teams[team] && teams[team].from_home_region;
+  const theirs = teams[opponentTeam] && teams[opponentTeam].from_home_region;
+  if (!mine || !theirs) return null;
+  if (CLASS_TOP.has(mine) && CLASS_BOTTOM.has(theirs)) return "stronger";
+  if (CLASS_BOTTOM.has(mine) && CLASS_TOP.has(theirs)) return "weaker";
+  return null;
+}
+
+/* The graded record on bets AGAINST the class gap: overs on the weaker side
+   and unders on the stronger one, at international events. These were the
+   worst bets at Demacia Cup (36 of 73 when the gap was ignored), and the
+   factor narrows the gap rather than closing it, so the board shows how
+   such bets have actually gone. Homes come from the leagues' own rosters. */
+function againstClassGapRecord(graded, regionsData) {
+  const home = {};
+  for (const [key, rd] of Object.entries(regionsData || {})) {
+    if (!rd || isEventRegion(key)) continue;
+    for (const t of Object.keys(rd.teams || {})) if (!home[t]) home[t] = key;
+  }
+  const events = new Set();
+  for (const [key, rd] of Object.entries(regionsData || {})) {
+    if (!rd || !isEventRegion(key)) continue;
+    for (const m of rd.past_matches || []) events.add(`${m.date}|${[m.teamA, m.teamB].sort().join("|")}`);
+  }
+  const out = { n: 0, won: 0 };
+  for (const r of graded || []) {
+    if (!events.has(`${r.match_date}|${[r.team, r.opponent].sort().join("|")}`)) continue;
+    const mine = home[r.team], theirs = home[r.opponent];
+    const weaker = CLASS_BOTTOM.has(mine) && CLASS_TOP.has(theirs);
+    const stronger = CLASS_TOP.has(mine) && CLASS_BOTTOM.has(theirs);
+    if ((weaker && r.side === "over") || (stronger && r.side === "under")) {
+      out.n++; if (r.won) out.won++;
+    }
+  }
+  return out;
+}
+
 function classGapMultiplier(teams, team, opponentTeam, cfg) {
   if (!cfg || cfg.key !== "k" || !teams) return 1;
   const mine = teams[team] && teams[team].from_home_region;
@@ -5187,7 +5240,7 @@ function computeEloRatings(regionsData, regionList, kFactor = 32) {
     .sort((a, b) => b.rating - a.rating);
 }
 
-function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop }) {
+function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop, againstGap }) {
   const { prop, projection, edge } = row;
   // Per row, not per payload: these rows can span fixtures hours apart,
   // and one that has kicked off says so without greying the rest.
@@ -5245,6 +5298,21 @@ function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop }) {
               to the top precisely because the model had least to go on. */}
           {row.breakdown && <EvidenceChip games={evidence} compact
                                           borrowed={row.borrowedContext} />}
+          {/* A bet against the class gap: over on the smaller-region side
+              of an LCK/LPL fixture, or under on the LCK/LPL side. The
+              projection already carries classGapMultiplier, but that is
+              half the measured gap, and these were the worst bets at
+              Demacia Cup -- so the record on exactly these is shown. A
+              pill on this row rather than on the fixture line below, which
+              is cut off with an ellipsis on a phone. */}
+          {row.edge !== null && ((row.classGap === "weaker" && row.edge > 0)
+            || (row.classGap === "stronger" && row.edge < 0)) && (
+            <span title={`${row.team} is the ${row.classGap === "weaker" ? "smaller-region" : "LCK/LPL"} side against ${row.opponent}. At Demacia Cup and Worlds, LCK/LPL out-killed the smaller leagues' projections in every such match; the projection is adjusted for half of that gap. Bets against the gap (overs on the smaller side, unders on the LCK/LPL side) have gone ${againstGap && againstGap.n ? `${againstGap.won} of ${againstGap.n}` : "untested"} on graded lines.`}
+                  style={{ fontSize: 10.5, fontWeight: 600, padding: "1px 7px", borderRadius: 999,
+                           background: theme.bad + "1c", color: theme.bad, whiteSpace: "nowrap" }}>
+              against the class gap{againstGap && againstGap.n ? ` · ${againstGap.won}/${againstGap.n}` : ""}
+            </span>
+          )}
         </div>
         <div style={{ fontSize: 11, color: theme.textFaint, marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {row.team} vs {row.opponent}{clock ? ` · ${clock}` : ""}
@@ -5258,6 +5326,7 @@ function EdgeRow({ row, theme, cfg, fresh, ageMinutes, isDesktop }) {
               · no opp adj
             </span>
           )}
+
         </div>
       </div>
 
@@ -5354,6 +5423,7 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
     () => (results ? modelRecord(regionsData, regionList, results, weights, statType) : []),
     [results, regionsData, regionList, weights, statType]);
   const record = useMemo(() => (graded.length ? recordVsLine(graded) : null), [graded]);
+  const againstGap = useMemo(() => againstClassGapRecord(graded, regionsData), [graded, regionsData]);
   const ranking = useMemo(() => (graded.length ? rankingIsInformative(graded) : null), [graded]);
   const BREAKEVEN = 0.524;
 
@@ -5507,6 +5577,7 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
             </div>
             {section.map((row, i) => (
               <EdgeRow key={`${row.game}-${row.name}-${row.team}-${maps}-${i}`} row={row} theme={theme} cfg={cfg}
+                       againstGap={againstGap}
                        fresh={fresh} ageMinutes={ageMinutes} isDesktop={isDesktop} />
             ))}
           </Fragment>

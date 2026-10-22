@@ -265,6 +265,9 @@ const STUB_EVIDENCE = 40;
 // adjustEdge rather than its no-league-rate fallback.
 const STUB_LEAGUE_RATE = 11;
 const collectEdges = new Function(`
+  ${extractConst("CLASS_TOP")}
+  ${extractConst("CLASS_BOTTOM")}
+  ${extract("classGapSide")}
   ${extract("likelyStarters")}
   ${extractConst("EDGE_REALIZATION")}
   ${extract("edgeMultiplier")}
@@ -469,6 +472,9 @@ check("an empty bucket reports no rate rather than zero",
  */
 const seenPools = [];
 const collectEdgesSpy = new Function(`
+  ${extractConst("CLASS_TOP")}
+  ${extractConst("CLASS_BOTTOM")}
+  ${extract("classGapSide")}
   ${extract("likelyStarters")}
   ${extractConst("EDGE_REALIZATION")}
   ${extract("edgeMultiplier")}
