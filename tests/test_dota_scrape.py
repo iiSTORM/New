@@ -221,3 +221,9 @@ def test_a_refused_game_says_why():
     d = detail(1, 1_760_000_000)
     d["players"] = d["players"][:-1]
     assert "4 players" in sd.box_problem(d, {})
+
+
+def test_a_series_with_an_unregistered_side_is_skipped_before_fetching():
+    t = 1_760_900_000
+    assert sd.has_registered_teams([summary(1, 100, t), summary(2, 100, t + 3600)])
+    assert not sd.has_registered_teams([summary(1, 100, t), summary(2, 100, t + 3600, dire=None)])

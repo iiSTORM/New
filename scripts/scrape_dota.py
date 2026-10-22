@@ -571,6 +571,11 @@ def upcoming_from_schedule(rows, known_teams):
 
 # ---------------------------------------------------------------------- run
 
+def has_registered_teams(games):
+    """Whether every game's summary names a registered team on both sides."""
+    return all(g.get("radiant_team_id") and g.get("dire_team_id") for g in games)
+
+
 def series_complete(m):
     """Whether a STORED series reached a winner, read off its score."""
     try:
@@ -644,6 +649,12 @@ def main():
             skipped["unfinished (still being played, or never completed)"] += 1
             continue
         if f"dota-{key}" in stored_series and all(g["match_id"] in have for g in games):
+            continue
+        # A stack without a registered team has no name to project under and
+        # no line posted on it. Caught off the summary, before the fetch: 23
+        # such series were refetched every run, and were most of its 429s.
+        if not has_registered_teams(games):
+            skipped["a side plays without a registered team"] += 1
             continue
         if fetched + len(games) > args.max_fetch:
             skipped["over this run's fetch budget"] += 1
