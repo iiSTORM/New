@@ -1,0 +1,27 @@
+name: Re-measure line realization
+
+# The board and the slate tool cut each stat's edge to the share that has
+# shown up against posted lines (LINE_REALIZATION). Those factors are a
+# measurement, and the graded record they came from grows every day. This
+# re-measures them weekly and goes red, with the numbers in the run
+# summary, when one has drifted. It never rewrites them itself.
+on:
+  schedule:
+    - cron: "17 14 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Re-measure and compare with the shipped factors
+        run: python scripts/dev/check_realization_drift.py

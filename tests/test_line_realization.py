@@ -74,3 +74,12 @@ def test_the_slate_tool_applies_it_to_the_shrunk_mean():
     off_ = esports.EsportsModel(scales=scales, realize=False).probabilities("cs2", "kills", 2, 40.0, 30.5, 40)
     assert on_[0] < off_[0]                    # a smaller over edge is a less confident over
     assert on_[3].shrunk - 30.5 == pytest.approx((off_[3].shrunk - 30.5) * 0.46)
+
+
+def test_drift_flags_a_moved_gained_or_lost_factor_and_ignores_wobble():
+    import check_realization_drift as cd
+    shipped = {"cs2": {"kills": 0.35, "headshots": 0.29}, "valorant": {"kills": 0.0}}
+    fresh = {"cs2": {"kills": 0.38, "headshots": 0.45}, "lol": {"kills": 0.6}}
+    assert cd.drift(shipped, fresh) == [("cs2", "headshots", 0.29, 0.45), ("lol", "kills", None, 0.6),
+                                        ("valorant", "kills", 0.0, None)]
+    assert cd.drift(shipped, shipped) == []

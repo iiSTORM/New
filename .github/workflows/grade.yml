@@ -33,6 +33,7 @@ on:
       - "data.json"
       - "cs2_data.json"
       - "valorant_data.json"
+      - "dota_data.json"
   schedule:
     # Four times a day, offset from the scrape's 09:00/21:00 so it grades
     # data that has already landed rather than racing it.
