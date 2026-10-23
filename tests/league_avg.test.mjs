@@ -18,7 +18,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const raw = fs.readFileSync(path.join(root, "src/app.jsx"), "utf8");
 const body = raw.slice(raw.indexOf("try {") + "try {".length, raw.indexOf("const root = ReactDOM.createRoot"));
 const { code } = transformSync(
-  `${body}\nreturn { pointInTimeLeagueAvgStat, pointInTimeTeamStat, historyPool };`,
+  `${body}\nreturn { pointInTimeLeagueAvgStat, pointInTimeTeamStat, historyPool, mapsCountedFor };`,
   { presets: [["@babel/preset-react", { runtime: "classic" }]], filename: "app.jsx", compact: true,
     parserOpts: { allowReturnOutsideFunction: true } });
 const w = { innerWidth: 1400, addEventListener() {}, removeEventListener() {},
@@ -27,15 +27,34 @@ const app = new Function("React", "ReactDOM", "window", "document", "fetch", "lo
   React, { createRoot: () => ({ render() {} }) }, w, { getElementById: () => null },
   () => new Promise(() => {}), w.localStorage, console);
 
-// The definition the fast version replaced: every team's own scan, averaged.
+// The maps behind one team's pointInTimeTeamStat, counted the way it counts them.
+function mapsBehind(pastMatches, team, statKey, cutoff) {
+  let maps = 0;
+  for (const m of pastMatches) {
+    if (cutoff !== null && (!m.date || m.date >= cutoff)) continue;
+    const opp = m.teamA === team ? m.teamB : m.teamB === team ? m.teamA : null;
+    if (!opp || !m.actual) continue;
+    if (!m.actual[statKey === "d" ? opp : team]) continue;
+    maps += app.mapsCountedFor(m);
+  }
+  return maps;
+}
+
+// The definition the fast version replaced: every team's own scan, now
+// weighted on the maps behind it (see leaguePacePerMap).
 function reference(pastMatches, teams, statKey, cutoff) {
-  const rates = Object.keys(teams).map((t) => app.pointInTimeTeamStat(pastMatches, t, statKey, cutoff))
-    .filter((r) => r !== null);
-  return rates.length ? rates.reduce((s, r) => s + r, 0) / rates.length : null;
+  let num = 0, den = 0;
+  for (const t of Object.keys(teams)) {
+    const r = app.pointInTimeTeamStat(pastMatches, t, statKey, cutoff);
+    if (r === null) continue;
+    const maps = mapsBehind(pastMatches, t, statKey, cutoff);
+    num += r * maps; den += maps;
+  }
+  return den > 0 ? num / den : null;
 }
 
 let checked = 0, fail = 0;
-for (const file of ["data.json", "valorant_data.json", "cs2_data.json"]) {
+for (const file of ["data.json", "valorant_data.json", "cs2_data.json", "dota_data.json"]) {
   const regions = JSON.parse(fs.readFileSync(path.join(root, file), "utf8")).regions;
   for (const [key, region] of Object.entries(regions)) {
     if (!Object.keys(region.teams || {}).length) continue;

@@ -3577,18 +3577,24 @@ try {
     const cache = tierCache(pastMatches, "pace");
     const key = `${statKey}|${cutoffDate || ""}`;
     if (cache.has(key)) return cache.get(key);
-    const perTeam = [];
+    let num = 0,
+      den = 0;
     for (const team of Object.keys(teams || {})) {
       const values = [];
+      let maps = 0;
       for (const m of priorMatches(pastMatches, team, cutoffDate)) {
         const total = teamTotal(m, team, statKey);
         if (!total) continue;
         values.push(total / mapsCountedFor(m));
+        maps += mapsCountedFor(m);
       }
       const rate = decayedMean(values);
-      if (rate !== null) perTeam.push(rate);
+      if (rate !== null) {
+        num += rate * maps;
+        den += maps;
+      }
     }
-    const avg = perTeam.length ? perTeam.reduce((s, v) => s + v, 0) / perTeam.length : null;
+    const avg = den > 0 ? num / den : null;
     cache.set(key, avg);
     return avg;
   }
@@ -3879,11 +3885,16 @@ try {
         acc.games += mapsCountedFor(m);
       }
     }
-    const rates = names.map(t => {
+    let num = 0,
+      den = 0;
+    for (const t of names) {
       const a = totals.get(t);
-      return a.games > 0 ? a.total / a.games : null;
-    }).filter(r => r !== null);
-    const out = rates.length === 0 ? null : rates.reduce((s, r) => s + r, 0) / rates.length;
+      if (a.games > 0) {
+        num += a.total / a.games * a.games;
+        den += a.games;
+      }
+    }
+    const out = den > 0 ? num / den : null;
     memo.set(key, out);
     return out;
   }
@@ -3902,7 +3913,7 @@ try {
     return memo;
   }
   const playerNamesStatCache = new WeakMap();
-  function pointInTimePlayerNamesStat(pastMatches, team, playerNames, statKey, cutoffDate) {
+  function pointInTimePlayerNamesStatAndGames(pastMatches, team, playerNames, statKey, cutoffDate) {
     let memo = playerNamesStatCache.get(pastMatches);
     if (!memo) {
       memo = new Map();
@@ -3913,6 +3924,9 @@ try {
     const out = pointInTimePlayerNamesStatUncached(pastMatches, team, playerNames, statKey, cutoffDate);
     memo.set(key, out);
     return out;
+  }
+  function pointInTimePlayerNamesStat(pastMatches, team, playerNames, statKey, cutoffDate) {
+    return pointInTimePlayerNamesStatAndGames(pastMatches, team, playerNames, statKey, cutoffDate).rate;
   }
   function pointInTimePlayerNamesStatUncached(pastMatches, team, playerNames, statKey, cutoffDate) {
     let total = 0,
@@ -3928,7 +3942,10 @@ try {
         }
       }
     }
-    return games > 0 ? total / games : null;
+    return {
+      rate: games > 0 ? total / games : null,
+      games
+    };
   }
   function pointInTimeLeagueAvgForRole(pastMatches, teams, role, statKey, cutoffDate) {
     const memo = roleMemo(pastMatches, teams);
@@ -3939,14 +3956,21 @@ try {
     return out;
   }
   function pointInTimeLeagueAvgForRoleUncached(pastMatches, teams, role, statKey, cutoffDate) {
-    const rates = [];
+    let num = 0,
+      den = 0;
     for (const teamName in teams) {
       const roleNames = teams[teamName].players.filter(p => p.role === role).map(p => p.name);
       if (roleNames.length === 0) continue;
-      const r = pointInTimePlayerNamesStat(pastMatches, teamName, roleNames, statKey, cutoffDate);
-      if (r !== null) rates.push(r);
+      const {
+        rate,
+        games
+      } = pointInTimePlayerNamesStatAndGames(pastMatches, teamName, roleNames, statKey, cutoffDate);
+      if (rate !== null) {
+        num += rate * games;
+        den += games;
+      }
     }
-    return rates.length > 0 ? rates.reduce((a, b) => a + b, 0) / rates.length : null;
+    return den > 0 ? num / den : null;
   }
   function laneOpponentMultiplier(pastMatches, teams, player, opponentTeam, oppStrength, oppBasisKey, cutoffDate) {
     if (!player.role || !teams[opponentTeam]) return null;

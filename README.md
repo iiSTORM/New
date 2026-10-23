@@ -727,6 +727,32 @@ plus anything the posted board implies (`infer_fixtures.py dota2`). Lines are re
 PrizePicks league "Dota2"; the league id (believed 174) is used only for a
 league-filtered fetch. Dota news comes from two Google News searches.
 
+### League averages are weighted by the maps behind them (Oct 23)
+
+Every pull toward "the league" (the shrink, the share tier, the opponent and
+lane baselines) used to average teams equally. In a round-robin league that
+is the same thing as the average opponent, because everyone plays about as
+often. In one big pool it is not. Dota's 20 busiest teams ran 28.6 kills a map
+and the other 121 ran 25.6, so the equal-weighted league sat about 6% under the
+matches anyone was being projected in. The calibration test caught it at
+0.948x actual for Dota kills once the backfill grew. CS2's single pool had the
+same gap at 3.5%.
+
+Each team's figure is now weighted by the maps behind it, in the app and in
+`optimize_weights.py`, and `league_avg.test.mjs` pins the fast path to that
+definition on all four games' data.
+
+| | before | after |
+| --- | --- | --- |
+| Dota kills / deaths / assists, predicted ÷ actual | 0.948 / 1.029 / 0.953 | 0.987 / 1.002 / 0.997 |
+| CS2 kills, predicted ÷ actual | 0.995 | 1.001 |
+| Point-in-time MAE, every game and stat | | within 0.1% of before |
+
+`LINE_REALIZATION` was re-measured afterwards and stayed inside its
+tolerance. A side effect worth knowing: with maps as the weight, league kills
+and deaths per map come out equal, as they must, since every kill is
+someone's death.
+
 ## News
 
 The menu's **News** page collects news for every game in one place.

@@ -379,6 +379,11 @@ _point_in_time_team_stat_cache = {}  # keyed by (id(past_matches), team, stat_ke
 
 
 def point_in_time_team_stat(past_matches, team, stat_key, cutoff_date):
+    return point_in_time_team_stat_and_maps(past_matches, team, stat_key, cutoff_date)[0]
+
+
+def point_in_time_team_stat_and_maps(past_matches, team, stat_key, cutoff_date):
+    """(rate, maps behind it)."""
     key = (_pin(past_matches), team, stat_key, cutoff_date)
     if key in _point_in_time_team_stat_cache:
         return _point_in_time_team_stat_cache[key]
@@ -401,7 +406,7 @@ def point_in_time_team_stat(past_matches, team, stat_key, cutoff_date):
         # Bo3 but 1-3 for a Bo5, so dividing every match by 2 inflates
         # the per-game rate for anyone with Bo5 history.
         games += maps_counted_for(m)
-    result = total / games if games > 0 else None
+    result = (total / games if games > 0 else None, games)
     _point_in_time_team_stat_cache[key] = result
     return result
 
@@ -424,8 +429,14 @@ def point_in_time_league_avg_stat(past_matches, teams, stat_key, cutoff_date):
     key = (_pin(past_matches), _pin(teams), stat_key, cutoff_date)
     if key in _point_in_time_league_avg_stat_cache:
         return _point_in_time_league_avg_stat_cache[key]
-    rates = [r for r in (point_in_time_team_stat(past_matches, t, stat_key, cutoff_date) for t in teams) if r is not None]
-    result = sum(rates) / len(rates) if rates else None
+    # Weighted on the maps behind each team's rate, as league_pace_per_map.
+    num = den = 0.0
+    for t in teams:
+        r, maps = point_in_time_team_stat_and_maps(past_matches, t, stat_key, cutoff_date)
+        if r is not None:
+            num += r * maps
+            den += maps
+    result = num / den if den > 0 else None
     _point_in_time_league_avg_stat_cache[key] = result
     return result
 
@@ -493,15 +504,18 @@ def point_in_time_league_avg_for_role(past_matches, teams, role, stat_key, cutof
     cached = _league_avg_for_role_cache.get(key)
     if cached is not None:
         return cached
-    rates = []
+    # Weighted on the player-maps behind each team's rate, as
+    # league_pace_per_map.
+    num = den = 0.0
     for team_name, team_data in teams.items():
         role_names = [p["name"] for p in team_data["players"] if p.get("role") == role]
         if not role_names:
             continue
-        r, _ = point_in_time_player_names_stat(past_matches, team_name, role_names, stat_key, cutoff_date)
+        r, games = point_in_time_player_names_stat(past_matches, team_name, role_names, stat_key, cutoff_date)
         if r is not None:
-            rates.append(r)
-    result = sum(rates) / len(rates) if rates else None
+            num += r * games
+            den += games
+    result = num / den if den > 0 else None
     _league_avg_for_role_cache[key] = result
     return result
 
@@ -853,24 +867,27 @@ def share_rate(past_matches, team, player_name, stat_key, cutoff_date):
 def league_pace_per_map(past_matches, teams, stat_key, cutoff_date):
     """What one map in this league tends to produce for one team.
 
-    Averaged over teams rather than over match-sides so a team that plays
-    more often does not drag the league figure toward its own pace.
+    Each team's own recency-weighted pace, averaged with weight on the maps
+    behind it -- the average team a player actually meets, not the average
+    team on the list. Mirrors leaguePacePerMap in src/app.jsx; see there.
     """
     key = (_pin(past_matches), _pin(teams), stat_key, cutoff_date)
     if key in _league_pace_cache:
         return _league_pace_cache[key]
-    per_team = []
+    num = den = 0.0
     for team in teams:
-        values = []
+        values, maps = [], 0
         for m in _prior(past_matches, team, cutoff_date):
             total = team_total(m, team, stat_key)
             if not total:
                 continue
             values.append(total / maps_counted_for(m))
+            maps += maps_counted_for(m)
         rate = _weighted_mean(_decayed(values)) if values else None
         if rate is not None:
-            per_team.append(rate)
-    result = sum(per_team) / len(per_team) if per_team else None
+            num += rate * maps
+            den += maps
+    result = num / den if den > 0 else None
     _league_pace_cache[key] = result
     return result
 

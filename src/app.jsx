@@ -3252,24 +3252,39 @@ function shareRate(pastMatches, team, playerName, statKey, cutoffDate) {
   return rate;
 }
 
-// Averaged over TEAMS rather than over match-sides, so a team that plays
-// more often does not drag the league figure toward its own pace.
+/* Each team's own recency-weighted pace, averaged with weight on the maps
+   behind it: the average team a player actually meets, not the average
+   team on the list.
+
+   It used to weight every team equally, so a team that plays often would
+   not drag the figure toward its own pace. In a round-robin league that
+   makes no difference, because every team plays about as often. In one big
+   pool it does: Dota's 20 busiest teams ran 28.6 kills a map and the 121
+   others 25.6, so the equal-weighted league sat 6% under the matches
+   anyone was being projected in, and everything that pulls toward it
+   (the shrink, the share tier, the opponent adjustments) pulled Dota low.
+   The back-test had Dota kills at 0.948x actual, assists 0.953x. Weighted,
+   0.987x and 0.997x, with every game's error moving by under 0.1%. The
+   same weighting is applied to the opponent baselines below. Mirrored in
+   scripts/dev/optimize_weights.py. */
 function leaguePacePerMap(pastMatches, teams, statKey, cutoffDate) {
   const cache = tierCache(pastMatches, "pace");
   const key = `${statKey}|${cutoffDate || ""}`;
   if (cache.has(key)) return cache.get(key);
-  const perTeam = [];
+  let num = 0, den = 0;
   for (const team of Object.keys(teams || {})) {
     const values = [];
+    let maps = 0;
     for (const m of priorMatches(pastMatches, team, cutoffDate)) {
       const total = teamTotal(m, team, statKey);
       if (!total) continue;
       values.push(total / mapsCountedFor(m));
+      maps += mapsCountedFor(m);
     }
     const rate = decayedMean(values);
-    if (rate !== null) perTeam.push(rate);
+    if (rate !== null) { num += rate * maps; den += maps; }
   }
-  const avg = perTeam.length ? perTeam.reduce((s, v) => s + v, 0) / perTeam.length : null;
+  const avg = den > 0 ? num / den : null;
   cache.set(key, avg);
   return avg;
 }
@@ -3819,9 +3834,13 @@ function pointInTimeLeagueAvgStat(pastMatches, teams, statKey, cutoffDate) {
       acc.games += mapsCountedFor(m);
     }
   }
-  const rates = names.map((t) => { const a = totals.get(t); return a.games > 0 ? a.total / a.games : null; })
-    .filter((r) => r !== null);
-  const out = rates.length === 0 ? null : rates.reduce((s, r) => s + r, 0) / rates.length;
+  // Weighted on the maps behind each team's rate, as leaguePacePerMap.
+  let num = 0, den = 0;
+  for (const t of names) {
+    const a = totals.get(t);
+    if (a.games > 0) { num += (a.total / a.games) * a.games; den += a.games; }
+  }
+  const out = den > 0 ? num / den : null;
   memo.set(key, out);
   return out;
 }
@@ -3863,7 +3882,7 @@ function roleMemo(pastMatches, teams) {
 }
 
 const playerNamesStatCache = new WeakMap();
-function pointInTimePlayerNamesStat(pastMatches, team, playerNames, statKey, cutoffDate) {
+function pointInTimePlayerNamesStatAndGames(pastMatches, team, playerNames, statKey, cutoffDate) {
   let memo = playerNamesStatCache.get(pastMatches);
   if (!memo) { memo = new Map(); playerNamesStatCache.set(pastMatches, memo); }
   const key = `${team}\u0001${playerNames.join("\u0001")}\u0001${statKey}\u0001${cutoffDate}`;
@@ -3871,6 +3890,10 @@ function pointInTimePlayerNamesStat(pastMatches, team, playerNames, statKey, cut
   const out = pointInTimePlayerNamesStatUncached(pastMatches, team, playerNames, statKey, cutoffDate);
   memo.set(key, out);
   return out;
+}
+
+function pointInTimePlayerNamesStat(pastMatches, team, playerNames, statKey, cutoffDate) {
+  return pointInTimePlayerNamesStatAndGames(pastMatches, team, playerNames, statKey, cutoffDate).rate;
 }
 
 function pointInTimePlayerNamesStatUncached(pastMatches, team, playerNames, statKey, cutoffDate) {
@@ -3886,7 +3909,7 @@ function pointInTimePlayerNamesStatUncached(pastMatches, team, playerNames, stat
       }
     }
   }
-  return games > 0 ? total / games : null;
+  return { rate: games > 0 ? total / games : null, games };
 }
 
 function pointInTimeLeagueAvgForRole(pastMatches, teams, role, statKey, cutoffDate) {
@@ -3899,14 +3922,15 @@ function pointInTimeLeagueAvgForRole(pastMatches, teams, role, statKey, cutoffDa
 }
 
 function pointInTimeLeagueAvgForRoleUncached(pastMatches, teams, role, statKey, cutoffDate) {
-  const rates = [];
+  // Weighted on the player-maps behind each team's rate, as leaguePacePerMap.
+  let num = 0, den = 0;
   for (const teamName in teams) {
     const roleNames = teams[teamName].players.filter((p) => p.role === role).map((p) => p.name);
     if (roleNames.length === 0) continue;
-    const r = pointInTimePlayerNamesStat(pastMatches, teamName, roleNames, statKey, cutoffDate);
-    if (r !== null) rates.push(r);
+    const { rate, games } = pointInTimePlayerNamesStatAndGames(pastMatches, teamName, roleNames, statKey, cutoffDate);
+    if (rate !== null) { num += rate * games; den += games; }
   }
-  return rates.length > 0 ? rates.reduce((a, b) => a + b, 0) / rates.length : null;
+  return den > 0 ? num / den : null;
 }
 
 function laneOpponentMultiplier(pastMatches, teams, player, opponentTeam, oppStrength, oppBasisKey, cutoffDate) {
