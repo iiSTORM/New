@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-25T05:12:55.850950+00:00",
+ "generated_at": "2026-10-25T11:57:01.152149+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,13 +61,13 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 77,
+   "items": 78,
    "error": null
   },
   {
    "game": "lol",
    "source": "Google News",
-   "items": 62,
+   "items": 60,
    "error": null
   },
   {
@@ -103,23 +103,208 @@
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 50,
+   "items": 53,
    "error": null
   },
   {
    "game": "dota2",
    "source": "Google News",
-   "items": 29,
+   "items": 33,
    "error": null
   },
   {
    "game": "dota2",
    "source": "Google News",
-   "items": 40,
+   "items": 39,
    "error": null
   }
  ],
  "items": [
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "Vitality ease past The MongolZ into PGL Masters Bucharest 2-0 pool",
+   "link": "https://www.hltv.org/news/45797/vitality-ease-past-the-mongolz-into-pgl-masters-bucharest-2-0-pool",
+   "published": "2026-10-25T11:52:00+00:00",
+   "summary": "A slow start on Inferno didn't stop the European squad from dominating the series with ZywOo and flameZ taking over.",
+   "teams": [
+    "The MongolZ",
+    "Vitality"
+   ],
+   "players": [
+    {
+     "name": "flameZ",
+     "team": "Vitality"
+    },
+    {
+     "name": "ZywOo",
+     "team": "Vitality"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "Sources: FrosT set to not continue with FULL SENSE for 2027 VCT season",
+   "link": "https://news.google.com/rss/articles/CBMiswFBVV95cUxNa01nbDFIWkhickxobm5jN0w0aDJGdlJoQU56aDhOT2lMVHQ0bHZQUTRLbnFHbWFPZ0V0cGVHUEtDcGFDejlTMzRPZDBMNFdITExiS0pBeHBZbmU0Z0NWVFgyMHN5a0xZOHVabzZyNTl4VmZ2N1haRzJFRTVpQTZPcGIwdHpWcllyZHp2TFZ0OFBDd1J5N3A0aHdNbl9pM0Y5Nl9zLTlwc2d6Sk5ncjZiODdRbw?oc=5",
+   "published": "2026-10-25T10:49:38+00:00",
+   "summary": "Sources: FrosT set to not continue with FULL SENSE for 2027 VCT season Sheep Esports",
+   "teams": [
+    "FULL SENSE"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "FUT beat Liquid to move to 2-0 in Bucharest",
+   "link": "https://www.hltv.org/news/45798/fut-beat-liquid-to-move-to-2-0-in-bucharest",
+   "published": "2026-10-25T10:10:00+00:00",
+   "summary": "dem0n posted a 1.98 rating as FUT moved within one win of the playoffs.",
+   "teams": [
+    "Liquid",
+    "FUT"
+   ],
+   "players": [
+    {
+     "name": "dem0n",
+     "team": "FUT"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "Spirit bounce back in Bucharest with dominant victory over TYLOO",
+   "link": "https://www.hltv.org/news/45796/spirit-bounce-back-in-bucharest-with-dominant-victory-over-tyloo",
+   "published": "2026-10-25T09:43:00+00:00",
+   "summary": "The Russian squad is now 1-1 in the PGL Masters Bucharest Swiss group stage.",
+   "teams": [
+    "TYLOO",
+    "Spirit"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "TalkEsport",
+   "title": "MIBR Benches Entire Valorant Roster, aspas and zekken Now Open to Transfers",
+   "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxPUFFVLVhIM0c3OU5uM284YnhNUzEtU3dyMVloTmRVNlJ0S2tRelZYSlkzaE1sSS1HdXozdXFXX3JKSEtRVkFEU2ktZ2hncUdybU5xbHlhVXhtOUdQNFE2c201MlNQRERjMXNhbE1kQjUwb1RYYjRoMDM4ZzBLQkxCaFd6dkZPMDE5N0JR?oc=5",
+   "published": "2026-10-25T09:25:32+00:00",
+   "summary": "MIBR Benches Entire Valorant Roster, aspas and zekken Now Open to Transfers TalkEsport",
+   "teams": [
+    "MIBR"
+   ],
+   "players": [
+    {
+     "name": "aspas",
+     "team": "MIBR"
+    }
+   ],
+   "score": -1,
+   "grade": "negative",
+   "rules": [
+    "benched"
+   ],
+   "reasons": [
+    "a regular is out of the lineup"
+   ]
+  },
+  {
+   "game": "dota2",
+   "source": "Hawk Live",
+   "title": "Mira Spoke His Mind About Skiter",
+   "link": "https://news.google.com/rss/articles/CBMiWkFVX3lxTE9weF9aYW1nM3hPUFE0NXFHMnROMFB1dHZGbGdxTUVoVUJDdGd1VmVLMU5jTnZpTXZ2bEh4VVFDcnNIX3N5S0M2NlkzaHhVVjlpX0xRc3NBd3FWZw?oc=5",
+   "published": "2026-10-25T09:17:00+00:00",
+   "summary": "Mira Spoke His Mind About Skiter Hawk Live",
+   "teams": [
+    "Aurora Gaming"
+   ],
+   "players": [
+    {
+     "name": "Mira",
+     "team": "Aurora Gaming"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "RG.org",
+   "title": "Worlds 2026 Swiss Round 3 Preview: Gen.G, DK Eye Quarterfinals",
+   "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxOWnl6a2JDbjUxWThaM0ZNbmhwbl9CaUwwdHBsaFRqTmxpTHZUVkdlb3pUcW8tWDdIdFN5a3NOSW1oOHVGMEdtSU01VDB3bENkWGp2VW14cVI5N0VQWVNhbHVqTEwwdk9EbHpfQzFtYTZVYkJLTkNhNkVwWl8xbS1ZWFlQY1htQkE?oc=5",
+   "published": "2026-10-25T09:16:58+00:00",
+   "summary": "Worlds 2026 Swiss Round 3 Preview: Gen.G, DK Eye Quarterfinals RG.org",
+   "teams": [
+    "Gen.G"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "RG.org",
+   "title": "Gen.G Extends Kalshi Worlds 2026 Lead After Beating HLE; DK Tops T1",
+   "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxQNVUwc2xENHdKZVQ2d1JGSW9Bdmw0V2hWSk53U0dvX3E0NEpWWncwVzBBR2JIamRqSmcxRFNyd3lJa3d1ckV4V1FVTGRvTmhnZTNqYlFLSmYxZ0tFZVlUSzVSMHRabUVRZkg1QUJIUGZmal9WODBXcU5sX1Q5MUE1NGZEeFE3WFNURUNn?oc=5",
+   "published": "2026-10-25T06:44:35+00:00",
+   "summary": "Gen.G Extends Kalshi Worlds 2026 Lead After Beating HLE; DK Tops T1 RG.org",
+   "teams": [
+    "Gen.G",
+    "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "extension"
+   ],
+   "reasons": [
+    "a contract is extended"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "The Korea Daily",
+   "title": "TheShy Worlds 2026 — Legendary LoL Star Returns for IG’s Redemption",
+   "link": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE1Lc3NHVHhyVlU1T3BnSEo0SjJqRXNFR09tMWVtY05fZ2F0UnRWaHJNYzE0dXNnUmI4bWNZWC12Y0p5X0RqYzVQdkVtNnZEbFF6V1dKSlN4WldWQW1sdHFZMHc1NkxMQQ?oc=5",
+   "published": "2026-10-25T06:11:31+00:00",
+   "summary": "TheShy Worlds 2026 — Legendary LoL Star Returns for IG’s Redemption The Korea Daily",
+   "teams": [
+    "Invictus Gaming"
+   ],
+   "players": [
+    {
+     "name": "TheShy",
+     "team": "Invictus Gaming"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
   {
    "game": "lol",
    "source": "Hotspawn",
@@ -164,6 +349,24 @@
   },
   {
    "game": "lol",
+   "source": "GosuGamers",
+   "title": "Gen.G, Dplus KIA, LYON, and MKOI improve to 2-0 records in Worlds 2026 Swiss Stage Day 2",
+   "link": "https://news.google.com/rss/articles/CBMixgFBVV95cUxQNGM0N0dxTkdlNnBVcTIzaS10eWNvZXMySzdPNDJEaTdlNVkwT09BdmpnQ3ljVVlWOEstRWxEVnhld1Rtdjg0MlpkU2JRblVQMDBPN2JmY05hbElFWHVWMU1JOVEtUllQS29XdE9nek42QUhvcTdmamg3VFMzMmdjaWV5WGY5UUJBQkVJaXkxVkgtTEhFOUpGN1EwS0Y0VkdQdkUxQ3pobmROTXpNMzhPTVk0OEdwMEZNWkl4RmRWY1J5RjdGQWc?oc=5",
+   "published": "2026-10-25T01:16:28+00:00",
+   "summary": "Gen.G, Dplus KIA, LYON, and MKOI improve to 2-0 records in Worlds 2026 Swiss Stage Day 2 GosuGamers",
+   "teams": [
+    "LYON",
+    "Gen.G",
+    "Dplus KIA"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
    "source": "EGamersWorld",
    "title": "Worlds 2026: Bilibili Gaming Push Team Liquid to Brink of Elimination at 0-2",
    "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxQTkVGX3dtRzRpSHQtV0JxOFBudU5zZGdLQlNvZl9rR2F4NW1aVXRvVG9PNEM0MUxnajUtNzd1ZzJHcjJsd0dCUlI1dkIzOVRIWFliUy1ZSFNMRzhib1dsR3JaNUk2TU1CUzVMdGJZZTFYOGN1X3lLblY1WHBRLWRid0Jqek5feDVBRnIxYUpIU1l4bEhtMXZ5akp1bjdjcFR5OHc?oc=5",
@@ -182,27 +385,9 @@
   {
    "game": "lol",
    "source": "GosuGamers",
-   "title": "Gen.G, Dplus KIA, LYON, and MKOI improve to 2-0 records in Worlds 2026 Swiss Stage Day 2",
-   "link": "https://news.google.com/rss/articles/CBMixgFBVV95cUxQNGM0N0dxTkdlNnBVcTIzaS10eWNvZXMySzdPNDJEaTdlNVkwT09BdmpnQ3ljVVlWOEstRWxEVnhld1Rtdjg0MlpkU2JRblVQMDBPN2JmY05hbElFWHVWMU1JOVEtUllQS29XdE9nek42QUhvcTdmamg3VFMzMmdjaWV5WGY5UUJBQkVJaXkxVkgtTEhFOUpGN1EwS0Y0VkdQdkUxQ3pobmROTXpNMzhPTVk0OEdwMEZNWkl4RmRWY1J5RjdGQWc?oc=5",
-   "published": "2026-10-25T01:06:22+00:00",
-   "summary": "Gen.G, Dplus KIA, LYON, and MKOI improve to 2-0 records in Worlds 2026 Swiss Stage Day 2 GosuGamers",
-   "teams": [
-    "LYON",
-    "Gen.G",
-    "Dplus KIA"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "GosuGamers",
    "title": "Dplus KIA pull off a second miracle comeback against T1 at LoL Worlds 2026 Swiss Stage",
    "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxPNFpZQWY5Z0FuVnNFZEJZSkxPdTdRR3JYVzgtcks2cU80aXZvZV90eXpqOVhadUVmN3JfMXlDVnFwRHJFM2RmenBKM0pZSjhncDgyNU5BdWFVX0hCaEh3VThqa1dCY1AxVUF6Y253WXB1cldOZ0MxMmlKYmFYRUpBY2ttVzRMQmR3bHlldGdpMFBCVmNZT3R0V2p0NFZ3VHlkXzg5Zmh4cXFmbksxaXMtUzVhejRaYkU?oc=5",
-   "published": "2026-10-25T00:53:22+00:00",
+   "published": "2026-10-25T00:49:37+00:00",
    "summary": "Dplus KIA pull off a second miracle comeback against T1 at LoL Worlds 2026 Swiss Stage GosuGamers",
    "teams": [
     "Dplus KIA",
@@ -236,7 +421,7 @@
    "source": "GosuGamers",
    "title": "Gen.G overpower Hanwha Life Esports to stay unbeaten at LoL Worlds 2026 Swiss Stage",
    "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxNeUJJdmk0c2VjblhvU1Z1NDhtMHlHSThSUUJUT3d6TGtRNTBvT2hwbm1zMk9Ha0JtMWFHZ0JLRUhYZDVlOWRsSFJTaGxiSk15UXhmZXlaQ1ZUcFd0WTFncS0yQlJfeWVkajF0SUJaT3JQOEdxNzJ1SDF2bDdlRlNaaHZMTkFZbkRFSXhNYXNYb3hUS1JzeUt4dXhMZElFekJaZGx6bWRNRFRYVFVMbnFuLWNhMS0xSGZnV2x1NFZxNjF0Unc?oc=5",
-   "published": "2026-10-24T23:23:34+00:00",
+   "published": "2026-10-24T23:36:42+00:00",
    "summary": "Gen.G overpower Hanwha Life Esports to stay unbeaten at LoL Worlds 2026 Swiss Stage GosuGamers",
    "teams": [
     "Gen.G",
@@ -280,6 +465,27 @@
     "G2"
    ],
    "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Hotspawn",
+   "title": "LØS Curse: \"The Communication Was Probably The Worst I've Ever Seen Today.\"",
+   "link": "https://news.google.com/rss/articles/CBMihgFBVV95cUxQT014NFlBTktWTjNNZEgtMWhHNnBIa2dLaFZ4VkJKbzdodlpXU0NDREJPc0YyNHJlNVdUaGk2NjZFTHZmOXBNcHVoNWhzeHJsMzZLSnZKRjUzYVFnQ3hPMWpUbFdvc0ZJZmlpTFRCM2haWnduVEt2dnVBemdlWjVXZ2hIV3RUdw?oc=5",
+   "published": "2026-10-24T21:27:55+00:00",
+   "summary": "LØS Curse: \"The Communication Was Probably The Worst I've Ever Seen Today.\" Hotspawn",
+   "teams": [
+    "Los Grandes"
+   ],
+   "players": [
+    {
+     "name": "Curse",
+     "team": "Los Grandes"
+    }
+   ],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -410,7 +616,7 @@
    "source": "GosuGamers",
    "title": "Top Esports defeat Anyone's Legend in bloody LPL showdown at Worlds 2026 Swiss Stage",
    "link": "https://news.google.com/rss/articles/CBMixAFBVV95cUxNSUpzN29ybXVULUVka3A0RnY3SngwX1NWaHJoLUZVcExpOFk0amJacmVrYnJzSTBtR1NkdmgweEpNWGZxRjJPa2x4ekdRaDRwVHFaUlZ6YzA2ZzdxN0JuTTl0TWZOYVNXMmNMX1JEY1hYb0FwSXFkcmcxOXg3cEo1SDdSOG1HQjJDNy1MMlFxY2hOaGQwNDZsem5WZWtHRzZ4Z2I5NEdneTdaZUpXSDJPUE5lZDBjMFItbUNyQS1WcEYyYWlE?oc=5",
-   "published": "2026-10-24T18:21:46+00:00",
+   "published": "2026-10-24T18:21:52+00:00",
    "summary": "Top Esports defeat Anyone's Legend in bloody LPL showdown at Worlds 2026 Swiss Stage GosuGamers",
    "teams": [
     "Top Esports"
@@ -2553,6 +2759,26 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
+  },
+  {
+   "game": "dota2",
+   "source": "Dexerto",
+   "title": "Team Liquid announce shock exit of Dota 2 roster",
+   "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxPdDZLRmNpTzZxRlk4ZmVld0NJVDJVNFMyU3FDZzQyRW8yZEhsSy1IdjFPMy1xZzUtYkRnZ2tUMURoOG1hbU4yNVVLNVhhRkJCLVhBOUx1OGRPTzJSMldMdUs3TjhjNXR2UnA4WW85V3RMRWhzemtFZmxMWFJ0UHdsVU5IdEd6SDVUNlcxV0E3REo?oc=5",
+   "published": "2026-10-22T07:00:00+00:00",
+   "summary": "Team Liquid announce shock exit of Dota 2 roster Dexerto",
+   "teams": [
+    "Team Liquid"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
   },
   {
    "game": "lol",
@@ -5192,6 +5418,22 @@
    "reasons": []
   },
   {
+   "game": "valorant",
+   "source": "VALORANT Esports",
+   "title": "VIT VS LOUD",
+   "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTE1GNzU0WGNCdGRPV2J6Nk8tLXFocWU2Y25laFA0OGpCRV9XdElnUlg3OHVhZXNSb0RJbEROcWYza3ZqNVNVZ2dfdmVtQmVBZ3NROEJEVjdGTlNPUDNtWmRCbC11ZXk4UjE4bUY5a0FMWWluaXRPMld0SVdn?oc=5",
+   "published": "2026-10-18T15:36:15+00:00",
+   "summary": "VIT VS LOUD VALORANT Esports",
+   "teams": [
+    "LOUD"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "cs2",
    "source": "HLTV",
    "title": "Aurora pass Falcons in the VRS after third-place decider victory at TWC",
@@ -5313,22 +5555,6 @@
    "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE5jaVdCWmFuZ1Y5b0sySklkTWM3RVRyeUFVTnBHZS1wM2toeVZzUUNyX2hQeXFLMUVORUpzQ2Ezb3M3aXd5MUZsYkpIQThIa2xxTWI2Sl9fejJyUkhMV3k1ak02b0Jsb2lULTl2SnVlaTNZd2pkVGt3?oc=5",
    "published": "2026-10-18T11:14:00+00:00",
    "summary": "LOUD shatter EMEA dreams and win VCT 2026 Champions Dot Esports",
-   "teams": [
-    "LOUD"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "VALORANT Esports",
-   "title": "VIT VS LOUD",
-   "link": "https://news.google.com/rss/articles/CBMiakFVX3lxTE4wT25KUVJONXpOSUxXLUhRaEJkTV9feFZXbGlyRFZWd2hoZzh3SFFoNjVFMk9JTDB0cFRSa09ZaG5xYXRwaFNpVHh5bGxRVHJIS25nbTZXOWxzVDBZZDJfUnFtNzRMY21KTEE?oc=5",
-   "published": "2026-10-18T11:12:52+00:00",
-   "summary": "VIT VS LOUD VALORANT Esports",
    "teams": [
     "LOUD"
    ],
@@ -6725,23 +6951,6 @@
    ]
   },
   {
-   "game": "valorant",
-   "source": "EGamersWorld",
-   "title": "100 Thieves Beat G2 Esports 2-1 at Valorant Champions 2026",
-   "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxQb1dlZTVtYTVOc0Y5ZVcwV2FiRGJsZzVtUmZSLTUwcVhfQU05VmEtUlp6LXVpMGhvaDlXS1BOTzVFNnhCeGVBT3BzbEpKTGlKemd6dlhBN2tNcldMelpRd2dqallWSzhNdGJVdERpUWxCalJmbHZ2N3RyNnFDYjNGcGtLMUJaZVZjbFNyOEtza09FdmhrV0hTaW9wYXRVeEZuaGRtUEZUR3A?oc=5",
-   "published": "2026-10-16T13:51:30+00:00",
-   "summary": "100 Thieves Beat G2 Esports 2-1 at Valorant Champions 2026 EGamersWorld",
-   "teams": [
-    "G2 Esports",
-    "100 Thieves"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
    "game": "cs2",
    "source": "HLTV",
    "title": "stikle- takes over as head coach of Inner Circle",
@@ -6855,23 +7064,6 @@
   },
   {
    "game": "valorant",
-   "source": "Dot Esports",
-   "title": "LOUD punch their ticket to VALORANT Champions 2026 grand finals after 2-1 win over Team Vitality",
-   "link": "https://news.google.com/rss/articles/CBMidkFVX3lxTE42c0s3QkVKZS1rNXZIcUQtTzRXWkpzaGk2Ny1rUnZyR0tkelBTMmtWekgzNzFPMzZlaHlqd0VGNm91Nm91cHh2OGRFU0ZMSDdIeWR1b0R3aWJ6OFB0cE80SHR3bm9PTWVoNzBVZlZqeTU1dGo4WkE?oc=5",
-   "published": "2026-10-16T10:20:00+00:00",
-   "summary": "LOUD punch their ticket to VALORANT Champions 2026 grand finals after 2-1 win over Team Vitality Dot Esports",
-   "teams": [
-    "LOUD",
-    "Team Vitality"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
    "source": "YouTube",
    "title": "LOUD vs. VIT — FULL MATCH — VALORANT Champions Shanghai — Playoffs Stage",
    "link": "https://news.google.com/rss/articles/CBMiS0FVX3lxTFBNTGJXZEo5MEJWR01jWW9VZVc0dWVweFBqbXZ4VHN1cWdHWE5wU2V2UzM5R0NDUnZIZ0tuaWtrQXJLX0ZrdmFvTTUyOA?oc=5",
@@ -6896,6 +7088,40 @@
    "teams": [
     "Karmine Corp",
     "MVK Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "EGamersWorld",
+   "title": "100 Thieves Beat G2 Esports 2-1 at Valorant Champions 2026",
+   "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxQb1dlZTVtYTVOc0Y5ZVcwV2FiRGJsZzVtUmZSLTUwcVhfQU05VmEtUlp6LXVpMGhvaDlXS1BOTzVFNnhCeGVBT3BzbEpKTGlKemd6dlhBN2tNcldMelpRd2dqallWSzhNdGJVdERpUWxCalJmbHZ2N3RyNnFDYjNGcGtLMUJaZVZjbFNyOEtza09FdmhrV0hTaW9wYXRVeEZuaGRtUEZUR3A?oc=5",
+   "published": "2026-10-16T07:00:00+00:00",
+   "summary": "100 Thieves Beat G2 Esports 2-1 at Valorant Champions 2026 EGamersWorld",
+   "teams": [
+    "G2 Esports",
+    "100 Thieves"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Dot Esports",
+   "title": "LOUD punch their ticket to VALORANT Champions 2026 grand finals after 2-1 win over Team Vitality",
+   "link": "https://news.google.com/rss/articles/CBMidkFVX3lxTE42c0s3QkVKZS1rNXZIcUQtTzRXWkpzaGk2Ny1rUnZyR0tkelBTMmtWekgzNzFPMzZlaHlqd0VGNm91Nm91cHh2OGRFU0ZMSDdIeWR1b0R3aWJ6OFB0cE80SHR3bm9PTWVoNzBVZlZqeTU1dGo4WkE?oc=5",
+   "published": "2026-10-16T07:00:00+00:00",
+   "summary": "LOUD punch their ticket to VALORANT Champions 2026 grand finals after 2-1 win over Team Vitality Dot Esports",
+   "teams": [
+    "LOUD",
+    "Team Vitality"
    ],
    "players": [],
    "score": 0,
@@ -7352,222 +7578,32 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "HLTV",
-   "title": "Falcons secure playoff berth at TWC 2026",
-   "link": "https://www.hltv.org/news/45728/falcons-secure-playoff-berth-at-twc-2026",
-   "published": "2026-10-15T14:34:00+00:00",
-   "summary": "9z will rematch Aurora in the lower bracket final for a last shot at making it out of the groups alive.",
-   "teams": [
-    "Aurora",
-    "9z",
-    "Falcons"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "dota2",
-   "source": "Dot Esports",
-   "title": "Malr1ne joins Team Liquid as new midlaner for 2026-2027 Dota 2 season",
-   "link": "https://news.google.com/rss/articles/CBMicEFVX3lxTFB5ak5rYjRFOEtOUzVLVzRhb1QzVzl3eWlPT3FuYXBHZVlVRnNob0ZJdlBlUVBiY25IYkdlYnJfa3k2WFFxVmU1c2h3M1R5MXIwdHRLdHRiZkM3RUpoUmNRak9HTXlnM3ctRnlHSTl0dTM?oc=5",
-   "published": "2026-10-15T14:30:00+00:00",
-   "summary": "Malr1ne joins Team Liquid as new midlaner for 2026-2027 Dota 2 season Dot Esports",
-   "teams": [
-    "Team Liquid"
-   ],
-   "players": [
-    {
-     "name": "Malr1ne",
-     "team": "Team Liquid"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
-   "game": "valorant",
-   "source": "VALO2ASIA",
-   "title": "Riot Games Unveils VCT 2027 Global Tour: More Tournaments, More Opportunities, More Cities",
-   "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxPVExJZ0xDTTU2S0h2WFo0Wnljdl9pTzRnSEdlTXNMaXF0MkttQk91bnVuZEdjZllmblRZM0ZQM29VQVgweEFudUxQeDBqS0NwUnpSSGYyNnFPV3oyc041RGxjWGNtSzh4NHlrVEZZVTc5UXRFaHZlZ1FTTHJaR0lYWDBrV1M4aXhJcy1PMU1ibk1QSmhRNzZNU1l3d1JpMjcwWlA5Tm9jX2NYYUlFaXFGNTBHdHE?oc=5",
-   "published": "2026-10-15T14:28:18+00:00",
-   "summary": "Riot Games Unveils VCT 2027 Global Tour: More Tournaments, More Opportunities, More Cities VALO2ASIA",
-   "teams": [
-    "Global Esports"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
-   "game": "dota2",
-   "source": "Esports.gg",
-   "title": "Malr1ne to Team Liquid confirmed: Ex-Team Falcons player reveals his new Dota 2 team",
-   "link": "https://news.google.com/rss/articles/CBMickFVX3lxTE5wUXNGd3BxXzdONzEzMV9lNGZsaFdObXppd1lzaEU1MWU3cUpCTlZET25jNmZmczdqRXlzQ2l5MmZMOUN4MDV2bzNtb2oxM2lZVGhpUS1JM2ZwSlZONlZ1RGFQVHp0TGdWSjZzcVlMY2Rfdw?oc=5",
-   "published": "2026-10-15T14:27:48+00:00",
-   "summary": "Malr1ne to Team Liquid confirmed: Ex-Team Falcons player reveals his new Dota 2 team Esports.gg",
-   "teams": [
-    "Team Liquid"
-   ],
-   "players": [
-    {
-     "name": "Malr1ne",
-     "team": "Team Liquid"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "FreeTips",
-   "title": "Team Vitality vs LOUD Betting Tips – LOUD To Get Their Revenge at VALORANT Champions 2026",
-   "link": "https://news.google.com/rss/articles/CBMiigFBVV95cUxQanV5NnFyTFY5cTU1UGRwb3Y0MG5RTkV6Rm1HUzlVTWtzdU1TdWZOTzVSM0VRRklIWERrSVg1S2pEdGk4UHFMRVVUNVBVb1REbUhKQnl6dlhLSTI1enE1SEd5V3ZxTlQ0UXJLZXlidUpEVndfWGlLb3J1YU5ueWRKR0w3eWktbjlyQXc?oc=5",
-   "published": "2026-10-15T14:24:10+00:00",
-   "summary": "Team Vitality vs LOUD Betting Tips – LOUD To Get Their Revenge at VALORANT Champions 2026 FreeTips",
-   "teams": [
-    "LOUD",
-    "Team Vitality"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "dota2",
-   "source": "Hawk Live",
-   "title": "Satanic Reflected on PARIVISION’s Prospects",
-   "link": "https://news.google.com/rss/articles/CBMicEFVX3lxTE5yT1IzZWNuSnFIOEdYZUJRcTJpcmQwUGZTMHN3ejBySnBWM2VIb2tUeHhaZ1p3TVo3cEttRmQ1STFpSlM1Sy1YVERuZ3UzdUVvZ0V4ZWFaU2hmRU0ySFhtNUJUVjlOS09SWkRUdklWVVU?oc=5",
-   "published": "2026-10-15T14:02:00+00:00",
-   "summary": "Satanic Reflected on PARIVISION’s Prospects Hawk Live",
-   "teams": [
-    "PARIVISION"
-   ],
-   "players": [
-    {
-     "name": "Satanic",
-     "team": "PARIVISION"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "dota2",
-   "source": "GosuGamers",
-   "title": "Team Liquid reveal Malr1ne as new mid laner",
-   "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxORlNzQTh6bTlaZnl3Y25HOGdwaFhOWFpBQkkxUV9aMk1GcUhrWWwwWExXd3dCR1VqVWROakFUb0JKSE5iVUNmYUF1NzNjTjJxTFVNbG9pcWVtQ0pjMmxqV1VUSkRpWlZKdGdsSjdjWGxfWl9OeFNuTlJBVnIycmFtUWEwTzJoYUlNWXFkWGZvTzM?oc=5",
-   "published": "2026-10-15T13:39:52+00:00",
-   "summary": "Team Liquid reveal Malr1ne as new mid laner GosuGamers",
-   "teams": [
-    "Team Liquid"
-   ],
-   "players": [
-    {
-     "name": "Malr1ne",
-     "team": "Team Liquid"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "GameRiv",
-   "title": "VCT 2027 Global Tour Brings 50+ Tournaments, Open Qualifiers, and Events Across 15 Cities",
-   "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxObGVXX3hTNHVaYmFPTFJ5RzVNbkRYT3lnSUJpWjBlbXFhWUFJR2JnUTBad3MyUjh4Q0Y5MDc2aElpcWVOV0lTZmx3cEtzdkF5WmlwSlNaVDlfUjlVbU82NzNXT1hSNUgtcGZJVGdBZGRVNXJBaHlBeDFHcjBqM0VGb3NTZlNFSUc0dXhORTZqSGtUTWFnUzVYTXpLaWlWaU04Wjd4dDk0bWNWckk?oc=5",
-   "published": "2026-10-15T13:29:27+00:00",
-   "summary": "VCT 2027 Global Tour Brings 50+ Tournaments, Open Qualifiers, and Events Across 15 Cities GameRiv",
-   "teams": [
-    "Global Esports"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "EGamersWorld",
-   "title": "Last LPL Hope Holds On: Team WE Outlast BRION to Set Up Demacia Cup 2026 Final vs FEARX",
-   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxQMk9udnVxX3ZURzlIbElnUWlEeWx6MXpYOG5uQmxIWW54OFpMSkVwVUFXeHBUQU53NlBCV3hVVkNSdTJNTTBMb3dWOVZTYUI3bjZhQ3dPZkh0UEk2T0oyLTZWMGFhX0ZDTGx3eHpGWXByeUwxQjllc0hDVUZGWU1GeFBTeVJPVms2cUt3NkxaM2JkWmVpaXRPcGpxU2x4WDc4eWc?oc=5",
-   "published": "2026-10-15T13:18:18+00:00",
-   "summary": "Last LPL Hope Holds On: Team WE Outlast BRION to Set Up Demacia Cup 2026 Final vs FEARX EGamersWorld",
-   "teams": [
-    "Team WE"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "HLTV",
-   "title": "balblna steps down from K27",
-   "link": "https://www.hltv.org/news/45726/balblna-steps-down-from-k27",
-   "published": "2026-10-15T13:15:00+00:00",
-   "summary": "The team's analyst, Twizell, will step in as interim coach.",
-   "teams": [
-    "K27"
-   ],
-   "players": [],
-   "score": -1,
-   "grade": "negative",
-   "rules": [
-    "departure",
-    "coach"
-   ],
-   "reasons": [
-    "a player or coach leaves",
-    "a coaching change"
-   ]
-  },
-  {
-   "game": "valorant",
-   "source": "VALORANT Esports",
-   "title": "VCT 2027: The Global Tour",
-   "link": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE5xRnhERmxVLUhaY0FnODNwM0Vla3BKTlJXWmFMc0x0SjhiS2hYdlNPdElCTmNjUVROazhSdUdIX0xJdkI2WndGWlR2aUMtUFg0dEVCMy0ycy02ek0tQzEybllLNmxlMEhi?oc=5",
-   "published": "2026-10-15T13:09:25+00:00",
-   "summary": "VCT 2027: The Global Tour VALORANT Esports",
-   "teams": [
-    "Global Esports"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
   }
  ],
  "signals": {
+  "valorant": {
+   "MIBR": {
+    "score": -1,
+    "items": 3,
+    "rules": [
+     "benched"
+    ]
+   },
+   "T1": {
+    "score": -1,
+    "items": 1,
+    "rules": [
+     "departure"
+    ]
+   },
+   "M80": {
+    "score": -1,
+    "items": 1,
+    "rules": [
+     "departure"
+    ]
+   }
+  },
   "cs2": {
    "MOUZ": {
     "score": 1,
@@ -7634,36 +7670,6 @@
     ]
    },
    "Iowa Stormboar": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "departure"
-    ]
-   },
-   "Natus Vincere": {
-    "score": -2,
-    "items": 1,
-    "rules": [
-     "suspension"
-    ]
-   }
-  },
-  "valorant": {
-   "MIBR": {
-    "score": -1,
-    "items": 2,
-    "rules": [
-     "benched"
-    ]
-   },
-   "T1": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "departure"
-    ]
-   },
-   "M80": {
     "score": -1,
     "items": 1,
     "rules": [
