@@ -170,10 +170,17 @@ def measure(game, stat, graded, claim=board_claim):
 
 def shipped_factors(results):
     """{game: {stat: factor}} as the app should carry them: the slope,
-    clamped to [0, 1] and rounded, only where the interval excludes 1."""
+    clamped to [0, 1] and rounded, only where the interval excludes 1 AND
+    the scaled edge beat the unscaled one out of sample. The second test
+    was added on 2026-10-25, when LoL's slate slope fell to 0.43 (interval
+    -0.04 to 0.89) on a bad Worlds week while scaling still lost held out
+    (2.967 against 2.949)."""
     out = {}
     for got in results:
         if "slope" not in got or got["high"] >= 1:
+            continue
+        wf = got.get("walk_forward")
+        if wf and wf["blend"] >= wf["board"]:
             continue
         out.setdefault(got["game"], {})[got["stat"]] = round(min(1.0, max(0.0, got["slope"])), 2)
     return out

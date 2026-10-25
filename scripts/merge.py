@@ -213,7 +213,9 @@ def record_from_matches(past_matches, team, player, role):
         return None
     cur = {"g": g, "k": round(k / g, 2), "d": round(d / g, 2), "a": round(a / g, 2),
            "kp": round(100 * (k + a) / team_k, 1) if team_k else None}
-    return {"name": player, "role": role, "cur": cur}
+    # No previous split on record for him: null, as the scrape writes it
+    # for any player without one.
+    return {"name": player, "role": role, "cur": cur, "hist": None}
 
 
 def apply_roster_overrides(data, overrides=ROSTER_OVERRIDES):

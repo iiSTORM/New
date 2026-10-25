@@ -3651,14 +3651,20 @@ function edgeMultiplier(games) {
    made it worse, so it is left alone, as is every cell without enough
    graded props to say.
 
-   Applied only where the interval excludes 1, clamped to [0, 1] -- this
-   may discount an edge and must never inflate one. Measured by
+   Re-measured 2026-10-25, after event lines began to be scored on the
+   event roster (modelRecord): CS2 kills 0.39, headshots 0.27, Valorant
+   kills 0.25 (-0.17 to 0.62; scored on the Champions roster, its lines
+   carry a little information after all), LoL still left whole.
+
+   Applied only where the interval excludes 1 and the scaled edge beat the
+   unscaled one out of sample, clamped to [0, 1] -- this may discount an
+   edge and must never inflate one. Measured by
    scripts/dev/line_realization.py into scripts/dev/line_realization.json,
    and pinned to that file by tests/test_line_realization.py, so re-running
    the script after the weights move is what keeps this honest. */
 const LINE_REALIZATION = {
-  cs2: { kills: 0.35, headshots: 0.29 },
-  valorant: { kills: 0 },
+  cs2: { kills: 0.39, headshots: 0.27 },
+  valorant: { kills: 0.25 },
 };
 
 function scaleEdge(factor, edge) {

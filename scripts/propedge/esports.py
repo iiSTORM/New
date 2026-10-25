@@ -107,12 +107,13 @@ MIN_MAPS = 3
 #: Of the disagreement left after shrink_toward_line, the share that has shown
 #: up against posted lines on the graded record, per game and stat. CS2 keeps
 #: about half; Valorant none, because its edges have carried no information the
-#: line lacked. Cells whose interval includes 1 (LoL) or that are too thin to
+#: line lacked. Cells whose interval includes 1, whose cut lost out of sample
+#: (LoL: 0.43 on 2026-10-25, but scaling lost held out) or that are too thin to
 #: say are left out and keep all of it. Measured by
 #: `scripts/dev/line_realization.py --slate` into line_realization_slate.json,
 #: and pinned to that file by tests/test_line_realization.py.
 LINE_REALIZATION = {
-    "cs2": {"kills": 0.46, "headshots": 0.53},
+    "cs2": {"kills": 0.51, "headshots": 0.48},
     "valorant": {"kills": 0.0},
 }
 

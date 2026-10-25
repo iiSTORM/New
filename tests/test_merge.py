@@ -327,7 +327,7 @@ def test_a_roster_override_puts_the_player_in_from_his_own_games():
     players = data["regions"]["LPL"]["teams"]["Top Esports"]["players"]
     assert [p["name"] for p in players] == ["Creme", "369"]          # ZUIAN gone, 369 in his slot
     p = players[1]
-    assert p["role"] == "TOP" and p["cur"]["g"] == 5
+    assert p["role"] == "TOP" and p["cur"]["g"] == 5 and "hist" in p and p["hist"] is None
     assert p["cur"]["k"] == 1.2 and p["cur"]["d"] == 1.6 and p["cur"]["a"] == 3.8
     assert p["cur"]["kp"] == round(100 * (6 + 19) / 20, 1)
     merge.apply_roster_overrides(data, overrides)                    # idempotent

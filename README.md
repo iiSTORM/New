@@ -1764,6 +1764,13 @@ The app now carries these as `LINE_REALIZATION`, applied inside the
 adjusted edge. A cell gets a factor only when its interval excludes 1, the
 factor is clamped to [0, 1], and `tests/test_line_realization.py` pins it to the
 JSON file. A cut row prints the figure it came from, as an evidence cut does.
+Re-measured on Oct 25, after event lines started being scored on the event
+roster: board CS2 kills 0.39, headshots 0.27, **Valorant 0.25** (its Champions
+lines carry a little information once scored properly). Slate tool: CS2 kills
+0.51, headshots 0.48, Valorant 0. A factor now also has to beat the uncut edge
+out of sample to ship. The slate tool's LoL slope fell to 0.43 on a bad Worlds
+week, but scaling still lost held out (2.967 against 2.949), so LoL stays
+whole.
 None of this changes which side a row points to, because blend − line =
 w × (model − line). It changes how big the edge reads, where the row ranks, and
 what the parlay builder thinks a leg is worth. Re-run the script after the

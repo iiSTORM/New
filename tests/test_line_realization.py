@@ -73,7 +73,7 @@ def test_the_slate_tool_applies_it_to_the_shrunk_mean():
     on_ = esports.EsportsModel(scales=scales).probabilities("cs2", "kills", 2, 40.0, 30.5, 40)
     off_ = esports.EsportsModel(scales=scales, realize=False).probabilities("cs2", "kills", 2, 40.0, 30.5, 40)
     assert on_[0] < off_[0]                    # a smaller over edge is a less confident over
-    assert on_[3].shrunk - 30.5 == pytest.approx((off_[3].shrunk - 30.5) * 0.46)
+    assert on_[3].shrunk - 30.5 == pytest.approx((off_[3].shrunk - 30.5) * esports.LINE_REALIZATION["cs2"]["kills"])
 
 
 def test_drift_flags_a_moved_gained_or_lost_factor_and_ignores_wobble():
@@ -83,3 +83,11 @@ def test_drift_flags_a_moved_gained_or_lost_factor_and_ignores_wobble():
     assert cd.drift(shipped, fresh) == [("cs2", "headshots", 0.29, 0.45), ("lol", "kills", None, 0.6),
                                         ("valorant", "kills", 0.0, None)]
     assert cd.drift(shipped, shipped) == []
+
+
+def test_a_factor_that_lost_out_of_sample_does_not_ship():
+    cells = [{"game": "lol", "stat": "kills", "slope": 0.43, "high": 0.89,
+              "walk_forward": {"line": 2.99, "board": 2.949, "blend": 2.967}},
+             {"game": "cs2", "stat": "kills", "slope": 0.51, "high": 0.81,
+              "walk_forward": {"line": 5.567, "board": 5.554, "blend": 5.541}}]
+    assert lr.shipped_factors(cells) == {"cs2": {"kills": 0.51}}
