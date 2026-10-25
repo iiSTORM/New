@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-25T11:57:01.152149+00:00",
+ "generated_at": "2026-10-25T16:46:36.029563+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,13 +61,13 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 78,
+   "items": 82,
    "error": null
   },
   {
    "game": "lol",
    "source": "Google News",
-   "items": 60,
+   "items": 31,
    "error": null
   },
   {
@@ -85,7 +85,7 @@
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 55,
+   "items": 56,
    "error": null
   },
   {
@@ -97,7 +97,7 @@
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 33,
+   "items": 36,
    "error": null
   },
   {
@@ -109,17 +109,251 @@
   {
    "game": "dota2",
    "source": "Google News",
-   "items": 33,
+   "items": 17,
    "error": null
   },
   {
    "game": "dota2",
    "source": "Google News",
-   "items": 39,
+   "items": 40,
    "error": null
   }
  ],
  "items": [
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "Boombl4: \"Every player right now is more confident individually\"",
+   "link": "https://www.hltv.org/news/45801/boombl4-every-player-right-now-is-more-confident-individually",
+   "published": "2026-10-25T16:02:00+00:00",
+   "summary": "Boombl4 feels that if BETBOOM continue on their current trajectory, they will be winning Big Events.",
+   "teams": [
+    "BetBoom"
+   ],
+   "players": [
+    {
+     "name": "Boombl4",
+     "team": "BetBoom"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "Sources: valyn set to join Fnatic for the 2027 season",
+   "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxQU2MzMVFIVkprUDN0WDRKY3N3ejJxN0FTa2VMNHNQZzBMMEhhdDZPc1JyT2ZpMGkxYUZhQVhBZzVKTGxoNldfbGFzVmt3U0w0ZHBNU1JjWnFHNmFZZTliTTdUM3NoWm9EVlZscGNaOEJOYXB6NnpoZVBFOFNEbThsbzZSd2hJb1hnd1ROQk5odzFBYzVCTXVoSVNIam8?oc=5",
+   "published": "2026-10-25T15:47:09+00:00",
+   "summary": "Sources: valyn set to join Fnatic for the 2027 season Sheep Esports",
+   "teams": [
+    "FNATIC",
+    "G2 Esports"
+   ],
+   "players": [
+    {
+     "name": "valyn",
+     "team": "G2 Esports"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "G2 spiral continues after loss to Aurora",
+   "link": "https://www.hltv.org/news/45802/g2-spiral-continues-after-loss-to-aurora",
+   "published": "2026-10-25T15:39:00+00:00",
+   "summary": "woxic and kyxsan aces sunk the samurai on Inferno.",
+   "teams": [
+    "Aurora",
+    "G2"
+   ],
+   "players": [
+    {
+     "name": "woxic",
+     "team": "Aurora"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "MOUZ pick up first win in Bucharest over 9z",
+   "link": "https://www.hltv.org/news/45803/mouz-pick-up-first-win-in-bucharest-over-9z",
+   "published": "2026-10-25T14:50:00+00:00",
+   "summary": "Spinx and torzsi led the way as 9z were left facing elimination at 0-2.",
+   "teams": [
+    "MOUZ",
+    "9z"
+   ],
+   "players": [
+    {
+     "name": "Spinx",
+     "team": "MOUZ"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Dot Esports",
+   "title": "LYON Inspired interview on Worlds 2026, Karmine Corp win, and LPL struggles",
+   "link": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxOVDNxM1BGVW9fVzF5cGotS1d1Mi10WDcxcnFFS3RGU2R4WUlZTTBYMHRFTC1oWjR4blFyQ2FPUFh6SkdNVVhUWWE3YWNwMDJvNzROdkxscUpyWDZ5WXJDeHVVZHVxdkFaSHl2MkFPcWtwMnc4ZnBDeDlSUUZMVEZsN213VjhKcWl0?oc=5",
+   "published": "2026-10-25T14:49:00+00:00",
+   "summary": "LYON Inspired interview on Worlds 2026, Karmine Corp win, and LPL struggles Dot Esports",
+   "teams": [
+    "LYON",
+    "Karmine Corp"
+   ],
+   "players": [
+    {
+     "name": "Inspired",
+     "team": "LYON"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "Dragon Ranger Gaming return to VCT China as Guest Team for 2027",
+   "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxNU1V6cHBnUmtJdElIZDNCZEFoVndzRWN4ZENrMC1TdGs1V1cxYlNGUWJST0l5X3NhU2Rxeno5dHpYZnMyMl9SX0luN0hxZlBmbVFGelFEbFhsMzN0eWhRdXlkYTZybFh6X3VwWTZGZzNBc0ttUzAtUmNyT1VLZXVEdE43dGYwS294QjVBMWtBV285VXFsZ3I0YnZtWU1MZUFmcmhETWpTeEgwUHM?oc=5",
+   "published": "2026-10-25T14:26:56+00:00",
+   "summary": "Dragon Ranger Gaming return to VCT China as Guest Team for 2027 Sheep Esports",
+   "teams": [
+    "Dragon Ranger Gaming"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "RG.org",
+   "title": "Worlds 2026 Swiss Round 3 Preview: Gen.G, DK Eye Quarterfinals",
+   "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxOWnl6a2JDbjUxWThaM0ZNbmhwbl9CaUwwdHBsaFRqTmxpTHZUVkdlb3pUcW8tWDdIdFN5a3NOSW1oOHVGMEdtSU01VDB3bENkWGp2VW14cVI5N0VQWVNhbHVqTEwwdk9EbHpfQzFtYTZVYkJLTkNhNkVwWl8xbS1ZWFlQY1htQkE?oc=5",
+   "published": "2026-10-25T13:33:57+00:00",
+   "summary": "Worlds 2026 Swiss Round 3 Preview: Gen.G, DK Eye Quarterfinals RG.org",
+   "teams": [
+    "Gen.G"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Hawk Live",
+   "title": "Team Spirit’s Captain Gave a Candid Assessment of the Team’s Form at the PGL Bucharest CS2 Tournament",
+   "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxQaEJxZS14bW1ub2JWQmRmQmVLZXFtM0VVaXpwbWFUNE1GRGpSdjN6SjlyZzJkcy10eURfdzVTVGFjQjFiMkcwVE83enc2NGQwUmRsLXFqYTlTRm1sT1dyQVBmNGZvcGdQX052ZEVtaC0tbGZLOTVFcW10MThESlk5b1Fjd2pyV1ZIRno4RWVsOXdiY2JnWVpN?oc=5",
+   "published": "2026-10-25T13:10:00+00:00",
+   "summary": "Team Spirit’s Captain Gave a Candid Assessment of the Team’s Form at the PGL Bucharest CS2 Tournament Hawk Live",
+   "teams": [
+    "Spirit"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "mezii on IGLing: \"It's a lot more work than I remember. Maybe I didn't do it right the first time\"",
+   "link": "https://www.hltv.org/news/45800/mezii-on-igling-its-a-lot-more-work-than-i-remember-maybe-i-didnt-do-it-right-the-first-time",
+   "published": "2026-10-25T13:08:00+00:00",
+   "summary": "mezii gives his insight on taking over from apEX after a flawless start at PGL Masters Bucharest.",
+   "teams": [
+    "MAYBE",
+    "Vitality"
+   ],
+   "players": [
+    {
+     "name": "mezii",
+     "team": "Vitality"
+    },
+    {
+     "name": "apEX",
+     "team": "Vitality"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "BETBOOM overcome Nemiga to go 2-0 in Bucharest",
+   "link": "https://www.hltv.org/news/45799/betboom-overcome-nemiga-to-go-2-0-in-bucharest",
+   "published": "2026-10-25T12:22:00+00:00",
+   "summary": "zorte and Magnojez starred with ratings of 1.66 and 1.62, respectively, as BETBOOM moved within one win of the playoffs.",
+   "teams": [
+    "BetBoom",
+    "Nemiga"
+   ],
+   "players": [
+    {
+     "name": "zorte",
+     "team": "BetBoom"
+    },
+    {
+     "name": "Magnojez",
+     "team": "BetBoom"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "DK ShowMaker about Hall of Legends: \"I would be absolutely delighted to be inducted, but I don't think it's my turn just yet\"",
+   "link": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxQR1V1VE84NkVRU1YzVHkwNS1Yal9PUElUVnlVZi1XTlNaSlkwZWpvZWJjOHh5cXZMZzBRUjVkX2FfY3o1dVVSLVpmNk1VT3lFQW5uVVM4eE1fUlhJTndFSk5QZXZORTluTUVrUjFVM1JTbjdwd3JXa0s2aFdyNFhzNHl2OGFjR1pwNWVOLXd4aEFBczVzY1ZFRzlQWWZvLTZpNVZIUkpGVGw1UGo3QVFaMUR1ek8tTTBEUkNfWlFLVWNxMmFLbHBKeFNzYW05bG1henpj?oc=5",
+   "published": "2026-10-25T12:02:46+00:00",
+   "summary": "DK ShowMaker about Hall of Legends: \"I would be absolutely delighted to be inducted, but I don't think it's my turn just yet\" Sheep Esports",
+   "teams": [
+    "Dplus KIA"
+   ],
+   "players": [
+    {
+     "name": "ShowMaker",
+     "team": "Dplus KIA"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
   {
    "game": "cs2",
    "source": "HLTV",
@@ -128,19 +362,53 @@
    "published": "2026-10-25T11:52:00+00:00",
    "summary": "A slow start on Inferno didn't stop the European squad from dominating the series with ZywOo and flameZ taking over.",
    "teams": [
-    "The MongolZ",
-    "Vitality"
+    "Vitality",
+    "The MongolZ"
    ],
    "players": [
     {
-     "name": "flameZ",
+     "name": "ZywOo",
      "team": "Vitality"
     },
     {
-     "name": "ZywOo",
+     "name": "flameZ",
      "team": "Vitality"
     }
    ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "FreeTips",
+   "title": "Top Esports vs G2 Esports Betting Tips – G2 Esports To Bounce Back against TES at LoL Worlds 2026",
+   "link": "https://news.google.com/rss/articles/CBMijwFBVV95cUxNSjVZUklYWGpKaVJ4YV8yaFZIWkhyaDdOX25PeE9pMEdtRzhCQ0FqT1Zna1dudF8tM2daX3BRZWNqdVVBQlB2azdjdTVaQXp5MVVjRzgxM3dMb29sS0ZpdEFOWXllYWcxYjVOalpNSTVuM19BMHRWQkpHbkhTM3lTMGR4Z2tMajNnR3R2WlVvMA?oc=5",
+   "published": "2026-10-25T11:35:06+00:00",
+   "summary": "Top Esports vs G2 Esports Betting Tips – G2 Esports To Bounce Back against TES at LoL Worlds 2026 FreeTips",
+   "teams": [
+    "G2 Esports",
+    "Top Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "FreeTips",
+   "title": "Hanwha Life Esports vs Invictus Gaming Betting Tips – HLE To handle IG at 2026 LoL Worlds",
+   "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxOZ2NOM3FIY18zaEZhRlhsQUVzMDlrMGxOU0xfaTZFQ20wSDhQUkwzbEt6cTEtTWVESVlsOFdKWEptZ3NLNnJianZqeWxhMHlYTlp4RS10NGh4LUJZZVRkaDFjRzlYZ2FfT2hoeC1Ya2FfOURRSUVOLVNtZ0FZb25xaVh4VHowa1Rrak9mYW4zbnpROFN0cVBLVkpTdFRPUjhw?oc=5",
+   "published": "2026-10-25T11:35:01+00:00",
+   "summary": "Hanwha Life Esports vs Invictus Gaming Betting Tips – HLE To handle IG at 2026 LoL Worlds FreeTips",
+   "teams": [
+    "Hanwha Life Esports",
+    "Invictus Gaming"
+   ],
+   "players": [],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -170,8 +438,8 @@
    "published": "2026-10-25T10:10:00+00:00",
    "summary": "dem0n posted a 1.98 rating as FUT moved within one win of the playoffs.",
    "teams": [
-    "Liquid",
-    "FUT"
+    "FUT",
+    "Liquid"
    ],
    "players": [
     {
@@ -192,8 +460,8 @@
    "published": "2026-10-25T09:43:00+00:00",
    "summary": "The Russian squad is now 1-1 in the PGL Masters Bucharest Swiss group stage.",
    "teams": [
-    "TYLOO",
-    "Spirit"
+    "Spirit",
+    "TYLOO"
    ],
    "players": [],
    "score": 0,
@@ -242,22 +510,6 @@
      "team": "Aurora Gaming"
     }
    ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "RG.org",
-   "title": "Worlds 2026 Swiss Round 3 Preview: Gen.G, DK Eye Quarterfinals",
-   "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxOWnl6a2JDbjUxWThaM0ZNbmhwbl9CaUwwdHBsaFRqTmxpTHZUVkdlb3pUcW8tWDdIdFN5a3NOSW1oOHVGMEdtSU01VDB3bENkWGp2VW14cVI5N0VQWVNhbHVqTEwwdk9EbHpfQzFtYTZVYkJLTkNhNkVwWl8xbS1ZWFlQY1htQkE?oc=5",
-   "published": "2026-10-25T09:16:58+00:00",
-   "summary": "Worlds 2026 Swiss Round 3 Preview: Gen.G, DK Eye Quarterfinals RG.org",
-   "teams": [
-    "Gen.G"
-   ],
-   "players": [],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -352,7 +604,7 @@
    "source": "GosuGamers",
    "title": "Gen.G, Dplus KIA, LYON, and MKOI improve to 2-0 records in Worlds 2026 Swiss Stage Day 2",
    "link": "https://news.google.com/rss/articles/CBMixgFBVV95cUxQNGM0N0dxTkdlNnBVcTIzaS10eWNvZXMySzdPNDJEaTdlNVkwT09BdmpnQ3ljVVlWOEstRWxEVnhld1Rtdjg0MlpkU2JRblVQMDBPN2JmY05hbElFWHVWMU1JOVEtUllQS29XdE9nek42QUhvcTdmamg3VFMzMmdjaWV5WGY5UUJBQkVJaXkxVkgtTEhFOUpGN1EwS0Y0VkdQdkUxQ3pobmROTXpNMzhPTVk0OEdwMEZNWkl4RmRWY1J5RjdGQWc?oc=5",
-   "published": "2026-10-25T01:16:28+00:00",
+   "published": "2026-10-25T01:16:32+00:00",
    "summary": "Gen.G, Dplus KIA, LYON, and MKOI improve to 2-0 records in Worlds 2026 Swiss Stage Day 2 GosuGamers",
    "teams": [
     "LYON",
@@ -387,7 +639,7 @@
    "source": "GosuGamers",
    "title": "Dplus KIA pull off a second miracle comeback against T1 at LoL Worlds 2026 Swiss Stage",
    "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxPNFpZQWY5Z0FuVnNFZEJZSkxPdTdRR3JYVzgtcks2cU80aXZvZV90eXpqOVhadUVmN3JfMXlDVnFwRHJFM2RmenBKM0pZSjhncDgyNU5BdWFVX0hCaEh3VThqa1dCY1AxVUF6Y253WXB1cldOZ0MxMmlKYmFYRUpBY2ttVzRMQmR3bHlldGdpMFBCVmNZT3R0V2p0NFZ3VHlkXzg5Zmh4cXFmbksxaXMtUzVhejRaYkU?oc=5",
-   "published": "2026-10-25T00:49:37+00:00",
+   "published": "2026-10-25T00:49:42+00:00",
    "summary": "Dplus KIA pull off a second miracle comeback against T1 at LoL Worlds 2026 Swiss Stage GosuGamers",
    "teams": [
     "Dplus KIA",
@@ -672,8 +924,8 @@
    "published": "2026-10-24T16:59:19+00:00",
    "summary": "Vitality beat 9z 2-0 at PGL Masters Bucharest 2026 EGamersWorld",
    "teams": [
-    "9z",
-    "Vitality"
+    "Vitality",
+    "9z"
    ],
    "players": [],
    "score": 0,
@@ -715,8 +967,8 @@
    "published": "2026-10-24T16:07:00+00:00",
    "summary": "The Russian team added to the list of upsets by taking down the FISSURE Playground 3 champions.",
    "teams": [
-    "Legacy",
-    "Nemiga"
+    "Nemiga",
+    "Legacy"
    ],
    "players": [],
    "score": 0,
@@ -732,8 +984,8 @@
    "published": "2026-10-24T15:10:00+00:00",
    "summary": "EliGE reflects on Liquid's inconsistency after opening PGL Masters Bucharest with an upset win over MOUZ.",
    "teams": [
-    "MOUZ",
-    "Liquid"
+    "Liquid",
+    "MOUZ"
    ],
    "players": [
     {
@@ -835,8 +1087,8 @@
    "published": "2026-10-24T13:07:00+00:00",
    "summary": "NAF topped the series with a 1.12 rating as Liquid recovered from an overtime loss on Ancient.",
    "teams": [
-    "MOUZ",
     "Liquid",
+    "MOUZ",
     "overTIME"
    ],
    "players": [
@@ -883,8 +1135,8 @@
    "published": "2026-10-24T12:43:03+00:00",
    "summary": "Liquid Beat MOUZ 2-1 at PGL Masters Bucharest 2026 EGamersWorld",
    "teams": [
-    "MOUZ",
-    "Liquid"
+    "Liquid",
+    "MOUZ"
    ],
    "players": [],
    "score": 0,
@@ -991,8 +1243,8 @@
    "published": "2026-10-24T09:13:00+00:00",
    "summary": "SunPayus posted a series-high 1.47 rating on his FUT debut.",
    "teams": [
-    "FUT",
-    "TYLOO"
+    "TYLOO",
+    "FUT"
    ],
    "players": [
     {
@@ -1013,8 +1265,8 @@
    "published": "2026-10-24T09:06:34+00:00",
    "summary": "FUT Beat TYLOO 2-0 at PGL Masters Bucharest 2026 EGamersWorld",
    "teams": [
-    "FUT",
-    "TYLOO"
+    "TYLOO",
+    "FUT"
    ],
    "players": [],
    "score": 0,
@@ -1810,8 +2062,8 @@
    "published": "2026-10-23T14:03:14+00:00",
    "summary": "FUT Esports vs TYLOO Betting Tips – FUT To Start PGL Masters Bucharest with a Win FreeTips",
    "teams": [
-    "FUT",
-    "TYLOO"
+    "TYLOO",
+    "FUT"
    ],
    "players": [],
    "score": 0,
@@ -2762,6 +3014,27 @@
   },
   {
    "game": "dota2",
+   "source": "GosuGamers",
+   "title": "Team Liquid reveal Malr1ne as new mid laner",
+   "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxORlNzQTh6bTlaZnl3Y25HOGdwaFhOWFpBQkkxUV9aMk1GcUhrWWwwWExXd3dCR1VqVWROakFUb0JKSE5iVUNmYUF1NzNjTjJxTFVNbG9pcWVtQ0pjMmxqV1VUSkRpWlZKdGdsSjdjWGxfWl9OeFNuTlJBVnIycmFtUWEwTzJoYUlNWXFkWGZvTzM?oc=5",
+   "published": "2026-10-22T07:00:00+00:00",
+   "summary": "Team Liquid reveal Malr1ne as new mid laner GosuGamers",
+   "teams": [
+    "Team Liquid"
+   ],
+   "players": [
+    {
+     "name": "Malr1ne",
+     "team": "Team Liquid"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "dota2",
    "source": "Dexerto",
    "title": "Team Liquid announce shock exit of Dota 2 roster",
    "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxPdDZLRmNpTzZxRlk4ZmVld0NJVDJVNFMyU3FDZzQyRW8yZEhsSy1IdjFPMy1xZzUtYkRnZ2tUMURoOG1hbU4yNVVLNVhhRkJCLVhBOUx1OGRPTzJSMldMdUs3TjhjNXR2UnA4WW85V3RMRWhzemtFZmxMWFJ0UHdsVU5IdEd6SDVUNlcxV0E3REo?oc=5",
@@ -3019,8 +3292,8 @@
    "published": "2026-10-21T19:17:12+00:00",
    "summary": "Prediction for Legacy vs Nemiga at PGL Masters Bucharest 2026 Skin.Club",
    "teams": [
-    "Legacy",
-    "Nemiga"
+    "Nemiga",
+    "Legacy"
    ],
    "players": [],
    "score": 0,
@@ -3036,8 +3309,8 @@
    "published": "2026-10-21T18:36:33+00:00",
    "summary": "Prediction for Vitality vs 9z at PGL Masters Bucharest 2026 Skin.Club Community",
    "teams": [
-    "9z",
-    "Vitality"
+    "Vitality",
+    "9z"
    ],
    "players": [],
    "score": 0,
@@ -3283,8 +3556,8 @@
    "published": "2026-10-21T13:50:20+00:00",
    "summary": "Prediction for FUT vs TYLOO — PGL Masters Bucharest 2026 Skin.Club",
    "teams": [
-    "FUT",
-    "TYLOO"
+    "TYLOO",
+    "FUT"
    ],
    "players": [],
    "score": 0,
@@ -3337,8 +3610,8 @@
    "published": "2026-10-21T12:10:18+00:00",
    "summary": "Prediction for MOUZ vs Liquid — PGL Masters Bucharest 2026 Skin.Club",
    "teams": [
-    "MOUZ",
-    "Liquid"
+    "Liquid",
+    "MOUZ"
    ],
    "players": [],
    "score": 0,
@@ -3355,8 +3628,8 @@
    "summary": "Wolves Esports take down A Team 2-0 and set up a KeepBest Gaming rematch in Shanghai Esports.gg",
    "teams": [
     "Wolves Esports",
-    "A Team",
-    "KeepBest Gaming"
+    "KeepBest Gaming",
+    "A Team"
    ],
    "players": [],
    "score": 0,
@@ -4270,7 +4543,7 @@
    "reasons": []
   },
   {
-   "game": "lol",
+   "game": "valorant",
    "source": "Sheep Esports",
    "title": "Sources: Karmine Corp have been selected as a VCT EMEA partner team for the 2027-2028 cycle",
    "link": "https://news.google.com/rss/articles/CBMixAFBVV95cUxPMWN6b09XdEFTR3NNaEZhbk13VFFrSUxxT2RYTFJwemIwdW01d1daZ1NObTRpR3VDc2tlWFVnZW9qV0ptRTdxNy1VZU1HZE1PZTM0LV9oMnZJS1YyRnYyTmVwenI5RXctMHZVRG5zdTFJejdiZ1Q3cEJ4WFc5cWVtaDJfVHU4V1ItaFBEV1RsekcxQzhmN3E3dWdwR2I4VEpBbmdjVU8yVmhfUXVzUXh5Y2FLZVpzeXllUENvOGFXYlVqOFVw?oc=5",
@@ -4459,8 +4732,8 @@
    "published": "2026-10-19T11:04:10+00:00",
    "summary": "FURIA come from 2-1 down to beat BetBoom Team in Thunderpick World Championship final Esports News UK",
    "teams": [
-    "FURIA",
-    "BetBoom"
+    "BetBoom",
+    "FURIA"
    ],
    "players": [],
    "score": 0,
@@ -4707,6 +4980,23 @@
    "published": "2026-10-19T07:25:42+00:00",
    "summary": "FURIA win CS2 Thunderpick World Championship 2026: Results, recap Esports.gg",
    "teams": [
+    "FURIA"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Esports.net",
+   "title": "FURIA Fall as MVK Esports Reach Play-In Decider",
+   "link": "https://news.google.com/rss/articles/CBMib0FVX3lxTE9Fdmpid3k0WlgzOGduVVIwaVNMekVHM0ZKWU1jM2V0UWN4SWNiOXplNkU4MWVuY0ROQkdVOWU0RXdjMU1qVHFPcDItYlFZSENWTE56LWFzVDNUUW93OWFrSVM5MEdUWHc3N2ZscElvMA?oc=5",
+   "published": "2026-10-19T07:15:58+00:00",
+   "summary": "FURIA Fall as MVK Esports Reach Play-In Decider Esports.net",
+   "teams": [
+    "MVK Esports",
     "FURIA"
    ],
    "players": [],
@@ -6060,8 +6350,8 @@
    "published": "2026-10-17T20:30:24+00:00",
    "summary": "Team Vitality knock out 100 Thieves to set up a LOUD rematch in the Valorant Champions 2026 grand final Spilled",
    "teams": [
-    "LOUD",
     "100 Thieves",
+    "LOUD",
     "Team Vitality"
    ],
    "players": [],
@@ -6605,26 +6895,6 @@
   {
    "game": "cs2",
    "source": "Dust2.us",
-   "title": "Unreal Nightmare part ways with CS2 team",
-   "link": "https://news.google.com/rss/articles/CBMifEFVX3lxTE4wU2hQal9Vc0JKSTE0dG8zeFFicGlucmswM1pmejdLVlBMS2RsSUpFUEIzcHhBQk5XQUhIbW5Icm5SNzRUUHdCWHAxWU1YZkFyUFZhT1JLbDdPbFVEUVBfWHBabXFkek5SSkJFd25JOGU0dlExZUhUU2ZlSG8?oc=5",
-   "published": "2026-10-16T22:22:46+00:00",
-   "summary": "Unreal Nightmare part ways with CS2 team Dust2.us",
-   "teams": [
-    "Unreal Nightmare"
-   ],
-   "players": [],
-   "score": -1,
-   "grade": "negative",
-   "rules": [
-    "departure"
-   ],
-   "reasons": [
-    "a player or coach leaves"
-   ]
-  },
-  {
-   "game": "cs2",
-   "source": "Dust2.us",
    "title": "twigs steps down from Zomblers amidst further roster woes",
    "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxNTWdNcEFMalNzckpjbTM3U1RKeXM3dmdpdlEzQWNsS2Z5bmNJNXhYZEpHYWY5VXVHcmVwYTJnMHMxaWNibEJBa3lSeTg0V29yYmlJV050MmlCWVNIZVRCbXBiTnpGRDN6Zk5VdXRXdG80RzZJRDc3QWwyNmE4ekNYS1V4QVNTRU45RkVRVEdNMnc3cnc?oc=5",
    "published": "2026-10-16T22:22:46+00:00",
@@ -6638,6 +6908,26 @@
      "team": "Zomblers"
     }
    ],
+   "score": -1,
+   "grade": "negative",
+   "rules": [
+    "departure"
+   ],
+   "reasons": [
+    "a player or coach leaves"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "Dust2.us",
+   "title": "Unreal Nightmare part ways with CS2 team",
+   "link": "https://news.google.com/rss/articles/CBMifEFVX3lxTE4wU2hQal9Vc0JKSTE0dG8zeFFicGlucmswM1pmejdLVlBMS2RsSUpFUEIzcHhBQk5XQUhIbW5Icm5SNzRUUHdCWHAxWU1YZkFyUFZhT1JLbDdPbFVEUVBfWHBabXFkek5SSkJFd25JOGU0dlExZUhUU2ZlSG8?oc=5",
+   "published": "2026-10-16T22:22:46+00:00",
+   "summary": "Unreal Nightmare part ways with CS2 team Dust2.us",
+   "teams": [
+    "Unreal Nightmare"
+   ],
+   "players": [],
    "score": -1,
    "grade": "negative",
    "rules": [
@@ -6689,8 +6979,8 @@
    "published": "2026-10-16T20:48:00+00:00",
    "summary": "The Russian squad has secured a Singapore Major spot as per HLTV's invite predictor.",
    "teams": [
-    "Legacy",
-    "BetBoom"
+    "BetBoom",
+    "Legacy"
    ],
    "players": [],
    "score": 0,
@@ -7009,6 +7299,27 @@
    "reasons": []
   },
   {
+   "game": "dota2",
+   "source": "Hotspawn",
+   "title": "Nightfall Registered Under “Astra Invicta” for PARI Universe – How Does this New Roster Look?",
+   "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxPVGZQUnJVRk1PSlJVelU1ZDhBLXFlM1U0N01obGh4ZHZfd1Q2QzVfMTBRaVVfbmlKMm9hTm1mQ0tPejUzZVZ2S0hHY1FKdnFKbk9KMC01dGNQX0l6c3YwNjRaQ0xOemJMZDlHMnZZaTBVOE94ZC1aaWRURVJLNVljZ1lXQ29IMDlvRlNSMndtNWNYWE1xUXk4WGlR?oc=5",
+   "published": "2026-10-16T11:09:15+00:00",
+   "summary": "Nightfall Registered Under “Astra Invicta” for PARI Universe – How Does this New Roster Look? Hotspawn",
+   "teams": [
+    "Astra Invicta"
+   ],
+   "players": [
+    {
+     "name": "Nightfall",
+     "team": "Astra Invicta"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "cs2",
    "source": "HLTV",
    "title": "FalleN: \"There's a real boost from winning a tournament; it would be great if we could feel that again\"",
@@ -7124,27 +7435,6 @@
     "Team Vitality"
    ],
    "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "dota2",
-   "source": "Hotspawn",
-   "title": "Nightfall Registered Under “Astra Invicta” for PARI Universe – How Does this New Roster Look?",
-   "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxPVGZQUnJVRk1PSlJVelU1ZDhBLXFlM1U0N01obGh4ZHZfd1Q2QzVfMTBRaVVfbmlKMm9hTm1mQ0tPejUzZVZ2S0hHY1FKdnFKbk9KMC01dGNQX0l6c3YwNjRaQ0xOemJMZDlHMnZZaTBVOE94ZC1aaWRURVJLNVljZ1lXQ29IMDlvRlNSMndtNWNYWE1xUXk4WGlR?oc=5",
-   "published": "2026-10-16T07:00:00+00:00",
-   "summary": "Nightfall Registered Under “Astra Invicta” for PARI Universe – How Does this New Roster Look? Hotspawn",
-   "teams": [
-    "Astra Invicta"
-   ],
-   "players": [
-    {
-     "name": "Nightfall",
-     "team": "Astra Invicta"
-    }
-   ],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -7335,249 +7625,6 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Flashscore.com",
-   "title": "FURIA Esports - MVK Esports 0-3",
-   "link": "https://news.google.com/rss/articles/CBMivgFBVV95cUxPSXpEV3luZ2tYVGVFcHBkb2ZvZFhQaUVreUk5U2dqOThSeTVrTnE3eFJ6Q2tOWWtoMlc2aE1tdlRpNURIeUU5VmFDMEdGMzNlRnRnS0gtc3hKeFhPNHp0N0FSaEtWQTZ2eGpKWW12aFpfZkRKdEtOVWhwOEVEQ0d0bWZNaXlNc1RpNUx0dHFEVWtIX29fNzNlc21GejNYd21lNnNFeEEyYkozVmZrMFFaLXRsbHQzMzZHcGpFbUVB?oc=5",
-   "published": "2026-10-16T02:09:26+00:00",
-   "summary": "FURIA Esports - MVK Esports 0-3 Flashscore.com",
-   "teams": [
-    "MVK Esports",
-    "FURIA"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "EGamersWorld",
-   "title": "MVK Crush FURIA 3-0 to Set Up Play-In Upper Final vs KC",
-   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxQaHZhdm5DcWdBR3BjNmIwN09DMllnQWRfakZRU3RNbW1rX1dicmxhVi1RS3BZNHpDUkJTaFIyMUtsMmQ4RUNNX3NibFd6dXZfTXNEMWhmQ3NXeHZrTEFPNXlYdFFBOVVXdmFEMkhFbDNCa2RBaHF2UnBDRE9WbVJkWHkwT0ZyRUhFRXFaaGRiTHpmTVU1cXVLY2xLS0x0STRKQnc?oc=5",
-   "published": "2026-10-16T01:34:57+00:00",
-   "summary": "MVK Crush FURIA 3-0 to Set Up Play-In Upper Final vs KC EGamersWorld",
-   "teams": [
-    "MVK Esports",
-    "FURIA"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Valorant esports",
-   "title": "MIBR VS AKV",
-   "link": "https://news.google.com/rss/articles/CBMiakFVX3lxTE12bjRUVmRMSTVhS0FlS1plTjZIZ01zclVEQS01dEt5cEx2T1lWRV9NYW1BTHlXcTJpS1dKZllIbXpyaXFlS240TmdOMnlzbUJ6b1BZY3VTS0NPVEJ3TjJuRF9NX044Q1RRc3c?oc=5",
-   "published": "2026-10-16T00:31:43+00:00",
-   "summary": "MIBR VS AKV Valorant esports",
-   "teams": [
-    "MIBR"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "YouTube",
-   "title": "*DEBUT de KARMINE CORP en WORLDS 2026* - League Of Legends",
-   "link": "https://news.google.com/rss/articles/CBMiXEFVX3lxTE5pSkZiNnU4ZjFEaUZRblpXYlNDcGg3QWJLUWpVdTdqOWJzQ1BaRjBicGRGMXZRbHFzbmdlNF9sak1BUU8zUkt2NUZzWTRVcVFMRGFrVDM0dW14RHVB?oc=5",
-   "published": "2026-10-16T00:22:38+00:00",
-   "summary": "*DEBUT de KARMINE CORP en WORLDS 2026* - League Of Legends YouTube",
-   "teams": [
-    "Karmine Corp"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "HLTV",
-   "title": "FURIA make TWC playoffs over Legacy",
-   "link": "https://www.hltv.org/news/45730/furia-make-twc-playoffs-over-legacy",
-   "published": "2026-10-15T22:05:00+00:00",
-   "summary": "After losing two matches to Legacy this season, FURIA finally turned things around.",
-   "teams": [
-    "FURIA",
-    "Legacy"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "dota2",
-   "source": "Dexerto",
-   "title": "Dota 2 superfans celebrate TI9 Champions OG with over-the-top display",
-   "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxPdFdEdjhtRXFRVjg4eHcxdVo1OWpjX0Vqa2xZdXJhMlBIS29iWTE2SGFCOENabm04SWktclVWUy1hVWQ4WVFiUHppSVBWOF96ek5ITTAtbk1UOEl3WU9DRVV6em5MQThONnFwTHF5ZEhHVDhPOHY0NzBfNEpfUXRIbEdIbw?oc=5",
-   "published": "2026-10-15T21:46:33+00:00",
-   "summary": "Dota 2 superfans celebrate TI9 Champions OG with over-the-top display Dexerto",
-   "teams": [
-    "OG"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "dota2",
-   "source": "Dexerto",
-   "title": "Team Spirit win The International 10 Grand Final: Final placements & recap",
-   "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxNbjlHY29YVmJWVWhtZGhrNFpydFFLQnY0YlhVS3dMMTFnNmpjNmh3QXdYUHJMVVhzY19VSnBSSzFULXdKTzZfMnZGZWVXMkY3VlNnRzBQS0I3bVJhTFVZU0N5bnFoa3NCX01nUk9uSmhXWm1HM1Y5VFdOaFlwcjF1MzNKWklUNUNRMWgwbVJPZEtuUkVmb050SUpkWm8?oc=5",
-   "published": "2026-10-15T21:46:33+00:00",
-   "summary": "Team Spirit win The International 10 Grand Final: Final placements & recap Dexerto",
-   "teams": [
-    "Team Spirit"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "dota2",
-   "source": "Dexerto",
-   "title": "New Dota 2 hero Void Spirit announced at The International 9 – Video, Outlanders Update, more",
-   "link": "https://news.google.com/rss/articles/CBMivAFBVV95cUxNYktMYWJTRWZ6c25PMk85S0ZmRGhNVE5lMzBIVzdlMEJHNld6VVItUDhzV3J6OG9jWGRpdU16M0J6MXJzRDBuV3V5NmluMWg0R0oxNC04Q0NpWW81bHdtSnBWYm5HQllNVXprUnV3MjJZeGRWOVQ2N1ZoZUVzRl9xdEVfeXptS29fcHNUSEtxaGw5OHV2V2g4dmk1bDBEZEtsQ2hYNlNLQXpsOUxpZFhPWUIwMmxuTGVKY2wydg?oc=5",
-   "published": "2026-10-15T21:46:33+00:00",
-   "summary": "New Dota 2 hero Void Spirit announced at The International 9 – Video, Outlanders Update, more Dexerto",
-   "teams": [
-    "Team Spirit"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "EGamersWorld",
-   "title": "BakS eSports vs Fire Flux Esports Prediction & Betting Tip | Counter-Strike (CS2)",
-   "link": "https://news.google.com/rss/articles/CBMingFBVV95cUxPdFRkZDFzNElNLXE1T2M2amJ2eDdCQ3lUUXo4X0FuZm9RRzhxTzM0RTBrYm5FR3cyZzZaNDJIWTRvcUJGeE1KYnljTmIxTXBRcDFSWnM5NHhMLTJGTEEyckVLc2tLUEZOMElUYnZKSTREXzRCMEF3YTRPeUczcWlvQzdfYVZmbkJVdGJYSm1jVkU1UE1YdGQ1UldwWEt0QQ?oc=5",
-   "published": "2026-10-15T21:05:28+00:00",
-   "summary": "BakS eSports vs Fire Flux Esports Prediction & Betting Tip | Counter-Strike (CS2) EGamersWorld",
-   "teams": [
-    "Fire Flux"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "GosuGamers",
-   "title": "VALORANT Pacific Cup 2027 heads to Manila as Riot Games reveals new global tour locations",
-   "link": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxQVGdGM0o5dEtaR0EzU0dicmpLSWNNQ1hPLXY3NDdiQmFkWkRFSC12MDR0OFVzd1I0SkM2bGhlRy1jZ3NVcjcwRWlOeVNtYy0yVlE4cUdkQUJGc0FrWFhNNnNKU1dvenZ6MmZNZldqLW43cTV3THhvU0JNTjl1V1JicV9qRjFUM0hFQ1hTN0hMb211RmdMYThqMHRIbmoxUTVIVkRfWENWeUFMZHJRbVFJOS04NG1tUjZqSnhqLS1kSWV2N1RMNVhOcFdpLVRhNGhuWHc?oc=5",
-   "published": "2026-10-15T19:55:05+00:00",
-   "summary": "VALORANT Pacific Cup 2027 heads to Manila as Riot Games reveals new global tour locations GosuGamers",
-   "teams": [
-    "Global Esports"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Tech Times",
-   "title": "Valorant Champions 2026: Vitality Stands Alone for EMEA in Upper Bracket Final",
-   "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxNVl8wZ0xtM2ZNMUltS2N5RkZLYUlpLVpxeWI5cE5MX0taUDNjV2FGVkRyMEtjWExNTncyaFpCTXRRUFgzZ2Y5ZkttQlJsVmNqMHpwSzdHS25Ud01CWU5XVW1OUjMwX0tUQ0V2d0N4TjV3cVliaDZJaHlvMU15cXpybFNETEoyczV2ZzQyM2NhQjJMcWxQSWlRdjhkS3BrWENnYVp2OHpjcDd5Z0tMMFREYUN5QXFjLVAwT3A4WkpDWG9nVGM?oc=5",
-   "published": "2026-10-15T18:54:13+00:00",
-   "summary": "Valorant Champions 2026: Vitality Stands Alone for EMEA in Upper Bracket Final Tech Times",
-   "teams": [
-    "Team Vitality"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "HLTV",
-   "title": "BETBOOM eliminate PARIVISION from TWC",
-   "link": "https://www.hltv.org/news/45729/betboom-eliminate-parivision-from-twc",
-   "published": "2026-10-15T18:15:00+00:00",
-   "summary": "Boombl4's men are up to an 89.1% chance of qualifying for the Singapore Major after the win.",
-   "teams": [
-    "BetBoom",
-    "PARIVISION",
-    "LAG"
-   ],
-   "players": [
-    {
-     "name": "Boombl4",
-     "team": "BetBoom"
-    },
-    {
-     "name": "chance",
-     "team": "LAG"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Sheep Esports",
-   "title": "KRÜ marketing director: \"We believe we have the merits […] to keep growing VALORANT in Latin America\"",
-   "link": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxObW1SZEhINEZiVFlYUTI4TGtDQnI4M0h0Skhma2xrRUZialBVc0YxekN2WlRVS2Iwb1RJMy04S1JvQ2QyclBIZjlwbFJwMXZZUVBCMzdzUHRjLWhfbWVrQ3NGb2kwYzF6TmFrZjNXT1dRZDlMeWpSWkJ5RGhtWnNHNDVhLS00dTdzRnNsNlgyemJOT2oxZVJQN3ktb1VQa0UzNXJnRl9CTUpodFVtU3J4RGJXdTdQVlpBWDNjZF9QS0pSVEhBdGRsMnZjVDExUUptdHUtdkdn?oc=5",
-   "published": "2026-10-15T16:03:50+00:00",
-   "summary": "KRÜ marketing director: \"We believe we have the merits […] to keep growing VALORANT in Latin America\" Sheep Esports",
-   "teams": [
-    "KRÜ Esports"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Sheep Esports",
-   "title": "FURIA Ayu: \"We wouldn't believe it if qualifying were impossible\"",
-   "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxQOWF4LTVWODN3SVVENzY1ZDMzRXZMWFQtenpEbEc0cGF0M3dURnhfeHhsZUhmWmI5ZWlscUZKVGxoemQ5RW1Rdm9rYlhyQ3U4ZmlSTzVVeXdYWEpvZjc3Ti1yMjI2RFJDZUdFRGpkMnpodm13RktIVHFBa0wwRUI1cXNRNmI2SFJ6VFZ5NHloOVZCa25zTHBtM1FqV3lFdzcwLVhQNnprSmNKZw?oc=5",
-   "published": "2026-10-15T15:08:28+00:00",
-   "summary": "FURIA Ayu: \"We wouldn't believe it if qualifying were impossible\" Sheep Esports",
-   "teams": [
-    "FURIA"
-   ],
-   "players": [
-    {
-     "name": "Ayu",
-     "team": "FURIA"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
   }
  ],
  "signals": {
@@ -7605,14 +7652,14 @@
    }
   },
   "cs2": {
-   "MOUZ": {
+   "Liquid": {
     "score": 1,
     "items": 1,
     "rules": [
      "return"
     ]
    },
-   "Liquid": {
+   "MOUZ": {
     "score": 1,
     "items": 1,
     "rules": [
