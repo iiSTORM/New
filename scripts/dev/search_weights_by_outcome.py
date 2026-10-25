@@ -110,6 +110,11 @@ def project_all(rows, data, index, game, stat, weights):
         if len(found) > 1:
             stated = str(row.get("team") or "").strip().lower()
             found = [f for f in found if f[1].strip().lower() == stated] or found
+            # The region holding the opponent too (an event, for an
+            # international line), as modelRecord in src/app.jsx: the home
+            # league's roster has no opponent and no class gap to apply.
+            opp = row.get("opponent")
+            found = [f for f in found if opp in (data[f[0]].get("teams") or {})] or found
         if not found:
             continue
         region, team, record = found[0]

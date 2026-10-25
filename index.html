@@ -1580,13 +1580,15 @@ try {
       if (row.stat !== statType) continue;
       let teams = null,
         pastMatches = null;
-      for (const key of regionList || []) {
+      const regionFor = both => (regionList || []).find(key => {
         const rd = regionsData && regionsData[key];
-        if (rd && rd.teams && rd.teams[row.team]) {
-          teams = rd.teams;
-          pastMatches = historyPool(regionsData, key);
-          break;
-        }
+        return rd && rd.teams && rd.teams[row.team] && (!both || rd.teams[row.opponent]);
+      });
+      const homeKey = regionFor(false);
+      const key = row.opponent && regionFor(true) || homeKey;
+      if (key) {
+        teams = regionsData[key].teams;
+        pastMatches = historyPool(regionsData, key);
       }
       if (!teams) continue;
       const player = (teams[row.team].players || []).find(p => p.name === row.player);
@@ -1601,7 +1603,7 @@ try {
         projection,
         side,
         role: player.role || null,
-        seat: player.role ? null : teamKillSeat(pastMatches, teams, row.team, row.player, row.match_date),
+        seat: player.role ? null : teamKillSeat(pastMatches, teams, row.team, row.player, row.match_date) || (homeKey && homeKey !== key ? teamKillSeat(historyPool(regionsData, homeKey), regionsData[homeKey].teams, row.team, row.player, row.match_date) : null),
         agentClass: row.game === "valorant" ? agentClassBefore(pastMatches, row.team, row.player, row.match_date) : null,
         cs2Role: row.game === "cs2" ? cs2RolesBefore(pastMatches, teams, row.team, row.match_date).get(row.player) || null : null,
         won: side === row.result,
@@ -3989,7 +3991,7 @@ try {
   function gameHasRoleDataUncached(teams) {
     return Object.values(teams).some(team => team.players.some(p => p.role));
   }
-  const CLASS_GAP_KILLS = 1.25;
+  const CLASS_GAP_KILLS = 1.4;
   const CLASS_TOP = new Set(["LCK", "LPL"]);
   const CLASS_BOTTOM = new Set(["LCS", "LCP", "CBLOL", "TCL"]);
   function classGapSide(teams, team, opponentTeam) {

@@ -561,7 +561,7 @@ def game_has_role_data(teams):
 
 # The class gap at international League events, for kills only. Mirrors
 # classGapMultiplier in src/app.jsx, which carries the measurement.
-CLASS_GAP_KILLS = 1.25
+CLASS_GAP_KILLS = 1.4
 CLASS_TOP = {"LCK", "LPL"}
 CLASS_BOTTOM = {"LCS", "LCP", "CBLOL", "TCL"}
 

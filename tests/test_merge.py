@@ -309,3 +309,26 @@ class TestBuildAliasLookup:
 
     def test_leaves_out_a_name_that_reduces_to_nothing(self):
         assert merge.build_alias_lookup({"Esports"}) == {}
+
+
+def test_a_roster_override_puts_the_player_in_from_his_own_games():
+    import merge
+    data = {"regions": {"LPL": {
+        "teams": {"Top Esports": {"players": [{"name": "Creme", "role": "MID"},
+                                              {"name": "ZUIAN", "role": "TOP", "cur": {"g": 31}}]}},
+        "past_matches": [
+            {"date": "2026-02-05", "games": 2, "actual": {"Top Esports": {
+                "369": {"k": 4, "d": 3, "a": 15}, "Creme": {"k": 6, "d": 2, "a": 9}}}},
+            {"date": "2026-02-09", "games": 3, "actual": {"Top Esports": {
+                "369": {"k": 2, "d": 5, "a": 4}, "Creme": {"k": 8, "d": 4, "a": 3}}}},
+        ]}}}
+    overrides = [{"region": "LPL", "team": "Top Esports", "player": "369", "role": "TOP", "replaces": "ZUIAN"}]
+    merge.apply_roster_overrides(data, overrides)
+    players = data["regions"]["LPL"]["teams"]["Top Esports"]["players"]
+    assert [p["name"] for p in players] == ["Creme", "369"]          # ZUIAN gone, 369 in his slot
+    p = players[1]
+    assert p["role"] == "TOP" and p["cur"]["g"] == 5
+    assert p["cur"]["k"] == 1.2 and p["cur"]["d"] == 1.6 and p["cur"]["a"] == 3.8
+    assert p["cur"]["kp"] == round(100 * (6 + 19) / 20, 1)
+    merge.apply_roster_overrides(data, overrides)                    # idempotent
+    assert [p["name"] for p in data["regions"]["LPL"]["teams"]["Top Esports"]["players"]] == ["Creme", "369"]

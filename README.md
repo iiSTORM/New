@@ -845,6 +845,26 @@ projection on all six (error −19.5%) and those lines' record to 39 of 73.
 Re-measure it as Worlds plays; the factor should rise toward the full fitted
 value (~1.45) only if it keeps holding.
 
+**Raised to 1.4 on Oct 25.** The first two Swiss days added three more such
+games, and all three held: T1 19–3 Los Grandes, BLG 17–2 Team Liquid, IG 21–12
+Team Secret Whales. On the six LCK/LPL v LCS/LCP/CBLOL matches with data
+(Demacia Cup's matches recovered from git history, plus Swiss), per map:
+
+| factor | held-out team-kills error | graded lines on the right side |
+| --- | ---: | ---: |
+| none | 14.5 | 17 / 42 |
+| 1.25 | 10.8 | 17 / 42 |
+| **1.4** | **10.4** | **25 / 42** |
+| 1.6 | 10.3 | 25 / 42 (line error worse) |
+
+A separate factor per side wins in sample, because the weaker side collapses
+more than the stronger side gains (0.20× against 1.27×). It loses when each
+match is held out, because the weaker side ranges from 0.13× to 1.30×, so it is
+not used. Measuring this turned up a scoring bug: the Record tab re-projected
+an event line from the player's home-league roster, which has neither the
+opponent nor the class gap. It now uses the region holding both teams, as the
+Edges board does. `search_weights_by_outcome.project_all` got the same fix.
+
 ## Data flow
 
 Three jobs run in parallel on separate runners, one per game. They write

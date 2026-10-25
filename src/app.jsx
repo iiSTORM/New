@@ -1925,14 +1925,22 @@ function modelRecordUncached(regionsData, regionList, results, weights, statType
   for (const row of (results && results.graded) || []) {
     if (row.stat !== statType) continue;
 
+    // The region holding BOTH teams first, which for an international line
+    // is the event: its rosters carry each team's home league, so the
+    // opponent and class-gap layers see the matchup the Edges board saw.
+    // Taking the first league with the player's team instead re-projected
+    // T1 v Los Grandes from the LCK roster, where Los Grandes does not
+    // exist, and the record was scored on a model the board never ran.
     let teams = null, pastMatches = null;
-    for (const key of regionList || []) {
+    const regionFor = (both) => (regionList || []).find((key) => {
       const rd = regionsData && regionsData[key];
-      if (rd && rd.teams && rd.teams[row.team]) {
-        teams = rd.teams;
-        pastMatches = historyPool(regionsData, key);  // same pool the Edges tab projects from
-        break;
-      }
+      return rd && rd.teams && rd.teams[row.team] && (!both || rd.teams[row.opponent]);
+    });
+    const homeKey = regionFor(false);
+    const key = (row.opponent && regionFor(true)) || homeKey;
+    if (key) {
+      teams = regionsData[key].teams;
+      pastMatches = historyPool(regionsData, key);  // same pool the Edges tab projects from
     }
     if (!teams) continue;
     const player = (teams[row.team].players || []).find((p) => p.name === row.player);
@@ -1948,7 +1956,14 @@ function modelRecordUncached(regionsData, regionList, results, weights, statType
 
     rows.push({
       ...row, projection, side, role: player.role || null,
-      seat: player.role ? null : teamKillSeat(pastMatches, teams, row.team, row.player, row.match_date),
+      // A seat is a standing on the player's own team, which an event's few
+      // games often cannot rank yet; his home league can.
+      seat: player.role ? null
+        : (teamKillSeat(pastMatches, teams, row.team, row.player, row.match_date)
+           || (homeKey && homeKey !== key
+               ? teamKillSeat(historyPool(regionsData, homeKey), regionsData[homeKey].teams,
+                              row.team, row.player, row.match_date)
+               : null)),
       agentClass: row.game === "valorant" ? agentClassBefore(pastMatches, row.team, row.player, row.match_date) : null,
       cs2Role: row.game === "cs2" ? (cs2RolesBefore(pastMatches, teams, row.team, row.match_date).get(row.player) || null) : null,
       won: side === row.result,
@@ -3979,9 +3994,19 @@ function gameHasRoleDataUncached(teams) {
    -19.5%) and the record on those lines from 36/73 to 39/73. Applied only
    when both sides carry a home region (an event roster lent by
    merge_international), so league play is untouched. Mirrored in
-   scripts/dev/optimize_weights.py. Six matches is a small base: re-measure
-   as Worlds plays (scripts/dev/role_correction.mjs-style, held out). */
-const CLASS_GAP_KILLS = 1.25;
+   scripts/dev/optimize_weights.py.
+
+   Raised to 1.4 on 2026-10-25, after the first two Swiss days added three
+   more such games and every one held: T1 19-3 Los Grandes, BLG 17-2 Team
+   Liquid, IG 21-12 Team Secret Whales, the weaker side at 0.12-0.58x its
+   projection. On the six LCK/LPL v LCS/LCP/CBLOL matches with data
+   (Demacia Cup and Swiss), per map: held-out error 14.5 with no factor,
+   10.8 at 1.25, 10.4 at 1.4, and 25 of 42 graded lines on the right side
+   at 1.4 against 17 at 1.25. Past 1.4 no further line flips and the error
+   grows. Fitting each side separately (the weaker side collapses more
+   than the stronger gains) won in sample and lost held out: the weaker
+   side swings from 0.13x to 1.30x, so it is not used. */
+const CLASS_GAP_KILLS = 1.4;
 const CLASS_TOP = new Set(["LCK", "LPL"]);
 const CLASS_BOTTOM = new Set(["LCS", "LCP", "CBLOL", "TCL"]);
 /* Which side of the class gap a team is on in this fixture: "weaker",

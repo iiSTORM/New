@@ -164,6 +164,84 @@ def resolve_side(name, lookup, aliases, elsewhere=None):
     return None, UNCOVERED
 
 
+#: Roster corrections the scrape cannot make on its own. gol.gg builds a
+#: roster from the current split's player list, so a player who sat out that
+#: split and came back for an event is missing from it even though his games
+#: for the team are all in past_matches. Top Esports started 369 over ZUIAN
+#: in both Worlds Swiss games (2026-10-23 and 10-24) after 14 LPL matches for
+#: them from January to March; without this every TES projection failed for
+#: want of his. Applied before merge_international, which lends these league
+#: rosters to the event.
+ROSTER_OVERRIDES = [
+    {"region": "LPL", "team": "Top Esports", "player": "369", "role": "TOP",
+     "replaces": "ZUIAN"},
+]
+
+
+def _maps_counted(match):
+    """Maps behind a match's `actual`, as mapsCountedFor in src/app.jsx."""
+    for key in ("maps_counted", "games"):
+        v = match.get(key)
+        if isinstance(v, (int, float)) and v > 0:
+            return v
+    return 2
+
+
+def _stat(row, key):
+    if isinstance(row, dict):
+        v = row.get(key)
+        return v if isinstance(v, (int, float)) else 0
+    return row if key == "k" and isinstance(row, (int, float)) else 0
+
+
+def record_from_matches(past_matches, team, player, role):
+    """A roster entry built from the player's own games for this team: per-map
+    kills, deaths, assists and kill participation, the fields a projection
+    reads. None when he has no games for them on record."""
+    g = k = d = a = team_k = 0
+    for m in past_matches:
+        side = (m.get("actual") or {}).get(team) or {}
+        if player not in side:
+            continue
+        maps = _maps_counted(m)
+        g += maps
+        k += _stat(side[player], "k")
+        d += _stat(side[player], "d")
+        a += _stat(side[player], "a")
+        team_k += sum(_stat(v, "k") for v in side.values())
+    if not g:
+        return None
+    cur = {"g": g, "k": round(k / g, 2), "d": round(d / g, 2), "a": round(a / g, 2),
+           "kp": round(100 * (k + a) / team_k, 1) if team_k else None}
+    return {"name": player, "role": role, "cur": cur}
+
+
+def apply_roster_overrides(data, overrides=ROSTER_OVERRIDES):
+    """Put each override's player on his team, in place of the one he
+    replaces. A no-op once the scrape lists him itself (beyond setting the
+    role and dropping the replaced player)."""
+    for o in overrides:
+        region = (data.get("regions") or {}).get(o["region"]) or {}
+        team = (region.get("teams") or {}).get(o["team"])
+        if not team:
+            continue
+        players = team.setdefault("players", [])
+        at = next((i for i, p in enumerate(players) if p.get("name") == o.get("replaces")), None)
+        if at is not None:
+            players.pop(at)
+        mine = next((p for p in players if p.get("name") == o["player"]), None)
+        if mine is not None:
+            mine["role"] = o["role"]
+            continue
+        record = record_from_matches(region.get("past_matches") or [], o["team"], o["player"], o["role"])
+        if record is None:
+            print(f"! roster override: {o['player']} has no games for {o['team']} in {o['region']}")
+            continue
+        players.insert(at if at is not None else len(players), record)
+        print(f"{o['region']}: {o['player']} on {o['team']} ({record['cur']['g']} maps)"
+              + (f" in place of {o['replaces']}" if o.get("replaces") else ""))
+
+
 def merge_career_data(data):
     """Folds each player's decayed career baseline (from scrape_career.py's
     output) into their existing record in data.json. career_data.json is
@@ -492,6 +570,7 @@ def main():
         suffix = f" ({', '.join(detail)})" if detail else ""
         print(f"{region_key}: merged {len(upcoming)}/{len(region_schedule)} upcoming matches{suffix}")
 
+    apply_roster_overrides(data)
     merge_international(data, schedule)
     merge_career_data(data)
 
