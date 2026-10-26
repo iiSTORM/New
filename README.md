@@ -865,6 +865,31 @@ an event line from the player's home-league roster, which has neither the
 opponent nor the class gap. It now uses the region holding both teams, as the
 Edges board does. `search_weights_by_outcome.project_all` got the same fix.
 
+### The Worlds pace factor (Oct 26)
+
+Worlds Swiss played slow from the first day. Across the first three days'
+games, team kills came in at **0.82×** what home-league form projected. Players
+finished under their standard kill lines on 96 of 155 (43/59, 34/64, 19/32),
+while the model leaned over every day (+0.32, +0.39, +0.27 kills against the
+line). Kills, deaths and assists at the event now get a factor of **0.85**
+(`EVENT_PACE`, `eventPaceMultiplier`, mirrored in `optimize_weights.py`): the
+measured 0.82 pulled a little toward 1.
+
+| pace | Oct 23 | Oct 24 | Oct 25 | lines right |
+| --- | --- | --- | --- | ---: |
+| none | MAE 2.40 | 2.02 | 2.96 | 74 / 155 |
+| **0.85** | **2.18** | **1.95** | **2.75** | **81 / 155** |
+
+The best factor fitted to the lines ran to the bottom of its range (0.70),
+because that turns the model into "always under". That is the market posting
+Worlds lines high, not anything about players, so it was not used. The factor
+keys on `at_event`, which `merge_international` puts on every roster it lends
+to an event. It applies only when both teams are at the same measured event,
+so league play and Demacia Cup (which ran high) are untouched. The slate tool
+carries `at_event` onto league-side teams only while the event still has
+matches to play. Re-measure it as the event goes on: it describes this event,
+not Worlds forever.
+
 ## Data flow
 
 Three jobs run in parallel on separate runners, one per game. They write

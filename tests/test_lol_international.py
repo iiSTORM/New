@@ -279,3 +279,11 @@ def test_the_class_gap_applies_only_to_lck_lpl_against_the_smaller_leagues():
     assert ow.class_gap_multiplier(teams, "KC", "C9", kills) == 1.0
     assert ow.class_gap_multiplier(teams, "T1", "C9", deaths) == 1.0      # kills only
     assert ow.class_gap_multiplier(teams, "T1", "Home", kills) == 1.0     # league play: untouched
+
+
+def test_a_lent_roster_carries_the_event_it_is_at():
+    regions = {"LCS": {"teams": {"FlyQuest": {"players": []}}}}
+    event = {"teams": {}}
+    intl.lend_home_rosters(event, ["FlyQuest"], intl.home_donors(regions), "Worlds")
+    assert event["teams"]["FlyQuest"]["at_event"] == "Worlds"
+    assert event["teams"]["FlyQuest"]["from_home_region"] == "LCS"

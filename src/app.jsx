@@ -3427,13 +3427,14 @@ function project(teams, pastMatches, player, team, opponentTeam, games, weights,
   const oppMult = resolveOpponentMultiplier(teams, pastMatches, player, opponentTeam, weights.opponent, cfg, null);
   const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams, pastMatches, team, null) : 1;
   const classMult = classGapMultiplier(teams, team, opponentTeam, cfg);
-  const blended = blendShareTier(base * oppMult * kpMult * classMult, weights, pastMatches, teams,
+  const paceMult = eventPaceMultiplier(teams, team, opponentTeam, cfg);
+  const blended = blendShareTier(base * oppMult * kpMult * classMult * paceMult, weights, pastMatches, teams,
                                  team, player.name, cfg.key, null);
   const shrunk = shrinkToPrior(blended.perGame, weights, weighted.games || 0, pastMatches,
                                teams, cfg.key, null, player.role);
   const perGame = shrunk.perGame;
   const priorGames = weighted.games || 0;
-  return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult, classMult,
+  return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult, classMult, paceMult,
            shareTier: blended.shareTier, sharePct: blended.sharePct, shareWeight: weights.share || 0,
            shrunkTo: shrunk.shrunkTo, shrinkPull: shrunk.shrinkPull, priorGames,
            evidenceGames: evidenceGamesFor(player, weights, careerRate, priorGames),
@@ -4058,6 +4059,33 @@ function againstClassGapRecord(graded, regionsData) {
   return out;
 }
 
+/* How much slower an event plays than its teams' home leagues, for kills,
+   deaths and assists (a slower game has fewer of all three; a death is the
+   other side's kill).
+
+   Worlds Swiss ran slow from the first day. Across the first three days'
+   games, team kills came in at 0.82x what home-league form projected, and
+   players finished under their posted kill lines on 96 of 155 standard
+   lines, every day (43/59, 34/64, 19/32), while the model leaned over on
+   average. 0.85 is the measured 0.82 pulled a little toward 1 rather than
+   the line-fitted optimum, which ran to the bottom of its range (0.70) by
+   turning the model into "always under". Applied only when both teams carry
+   the same event (at_event, set where merge_international lends a home
+   roster to the event), so league play and other events, Demacia Cup ran
+   high, are untouched. Mirrored in scripts/dev/optimize_weights.py. Re-measure
+   as the event plays: it is a property of this event, not of Worlds forever. */
+const EVENT_PACE = { Worlds: 0.85 };
+const EVENT_PACE_STATS = new Set(["k", "d", "a"]);
+
+function eventPaceMultiplier(teams, team, opponentTeam, cfg) {
+  if (!cfg || !EVENT_PACE_STATS.has(cfg.key) || !teams) return 1;
+  const mine = teams[team] && teams[team].at_event;
+  const theirs = teams[opponentTeam] && teams[opponentTeam].at_event;
+  if (!mine || mine !== theirs) return 1;
+  const pace = EVENT_PACE[mine];
+  return typeof pace === "number" ? pace : 1;
+}
+
 function classGapMultiplier(teams, team, opponentTeam, cfg) {
   if (!cfg || cfg.key !== "k" || !teams) return 1;
   const mine = teams[team] && teams[team].from_home_region;
@@ -4131,12 +4159,13 @@ function projectPointInTime(pastMatches, teams, player, team, opponentTeam, game
   const kpMult = cfg.useKP ? kpMultiplier(player, weights.history, weights.kp, teams, pastMatches, team, cutoffDate) : 1;
 
   const classMult = classGapMultiplier(teams, team, opponentTeam, cfg);
-  const blendedPT = blendShareTier(base * oppMult * kpMult * classMult, weights, pastMatches, teams,
+  const paceMult = eventPaceMultiplier(teams, team, opponentTeam, cfg);
+  const blendedPT = blendShareTier(base * oppMult * kpMult * classMult * paceMult, weights, pastMatches, teams,
                                    team, player.name, cfg.key, cutoffDate);
   const shrunkPT = shrinkToPrior(blendedPT.perGame, weights, pt.games || 0, pastMatches,
                                  teams, cfg.key, cutoffDate, player.role);
   const perGame = shrunkPT.perGame;
-  return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult, classMult,
+  return { base, recentFormRate, careerRate, careerWeight: weights.career, oppMult, kpMult, classMult, paceMult,
            shareTier: blendedPT.shareTier, sharePct: blendedPT.sharePct, shareWeight: weights.share || 0,
            shrunkTo: shrunkPT.shrunkTo, shrinkPull: shrunkPT.shrinkPull,
            perGame, total: perGame * games, priorGames: pt.games };

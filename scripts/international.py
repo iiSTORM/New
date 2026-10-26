@@ -206,8 +206,10 @@ def home_donors(regions, skip=()):
     return {name: (key, team) for name, (_, key, team) in best.items()}
 
 
-def lend_home_rosters(region, wanted, donors):
-    """Give every wanted team its home league's roster, freshly.
+def lend_home_rosters(region, wanted, donors, event=None):
+    """Give every wanted team its home league's roster, freshly, tagged with
+    its home league and, when given, the event it is lent to (`at_event`,
+    which the event pace factor keys on).
 
     Borrowed entries from an earlier run are dropped first, so a roster
     change in the league reaches the event on the next run instead of the
@@ -226,6 +228,8 @@ def lend_home_rosters(region, wanted, donors):
         home, team = donors[name]
         entry = copy.deepcopy(team)
         entry["from_home_region"] = home
+        if event:
+            entry["at_event"] = event
         own[name] = entry
         borrowed.append(name)
     if borrowed:

@@ -15,7 +15,7 @@ const { renderToStaticMarkup } = require("react-dom/server");
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const raw = fs.readFileSync(path.join(root, "src/app.jsx"), "utf8");
 const body = raw.slice(raw.indexOf("try {") + "try {".length, raw.indexOf("const root = ReactDOM.createRoot"));
-const { code } = transformSync(`${body}\nreturn { classGapSide, againstClassGapRecord, classGapMultiplier, CLASS_GAP_KILLS, isEventRegion, EdgeRow, ThemeContext, BASE_TOKENS, STAT_TYPES };`,
+const { code } = transformSync(`${body}\nreturn { classGapSide, againstClassGapRecord, classGapMultiplier, CLASS_GAP_KILLS, eventPaceMultiplier, EVENT_PACE, isEventRegion, EdgeRow, ThemeContext, BASE_TOKENS, STAT_TYPES };`,
   { presets: [["@babel/preset-react", { runtime: "classic" }]], filename: "app.jsx", compact: true,
     parserOpts: { allowReturnOutsideFunction: true } });
 const w = { innerWidth: 1400, addEventListener() {}, removeEventListener() {},
@@ -30,6 +30,14 @@ const eq = (a, b, what) => { if (JSON.stringify(a) !== JSON.stringify(b)) throw 
 
 const teams = { T1: { from_home_region: "LCK" }, LG: { from_home_region: "CBLOL" },
                 KC: { from_home_region: "LEC" }, Home: {} };
+
+check("the event pace applies at the event, to kills deaths and assists, and nowhere else", () => {
+  const t = { A: { at_event: "Worlds" }, B: { at_event: "Worlds" }, C: { at_event: "MSI" }, D: {} };
+  eq(app.eventPaceMultiplier(t, "A", "B", app.STAT_TYPES.kills), app.EVENT_PACE.Worlds, "kills at Worlds");
+  eq(app.eventPaceMultiplier(t, "A", "B", app.STAT_TYPES.assists), app.EVENT_PACE.Worlds, "assists at Worlds");
+  eq([app.eventPaceMultiplier(t, "A", "C", app.STAT_TYPES.kills), app.eventPaceMultiplier(t, "A", "D", app.STAT_TYPES.kills),
+      app.eventPaceMultiplier(t, "C", "C", app.STAT_TYPES.kills)], [1, 1, 1], "different events, league play, unmeasured event");
+});
 
 check("sides of the gap", () => {
   eq([app.classGapSide(teams, "T1", "LG"), app.classGapSide(teams, "LG", "T1")], ["stronger", "weaker"], "1v3");

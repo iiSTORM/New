@@ -566,6 +566,23 @@ CLASS_TOP = {"LCK", "LPL"}
 CLASS_BOTTOM = {"LCS", "LCP", "CBLOL", "TCL"}
 
 
+# How much slower an event plays than its teams' home leagues, for kills,
+# deaths and assists. Mirrors eventPaceMultiplier in src/app.jsx, which
+# carries the measurement.
+EVENT_PACE = {"Worlds": 0.85}
+EVENT_PACE_STATS = {"k", "d", "a"}
+
+
+def event_pace_multiplier(teams, team, opponent_team, cfg):
+    if not cfg or cfg.get("key") not in EVENT_PACE_STATS or not teams:
+        return 1.0
+    mine = (teams.get(team) or {}).get("at_event")
+    theirs = (teams.get(opponent_team) or {}).get("at_event")
+    if not mine or mine != theirs:
+        return 1.0
+    return EVENT_PACE.get(mine, 1.0)
+
+
 def class_gap_multiplier(teams, team, opponent_team, cfg):
     if not cfg or cfg.get("key") != "k" or not teams:
         return 1.0
@@ -1096,7 +1113,8 @@ def project_point_in_time(past_matches, teams, player, team, opponent_team, game
     kp_mult = kp_multiplier(player, weights["history"], weights["kp"], teams,
                               past_matches, team, cutoff_date) if cfg["useKP"] else 1.0
 
-    per_game = base * opp_mult * kp_mult * class_gap_multiplier(teams, team, opponent_team, cfg)
+    per_game = (base * opp_mult * kp_mult * class_gap_multiplier(teams, team, opponent_team, cfg)
+                * event_pace_multiplier(teams, team, opponent_team, cfg))
     per_game = blend_share_tier(per_game, weights.get("share", 0), past_matches, teams,
                                 team, player["name"], cfg["key"], cutoff_date)
     per_game = shrink_to_prior(per_game, weights.get("shrink", 0), pt_games,

@@ -356,6 +356,19 @@ class EsportsModel:
                 if name not in INTERNATIONAL_REGIONS.get(game, ()) and "from_home_region" not in info:
                     info = {**info, "from_home_region": name}
                 teams.setdefault(team_name, info)
+        # A team at an event that is still being played carries the event,
+        # as its lent roster in the event region does, so the event pace
+        # factor (event_pace_multiplier) reaches lines projected from the
+        # league side. Only while the event has matches left: once it is
+        # over its region drops off the schedule and so does this.
+        for name in extra:
+            event = (self.data.get(game) or {}).get(name) or {}
+            if not event.get("upcoming_matches"):
+                continue
+            for team_name, info in (event.get("teams") or {}).items():
+                tag = info.get("at_event")
+                if tag and team_name in teams and "at_event" not in teams[team_name]:
+                    teams[team_name] = {**teams[team_name], "at_event": tag}
         matches.sort(key=lambda match: str(match.get("date") or ""))
         return (matches, teams)
 

@@ -537,7 +537,7 @@ def merge_international(data, schedule):
         if timed:
             print(f"{key}: start times attached to {timed} played match(es)")
         wanted = event_team_names(event) + [n for m in upcoming for n in (m["teamA"], m["teamB"])]
-        borrowed, missing = lend_home_rosters(region, list(dict.fromkeys(wanted)), donors)
+        borrowed, missing = lend_home_rosters(region, list(dict.fromkeys(wanted)), donors, key)
         print(f"{key}: {len(upcoming)} upcoming, {len(borrowed)} roster(s) from home leagues"
               + (f", {len(missing)} with no home league tracked: {missing}" if missing else "")
               + (f", unresolved names: {sorted(unresolved)}" if unresolved else ""))
