@@ -305,3 +305,54 @@ class TestTheCareerTierSkipsAMissingStat:
         games = [{"date": self.G, "k": 20}, {"date": self.G, "k": 20}]
         assert self.rate(games, "hs") is None
         assert self.rate(games, "k") == 20, "k/d/a behaviour must be unchanged"
+
+
+class TestGamesThatNeverHaveStats:
+    """A game that comes back without the player's row was never stored, so
+    it was fetched again every run: ~6 per player, most of 22,121 requests."""
+
+    OLD = "2026-01-01T00:00:00+00:00"
+
+    def run(self, prev, stats_for, begin=OLD):
+        import asyncio
+        asked = []
+
+        async def matches(session, player_id):
+            return [{"games": [{"id": 1, "begin_at": begin}, {"id": 2, "begin_at": begin}]}]
+
+        async def stats(session, game_id, player_id):
+            asked.append(game_id)
+            return stats_for.get(game_id)
+
+        orig = sc.fetch_player_matches, sc.fetch_game_stats_for_player
+        sc.fetch_player_matches, sc.fetch_game_stats_for_player = matches, stats
+        try:
+            _, rec = asyncio.run(sc.process_one_player(None, "donk", {"done": 0}, 1, {"donk": prev}))
+        finally:
+            sc.fetch_player_matches, sc.fetch_game_stats_for_player = orig
+        return asked, rec
+
+    def test_an_empty_game_is_counted_and_retried_until_it_has_failed_twice(self):
+        asked, rec = self.run(record(game(1)), {2: None})
+        assert asked == [2] and rec["no_stats"] == {"2": 1}
+        asked, rec = self.run(rec, {2: None})
+        assert asked == [2] and rec["no_stats"] == {"2": 2}
+        asked, rec = self.run(rec, {2: None})
+        assert asked == [] and rec["no_stats"] == {"2": 2}          # skipped from now on
+
+    def test_a_recent_game_is_retried_however_often_it_failed(self):
+        from datetime import datetime, timezone
+        today = datetime.now(timezone.utc).isoformat()
+        prev = {**record(game(1)), "no_stats": {"2": 5}}
+        asked, _ = self.run(prev, {2: None}, begin=today)
+        assert 2 in asked
+
+    def test_a_game_that_gets_its_stats_is_stored_and_forgotten(self):
+        prev = {**record(game(1)), "no_stats": {"2": 1}}
+        asked, rec = self.run(prev, {2: {"k": 9, "d": 9, "a": 9}})
+        assert asked == [2] and rec["no_stats"] == {} and rec["games_fetched"] == 2
+
+    def test_a_game_that_left_the_window_is_dropped_from_the_memory(self):
+        prev = {**record(game(1)), "no_stats": {"2": 2, "99": 2}}
+        _, rec = self.run(prev, {})
+        assert "99" not in rec["no_stats"]

@@ -437,6 +437,31 @@ def cached_games_by_id(previous_record):
         out[game_id] = {**game, "date": when}
     return out
 
+#: A game whose stats came back without this player (bo3.gg never processed
+#: the map, or the player is missing from it) was never stored, so it was
+#: fetched again on every run, forever: about six per player, most of the
+#: 22,121 requests a run had grown to by 2026-10-25 (25 minutes, against
+#: ~7 on 2026-10-22). Remembered per player in `no_stats` and skipped once
+#: it has come back empty on NO_STATS_RUNS separate runs and the game is
+#: older than NO_STATS_AFTER_DAYS -- a fresh map bo3.gg has not finished
+#: processing, or one outage, still gets retried.
+NO_STATS_RUNS = 2
+NO_STATS_AFTER_DAYS = 3
+
+
+def skip_known_empty(no_stats, game_id, begin_at, now=None):
+    """Whether a game that keeps coming back empty should stop being asked for."""
+    if (no_stats or {}).get(str(game_id), 0) < NO_STATS_RUNS:
+        return False
+    try:
+        began = datetime.fromisoformat(str(begin_at).replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if began.tzinfo is None:
+        began = began.replace(tzinfo=timezone.utc)
+    return ((now or datetime.now(timezone.utc)) - began).days >= NO_STATS_AFTER_DAYS
+
+
 async def process_one_player(session, name, progress, total, previous=None):
     prev = (previous or {}).get(name) or {}
     if budget_exhausted():
@@ -496,7 +521,9 @@ async def process_one_player(session, name, progress, total, previous=None):
     # twelve hours apart the overlap is nearly total -- typically a
     # handful of new games against forty-odd already known.
     cached = cached_games_by_id(prev)
-    missing = [(gid, begin) for gid, begin in game_refs if gid not in cached]
+    no_stats = prev.get("no_stats") or {}
+    missing = [(gid, begin) for gid, begin in game_refs
+               if gid not in cached and not skip_known_empty(no_stats, gid, begin)]
 
     # The ones that are new, fired concurrently and bounded by the shared
     # global semaphore in bo3_get.
@@ -506,6 +533,15 @@ async def process_one_player(session, name, progress, total, previous=None):
 
     games = []
     fetched = dict(zip([gid for gid, _ in missing], results))
+    # Counts carried for games still in the window; one more for each that
+    # came back empty again this run.
+    in_window = {str(gid) for gid, _ in game_refs}
+    no_stats = {gid: n for gid, n in no_stats.items() if gid in in_window}
+    for gid, got in fetched.items():
+        if got:
+            no_stats.pop(str(gid), None)
+        else:
+            no_stats[str(gid)] = no_stats.get(str(gid), 0) + 1
     for game_id, begin_at in game_refs:
         if game_id in cached:
             games.append(cached[game_id])
@@ -540,6 +576,7 @@ async def process_one_player(session, name, progress, total, previous=None):
         "games_schema": CAREER_GAME_SCHEMA,
         "career_preview_only_do_not_use_for_predictions": baseline,
         "games": games_serializable,
+        "no_stats": no_stats,
     }
 
 
