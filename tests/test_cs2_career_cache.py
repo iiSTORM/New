@@ -356,3 +356,34 @@ class TestGamesThatNeverHaveStats:
         prev = {**record(game(1)), "no_stats": {"2": 2, "99": 2}}
         _, rec = self.run(prev, {})
         assert "99" not in rec["no_stats"]
+
+
+class TestOneFetchPerGame:
+    """players_stats returns all ten players, so a game shared by tracked
+    teammates is fetched once per run, not once per player."""
+
+    def test_teammates_share_one_request_for_the_same_game(self):
+        import asyncio
+        calls = []
+
+        async def fake_get(session, path, **kw):
+            calls.append(path)
+            await asyncio.sleep(0)
+            return [{"steam_profile": {"player": {"id": pid}}, "kills": pid, "death": 1, "assists": 1}
+                    for pid in (7, 8)]
+
+        original, sc.bo3_get = sc.bo3_get, fake_get
+        sc._GAME_STATS = {}
+        try:
+            async def both():
+                return await asyncio.gather(sc.fetch_game_stats_for_player(None, 5, 7),
+                                            sc.fetch_game_stats_for_player(None, 5, 8),
+                                            sc.fetch_game_stats_for_player(None, 6, 7))
+            a, b, c = asyncio.run(both())
+        finally:
+            sc.bo3_get, sc._GAME_STATS = original, None
+        assert a["k"] == 7 and b["k"] == 8 and c["k"] == 7
+        assert sorted(calls) == ["/games/5/players_stats", "/games/6/players_stats"]
+
+    def test_outside_a_run_nothing_is_cached(self):
+        assert sc._GAME_STATS is None

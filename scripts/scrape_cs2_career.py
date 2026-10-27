@@ -267,10 +267,28 @@ async def fetch_player_matches(session, player_id, limit=MATCHES_PER_PLAYER):
     return notable[:limit]
 
 
+#: One players_stats response per game per run, shared by every tracked
+#: player in it. The endpoint returns all ten players' rows, and it was being
+#: requested once per player: up to ten fetches of the same game, most of the
+#: ~15,500 game requests a run made on 2026-10-27. None outside a run (tests
+#: call the fetch directly), a dict of game id -> task inside one.
+_GAME_STATS = None
+
+
+async def players_stats(session, game_id):
+    if _GAME_STATS is None:
+        return await bo3_get(session, f"/games/{game_id}/players_stats")
+    task = _GAME_STATS.get(game_id)
+    if task is None:
+        task = asyncio.ensure_future(bo3_get(session, f"/games/{game_id}/players_stats"))
+        _GAME_STATS[game_id] = task
+    return await task
+
+
 async def fetch_game_stats_for_player(session, game_id, player_id):
     """Reuses the same players_stats endpoint the main cs2 pipeline
     already depends on -- filters down to just this player's own row."""
-    stats = await bo3_get(session, f"/games/{game_id}/players_stats")
+    stats = await players_stats(session, game_id)
     if not stats:
         return None
     for row in stats:
@@ -581,8 +599,9 @@ async def process_one_player(session, name, progress, total, previous=None):
 
 
 async def build_career_data():
-    global _semaphore
+    global _semaphore, _GAME_STATS
     _semaphore = asyncio.Semaphore(REQUEST_CONCURRENCY)
+    _GAME_STATS = {}
 
     tracked_names = load_tracked_player_names()
     if not tracked_names:
