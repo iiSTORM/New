@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-30T10:25:05.615069+00:00",
+ "generated_at": "2026-10-30T18:10:32.123959+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,13 +61,13 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 38,
+   "items": 100,
    "error": null
   },
   {
    "game": "lol",
    "source": "Google News",
-   "items": 32,
+   "items": 31,
    "error": null
   },
   {
@@ -79,13 +79,13 @@
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 44,
+   "items": 74,
    "error": null
   },
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 33,
+   "items": 36,
    "error": null
   },
   {
@@ -97,19 +97,13 @@
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 10,
+   "items": 9,
    "error": null
   },
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 51,
-   "error": null
-  },
-  {
-   "game": "dota2",
-   "source": "Google News",
-   "items": 13,
+   "items": 53,
    "error": null
   },
   {
@@ -117,9 +111,142 @@
    "source": "Google News",
    "items": 15,
    "error": null
+  },
+  {
+   "game": "dota2",
+   "source": "Google News",
+   "items": 45,
+   "error": null
   }
  ],
  "items": [
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "FURIA beat MOUZ en route to Bucharest final",
+   "link": "https://www.hltv.org/news/45863/furia-beat-mouz-en-route-to-bucharest-final",
+   "published": "2026-10-30T18:05:00+00:00",
+   "summary": "The Brazilian squad will have the chance to add another title to FalleN's résumé on Saturday against Nemiga.",
+   "teams": [
+    "Nemiga",
+    "MOUZ",
+    "FURIA"
+   ],
+   "players": [
+    {
+     "name": "FalleN",
+     "team": "FURIA"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Tracyn extends with Team Heretics until 2028",
+   "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxOTUh4c1FPcVlLMWU0VmhMWDFSbVk5TGg1cFd4R0JiTDU3SmtnUDR2S1h2bmQwWEtmX193MXRBeVJYR1hGM01DYjc4ZVlLZlVGa3F2S3pERWdMUGpzcEtPVExOcFVQcVhrOXlyMEdyNnF4N19jbDRjYWc5SUtrS1REVzlBVy00MFJSdmtKVnpNaDVrUQ?oc=5",
+   "published": "2026-10-30T15:37:06+00:00",
+   "summary": "Tracyn extends with Team Heretics until 2028 Sheep Esports",
+   "teams": [
+    "Team Heretics"
+   ],
+   "players": [
+    {
+     "name": "Tracyn",
+     "team": "Team Heretics"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "extension"
+   ],
+   "reasons": [
+    "a contract is extended"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "Nemiga stun Vitality 2-0 to reach PGL Masters Bucharest final",
+   "link": "https://www.hltv.org/news/45861/nemiga-stun-vitality-2-0-to-reach-pgl-masters-bucharest-final",
+   "published": "2026-10-30T14:29:00+00:00",
+   "summary": "robo leads the underdogs into the final as Nemiga break into the global VRS top 10.",
+   "teams": [
+    "Vitality",
+    "Nemiga"
+   ],
+   "players": [
+    {
+     "name": "robo",
+     "team": "Nemiga"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "WIN.GG",
+   "title": "“I’ll Believe Gen.G Can Win the Trophy When I See It” — League of Legends Caster Nymaera on Gen.G’s Title Chances",
+   "link": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE5PRGhwSUIyRjIzZko4eVNoVlF3QmJzRVJma2RyalpHZHFqLTNCcUpUUHJrY2Jic1d6UU56R1hvQlZMUHQwbHpYaGlTaVpMMVJ5cmlNbGk3NA?oc=5",
+   "published": "2026-10-30T11:40:25+00:00",
+   "summary": "“I’ll Believe Gen.G Can Win the Trophy When I See It” — League of Legends Caster Nymaera on Gen.G’s Title Chances WIN.GG",
+   "teams": [
+    "Gen.G"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "RG.org",
+   "title": "Global Esports Ends Competitive Operations, Will Not Join VCT's 2027 Partnership Cycle",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxQSVBTN0wwU2g3Q2RkekpqWUVfRS1TZEp3QzFvam9ha3dvaWktS3ZHc3FNTi1Senh3WFlHMW5VdGVLbWhIVzRfamRUMnY0ampyS3JpNXhwdFc5Z28zSkpRTm9XYUJfakdmWWJBQVFXdnZHcVhxZG9xcTFXaFhXUUZlQWdqUGVPaGFCOVFtN3Iyc3dUZGRTcm4wMDdXaEY5NUdKZ3c?oc=5",
+   "published": "2026-10-30T11:13:38+00:00",
+   "summary": "Global Esports Ends Competitive Operations, Will Not Join VCT's 2027 Partnership Cycle RG.org",
+   "teams": [
+    "Global Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "Esports News UK",
+   "title": "Vitality come back against NAVI to set up Nemiga clash at PGL Masters Bucharest",
+   "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxOVkx5ODVkdmoxZmNrV0EyMnNqZ2t4bDNBZ0VVRnBjampfeDlaU3g0LWlMUEN5U2ZOOWFtWi01VW84VlRYenZzM21tenh3Z2lWejNYalljMzZPbHJ1ZHlZV3FJNE11TmJ0X3d4d21lSllvVExqTS1CbGxVQlIwSGNvc1VsVlV3NkdhRlFCWHB4TjFxWWFwUm1rQXpDbTF5ME1XUXgwVU84UzJZcmtuQ0FvcjVBSGNzOTYzSmc?oc=5",
+   "published": "2026-10-30T09:52:17+00:00",
+   "summary": "Vitality come back against NAVI to set up Nemiga clash at PGL Masters Bucharest Esports News UK",
+   "teams": [
+    "Vitality",
+    "Nemiga"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
   {
    "game": "cs2",
    "source": "HLTV",
@@ -150,6 +277,22 @@
    "summary": "RAMZES666 Discusses the Future of the 1win Team Roster Amid Recent Losses Hawk Live",
    "teams": [
     "1win"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "www.indiagazette.com",
+   "title": "Top Esports book knockout-stage berth at LoL Worlds",
+   "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxOVGlXd3RKZHItSE0zTTg2UzlRQkNWOFBkSmU5Z1VjcFQtMUV2LS1MT1FUSEFtalBkeDNiMktYbkdGMWJidnpXMjJsMkthQTJINkFENjBmNVJablM0enoyMUlIREVxTV9lSzdGTS1ramYwVEp2WFlFTUlpLWVRUERJOUk0c1FmZmRFcEhPYzJkZEE4V0FGSVBvdUZpRQ?oc=5",
+   "published": "2026-10-30T06:10:00+00:00",
+   "summary": "Top Esports book knockout-stage berth at LoL Worlds www.indiagazette.com",
+   "teams": [
+    "Top Esports"
    ],
    "players": [],
    "score": 0,
@@ -193,6 +336,23 @@
    "reasons": [
     "a stand-in plays; the team's record was built without them"
    ]
+  },
+  {
+   "game": "lol",
+   "source": "GosuGamers",
+   "title": "Karmine Corp eliminate CTBC Flying Oyster to stay alive at Worlds 2026",
+   "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxPU3pnSlA1QnI5RmVKVDNYenFDRkdtMFlWaWVJMmdGbW1qRUxvekhQdHpWZFpXZGNkMlE5Z1RJMkUxY2ljU1c5Ulk1MkZHMURnSGlHYnM1X1JpRjA5bkNkLVpSakdzeDhmakxQTGM0dXBTTnZYMlZzTGUwUjJfc3llVmlUS1M2Q3VnbTFydXR0NmR0ZHMtNEFrQTRDdWMwWXZlZFhkN01MbDhRbGgyc0xtY21B?oc=5",
+   "published": "2026-10-29T23:06:05+00:00",
+   "summary": "Karmine Corp eliminate CTBC Flying Oyster to stay alive at Worlds 2026 GosuGamers",
+   "teams": [
+    "Karmine Corp",
+    "CTBC Flying Oyster"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
   },
   {
    "game": "lol",
@@ -356,7 +516,7 @@
    "source": "Sheep Esports",
    "title": "Sources: Hype set to remain with Team Heretics in 2027 after renegotiations",
    "link": "https://news.google.com/rss/articles/CBMingFBVV95cUxONkE4QVQxNjBsWGc2OXI4T3ZLWE4tRkMzTUZHNXNCYWRabU1iSTVRdnpKOXRET3RPdVhUZXRqMjM3c1k2U19fNjZHTmhXb0sxZXJlT0lRTFRKdkY0d3BiYUpqX1NHVXdnS25iVXRad3lPal84THFGdk0zQS1GdTAxUmlTTHNuUUhSUVQ4Mi1IbG55Ykh3RzAwSEZtQWVaUQ?oc=5",
-   "published": "2026-10-29T18:13:41+00:00",
+   "published": "2026-10-29T18:14:17+00:00",
    "summary": "Sources: Hype set to remain with Team Heretics in 2027 after renegotiations Sheep Esports",
    "teams": [
     "Team Heretics"
@@ -706,8 +866,8 @@
    "published": "2026-10-29T10:22:00+00:00",
    "summary": "A Nuke comeback set the stage for Nemiga to take the series on Dust2.",
    "teams": [
-    "FUT",
-    "Nemiga"
+    "Nemiga",
+    "FUT"
    ],
    "players": [],
    "score": 0,
@@ -892,6 +1052,23 @@
   },
   {
    "game": "dota2",
+   "source": "Esports.gg",
+   "title": "Team Spirit’s playoff run takes a hit after shocking loss to OG at Dota 2 PARI Universe",
+   "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxNMzR3U0RYSzg3THJNU19WTV9PSGZVTHFncTh2ZTFyTk9FTTM3UUFSM25pREFBODdOd195U0laM21WOXI3TDAwMUJnVFR4bEdXZ3k2Vkg0U0ZVQWhrTVV6cm55cmV4dUZhOVRqWGV6Zld1UUMzb2lrX0ZTdGZPS3hkak1NMkRVNlRrMWZ1VnJMRzh0UQ?oc=5",
+   "published": "2026-10-29T03:39:21+00:00",
+   "summary": "Team Spirit’s playoff run takes a hit after shocking loss to OG at Dota 2 PARI Universe Esports.gg",
+   "teams": [
+    "OG",
+    "Team Spirit"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "dota2",
    "source": "Hotspawn",
    "title": "Satanic Breaks Furion GPM Record, OG Upset Team Spirit In PARI Universe Playoffs",
    "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxNSjBxRkdwcTlHR1lycWZBTEloLUJGOG1OQXI4bTdDYk5lZ2VqRGdSQjZ2V0tTWTRaSURtSC1FdGNTcDY2Yzc1bGFneUhQYS12NDEyMUV1czhoTmdORU5VdUNTRUZKS3l1X3V5cHBwSEk4VUI3WDUydkdXcWhyME8yWGJJcTRzcXRFQzl2VXN6bzVIVTdoWVJUU012NUFlNzVoX0tWTzBZc3V0UnJCdVg0cUljelhMUQ?oc=5",
@@ -908,23 +1085,6 @@
      "team": "PARIVISION"
     }
    ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "dota2",
-   "source": "Esports.gg",
-   "title": "Team Spirit’s playoff run takes a hit after shocking loss to OG at Dota 2 PARI Universe",
-   "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxNMzR3U0RYSzg3THJNU19WTV9PSGZVTHFncTh2ZTFyTk9FTTM3UUFSM25pREFBODdOd195U0laM21WOXI3TDAwMUJnVFR4bEdXZ3k2Vkg0U0ZVQWhrTVV6cm55cmV4dUZhOVRqWGV6Zld1UUMzb2lrX0ZTdGZPS3hkak1NMkRVNlRrMWZ1VnJMRzh0UQ?oc=5",
-   "published": "2026-10-29T02:46:32+00:00",
-   "summary": "Team Spirit’s playoff run takes a hit after shocking loss to OG at Dota 2 PARI Universe Esports.gg",
-   "teams": [
-    "OG",
-    "Team Spirit"
-   ],
-   "players": [],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -1284,8 +1444,8 @@
    "published": "2026-10-28T19:05:51+00:00",
    "summary": "FUT Esports vs Nemiga Gaming Prediction & Betting Tip | Counter-Strike (CS2) EGamersWorld",
    "teams": [
-    "FUT",
-    "Nemiga"
+    "Nemiga",
+    "FUT"
    ],
    "players": [],
    "score": 0,
@@ -1696,6 +1856,27 @@
    "reasons": []
   },
   {
+   "game": "lol",
+   "source": "Dot Esports",
+   "title": "Caps confirmed for League of Legends Hall of Legends 2026",
+   "link": "https://news.google.com/rss/articles/CBMiggFBVV95cUxNb3NTVTdiZzFtS2MteDhqS0hNRVQ3eldRVTBZdnBxWi1MUFVPd3FOQ0Z2ZV9Pcnlla0lubVFFMzZCZXZQeGhoV3MzU3FQWjRWMkQ5dzJoZFNTRkZaUHBPc1NoZnVxT1VQZmtRaUxlckxBSnNySGZveHVGWk9pM3A0UkVn?oc=5",
+   "published": "2026-10-28T07:00:00+00:00",
+   "summary": "Caps confirmed for League of Legends Hall of Legends 2026 Dot Esports",
+   "teams": [
+    "G2 Esports"
+   ],
+   "players": [
+    {
+     "name": "Caps",
+     "team": "G2 Esports"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "cs2",
    "source": "Indiatimes",
    "title": "What happened to Aleksib? CS2 star handed four-month suspended prison sentence for aggravated tax fraud over €53,000 in sticker earnings",
@@ -1857,8 +2038,8 @@
    "published": "2026-10-27T21:15:22+00:00",
    "summary": "Inner Circle Esports vs MIBR Prediction & Betting Tip | Counter-Strike (CS2) EGamersWorld",
    "teams": [
-    "Inner Circle",
-    "MIBR"
+    "MIBR",
+    "Inner Circle"
    ],
    "players": [],
    "score": 0,
@@ -1874,8 +2055,8 @@
    "published": "2026-10-27T21:15:21+00:00",
    "summary": "Team Nemesis vs Eternal Fire Prediction & Betting Tip | Counter-Strike (CS2) EGamersWorld",
    "teams": [
-    "Nemesis",
-    "Eternal Fire"
+    "Eternal Fire",
+    "Nemesis"
    ],
    "players": [],
    "score": 0,
@@ -1956,6 +2137,23 @@
    "teams": [
     "FURIA",
     "Liquid"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "EGamersWorld",
+   "title": "The MongolZ vs Nemiga Gaming Prediction & Betting Tip | Counter-Strike (CS2)",
+   "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxNT0swMDVIUUxGbGZlVjZSYXpTdGxJX2xhVDJDdXJra2RwekVub0QwS2hNTjhya2hfSVgwUXVOYnM1QjVmZEhkaGdfWVAyajNQbHhNUjVkVkhSem9tVWF0djJ5bmNTRjhyak5jZndrTm0yWnJhcXdGU0ZHU3ZDZ002UE5nZEg4bzV4STFMVmZ1Z0RLeUk2eWUtQy13?oc=5",
+   "published": "2026-10-27T19:55:21+00:00",
+   "summary": "The MongolZ vs Nemiga Gaming Prediction & Betting Tip | Counter-Strike (CS2) EGamersWorld",
+   "teams": [
+    "Nemiga",
+    "The MongolZ"
    ],
    "players": [],
    "score": 0,
@@ -2120,8 +2318,8 @@
    "published": "2026-10-27T16:00:00+00:00",
    "summary": "Victories over K27 and Alliance have increased FaZe's Major chances to 98%.",
    "teams": [
-    "K27",
     "FaZe",
+    "K27",
     "Alliance"
    ],
    "players": [],
@@ -2758,8 +2956,8 @@
    "published": "2026-10-26T20:32:00+00:00",
    "summary": "Spirit vs. MOUZ and Vitality vs. NAVI headline the fourth day of matches in Romania.",
    "teams": [
-    "MOUZ",
     "Vitality",
+    "MOUZ",
     "Spirit"
    ],
    "players": [],
@@ -2897,6 +3095,22 @@
    "reasons": []
   },
   {
+   "game": "lol",
+   "source": "RG.org",
+   "title": "Fnatic's 2011 LoL World Champion Cyanide Dies at 31",
+   "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxONFFNeDQ2b2hDVWhxaE43OGdDZ3RHMTlaT2lobjc2clh5UllwZXlpTF9PZUF1d2lsNm9ZNHdObjB3d1pEZ21ReEFweTl4dkZNMEl2Q1ItNUNtaEU0SW9GbTVmQnU2SDQ1eG45eUdUd25MSm5YWUFtYk5iaGo3T0J4V1d6cDZZenZtRTZadWxFQi1oNkt6dTFVUlRJaVBaZVk?oc=5",
+   "published": "2026-10-26T18:22:10+00:00",
+   "summary": "Fnatic's 2011 LoL World Champion Cyanide Dies at 31 RG.org",
+   "teams": [
+    "Fnatic"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "cs2",
    "source": "RG.org",
    "title": "ENCE Files for Bankruptcy After 13 Years in Esports",
@@ -2914,13 +3128,13 @@
   },
   {
    "game": "lol",
-   "source": "RG.org",
-   "title": "Fnatic's 2011 LoL World Champion Cyanide Dies at 31",
-   "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxONFFNeDQ2b2hDVWhxaE43OGdDZ3RHMTlaT2lobjc2clh5UllwZXlpTF9PZUF1d2lsNm9ZNHdObjB3d1pEZ21ReEFweTl4dkZNMEl2Q1ItNUNtaEU0SW9GbTVmQnU2SDQ1eG45eUdUd25MSm5YWUFtYk5iaGo3T0J4V1d6cDZZenZtRTZadWxFQi1oNkt6dTFVUlRJaVBaZVk?oc=5",
-   "published": "2026-10-26T18:22:10+00:00",
-   "summary": "Fnatic's 2011 LoL World Champion Cyanide Dies at 31 RG.org",
+   "source": "Dexerto",
+   "title": "MSI 2022: Royal Never Give Up take down T1 in nail biting five-game final",
+   "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxPTVYyQ3VCMktGZkRSTERVSnpVYTJpU3VHM09SSmUtcmdPZGJwdVo5MmI2QTUybkdhR3czcjNrRjBuTG5mdEtVMjFkQnlVUWNYdzJEM01BaVlOU0JxeFdHeWhqUlc1YjV3ck0zcjYzU0FYb3h4Z2FGM1kxbERvcjhVb1VZNG5DSDRnLS1wUU5PanZtdkE?oc=5",
+   "published": "2026-10-26T18:12:23+00:00",
+   "summary": "MSI 2022: Royal Never Give Up take down T1 in nail biting five-game final Dexerto",
    "teams": [
-    "Fnatic"
+    "T1"
    ],
    "players": [],
    "score": 0,
@@ -2931,12 +3145,34 @@
   {
    "game": "lol",
    "source": "Dexerto",
-   "title": "MSI 2022: Royal Never Give Up take down T1 in nail biting five-game final",
-   "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxPTVYyQ3VCMktGZkRSTERVSnpVYTJpU3VHM09SSmUtcmdPZGJwdVo5MmI2QTUybkdhR3czcjNrRjBuTG5mdEtVMjFkQnlVUWNYdzJEM01BaVlOU0JxeFdHeWhqUlc1YjV3ck0zcjYzU0FYb3h4Z2FGM1kxbERvcjhVb1VZNG5DSDRnLS1wUU5PanZtdkE?oc=5",
+   "title": "Fnatic’s Rekkles speaks out about Caps leaving for chief rivals G2 Esports",
+   "link": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxNZTJEdVJtVXBXXzk2V1ZnMmFqVk9wVHRkcm9LTkEyN1lVSlZiTnhWU2xzX2JQTWRMRzUxNnNqbGc1MXBMallFX2RTWnRqMmhWQ3N2amNGbVpleFRiS01uYkNuWkRQNUpKNUwteWhHSUh5S1U0MlpvSG0wWDJ0Z3dhZDBQT0JxUW1nbk8xN3h3V2ZobTgwLXN3M09LZ29DeTFfc2hrRUd5ZHJHa0ZRbFNMXzVWeXk2VjhKTEU0?oc=5",
    "published": "2026-10-26T18:12:23+00:00",
-   "summary": "MSI 2022: Royal Never Give Up take down T1 in nail biting five-game final Dexerto",
+   "summary": "Fnatic’s Rekkles speaks out about Caps leaving for chief rivals G2 Esports Dexerto",
    "teams": [
-    "T1"
+    "G2 Esports",
+    "Fnatic"
+   ],
+   "players": [
+    {
+     "name": "Caps",
+     "team": "G2 Esports"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Dexerto",
+   "title": "Cloud9 star Sneaky reveals League of Legends inspired cat cosplay",
+   "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxNSDVJekNMODhOaFgxSjZmZHV4RTNtanEtd05sSDhuYVVQOHBHRy01YW5zRHl1Skc5Ny1RYjVLUHpWNmxvSUxTRXJidVFqaHpqOW9sRzI0dEVzNGdMN0lVNUVIeEw5TVEwMVktZk5JRWd1V1RQOExjNEszWnRjMHhFdEJLNWowRVV1dDdpZ1V2eGNHcGN4QlZ5Nm10aW4?oc=5",
+   "published": "2026-10-26T18:12:23+00:00",
+   "summary": "Cloud9 star Sneaky reveals League of Legends inspired cat cosplay Dexerto",
+   "teams": [
+    "Cloud9"
    ],
    "players": [],
    "score": 0,
@@ -3125,7 +3361,7 @@
    "game": "cs2",
    "source": "TalkEsport",
    "title": "ENCE Bankruptcy: Why the EZ4ENCE Club Collapsed After 13 Years",
-   "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxPajBMYTlTMVNHbmNIb0hvV1ptMkdvbDdDQWEwOXZyRXJBdUtaTXRnZkEtN0x0Mk1uZks3eWJiVUdCVVJYQWtyRXJXang3U3ZRU2UyZ3BaWGE3enp6NFNUakNZZzZuUldrX1I5QmItUTFROC1lUGxDdVNwclEwWEdua3NGdnlKdVNlVGt2ZA?oc=5",
+   "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxNTjA0aWp0dHNMaDZZcFlOTWUwcDZjaTN1QUU3b3V5RjlMdjlEX2ZjVEFDbDVIdUtSRjRFSEFILVV3TThIV0hGMmFMRWVJNEd4N1RQbUR0bjRBQWtwb01ENWxfS1Y1dUZ1cEo2QUcyMmdDS3hacjBlZTJ6TnlCd20xV1Z0aVE4OUNuTFdLY1ZzRl92dw?oc=5",
    "published": "2026-10-26T16:18:32+00:00",
    "summary": "ENCE Bankruptcy: Why the EZ4ENCE Club Collapsed After 13 Years TalkEsport",
    "teams": [
@@ -3371,6 +3607,32 @@
     "The MongolZ"
    ],
    "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Pley.gg",
+   "title": "Derke, d4v41 and marteen top a Valorant transfer market that grows by the day",
+   "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxOZ2hCelNldE9MdzdpV3lsMllCT3VkNUhpbGEwMUpKeFl2Y25lbDNfc0hHNE1LdmFMLWpUVzRjSGNYLW5QejF5RFdhX1JpMWlYbm8wNFg4azBSZDVlUHdqRWc2T2lNeDVad2VaY09PY0dTNUJTZzkzVmJrbGhsTnBYdTVJZDJNcUtMZ0pCcXJlNGNNSWp5ck9WVmZ3?oc=5",
+   "published": "2026-10-26T09:55:42+00:00",
+   "summary": "Derke, d4v41 and marteen top a Valorant transfer market that grows by the day Pley.gg",
+   "teams": [
+    "Team Vitality",
+    "Paper Rex"
+   ],
+   "players": [
+    {
+     "name": "Derke",
+     "team": "Team Vitality"
+    },
+    {
+     "name": "d4v41",
+     "team": "Paper Rex"
+    }
+   ],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -3920,8 +4182,8 @@
    "published": "2026-10-25T17:31:00+00:00",
    "summary": "A 1.57-rated series by try helped Legacy close the series in two.",
    "teams": [
-    "Legacy",
-    "DENDELE"
+    "DENDELE",
+    "Legacy"
    ],
    "players": [],
    "score": 0,
@@ -4341,7 +4603,7 @@
    "reasons": []
   },
   {
-   "game": "cs2",
+   "game": "valorant",
    "source": "TalkEsport",
    "title": "MIBR Benches Entire Valorant Roster, aspas and zekken Now Open to Transfers",
    "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxPUFFVLVhIM0c3OU5uM284YnhNUzEtU3dyMVloTmRVNlJ0S2tRelZYSlkzaE1sSS1HdXozdXFXX3JKSEtRVkFEU2ktZ2hncUdybU5xbHlhVXhtOUdQNFE2c201MlNQRERjMXNhbE1kQjUwb1RYYjRoMDM4ZzBLQkxCaFd6dkZPMDE5N0JR?oc=5",
@@ -4350,7 +4612,12 @@
    "teams": [
     "MIBR"
    ],
-   "players": [],
+   "players": [
+    {
+     "name": "aspas",
+     "team": "MIBR"
+    }
+   ],
    "score": -1,
    "grade": "negative",
    "rules": [
@@ -5490,22 +5757,6 @@
    "reasons": []
   },
   {
-   "game": "lol",
-   "source": "Flashscore.com",
-   "title": "Anyone's Legend - Top Esports 0-1",
-   "link": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxPaERhaUxYSmZmY04yOHM0RXc1TWNNMHZzS0NTSDc4LWJ3MXlYY2tLSFd3QXY2SkdPazJ3akM2RjBMY081YzZ6bVYtNHhFOFZKUTVLSkJQZDdJY1NZWl9KLUc2Y01peGFDeEtzdkFBNXlEZGlOa3h6WDBlRTRKZWhFaFFLQ1M2Sy1hMXBwX2ljSG1ZaWJ6bkx3bm80SGN6YzdSYXJ2ZU9IWjlUam5NbkFNRFliSmdqNm5wNUJQamxLYVY?oc=5",
-   "published": "2026-10-24T07:00:00+00:00",
-   "summary": "Anyone's Legend - Top Esports 0-1 Flashscore.com",
-   "teams": [
-    "Top Esports"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
    "game": "valorant",
    "source": "Esports.net",
    "title": "Wo0t, Meteor and keiko lead early VALORANT off-season exits",
@@ -5521,6 +5772,22 @@
      "team": "Team Heretics"
     }
    ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Flashscore.com",
+   "title": "Anyone's Legend - Top Esports 0-1",
+   "link": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxPaERhaUxYSmZmY04yOHM0RXc1TWNNMHZzS0NTSDc4LWJ3MXlYY2tLSFd3QXY2SkdPazJ3akM2RjBMY081YzZ6bVYtNHhFOFZKUTVLSkJQZDdJY1NZWl9KLUc2Y01peGFDeEtzdkFBNXlEZGlOa3h6WDBlRTRKZWhFaFFLQ1M2Sy1hMXBwX2ljSG1ZaWJ6bkx3bm80SGN6YzdSYXJ2ZU9IWjlUam5NbkFNRFliSmdqNm5wNUJQamxLYVY?oc=5",
+   "published": "2026-10-24T07:00:00+00:00",
+   "summary": "Anyone's Legend - Top Esports 0-1 Flashscore.com",
+   "teams": [
+    "Top Esports"
+   ],
+   "players": [],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -6146,11 +6413,11 @@
    ],
    "players": [
     {
-     "name": "aspas",
+     "name": "zekken",
      "team": "MIBR"
     },
     {
-     "name": "zekken",
+     "name": "aspas",
      "team": "MIBR"
     }
    ],
@@ -7133,8 +7400,8 @@
    "published": "2026-10-22T18:15:00+00:00",
    "summary": "The Mongolian team sealed a run through the lower bracket with a dominant 3-0 sweep in the grand final.",
    "teams": [
-    "The MongolZ",
     "PRIVATE",
+    "The MongolZ",
     "PARIVISION"
    ],
    "players": [],
@@ -7168,8 +7435,8 @@
    "published": "2026-10-22T17:03:00+00:00",
    "summary": "FaZe secured crucial wins for their Major hopes before bowing out at the hands of BC.Game.",
    "teams": [
-    "Envy",
     "FaZe",
+    "Envy",
     "BC.Game",
     "HEROIC"
    ],
@@ -7194,26 +7461,6 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
-  },
-  {
-   "game": "dota2",
-   "source": "Hawk Live",
-   "title": "Team Yandex Unexpectedly Announced a Roster Change for Its Dota 2 Team",
-   "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxQNVlhUHJGUGpvTVVJWnQ1Z012WmZSeVFSTUdubmcxZ2IyNmp4aEtJNGtZX1ZfNDdNb0M0TWRfQjRyZ1BoeVBwdFFScHFxbFc1MEhwb1NVWFZycGpvbTNMejdobEx1Ym9hbE9tVVd1a3BhYVNMZFBCM3d2MWxRVi1ZbUR0bHhhSjNFbEFNZg?oc=5",
-   "published": "2026-10-22T16:16:00+00:00",
-   "summary": "Team Yandex Unexpectedly Announced a Roster Change for Its Dota 2 Team Hawk Live",
-   "teams": [
-    "Team Yandex"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
   },
   {
    "game": "lol",
@@ -7291,33 +7538,6 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "EGamersWorld",
-   "title": "Cloud9 Support Vulcan Signs Long-Term Extension Through 2029",
-   "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxObmdxT1lJRWhVUDdzOGx4N055bjZNb2RpZGhCOW5aUUIwRm1hcmFybWxyOVYxbE9TOFJIeXNkYjJWakx2enlVVE9IYjMyMFEwMllLb0pqS0FKb0dWX3cwQkxjMDBTZU95d1M5VU5Xa1hrOWd6RUxtQjlWUWdoME9TNExPNjZpZnVkaUVPOGpRVnlmSlBpSFFGS292UEM?oc=5",
-   "published": "2026-10-22T11:33:40+00:00",
-   "summary": "Cloud9 Support Vulcan Signs Long-Term Extension Through 2029 EGamersWorld",
-   "teams": [
-    "Cloud9"
-   ],
-   "players": [
-    {
-     "name": "Vulcan",
-     "team": "Cloud9"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing",
-    "extension"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet",
-    "a contract is extended"
-   ]
   },
   {
    "game": "lol",
@@ -7522,6 +7742,33 @@
    "reasons": []
   },
   {
+   "game": "lol",
+   "source": "EGamersWorld",
+   "title": "Cloud9 Support Vulcan Signs Long-Term Extension Through 2029",
+   "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxObmdxT1lJRWhVUDdzOGx4N055bjZNb2RpZGhCOW5aUUIwRm1hcmFybWxyOVYxbE9TOFJIeXNkYjJWakx2enlVVE9IYjMyMFEwMllLb0pqS0FKb0dWX3cwQkxjMDBTZU95d1M5VU5Xa1hrOWd6RUxtQjlWUWdoME9TNExPNjZpZnVkaUVPOGpRVnlmSlBpSFFGS292UEM?oc=5",
+   "published": "2026-10-22T07:00:00+00:00",
+   "summary": "Cloud9 Support Vulcan Signs Long-Term Extension Through 2029 EGamersWorld",
+   "teams": [
+    "Cloud9"
+   ],
+   "players": [
+    {
+     "name": "Vulcan",
+     "team": "Cloud9"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing",
+    "extension"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet",
+    "a contract is extended"
+   ]
+  },
+  {
    "game": "dota2",
    "source": "GosuGamers",
    "title": "Team Liquid reveal Malr1ne as new mid laner",
@@ -7544,6 +7791,26 @@
   },
   {
    "game": "dota2",
+   "source": "Hawk Live",
+   "title": "Team Yandex Unexpectedly Announced a Roster Change for Its Dota 2 Team",
+   "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxQNVlhUHJGUGpvTVVJWnQ1Z012WmZSeVFSTUdubmcxZ2IyNmp4aEtJNGtZX1ZfNDdNb0M0TWRfQjRyZ1BoeVBwdFFScHFxbFc1MEhwb1NVWFZycGpvbTNMejdobEx1Ym9hbE9tVVd1a3BhYVNMZFBCM3d2MWxRVi1ZbUR0bHhhSjNFbEFNZg?oc=5",
+   "published": "2026-10-22T07:00:00+00:00",
+   "summary": "Team Yandex Unexpectedly Announced a Roster Change for Its Dota 2 Team Hawk Live",
+   "teams": [
+    "Team Yandex"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "dota2",
    "source": "Dexerto",
    "title": "Team Liquid announce shock exit of Dota 2 roster",
    "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxPdDZLRmNpTzZxRlk4ZmVld0NJVDJVNFMyU3FDZzQyRW8yZEhsSy1IdjFPMy1xZzUtYkRnZ2tUMURoOG1hbU4yNVVLNVhhRkJCLVhBOUx1OGRPTzJSMldMdUs3TjhjNXR2UnA4WW85V3RMRWhzemtFZmxMWFJ0UHdsVU5IdEd6SDVUNlcxV0E3REo?oc=5",
@@ -7561,277 +7828,6 @@
    "reasons": [
     "a new player joins; no record with the team yet"
    ]
-  },
-  {
-   "game": "lol",
-   "source": "Hotspawn",
-   "title": "AL Kael on how the team got better: “I tried to have more conversations so everyone would feel comfortable.”",
-   "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxONmZjSi1hMHBWV1F1Q1VDQmFVT1hqaFM0QjhCZnBBY19fNWlYcmJ2b2JYZWpqeVdGSXp2eGhKLVdZX1NSeURkSzhGc1h6LVpmMlRvTnRyZnRvektDZTNmVFUzVG5LbDhpdm9LVU9zZWpwX1pnUFlaRjB2OXY2c1Y1aTBKQQ?oc=5",
-   "published": "2026-10-22T04:41:18+00:00",
-   "summary": "AL Kael on how the team got better: “I tried to have more conversations so everyone would feel comfortable.” Hotspawn",
-   "teams": [
-    "Anyone s Legend"
-   ],
-   "players": [
-    {
-     "name": "Kael",
-     "team": "Anyone s Legend"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Hotspawn",
-   "title": "AL Kael Worlds 2026 Interview",
-   "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxONmZjSi1hMHBWV1F1Q1VDQmFVT1hqaFM0QjhCZnBBY19fNWlYcmJ2b2JYZWpqeVdGSXp2eGhKLVdZX1NSeURkSzhGc1h6LVpmMlRvTnRyZnRvektDZTNmVFUzVG5LbDhpdm9LVU9zZWpwX1pnUFlaRjB2OXY2c1Y1aTBKQQ?oc=5",
-   "published": "2026-10-22T04:41:18+00:00",
-   "summary": "AL Kael Worlds 2026 Interview Hotspawn",
-   "teams": [
-    "Anyone s Legend"
-   ],
-   "players": [
-    {
-     "name": "Kael",
-     "team": "Anyone s Legend"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Hotspawn",
-   "title": "Gen.G Canyon Shares The ONE Thing The Team Learned In 2026",
-   "link": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxQTlVqbzFjZm5LX1BYZW44OHdFR2c5cW9Ma1daT3RCcFpYcjZOSE51Tm82T0RvcVlaRHdBU01WSk8tdVJDQllMMk4zcjVMdkZXRUpQSlNXSy1xZTZZUEhRd2xVR3BNS2lIU1JVeXFZLW9BUXRDZ1NBakx1Zk9KT0NzbWlWU1p4T1A0?oc=5",
-   "published": "2026-10-22T04:16:35+00:00",
-   "summary": "Gen.G Canyon Shares The ONE Thing The Team Learned In 2026 Hotspawn",
-   "teams": [
-    "Gen.G"
-   ],
-   "players": [
-    {
-     "name": "Canyon",
-     "team": "Gen.G"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Howl.link",
-   "title": "Worlds 2026 Swiss Stage Asset Day | Zeka of Hanwha Life Espo… | Flickr",
-   "link": "https://news.google.com/rss/articles/CBMiO0FVX3lxTE9RSFAzUk0zdE52ZzlSMjc4SV8ySmdvTEpJNHJtSkxhNVE0WFdmdExhWkhCWDNBQzkyMXJJ?oc=5",
-   "published": "2026-10-22T02:37:51+00:00",
-   "summary": "Worlds 2026 Swiss Stage Asset Day | Zeka of Hanwha Life Espo… | Flickr Howl.link",
-   "teams": [
-    "Hanwha Life Esports"
-   ],
-   "players": [
-    {
-     "name": "Zeka",
-     "team": "Hanwha Life Esports"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "미주중앙일보",
-   "title": "LoL Worlds 2026 — Gen.G and Hanwha Life Draw LPL Rivals in Swiss Stage 1",
-   "link": "https://news.google.com/rss/articles/CBMia0FVX3lxTFByYXlGMGxsUW0wV1ZBc0xZbXF1VXVGR1h6alNaN3JmbExFZWZxQ3BEb3hPRDhMWTRFWWQtRFItcXVCYmJ0dHV5MGN2eHlEcFE5T3Vkbk9jMWo1UFZTNkNkOHY4UUlLTXRYSmh3?oc=5",
-   "published": "2026-10-21T23:10:33+00:00",
-   "summary": "LoL Worlds 2026 — Gen.G and Hanwha Life Draw LPL Rivals in Swiss Stage 1 미주중앙일보",
-   "teams": [
-    "Gen.G",
-    "Hanwha Life Esports"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "GINX TV",
-   "title": "GamerLegion move veteran IGL Snax off active CS2 roster",
-   "link": "https://news.google.com/rss/articles/CBMiaEFVX3lxTFBWOHI1NjhSSUZJdUxVT1VWVU9hZ2NRdXlreUdjX2hvMkNIMDJld3Y5UHBvbXhsWEVKVmlkTUZDOTlKSzI1Z1BzcmtYbnFrUFVJa2p5S2h2WEZJaWEzczZKYzhXaU82d3lm?oc=5",
-   "published": "2026-10-21T22:06:06+00:00",
-   "summary": "GamerLegion move veteran IGL Snax off active CS2 roster GINX TV",
-   "teams": [
-    "GamerLegion"
-   ],
-   "players": [
-    {
-     "name": "Snax",
-     "team": "GamerLegion"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "Skin.Club Community",
-   "title": "GamerLegion Sign shalfey as New In-Game Leader",
-   "link": "https://news.google.com/rss/articles/CBMiigFBVV95cUxQOTljZERxaUlodXhXbmtFZHhyLXpfbDVBSnUyUzdfZzdONDFTNHltOWxWRUVidG1wYmR6N0d6enAzNnZuZWJhdUtiZVdndGVHNFY1d1h2Y1VWbmExOHotdFVJT3pFckJPLWMyOUt3NGFLT2lIVW5xMFVJYWpGc282UzA1YlpZaHVqRHc?oc=5",
-   "published": "2026-10-21T22:04:35+00:00",
-   "summary": "GamerLegion Sign shalfey as New In-Game Leader Skin.Club Community",
-   "teams": [
-    "GamerLegion"
-   ],
-   "players": [
-    {
-     "name": "shalfey",
-     "team": "GamerLegion"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
-   "game": "lol",
-   "source": "Hotspawn",
-   "title": "TES Zhuo on reaching Worlds: “It’s an opportunity that didn’t come easily, so I want to take it all in.”",
-   "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxNUjIzLUt6alhKQmxLeWRmTFJUZVdUUEdLNzJZWnNWVnhDclhPb1N3QjJsVXYwV1cxQTNGaTNsWDJHNU5CSjl4aE5mWE9rcDNIV1VTVWxuMms3NGdJOGdWUlprMHdFOEh2QVhLandPZExpX3c0ZFpwTEpsS1p2UHctbVV0LWM?oc=5",
-   "published": "2026-10-21T21:27:18+00:00",
-   "summary": "TES Zhuo on reaching Worlds: “It’s an opportunity that didn’t come easily, so I want to take it all in.” Hotspawn",
-   "teams": [
-    "Top Esports"
-   ],
-   "players": [
-    {
-     "name": "Zhuo",
-     "team": "Top Esports"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "HLTV",
-   "title": "1eeR on promising results with PRIVATE: \"We don't have a coach right now, so I do all the work. We work 14-16 hours, without exaggeration\"",
-   "link": "https://www.hltv.org/news/45773/1eer-on-promising-results-with-private-we-dont-have-a-coach-right-now-so-i-do-all-the-work-we-work-14-16-hours-without-exaggeration",
-   "published": "2026-10-21T21:25:00+00:00",
-   "summary": "The former Nemiga captain is putting in a lot of hours as he looks to help his team contend at tier two LANs early on.",
-   "teams": [
-    "Nemiga",
-    "PRIVATE"
-   ],
-   "players": [
-    {
-     "name": "1eeR",
-     "team": "PRIVATE"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "coach"
-   ],
-   "reasons": [
-    "a coaching change"
-   ]
-  },
-  {
-   "game": "valorant",
-   "source": "Dot Esports",
-   "title": "T1 reportedly parting ways with Munchkin, Meteor and DH after best-ever Champions run",
-   "link": "https://news.google.com/rss/articles/CBMifEFVX3lxTE5JZUg1cXJ4UlNiSEpMWW1XX2N3ak9zTkFNWDhGZU9qbDRqdENCSFd2TGlwQk9QYWZwYS1vYjZHdGRDOXdYY2xVa29iR0NpM3Q3NjE3V1BHWGczMmdKQnM0Q2hBYm1DbjZhSUFBaXBrRTZwbkFkYTV0ZXA5MHo?oc=5",
-   "published": "2026-10-21T20:38:00+00:00",
-   "summary": "T1 reportedly parting ways with Munchkin, Meteor and DH after best-ever Champions run Dot Esports",
-   "teams": [
-    "T1"
-   ],
-   "players": [
-    {
-     "name": "Meteor",
-     "team": "T1"
-    },
-    {
-     "name": "Munchkin",
-     "team": "T1"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "HLTV",
-   "title": "PARIVISION qualify for 1win Private Club S2 final, fnatic and magic eliminated",
-   "link": "https://www.hltv.org/news/45772/parivision-qualify-for-1win-private-club-s2-final-fnatic-and-magic-eliminated",
-   "published": "2026-10-21T20:30:00+00:00",
-   "summary": "The early eliminations are a big blow to both squads' Singapore Major chances.",
-   "teams": [
-    "fnatic",
-    "magic",
-    "PRIVATE",
-    "PARIVISION"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Inven Global",
-   "title": "TenZ signals VALORANT comeback with LFT post",
-   "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxQSXpKS0NWa1hudnVuakVpOXp2amJ0RmNhcUZ2VWJRZGFJT2VxQ0VDNUk4X2ZTZFJ2bUxKMDVTam9BTHVuV25vZ01BeFprdUYteVhIUEltUUxTM1d3ZTh3d0dBdXdpdExyZzU2Qy1ONU8tamZsaTZucmZzeDBFTkVZWmtJSWs2Q3BXbEhCU3cydTU?oc=5",
-   "published": "2026-10-21T19:32:47+00:00",
-   "summary": "TenZ signals VALORANT comeback with LFT post Inven Global",
-   "teams": [
-    "Global Esports"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "Skin.Club",
-   "title": "Prediction for Legacy vs Nemiga at PGL Masters Bucharest 2026",
-   "link": "https://news.google.com/rss/articles/CBMingFBVV95cUxQdUZBUk4wdzc0RVpFLWdWR3NEVlFFZ1J6Q1Fsdk5zV3B0NmhPYUNNTDJtWm5uTGctYUloNS1rdnpSRkVuU01yZExacWFsTTBiRWlsNTJxcGdhZ0U2SlZWcV9lblowLXBEX2Q5SWh5d3ViR2taR1B1dEV2OWpEX3RmeWNDOVA1QmdzUmd0eDNFRFRQekM3czNJNll3WUZUUQ?oc=5",
-   "published": "2026-10-21T19:17:12+00:00",
-   "summary": "Prediction for Legacy vs Nemiga at PGL Masters Bucharest 2026 Skin.Club",
-   "teams": [
-    "Nemiga",
-    "Legacy"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
   }
  ],
  "signals": {
@@ -7904,13 +7900,6 @@
      "stand-in"
     ]
    },
-   "MIBR": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "benched"
-    ]
-   },
    "MOUZ": {
     "score": 1,
     "items": 1,
@@ -7937,27 +7926,6 @@
     "items": 1,
     "rules": [
      "benched"
-    ]
-   },
-   "BC.Game": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "departure"
-    ]
-   },
-   "Sashi": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "departure"
-    ]
-   },
-   "Rooster": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "departure"
     ]
    }
   },
@@ -8009,13 +7977,6 @@
   },
   "lol": {
    "Team Heretics": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "departure"
-    ]
-   },
-   "SK Gaming": {
     "score": -1,
     "items": 1,
     "rules": [
