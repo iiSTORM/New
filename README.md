@@ -1762,6 +1762,30 @@ hundred. That is weeks away, not minutes.
 That is the whole list. Five items answered by measurement, one collected and
 waiting on data, three closed off as unreachable from the providers in use.
 
+### Nov 1: line movement, map windows, and the odds capture
+
+**Lines move toward a player's season average.** Of standard props seen on two
+boards at different lines, the move went the model's way 61% of the time in
+CS2 (96/157), 64% in Valorant (45/70) and 50% in LoL (29/58), each with the
+projection made from data before the line was first seen. A plain season
+average calls the moves just as well (62%, 64%), so this is how PrizePicks
+moves its lines, not model skill. Taking the season-average side at the
+**opening** line won 59% in CS2 against 55% at the closing line (141 props).
+That is possibly worth having, but too few props to rely on. Uploading CS2
+boards early is the cheap way to find out.
+
+**LoL maps 1-3 lines are where the model is strongest.** Model side right
+118/170 (69%), with lower error than the line (3.32 against 3.76). Map 1 is
+104/191 and maps 1-2 is 76/151. These lines come mostly from Bo5 series, and a
+maps 1-3 line in a Bo3 is voided when no third map is played, so the
+three-map projection already matches how they settle.
+
+**The CS2 odds capture was dead from about Oct 13 to Nov 1.** bo3.gg moved its
+prices to Thunderpick, whose links are one `/match/{id}` page for both books,
+and the `/en/line/` check refused every price. A Thunderpick price is now kept
+when the match has not started, by its own start time. The run log names the
+refusal reason, so the next format change shows up in the log.
+
 ### Re-measured on Oct 22: CS2's model now carries information, at a third of its size
 
 `python scripts/dev/line_realization.py --json scripts/dev/line_realization.json`
