@@ -922,6 +922,17 @@ async def build_region_payload(cs2, session):
         # play starts and never serves the pre-match one again, so a run that
         # does not write it down loses it -- see scripts/odds_store.py.
         odds = map_context.from_bet_updates(m.get("bet_updates"))
+        if not odds and m.get("bet_updates"):
+            why = map_context.why_not_pre_match(m.get("bet_updates")) or "prices out of range or malformed"
+            upcoming_stats.setdefault("odds_refused", {})
+            upcoming_stats["odds_refused"][why] = upcoming_stats["odds_refused"].get(why, 0) + 1
+            if "odds_sample" not in upcoming_stats:
+                bu = m.get("bet_updates")
+                upcoming_stats["odds_sample"] = json.dumps(
+                    {k: (v if not isinstance(v, (dict, list)) else
+                         ({kk: vv for kk, vv in v.items() if kk in ("name", "coeff", "active")}
+                          if isinstance(v, dict) else f"list[{len(v)}]"))
+                     for k, v in (bu.items() if isinstance(bu, dict) else [])}, default=str)[:600]
         slug = m.get("slug")
         if odds and slug:
             upcoming_stats["odds"] += 1
@@ -1013,6 +1024,11 @@ async def build_region_payload(cs2, session):
     try:
         total = odds_store.save(captured_odds,
                                 generated_at=datetime.now(timezone.utc).isoformat())
+        if upcoming_stats.get("odds_refused"):
+            # Odds present but refused: the capture has silently recorded
+            # nothing since 2026-09-30, and this is what says why.
+            print(f"  pre-match odds refused: {upcoming_stats['odds_refused']}")
+            print(f"  one refused bet_updates, shape only: {upcoming_stats.get('odds_sample')}")
         print(f"  pre-match odds: {upcoming_stats['odds']} upcoming matches priced "
               f"this run, {upcoming_stats['odds_new']} new or moved, "
               f"{total} matches stored in total\n")

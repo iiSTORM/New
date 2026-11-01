@@ -348,3 +348,13 @@ def test_a_settled_anchor_next_to_a_live_two_way_one_does_not_poison_it():
     books = mc.parse_odds(SETTLED + anchor())
     assert len(books) == 1
     assert books[0]["prices"] == {"G2 Esports": 2.29, "Paper Rex": 1.58}
+
+
+def test_why_not_pre_match_names_the_failing_check():
+    from map_context import why_not_pre_match
+    ok = {"path": "/en/line/x", "team_1": {"active": True}, "team_2": {"active": True}, "markets_count": 16}
+    assert why_not_pre_match(ok) is None
+    assert why_not_pre_match({**ok, "path": "/en/live/x"}) == "in-play path"
+    assert why_not_pre_match({**ok, "path": "/en/sport/x"}).startswith("path not /en/line/")
+    assert why_not_pre_match({**ok, "team_2": {"active": False}}) == "a side not active"
+    assert why_not_pre_match({**ok, "markets_count": 2}) == "markets_count 2"

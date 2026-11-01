@@ -269,6 +269,24 @@ def is_pre_match(bet_updates):
     return (bet_updates.get("markets_count") or 0) > 2
 
 
+def why_not_pre_match(bet_updates):
+    """Which of is_pre_match's checks a record fails, for the run log, or
+    None when it passes. Kept beside the check so the two cannot drift."""
+    if not isinstance(bet_updates, dict):
+        return "no bet_updates"
+    path = bet_updates.get("path") or ""
+    if _LIVE_PATH.search(path):
+        return "in-play path"
+    if not _LINE_PATH.search(path):
+        return f"path not /en/line/ ({path[:40] or 'empty'})"
+    sides = [bet_updates.get("team_1"), bet_updates.get("team_2")]
+    if not all(isinstance(s, dict) and s.get("active") for s in sides):
+        return "a side not active"
+    if (bet_updates.get("markets_count") or 0) <= 2:
+        return f"markets_count {bet_updates.get('markets_count')}"
+    return None
+
+
 def from_bet_updates(bet_updates, require_pre_match=True):
     """bo3.gg's odds field as the same record shape the vlr side produces.
 
