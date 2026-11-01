@@ -245,9 +245,14 @@ def context_from_page(html):
 #: /en/line/ for the pre-match book, /en/live/ for the in-play one.
 _LINE_PATH = re.compile(r"/en/line/", re.I)
 _LIVE_PATH = re.compile(r"/en/live/", re.I)
+#: bo3.gg moved its odds to Thunderpick around 2026-09-30, whose links are
+#: one /match/{id} page for both books, so the path no longer says which one
+#: a price is from. Such a price is pre-match only while the match has not
+#: started, which the caller knows and passes in as `upcoming`.
+_MATCH_PAGE_PATH = re.compile(r"thunderpick\.io/match/\d+", re.I)
 
 
-def is_pre_match(bet_updates):
+def is_pre_match(bet_updates, upcoming=False):
     """True only when this really is the pre-match book.
 
     Three signals, and all of them have to agree, because being wrong here is
@@ -261,7 +266,9 @@ def is_pre_match(bet_updates):
     if not isinstance(bet_updates, dict):
         return False
     path = bet_updates.get("path") or ""
-    if _LIVE_PATH.search(path) or not _LINE_PATH.search(path):
+    if _LIVE_PATH.search(path):
+        return False
+    if not _LINE_PATH.search(path) and not (upcoming and _MATCH_PAGE_PATH.search(path)):
         return False
     sides = [bet_updates.get("team_1"), bet_updates.get("team_2")]
     if not all(isinstance(s, dict) and s.get("active") for s in sides):
@@ -269,7 +276,7 @@ def is_pre_match(bet_updates):
     return (bet_updates.get("markets_count") or 0) > 2
 
 
-def why_not_pre_match(bet_updates):
+def why_not_pre_match(bet_updates, upcoming=False):
     """Which of is_pre_match's checks a record fails, for the run log, or
     None when it passes. Kept beside the check so the two cannot drift."""
     if not isinstance(bet_updates, dict):
@@ -277,7 +284,9 @@ def why_not_pre_match(bet_updates):
     path = bet_updates.get("path") or ""
     if _LIVE_PATH.search(path):
         return "in-play path"
-    if not _LINE_PATH.search(path):
+    if not _LINE_PATH.search(path) and not (upcoming and _MATCH_PAGE_PATH.search(path)):
+        if _MATCH_PAGE_PATH.search(path):
+            return "match page, but the match has started"
         return f"path not /en/line/ ({path[:40] or 'empty'})"
     sides = [bet_updates.get("team_1"), bet_updates.get("team_2")]
     if not all(isinstance(s, dict) and s.get("active") for s in sides):
@@ -287,7 +296,7 @@ def why_not_pre_match(bet_updates):
     return None
 
 
-def from_bet_updates(bet_updates, require_pre_match=True):
+def from_bet_updates(bet_updates, require_pre_match=True, upcoming=False):
     """bo3.gg's odds field as the same record shape the vlr side produces.
 
     The affiliate link is deliberately NOT carried through: it is a tracking
@@ -296,7 +305,7 @@ def from_bet_updates(bet_updates, require_pre_match=True):
     """
     if not isinstance(bet_updates, dict):
         return {}
-    if require_pre_match and not is_pre_match(bet_updates):
+    if require_pre_match and not is_pre_match(bet_updates, upcoming):
         return {}
     prices = {}
     for side in ("team_1", "team_2"):

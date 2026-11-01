@@ -921,9 +921,13 @@ async def build_region_payload(cs2, session):
         # is upcoming. bo3.gg replaces it with the in-play price the moment
         # play starts and never serves the pre-match one again, so a run that
         # does not write it down loses it -- see scripts/odds_store.py.
-        odds = map_context.from_bet_updates(m.get("bet_updates"))
+        # Not yet started, by its own start time: what tells a Thunderpick
+        # price (one link for both books) from the in-play one.
+        not_started = start is not None and start > datetime.now(timezone.utc)
+        odds = map_context.from_bet_updates(m.get("bet_updates"), upcoming=not_started)
         if not odds and m.get("bet_updates"):
-            why = map_context.why_not_pre_match(m.get("bet_updates")) or "prices out of range or malformed"
+            why = (map_context.why_not_pre_match(m.get("bet_updates"), upcoming=not_started)
+                   or "prices out of range or malformed")
             upcoming_stats.setdefault("odds_refused", {})
             upcoming_stats["odds_refused"][why] = upcoming_stats["odds_refused"].get(why, 0) + 1
             if "odds_sample" not in upcoming_stats:
@@ -1027,7 +1031,10 @@ async def build_region_payload(cs2, session):
         if upcoming_stats.get("odds_refused"):
             # Odds present but refused: the capture has silently recorded
             # nothing since 2026-09-30, and this is what says why.
-            print(f"  pre-match odds refused: {upcoming_stats['odds_refused']}")
+            refused = collections.Counter()
+            for why, n in upcoming_stats["odds_refused"].items():
+                refused[why.split(" (")[0]] += n
+            print(f"  pre-match odds refused: {dict(refused)}")
             print(f"  one refused bet_updates, shape only: {upcoming_stats.get('odds_sample')}")
         print(f"  pre-match odds: {upcoming_stats['odds']} upcoming matches priced "
               f"this run, {upcoming_stats['odds_new']} new or moved, "

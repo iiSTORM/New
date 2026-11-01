@@ -358,3 +358,19 @@ def test_why_not_pre_match_names_the_failing_check():
     assert why_not_pre_match({**ok, "path": "/en/sport/x"}).startswith("path not /en/line/")
     assert why_not_pre_match({**ok, "team_2": {"active": False}}) == "a side not active"
     assert why_not_pre_match({**ok, "markets_count": 2}) == "markets_count 2"
+
+
+THUNDERPICK = {"path": "https://thunderpick.io/match/2928498", "provider": "thunderpick", "markets_count": 31,
+               "team_1": {"name": "Metizport", "coeff": 2.4, "active": True},
+               "team_2": {"name": "WBT Academy", "coeff": 1.55, "active": True},
+               "additional_markets": [{"bet_type": "total_maps_over_2_5", "coeff": 2.1},
+                                      {"bet_type": "total_maps_under_2_5", "coeff": 1.7}]}
+
+
+def test_a_thunderpick_price_is_kept_only_before_the_match_starts():
+    from map_context import from_bet_updates, why_not_pre_match
+    got = from_bet_updates(THUNDERPICK, upcoming=True)
+    assert set(got["prices"]) == {"Metizport", "WBT Academy"} and got["total_maps"]["over_2_5"] == 2.1
+    assert from_bet_updates(THUNDERPICK, upcoming=False) == {}       # started: could be the in-play book
+    assert why_not_pre_match(THUNDERPICK, upcoming=False) == "match page, but the match has started"
+    assert why_not_pre_match(THUNDERPICK, upcoming=True) is None
