@@ -244,6 +244,70 @@ def apply_roster_overrides(data, overrides=ROSTER_OVERRIDES):
               + (f" in place of {o['replaces']}" if o.get("replaces") else ""))
 
 
+LOL_ROLES = ("TOP", "JNG", "MID", "BOT", "SUP")
+
+
+def _handle_key(name):
+    return "".join(ch for ch in str(name or "").lower() if ch.isalnum())
+
+
+def _when(match):
+    return str(match.get("start_time") or match.get("date") or "")
+
+
+def detect_substitutions(data, skip=()):
+    """Put a stand-in on his team's roster without anyone having to notice.
+
+    gol.gg's roster is the current split's player list, so a player who sat
+    the split out and came back (369 for Top Esports at Worlds, 2026-10-23)
+    is missing from it, and every projection for his team fails. His team's
+    most recent match, in its league or at an event, says who actually
+    played. When exactly one player in that box score is not on the roster
+    and exactly one of the five positions was played by nobody on it, he is
+    filling that position: his entry is built from his own games for the
+    team (record_from_matches) and the rostered players in that position who
+    did not play make way. Re-derived every run from the fresh roster, so a
+    one-off stand-in is gone again once the regular returns. Returns the
+    changes made, for the run log."""
+    regions = data.get("regions") or {}
+    every = [m for r in regions.values() for m in (r.get("past_matches") or []) if m.get("actual")]
+    latest = {}
+    for m in every:
+        for team in m["actual"]:
+            if team not in latest or _when(m) > _when(latest[team]):
+                latest[team] = m
+    made = []
+    for key, region in regions.items():
+        if key in skip:
+            continue
+        for team, info in (region.get("teams") or {}).items():
+            m = latest.get(team)
+            players = info.get("players") or []
+            if not m or not players:
+                continue
+            played = set(m["actual"].get(team) or {})
+            rostered = {p.get("name") for p in players}
+            # A handle spelled two ways is one player, not a stand-in:
+            # "Naak Nako" in a box score is Vitality's rostered "NaakNako".
+            same = {_handle_key(p.get("name")) for p in players}
+            new = sorted(n for n in played - rostered if _handle_key(n) not in same)
+            played_keys = {_handle_key(n) for n in played}
+            covered = {p.get("role") for p in players if _handle_key(p.get("name")) in played_keys}
+            open_roles = [r for r in LOL_ROLES if r not in covered]
+            if len(new) != 1 or len(open_roles) != 1:
+                continue
+            games = [g for g in every if new[0] in ((g.get("actual") or {}).get(team) or {})]
+            record = record_from_matches(games, team, new[0], open_roles[0])
+            if record is None:
+                continue
+            record["hist"] = None
+            out = [p for p in players if p.get("role") == open_roles[0]
+                   and _handle_key(p.get("name")) not in played_keys]
+            info["players"] = [p for p in players if p not in out] + [record]
+            made.append((key, team, new[0], open_roles[0], [p.get("name") for p in out]))
+    return made
+
+
 def merge_career_data(data):
     """Folds each player's decayed career baseline (from scrape_career.py's
     output) into their existing record in data.json. career_data.json is
@@ -573,6 +637,9 @@ def main():
         print(f"{region_key}: merged {len(upcoming)}/{len(region_schedule)} upcoming matches{suffix}")
 
     apply_roster_overrides(data)
+    for key, team, player, role, out in detect_substitutions(data, skip=INTERNATIONAL_EVENTS):
+        print(f"{key}: {player} plays {role} for {team} in their latest match and is not on the "
+              f"roster; added from his own games" + (f" in place of {', '.join(out)}" if out else ""))
     merge_international(data, schedule)
     merge_career_data(data)
 

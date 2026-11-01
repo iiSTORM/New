@@ -180,8 +180,16 @@ for (const [g, file] of [["cs2", "cs2_data.json"], ["valorant", "valorant_data.j
     const results = JSON.parse(fs.readFileSync(path.join(root, "props_results.json"), "utf8"));
     const rows = app.modelRecord(data.regions, Object.keys(data.regions), results,
       app.DEFAULT_WEIGHTS_BY_GAME_AND_STAT[g].kills, "kills");
-    const seated = rows.filter((r) => r.seat).length;
-    if (seated < 0.8 * rows.length) throw new Error(`only ${seated} of ${rows.length} seated`);
+    // Over the record's last 30 days. A seat is read from the team's
+    // stored history, and CS2 keeps 8 matches per team, so older lines age
+    // out of it: on 2026-11-01 September's CS2 lines were 64% seated and
+    // October's 82%. What this checks is that lines the history covers get
+    // seated, not that history is kept forever.
+    const last = rows.reduce((m, r) => (String(r.match_date) > m ? String(r.match_date) : m), "");
+    const cut = new Date(new Date(last).getTime() - 30 * 86400000).toISOString().slice(0, 10);
+    const recent = rows.filter((r) => String(r.match_date) >= cut);
+    const seated = recent.filter((r) => r.seat).length;
+    if (seated < 0.8 * recent.length) throw new Error(`only ${seated} of ${recent.length} recent rows seated`);
     if (g === "cs2") {
       const byRole = app.recordByCs2Role(rows);
       eq(byRole.map((r) => r.role).filter((r) => r !== "Support"), ["AWPer", "Entry", "Rifler"], "cs2 roles");

@@ -332,3 +332,45 @@ def test_a_roster_override_puts_the_player_in_from_his_own_games():
     assert p["cur"]["kp"] == round(100 * (6 + 19) / 20, 1)
     merge.apply_roster_overrides(data, overrides)                    # idempotent
     assert [p["name"] for p in data["regions"]["LPL"]["teams"]["Top Esports"]["players"]] == ["Creme", "369"]
+
+
+def _team(*names_roles):
+    return {"players": [{"name": n, "role": r, "cur": {"g": 30}} for n, r in names_roles]}
+
+
+def test_a_stand_in_in_the_latest_match_takes_the_open_position():
+    import merge
+    roster = _team(("ZUIAN", "TOP"), ("Tian", "JNG"), ("Creme", "MID"), ("JackeyLove", "BOT"), ("Zhuo", "SUP"))
+    box = lambda top: {"Top Esports": {top: {"k": 2, "d": 3, "a": 4}, "Tian": {"k": 1, "d": 1, "a": 1},
+                                       "Creme": {"k": 3, "d": 1, "a": 2}, "JackeyLove": {"k": 4, "d": 1, "a": 1},
+                                       "Zhuo": {"k": 0, "d": 2, "a": 6}}}
+    data = {"regions": {
+        "LPL": {"teams": {"Top Esports": roster},
+                "past_matches": [{"date": "2026-08-01", "games": 2, "actual": box("ZUIAN")},
+                                 {"date": "2026-03-01", "games": 2, "actual": box("369")}]},
+        "Worlds": {"teams": {}, "past_matches": [{"date": "2026-10-23", "start_time": "2026-10-23T18:00:00Z",
+                                                  "maps_counted": 1, "actual": box("369")}]}}}
+    made = merge.detect_substitutions(data, skip=("Worlds",))
+    assert made == [("LPL", "Top Esports", "369", "TOP", ["ZUIAN"])]
+    names = [p["name"] for p in data["regions"]["LPL"]["teams"]["Top Esports"]["players"]]
+    assert "369" in names and "ZUIAN" not in names
+    rec = [p for p in data["regions"]["LPL"]["teams"]["Top Esports"]["players"] if p["name"] == "369"][0]
+    assert rec["role"] == "TOP" and rec["cur"]["g"] == 3 and "hist" in rec
+
+
+def test_no_change_when_the_regular_line_up_played_or_it_is_ambiguous():
+    import merge
+    roster = _team(("A", "TOP"), ("B", "JNG"), ("C", "MID"), ("D", "BOT"), ("E", "SUP"))
+    full = {"T": {n: {"k": 1, "d": 1, "a": 1} for n in "ABCDE"}}
+    two_new = {"T": {n: {"k": 1, "d": 1, "a": 1} for n in ("X", "Y", "C", "D", "E")}}
+    for actual in (full, two_new):
+        data = {"regions": {"L": {"teams": {"T": dict(roster)}, "past_matches": [{"date": "2026-10-01", "actual": actual}]}}}
+        assert merge.detect_substitutions(data) == []
+
+
+def test_a_handle_spelled_two_ways_is_not_a_stand_in():
+    import merge
+    roster = _team(("NaakNako", "TOP"), ("B", "JNG"), ("C", "MID"), ("D", "BOT"), ("E", "SUP"))
+    actual = {"T": {n: {"k": 1, "d": 1, "a": 1} for n in ("Naak Nako", "B", "C", "D", "E")}}
+    data = {"regions": {"L": {"teams": {"T": roster}, "past_matches": [{"date": "2026-10-01", "actual": actual}]}}}
+    assert merge.detect_substitutions(data) == []
