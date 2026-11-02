@@ -55,6 +55,7 @@ from score_props import window_is_covered
 from team_aliases import prefer_a_real_name, reconcile
 import map_context
 import odds_store
+import series_score
 
 BO3_BASE = "https://api.bo3.gg/api/v1"
 HEADERS = {
@@ -650,6 +651,9 @@ async def fetch_match_actuals(session, match_slug, canonical_name_by_team_id):
 
     t1s, t2s = match.get("team1_score"), match.get("team2_score")
     score_str = f"{t1s}-{t2s}" if t1s is not None and t2s is not None else ""
+    # bo3.gg's team1/team2 order, not necessarily team_names': turned to
+    # read team_names[0]-team_names[1] by the winner, as every game reads.
+    score_str = series_score.orient(score_str, team_names[0], team_names[1], winner_name)
     match_date = match.get("start_date")  # confirmed real field — "date" is not
 
     # maps_played stays the number of maps `totals` covers, not the
@@ -1292,6 +1296,9 @@ async def build_region_payload(cs2, session):
             # wrong records (and, at 0 added, the whole list).
             add_team_players(touched, past_matches, teams_payload, color_state)
 
+    turned = series_score.orient_all(past_matches)
+    if turned:
+        print(f"  turned {turned} series score(s) to read teamA-teamB\n")
     return {"teams": teams_payload, "past_matches": past_matches, "upcoming_matches": upcoming_matches}
 
 

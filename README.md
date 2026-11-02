@@ -1762,6 +1762,37 @@ hundred. That is weeks away, not minutes.
 That is the whole list. Five items answered by measurement, one collected and
 waiting on data, three closed off as unreachable from the providers in use.
 
+### Nov 2: Elo and team-kills-times-share, rejected; CS2 scores fixed; past events backfill
+
+**Elo** (`scripts/dev/elo_probe.py`): a rating per team, updated map by map,
+point in time. It calls series winners 60–68% of the time, so the rating
+works. It explains nothing that the slate's projection and the line miss. No
+cell has a slope whose 95% interval excludes 0, and adding it raised held-out
+error in CS2 kills (5.53 → 5.58) and LoL kills (2.63 → 2.72). LoL's slope is
+negative, so the lines already price the favourite.
+
+**Team kills × the player's share** (`scripts/dev/team_share_probe.py`):
+this projection moves with the current model (r = 0.82–0.91), and blending
+it in adds nothing held out in any game. That agrees with
+`experiment_kill_share.py`, which tested the same idea against actual results.
+
+**CS2 series scores were half backwards.** bo3.gg gives the score in its own
+team order, while the scraper names teamA and teamB in box-score order. The
+stored record read "MOUZ v Vitality, MOUZ won, 0-2" on about half its
+matches. `scripts/series_score.py` now turns the score to fit the winner,
+when a match is scraped and on every stored match. Standings were unaffected
+(they read max/min); Elo was, and called CS2 winners 48% of the time before
+the fix.
+
+**Past international events** (`scripts/backfill_lol_events.py`, the manual
+"Backfill past LoL international events" workflow) fetch finished First
+Stand, MSI, EWC and Worlds events from 2025–26 into
+`lol_events_history.json`. `scripts/dev/international_factors.py` then
+reports, event by event, kills per map in groups against knockouts, and the
+kill ratio between LCK/LPL and LCS/LCP/CBLOL/TCL teams. This tests whether
+`EVENT_PACE` and `CLASS_GAP_KILLS` hold beyond the one event they were
+measured on. The app never reads the file.
+
 ### Nov 2: count distributions, calibration and a market-bias layer, all rejected
 
 `scripts/dev/probability_quality.py` tests three ways to improve the slate

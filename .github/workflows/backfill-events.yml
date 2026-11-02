@@ -1,0 +1,48 @@
+name: Backfill past LoL international events
+
+# Finished First Stand / MSI / EWC / Worlds events from gol.gg into
+# lol_events_history.json, for measuring the class gap and event pace
+# across more than one event. Manual only: a finished event never changes,
+# and the script skips any event already on file.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scrape-esports-data
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Scrape finished international events
+        run: python scripts/backfill_lol_events.py
+
+      - name: Measure the international factors on them
+        run: python scripts/dev/international_factors.py | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit
+        run: |
+          git config user.name "esports-data-bot"
+          git config user.email "actions@github.com"
+          git add lol_events_history.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Backfill past LoL international events"
+          for i in 1 2 3 4; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep $((2**i))
+          done
+          exit 1
