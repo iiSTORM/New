@@ -1762,6 +1762,29 @@ hundred. That is weeks away, not minutes.
 That is the whole list. Five items answered by measurement, one collected and
 waiting on data, three closed off as unreachable from the providers in use.
 
+### Nov 2: count distributions, calibration and a market-bias layer, all rejected
+
+`scripts/dev/probability_quality.py` tests three ways to improve the slate
+tool's probability. It replays 4,216 standard-board props point in time, fits
+each change only on earlier matches, and scores the later ones by log-loss. A
+change ships only if its gain over the current normal curve has a 95% interval
+above zero, clustered on the match. None did:
+
+- **Negative binomial instead of the normal:** −0.0027 (−0.0065 to +0.0008),
+  worse in every game. Sigma is the model's own error, not the spread of a
+  count, and the bell curve fits that better.
+- **Per-game calibration:** −0.0140, clearly worse. **Per-cell market bias**
+  (the under-rate by game, stat, window): −0.0132, clearly worse. Both learn an
+  under-lean that does not hold still. Valorant's flipped from unders to overs,
+  and fitting it cost 0.09 log-loss there.
+- **One confidence slope across games:** +0.0004 (−0.0028 to +0.0033). The
+  slope settles near 0.6, so claims are too confident, but too few props
+  separate "too confident" from noise.
+
+**Use with caution:** slate claims of 60–70% have landed 53–56% of the time
+(291 props). Claims of 70% and up landed 70% (136 props). Until the slope
+clears its interval, treat a 60–70% leg as nearer 55%.
+
 ### Nov 1: line movement, map windows, and the odds capture
 
 **Lines move toward a player's season average.** Of standard props seen on two
