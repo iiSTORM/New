@@ -1,0 +1,55 @@
+name: Oracle's Elixir LoL game data
+
+# Gold/XP/CS differences, damage share, vision and game length for every pro
+# LoL game in the leagues the app tracks, into oracles_elixir.csv.gz. Read by
+# scripts/dev/oracles_elixir_probe.py, not by the app. Weekly: the file only
+# matters for testing features, and committing it daily would grow the repo
+# by about a megabyte a day.
+on:
+  schedule:
+    - cron: "41 11 * * 3"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scrape-esports-data
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Download and trim Oracle's Elixir CSVs
+        run: python scripts/scrape_oracles_elixir.py
+
+      - name: Do any of its columns explain what the model misses?
+        if: always()
+        run: python scripts/dev/oracles_elixir_probe.py | tee -a "$GITHUB_STEP_SUMMARY"
+        continue-on-error: true
+
+      - name: Commit
+        if: always()
+        run: |
+          [ -f oracles_elixir.csv.gz ] || exit 0
+          git config user.name "esports-data-bot"
+          git config user.email "actions@github.com"
+          git add oracles_elixir.csv.gz
+          git diff --cached --quiet && exit 0
+          git commit -m "Update Oracle's Elixir LoL game data"
+          for i in 1 2 3 4; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep $((2**i))
+          done
+          exit 1

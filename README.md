@@ -1762,6 +1762,33 @@ hundred. That is weeks away, not minutes.
 That is the whole list. Five items answered by measurement, one collected and
 waiting on data, three closed off as unreachable from the providers in use.
 
+### Oracle's Elixir LoL game data (item 11)
+
+**What it is.** Oracle's Elixir publishes every pro LoL game, twelve rows a
+game, with columns gol.gg lacks: gold, XP and CS differences at 10/15/20/25
+minutes, damage and gold share, first-blood involvement, and team pace (kills
+per minute, game length).
+
+**How it is fetched.** The old S3 file host is gone, and the files now sit in
+a public Google Drive folder where the current year's file is replaced daily.
+- `scripts/scrape_oracles_elixir.py` lists that folder through Drive's
+  embedded view (no API key needed) and finds each year's file by name, so
+  there are no file IDs to go stale.
+- It keeps last year and this year, only for the leagues the app tracks plus
+  Worlds, MSI, First Stand and EWC, and writes `oracles_elixir.csv.gz` in
+  Oracle's Elixir's own column names.
+- The "Oracle's Elixir LoL game data" workflow runs it weekly (Wednesdays)
+  and on demand. Weekly because the file only feeds testing, and daily
+  commits would grow the repo by about a megabyte a day.
+
+**What it is for.** The app does not read it. Each workflow run also runs
+`scripts/dev/oracles_elixir_probe.py`. That script tests every column, point
+in time, against what the slate model misses on graded LoL kills lines,
+using the same rule as everything else: the slope's 95% interval excludes 0
+and held-out error falls. It ends with "worth wiring in: …". If a column ever
+qualifies, wiring it in is the next step. With about 500 graded LoL lines,
+expect wide intervals for now.
+
 ### Nov 2: proven cells, wider drift checks, factors re-measured, AWPer headshots
 
 **Tradeable cells (item 13).** A cell counts as proven when its edge, as
@@ -1806,9 +1833,7 @@ show no lean (52% unders). Kills lines, the control, show nothing either
 (`scripts/dev/awper_headshot_probe.py`).
 
 **Not done:**
-- **Oracle's Elixir (item 11):** its file host is gone ("NoSuchBucket"); the
-  data now sits behind Google Drive links. Its extra columns are gold and XP
-  differences, the kind of form stat that has never beaten the line here.
+- **Oracle's Elixir (item 11):** done after all, below.
 - **Leaguepedia (item 10):** would only back up the lineups that stand-in
   detection already reads from box scores.
 - **Waiting on sample size:** the Dota retune (item 16) at 150 graded lines
