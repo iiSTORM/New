@@ -1793,6 +1793,20 @@ kill ratio between LCK/LPL and LCS/LCP/CBLOL/TCL teams. This tests whether
 `EVENT_PACE` and `CLASS_GAP_KILLS` hold beyond the one event they were
 measured on. The app never reads the file.
 
+First run (9 tournaments; MSI 2025 was not found under gol.gg's name for it):
+- **Knockouts vs groups:** knockouts ran 0.93–1.13× the pace of the same
+  event's groups. Pooled across 7 events that is 1.03× (95% interval
+  0.97–1.08), so the stage alone does not change pace. Worlds 2025's
+  knockouts were the fastest relative to their groups (1.12×, 21 maps).
+- **Worlds 2026 is the slowest event on file:** its Swiss stage ran 25.6
+  kills a map, against 28–33 at every other event. That fits keeping
+  `EVENT_PACE` per event rather than as a rule for international play.
+- **Class gap:** LCK/LPL teams out-killed LCS/LCP/CBLOL/TCL teams at every
+  event. The gap was widest at the smaller events (2.0–2.4× at First Stand
+  2026, Demacia Cup and EWC 2026) and narrowest at MSI 2026 (1.15×, 21 maps)
+  and Worlds 2025 (1.40×, 12 maps). These are raw kill ratios, not measured
+  against home form, so compare events with each other rather than with 1.4.
+
 ### Nov 2: count distributions, calibration and a market-bias layer, all rejected
 
 `scripts/dev/probability_quality.py` tests three ways to improve the slate
