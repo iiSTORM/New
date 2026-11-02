@@ -1762,6 +1762,58 @@ hundred. That is weeks away, not minutes.
 That is the whole list. Five items answered by measurement, one collected and
 waiting on data, three closed off as unreachable from the providers in use.
 
+### Nov 2: proven cells, wider drift checks, factors re-measured, AWPer headshots
+
+**Tradeable cells (item 13).** A cell counts as proven when its edge, as
+shown, had lower held-out error than the posted line
+(`tradeable_cells()` in `scripts/dev/line_realization.py`).
+- **Edges board:** proven cells are LoL kills and CS2 headshots. CS2 kills
+  dropped out on this re-measure: cut to 0.27, it tied the line (5.546
+  against 5.545).
+- **Slate tool:** proven cells are CS2 kills, CS2 headshots and LoL kills.
+- **Valorant and Dota:** unproven. Every other board now opens with an
+  "Unproven against the line" banner. `propedge slate --board` leaves
+  unproven cells out of slips unless you pass `--include-unproven`.
+
+**Weekly drift check (item 14)** now also goes red when:
+- the set of proven cells changes;
+- the class gap or the Worlds pace no longer fits the event being played
+  (`scripts/dev/check_event_factors.py`). It re-projects every event player
+  with the factors applied and reports the factor that would have been
+  right. Today Worlds pace implies 0.79 against the shipped 0.85 (46 maps),
+  and the class gap 1.30 against 1.4 (10 maps). Both are inside tolerance.
+- a count distribution, calibration or market-bias layer would now win.
+
+**LINE_REALIZATION re-measured.** The check went red on its first run with
+the new pieces: the record has grown by about 400 CS2 props since the last
+measurement.
+
+| Factor | Old | New |
+|---|---|---|
+| Board, CS2 kills | 0.39 | 0.27 |
+| Board, CS2 headshots | 0.27 | 0.25 |
+| Board, Dota kills | none | 0.17 (interval −0.52 to 0.93, 120 props) |
+| Slate, CS2 kills | 0.51 | 0.34 |
+| Slate, CS2 headshots | 0.48 | 0.42 |
+| Slate, LoL kills | none | 0.40 (scaled beat unscaled held out, 2.821 against 2.834) |
+
+**AWPer headshot share (item 18): a dead end.** A player's share of kills
+that are headshots (AWPers sit at 44% or less) does not predict which way
+their headshot line misses: slope +0.085, 95% interval −0.10 to +0.28, over
+1,994 props. The model's side is right 49.2% of the time for that fifth of
+players against 52.9% for the rest, which is inside noise, and their lines
+show no lean (52% unders). Kills lines, the control, show nothing either
+(`scripts/dev/awper_headshot_probe.py`).
+
+**Not done:**
+- **Oracle's Elixir (item 11):** its file host is gone ("NoSuchBucket"); the
+  data now sits behind Google Drive links. Its extra columns are gold and XP
+  differences, the kind of form stat that has never beaten the line here.
+- **Leaguepedia (item 10):** would only back up the lineups that stand-in
+  detection already reads from box scores.
+- **Waiting on sample size:** the Dota retune (item 16) at 150 graded lines
+  (120 now), and the Valorant revisit (item 17) at 600 (385 now).
+
 ### Nov 2: Elo and team-kills-times-share, rejected; CS2 scores fixed; past events backfill
 
 **Elo** (`scripts/dev/elo_probe.py`): a rating per team, updated map by map,

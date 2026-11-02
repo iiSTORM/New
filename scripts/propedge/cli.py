@@ -201,7 +201,7 @@ def project_board(args):
     Imported lazily: this pulls in the shipped projection model, and `balance`
     should not pay for that.
     """
-    from .esports import EsportsModel
+    from .esports import EsportsModel, TRADEABLE
     with open(args.board) as f:
         board = json.load(f)
     graded = []
@@ -209,9 +209,15 @@ def project_board(args):
         with open(args.results) as f:
             graded = json.load(f).get("graded") or []
     model = EsportsModel.from_files(args.root, graded)
-    made = model.project_board(board)
+    include = getattr(args, "include_unproven", False)
+    made = model.project_board(board, include_unproven=include)
     print(f"projected {len(made)} of the board's props "
           f"({len(graded)} graded props behind the market prior)")
+    if not include:
+        everything = len(model.project_board(board))
+        if everything > len(made):
+            print(f"left out {everything - len(made)} from cells that have not beaten the "
+                  f"line held out (proven: {TRADEABLE}); --include-unproven to keep them")
     if args.write_projections:
         with open(args.write_projections, "w") as f:
             json.dump({"projections": [p.as_json() for p in made]}, f, indent=1)
@@ -437,6 +443,9 @@ def build_parser():
                             'simulated game per index')
     slate.add_argument("--sizes", type=int, nargs="+", default=list(bld.DEFAULT_SIZES))
     slate.add_argument("--mode", choices=("power", "flex"), default="power")
+    slate.add_argument("--include-unproven", action="store_true", dest="include_unproven",
+                       help="keep legs from cells that have not beaten the line held out "
+                            "(Valorant, Dota)")
     slate.add_argument("--min-ev", type=float, default=bld.MIN_WORST_EV,
                        dest="min_ev", help="worst-case EV bar (default %(default)s)")
 

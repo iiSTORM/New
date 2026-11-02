@@ -29,3 +29,7 @@ jobs:
       - name: Would a count distribution, calibration or market-bias layer now win?
         if: always()
         run: python scripts/dev/probability_quality.py --check
+
+      - name: Do the class gap and the event pace still fit the event?
+        if: always()
+        run: python scripts/dev/check_event_factors.py

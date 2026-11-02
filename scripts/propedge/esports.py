@@ -112,10 +112,25 @@ MIN_MAPS = 3
 #: say are left out and keep all of it. Measured by
 #: `scripts/dev/line_realization.py --slate` into line_realization_slate.json,
 #: and pinned to that file by tests/test_line_realization.py.
+#: Re-measured 2026-11-02 (the weekly drift check went red): CS2 kills
+#: 0.51 -> 0.34, headshots 0.48 -> 0.42, and LoL kills now ships at 0.40
+#: (interval -0.00 to 0.80; scaled beat unscaled held out, 2.821 vs 2.834).
 LINE_REALIZATION = {
-    "cs2": {"kills": 0.51, "headshots": 0.48},
+    "cs2": {"kills": 0.34, "headshots": 0.42},
+    "lol": {"kills": 0.4},
     "valorant": {"kills": 0.0},
 }
+
+
+#: Cells whose shown edge beat the line on matches the measurement never saw
+#: (scripts/dev/line_realization.py --slate, tradeable_cells). The slate leaves
+#: the rest out unless asked: Valorant's edge is cut to nothing anyway, and
+#: Dota has too few graded lines to have been measured at all.
+TRADEABLE = {"cs2": ("headshots", "kills"), "lol": ("kills",)}
+
+
+def is_tradeable(game, stat):
+    return stat in TRADEABLE.get(game, ())
 
 
 def line_realization(game, stat):
@@ -541,12 +556,17 @@ class EsportsModel:
                    if detail.prior_weight else ", and is not in the number"))
         return tuple(out)
 
-    def project_board(self, props, as_of=None):
-        """Every board row that can be projected, best-supported first."""
+    def project_board(self, props, as_of=None, include_unproven=True):
+        """Every board row that can be projected, best-supported first.
+
+        include_unproven=False leaves out cells that have not beaten the line
+        held out (TRADEABLE)."""
         out = []
         for game, players in (props.get("props") or props).items():
             for rows in players.values():
                 for row in rows:
+                    if not include_unproven and not is_tradeable(game, row.get("stat")):
+                        continue
                     made = self.project({**row, "game": game}, as_of)
                     if made is not None:
                         out.append(made)

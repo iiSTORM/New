@@ -186,6 +186,28 @@ def shipped_factors(results):
     return out
 
 
+def tradeable_cells(results, shipped=None):
+    """{game: [stat, ...]} for cells whose edge, as shown, beat the line held out.
+
+    "As shown" is the scaled edge where a factor ships and the raw one where
+    none does: a cell is tradeable when that number's walk-forward error is
+    below the line's own. Everything else is unproven -- too thin to say, or
+    measured and no better than betting the line itself. Item 13 of the
+    2026-11-01 upgrade list; the app's TRADEABLE_CELLS and the slate tool's
+    TRADEABLE are pinned to this by tests/test_line_realization.py.
+    """
+    shipped = shipped if shipped is not None else shipped_factors(results)
+    out = {}
+    for got in results:
+        wf = got.get("walk_forward")
+        if not wf:
+            continue
+        scaled = got["stat"] in shipped.get(got["game"], {})
+        if (wf["blend"] if scaled else wf["board"]) < wf["line"]:
+            out.setdefault(got["game"], []).append(got["stat"])
+    return {g: sorted(v) for g, v in sorted(out.items())}
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -210,6 +232,7 @@ def main(argv=None):
               f"{got['slope']:>6.2f}  {got['low']:+.2f} to {got['high']:+.2f}"
               + (f"   {wf['line']:.3f} / {wf['board']:.3f} / {wf['blend']:.3f}" if wf else ""))
     print(f"\n  ship as LINE_REALIZATION: {json.dumps(shipped_factors(out))}")
+    print(f"  tradeable cells: {json.dumps(tradeable_cells(out))}")
     if args.json:
         with open(args.json, "w") as f:
             json.dump({"cells": out, "shipped": shipped_factors(out)}, f, indent=2)

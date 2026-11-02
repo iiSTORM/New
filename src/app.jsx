@@ -3662,14 +3662,41 @@ function edgeMultiplier(games) {
    edge and must never inflate one. Measured by
    scripts/dev/line_realization.py into scripts/dev/line_realization.json,
    and pinned to that file by tests/test_line_realization.py, so re-running
-   the script after the weights move is what keeps this honest. */
+   the script after the weights move is what keeps this honest.
+
+   Re-measured 2026-11-02 when the weekly drift check went red, on 2,662
+   CS2 kills props (was 2,272): CS2 kills 0.27 (0.07 to 0.46), headshots
+   0.25, Valorant 0.25, and Dota kills 0.17 now ships (-0.52 to 0.93 over
+   120 props, too few for a walk-forward, so the interval alone decides).
+   LoL is still left whole. */
 const LINE_REALIZATION = {
-  cs2: { kills: 0.39, headshots: 0.27 },
+  cs2: { kills: 0.27, headshots: 0.25 },
   valorant: { kills: 0.25 },
+  dota2: { kills: 0.17 },
 };
 
 function scaleEdge(factor, edge) {
   return typeof edge === "number" && isFinite(edge) ? factor * edge : null;
+}
+
+/* Cells whose edge, as shown, beat the posted line on matches the
+   measurement never saw (walk-forward error below the line's own): item 13
+   of the 2026-11-01 upgrade list. Every other board says so at the top --
+   Valorant's edges lost to the line held out (5.57 against 5.43), and Dota
+   has too few graded lines to have been measured. Computed by
+   tradeable_cells() in scripts/dev/line_realization.py and pinned to
+   line_realization.json by tests/test_line_realization.py.
+
+   CS2 kills left on 2026-11-02: cut to 0.27, its held-out error tied the
+   line's (5.546 against 5.545), which is not beating it. */
+const TRADEABLE_CELLS = {
+  cs2: ["headshots"],
+  lol: ["kills"],
+};
+
+function isTradeableCell(game, statType) {
+  const stats = TRADEABLE_CELLS[game];
+  return !!stats && stats.includes(statType);
 }
 
 function lineRealization(game, statType) {
@@ -5788,6 +5815,16 @@ function EdgesTab({ regionsData, regionList, regionLabels, weights, statType, ga
                 {" "}against {(100 * ranking.small.mean).toFixed(0)}% below it.
               </>
             )}
+          </div>
+        )}
+        {!isTradeableCell(game, statType) && (
+          <div style={{ padding: "11px 16px", borderBottom: `1px solid ${theme.steel}`,
+                        background: `${theme.bad}0E`, fontSize: 12, lineHeight: 1.55,
+                        color: theme.textDim }}>
+            <strong style={{ color: theme.text }}>Unproven against the line.</strong>{" "}
+            {cfg.label} edges in this game have not beaten the posted line on matches the
+            model was not fitted to, either because they lost to it or because there are
+            too few graded lines to say. Treat these as projections, not bets.
           </div>
         )}
         {lean && (

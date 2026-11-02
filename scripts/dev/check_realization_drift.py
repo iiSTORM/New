@@ -50,11 +50,19 @@ def main(argv=None):
     graded = json.load(open("props_results.json"))["graded"]
     lines, bad = [], False
     for name, claim, path, flag in TARGETS:
-        shipped = json.load(open(os.path.join(HERE, path)))["shipped"]
-        fresh = lr.shipped_factors([lr.measure(g, s, graded, claim) for g, s in lr.CELLS])
+        stored = json.load(open(os.path.join(HERE, path)))
+        shipped = stored["shipped"]
+        cells = [lr.measure(g, s, graded, claim) for g, s in lr.CELLS]
+        fresh = lr.shipped_factors(cells)
         moved = drift(shipped, fresh)
+        was = lr.tradeable_cells(stored["cells"], shipped)
+        now = lr.tradeable_cells(cells, fresh)
         lines.append(f"## {name}: shipped {json.dumps(shipped)}")
         lines.append(f"fresh   {json.dumps(fresh)}")
+        if was != now:
+            bad = True
+            lines.append(f"- **tradeable cells** changed: shipped {json.dumps(was)}, "
+                         f"measured now {json.dumps(now)} (TRADEABLE_CELLS / esports.TRADEABLE)")
         if moved:
             bad = True
             for game, stat, a, b in moved:

@@ -64,7 +64,7 @@ def test_the_slate_tool_carries_its_own_measured_factors():
     from propedge import esports
     shipped = json.loads((ROOT / "scripts" / "dev" / "line_realization_slate.json").read_text())["shipped"]
     assert esports.LINE_REALIZATION == shipped
-    assert esports.line_realization("lol", "kills") == 1.0
+    assert esports.line_realization("dota2", "kills") == 1.0
 
 
 def test_the_slate_tool_applies_it_to_the_shrunk_mean():
@@ -91,3 +91,32 @@ def test_a_factor_that_lost_out_of_sample_does_not_ship():
              {"game": "cs2", "stat": "kills", "slope": 0.51, "high": 0.81,
               "walk_forward": {"line": 5.567, "board": 5.554, "blend": 5.541}}]
     assert lr.shipped_factors(cells) == {"cs2": {"kills": 0.51}}
+
+
+def test_tradeable_cells_are_the_ones_that_beat_the_line_held_out():
+    cells = [{"game": "cs2", "stat": "kills", "walk_forward": {"line": 5.57, "board": 5.61, "blend": 5.54}},
+             {"game": "lol", "stat": "kills", "walk_forward": {"line": 2.99, "board": 2.80, "blend": 2.85}},
+             {"game": "valorant", "stat": "kills", "walk_forward": {"line": 5.43, "board": 5.75, "blend": 5.57}},
+             {"game": "dota2", "stat": "kills", "n": 69}]
+    shipped = {"cs2": {"kills": 0.39}, "valorant": {"kills": 0.25}}
+    # cs2 is judged scaled (it ships a factor), lol raw; valorant lost either way
+    assert lr.tradeable_cells(cells, shipped) == {"cs2": ["kills"], "lol": ["kills"]}
+
+
+def test_the_app_and_slate_carry_the_measured_tradeable_cells():
+    from propedge import esports
+    for name, carried in (("line_realization.json", None), ("line_realization_slate.json", esports.TRADEABLE)):
+        d = json.loads((ROOT / "scripts" / "dev" / name).read_text())
+        want = lr.tradeable_cells(d["cells"], d["shipped"])
+        if carried is None:
+            body = re.search(r"const TRADEABLE_CELLS = (\{.*?\n\});", APP, re.S).group(1)
+            carried = {g: stats.split(", ") for g, stats in
+                       re.findall(r"(\w+): \[([^\]]*)\]", body)}
+            carried = {g: [x.strip('"') for x in v] for g, v in carried.items()}
+        assert {g: sorted(v) for g, v in carried.items()} == want
+
+
+def test_the_slate_leaves_unproven_cells_out_only_when_asked():
+    from propedge import esports
+    assert esports.is_tradeable("cs2", "kills") and not esports.is_tradeable("valorant", "kills")
+    assert not esports.is_tradeable("dota2", "kills")
