@@ -1777,9 +1777,16 @@ a public Google Drive folder where the current year's file is replaced daily.
 - It keeps last year and this year, only for the leagues the app tracks plus
   Worlds, MSI, First Stand and EWC, and writes `oracles_elixir.csv.gz` in
   Oracle's Elixir's own column names.
-- The "Oracle's Elixir LoL game data" workflow runs it weekly (Wednesdays)
-  and on demand. Weekly because the file only feeds testing, and daily
-  commits would grow the repo by about a megabyte a day.
+- The "Oracle's Elixir LoL game data" workflow runs daily but only fetches
+  when the file is more than 6 days old: daily commits would grow the repo by
+  about a megabyte a day.
+- **Drive's download quota.** These files are downloaded so often that
+  Google Drive's anonymous quota is often used up ("Quota exceeded", both
+  files on the first run). A refused day ends green with a notice, and the
+  next day's run tries again.
+- **Optional API key.** Adding a free Google Cloud API key with the Drive API
+  enabled, as the repo secret `OE_DRIVE_API_KEY`, makes the download go
+  through Google's API first. That counts against a separate allowance.
 
 **What it is for.** The app does not read it. Each workflow run also runs
 `scripts/dev/oracles_elixir_probe.py`. That script tests every column, point

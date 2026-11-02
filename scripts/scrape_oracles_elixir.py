@@ -140,8 +140,28 @@ def _is_page(first):
     return first.lstrip().lower().startswith((b"<!doctype", b"<html"))
 
 
+QUOTA = {"hit": False}
+
+
 def download(session, file_id, path):
-    """Stream one Drive file to `path`, getting past the virus-scan page."""
+    """Stream one Drive file to `path`, getting past the virus-scan page.
+
+    Oracle's Elixir's files are downloaded often enough that Drive's anonymous
+    download quota runs out ("Quota exceeded", first seen 2026-11-02). With
+    OE_DRIVE_API_KEY set (a free Google Cloud API key, Drive API enabled) the
+    file is fetched through the API first, which counts against a different
+    allowance; otherwise the quota page is recorded so the run can say "try
+    again later" rather than fail."""
+    key = os.environ.get("OE_DRIVE_API_KEY")
+    if key:
+        try:
+            first = _stream(session, f"https://www.googleapis.com/drive/v3/files/{file_id}",
+                            path, {"alt": "media", "key": key})
+            if not _is_page(first) and not first.lstrip().startswith(b"{"):
+                return True
+            print(f"  ! Drive API: {first[:200]!r}", file=sys.stderr)
+        except requests.RequestException as e:
+            print(f"  ! Drive API: {e}", file=sys.stderr)
     urls = [f"https://drive.usercontent.google.com/download?id={file_id}&export=download",
             f"https://drive.google.com/uc?export=download&id={file_id}"]
     for url in urls:
@@ -152,6 +172,11 @@ def download(session, file_id, path):
                     page = f.read()
                 form = warning_form(page)
                 if not form:
+                    if "quota exceeded" in page.lower():
+                        QUOTA["hit"] = True
+                        print(f"  ! {url}: Drive's download quota for this file is used up "
+                              "for now", file=sys.stderr)
+                        continue
                     text = re.sub(r"<[^>]+>", " ", page)
                     print(f"  ! {url} returned a page with no download form: "
                           f"{' '.join(text.split())[:300]}", file=sys.stderr)
@@ -211,6 +236,10 @@ def main(argv=None):
         done.append(y)
     if not kept:
         print("nothing downloaded; leaving the existing file alone")
+        if QUOTA["hit"]:
+            print("Drive's download quota was the reason: the daily schedule tries again "
+                  "tomorrow (set OE_DRIVE_API_KEY to go through the API instead)")
+            return 75                           # EX_TEMPFAIL: the workflow treats it as a retry
         return 1
     buf = io.StringIO()
     w = csv.writer(buf)

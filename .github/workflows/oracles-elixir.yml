@@ -2,12 +2,17 @@ name: Oracle's Elixir LoL game data
 
 # Gold/XP/CS differences, damage share, vision and game length for every pro
 # LoL game in the leagues the app tracks, into oracles_elixir.csv.gz. Read by
-# scripts/dev/oracles_elixir_probe.py, not by the app. Weekly: the file only
-# matters for testing features, and committing it daily would grow the repo
-# by about a megabyte a day.
+# scripts/dev/oracles_elixir_probe.py, not by the app.
+#
+# Scheduled daily but fetches at most weekly: Google Drive's anonymous
+# download quota on these files is often used up ("Quota exceeded"), so a
+# day it refuses is simply tried again the next day, while a file refreshed
+# in the last 6 days is left alone (committing daily would grow the repo by
+# about a megabyte a day). An OE_DRIVE_API_KEY secret (a free Google Cloud
+# API key with the Drive API on) downloads through the API instead.
 on:
   schedule:
-    - cron: "41 11 * * 3"
+    - cron: "17 4 * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -23,6 +28,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 50       # enough history to see when the file was last refreshed
 
       - uses: actions/setup-python@v6
         with:
@@ -31,11 +38,33 @@ jobs:
       - name: Install dependencies
         run: pip install requests
 
+      - name: Fetched within the last 6 days?
+        id: fresh
+        run: |
+          last=$(git log -1 --format=%ct -- oracles_elixir.csv.gz 2>/dev/null || echo 0)
+          age=$(( ( $(date +%s) - ${last:-0} ) / 86400 ))
+          echo "file is ${age} day(s) old"
+          if [ "${{ github.event_name }}" = "schedule" ] && [ -n "$last" ] && [ "$age" -lt 6 ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Download and trim Oracle's Elixir CSVs
-        run: python scripts/scrape_oracles_elixir.py
+        id: fetch
+        if: steps.fresh.outputs.skip != 'true'
+        env:
+          OE_DRIVE_API_KEY: ${{ secrets.OE_DRIVE_API_KEY }}
+        run: |
+          set +e
+          python scripts/scrape_oracles_elixir.py
+          code=$?
+          if [ $code -eq 75 ]; then
+            echo "::notice::Google Drive download quota used up; tomorrow's run retries"
+            exit 0
+          fi
+          exit $code
 
       - name: Do any of its columns explain what the model misses?
-        if: always()
+        if: always() && steps.fresh.outputs.skip != 'true'
         run: python scripts/dev/oracles_elixir_probe.py | tee -a "$GITHUB_STEP_SUMMARY"
         continue-on-error: true
 
