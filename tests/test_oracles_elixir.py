@@ -57,3 +57,17 @@ def test_features_only_see_games_before_the_prop(tmp_path):
     assert got["player_kill_share"] == pytest.approx(0.25)
     assert got["pace_both"] == pytest.approx(27.0)               # 0.9 kpm x 30 min
     assert probe.features_for(players, teams, "Faker", "T1", "Gen.G", "2026-05-03") == {}
+
+
+def test_the_virus_scan_page_form_is_read_for_its_token():
+    page = """<html><body><p>Google Drive can't scan this file for viruses.</p>
+      <form id="download-form" action="https://drive.usercontent.google.com/download" method="get">
+        <input type="submit" id="uc-download-link" value="Download anyway"/>
+        <input type="hidden" name="id" value="1hnp">
+        <input type="hidden" name="export" value="download">
+        <input type="hidden" name="confirm" value="t">
+        <input type="hidden" name="uuid" value="ab-12"></form></body></html>"""
+    action, params = oe.warning_form(page)
+    assert action == "https://drive.usercontent.google.com/download"
+    assert params == {"id": "1hnp", "export": "download", "confirm": "t", "uuid": "ab-12"}
+    assert oe.warning_form("<html>quota exceeded</html>") is None

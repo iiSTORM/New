@@ -102,24 +102,67 @@ def list_folder(session):
     return got
 
 
+def warning_form(html):
+    """(action url, params) from Drive's "can't scan this file for viruses" page,
+    or None. Pure, for the tests.
+
+    Large files are not served straight away: Drive returns a page whose form
+    carries a one-time `uuid` with the confirm, and the file comes back only
+    when that form is submitted. `confirm=t` alone stopped being enough."""
+    form = re.search(r'<form[^>]*id="download-form"[^>]*action="([^"]+)"(.*?)</form>',
+                     html or "", re.S) or re.search(
+        r'<form[^>]*action="([^"]*download[^"]*)"(.*?)</form>', html or "", re.S)
+    if not form:
+        return None
+    params = {}
+    for tag in re.findall(r"<input[^>]*>", form.group(2)):
+        name = re.search(r'name="([^"]+)"', tag)
+        value = re.search(r'value="([^"]*)"', tag)
+        if name:
+            params[name.group(1)] = value.group(1) if value else ""
+    return form.group(1).replace("&amp;", "&"), params
+
+
+def _stream(session, url, path, params=None):
+    """Write the response to `path`; returns its first bytes."""
+    with session.get(url, params=params, headers=HEADERS, stream=True, timeout=180) as r:
+        r.raise_for_status()
+        first = b""
+        with open(path, "wb") as f:
+            for block in r.iter_content(1 << 20):
+                if not first:
+                    first = block[:4096]
+                f.write(block)
+    return first
+
+
+def _is_page(first):
+    return first.lstrip().lower().startswith((b"<!doctype", b"<html"))
+
+
 def download(session, file_id, path):
-    """Stream one Drive file to `path`. Large files need the confirm step,
-    which drive.usercontent.google.com takes as a parameter."""
-    urls = [f"https://drive.usercontent.google.com/download?id={file_id}&export=download&confirm=t",
-            f"https://drive.google.com/uc?export=download&id={file_id}&confirm=t"]
+    """Stream one Drive file to `path`, getting past the virus-scan page."""
+    urls = [f"https://drive.usercontent.google.com/download?id={file_id}&export=download",
+            f"https://drive.google.com/uc?export=download&id={file_id}"]
     for url in urls:
         try:
-            with session.get(url, headers=HEADERS, stream=True, timeout=120) as r:
-                r.raise_for_status()
-                first = b""
-                with open(path, "wb") as f:
-                    for block in r.iter_content(1 << 20):
-                        if not first:
-                            first = block[:200]
-                        f.write(block)
-            if first.lstrip().lower().startswith((b"<!doctype", b"<html")):
-                print(f"  ! {url} returned a page, not the file", file=sys.stderr)
-                continue
+            first = _stream(session, url, path)
+            if _is_page(first):
+                with open(path, encoding="utf-8", errors="replace") as f:
+                    page = f.read()
+                form = warning_form(page)
+                if not form:
+                    text = re.sub(r"<[^>]+>", " ", page)
+                    print(f"  ! {url} returned a page with no download form: "
+                          f"{' '.join(text.split())[:300]}", file=sys.stderr)
+                    continue
+                action, params = form
+                first = _stream(session, action, path, params)
+                if _is_page(first):
+                    text = re.sub(r"<[^>]+>", " ", first.decode("utf-8", "replace"))
+                    print(f"  ! confirming the download still returned a page: "
+                          f"{' '.join(text.split())[:300]}", file=sys.stderr)
+                    continue
             return True
         except requests.RequestException as e:
             print(f"  ! {url}: {e}", file=sys.stderr)
