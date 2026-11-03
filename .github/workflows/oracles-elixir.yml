@@ -1,7 +1,7 @@
 name: Oracle's Elixir LoL game data
 
 # Gold/XP/CS differences, damage share, vision and game length for every pro
-# LoL game in the leagues the app tracks, into oracles_elixir.csv.gz. Read by
+# LoL game in the leagues the app tracks, into oracles_elixir/<year>.csv.gz. Read by
 # scripts/dev/oracles_elixir_probe.py, not by the app.
 #
 # Scheduled daily but fetches at most weekly: Google Drive's anonymous
@@ -41,7 +41,7 @@ jobs:
       - name: Fetched within the last 6 days?
         id: fresh
         run: |
-          last=$(git log -1 --format=%ct -- oracles_elixir.csv.gz 2>/dev/null || echo 0)
+          last=$(git log -1 --format=%ct -- "oracles_elixir/$(date -u +%Y).csv.gz" 2>/dev/null || echo 0)
           age=$(( ( $(date +%s) - ${last:-0} ) / 86400 ))
           echo "file is ${age} day(s) old"
           if [ "${{ github.event_name }}" = "schedule" ] && [ -n "$last" ] && [ "$age" -lt 6 ]; then
@@ -71,10 +71,10 @@ jobs:
       - name: Commit
         if: always()
         run: |
-          [ -f oracles_elixir.csv.gz ] || exit 0
+          [ -d oracles_elixir ] || exit 0
           git config user.name "esports-data-bot"
           git config user.email "actions@github.com"
-          git add oracles_elixir.csv.gz
+          git add oracles_elixir
           git diff --cached --quiet && exit 0
           git commit -m "Update Oracle's Elixir LoL game data"
           for i in 1 2 3 4; do

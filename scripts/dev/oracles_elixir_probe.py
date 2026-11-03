@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Does anything in Oracle's Elixir explain what the LoL model misses?
 
-oracles_elixir.csv.gz (scripts/scrape_oracles_elixir.py) carries columns
+oracles_elixir/<year>.csv.gz (scripts/scrape_oracles_elixir.py) carries columns
 gol.gg does not: gold / XP / CS differences at 15 minutes, damage share,
 first-blood involvement, and per-team pace (combined kills per minute and
 game length). Each is tested the way every other candidate input in this
@@ -64,27 +64,38 @@ TEAM_FEATURES = {"team_kpm": "team kpm", "team_golddiffat15": "golddiffat15",
                  "gamelength": "gamelength"}
 
 
-def load(path="oracles_elixir.csv.gz"):
+DATA = "oracles_elixir"
+
+
+def _rows(path):
+    """Every row of one .csv.gz file, or of every year file in a directory."""
+    paths = (sorted(os.path.join(path, n) for n in os.listdir(path) if n.endswith(".csv.gz"))
+             if os.path.isdir(path) else [path])
+    for p in paths:
+        with gzip.open(p, "rt", encoding="utf-8") as f:
+            yield from csv.DictReader(f)
+
+
+def load(path=DATA):
     """(player history, team history), each {key: sorted [(date, {feature: value})]}."""
     players, teams = collections.defaultdict(list), collections.defaultdict(list)
-    with gzip.open(path, "rt", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            date = str(row.get("date") or "")[:10]
-            if not date:
-                continue
-            if row.get("position") == "team":
-                vals = {k: num(row.get(c)) for k, c in TEAM_FEATURES.items()}
-                ck, gl = num(row.get("ckpm")), num(row.get("gamelength"))
-                vals["game_kills"] = ck * gl / 60 if ck is not None and gl else None
-                teams[norm(row.get("teamname"))].append((date, vals))
-            else:
-                vals = {k: num(row.get(c)) for k, c in PLAYER_FEATURES.items()}
-                k, tk = num(row.get("kills")), num(row.get("teamkills"))
-                vals["kill_share"] = k / tk if k is not None and tk else None
-                fb = [num(row.get(c)) for c in ("firstbloodkill", "firstbloodassist")]
-                vals["first_blood_part"] = (sum(x for x in fb if x) if any(x is not None for x in fb)
-                                            else None)
-                players[norm(row.get("playername"))].append((date, vals))
+    for row in _rows(path):
+        date = str(row.get("date") or "")[:10]
+        if not date:
+            continue
+        if row.get("position") == "team":
+            vals = {k: num(row.get(c)) for k, c in TEAM_FEATURES.items()}
+            ck, gl = num(row.get("ckpm")), num(row.get("gamelength"))
+            vals["game_kills"] = ck * gl / 60 if ck is not None and gl else None
+            teams[norm(row.get("teamname"))].append((date, vals))
+        else:
+            vals = {k: num(row.get(c)) for k, c in PLAYER_FEATURES.items()}
+            k, tk = num(row.get("kills")), num(row.get("teamkills"))
+            vals["kill_share"] = k / tk if k is not None and tk else None
+            fb = [num(row.get(c)) for c in ("firstbloodkill", "firstbloodassist")]
+            vals["first_blood_part"] = (sum(x for x in fb if x) if any(x is not None for x in fb)
+                                        else None)
+            players[norm(row.get("playername"))].append((date, vals))
     for d in (players, teams):
         for rows in d.values():
             rows.sort(key=lambda r: r[0])
@@ -123,7 +134,7 @@ def features_for(players, teams, player, team, opponent, date):
     return out
 
 
-def collect(results_path, root=".", oe_path="oracles_elixir.csv.gz"):
+def collect(results_path, root=".", oe_path=DATA):
     from propedge import esports
     graded = json.load(open(results_path))["graded"]
     model = esports.EsportsModel.from_files(root, graded)
@@ -201,8 +212,8 @@ def test_feature(rows, feature, seed=1):
 
 
 def main(argv=None):
-    path = "oracles_elixir.csv.gz"
-    if not os.path.exists(path):
+    path = DATA
+    if not os.path.isdir(path) or not any(n.endswith(".csv.gz") for n in os.listdir(path)):
         print(f"no {path} yet: run scripts/scrape_oracles_elixir.py "
               "(the \"Oracle's Elixir LoL game data\" workflow)")
         return 0

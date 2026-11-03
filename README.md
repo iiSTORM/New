@@ -1775,7 +1775,7 @@ a public Google Drive folder where the current year's file is replaced daily.
   embedded view (no API key needed) and finds each year's file by name, so
   there are no file IDs to go stale.
 - It keeps last year and this year, only for the leagues the app tracks plus
-  Worlds, MSI, First Stand and EWC, and writes `oracles_elixir.csv.gz` in
+  Worlds, MSI, First Stand and EWC, and writes `oracles_elixir/<year>.csv.gz` in
   Oracle's Elixir's own column names.
 - The "Oracle's Elixir LoL game data" workflow runs daily but only fetches
   when the file is more than 6 days old: daily commits would grow the repo by
@@ -1795,6 +1795,18 @@ using the same rule as everything else: the slope's 95% interval excludes 0
 and held-out error falls. It ends with "worth wiring in: …". If a column ever
 qualifies, wiring it in is the next step. With about 500 graded LoL lines,
 expect wide intervals for now.
+
+**First run, 2026-11-03.** 2025 and 2026 came through for every tracked
+league: 2,500+ games a year, Worlds 2026 up to Oct 31. The files are 4.2 MB
+and 4.9 MB, one per year, so only the current year is ever rewritten. On 540
+graded LoL kills lines, nothing qualified.
+- **Near-miss:** the player's share of their team's damage, gold and kills.
+  Players who take a big share went under the model's number more often, and
+  each slope's interval just excludes 0 (about −0.10 per standard deviation).
+- **Why it fails anyway:** adding any of them raised held-out error
+  (2.63 → 2.67–2.73).
+- **Chance:** with 17 columns tested, three borderline results is about what
+  chance alone produces. The weekly probe will show whether it firms up.
 
 ### Nov 2: proven cells, wider drift checks, factors re-measured, AWPer headshots
 

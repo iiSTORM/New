@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Oracle's Elixir LoL game data -> oracles_elixir.csv.gz, for the leagues we track.
+"""Oracle's Elixir LoL game data -> oracles_elixir/<year>.csv.gz, for the leagues we track.
 
 Oracle's Elixir publishes one CSV per year of every pro LoL game: twelve rows
 a game (ten players, two teams) with what gol.gg does not carry -- gold, XP
@@ -41,7 +41,10 @@ FOLDER_ID = "1gLSw0RLjBbtaNy0dgnGQDAZOHIgCe-HH"
 #: Used only when the folder listing fails. 2025's from a public pipeline
 #: that hardcodes it (github.com/HerrKurz/Esports_Data_Pipeline, config.py).
 KNOWN_IDS = {"2025": "1v6LRphp2kYciU4SXp0PCjEMuev1bDejc"}
-OUT = "oracles_elixir.csv.gz"
+#: One file per Oracle's Elixir year file. A finished year never changes, so it
+#: is fetched once and never rewritten; only the current year is refreshed, and
+#: the repo grows by that one file a week rather than by every year again.
+OUT_DIR = "oracles_elixir"
 HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
                          "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"}
 
@@ -202,18 +205,38 @@ def filter_rows(lines, leagues=LEAGUES, columns=COLUMNS):
     return have, rows
 
 
+def write(path, header, rows):
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(header)
+    at = header.index("date") if "date" in header else None
+    w.writerows(sorted(rows, key=lambda r: (r[at] if at is not None else "", r[0])))
+    # mtime=0 so an unchanged year writes byte-identical output and git sees no change
+    with open(path, "wb") as raw, gzip.GzipFile(filename="", fileobj=raw, mode="wb", compresslevel=9,
+                                                 mtime=0) as gz:
+        gz.write(buf.getvalue().encode("utf-8"))
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     year = datetime.now(timezone.utc).year
     ap.add_argument("--years", nargs="+", default=[str(year - 1), str(year)])
-    ap.add_argument("--out", default=OUT)
+    ap.add_argument("--out-dir", default=OUT_DIR, dest="out_dir")
     args = ap.parse_args(argv)
+    os.makedirs(args.out_dir, exist_ok=True)
+    wanted = [y for y in args.years
+              if int(y) >= year or not os.path.exists(os.path.join(args.out_dir, f"{y}.csv.gz"))]
+    skipped = sorted(set(args.years) - set(wanted))
+    if skipped:
+        print(f"already on file and finished, not fetched again: {skipped}")
+    if not wanted:
+        return 0
     session = requests.Session()
     ids = {**KNOWN_IDS, **list_folder(session)}
     print(f"files found: { {y: ids[y] for y in sorted(ids)} }")
-    header, kept, done = None, [], []
-    for y in args.years:
+    done = []
+    for y in wanted:
         file_id = ids.get(y)
         if not file_id:
             print(f"  ! no file for {y}", file=sys.stderr)
@@ -224,32 +247,20 @@ def main(argv=None):
                 continue
             size = os.path.getsize(path)
             with open(path, newline="", encoding="utf-8-sig") as f:
-                cols, rows = filter_rows(f)
-        if header is None:
-            header = cols
-        elif cols != header:                   # a year with fewer columns: align by name
-            index = {c: i for i, c in enumerate(cols)}
-            rows = [[r[index[c]] if c in index else "" for c in header] for r in rows]
-        games = len({r[0] for r in rows})
-        print(f"  {y}: {size / 1e6:.0f} MB downloaded, kept {len(rows)} rows, {games} games")
-        kept += rows
+                header, rows = filter_rows(f)
+        out = os.path.join(args.out_dir, f"{y}.csv.gz")
+        write(out, header, rows)
+        print(f"  {y}: {size / 1e6:.0f} MB downloaded, kept {len(rows)} rows, "
+              f"{len({r[0] for r in rows})} games -> {out} ({os.path.getsize(out) / 1e6:.1f} MB)")
         done.append(y)
-    if not kept:
-        print("nothing downloaded; leaving the existing file alone")
+    if not done:
+        print("nothing downloaded; leaving the existing files alone")
         if QUOTA["hit"]:
             print("Drive's download quota was the reason: the daily schedule tries again "
                   "tomorrow (set OE_DRIVE_API_KEY to go through the API instead)")
             return 75                           # EX_TEMPFAIL: the workflow treats it as a retry
         return 1
-    buf = io.StringIO()
-    w = csv.writer(buf)
-    w.writerow(header)
-    w.writerows(sorted(kept, key=lambda r: (r[header.index("date")] if "date" in header else "", r[0])))
-    with gzip.open(args.out, "wt", encoding="utf-8", compresslevel=9) as f:
-        f.write(buf.getvalue())
-    print(f"wrote {args.out}: {len(kept)} rows from {done}, "
-          f"{os.path.getsize(args.out) / 1e6:.1f} MB")
-    return 0 if len(done) == len(args.years) else 1
+    return 0 if len(done) == len(wanted) else 1
 
 
 if __name__ == "__main__":

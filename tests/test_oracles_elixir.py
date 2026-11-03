@@ -71,3 +71,16 @@ def test_the_virus_scan_page_form_is_read_for_its_token():
     assert action == "https://drive.usercontent.google.com/download"
     assert params == {"id": "1hnp", "export": "download", "confirm": "t", "uuid": "ab-12"}
     assert oe.warning_form("<html>quota exceeded</html>") is None
+
+
+def test_a_finished_year_on_file_is_not_fetched_again(tmp_path, monkeypatch):
+    (tmp_path / "2020.csv.gz").write_bytes(b"x")
+    monkeypatch.setattr(oe, "list_folder", lambda s: (_ for _ in ()).throw(AssertionError("fetched")))
+    assert oe.main(["--years", "2020", "--out-dir", str(tmp_path)]) == 0
+
+
+def test_an_unchanged_year_writes_identical_bytes(tmp_path):
+    a, b = tmp_path / "a.csv.gz", tmp_path / "b.csv.gz"
+    oe.write(str(a), ["gameid", "date"], [["g2", "2026-01-02"], ["g1", "2026-01-01"]])
+    oe.write(str(b), ["gameid", "date"], [["g1", "2026-01-01"], ["g2", "2026-01-02"]])
+    assert a.read_bytes() == b.read_bytes()
