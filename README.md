@@ -1762,6 +1762,69 @@ hundred. That is weeks away, not minutes.
 That is the whole list. Five items answered by measurement, one collected and
 waiting on data, three closed off as unreachable from the providers in use.
 
+### Nov 4: the series simulator and the Simulator tab
+
+**What it is.** Every upcoming fixture is played 10,000 times, map by map, by
+`scripts/propedge/series_sim.py`. Each simulated map:
+1. **Picks a winner,** from the bookmaker's price where one was captured
+   (CS2) or a point-in-time Elo otherwise. LoL's Elo is fitted on Oracle's
+   Elixir games, which include MSI, First Stand, EWC and Worlds 2025, so LCK
+   and LCS teams sit on one scale.
+2. **Draws a real past map of each team with that result,** weighted toward
+   recent maps.
+3. **Takes both kill totals from one of the two drawn maps,** chosen at
+   random, then nudges them by a shared random factor (`JITTER`, 0.10) and
+   applies the event-pace and class-gap factors the projections use. One
+   team's kills always equal the other's deaths.
+4. **Splits the kills among players** by their lines in that real map, in
+   whole numbers that add up exactly.
+5. **LoL only:** draws game length, dragons, barons, towers and the firsts
+   from an Oracle's Elixir row of each side with the same result.
+
+**Where it is published.** `scripts/publish_simulations.py` writes
+`simulations.json`. The "Simulate upcoming fixtures" workflow runs it after
+every data scrape and line update. The app's new **Simulator** tab shows,
+per fixture:
+- the series-score distribution and maps played;
+- the most common storylines (score plus who led the series in kills);
+- a map-by-map breakdown: winner, total kills with histogram, stomp and close
+  rates, top fragger, and for LoL game length and objectives;
+- every player's range per stat and map window, next to the projection, with
+  each posted line priced both ways;
+- a custom-line box that reads the chance of an over straight off the
+  distribution.
+
+**How good it is** (`scripts/dev/simulation_backtest.py`, 3,896 graded
+standard props in 281 matches, simulated point in time with the real lineups
+and formats):
+
+| Test | Result | Verdict |
+|---|---|---|
+| Engine's own P(over), single legs | log-loss −0.032 vs the model (95% −0.048 to −0.017) | worse |
+| Engine shape, anchored to the model's mean | −0.005 (−0.011 to +0.001) | a tie |
+| Same-match pairs: how often two legs land the same way | +0.005 (−0.002 to +0.013) vs the 0.143/0.043 formula | better in every game, not yet significant |
+
+On the pairs test the engine predicts teammates landing together 62% of the
+time against a real 61%, where the formula says 55%. It predicts opposing
+players 56% against a real 56%, where the formula says 51%.
+
+So the model's number stays the one to bet on and slip pricing stays on the
+formula. The tab shows both numbers and says so. The Monday run of the
+workflow re-runs the backtest and commits its verdict, which the tab
+displays.
+
+**Two lessons from building it:**
+- The first version averaged the two drawn maps' kill totals. That halved
+  the spread and removed the map length both teams share, and it was
+  clearly worse.
+- For LoL, `data.json` drops an event's region once the event ends, which
+  lost the Demacia Cup and play-ins. The LoL library now comes from Oracle's
+  Elixir, which also records who actually won each map.
+
+**A side finding worth its own look:** the formula's correlation now looks
+too low. On today's record teammates land the same way 60.8% of the time
+against the formula's 54.6%.
+
 ### Oracle's Elixir LoL game data (item 11)
 
 **What it is.** Oracle's Elixir publishes every pro LoL game, twelve rows a

@@ -2523,6 +2523,7 @@ const DATA_URL_SCHEDULE = "https://raw.githubusercontent.com/iiSTORM/New/refs/he
 const DATA_URL_RESULTS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/props_results.json";
 const DATA_URL_PROJECTIONS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/model_projections.json";
 const DATA_URL_NEWS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/news.json";
+const DATA_URL_SIMULATIONS = "https://raw.githubusercontent.com/iiSTORM/New/refs/heads/main/simulations.json";
 
 // Lines move continuously and get pulled when news breaks, so an old one
 // can be misleading in the expensive direction — it still looks
@@ -6301,6 +6302,439 @@ function ProjectionsTab({ isDesktop }) {
   );
 }
 
+/* ---------------------------------------------------------------- Simulator
+
+   Every upcoming fixture played 10,000 times by scripts/propedge/series_sim.py
+   and summarised by scripts/publish_simulations.py into simulations.json. In
+   each run the series is played map by map: a map winner (bookmaker price
+   where captured, Elo otherwise), a real past map of each team with that
+   result, kills set so one side's equal the other's deaths, and each
+   player's line from that real map scaled to fit. So the runs keep what a
+   single projection cannot: stomps, short series that void maps-1-3 lines,
+   and teammates rising and falling together.
+
+   WHAT IT IS NOT: a better number to bet on. Scored point in time on the
+   graded record (scripts/dev/simulation_backtest.py), its own P(over) was
+   worse than the model's and the projection-anchored version only tied it,
+   so every line shows both and the model's is the one the rest of the app
+   uses. Where it was better is in how often two legs of one match land the
+   same way, which is what a slip needs -- not yet by enough to switch the
+   slip pricing over. The verdict ships in the file and is shown on the tab. */
+function useSimulations() {
+  const [payload, setPayload] = useState(undefined);
+  useEffect(() => {
+    let live = true;
+    fetch(DATA_URL_SIMULATIONS, { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (live) setPayload(data); })
+      .catch(() => { if (live) setPayload(null); });
+    return () => { live = false; };
+  }, []);
+  return payload;
+}
+
+const SIM_STAT_LABELS = { k: "kills", d: "deaths", a: "assists", hs: "headshots" };
+
+function simPct(x, digits = 0) {
+  return typeof x === "number" && isFinite(x) ? `${(100 * x).toFixed(digits)}%` : "—";
+}
+
+function simOver(hist, line) {
+  if (!hist || !hist.counts) return null;
+  let over = 0, push = 0, n = 0;
+  hist.counts.forEach((c, i) => {
+    const v = hist.min + i;
+    n += c;
+    if (v > line) over += c; else if (v === line) push += c;
+  });
+  const decided = n - push;
+  return decided > 0 ? over / decided : null;
+}
+
+function SimBar({ value, tone, theme, width = 60 }) {
+  return (
+    <span aria-hidden="true" style={{ display: "inline-block", width, height: 6, borderRadius: 999,
+      background: theme.steelSoft, overflow: "hidden", verticalAlign: "middle" }}>
+      <span style={{ display: "block", width: `${Math.max(0, Math.min(100, 100 * (value || 0)))}%`,
+        height: "100%", background: tone || theme.grad, borderRadius: 999 }} />
+    </span>
+  );
+}
+
+/* A distribution as columns, with an optional line drawn through it: bars
+   above the line in the good colour, at or below it in the dim one. */
+function SimHistogram({ hist, line, theme, height = 56, label }) {
+  if (!hist || !hist.counts || !hist.counts.length) return null;
+  const counts = hist.counts;
+  // Trim the empty tails that a handful of extreme runs leave.
+  const total = counts.reduce((a, b) => a + b, 0);
+  let lo = 0, hi = counts.length - 1, acc = 0;
+  while (lo < hi && (acc + counts[lo]) / total < 0.005) { acc += counts[lo]; lo++; }
+  acc = 0;
+  while (hi > lo && (acc + counts[hi]) / total < 0.005) { acc += counts[hi]; hi--; }
+  const shown = counts.slice(lo, hi + 1);
+  const peak = Math.max(...shown, 1);
+  const first = hist.min + lo;
+  return (
+    <div>
+      <div role="img" aria-label={label || "distribution"}
+           style={{ display: "flex", alignItems: "flex-end", gap: shown.length > 60 ? 0 : 1, height,
+                    overflow: "hidden", minWidth: 0 }}>
+        {shown.map((c, i) => {
+          const v = first + i;
+          const above = typeof line === "number" ? v > line : true;
+          return (
+            <div key={v} title={`${v}: ${(100 * c / total).toFixed(1)}%`}
+                 style={{ flex: 1, minWidth: 0, height: `${Math.max(2, 100 * c / peak)}%`,
+                          background: above ? theme.accent : theme.steel, borderRadius: "2px 2px 0 0",
+                          opacity: typeof line === "number" && !above ? 0.55 : 0.9 }} />
+          );
+        })}
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: theme.textFaint, marginTop: 2 }}>
+        <span>{first}</span>
+        {typeof line === "number" && <span>line {line}</span>}
+        <span>{first + shown.length - 1}</span>
+      </div>
+    </div>
+  );
+}
+
+function SimulatorTab({ game, isDesktop }) {
+  const theme = useTheme();
+  const payload = useSimulations();
+  const [allGames, setAllGames] = useState(false);
+  const [picked, setPicked] = useState(null);
+  const [mapIndex, setMapIndex] = useState(0);
+  const [stat, setStat] = useState("k");
+  const [windowKey, setWindowKey] = useState("1");
+  const [focus, setFocus] = useState(null);
+  const [customLine, setCustomLine] = useState("");
+
+  const fixtures = useMemo(() => ((payload && payload.fixtures) || [])
+    .filter((f) => allGames || f.game === game), [payload, allGames, game]);
+  const fixture = fixtures.find((f) => `${f.game}|${f.teams.join("|")}|${f.start}` === picked) || fixtures[0] || null;
+  useEffect(() => { setMapIndex(0); setFocus(null); setCustomLine(""); }, [picked, game]);
+
+  if (payload === undefined) {
+    return <div style={{ padding: 24, color: theme.textDim }}>Loading simulations…</div>;
+  }
+  const card = {
+    background: theme.graphite, border: `1px solid ${theme.steel}`,
+    borderRadius: 10, padding: isDesktop ? 16 : 12, marginBottom: 14,
+  };
+  const head = { fontWeight: 700, marginBottom: 8, color: theme.text };
+  const dim = { color: theme.textDim, fontSize: 12.5, lineHeight: 1.6 };
+  if (!payload || !(payload.fixtures || []).length) {
+    return (
+      <div style={{ padding: 24, color: theme.textDim, lineHeight: 1.6 }}>
+        No simulations published yet. They are written by
+        <code style={{ margin: "0 6px" }}>scripts/publish_simulations.py</code>
+        after each data or line update; the file appears once that has run.
+      </div>
+    );
+  }
+
+  const bt = payload.backtest && payload.backtest.verdict;
+  const gainText = (g) => g ? `${g[0] >= 0 ? "+" : ""}${g[0].toFixed(4)} (95% ${g[1].toFixed(4)} to ${g[2].toFixed(4)})` : "—";
+  const verdict = (
+    <div style={card}>
+      <div style={head}>How far to trust it</div>
+      <div style={dim}>
+        Each fixture is played {payload.runs.toLocaleString()} times, map by map, from the teams’ own past
+        maps. Scored point in time on {payload.backtest ? payload.backtest.props.toLocaleString() : "the"} graded
+        props, the engine’s own chance of an over was <strong style={{ color: theme.bad }}>worse</strong> than
+        the model’s, and moved onto the model’s projection it only <strong>tied</strong> it — so the model’s
+        number stays the one to bet on, and both are shown below. Where it does better is how often two legs in
+        one match land the same way{payload.backtest ? ` (${payload.backtest.pairs.toLocaleString()} pairs)` : ""},
+        which is what a slip depends on: not yet by enough to switch slip pricing to it.
+        {bt && (
+          <div style={{ marginTop: 6, fontSize: 11.5, color: theme.textFaint }}>
+            log-loss gain vs model — single legs: engine {gainText(bt.engine)}, anchored {gainText(bt.anchored)};
+            {" "}pairs: anchored {gainText(bt.pairs_anchored)}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const picker = (
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
+      <select className="kp-select" value={fixture ? `${fixture.game}|${fixture.teams.join("|")}|${fixture.start}` : ""}
+              onChange={(e) => setPicked(e.target.value)} aria-label="fixture"
+              style={{ maxWidth: "100%", minWidth: 0 }}>
+        {fixtures.map((f) => {
+          const key = `${f.game}|${f.teams.join("|")}|${f.start}`;
+          const when = new Date(f.start);
+          return (
+            <option key={key} value={key}>
+              {allGames ? `${GAMES[f.game] ? GAMES[f.game].label : f.game} · ` : ""}{f.teams[0]} v {f.teams[1]}
+              {" "}· {isNaN(when) ? f.date : when.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+            </option>
+          );
+        })}
+      </select>
+      <label style={{ fontSize: 12.5, color: theme.textDim, display: "inline-flex", gap: 6, alignItems: "center" }}>
+        <input type="checkbox" checked={allGames} onChange={(e) => setAllGames(e.target.checked)} />
+        every game
+      </label>
+      <span style={{ fontSize: 12, color: theme.textFaint }}>{fixtures.length} fixtures simulated</span>
+    </div>
+  );
+
+  if (!fixture) {
+    return (
+      <div style={{ padding: isDesktop ? 16 : 10 }}>
+        {verdict}{picker}
+        <div style={{ ...card, ...dim }}>No upcoming fixture in this game had enough history on both sides to simulate.</div>
+      </div>
+    );
+  }
+
+  const [ta, tb] = fixture.teams;
+  const scoreRows = Object.entries(fixture.series.scores)
+    .map(([score, p]) => { const [a, b] = score.split("-").map(Number); return { score, p, aWins: a > b }; })
+    .sort((x, y) => (y.aWins - x.aWins) || (x.aWins ? (Number(x.score.split("-")[1]) - Number(y.score.split("-")[1]))
+                                                      : (Number(y.score.split("-")[0]) - Number(x.score.split("-")[0]))));
+  const maps = fixture.maps || [];
+  const m = maps[Math.min(mapIndex, maps.length - 1)];
+  const stats = Object.keys(fixture.players[0] ? fixture.players[0].stats : { k: 1 });
+  const windows = Array.from(new Set(fixture.players.flatMap((p) => Object.keys((p.stats[stat] || {})))))
+    .sort((a, b) => Number(a) - Number(b));
+  const win = windows.includes(windowKey) ? windowKey : windows[0];
+  const winLabel = (w) => mapWindowLabel(Number(w), 1);
+  const focusPlayer = fixture.players.find((p) => `${p.side}|${p.player}` === focus) || null;
+
+  const series = (
+    <div style={card}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "baseline" }}>
+        <div style={head}>{ta} v {tb} · Bo{fixture.best_of}{fixture.block ? ` · ${fixture.block}` : ""}</div>
+        <div style={{ fontSize: 11.5, color: theme.textFaint }}>
+          map win {simPct(fixture.p_map)} for {ta}, from {fixture.p_map_source === "odds" ? "the bookmaker’s price" : `Elo (${Math.round(fixture.elo[0])} v ${Math.round(fixture.elo[1])})`}
+          {(fixture.kill_factors || []).some((x) => Math.abs(x - 1) > 1e-6) &&
+            ` · kill factors ${fixture.kill_factors.map((x) => x.toFixed(2)).join(" / ")}`}
+        </div>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "6px 0 12px" }}>
+        <span style={{ fontWeight: 800, minWidth: 44 }}>{simPct(fixture.series.a_win)}</span>
+        <div style={{ flex: 1, height: 10, borderRadius: 999, overflow: "hidden", display: "flex", background: theme.steelSoft }}>
+          <div style={{ width: `${100 * fixture.series.a_win}%`, background: theme.accent }} />
+          <div style={{ flex: 1, background: theme.steel }} />
+        </div>
+        <span style={{ fontWeight: 800, minWidth: 44, textAlign: "right" }}>{simPct(1 - fixture.series.a_win)}</span>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "minmax(0, 1fr) minmax(0, 1fr)" : "minmax(0, 1fr)", gap: 14 }}>
+        <div>
+          <div style={{ ...dim, fontWeight: 600, marginBottom: 4 }}>Series score</div>
+          {scoreRows.map((r) => (
+            <div key={r.score} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, marginBottom: 3 }}>
+              <span style={{ minWidth: 92, color: r.aWins ? theme.text : theme.textDim }}>
+                {r.aWins ? ta : tb} {r.aWins ? r.score : r.score.split("-").reverse().join("-")}
+              </span>
+              <SimBar value={r.p / Math.max(...scoreRows.map((x) => x.p))} theme={theme} width={120}
+                      tone={r.aWins ? theme.accent : theme.steel} />
+              <span style={{ minWidth: 36, textAlign: "right" }}>{simPct(r.p)}</span>
+            </div>
+          ))}
+          <div style={{ ...dim, marginTop: 6 }}>
+            Maps played: {Object.entries(fixture.series.maps_played).map(([k, v]) => `${k} — ${simPct(v)}`).join(" · ")}
+          </div>
+        </div>
+        <div>
+          <div style={{ ...dim, fontWeight: 600, marginBottom: 4 }}>What happened most often</div>
+          {(fixture.storylines || []).map((st, i) => {
+            const [a, b] = st.score.split("-").map(Number);
+            const winner = a > b ? ta : tb;
+            const shown = a > b ? st.score : st.score.split("-").reverse().join("-");
+            return (
+              <div key={i} style={{ fontSize: 12.5, marginBottom: 4, color: theme.textDim }}>
+                <strong style={{ color: theme.text }}>{simPct(st.share, 1)}</strong>
+                {" "}· {winner} win {shown}, {st.mvp} leads the series in kills
+              </div>
+            );
+          })}
+          <div style={{ ...dim, marginTop: 6 }}>
+            Most kills in the series:{" "}
+            {[...fixture.players].sort((x, y) => y.mvp - x.mvp).slice(0, 3)
+              .map((p) => `${p.player} ${simPct(p.mvp)}`).join(" · ")}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const mapCard = m && (
+    <div style={card}>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+        {maps.map((x, i) => (
+          <button key={x.map} type="button" onClick={() => setMapIndex(i)}
+                  style={{ padding: "5px 12px", borderRadius: 999, fontSize: 12.5, cursor: "pointer",
+                           border: `1px solid ${i === mapIndex ? theme.accent : theme.steel}`,
+                           background: i === mapIndex ? `${theme.accent}22` : "transparent", color: theme.text }}>
+            Map {x.map}{x.played < 0.999 ? ` · ${simPct(x.played)}` : ""}
+          </button>
+        ))}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "minmax(0, 1fr) minmax(0, 1fr)" : "minmax(0, 1fr)", gap: 16 }}>
+        <div>
+          <div style={{ ...dim, marginBottom: 6 }}>
+            Played in {simPct(m.played)} of runs. When it is, {ta} win it {simPct(m.a_win)}.
+          </div>
+          <div style={{ ...dim, fontWeight: 600 }}>
+            Total kills: {m.total_kills.mean.toFixed(1)} on average, 80% between {m.total_kills.q[0]} and {m.total_kills.q[2]}
+          </div>
+          <SimHistogram hist={m.total_kills.hist} theme={theme} label={`map ${m.map} total kills`} />
+          <div style={{ ...dim, marginTop: 8 }}>
+            {ta} {m.kills_a.toFixed(1)} · {tb} {m.kills_b.toFixed(1)} kills on average.
+            {" "}Stomps (winner at least double the loser’s kills): <strong style={{ color: theme.text }}>{simPct(m.stomp)}</strong>.
+            {" "}Close maps: <strong style={{ color: theme.text }}>{simPct(m.close)}</strong>.
+          </div>
+        </div>
+        <div>
+          {m.length_min && (
+            <div style={{ ...dim, marginBottom: 8 }}>
+              <div style={{ fontWeight: 600 }}>Game length: {m.length_min.mean.toFixed(1)} min
+                {" "}(80% between {m.length_min.q[0].toFixed(0)} and {m.length_min.q[2].toFixed(0)})</div>
+              Over 35 minutes {simPct(m.length_min.over_35)} · under 28 minutes {simPct(m.length_min.under_28)}
+            </div>
+          )}
+          {(m.firstblood !== undefined || m.dragons) && (
+            <table className="kp-table" style={{ marginBottom: 8 }}>
+              <thead><tr><th></th><th className="n">{ta}</th><th className="n">{tb}</th></tr></thead>
+              <tbody>
+                {[["firstblood", "first blood"], ["firsttower", "first tower"], ["firstdragon", "first dragon"], ["firstbaron", "first baron"]]
+                  .filter(([k]) => typeof m[k] === "number").map(([k, label]) => (
+                    <tr key={k}><td>{label}</td><td className="n">{simPct(m[k])}</td><td className="n">{simPct(1 - m[k])}</td></tr>
+                  ))}
+                {[["dragons", "dragons"], ["towers", "towers"], ["barons", "barons"]]
+                  .filter(([k]) => Array.isArray(m[k])).map(([k, label]) => (
+                    <tr key={k}><td>{label} (avg)</td><td className="n">{m[k][0].toFixed(1)}</td><td className="n">{m[k][1].toFixed(1)}</td></tr>
+                  ))}
+              </tbody>
+            </table>
+          )}
+          <div style={{ ...dim, fontWeight: 600 }}>Most kills on this map</div>
+          {(m.top_fragger || []).map((t) => (
+            <div key={`${t.team}|${t.player}`} style={{ fontSize: 12.5, display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
+              <span style={{ minWidth: 110 }}>{t.player} <span style={{ color: theme.textFaint, fontSize: 11 }}>{t.team}</span></span>
+              <SimBar value={t.share} theme={theme} width={90} />
+              <span>{simPct(t.share)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const playerRows = (side) => fixture.players.filter((p) => p.side === side);
+  const players = (
+    <div style={card}>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 8 }}>
+        <div style={{ ...head, marginBottom: 0, marginRight: 6 }}>Players</div>
+        <select className="kp-select" value={stat} onChange={(e) => setStat(e.target.value)} aria-label="stat">
+          {stats.map((s) => <option key={s} value={s}>{SIM_STAT_LABELS[s] || s}</option>)}
+        </select>
+        <select className="kp-select" value={win} onChange={(e) => setWindowKey(e.target.value)} aria-label="map window">
+          {windows.map((w) => <option key={w} value={w}>{winLabel(w)}</option>)}
+        </select>
+        <span style={{ fontSize: 11.5, color: theme.textFaint }}>tap a player for their full distribution</span>
+      </div>
+      <div style={{ overflowX: "auto" }}>
+        <table className="kp-table">
+          <thead>
+            <tr style={{ textAlign: "left" }}>
+              <th>player</th><th className="n">sim avg</th><th className="n">80% range</th>
+              <th className="n">model</th><th>posted lines · sim / model over</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[0, 1].map((side) => (
+              <Fragment key={side}>
+                <tr><td colSpan={5} style={{ fontSize: 11, color: theme.textFaint, textTransform: "uppercase", letterSpacing: 0.6, paddingTop: 10 }}>
+                  {fixture.teams[side]}</td></tr>
+                {playerRows(side).map((p) => {
+                  const dist = (p.stats[stat] || {})[win];
+                  const proj = ((p.projection || {})[stat] || {})[win];
+                  const lines = (p.lines || []).filter((l) => sim_statKey(l.stat) === stat && String(l.maps) === win);
+                  const key = `${p.side}|${p.player}`;
+                  return (
+                    <tr key={key} className="kp-clickable" onClick={() => setFocus(focus === key ? null : key)}
+                        style={{ cursor: "pointer", background: focus === key ? theme.graphiteLight : "transparent" }}>
+                      <td style={{ fontWeight: 700, whiteSpace: "nowrap" }}>{p.player}</td>
+                      <td className="n">{dist ? dist.mean.toFixed(1) : "—"}</td>
+                      <td className="n" style={{ color: theme.textDim }}>{dist ? `${dist.q[0]}–${dist.q[2]}` : "—"}</td>
+                      <td className="n" style={{ color: theme.textDim }}>{typeof proj === "number" ? proj.toFixed(1) : "—"}</td>
+                      <td style={{ fontSize: 12, whiteSpace: "nowrap" }}>
+                        {lines.length ? lines.map((l) => (
+                          <span key={`${l.line}|${l.odds_type}`} style={{ marginRight: 10 }}>
+                            <strong>{l.line}</strong>{l.odds_type !== "standard" ? ` ${l.odds_type}` : ""}
+                            {" "}<span style={{ color: theme.textDim }}>{simPct(l.engine_over)} / {simPct(l.model_over)}</span>
+                          </span>
+                        )) : <span style={{ color: theme.textFaint }}>no line posted</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {focusPlayer && (() => {
+        const dist = (focusPlayer.stats[stat] || {})[win];
+        const posted = (focusPlayer.lines || []).find((l) => sim_statKey(l.stat) === stat && String(l.maps) === win && l.odds_type === "standard");
+        const typed = customLine === "" ? null : Number(customLine);
+        const line = typeof typed === "number" && isFinite(typed) ? typed : posted ? posted.line : null;
+        const over = dist && typeof line === "number" ? simOver(dist.hist, line) : null;
+        return (
+          <div style={{ marginTop: 12, padding: 12, borderRadius: 8, background: theme.graphiteLight }}>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center", marginBottom: 8 }}>
+              <strong>{focusPlayer.player}</strong>
+              <span style={{ ...dim }}>{SIM_STAT_LABELS[stat]} · {winLabel(win)}{dist && dist.played < 0.999 ? ` · window played in ${simPct(dist.played)} of runs` : ""}</span>
+              <label style={{ fontSize: 12.5, color: theme.textDim, display: "inline-flex", gap: 6, alignItems: "center" }}>
+                line
+                <input type="number" step="0.5" value={customLine} placeholder={posted ? String(posted.line) : "e.g. 6.5"}
+                       onChange={(e) => setCustomLine(e.target.value)}
+                       style={{ width: 70, padding: "3px 6px", borderRadius: 6, border: `1px solid ${theme.steel}`,
+                                background: theme.graphite, color: theme.text }} />
+              </label>
+              {typeof over === "number" && (
+                <span style={{ fontSize: 13 }}>over {line}: <strong>{simPct(over, 1)}</strong> of runs (pushes excluded)</span>
+              )}
+            </div>
+            {dist ? <SimHistogram hist={dist.hist} line={line} theme={theme} height={72}
+                                  label={`${focusPlayer.player} ${SIM_STAT_LABELS[stat]} distribution`} />
+                  : <div style={dim}>No runs reached this window.</div>}
+            <div style={{ ...dim, marginTop: 8 }}>
+              Most kills in the series in {simPct(focusPlayer.mvp)} of runs.
+              {dist && ` Median ${dist.q[1]}, 80% of runs between ${dist.q[0]} and ${dist.q[2]}.`}
+            </div>
+          </div>
+        );
+      })()}
+    </div>
+  );
+
+  return (
+    <div style={{ padding: isDesktop ? 16 : 10 }}>
+      {verdict}
+      {picker}
+      {series}
+      {mapCard}
+      {players}
+      <div style={{ color: theme.textDim, fontSize: 12, lineHeight: 1.6 }}>
+        Simulated {payload.generated_at}. Rosters are each team’s current listing; a player who did not play a
+        drawn map takes the line of the player they replaced. Who wins a map is drawn first, then a real past map
+        of each team with that result, so a team’s stomps and scrapes come from its own record.
+      </div>
+    </div>
+  );
+}
+
+function sim_statKey(stat) {
+  return { kills: "k", deaths: "d", assists: "a", headshots: "hs" }[stat] || stat;
+}
+
 function ParlaysTab({ dataByGame, propsData, weightsByGameAndStat, isDesktop }) {
   const theme = useTheme();
   const results = useGradedResults();
@@ -9505,7 +9939,7 @@ function TopNav({ theme, gameCfg, game, region, setRegion, tab, setTab, statType
   // way: Edges ranks single lines, Parlays stacks them. It is cross-game, so
   // the region and stat selectors above do not apply to it.
   // Bracket only where there is one: an international event's region.
-  const TABS = [["future", "Future"], ...(hasEvent ? [["event", "Bracket"]] : []), ["edges", "Edges"], ["projections", "Projections"], ["parlays", "Parlays"], ["record", "Record"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
+  const TABS = [["future", "Future"], ...(hasEvent ? [["event", "Bracket"]] : []), ["edges", "Edges"], ["simulator", "Simulator"], ["projections", "Projections"], ["parlays", "Parlays"], ["record", "Record"], ["past", "Past Results"], ["consistency", "Consistency"], ["standings", "Standings"]];
   return (
     <div style={{ marginBottom: isDesktop ? 22 : 14 }}>
       {/* Region picker. Seven regions wrapped onto two rows on a phone,
@@ -10291,6 +10725,8 @@ function KillProjector({ onHome } = {}) {
             ) : tab === "edges" ? (
               <EdgesTab regionsData={regionsData} regionList={gameCfg.regionList} regionLabels={gameCfg.regionLabels}
                         weights={weights} statType={statType} game={game} isDesktop={isDesktop} />
+            ) : tab === "simulator" ? (
+              <SimulatorTab game={game} isDesktop={isDesktop} />
             ) : tab === "projections" ? (
               <ProjectionsTab isDesktop={isDesktop} />
             ) : tab === "parlays" ? (

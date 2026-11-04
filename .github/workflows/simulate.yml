@@ -1,0 +1,59 @@
+name: Simulate upcoming fixtures
+
+# Every upcoming fixture played 10,000 times (scripts/propedge/series_sim.py)
+# and summarised into simulations.json for the app's Simulator tab. Runs after
+# each data scrape and each line update, so rosters, form and posted lines
+# are the current ones. Mondays it also re-runs the backtest against the
+# current projections and commits its verdict, which the tab shows.
+on:
+  workflow_run:
+    workflows: ["Update esports data", "Update prop lines"]
+    types: [completed]
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      backtest:
+        description: "Re-run the backtest too"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: simulate-fixtures
+  cancel-in-progress: true
+
+jobs:
+  simulate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Backtest the engine against the projections
+        if: github.event_name == 'schedule' || inputs.backtest
+        run: python scripts/dev/simulation_backtest.py --runs 600 --json scripts/dev/simulation_backtest.json
+
+      - name: Simulate upcoming fixtures
+        run: python scripts/publish_simulations.py
+
+      - name: Commit
+        run: |
+          git config user.name "esports-data-bot"
+          git config user.email "actions@github.com"
+          git add simulations.json scripts/dev/simulation_backtest.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Update fixture simulations"
+          for i in 1 2 3 4; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep $((2**i))
+          done
+          exit 1
