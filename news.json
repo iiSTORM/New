@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-07T22:15:14.558734+00:00",
+ "generated_at": "2026-11-08T06:38:27.453800+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,7 +61,7 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 32,
+   "items": 31,
    "error": null
   },
   {
@@ -79,13 +79,13 @@
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 80,
+   "items": 73,
    "error": null
   },
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 30,
+   "items": 29,
    "error": null
   },
   {
@@ -97,13 +97,19 @@
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 17,
+   "items": 19,
    "error": null
   },
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 22,
+   "items": 21,
+   "error": null
+  },
+  {
+   "game": "dota2",
+   "source": "Google News",
+   "items": 13,
    "error": null
   },
   {
@@ -111,21 +117,76 @@
    "source": "Google News",
    "items": 16,
    "error": null
-  },
-  {
-   "game": "dota2",
-   "source": "Google News",
-   "items": 18,
-   "error": null
   }
  ],
  "items": [
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "NAVI claim third place in Beijing over BETBOOM",
+   "link": "https://www.hltv.org/news/45908/navi-claim-third-place-in-beijing-over-betboom",
+   "published": "2026-11-08T05:58:00+00:00",
+   "summary": "w0nderful finished the tournament with a 1.42 rating across 17 maps.",
+   "teams": [
+    "BetBoom",
+    "Natus Vincere"
+   ],
+   "players": [
+    {
+     "name": "w0nderful",
+     "team": "Natus Vincere"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Hotspawn",
+   "title": "Gen.G Breaks The Curse And Heads To Worlds 2026 Finals",
+   "link": "https://news.google.com/rss/articles/CBMie0FVX3lxTE42cUdTa2FDWm85MDhlWlc4YktzNVNwMk1FZjhjZEFtQzdEMEJ5eFI2Y1ZXMnZWRWZPNlZnWVlQbE15dE1oV00zczlHb0l5UWZBV1FLMnpFc2NDRm1xdE5vUEpGMnBKbjdrTTRvNURFc1JsZ1hfTFVfa1lzSQ?oc=5",
+   "published": "2026-11-08T03:46:57+00:00",
+   "summary": "Gen.G Breaks The Curse And Heads To Worlds 2026 Finals Hotspawn",
+   "teams": [
+    "Gen.G",
+    "Los Grandes"
+   ],
+   "players": [
+    {
+     "name": "Curse",
+     "team": "Los Grandes"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "GameDaily",
+   "title": "Worlds 2026: T1 Defeat Karmine Corp, Advance to Semifinals",
+   "link": "https://news.google.com/rss/articles/CBMidEFVX3lxTE85Q2RlQ2JqUlZYZ3hSWnhUdlpYelFNTU1GaXpNWGw0NjVXbUxsREF4dnpXa25wb3h4dkFKOXdZMV9QeGtTVHUtM0wtXzJHZDlTTlEzMmtOQWtTTVRtQV9zT0ZZMWhMVFFob3RrSjZBNWpzbDhM?oc=5",
+   "published": "2026-11-08T03:41:00+00:00",
+   "summary": "Worlds 2026: T1 Defeat Karmine Corp, Advance to Semifinals GameDaily",
+   "teams": [
+    "Karmine Corp",
+    "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
   {
    "game": "valorant",
    "source": "Sheep Esports",
    "title": "T1 finalize roster for VCT Pacific 2027",
    "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxPRnB6TEVsWE9kRjN4T2YyUW9jbS0tM004OUFsald4WnVjeGpZNFZkbkJIdWhuN1FITkZ0bEFTbHljSjdXazg1T2lkSTYyZW9rbms4ZjZyZFRfbmdMcTlPb19QdXBnajVzSUlRU0syTFBYaVpEQmtrelpsSnMzcDQ3eFV4ZURnRkxlLXVr?oc=5",
-   "published": "2026-11-07T21:02:36+00:00",
+   "published": "2026-11-08T02:51:26+00:00",
    "summary": "T1 finalize roster for VCT Pacific 2027 Sheep Esports",
    "teams": [
     "T1"
@@ -135,6 +196,92 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "GosuGamers",
+   "title": "Gen.G sweep IG to become first team to advance to the Worlds 2026 grand finals",
+   "link": "https://news.google.com/rss/articles/CBMivAFBVV95cUxNQXZ3aWxWd2Z1cmI5U08wd0ZBV0JDdzVnWkVtaUpYdTJWM3dYM1BUS0l3LW40TjdfWURuR21xd3ZPRFdid1BZbDJSSXZ4elMyb1k2QWs5ZlMzQ001VkdsY1Jqd0ZidkhBMWlZb05sejRSYWY3WEd1NUxONXJLT1JDRTc2dXZuaXJzckFMSDNpNFNXZGtoWGVreGxDeHJxOWJtNzgzTkVBcGN3MHM2ZGgtRVpwSml2RzhpVWdneg?oc=5",
+   "published": "2026-11-08T00:59:56+00:00",
+   "summary": "Gen.G sweep IG to become first team to advance to the Worlds 2026 grand finals GosuGamers",
+   "teams": [
+    "Gen.G"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "EGamersWorld",
+   "title": "Gen.G Crush Invictus Gaming in Worlds 2026 Semifinals Behind Canyon Masterclass",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxNdGNYTTJnbi05UXRtS3UyeXNTTFBiZnIwYzlKa2pscVJoVURJWVlmb0lPQ1VQY0UxVXpabjQ3ZDc0THRZTXRjOEVRRGdrUlY5UERHMGRtUW43UGN6Vi1McVVya2h4S3puM0NaUGh0RlBOY3JmbS1hLVpuRmxiRlF5c0lIcFJrTEtsNXYyRXlRSkROZmh0czBPNW1sU3hMVkRiY0E?oc=5",
+   "published": "2026-11-08T00:51:22+00:00",
+   "summary": "Gen.G Crush Invictus Gaming in Worlds 2026 Semifinals Behind Canyon Masterclass EGamersWorld",
+   "teams": [
+    "Gen.G",
+    "Invictus Gaming"
+   ],
+   "players": [
+    {
+     "name": "Canyon",
+     "team": "Gen.G"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "Sources: keiko set to join Sentinels for 2027",
+   "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxOdHMyY2UyUk92T3VEQlN2dWJhS0toVVhUdEQ1RF9qcTBla2RFU24zSUN4bmpGaC02cG5DVkkzOW14VlUwNVB4S1ZvOEtCNl9Bb2tkN1ktMVYxY3RRM2ZJWUFwYU8xaHVocm16NXZKM2k5VUpib2VzUC13YjEwa09FazIzM2RnYXVoODRQeFdmZGtaZw?oc=5",
+   "published": "2026-11-08T00:50:02+00:00",
+   "summary": "Sources: keiko set to join Sentinels for 2027 Sheep Esports",
+   "teams": [
+    "Sentinels",
+    "NRG"
+   ],
+   "players": [
+    {
+     "name": "keiko",
+     "team": "NRG"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Sources: Mithy set to join G2 Esports as Head Coach for 2027",
+   "link": "https://news.google.com/rss/articles/CBMipgFBVV95cUxOMGhZWFdZNmZDMFItWGJkUjBnR3FMNkh6YWo1YmFnOEZueTFHN09hN0dkcF9zVFBtbmRHTjZORHVDYVBldnhSVHMyR2NkeEQ4UXlaV3JCUHk0a3Jrb0tQazU1eXM0YWh1MXdJNV8ydVhTY1JvZzZmY2l5ejNVMlJteVM2VXFqdlNVWlR6S0o4a3phQ2lmNjVrNHRLMzhwRXpJNlNtQjd3?oc=5",
+   "published": "2026-11-07T23:54:27+00:00",
+   "summary": "Sources: Mithy set to join G2 Esports as Head Coach for 2027 Sheep Esports",
+   "teams": [
+    "G2 Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing",
+    "coach"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet",
+    "a coaching change"
+   ]
   },
   {
    "game": "cs2",
@@ -150,6 +297,27 @@
     {
      "name": "xelex",
      "team": "MOUZ"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Hotspawn",
+   "title": "T1 Doran: “What Makes You A Great Player Is How You Get Through The Pressure”",
+   "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxOOC1FMlZod3MwNWdyWTNDRlBtRVFOQjVoTXRWcFVhOWdiMmxiT1dFS2NCLW1sdHRIWHVDVUljUWl5MHBaVU1vU2xMVmt6cDlKY2NGb1dVVGpnVnVnck1ObDloMk8xX3E0d3htSEpKYmYxU3NsRFhCQ1EwRzZYcGpQbmFUZXE?oc=5",
+   "published": "2026-11-07T19:46:56+00:00",
+   "summary": "T1 Doran: “What Makes You A Great Player Is How You Get Through The Pressure” Hotspawn",
+   "teams": [
+    "T1"
+   ],
+   "players": [
+    {
+     "name": "Doran",
+     "team": "T1"
     }
    ],
    "score": 0,
@@ -176,27 +344,6 @@
    "reasons": [
     "a coaching change"
    ]
-  },
-  {
-   "game": "lol",
-   "source": "Hotspawn",
-   "title": "T1 Doran: “What Makes You A Great Player Is How You Get Through The Pressure”",
-   "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxOOC1FMlZod3MwNWdyWTNDRlBtRVFOQjVoTXRWcFVhOWdiMmxiT1dFS2NCLW1sdHRIWHVDVUljUWl5MHBaVU1vU2xMVmt6cDlKY2NGb1dVVGpnVnVnck1ObDloMk8xX3E0d3htSEpKYmYxU3NsRFhCQ1EwRzZYcGpQbmFUZXE?oc=5",
-   "published": "2026-11-07T19:41:15+00:00",
-   "summary": "T1 Doran: “What Makes You A Great Player Is How You Get Through The Pressure” Hotspawn",
-   "teams": [
-    "T1"
-   ],
-   "players": [
-    {
-     "name": "Doran",
-     "team": "T1"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
   },
   {
    "game": "cs2",
@@ -339,6 +486,23 @@
    "reasons": [
     "a coaching change"
    ]
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Worlds 2026: Karmine Corp vs. T1 – Quarterfinal Player Ratings",
+   "link": "https://news.google.com/rss/articles/CBMipAFBVV95cUxPakFTTGkzcGF2Qkl5a3hscEdsWGQ0V245RkduZTZJR1ZDTGZ0NWpEbHBRQlNRTnJ1SEJYSnZDVDgxQ2ZqOVF5bXZaMmtXN2FQaFV6S3I5aHNmY0RBZzZtY2tLNGplZmpXcHY5eGFJUW80R0g3bERjZGxIbDlockF6LWZnZ3BCVkZ6WHItVmItNk5lcm9DQ1R0VHhCUFpzY1Q0Z1BGeg?oc=5",
+   "published": "2026-11-07T14:42:53+00:00",
+   "summary": "Worlds 2026: Karmine Corp vs. T1 – Quarterfinal Player Ratings Sheep Esports",
+   "teams": [
+    "Karmine Corp",
+    "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
   },
   {
    "game": "cs2",
@@ -519,17 +683,17 @@
    "summary": "Gen.G Add Dambi and MaKo to 2027 Valorant Roster EsportsBets.com",
    "teams": [
     "Gen.G",
-    "Nongshim RedForce",
-    "KIWOOM DRX"
+    "KIWOOM DRX",
+    "Nongshim RedForce"
    ],
    "players": [
     {
-     "name": "Dambi",
-     "team": "Nongshim RedForce"
-    },
-    {
      "name": "MaKo",
      "team": "KIWOOM DRX"
+    },
+    {
+     "name": "Dambi",
+     "team": "Nongshim RedForce"
     }
    ],
    "score": 0,
@@ -601,24 +765,8 @@
    "published": "2026-11-07T06:28:57+00:00",
    "summary": "November 13, 2026: angry birds vs. Xipto Esports Esports Prediction Market Robinhood",
    "teams": [
+    "Angry Birds",
     "Xipto"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Sheep Esports",
-   "title": "T1 became the final Worlds 2026 semifinalist after beating Karmine Corp",
-   "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPSEptZVJpYVBHTUZGci1LV1hEbWVlMlptTGF4dHZObmxBR05vMFZIWEJ6VEo0TU9aWVUzRURKVlpCX3R1T1NjMm4wdFBUZ3IzaVY2V3RXbzhXbFNWUWFlRnNEeFBlWlhBRmJsaXhFWEFKTUV2ZEJGTkdtbUFRR3ZYSmwxNDdFbnVRNW9QaWFCSDB0aGFvcHZhRHJ0ckVHN1VsZEhZcjVtOWhqUGhmSlRSVHk4M2RaZw?oc=5",
-   "published": "2026-11-07T06:17:59+00:00",
-   "summary": "T1 became the final Worlds 2026 semifinalist after beating Karmine Corp Sheep Esports",
-   "teams": [
-    "Karmine Corp",
-    "T1"
    ],
    "players": [],
    "score": 0,
@@ -633,6 +781,23 @@
    "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPSEptZVJpYVBHTUZGci1LV1hEbWVlMlptTGF4dHZObmxBR05vMFZIWEJ6VEo0TU9aWVUzRURKVlpCX3R1T1NjMm4wdFBUZ3IzaVY2V3RXbzhXbFNWUWFlRnNEeFBlWlhBRmJsaXhFWEFKTUV2ZEJGTkdtbUFRR3ZYSmwxNDdFbnVRNW9QaWFCSDB0aGFvcHZhRHJ0ckVHN1VsZEhZcjVtOWhqUGhmSlRSVHk4M2RaZw?oc=5",
    "published": "2026-11-07T06:17:59+00:00",
    "summary": "T1 becomes the final Worlds 2026 semifinalist after beating Karmine Corp Sheep Esports",
+   "teams": [
+    "Karmine Corp",
+    "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "T1 became the final Worlds 2026 semifinalist after beating Karmine Corp",
+   "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPSEptZVJpYVBHTUZGci1LV1hEbWVlMlptTGF4dHZObmxBR05vMFZIWEJ6VEo0TU9aWVUzRURKVlpCX3R1T1NjMm4wdFBUZ3IzaVY2V3RXbzhXbFNWUWFlRnNEeFBlWlhBRmJsaXhFWEFKTUV2ZEJGTkdtbUFRR3ZYSmwxNDdFbnVRNW9QaWFCSDB0aGFvcHZhRHJ0ckVHN1VsZEhZcjVtOWhqUGhmSlRSVHk4M2RaZw?oc=5",
+   "published": "2026-11-07T06:17:59+00:00",
+   "summary": "T1 became the final Worlds 2026 semifinalist after beating Karmine Corp Sheep Esports",
    "teams": [
     "Karmine Corp",
     "T1"
@@ -715,8 +880,8 @@
    "game": "valorant",
    "source": "Sheep Esports",
    "title": "Sources: AfteR set to join Trace Esports as head coach for VCT 2027",
-   "link": "https://news.google.com/rss/articles/CBMirwFBVV95cUxPaUdIUnJXQ3NnRUs4ZjlZODg0R3FFRmFQXzNLbjZ3Tm14THhlX2wzbDlkTDNuX0FlSkNIazFtbGdFMEEwYnpUWENvRnNnZXRPWlZpMmlDTkliVS0xakFId0E1alR0TlFLOW5rU3UwSS14elhRR2FzMVBsV1Fudl9vSXgwcTBBTkVZU3RrWHBKU3dLbEZDLVBqRC1pQ2pVdnRvVTU2eHNEZ3VDQS1kWWlj?oc=5",
-   "published": "2026-11-07T04:18:04+00:00",
+   "link": "https://news.google.com/rss/articles/CBMirwFBVV95cUxQX2I3T255b1VkSGFyeENfeW00dDNnMUE2TVJCdXRzcDRyWmhLcTBIMHFlaWY4MmduUFV3b21iNEpQckR3amUwQ0VOeVEzQ0pDWjJEeGNiVGJzYUxhS2g3NE9ES3pDaWFIQUw0c0RwTnFpdC00NzdLVVZnVmM3T3RVLWk5M2F2NkNlOVI0eEJ0VUV2RU9MeEJzZ0E3T09zLWtXZWhXMzlQT0xPUG8zSmI4?oc=5",
+   "published": "2026-11-07T04:20:52+00:00",
    "summary": "Sources: AfteR set to join Trace Esports as head coach for VCT 2027 Sheep Esports",
    "teams": [
     "Trace Esports"
@@ -762,6 +927,27 @@
     "Bilibili Gaming"
    ],
    "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "TES Creme: \"From Swiss Stage until now, I didn’t really reach the highest level I could have.\"",
+   "link": "https://news.google.com/rss/articles/CBMizgFBVV95cUxQQ2FodHlZSzBXT2xhbndJNXZ3X0ZEZVAtc3Q5TDBCbzZZUlpiU05LUFA3Y3AtUnpNWnFJR29NOFBoZnhXSlRleXlhTE1hUlJfZTVTdm5jdkc3YUdiS0tRRURYdU5QWEg0bEY5M0IwWlQzeDgzd3g3aVZyRmhMREJwMkk0NHVpQVJ4X3VvZ3hIcmxia01VR0EzLW5XQ3loT1l0N1lZVWhETmFheFlKVjF1MkltRnFOTkhDNWpQcDZFZDFTXzZfcnhucTNTSkEtQQ?oc=5",
+   "published": "2026-11-07T02:17:57+00:00",
+   "summary": "TES Creme: \"From Swiss Stage until now, I didn’t really reach the highest level I could have.\" Sheep Esports",
+   "teams": [
+    "Top Esports"
+   ],
+   "players": [
+    {
+     "name": "Creme",
+     "team": "Top Esports"
+    }
+   ],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -1324,17 +1510,17 @@
    "summary": "Gen.G Valorant Announces Dambi and MaKo Signings Insider Gaming",
    "teams": [
     "Gen.G",
-    "Nongshim RedForce",
-    "KIWOOM DRX"
+    "KIWOOM DRX",
+    "Nongshim RedForce"
    ],
    "players": [
     {
-     "name": "Dambi",
-     "team": "Nongshim RedForce"
-    },
-    {
      "name": "MaKo",
      "team": "KIWOOM DRX"
+    },
+    {
+     "name": "Dambi",
+     "team": "Nongshim RedForce"
     }
    ],
    "score": 0,
@@ -1556,6 +1742,32 @@
   },
   {
    "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "Sources: MaKo set to join Gen.G Esports ahead of 2027 VCT Season",
+   "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxQUTBReG8tRFFpYllxRHJxQXNMeF8zRGJLUUdlNlZhakdubUJicUFLWVZlQ1NIUFhjc3RWbEx1aXE3b00tVFdURGxnSlRRLUlJaW1wUG83TFhjRFl5czROZTQ3MTU3eXMtbmh5US1IeFJ5ZnBoOGZueXF5dFRaU1VQek5rekxFb0UwQVp4RTFiR0dob1pqRG1aNTBtUXpnZVFQdEEtQ0VMRG1XWVk?oc=5",
+   "published": "2026-11-06T11:35:46+00:00",
+   "summary": "Sources: MaKo set to join Gen.G Esports ahead of 2027 VCT Season Sheep Esports",
+   "teams": [
+    "Gen.G",
+    "KIWOOM DRX"
+   ],
+   "players": [
+    {
+     "name": "MaKo",
+     "team": "KIWOOM DRX"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "valorant",
    "source": "Pley.gg",
    "title": "Gen.G sign Masters MVP Dambi and veteran MaKo for 2027",
    "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxOaWF0Q3ZUU1NFaVlKOG44MHY5bWRIUHByOHcxNUpINFhLdE5yTmJJaDh6b1FXQ0x5V3Nnb0JGbTVYbWlsY055YVZIQ3lHNzNoRUJTNWx5Z1NZYjVCcmxyQTV6QmZaX1Y0U3h0aV9XNjE0aXVBZDNEaW8tbmVmWFRmVGtPOGJzOUk?oc=5",
@@ -1563,17 +1775,17 @@
    "summary": "Gen.G sign Masters MVP Dambi and veteran MaKo for 2027 Pley.gg",
    "teams": [
     "Gen.G",
-    "Nongshim RedForce",
-    "KIWOOM DRX"
+    "KIWOOM DRX",
+    "Nongshim RedForce"
    ],
    "players": [
     {
-     "name": "Dambi",
-     "team": "Nongshim RedForce"
-    },
-    {
      "name": "MaKo",
      "team": "KIWOOM DRX"
+    },
+    {
+     "name": "Dambi",
+     "team": "Nongshim RedForce"
     }
    ],
    "score": 0,
@@ -1700,17 +1912,17 @@
    "summary": "Gen.G Announces Signings Of MaKo And Dambi, 5th Yet To Be Revealed Hotspawn",
    "teams": [
     "Gen.G",
-    "Nongshim RedForce",
-    "KIWOOM DRX"
+    "KIWOOM DRX",
+    "Nongshim RedForce"
    ],
    "players": [
     {
-     "name": "Dambi",
-     "team": "Nongshim RedForce"
-    },
-    {
      "name": "MaKo",
      "team": "KIWOOM DRX"
+    },
+    {
+     "name": "Dambi",
+     "team": "Nongshim RedForce"
     }
    ],
    "score": 0,
@@ -2340,6 +2552,22 @@
   },
   {
    "game": "lol",
+   "source": "Esports.gg",
+   "title": "Perkz out of G2 Esports after controversial post",
+   "link": "https://news.google.com/rss/articles/CBMia0FVX3lxTFBaMlRvTnpBOVdOSTdHUUJ4QnYtX3h6WnZ5M1ROSFpvLWRtVzdVWDE4N1NhTkxsbHJkQXlHaFlhNHRSX0RXazZMX3ZuZi1iMGlZOUpHVHEwMUpYVE9YcFhDdmgzcVlpWC04N1M4?oc=5",
+   "published": "2026-11-05T15:54:00+00:00",
+   "summary": "Perkz out of G2 Esports after controversial post Esports.gg",
+   "teams": [
+    "G2 Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
    "source": "Hotspawn",
    "title": "G2 Esports Parts Ways With Head Coach Perkz Following Controversial Statements",
    "link": "https://news.google.com/rss/articles/CBMigAFBVV95cUxOekRGOXRMRThpdWYwYVBGTXNKYUd3S19jLW5JZDVySzBHd3ZCckZ1WGFMODJKZDNSRlN5aFlOOXNMeURpTndkb2lVNGpMMVdvU3g1UzdaM2xYVF9nVGJpXzdvdXRUd3NicWFKaTVES3loYUgzVzgzYWRKTERJTWg4MQ?oc=5",
@@ -2637,32 +2865,6 @@
     {
      "name": "nobody",
      "team": "EDward Gaming"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
-   "game": "valorant",
-   "source": "Sheep Esports",
-   "title": "Sources: MaKo set to join Gen.G Esports ahead of 2027 VCT Season",
-   "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxQUTBReG8tRFFpYllxRHJxQXNMeF8zRGJLUUdlNlZhakdubUJicUFLWVZlQ1NIUFhjc3RWbEx1aXE3b00tVFdURGxnSlRRLUlJaW1wUG83TFhjRFl5czROZTQ3MTU3eXMtbmh5US1IeFJ5ZnBoOGZueXF5dFRaU1VQek5rekxFb0UwQVp4RTFiR0dob1pqRG1aNTBtUXpnZVFQdEEtQ0VMRG1XWVk?oc=5",
-   "published": "2026-11-05T10:32:46+00:00",
-   "summary": "Sources: MaKo set to join Gen.G Esports ahead of 2027 VCT Season Sheep Esports",
-   "teams": [
-    "Gen.G",
-    "KIWOOM DRX"
-   ],
-   "players": [
-    {
-     "name": "MaKo",
-     "team": "KIWOOM DRX"
     }
    ],
    "score": 0,
@@ -3177,6 +3379,7 @@
    "published": "2026-11-04T21:35:28+00:00",
    "summary": "November 6, 2026: angry birds vs. Nemiga Gaming Esports Prediction Market Robinhood",
    "teams": [
+    "Angry Birds",
     "Nemiga Gaming"
    ],
    "players": [],
@@ -3210,17 +3413,17 @@
    "published": "2026-11-04T20:04:32+00:00",
    "summary": "NS RedForce Replace Dambi With UdoTan, the Duelist Who Reverse-Swept Them in Busan TalkEsport",
    "teams": [
-    "Nongshim RedForce",
-    "Global Esports"
+    "Global Esports",
+    "Nongshim RedForce"
    ],
    "players": [
     {
-     "name": "Dambi",
-     "team": "Nongshim RedForce"
-    },
-    {
      "name": "UdoTan",
      "team": "Global Esports"
+    },
+    {
+     "name": "Dambi",
+     "team": "Nongshim RedForce"
     }
    ],
    "score": 0,
@@ -4330,7 +4533,7 @@
    "source": "GosuGamers",
    "title": "Invictus Gaming defeat Top Esports to become the first semifinalists at Worlds 2026",
    "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxPdE1yN1c1UWFxbW1yR19WdE96eF9wb1JhY0tVWFFZMUZ1UW5ob1dRekYyZ0pzYlZybHlYT0Q2S2JpM0FmV1VpQkNyamdXclduTnNfenBGZVZxZXNSWEZQUk5fZWpIMzJ1QnJHTkV2RXVWZFVQRnkzQURqWGhIdkpNOVA1MnhESER1V3M2WXdSZkJIdGowbUZPR0VZNVI2OWFlTFU5TnhjVzR6dkduRVF4NDZBcEFueUpWWU9ULXQzcXcxUFk?oc=5",
-   "published": "2026-11-04T03:10:49+00:00",
+   "published": "2026-11-04T03:10:40+00:00",
    "summary": "Invictus Gaming defeat Top Esports to become the first semifinalists at Worlds 2026 GosuGamers",
    "teams": [
     "Top Esports",
@@ -7900,185 +8103,6 @@
    "summary": "FURIA Leaves VCT and Releases Valorant Roster After Missing 2027 Partnership Shane the Gamer",
    "teams": [
     "FURIA"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Sheep Esports",
-   "title": "Sources: Tao set to re-sign with Karmine Corp Blue in LFL 2027",
-   "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxOMTdPWDR1aGVxV3phcEp2ZFlhbDBWemUxODZUcWxBdF9sU3JuNXdmMW5zaF8xa1ZUUGRuQkNDYVlSdXFaX2ZTWjhubTVqcjhjX0MxRjRfYzhiem1QVlI2SnhIUmc0THlwV1NibHZtQWxoZ2NqWGM3bHFxVXlMaEtXR1lzNEpFTkFKNnBKYndVQXBrdlNyaGU1NDJiNWgtc3ZGc21UdGFIeHk1dw?oc=5",
-   "published": "2026-10-31T03:52:35+00:00",
-   "summary": "Sources: Tao set to re-sign with Karmine Corp Blue in LFL 2027 Sheep Esports",
-   "teams": [
-    "Karmine Corp"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing",
-    "extension"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet",
-    "a contract is extended"
-   ]
-  },
-  {
-   "game": "lol",
-   "source": "Hotspawn",
-   "title": "Worlds 2026 Swiss Stage Day 7 Results: LØS eliminate Team Liquid, Hanwha Life Esports crush G2 Esports’ hopes",
-   "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxOeHJoYUNBaE5kMGRGSm1qVlRwWWpzYnlOdThTY3dOTmstUEw3d25qejhDUVp5dUctRDhkWFNtMjBxalQxb3hXcEFJcUhIX3RmV3hhLWtMak45NmFHZE9ZalAzUGFCVGRhcnFyTVhHR0JvZllaVWhQdDZkVEZzU2RqQzdNRQ?oc=5",
-   "published": "2026-10-31T03:45:56+00:00",
-   "summary": "Worlds 2026 Swiss Stage Day 7 Results: LØS eliminate Team Liquid, Hanwha Life Esports crush G2 Esports’ hopes Hotspawn",
-   "teams": [
-    "Team Liquid",
-    "G2 Esports",
-    "Hanwha Life Esports"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Insider Gaming",
-   "title": "Team Liquid and G2 Esports Eliminated From LoL Worlds 2026",
-   "link": "https://news.google.com/rss/articles/CBMieEFVX3lxTE9EbEgyaUdxNUx1ellZOXNxZ3U0TTJ1RFJUdWxFbmcwbTZxbzhNMWNLSDRnUEFQdHg5anhZZHFQdkFLZVJWRHJHWFR5YmFDaVV1SUhtTGhveEQ5a2xxUnJ3ZkNPLU5FMXRYVG9pSncySnlwTExrRThacg?oc=5",
-   "published": "2026-10-31T02:59:42+00:00",
-   "summary": "Team Liquid and G2 Esports Eliminated From LoL Worlds 2026 Insider Gaming",
-   "teams": [
-    "Team Liquid",
-    "G2 Esports"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "GosuGamers",
-   "title": "Hanwha Life Esports crush G2 Esports at LoL Worlds 2026 Swiss Stage to avoid elimination",
-   "link": "https://news.google.com/rss/articles/CBMiXEFVX3lxTE5lYXRzVS1xNHAwbmhIR3NQbWZkSlpMbEtoMGV1d2NiOTFiQmFtUW9fcldZNFVnTENBQTRxUTBUaWlUOW1ZUnNQZE9SdGhHaWxYM29HYTN0a1ZDMVA1?oc=5",
-   "published": "2026-10-31T01:18:46+00:00",
-   "summary": "Hanwha Life Esports crush G2 Esports at LoL Worlds 2026 Swiss Stage to avoid elimination GosuGamers",
-   "teams": [
-    "G2 Esports",
-    "Hanwha Life Esports"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "EGamersWorld",
-   "title": "G2 Esports Eliminated from Worlds 2026 as Hanwha Life March into 2-2 Deciders",
-   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOUFh2YTdGdXhZbURRRm51WFJRYzRrcmlHcGNsamp2ZkVuUUd0ZkNwTUJONy0wejMzNF82MmdmVjNjbDhfaFRrYkdLNW0tZTlmVmp5a0s1S3pfRGlRT1JPUTdNUW8yMXBkeXdvQWl0UEs5c3dDdXRibHFsTGFiSEdjQi1FVjgzS1FZWHM1VWRfR1NMNUd4R0RaS0JQSnBGRGZkWWc?oc=5",
-   "published": "2026-10-31T00:50:17+00:00",
-   "summary": "G2 Esports Eliminated from Worlds 2026 as Hanwha Life March into 2-2 Deciders EGamersWorld",
-   "teams": [
-    "G2 Esports",
-    "Hanwha Life Esports"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "dota2",
-   "source": "Robinhood",
-   "title": "October 31, 2026: potn9ki vs. Hokori Esports Prediction Market",
-   "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxQdjNjYW4wWDE3VnJabnFJaW1BR0M2S2dUNUR2NXE0b2h2WGQ1UEUzNDI3RFd5ZlhYYWVqZXp0QUZWeWx5ejZIZnI2eFRMbjdjNTJyLWtodFNnendNY1JBSmJ6RU1vbHU3Qlp4UnhacFJZRjQ2V3NJS3VHLTZEcElyYUFnWU9XNWlpSGRXeWg4NlVhdks1c2ZJ?oc=5",
-   "published": "2026-10-31T00:01:14+00:00",
-   "summary": "October 31, 2026: potn9ki vs. Hokori Esports Prediction Market Robinhood",
-   "teams": [
-    "Hokori",
-    "potn9ki"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Hotspawn",
-   "title": "TES 369 On How His Break Helped Him: \"You Start To See A Lot Of Things More Clearly.\"",
-   "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxQb0VFSXZuNDV5Y09scWZuRXhQYk9lMEJPQXhlVGxXN3B3eVVVU0VkOUJsSEJjbjN1V29PVGdydEd2R29BSDUwMGtPZy1NTWRqU25WN0NVZERPR2wwcktER2tKR0VXcC02blVCUTdNd21aRGphdzBHWWxVLVZjLXducERQYw?oc=5",
-   "published": "2026-10-30T23:45:54+00:00",
-   "summary": "TES 369 On How His Break Helped Him: \"You Start To See A Lot Of Things More Clearly.\" Hotspawn",
-   "teams": [
-    "Top Esports"
-   ],
-   "players": [
-    {
-     "name": "369",
-     "team": "Top Esports"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "dota2",
-   "source": "Hotspawn",
-   "title": "Team Spirit Eliminate PARIVISION And Team Liquid In One Day At PARI Universe",
-   "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxPaV85RW5mY2xKd0xoMDl1OEt6VG9sdks2eTA0S3JGSUNOM3ZvLVE3U3dsS1lIRGZMX2tQLTJBajdpT0JaRHRvNVhHNjZER2lyV2JUYkRNWDR5c3o0ZUhvS1ZFOFdobGxVMC1XN2lGNjlnZDVwMkxzQVJJcmZPem1rN1U1RG1sSTFlLWN3M0d3ZDZQTmZrc2Y0Sm56QVJZSXhlc1JITnoyTXdEN1BLSS1WcnhB?oc=5",
-   "published": "2026-10-30T23:45:54+00:00",
-   "summary": "Team Spirit Eliminate PARIVISION And Team Liquid In One Day At PARI Universe Hotspawn",
-   "teams": [
-    "PARIVISION",
-    "Team Liquid",
-    "Team Spirit"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "GosuGamers",
-   "title": "LOS pull off another Worlds 2026 Swiss Stage upset to eliminate Team Liquid Alienware",
-   "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxNTk5DSTJFN3dzRFQ1cXJ5NzJoQnlvald0LWp2Ml9TdFdmRUxxY0dYQnhaRnEtN2QwSlBVZWF2RVlWdTdPWXR1VG9UblM5VjJNTTJ5QjFuMVpuVmRmY0FCMUlrdnd2d2tiUVpjc2M2QTBpY1RoYTNhMVFub2tfSlpoOUM1MndRRzQ1M05MY2doTmNHVHFWOE1nQWFLeFZlY1JDeFB4NHZtdkZpcEQ0TUhpdDJ2RHU4OHZoVzRSRFBVREk4U3c?oc=5",
-   "published": "2026-10-30T23:18:15+00:00",
-   "summary": "LOS pull off another Worlds 2026 Swiss Stage upset to eliminate Team Liquid Alienware GosuGamers",
-   "teams": [
-    "Team Liquid"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "EGamersWorld",
-   "title": "Worlds 2026 Swiss Heartbreak: LOS Stun Team Liquid 2-1 to Stay Alive",
-   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPWmtRUl9KRGxyQ244Y1pSRUlFdEFOS19UWS04WGpMdkhfY2MzXzlFSnpTaXhzU2d1ZzJlcncwU3pXYlZsSjhqT1ktVmVHUldHZkxJQmtKQmU2TFUxdm5JSW9BYThpeWh3a3ZYTm1ZWkxKemNlamhIZS1YSzNMa3BkeFBZTWpnMnRCbjJFQURkcVJLLTdjY3Rjeng2MjlSLVNGQnc?oc=5",
-   "published": "2026-10-30T23:00:33+00:00",
-   "summary": "Worlds 2026 Swiss Heartbreak: LOS Stun Team Liquid 2-1 to Stay Alive EGamersWorld",
-   "teams": [
-    "Team Liquid"
    ],
    "players": [],
    "score": 0,
