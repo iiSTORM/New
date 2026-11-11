@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-10T23:40:42.330942+00:00",
+ "generated_at": "2026-11-11T07:00:55.224323+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,13 +61,13 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 37,
+   "items": 36,
    "error": null
   },
   {
    "game": "lol",
    "source": "Google News",
-   "items": 33,
+   "items": 31,
    "error": null
   },
   {
@@ -79,13 +79,13 @@
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 74,
+   "items": 71,
    "error": null
   },
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 25,
+   "items": 23,
    "error": null
   },
   {
@@ -97,49 +97,153 @@
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 18,
+   "items": 15,
    "error": null
   },
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 24,
+   "items": 21,
    "error": null
   },
   {
    "game": "dota2",
    "source": "Google News",
-   "items": 14,
+   "items": 13,
    "error": null
   },
   {
    "game": "dota2",
    "source": "Google News",
-   "items": 18,
+   "items": 17,
    "error": null
   }
  ],
  "items": [
   {
    "game": "cs2",
-   "source": "The Esports Advocate",
-   "title": "Las Vegas Pays $2M to Host BLAST's 2028 Counter-Strike Major and a Summer Event",
-   "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxNa2dpamtRQ19wT000cEh0RzM2RWpvQTQzZmVuS0xITk9aVFFtY1RXWHltNDVrb2VlYnRRYjNOWGdsT0htTEppMlJnc2VOM0p6bDVFUG5pdzB5MVRRVk5TeXJGWnRLaEZDaTFzcm56bVU5Ym1KVTJJbVJRZXJrWFNvZzFoUHk?oc=5",
-   "published": "2026-11-10T20:37:02+00:00",
-   "summary": "Las Vegas Pays $2M to Host BLAST's 2028 Counter-Strike Major and a Summer Event The Esports Advocate",
+   "source": "HLTV",
+   "title": "Vitality sweep Falcons to make Rivals playoffs on apEX's return",
+   "link": "https://www.hltv.org/news/45966/vitality-sweep-falcons-to-make-rivals-playoffs-on-apexs-return",
+   "published": "2026-11-11T06:32:00+00:00",
+   "summary": "A rematch of the teams' battle at ESL Pro League went the same way, this time in two maps.",
    "teams": [
-    "Rare Atom"
+    "Falcons",
+    "Vitality"
    ],
    "players": [
     {
-     "name": "Summer",
-     "team": "Rare Atom"
+     "name": "apEX",
+     "team": "Vitality"
     }
    ],
    "score": 0,
    "grade": "neutral",
    "rules": [],
    "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "molodoy: \"We can see now the problems we have before the Major\"",
+   "link": "https://www.hltv.org/news/45965/molodoy-we-can-see-now-the-problems-we-have-before-the-major",
+   "published": "2026-11-11T05:18:00+00:00",
+   "summary": "FURIA's AWPer talks about how BLAST Rivals will act as a good measuring stick on what to work on before the Major.",
+   "teams": [
+    "FURIA"
+   ],
+   "players": [
+    {
+     "name": "molodoy",
+     "team": "FURIA"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "FURIA beat Legacy in BLAST Rivals opener",
+   "link": "https://www.hltv.org/news/45964/furia-beat-legacy-in-blast-rivals-opener",
+   "published": "2026-11-11T04:16:00+00:00",
+   "summary": "FalleN's last ride in Hong Kong is off to a strong start.",
+   "teams": [
+    "FURIA",
+    "Legacy"
+   ],
+   "players": [
+    {
+     "name": "FalleN",
+     "team": "FURIA"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "OG Prediction Markets",
+   "title": "G2 Esports vs MOUZ Prediction & Odds - Counter-Strike 2 - OG.com",
+   "link": "https://news.google.com/rss/articles/CBMia0FVX3lxTFBwbW1kWE1FdU5sR2xteDFEQi1OUy1uWmRQcHJ6T3RJcXZpNTZWeFRtRFFlLTZpbUhvOW5OX3RpY1R4ZVFRYlRQNFo1aXNIblZ2NkQwbEVMLWZtaERvc3hHbGlVb2ZFMlFrQ2FV?oc=5",
+   "published": "2026-11-11T04:06:19+00:00",
+   "summary": "G2 Esports vs MOUZ Prediction & Odds - Counter-Strike 2 - OG.com OG Prediction Markets",
+   "teams": [
+    "MOUZ",
+    "OG",
+    "G2"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "GameDaily",
+   "title": "Worlds 2026: Bilibili Gaming End T1’s Dynasty to Reach Finals",
+   "link": "https://news.google.com/rss/articles/CBMickFVX3lxTE9IQ2NuWFg2N20xUDZQWE9MM2tyRmlGVkdadnJITjJkNnhJMnVfdXkydDRxTVg3c0pzclpoNVhYNnpNME1wZlB5NWI5bzBPM0gyZ2wzbE0tamRnZmd2eURxR0VzTFJFUnlmSEtyb3pRd3l6QQ?oc=5",
+   "published": "2026-11-11T02:59:00+00:00",
+   "summary": "Worlds 2026: Bilibili Gaming End T1’s Dynasty to Reach Finals GameDaily",
+   "teams": [
+    "T1",
+    "Bilibili Gaming"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "Sources: SugarZ3ro set to join Crazy Raccoon for VCT Pacific 2027",
+   "link": "https://news.google.com/rss/articles/CBMirAFBVV95cUxPUnBZRXRoZGQzRk1NdkZPTXlUaDN1b1RzZkY5YlBlSkY1N0JpM2FQWjZFeFA2WGo3V2t1TzFUX2p2cl9VY19Ca2hETW1IMW15MXJIMFNDM2xKeC1DWW1XMk8xN2ZURU9tcXl5V1gteF95eUtXRUt4djgwTUpHblNxcVM3Q3NNN1B1N0hNbm5EMktPdlpqYkpxYnkyMWpRZklhSmdWSm5BNi1ISy16?oc=5",
+   "published": "2026-11-11T02:04:18+00:00",
+   "summary": "Sources: SugarZ3ro set to join Crazy Raccoon for VCT Pacific 2027 Sheep Esports",
+   "teams": [
+    "ZETA DIVISION"
+   ],
+   "players": [
+    {
+     "name": "SugarZ3ro",
+     "team": "ZETA DIVISION"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
   },
   {
    "game": "valorant",
@@ -280,6 +384,22 @@
     "a new player joins; no record with the team yet",
     "a coaching change"
    ]
+  },
+  {
+   "game": "lol",
+   "source": "TalkEsport",
+   "title": "Vitality Backs Sjokz and Laure Valée After Hosts Face Abuse Over Perkz Abortion Comments",
+   "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxNM3ZxUTMxaGV6QWpRbk9RMlJVMWpvbVdyNWI1dkVMeklQTzFCbjlBVGZtd3otazRROXd6bjNKNE5Da2RBN3JEV0pjcjNTNVNab0dWQ0ZXTnZzVjR1NGFXRGJHaVh5X2VzTlFQcGxKTUJNYnJZa3pQa004WmpuUlNxUEoxWHRvd2REOGI1LUs0akZnOUVs?oc=5",
+   "published": "2026-11-10T18:50:20+00:00",
+   "summary": "Vitality Backs Sjokz and Laure Valée After Hosts Face Abuse Over Perkz Abortion Comments TalkEsport",
+   "teams": [
+    "Team Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
   },
   {
    "game": "cs2",
@@ -449,6 +569,27 @@
    "reasons": []
   },
   {
+   "game": "cs2",
+   "source": "The Esports Advocate",
+   "title": "Las Vegas Pays $2M to Host BLAST's 2028 Counter-Strike Major and a Summer Event",
+   "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxNa2dpamtRQ19wT000cEh0RzM2RWpvQTQzZmVuS0xITk9aVFFtY1RXWHltNDVrb2VlYnRRYjNOWGdsT0htTEppMlJnc2VOM0p6bDVFUG5pdzB5MVRRVk5TeXJGWnRLaEZDaTFzcm56bVU5Ym1KVTJJbVJRZXJrWFNvZzFoUHk?oc=5",
+   "published": "2026-11-10T15:37:02+00:00",
+   "summary": "Las Vegas Pays $2M to Host BLAST's 2028 Counter-Strike Major and a Summer Event The Esports Advocate",
+   "teams": [
+    "Rare Atom"
+   ],
+   "players": [
+    {
+     "name": "Summer",
+     "team": "Rare Atom"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "valorant",
    "source": "Insider Gaming",
    "title": "aspas Reaches Verbal Agreement with FUT, It’s Claimed",
@@ -469,31 +610,6 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Sheep Esports",
-   "title": "Sources: SugarZ3ro set to join Crazy Raccoon for VCT Pacific 2027",
-   "link": "https://news.google.com/rss/articles/CBMirAFBVV95cUxPUnBZRXRoZGQzRk1NdkZPTXlUaDN1b1RzZkY5YlBlSkY1N0JpM2FQWjZFeFA2WGo3V2t1TzFUX2p2cl9VY19Ca2hETW1IMW15MXJIMFNDM2xKeC1DWW1XMk8xN2ZURU9tcXl5V1gteF95eUtXRUt4djgwTUpHblNxcVM3Q3NNN1B1N0hNbm5EMktPdlpqYkpxYnkyMWpRZklhSmdWSm5BNi1ISy16?oc=5",
-   "published": "2026-11-10T15:01:44+00:00",
-   "summary": "Sources: SugarZ3ro set to join Crazy Raccoon for VCT Pacific 2027 Sheep Esports",
-   "teams": [
-    "ZETA DIVISION"
-   ],
-   "players": [
-    {
-     "name": "SugarZ3ro",
-     "team": "ZETA DIVISION"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
   },
   {
    "game": "cs2",
@@ -1735,16 +1851,22 @@
    ]
   },
   {
-   "game": "cs2",
+   "game": "valorant",
    "source": "Pley.gg",
    "title": "Wo0t returns to Turkey with FUT Esports",
    "link": "https://news.google.com/rss/articles/CBMic0FVX3lxTE85TnF5UGpTTXRUUXVMdjk1emJqLXFSdmFHRXdtc2RveEtBbWdocjhabVZoR19mLTJuVVFpWnVnbXZuWHFCRWNkeUk0a20xOVoxRDFqSWczaWthTUlLQjFfWnBjMndxZEl1d2k3QUVxZXhnVmc?oc=5",
    "published": "2026-11-08T14:32:00+00:00",
    "summary": "Wo0t returns to Turkey with FUT Esports Pley.gg",
    "teams": [
-    "FUT"
+    "FUT Esports",
+    "Team Heretics"
    ],
-   "players": [],
+   "players": [
+    {
+     "name": "Wo0t",
+     "team": "Team Heretics"
+    }
+   ],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -2975,17 +3097,17 @@
    "summary": "Gen.G Add Dambi and MaKo to 2027 Valorant Roster EsportsBets.com",
    "teams": [
     "Gen.G",
-    "Nongshim RedForce",
-    "KIWOOM DRX"
+    "KIWOOM DRX",
+    "Nongshim RedForce"
    ],
    "players": [
     {
-     "name": "Dambi",
-     "team": "Nongshim RedForce"
-    },
-    {
      "name": "MaKo",
      "team": "KIWOOM DRX"
+    },
+    {
+     "name": "Dambi",
+     "team": "Nongshim RedForce"
     }
    ],
    "score": 0,
@@ -3708,6 +3830,22 @@
   {
    "game": "lol",
    "source": "Dexerto",
+   "title": "League of Legends star Jensen isn’t impressed with Cloud9’s new mid-laner",
+   "link": "https://news.google.com/rss/articles/CBMivgFBVV95cUxNWGM3bVB2cmNpb2JrU1FJN2EwYkVkdFFDcU9LQTJQWm0tS1BXejFDY1JMYmtnTzk2UkY4U2lueXlnNDRzUnloSGVka3NndGZ2UU5xcHQyRjBxLWNmVlJvSy1obU1HRU9ZTkZudEpvRkplcE5LVGRDMVNNZDF5VEMzM3FiLTU4MXE0bmNpNW1PWjByaTFxUzhJeTE2T0d1NndnTXd6UlVEUnByWXVNbEw0cXRGelVDWVFFMnp0bjln?oc=5",
+   "published": "2026-11-06T17:45:56+00:00",
+   "summary": "League of Legends star Jensen isn’t impressed with Cloud9’s new mid-laner Dexerto",
+   "teams": [
+    "Cloud9"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Dexerto",
    "title": "League of Legends pro Rookie steps down from Invictus Gaming",
    "link": "https://news.google.com/rss/articles/CBMirwFBVV95cUxOMzZpbThfX3RXSjNsU0Zjd05wM1VOenQtQ25pUkxTTnlBM0J2VUQzS0M0d1dCTkdvWjYwTHQ0Y0EtQTFVNXUzMFVrcXVWNkozSzFVRVVHdFhFMVViOXoyemltcHhXV2xzSVpuekIyTHpIUmxna1Z4VlctVS1SR3BuQ2VFTm56LXR1QnRYWjIyV1ljMHdzN0ZFSV9DblVXX1pDSU5nTWszSVV3RGloTGJR?oc=5",
    "published": "2026-11-06T17:45:56+00:00",
@@ -3724,22 +3862,6 @@
    "reasons": [
     "a player or coach leaves"
    ]
-  },
-  {
-   "game": "lol",
-   "source": "Dexerto",
-   "title": "League of Legends star Jensen isn’t impressed with Cloud9’s new mid-laner",
-   "link": "https://news.google.com/rss/articles/CBMivgFBVV95cUxNWGM3bVB2cmNpb2JrU1FJN2EwYkVkdFFDcU9LQTJQWm0tS1BXejFDY1JMYmtnTzk2UkY4U2lueXlnNDRzUnloSGVka3NndGZ2UU5xcHQyRjBxLWNmVlJvSy1obU1HRU9ZTkZudEpvRkplcE5LVGRDMVNNZDF5VEMzM3FiLTU4MXE0bmNpNW1PWjByaTFxUzhJeTE2T0d1NndnTXd6UlVEUnByWXVNbEw0cXRGelVDWVFFMnp0bjln?oc=5",
-   "published": "2026-11-06T17:45:56+00:00",
-   "summary": "League of Legends star Jensen isn’t impressed with Cloud9’s new mid-laner Dexerto",
-   "teams": [
-    "Cloud9"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
   },
   {
    "game": "valorant",
@@ -3905,17 +4027,17 @@
    "summary": "Gen.G Valorant Announces Dambi and MaKo Signings Insider Gaming",
    "teams": [
     "Gen.G",
-    "Nongshim RedForce",
-    "KIWOOM DRX"
+    "KIWOOM DRX",
+    "Nongshim RedForce"
    ],
    "players": [
     {
-     "name": "Dambi",
-     "team": "Nongshim RedForce"
-    },
-    {
      "name": "MaKo",
      "team": "KIWOOM DRX"
+    },
+    {
+     "name": "Dambi",
+     "team": "Nongshim RedForce"
     }
    ],
    "score": 0,
@@ -4238,17 +4360,17 @@
    "summary": "Gen.G sign Masters MVP Dambi and veteran MaKo for 2027 Pley.gg",
    "teams": [
     "Gen.G",
-    "Nongshim RedForce",
-    "KIWOOM DRX"
+    "KIWOOM DRX",
+    "Nongshim RedForce"
    ],
    "players": [
     {
-     "name": "Dambi",
-     "team": "Nongshim RedForce"
-    },
-    {
      "name": "MaKo",
      "team": "KIWOOM DRX"
+    },
+    {
+     "name": "Dambi",
+     "team": "Nongshim RedForce"
     }
    ],
    "score": 0,
@@ -4392,17 +4514,17 @@
    "summary": "Gen.G Announces Signings Of MaKo And Dambi, 5th Yet To Be Revealed Hotspawn",
    "teams": [
     "Gen.G",
-    "Nongshim RedForce",
-    "KIWOOM DRX"
+    "KIWOOM DRX",
+    "Nongshim RedForce"
    ],
    "players": [
     {
-     "name": "Dambi",
-     "team": "Nongshim RedForce"
-    },
-    {
      "name": "MaKo",
      "team": "KIWOOM DRX"
+    },
+    {
+     "name": "Dambi",
+     "team": "Nongshim RedForce"
     }
    ],
    "score": 0,
@@ -5629,7 +5751,7 @@
    "source": "Sheep Esports",
    "title": "Sources: Jinggg set to join All Gamers for 2027 VCT China season",
    "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPalJ4ZG8wYTBPWjhDSmpveFpxcTMwRVRIT3FOcGlMUnAwN3RkOHFEN0VZNEFxZndNWTc1WE02OWxPQ01WaDFDaDJpU1NjcHVmdVZESU85Ulg2OW5Nc290MVZzS1ZfdUVRc2N3S1ZjUTV1LV9qX2lLZVNPSm9DMXJWTWhOZ0IzRkE4aEJaNnZDQ1FTbUxaY2xPQ0VXaDkwTEQ1M0lhRkM5RkVacWM?oc=5",
-   "published": "2026-11-05T06:45:07+00:00",
+   "published": "2026-11-05T06:46:10+00:00",
    "summary": "Sources: Jinggg set to join All Gamers for 2027 VCT China season Sheep Esports",
    "teams": [
     "All Gamers",
@@ -6003,17 +6125,17 @@
    "published": "2026-11-04T20:04:32+00:00",
    "summary": "NS RedForce Replace Dambi With UdoTan, the Duelist Who Reverse-Swept Them in Busan TalkEsport",
    "teams": [
-    "Global Esports",
-    "Nongshim RedForce"
+    "Nongshim RedForce",
+    "Global Esports"
    ],
    "players": [
     {
-     "name": "UdoTan",
-     "team": "Global Esports"
-    },
-    {
      "name": "Dambi",
      "team": "Nongshim RedForce"
+    },
+    {
+     "name": "UdoTan",
+     "team": "Global Esports"
     }
    ],
    "score": 0,
@@ -6394,7 +6516,7 @@
    "game": "lol",
    "source": "Sheep Esports",
    "title": "Sources: Lyncas set to join G2 Esports ahead of LEC 2027 season",
-   "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxQMGdNckhmUUU5ZEtIeHFWY0MzN2hlWnE3Rm9EOVBEUnJ4cEt1N21fcFZ2MVBJTzBQT1N3QzJsTklTbnNtVW5neU1EVUY1ZW14RHhtNFFKMnYyRTJ5VTBSbXJrTDgzSVRIeEJtMzd1T3NUbkdubzZUUVlGWkNMOURuWWpqUW45YzVqa2xLcDNJWnM3bnJTSTlIWkpmOEtzbG1nU1ZvWHQtdUowZw?oc=5",
+   "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxNWi1Ya2tFNTQ3dHFEZEZaNjJmTEQxOXhReExtRUFiVDFuLTd0WGRhcVJRMmhrOTZuTDlOUm81WlRRdFFSRjY2U3kyNjZ6bGVkeEZ5SFd5LUUzR296R1ljekFhc3EzTGpzMFlwWUEzY2ZfMnlpd3Vac3BaWXQ1QkZ3QzhNQ3l1V3V4Mk5vXzhHTEZXLVJpZDBoUUQ5QlpXbGJucy1nU09Cd0kxQQ?oc=5",
    "published": "2026-11-04T14:11:18+00:00",
    "summary": "Sources: Lyncas set to join G2 Esports ahead of LEC 2027 season Sheep Esports",
    "teams": [
@@ -8083,122 +8205,6 @@
    "reasons": [
     "a new player joins; no record with the team yet"
    ]
-  },
-  {
-   "game": "valorant",
-   "source": "Esports Insider",
-   "title": "KRÜ Blaze win Game Changers Championship from lower bracket, ending Gentle Mates' unbeaten run",
-   "link": "https://news.google.com/rss/articles/CBMixgFBVV95cUxQZzg3WHR2T1JtUmdaMHVDRzJVbEZCUy1iR1F1Y1FlOFItYmtxSVhfb29RdU5NZjBQMV9Jb1RhY3FyRUFSd2lDY3RieVRqZU1hTlBXN05NYml3TWY1a3g1T3NvOGc2VS1WSDk2NVplcEdWZWdpb3BQSENxeU5McVEwSWEySW1iTnRBYUduYnVVbGJEMmpXcFN2M05VeWV6TThEaTIxWm1va0xnLW82UUgyUnRZTXVtcGR3Qk1TWTYyT0VsTkQ3TlE?oc=5",
-   "published": "2026-11-03T08:29:49+00:00",
-   "summary": "KRÜ Blaze win Game Changers Championship from lower bracket, ending Gentle Mates' unbeaten run Esports Insider",
-   "teams": [
-    "KRÜ Esports",
-    "Gentle Mates"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "Esports News UK",
-   "title": "MOUZ brush aside BetBoom Team in IEM Beijing upper bracket semi-final",
-   "link": "https://news.google.com/rss/articles/CBMirAFBVV95cUxNX2N3cVJtaURjbnVzaS0tOExQM2lYUTRiNlVSdGFmdGw3ZGU3M1puY2h4YVVLZGMxN21ybHVqQVhObl82b2FNal9JdjBJZ29tRm5USzRsNDEtQWpZLTQ3MlRxZktWck5TTGJQR2Nsb2d2S1FJNkoyZXBVOGdGYnE0c3JQanJZbEJmMnpuVWRGVGpsdG9RWmxnMGlRQUQ3c3lCaFJxN0FmT0x4eUpH?oc=5",
-   "published": "2026-11-03T08:17:06+00:00",
-   "summary": "MOUZ brush aside BetBoom Team in IEM Beijing upper bracket semi-final Esports News UK",
-   "teams": [
-    "MOUZ",
-    "BetBoom"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "dota2",
-   "source": "GosuGamers",
-   "title": "BetBoom Team puts its Dota 2 division on hiatus",
-   "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQX1RBc29JZEVpc3pCUjV4bkNPclZNTlZPTkNwMHNRTHlrT1lZSmRXWENucldtTjRtbWZWZ2pIdWtTNzVVb3dSLWtEQUszX2VRUzlwM2tkazAxeFhZRzA5WE5uVFJJRnc2d0dJMXdZNWItZ21lN1BOX0tYYks3RDJQOENRU1o3LWdORmRVaWV3VUFSVDd0c2c?oc=5",
-   "published": "2026-11-03T08:16:10+00:00",
-   "summary": "BetBoom Team puts its Dota 2 division on hiatus GosuGamers",
-   "teams": [
-    "BETBOOM TEAM"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Dot Esports",
-   "title": "Jawgemo reportedly set to join Team Vitality for 2027 VCT EMEA season",
-   "link": "https://news.google.com/rss/articles/CBMidkFVX3lxTE1vTmZ6ZGxpZ3ptajNfV1BmaGNaMVF2MkliV3c3Rl90ZGFGbnI5bl9vODJVX2JKRHRydkpJZ1dVUGhxRW52NlNLTmVBeTF3VlBaVzFKa1hNQ2hsdjlwckczT3pKWElMTkJ1QlByU2tvXzB2cFVRNVE?oc=5",
-   "published": "2026-11-03T08:12:00+00:00",
-   "summary": "Jawgemo reportedly set to join Team Vitality for 2027 VCT EMEA season Dot Esports",
-   "teams": [
-    "Team Vitality"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
-   "game": "valorant",
-   "source": "EsportsBets.com",
-   "title": "T1 Part With Meteor, Munchkin, DH and Coaches Before VCT 2027",
-   "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxOU1Q5Y2VhUl80anU1MjJRZ0k3NkYxX3VEbU5zY2NWcExvZ3VKeldDOUQ4NGhFMHVNdWE1YThNbkxhQ3gwQUcxYjd2LXgwdTktaWtZRVl6SE1ReEh4MFhNS2VVV1hSam9HSW5uQjZXekQtc3hRVU9MS0laaUVReDJ6NFByMDI?oc=5",
-   "published": "2026-11-03T08:06:44+00:00",
-   "summary": "T1 Part With Meteor, Munchkin, DH and Coaches Before VCT 2027 EsportsBets.com",
-   "teams": [
-    "T1"
-   ],
-   "players": [
-    {
-     "name": "Meteor",
-     "team": "T1"
-    },
-    {
-     "name": "Munchkin",
-     "team": "T1"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "HLTV",
-   "title": "MOUZ best BB to qualify for playoffs in Beijing",
-   "link": "https://www.hltv.org/news/45894/mouz-best-bb-to-qualify-for-playoffs-in-beijing",
-   "published": "2026-11-03T08:02:00+00:00",
-   "summary": "xertioN's troops are the second squad to make it through the group stage.",
-   "teams": [
-    "MOUZ"
-   ],
-   "players": [
-    {
-     "name": "xertioN",
-     "team": "MOUZ"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
   }
  ],
  "signals": {
