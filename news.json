@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-13T19:58:55.072336+00:00",
+ "generated_at": "2026-11-14T01:42:27.437422+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,13 +61,13 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 27,
+   "items": 33,
    "error": null
   },
   {
    "game": "lol",
    "source": "Google News",
-   "items": 35,
+   "items": 36,
    "error": null
   },
   {
@@ -79,13 +79,13 @@
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 43,
+   "items": 42,
    "error": null
   },
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 25,
+   "items": 24,
    "error": null
   },
   {
@@ -97,35 +97,82 @@
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 19,
+   "items": 21,
    "error": null
   },
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 23,
+   "items": 22,
    "error": null
   },
   {
    "game": "dota2",
    "source": "Google News",
-   "items": 16,
+   "items": 14,
    "error": null
   },
   {
    "game": "dota2",
    "source": "Google News",
-   "items": 16,
+   "items": 18,
    "error": null
   }
  ],
  "items": [
   {
+   "game": "lol",
+   "source": "Dot Esports",
+   "title": "Fnatic reportedly brings in Yike and Labrov for LEC season 2027",
+   "link": "https://news.google.com/rss/articles/CBMiggFBVV95cUxOdlpuNzVSWktheDFxdncyUWVySUNTVVI4SVlWd1pfdjhraTNfS0lwNklBV2cxYllnM1ZxU04tUVRndm9BaWdIMkZtZXFkaURsS1pFUFNQOXZKTzhpRUlWc2hoTGwyM1k2SExsVW9CUlBfTzVrQkd1X0ltdnhHU2tPOGdn?oc=5",
+   "published": "2026-11-14T00:06:00+00:00",
+   "summary": "Fnatic reportedly brings in Yike and Labrov for LEC season 2027 Dot Esports",
+   "teams": [
+    "Fnatic",
+    "G2 Esports",
+    "Karmine Corp"
+   ],
+   "players": [
+    {
+     "name": "Labrov",
+     "team": "G2 Esports"
+    },
+    {
+     "name": "Yike",
+     "team": "Karmine Corp"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Sources: Zest set to join Natus Vincere for LEC 2027",
+   "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxPSW5fRTlyVGFYRkZmQnhzamJVVDdJYTNHN29IM280SmhrSHRLOGhaOWJvNjdCeDJBVEtlcTlPMXNyZTU0UjM0d3dWTkhQdm9yOTh1VHJsUURNNVgtallfeWFhMFV3T0xLVEMzM3hMbWpTdTJMbGY2dURPd3F3TVFxb2ktd2tkSXlWOUlmVWhsVUhKdEJPQV9FMkFpTQ?oc=5",
+   "published": "2026-11-13T21:45:14+00:00",
+   "summary": "Sources: Zest set to join Natus Vincere for LEC 2027 Sheep Esports",
+   "teams": [
+    "Natus Vincere"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
    "game": "cs2",
    "source": "Skin.Club",
    "title": "SAW bench NOPEEj and bring back Jayy2s until the end of the season",
    "link": "https://news.google.com/rss/articles/CBMipAFBVV95cUxQQVktQUNVYm1FdVRnMVFvcmowWXc4c3kwSFY1eGhwcmdVTHNYdTFrZ0RjQXFxdlNtMnI4SkUyVDRBcVBYSlNEY0RzbTE2bXE2UzMzTHpIdzV1NnRSZTZmVEkxY3c2N1JwbWpMdEZleXIxLW40dmswMENaRXczcWJYTDJoZHBlZ1FEQnZuSFg4YUpaeDJaV05jemxidkt1bkI5WGxBZQ?oc=5",
-   "published": "2026-11-13T19:55:19+00:00",
+   "published": "2026-11-13T19:54:49+00:00",
    "summary": "SAW bench NOPEEj and bring back Jayy2s until the end of the season Skin.Club",
    "teams": [
     "SAW",
@@ -328,6 +375,23 @@
    "reasons": []
   },
   {
+   "game": "cs2",
+   "source": "Field Level Media",
+   "title": "FURIA, Spirit win BLAST Rivals Fall groups in Hong Kong",
+   "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxPby1KVmFwNHg3UThGcnVkZFVJMWJQa1NBWXB0LUU4UHZSM05uazJiMWxvejNYMFJnV3A4U3V3LUFLUDhaZjFLMG5Zakp1LVpDX3QtUHdrYTdVYzd5Y3NDOTFvc0RBczlHbVJYbUFaeHU3VFUwQk1sYnA0VExMZFVwdHRwNjY3c25zSkFlWnd1WnA3YkRnM3c?oc=5",
+   "published": "2026-11-13T13:55:21+00:00",
+   "summary": "FURIA, Spirit win BLAST Rivals Fall groups in Hong Kong Field Level Media",
+   "teams": [
+    "Spirit",
+    "FURIA"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "valorant",
    "source": "Esports.gg",
    "title": "TenZ joins T1’s VALORANT roster, powers up the refreshed lineup for VCT 2027",
@@ -385,16 +449,20 @@
   },
   {
    "game": "cs2",
-   "source": "Field Level Media",
-   "title": "FURIA, Spirit win BLAST Rivals Fall groups in Hong Kong",
-   "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxPby1KVmFwNHg3UThGcnVkZFVJMWJQa1NBWXB0LUU4UHZSM05uazJiMWxvejNYMFJnV3A4U3V3LUFLUDhaZjFLMG5Zakp1LVpDX3QtUHdrYTdVYzd5Y3NDOTFvc0RBczlHbVJYbUFaeHU3VFUwQk1sYnA0VExMZFVwdHRwNjY3c25zSkFlWnd1WnA3YkRnM3c?oc=5",
-   "published": "2026-11-13T11:48:45+00:00",
-   "summary": "FURIA, Spirit win BLAST Rivals Fall groups in Hong Kong Field Level Media",
+   "source": "Pley.gg",
+   "title": "m0NESY ranks 14th on Forbes Russia's athlete brand list",
+   "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxQWTlKZnkwdWVrbmRFcHRfOW45dHpoY0F1WWYwazFOQkZvZFk0V2p1SlJaZ3VKelFObC10VGVzZjRESERxWXFyX3llbzJRaDllSUxxZXdVMTF6Y0Jpa2htSVg1NnlyYnRhbnduVHJBQU4yM0xBbTFzNGw1a3lGOWlCaGpHb0tGRGxCd2JJ?oc=5",
+   "published": "2026-11-13T12:00:00+00:00",
+   "summary": "m0NESY ranks 14th on Forbes Russia's athlete brand list Pley.gg",
    "teams": [
-    "Spirit",
-    "FURIA"
+    "Falcons"
    ],
-   "players": [],
+   "players": [
+    {
+     "name": "m0NESY",
+     "team": "Falcons"
+    }
+   ],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -452,6 +520,22 @@
    "summary": "Gen.G Face BLG in Worlds 2026 Final on Saturday in Brooklyn RG.org",
    "teams": [
     "Gen.G"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "VALORANT Esports",
+   "title": "MIBR VS SK",
+   "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTE8zRFhXQVpyU3JJVHJzcngwYXJ0OUlkTlNqQV84LVhnTWQ3Q0tRTGpwRXIzWlJqakptVHEyRXNyTmhRWlNZZmJHVEJkUFdxR1p0Y1ZsZWZ0WWlXdkdEdTVBZVBFbEVtRWRoU0RpMUlDbGUzdG1MVTRMRkJ3?oc=5",
+   "published": "2026-11-13T08:07:18+00:00",
+   "summary": "MIBR VS SK VALORANT Esports",
+   "teams": [
+    "MIBR"
    ],
    "players": [],
    "score": 0,
@@ -784,11 +868,11 @@
   },
   {
    "game": "lol",
-   "source": "news.bet365.com",
+   "source": "bet365",
    "title": "2026 LoL Worlds Championship: Gen.G vs. Bilibili Gaming Betting Odds",
    "link": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxPTHowaGR6YV8wa0ZtUElwbWl5TWl2d0ZJVlprcTVjak55dFAxRHpsbVFzRV91Rk5iV1pzWVAxU194dkQxZnBfR1R5TUZGNWNXUVFxd29fempDUFMxcTJxR0gzNkNVTExjZFpqNFB5V3Y4aEVmYnNvdHBpZGxMU3ZhcG1iSUdLT1FaSW5ia2tMR01HZGltRFNWZjlnMU9xMUc1WWJqOGpjaUxpcmduX0NkUU0zTXpwT3R2UkxRQkdsNDA?oc=5",
    "published": "2026-11-12T20:40:57+00:00",
-   "summary": "2026 LoL Worlds Championship: Gen.G vs. Bilibili Gaming Betting Odds news.bet365.com",
+   "summary": "2026 LoL Worlds Championship: Gen.G vs. Bilibili Gaming Betting Odds bet365",
    "teams": [
     "Gen.G",
     "Bilibili Gaming"
@@ -2810,28 +2894,6 @@
   },
   {
    "game": "lol",
-   "source": "Sheep Esports",
-   "title": "Sources: Karmine Corp promote Nayas to LEC as positional coach",
-   "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPajYySjdERG0xQll1Mk9VeXZwVmhlOEladjdJdHpfTTkyQTlaeVNLMjJCcFo3aUtjc2VkbHg4ZmRLcFI1algtYjFQeFpqR1YwZkZXcmFGWVc5N1dQdWFMRVN2eGlFLWdISWs4R1diOEdMN0lRUHVpMHBfTUkxbXVmcDJtem5VQjJGLUZ2OEljb1BnVGc3TzFJbUdLYWlKVnczTUJKY3RybS0?oc=5",
-   "published": "2026-11-10T11:09:47+00:00",
-   "summary": "Sources: Karmine Corp promote Nayas to LEC as positional coach Sheep Esports",
-   "teams": [
-    "Karmine Corp"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing",
-    "coach"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet",
-    "a coaching change"
-   ]
-  },
-  {
-   "game": "lol",
    "source": "Spilled",
    "title": "Worlds 2026 winner prediction: Gen.G is fairly priced",
    "link": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE1Pdm5xM283aFhUbl9IdjBFN2hqbGxKN09pREpUSnZ6c05jeTJjczhrSnJDNFpXXzJ0eWZ2WVJ6M3pkWThXZXl0YzJZcTF3VklGNWRlYnhB?oc=5",
@@ -2965,6 +3027,28 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Sources: Karmine Corp promote Nayas to LEC as positional coach",
+   "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPajYySjdERG0xQll1Mk9VeXZwVmhlOEladjdJdHpfTTkyQTlaeVNLMjJCcFo3aUtjc2VkbHg4ZmRLcFI1algtYjFQeFpqR1YwZkZXcmFGWVc5N1dQdWFMRVN2eGlFLWdISWs4R1diOEdMN0lRUHVpMHBfTUkxbXVmcDJtem5VQjJGLUZ2OEljb1BnVGc3TzFJbUdLYWlKVnczTUJKY3RybS0?oc=5",
+   "published": "2026-11-09T23:08:26+00:00",
+   "summary": "Sources: Karmine Corp promote Nayas to LEC as positional coach Sheep Esports",
+   "teams": [
+    "Karmine Corp"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing",
+    "coach"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet",
+    "a coaching change"
+   ]
   },
   {
    "game": "lol",
@@ -3554,6 +3638,22 @@
      "team": "EHISTO BASE"
     }
    ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Esports Charts",
+   "title": "Karmine Corp is the most-watched esports team in October 2026",
+   "link": "https://news.google.com/rss/articles/CBMickFVX3lxTE5mR0RGOUZnT0tTQWtfWW5ZX0Q0M05KSEFXQmw3czI5T0M2VVFFclNNQ1VpWWhGdWp3cy1CUFE4R3RlZUEzb0FSOU9TakdPcEN1V3dNNFhEM2J2blA5bUtmT0UxSWVDTmhEVzZBdUxoWWNqUQ?oc=5",
+   "published": "2026-11-09T09:33:20+00:00",
+   "summary": "Karmine Corp is the most-watched esports team in October 2026 Esports Charts",
+   "teams": [
+    "Karmine Corp"
+   ],
+   "players": [],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -8137,94 +8237,6 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
-  },
-  {
-   "game": "dota2",
-   "source": "Coinbase",
-   "title": "oveA vs. Xipto Esports: Map 1 Winner",
-   "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxNRmp6blIxQkd6M09ocDNrSjFqbzBzY3V3S2NiNUNuQk5Kd0hTczMtUWNKdlpCZWdUSmlSbVEzNEgxZ1dKWXRUZEtQZkwyYnMwTmsxVlplNl9UR1dWOWRCYndxYUhEUjU2QUhFZHdRQTZBN2pnU3ZKSmxhVnZpcU9VQmZfYkM?oc=5",
-   "published": "2026-11-05T02:46:00+00:00",
-   "summary": "oveA vs. Xipto Esports: Map 1 Winner Coinbase",
-   "teams": [
-    "Xipto",
-    "oveA"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "dota2",
-   "source": "Coinbase",
-   "title": "oveA vs. Xipto Esports: Map 2 Winner",
-   "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxNaUVHOW1rYUliVllZbFhQTzBqU241YU1DQ1V1MkxDTWg2R3J1VV9ScDFFSmFfVDFMYS1oSEFoYlRMWVFwc196UThBa2pfWTYzSDVyLWJZYVFSTVp5NzAxdVZnYlRuV3FxX2k2NXJJMFc1TEk3bE8xUmFmRXFHYVR4eE5GamQ?oc=5",
-   "published": "2026-11-05T02:46:00+00:00",
-   "summary": "oveA vs. Xipto Esports: Map 2 Winner Coinbase",
-   "teams": [
-    "Xipto",
-    "oveA"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "Dust2.us",
-   "title": "1win, BC.Game promise players Rolls-Royces if they win the Singapore Major",
-   "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxPVDVuQnNNQzgzVmxaYWNiUWtjdEhXNE5jMWJfNkNMSnJLOHZ0Q3dDYl9OOXB2Z19mXzhQTENxNlZpbmMxNmlNb1QxejdTbkMyM0UzR0lrel81OXpqZUJfaVNOeG5mYjZiU3BBZzRXOVowT0VXRUxlYkVLWWZSU3JqTXFYU3plMDhSYnZTVGpJd0wwa2twQTAyVVN6WG9pNjQwM0ZYNjRSRQ?oc=5",
-   "published": "2026-11-05T02:38:25+00:00",
-   "summary": "1win, BC.Game promise players Rolls-Royces if they win the Singapore Major Dust2.us",
-   "teams": [
-    "BC.Game"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Hotspawn",
-   "title": "TES Zhuo’s Message To His Future Self After Worlds 2026: “Don’t Bottle Things Up”",
-   "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxNcDBiaUZmbEZ4RmhXV2lnQWJLb0MwZDUwRGNjQVV1c01QUlBSMk1vTG5qVms0QlRCa1JiMFlmbEd0VUNta0dJVjV4UkVnWmdLVVdpemt2algwejhtb1FVak4tbXZLbk1YdkNSR1FpN0pLWV9DSHZEQTYzTmFPbU9LZWFaMzV4blNTRHVrRWRGaFhMcVN3QXE3OTEyWWtXeEVicWVSSG1STGNrQ1d3ci1QN2RPb0JkTUdnNVdKU21zNllzZw?oc=5",
-   "published": "2026-11-05T01:15:54+00:00",
-   "summary": "TES Zhuo’s Message To His Future Self After Worlds 2026: “Don’t Bottle Things Up” Hotspawn",
-   "teams": [
-    "Top Esports"
-   ],
-   "players": [
-    {
-     "name": "Zhuo",
-     "team": "Top Esports"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "GosuGamers",
-   "title": "Gen.G sweep LYON out of Worlds 2026 to advance to the semifinals",
-   "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxPcGVZaFBjUlhIODFSemlRNWVQdzAzRzVqZFpyLTh4M3JzM0stZ1RKZEhTNGFMUTNTdDZOQmhCaUY1cUNqdnpRRG9aUUZibmpQbU9CLU00VFh2OFBWc0tkYlNlajdJRWVjNGRhQlZOTkxDcHNBQVRkR0ZWY0plRGFEb25IdmxfdHhPcmlKMkgwTHdQRTZobXplZExFZENRRk9kUERDZ1JUbTVFdw?oc=5",
-   "published": "2026-11-05T00:42:07+00:00",
-   "summary": "Gen.G sweep LYON out of Worlds 2026 to advance to the semifinals GosuGamers",
-   "teams": [
-    "LYON",
-    "Gen.G"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
   }
  ],
  "signals": {
@@ -8373,20 +8385,6 @@
     "rules": [
      "suspension"
     ]
-   },
-   "G2 Esports": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "departure"
-    ]
-   },
-   "Global Esports": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "departure"
-    ]
    }
   },
   "lol": {
@@ -8420,13 +8418,6 @@
     "rules": [
      "departure",
      "signing"
-    ]
-   },
-   "SK Gaming": {
-    "score": -1,
-    "items": 2,
-    "rules": [
-     "departure"
     ]
    }
   }
