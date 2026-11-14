@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-14T10:52:17.312362+00:00",
+ "generated_at": "2026-11-14T18:27:26.174211+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,13 +61,13 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 40,
+   "items": 41,
    "error": null
   },
   {
    "game": "lol",
    "source": "Google News",
-   "items": 36,
+   "items": 39,
    "error": null
   },
   {
@@ -91,25 +91,25 @@
   {
    "game": "cs2",
    "source": "HLTV",
-   "items": 10,
+   "items": 0,
+   "error": "403 Client Error: Forbidden for url: https://www.hltv.org/rss/news"
+  },
+  {
+   "game": "cs2",
+   "source": "Google News",
+   "items": 18,
    "error": null
   },
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 17,
-   "error": null
-  },
-  {
-   "game": "cs2",
-   "source": "Google News",
-   "items": 21,
+   "items": 19,
    "error": null
   },
   {
    "game": "dota2",
    "source": "Google News",
-   "items": 15,
+   "items": 13,
    "error": null
   },
   {
@@ -120,6 +120,75 @@
   }
  ],
  "items": [
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Worlds 2026: BLG Knight vs Gen.G Chovy",
+   "link": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxOWVZkczZyU1E2WHJsS3ZPWTJVVmRUZFdkV3I1YW9mdllYeVhtNzRtMGVnMnluamNUMEM3TjQ1aDF0RWFveWV3dVZMWFZfQmpFRG5nVlNKRlF1WVFtR05nZ3JmMnZfZlRpZlB6cDg0V1FmNUZhaThDdl9KNWd0X0dvNGlJZXNsU01x?oc=5",
+   "published": "2026-11-14T18:15:00+00:00",
+   "summary": "Worlds 2026: BLG Knight vs Gen.G Chovy Sheep Esports",
+   "teams": [
+    "Gen.G",
+    "Bilibili Gaming"
+   ],
+   "players": [
+    {
+     "name": "Chovy",
+     "team": "Gen.G"
+    },
+    {
+     "name": "Knight",
+     "team": "Bilibili Gaming"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Gambling911",
+   "title": "Gen.G vs. Bilibili Gaming Worlds 2026 Final Betting Preview: Can Chovy Finally Win the Summoner's Cup?",
+   "link": "https://news.google.com/rss/articles/CBMieEFVX3lxTFBJc2c5NkNaMV9Ield0Nl9iSk1GbHh4eE51cUpBUzlubUVhakhpT3ljOTJQSloyRmxhcXY3NGdSb0hmeDNHTDQ4cWNOcDlFaTA2b3NwRjR2a192UDk3SWVMZzBQRzdUR3M3Y1VuZWpLcEhyTDhxNV83Rg?oc=5",
+   "published": "2026-11-14T16:37:28+00:00",
+   "summary": "Gen.G vs. Bilibili Gaming Worlds 2026 Final Betting Preview: Can Chovy Finally Win the Summoner's Cup? Gambling911",
+   "teams": [
+    "Gen.G",
+    "Bilibili Gaming"
+   ],
+   "players": [
+    {
+     "name": "Chovy",
+     "team": "Gen.G"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Dot Esports",
+   "title": "Gen.G vs. BLG Worlds 2026 final preview: Favorites, storylines, Chovy vs. knight",
+   "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxOWnRIMXRvaDRtNWxjMkFkT0lvNjZkMmtqMG1oaFdwM1o3RGcxdmRla19NX0pBRXZFd1FiYnRBYktMMXZHTUdXNWVrYUttQ09tOHV3VW53cGdTQklpRmVfTEgwcDNZWEE1S0tnWWs0bmF2SWxCa3h4b0JkdXZfU2M0aFpQMklHZlU?oc=5",
+   "published": "2026-11-14T13:30:00+00:00",
+   "summary": "Gen.G vs. BLG Worlds 2026 final preview: Favorites, storylines, Chovy vs. knight Dot Esports",
+   "teams": [
+    "Gen.G"
+   ],
+   "players": [
+    {
+     "name": "Chovy",
+     "team": "Gen.G"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
   {
    "game": "valorant",
    "source": "Pley.gg",
@@ -149,8 +218,8 @@
    "published": "2026-11-14T10:04:00+00:00",
    "summary": "A team effort by Spirit netted them a shot at the trophy in Hong Kong.",
    "teams": [
-    "MOUZ",
-    "Spirit"
+    "Spirit",
+    "MOUZ"
    ],
    "players": [],
    "score": 0,
@@ -446,22 +515,6 @@
    "reasons": []
   },
   {
-   "game": "lol",
-   "source": "Sheep Esports",
-   "title": "SK Gaming completed roster for LEC 2027",
-   "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxOWEgxNzFXZHNkZG8xUlRUamRjaEhzbDB0YUNTWlY4cEVuc3ZrT25MV2ZsMnkwbm9ERVAxSGwyRjNCVmN6SFpoYTZJN3QwUVFOM0QtQWJNbVplR2xLR1NqWDZuNEJPc3dUbWNDQklFQjBmeXFOa1VoUEwwWnZaSGRGbEdfdmdBOUZ0cmlR?oc=5",
-   "published": "2026-11-13T14:35:48+00:00",
-   "summary": "SK Gaming completed roster for LEC 2027 Sheep Esports",
-   "teams": [
-    "SK Gaming"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
    "game": "cs2",
    "source": "HLTV",
    "title": "Falcons qualify for BLAST Rivals semis over G2",
@@ -470,8 +523,8 @@
    "summary": "karrigan's men will now face FURIA in the semi-final.",
    "teams": [
     "Falcons",
-    "G2",
-    "FURIA"
+    "FURIA",
+    "G2"
    ],
    "players": [
     {
@@ -492,8 +545,8 @@
    "published": "2026-11-13T13:55:21+00:00",
    "summary": "FURIA, Spirit win BLAST Rivals Fall groups in Hong Kong Field Level Media",
    "teams": [
-    "Spirit",
-    "FURIA"
+    "FURIA",
+    "Spirit"
    ],
    "players": [],
    "score": 0,
@@ -1017,6 +1070,22 @@
   {
    "game": "lol",
    "source": "Sheep Esports",
+   "title": "SK Gaming completed roster for LEC 2027",
+   "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxOWEgxNzFXZHNkZG8xUlRUamRjaEhzbDB0YUNTWlY4cEVuc3ZrT25MV2ZsMnkwbm9ERVAxSGwyRjNCVmN6SFpoYTZJN3QwUVFOM0QtQWJNbVplR2xLR1NqWDZuNEJPc3dUbWNDQklFQjBmeXFOa1VoUEwwWnZaSGRGbEdfdmdBOUZ0cmlR?oc=5",
+   "published": "2026-11-12T18:10:00+00:00",
+   "summary": "SK Gaming completed roster for LEC 2027 Sheep Esports",
+   "teams": [
+    "SK Gaming"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
    "title": "Sources: Kryze set to join SK Gaming in LEC 2027",
    "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxNNE40aHBSUVhENkZEcWV5RjBTV0MzRVFLLV9ka2t1Nm95eThVMC1XclB3b2loZ2hFUEF3SmhjaEdWd0NfVnBQSGdQSm9aZjdwSldmNGpHMXdLOV9mYjJPOVRhbmN5MENtOTFROUpTSllyRkpXUnM3dU5GVUZ6cHpQcFhVNzZ1LWNuRnhsUEZtd2sxWEdDV0E?oc=5",
    "published": "2026-11-12T18:10:00+00:00",
@@ -1233,8 +1302,8 @@
    "published": "2026-11-12T15:58:48+00:00",
    "summary": "FURIA hand Vitality the first 13-0 defeat in the organization’s CS history Sheep Esports",
    "teams": [
-    "Vitality",
     "FURIA",
+    "Vitality",
     "EHISTO BASE"
    ],
    "players": [
@@ -1316,9 +1385,9 @@
    "published": "2026-11-12T13:58:00+00:00",
    "summary": "The Russian giants will take on the winner of Vitality vs MOUZ on Saturday.",
    "teams": [
+    "Spirit",
     "MOUZ",
-    "Vitality",
-    "Spirit"
+    "Vitality"
    ],
    "players": [],
    "score": 0,
@@ -1341,6 +1410,33 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Sources: Vladi set to re-sign with Fnatic for 2027 LEC season",
+   "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxPUktiMEpMUW9Kblh0bGFXeDljNFVHRnlhYnlrLUFQbGM2bWxNY1RIeENWWEo4N09GbldFWF9ySTBBQTFweGVvaVduZ1NPX0NaMmU3RWl4WTFONGZNckxKdVNOYlpGaEFWSS1LUy1KTlY4cTVLN0JuNjd6Y2JCbFJQdTQ4SWpqMlJiWjI3aW1nQnN2UGN2RnM2SEdHcU1IX3pWRGZQbmlFYw?oc=5",
+   "published": "2026-11-12T13:37:17+00:00",
+   "summary": "Sources: Vladi set to re-sign with Fnatic for 2027 LEC season Sheep Esports",
+   "teams": [
+    "Fnatic"
+   ],
+   "players": [
+    {
+     "name": "Vladi",
+     "team": "Fnatic"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing",
+    "extension"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet",
+    "a contract is extended"
+   ]
   },
   {
    "game": "cs2",
@@ -1714,8 +1810,8 @@
    "published": "2026-11-12T07:02:00+00:00",
    "summary": "FURIA hit flow state on the Mirage decider to seal the series victory.",
    "teams": [
-    "Vitality",
     "FURIA",
+    "Vitality",
     "STATE"
    ],
    "players": [],
@@ -2029,17 +2125,17 @@
    "published": "2026-11-11T16:20:00+00:00",
    "summary": "MURASH GAMING unveils 2027 roster with Seoldam, Caedye and Xdll Sheep Esports",
    "teams": [
-    "ZETA DIVISION",
-    "DetonatioN FocusMe"
+    "DetonatioN FocusMe",
+    "ZETA DIVISION"
    ],
    "players": [
     {
-     "name": "Xdll",
-     "team": "ZETA DIVISION"
-    },
-    {
      "name": "Caedye",
      "team": "DetonatioN FocusMe"
+    },
+    {
+     "name": "Xdll",
+     "team": "ZETA DIVISION"
     }
    ],
    "score": 0,
@@ -2050,6 +2146,23 @@
    "reasons": [
     "a new player joins; no record with the team yet"
    ]
+  },
+  {
+   "game": "cs2",
+   "source": "EGamersWorld",
+   "title": "BLAST Rivals Fall 2026 Day 2: Schedule, FURIA vs Vitality",
+   "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQZ0NzZUNpWHowQVRaeG9ITU1YRl9qYUxlaDJSb1VQMGRwQVpHMExLekZYZjVPblhkMXRVeXJsSDZhZ2NNNjhWRTMwRm5meGJiRW16ZVBLUFdfQlowN0VrM2c2UnVfUGJsM3o0SzkyNnhkQV9rTnlnclNzbjJjbThON0xDNm9DUWFxMmNxVHMxVjBYY3JCYnc?oc=5",
+   "published": "2026-11-11T16:14:05+00:00",
+   "summary": "BLAST Rivals Fall 2026 Day 2: Schedule, FURIA vs Vitality EGamersWorld",
+   "teams": [
+    "FURIA",
+    "Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
   },
   {
    "game": "lol",
@@ -2075,8 +2188,8 @@
    "published": "2026-11-11T13:55:00+00:00",
    "summary": "The Hungarian AWPer believes MOUZ let their BLAST Rivals opener against G2 slip out of their hands.",
    "teams": [
-    "G2",
-    "MOUZ"
+    "MOUZ",
+    "G2"
    ],
    "players": [
     {
@@ -2113,8 +2226,8 @@
    "published": "2026-11-11T12:55:15+00:00",
    "summary": "Team Spirit vs G2 Esports Prediction & Betting Tip | Counter-Strike (CS2) EGamersWorld",
    "teams": [
-    "G2",
-    "Spirit"
+    "Spirit",
+    "G2"
    ],
    "players": [],
    "score": 0,
@@ -2147,8 +2260,8 @@
    "published": "2026-11-11T12:54:00+00:00",
    "summary": "G2 took advantage of the classic championship hangover by taking down world No. 1 MOUZ, earning a playoff berth in Hong Kong.",
    "teams": [
-    "G2",
-    "MOUZ"
+    "MOUZ",
+    "G2"
    ],
    "players": [],
    "score": 0,
@@ -2476,8 +2589,8 @@
    "published": "2026-11-11T04:06:19+00:00",
    "summary": "G2 Esports vs MOUZ Prediction & Odds - Counter-Strike 2 - OG.com OG Prediction Markets",
    "teams": [
-    "G2",
     "MOUZ",
+    "G2",
     "OG"
    ],
    "players": [],
@@ -3469,8 +3582,8 @@
    "published": "2026-11-09T13:28:43+00:00",
    "summary": "MOUZ vs G2 Esports Betting Tips – MOUZ Tipped to Dominate G2 at BLAST Rivals Fall FreeTips",
    "teams": [
-    "G2",
-    "MOUZ"
+    "MOUZ",
+    "G2"
    ],
    "players": [],
    "score": 0,
@@ -3986,6 +4099,23 @@
    "summary": "[LOL Meme] T1 elimination, the shifted tide of Worlds 게임메카",
    "teams": [
     "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Coinbase",
+   "title": "Worlds Final: Gen.G vs. Bilibili Gaming",
+   "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTE5rN3dmc3JzMzFtUGxhSkdqemRZSEVZRmp1MGZkWkFrbWI0U25aRDlvU2xKOUxTanBFWnNfQ08wZDhlcnRZQWtBVkx1V2hEMFB0VzMwZEI5ZThxQzJNLXllTjBKR2hCZ2xvRlp1cTdDRXFKRXVHS1VWRm5B?oc=5",
+   "published": "2026-11-09T02:45:00+00:00",
+   "summary": "Worlds Final: Gen.G vs. Bilibili Gaming Coinbase",
+   "teams": [
+    "Gen.G",
+    "Bilibili Gaming"
    ],
    "players": [],
    "score": 0,
@@ -5620,17 +5750,17 @@
    "summary": "Gen.G Add Dambi and MaKo to 2027 Valorant Roster EsportsBets.com",
    "teams": [
     "Gen.G",
-    "Nongshim RedForce",
-    "KIWOOM DRX"
+    "KIWOOM DRX",
+    "Nongshim RedForce"
    ],
    "players": [
     {
-     "name": "Dambi",
-     "team": "Nongshim RedForce"
-    },
-    {
      "name": "MaKo",
      "team": "KIWOOM DRX"
+    },
+    {
+     "name": "Dambi",
+     "team": "Nongshim RedForce"
     }
    ],
    "score": 0,
@@ -6147,31 +6277,6 @@
    ]
   },
   {
-   "game": "lol",
-   "source": "Sheep Esports",
-   "title": "Sources: SK Gaming set to part ways with Wunder ahead of 2027 LEC Season",
-   "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPWUF4aXZ1WVBvMkNxX21TYU56VHNlLUJyTVNCSTB2VFlGYnZTNHBUZWFQTVpwbWNwXy1LTXNIWklYdGU5WVRrbUtRTjJseXIwRWFCNzBHSXpjZ2ZKbGFWUFAtN2pjcnNwcE0ydlVLRGpFakpfaE1FMFdWZ3pHOTRGbERsdkdFUXlKb281SUN0REF2SUtwMkcxOUZwSE5fY0lpOWEzd0JBUGl2enJqaldhSGNMMkdfZw?oc=5",
-   "published": "2026-11-06T20:07:55+00:00",
-   "summary": "Sources: SK Gaming set to part ways with Wunder ahead of 2027 LEC Season Sheep Esports",
-   "teams": [
-    "SK Gaming"
-   ],
-   "players": [
-    {
-     "name": "Wunder",
-     "team": "SK Gaming"
-    }
-   ],
-   "score": -1,
-   "grade": "negative",
-   "rules": [
-    "departure"
-   ],
-   "reasons": [
-    "a player or coach leaves"
-   ]
-  },
-  {
    "game": "valorant",
    "source": "Sheep Esports",
    "title": "Sources: batujnax set to join FUT Esports for 2027 VCT season",
@@ -6590,17 +6695,17 @@
    "summary": "Gen.G Valorant Announces Dambi and MaKo Signings Insider Gaming",
    "teams": [
     "Gen.G",
-    "Nongshim RedForce",
-    "KIWOOM DRX"
+    "KIWOOM DRX",
+    "Nongshim RedForce"
    ],
    "players": [
     {
-     "name": "Dambi",
-     "team": "Nongshim RedForce"
-    },
-    {
      "name": "MaKo",
      "team": "KIWOOM DRX"
+    },
+    {
+     "name": "Dambi",
+     "team": "Nongshim RedForce"
     }
    ],
    "score": 0,
@@ -6658,8 +6763,8 @@
    "published": "2026-11-06T14:42:00+00:00",
    "summary": "The TWC runners-up made it to another final four and will face MOUZ in the semis.",
    "teams": [
-    "MOUZ",
-    "FURIA"
+    "FURIA",
+    "MOUZ"
    ],
    "players": [],
    "score": 0,
@@ -6855,17 +6960,17 @@
    "summary": "Gen.G sign Masters MVP Dambi and veteran MaKo for 2027 Pley.gg",
    "teams": [
     "Gen.G",
-    "Nongshim RedForce",
-    "KIWOOM DRX"
+    "KIWOOM DRX",
+    "Nongshim RedForce"
    ],
    "players": [
     {
-     "name": "Dambi",
-     "team": "Nongshim RedForce"
-    },
-    {
      "name": "MaKo",
      "team": "KIWOOM DRX"
+    },
+    {
+     "name": "Dambi",
+     "team": "Nongshim RedForce"
     }
    ],
    "score": 0,
@@ -7009,17 +7114,17 @@
    "summary": "Gen.G Announces Signings Of MaKo And Dambi, 5th Yet To Be Revealed Hotspawn",
    "teams": [
     "Gen.G",
-    "Nongshim RedForce",
-    "KIWOOM DRX"
+    "KIWOOM DRX",
+    "Nongshim RedForce"
    ],
    "players": [
     {
-     "name": "Dambi",
-     "team": "Nongshim RedForce"
-    },
-    {
      "name": "MaKo",
      "team": "KIWOOM DRX"
+    },
+    {
+     "name": "Dambi",
+     "team": "Nongshim RedForce"
     }
    ],
    "score": 0,
@@ -7093,6 +7198,31 @@
    ],
    "reasons": [
     "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Sources: SK Gaming set to part ways with Wunder ahead of 2027 LEC Season",
+   "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPWUF4aXZ1WVBvMkNxX21TYU56VHNlLUJyTVNCSTB2VFlGYnZTNHBUZWFQTVpwbWNwXy1LTXNIWklYdGU5WVRrbUtRTjJseXIwRWFCNzBHSXpjZ2ZKbGFWUFAtN2pjcnNwcE0ydlVLRGpFakpfaE1FMFdWZ3pHOTRGbERsdkdFUXlKb281SUN0REF2SUtwMkcxOUZwSE5fY0lpOWEzd0JBUGl2enJqaldhSGNMMkdfZw?oc=5",
+   "published": "2026-11-06T08:00:00+00:00",
+   "summary": "Sources: SK Gaming set to part ways with Wunder ahead of 2027 LEC Season Sheep Esports",
+   "teams": [
+    "SK Gaming"
+   ],
+   "players": [
+    {
+     "name": "Wunder",
+     "team": "SK Gaming"
+    }
+   ],
+   "score": -1,
+   "grade": "negative",
+   "rules": [
+    "departure"
+   ],
+   "reasons": [
+    "a player or coach leaves"
    ]
   },
   {
@@ -7610,26 +7740,6 @@
    "reasons": []
   },
   {
-   "game": "lol",
-   "source": "Sheep Esports",
-   "title": "Sources: Zicssi set to join SK Gaming for the 2027 LEC season",
-   "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxPQk1TWEZNaXdldFNISDZrSDF1VEtXdG1DdldkX2JPdFJSMkpWajRQWlZ5ZE1aR3hYZVZBU0FlZ0JvRWxTY1BSV25OSWEtc2cweG5aX19GWUNiVjIyTFFWUEhDN0o2S2VOc0pCMnNwQ2hfbFBFaEdzZktTR09KZ0IwRXR3S0xNRGhQSHFlOElBNzY2TVN1YktYbWVMVGdaZ2MydWktZHVIYw?oc=5",
-   "published": "2026-11-05T17:35:00+00:00",
-   "summary": "Sources: Zicssi set to join SK Gaming for the 2027 LEC season Sheep Esports",
-   "teams": [
-    "SK Gaming"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
    "game": "valorant",
    "source": "Insider Gaming",
    "title": "Alfajer Departs Fnatic Ahead of VCT 2027",
@@ -8102,110 +8212,6 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Sheep Esports",
-   "title": "Sources: Fayde set to join All Gamers as Head Coach for 2027",
-   "link": "https://news.google.com/rss/articles/CBMipgFBVV95cUxOTXdLMkFObTY4akFFZW42SFpxWjIwTU5rcVgxRDRjMldUdGVnVmNvS3Jyb3dTYmFnM01zNVRRZjBUMjljUVcxWmZrWjVhTUl1NkZDUjJpQ0UxNkxmUXJTUnFVZDVUVGhOTkpsY2E2b2trRmM4STRudXpVVGxSRjhTT2MwV2ZiWEJzSnlWelEyMkVqS0d3Zk1WTmxmOFpTWEc3cEgzRmZn?oc=5",
-   "published": "2026-11-05T10:18:06+00:00",
-   "summary": "Sources: Fayde set to join All Gamers as Head Coach for 2027 Sheep Esports",
-   "teams": [
-    "All Gamers"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing",
-    "coach"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet",
-    "a coaching change"
-   ]
-  },
-  {
-   "game": "valorant",
-   "source": "Sheep Esports",
-   "title": "Sources: Spring set to join All Gamers for the 2027 VCT season",
-   "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxQaEpnaFhUcFpOVktWQmtPNGVONnBsOVhDZGVoOEtCREZxbjZCVnM0V0xIZ2JzUW80OXlhTjVvdTFtVEN1dV9KbDQxZXIySVc1UHJlQUswMVlhRDNKaTFsNE91Z3A4Z1p3UWVUZEtJT01hLTkxOG9kY3VwcE9SMVA4YmtxT0VrN1dPM1VIdDRlLWc2NzRhcEJyaUdKSlM2RU9BWWpEQmN3LW0?oc=5",
-   "published": "2026-11-05T09:39:57+00:00",
-   "summary": "Sources: Spring set to join All Gamers for the 2027 VCT season Sheep Esports",
-   "teams": [
-    "All Gamers",
-    "Wolves Esports"
-   ],
-   "players": [
-    {
-     "name": "Spring",
-     "team": "Wolves Esports"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
-   "game": "valorant",
-   "source": "Pley.gg",
-   "title": "Jinggg set to take his Raze to China with All Gamers",
-   "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxOLThSNUszT056Ul8xY05KQVE5bW1VazBRTm5sZUx5dHVCMEF5a0U5T0MzTDBRN2tQQTlKNkJCbTRRSWJ5WUJPTmd0RUxOcWh1YjZLSXVXUWgxb0t6TlRKU2RaQVRDV1hac3RSZjd5M0ZLQmFfZDhJakpyY3pqREFzZmJHZWQ?oc=5",
-   "published": "2026-11-05T09:14:26+00:00",
-   "summary": "Jinggg set to take his Raze to China with All Gamers Pley.gg",
-   "teams": [
-    "All Gamers",
-    "Paper Rex"
-   ],
-   "players": [
-    {
-     "name": "Jinggg",
-     "team": "Paper Rex"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Oyun Günlüğü",
-   "title": "Fire Flux Esports matches, roster and results | OG Esports",
-   "link": "https://news.google.com/rss/articles/CBMib0FVX3lxTE1WMlBqRWRWUFZEZ1RZb0tkR1hzelJDWGxaUFB4U2Q4Q3k3aTVWM25HNWowUUlXbXQxWHpVaEZhd1JBNl9xclBpVzM2VzJ4Q1pYM0hDYkliRGt1bHN6WE9uVzRwZlpEeGlfRklRTmV5RQ?oc=5",
-   "published": "2026-11-05T08:40:26+00:00",
-   "summary": "Fire Flux Esports matches, roster and results | OG Esports Oyun Günlüğü",
-   "teams": [
-    "Fire Flux Esports"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Esports News UK",
-   "title": "Gen.G sweep LYON in Worlds 2026 quarter-final to set up Invictus Gaming rematch",
-   "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxQU3Npcm1vdkdrSlJQelpDZjlqZmNDTWNXZkZmMXB0YjczdVY5U2QtOGVybUNYdjhIWTFwMFUzOEk1aWRtTFVLTS15OHY2NkhuT0ZOSXE3YVB4WnhVcXRhWUhCVWdFeE9XVF9FVnBMbEVHdS1LT24tNVloY3V2RTFPdHBjOGNVWFRhT2tOWEt0QjdRcW9fVXE4MGxaSjgwa094RjBFUWRUZk45eHpkYXR0dDFlNDZCUjIwS3c?oc=5",
-   "published": "2026-11-05T08:17:40+00:00",
-   "summary": "Gen.G sweep LYON in Worlds 2026 quarter-final to set up Invictus Gaming rematch Esports News UK",
-   "teams": [
-    "LYON",
-    "Gen.G",
-    "Invictus Gaming"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
   }
  ],
  "signals": {
@@ -8311,7 +8317,7 @@
    },
    "FNATIC": {
     "score": -1,
-    "items": 3,
+    "items": 2,
     "rules": [
      "departure",
      "signing"
