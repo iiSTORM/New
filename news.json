@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-14T18:27:26.174211+00:00",
+ "generated_at": "2026-11-14T22:42:55.355173+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,13 +61,13 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 41,
+   "items": 53,
    "error": null
   },
   {
    "game": "lol",
    "source": "Google News",
-   "items": 39,
+   "items": 37,
    "error": null
   },
   {
@@ -79,25 +79,25 @@
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 41,
+   "items": 39,
    "error": null
   },
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 24,
+   "items": 25,
    "error": null
   },
   {
    "game": "cs2",
    "source": "HLTV",
-   "items": 0,
-   "error": "403 Client Error: Forbidden for url: https://www.hltv.org/rss/news"
+   "items": 10,
+   "error": null
   },
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 18,
+   "items": 17,
    "error": null
   },
   {
@@ -109,17 +109,70 @@
   {
    "game": "dota2",
    "source": "Google News",
-   "items": 13,
+   "items": 14,
    "error": null
   },
   {
    "game": "dota2",
    "source": "Google News",
-   "items": 17,
+   "items": 19,
    "error": null
   }
  ],
  "items": [
+  {
+   "game": "lol",
+   "source": "EGamersWorld",
+   "title": "Worlds 2026 Grand Final Preview: Gen.G vs Bilibili Gaming Lane Matchups & Verdict",
+   "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxOV1lHeUx1aXdFMjlMMzNST2pFTF9FODl5ZkdxSUlhelBvSTVtU0xtZkVqOENBaVp4UnUtNEFHVGZmbUFfdG94SmlSb0N5R0JfRzVuWFpDc0tjcDBOMFVucE9UYkd2ckNNNVNlZ3VDOXdIcXZvVDE1ZlJ2aVhaaWNRelZNWjZ4SU02NWpNZ0FaSUEyeFZDZVE?oc=5",
+   "published": "2026-11-14T19:14:12+00:00",
+   "summary": "Worlds 2026 Grand Final Preview: Gen.G vs Bilibili Gaming Lane Matchups & Verdict EGamersWorld",
+   "teams": [
+    "Gen.G",
+    "Bilibili Gaming"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Chase Your Sport",
+   "title": "Who Is TenZ? VALORANT Legend Returns After 2 Years with T1",
+   "link": "https://news.google.com/rss/articles/CBMiigFBVV95cUxPbFY2NDlrWlZSS0ZmcHJOZXZ6U2o3MnJ5OXhrQWYwTjVMcjFHNHl1NExmUmF6dUg2ZnFVNFhyM0oyR1VETTEtZjE5LW9rRlR1NnZhWlJCTy1XdlhTb3hfeWFkNW5uZEl1R252UGNtWm5yTlg0VmNkbThvdTZJclJyU19hQTRKdkFVdVE?oc=5",
+   "published": "2026-11-14T19:07:37+00:00",
+   "summary": "Who Is TenZ? VALORANT Legend Returns After 2 Years with T1 Chase Your Sport",
+   "teams": [
+    "T1"
+   ],
+   "players": [],
+   "score": 1,
+   "grade": "positive",
+   "rules": [
+    "return"
+   ],
+   "reasons": [
+    "a regular is back"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "RG.org",
+   "title": "Worlds Final Is First Without T1 Since 2021 After 3.6M Semi Peak",
+   "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxNaWR4SjRMTklLY1hjTjFNZU9GLUdUeW1BWURxT0NVaVRhQ0JFS1NONXNhUy1ob0NoNkFPR090MHJoTWx5ZUVEei1qNTJqM3h5NUN3LW1IZXNReWVvbWFZcHFDbGVOU3pYUjBOVVRwNThadVQ5ZTFKbWRiYWhNMzlzX042M2prNE1XOVo5VA?oc=5",
+   "published": "2026-11-14T19:01:59+00:00",
+   "summary": "Worlds Final Is First Without T1 Since 2021 After 3.6M Semi Peak RG.org",
+   "teams": [
+    "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
   {
    "game": "lol",
    "source": "Sheep Esports",
@@ -169,6 +222,49 @@
    "reasons": []
   },
   {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "yuurih: \"I really want to thank Falcons for their fair play\"",
+   "link": "https://www.hltv.org/news/45992/yuurih-i-really-want-to-thank-falcons-for-their-fair-play",
+   "published": "2026-11-14T15:53:00+00:00",
+   "summary": "The Brazilian player appreciated Falcons asking to replay a controversial round that affected FURIA due to a technical issue.",
+   "teams": [
+    "Falcons",
+    "FURIA"
+   ],
+   "players": [
+    {
+     "name": "yuurih",
+     "team": "FURIA"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Dot Esports",
+   "title": "Gen.G vs. BLG Worlds 2026 final preview: Chovy and knight have everything to prove",
+   "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxOWnRIMXRvaDRtNWxjMkFkT0lvNjZkMmtqMG1oaFdwM1o3RGcxdmRla19NX0pBRXZFd1FiYnRBYktMMXZHTUdXNWVrYUttQ09tOHV3VW53cGdTQklpRmVfTEgwcDNZWEE1S0tnWWs0bmF2SWxCa3h4b0JkdXZfU2M0aFpQMklHZlU?oc=5",
+   "published": "2026-11-14T13:30:00+00:00",
+   "summary": "Gen.G vs. BLG Worlds 2026 final preview: Chovy and knight have everything to prove Dot Esports",
+   "teams": [
+    "Gen.G"
+   ],
+   "players": [
+    {
+     "name": "Chovy",
+     "team": "Gen.G"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "lol",
    "source": "Dot Esports",
    "title": "Gen.G vs. BLG Worlds 2026 final preview: Favorites, storylines, Chovy vs. knight",
@@ -182,6 +278,28 @@
     {
      "name": "Chovy",
      "team": "Gen.G"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "FURIA sweep Falcons to reach Hong Kong final",
+   "link": "https://www.hltv.org/news/45990/furia-sweep-falcons-to-reach-hong-kong-final",
+   "published": "2026-11-14T12:02:00+00:00",
+   "summary": "KSCERATO starred as FURIA ended a four-series losing streak against Falcons.",
+   "teams": [
+    "Falcons",
+    "FURIA"
+   ],
+   "players": [
+    {
+     "name": "KSCERATO",
+     "team": "FURIA"
     }
    ],
    "score": 0,
@@ -507,6 +625,22 @@
    "summary": "Where to Buy the Riftbound League of Legends T1 Player Bundle and Worlds 2026 Sets Sole Retriever",
    "teams": [
     "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "SK Gaming completed roster for LEC 2027",
+   "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxOWEgxNzFXZHNkZG8xUlRUamRjaEhzbDB0YUNTWlY4cEVuc3ZrT25MV2ZsMnkwbm9ERVAxSGwyRjNCVmN6SFpoYTZJN3QwUVFOM0QtQWJNbVplR2xLR1NqWDZuNEJPc3dUbWNDQklFQjBmeXFOa1VoUEwwWnZaSGRGbEdfdmdBOUZ0cmlR?oc=5",
+   "published": "2026-11-13T14:35:48+00:00",
+   "summary": "SK Gaming completed roster for LEC 2027 Sheep Esports",
+   "teams": [
+    "SK Gaming"
    ],
    "players": [],
    "score": 0,
@@ -1062,22 +1196,6 @@
      "team": "Fortress"
     }
    ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Sheep Esports",
-   "title": "SK Gaming completed roster for LEC 2027",
-   "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxOWEgxNzFXZHNkZG8xUlRUamRjaEhzbDB0YUNTWlY4cEVuc3ZrT25MV2ZsMnkwbm9ERVAxSGwyRjNCVmN6SFpoYTZJN3QwUVFOM0QtQWJNbVplR2xLR1NqWDZuNEJPc3dUbWNDQklFQjBmeXFOa1VoUEwwWnZaSGRGbEdfdmdBOUZ0cmlR?oc=5",
-   "published": "2026-11-12T18:10:00+00:00",
-   "summary": "SK Gaming completed roster for LEC 2027 Sheep Esports",
-   "teams": [
-    "SK Gaming"
-   ],
-   "players": [],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -8092,129 +8210,66 @@
    "reasons": [
     "a new player joins; no record with the team yet"
    ]
-  },
-  {
-   "game": "lol",
-   "source": "Sheep Esports",
-   "title": "G2 Esports terminate Perkz's contract following controversial abortion comments",
-   "link": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxNVXgwWW9LMmlXN2VQRVhvYWQ3dzN0YnVjWWVRcU5RZG5Ea2ZHa1doRXpuZHZrd0ZGY1NVcUlTcDdLSkt0VjlCdVZVSHRDLW1sNWprZlBDOEdfdWtIQjVlS3g1eU96Q3Y1d1prcXBObEtpQS1iU0dkQWJ3cl9LLTBjYkFOc2w1YnNLQ1RuMC16cG1mYlN5LVI0VlR4WERaYV9vYkVzQjBSTExvNVlTMmlUWjd6SW5EQi1ZQXh6TXo5M3M?oc=5",
-   "published": "2026-11-05T13:51:05+00:00",
-   "summary": "G2 Esports terminate Perkz's contract following controversial abortion comments Sheep Esports",
-   "teams": [
-    "G2 Esports"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Esports.gg",
-   "title": "Gen.G sweep LYON 3-0 at Worlds 2026 and set a semifinal date with TheShy’s iG",
-   "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTFBtSHppRTUtN19yeWFPYTZkNS1xUjQxT01wWm9sdFhtdWM3a3dPcDJJV0tGRVhHMFc1UDNPZDR6SC1va0Z0U2VMeTdCd1lMTjc5SVNWV0xmQjl0dEVCVVhRNWotZEZEOHY2SmlnSE81MFFvdV8xQlcxRE5n?oc=5",
-   "published": "2026-11-05T13:01:01+00:00",
-   "summary": "Gen.G sweep LYON 3-0 at Worlds 2026 and set a semifinal date with TheShy’s iG Esports.gg",
-   "teams": [
-    "LYON",
-    "Gen.G",
-    "Invictus Gaming"
-   ],
-   "players": [
-    {
-     "name": "TheShy",
-     "team": "Invictus Gaming"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "HLTV",
-   "title": "w0nderful and b1t surge in popularity for IEM Beijing Playoffs Fantasy",
-   "link": "https://www.hltv.org/news/45919/w0nderful-and-b1t-surge-in-popularity-for-iem-beijing-playoffs-fantasy",
-   "published": "2026-11-05T12:34:00+00:00",
-   "summary": "The second Fantasy game for the Chinese event is now live.",
-   "teams": [
-    "Natus Vincere"
-   ],
-   "players": [
-    {
-     "name": "w0nderful",
-     "team": "Natus Vincere"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Esports Charts",
-   "title": "Worlds 2026: LYON vs. GEN.G sees 10% more Peak Viewers than first quarterfinal",
-   "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1PYjhtTTVXU3pTRi1NUExBS2ljRF9DbTROd3Z0NHZyakU4ajRIUk1sSVBhYXZURUI0aGNJNXR4TW1MSElhYXhvSUt2eFR3QmhVaEN3UEVlZGNMSnhJWVgxckk2aXRQakxLME5NTGN3?oc=5",
-   "published": "2026-11-05T12:31:05+00:00",
-   "summary": "Worlds 2026: LYON vs. GEN.G sees 10% more Peak Viewers than first quarterfinal Esports Charts",
-   "teams": [
-    "LYON",
-    "Gen.G"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Sheep Esports",
-   "title": "Sources: nobody set to join Trace Esports for 2027 VCT China season",
-   "link": "https://news.google.com/rss/articles/CBMirwFBVV95cUxONFN0eDJFMDI5ZV82a1Z4MVM1eGpGNng0TjY0amNhVms2M29vQ3pSRlZ4SmVXSU8zNGQ2NGVaOUgwUVBmV01LSDZXeTMyODJ1cG1ScU1feHhqNFNubVh2cHBJLTA1WFlRd0dxYUVPSUZ0eGNlTWFCRWRxRkpCd2ZBZlB2SjBCV2RQc0FZVkxuWDQ4emNaVWZGdFBBZWFhMHp1Y3prY0xVdHVKMndLQXNR?oc=5",
-   "published": "2026-11-05T12:24:13+00:00",
-   "summary": "Sources: nobody set to join Trace Esports for 2027 VCT China season Sheep Esports",
-   "teams": [
-    "Trace Esports",
-    "EDward Gaming"
-   ],
-   "players": [
-    {
-     "name": "nobody",
-     "team": "EDward Gaming"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
-   "game": "dota2",
-   "source": "Robinhood",
-   "title": "November 5, 2026: Yangon Galacticos vs. Royal Bear Esports Prediction Market",
-   "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxNalNIbGJLVG52eGxVanEwcHhfQW91WU92RnlwZ2E2MktuSG1OZU9JbGw3VWVEekRzTDJBRVlYUkQtQllTRGFhbl9vQlZTeEU4MHdwdnY2ejVuenNoWG1EOE1pRlAwSE43SGVJVDFmSG5QdnBoaDd1N0ZXck1ieFRiRUNqMXdjS3BHUm44QkFiNnNGeGlUeXEzVURpb2VDMmQ3d2NSdF9Kc1FYdw?oc=5",
-   "published": "2026-11-05T10:22:10+00:00",
-   "summary": "November 5, 2026: Yangon Galacticos vs. Royal Bear Esports Prediction Market Robinhood",
-   "teams": [
-    "Royal Bear",
-    "Yangon Galacticos"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
   }
  ],
  "signals": {
+  "valorant": {
+   "T1": {
+    "score": 0,
+    "items": 8,
+    "rules": [
+     "return",
+     "departure",
+     "signing"
+    ]
+   },
+   "FNATIC": {
+    "score": -1,
+    "items": 2,
+    "rules": [
+     "departure",
+     "signing"
+    ]
+   },
+   "Bilibili Gaming": {
+    "score": -1,
+    "items": 1,
+    "rules": [
+     "departure",
+     "signing"
+    ]
+   },
+   "EDward Gaming": {
+    "score": -1,
+    "items": 1,
+    "rules": [
+     "departure",
+     "signing"
+    ]
+   },
+   "Sentinels": {
+    "score": -3,
+    "items": 2,
+    "rules": [
+     "departure",
+     "stand-in"
+    ]
+   },
+   "Cloud9": {
+    "score": -2,
+    "items": 1,
+    "rules": [
+     "stand-in"
+    ]
+   },
+   "Team Vitality": {
+    "score": -2,
+    "items": 1,
+    "rules": [
+     "suspension"
+    ]
+   }
+  },
   "cs2": {
    "SAW": {
     "score": -1,
@@ -8278,87 +8333,6 @@
     "rules": [
      "benched",
      "departure"
-    ]
-   },
-   "Spirit": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "departure"
-    ]
-   },
-   "9z": {
-    "score": -3,
-    "items": 1,
-    "rules": [
-     "stand-in",
-     "benched",
-     "signing"
-    ]
-   },
-   "EHISTO BASE": {
-    "score": -3,
-    "items": 1,
-    "rules": [
-     "stand-in",
-     "benched",
-     "signing"
-    ]
-   }
-  },
-  "valorant": {
-   "T1": {
-    "score": -1,
-    "items": 7,
-    "rules": [
-     "departure",
-     "signing"
-    ]
-   },
-   "FNATIC": {
-    "score": -1,
-    "items": 2,
-    "rules": [
-     "departure",
-     "signing"
-    ]
-   },
-   "Bilibili Gaming": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "departure",
-     "signing"
-    ]
-   },
-   "EDward Gaming": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "departure",
-     "signing"
-    ]
-   },
-   "Sentinels": {
-    "score": -3,
-    "items": 2,
-    "rules": [
-     "departure",
-     "stand-in"
-    ]
-   },
-   "Cloud9": {
-    "score": -2,
-    "items": 1,
-    "rules": [
-     "stand-in"
-    ]
-   },
-   "Team Vitality": {
-    "score": -2,
-    "items": 1,
-    "rules": [
-     "suspension"
     ]
    }
   },
