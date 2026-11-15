@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-15T16:33:13.891745+00:00",
+ "generated_at": "2026-11-15T23:07:34.029766+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,13 +61,13 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 65,
+   "items": 64,
    "error": null
   },
   {
    "game": "lol",
    "source": "Google News",
-   "items": 43,
+   "items": 36,
    "error": null
   },
   {
@@ -79,54 +79,157 @@
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 15,
+   "items": 14,
    "error": null
   },
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 23,
+   "items": 21,
    "error": null
   },
   {
    "game": "cs2",
    "source": "HLTV",
-   "items": 10,
+   "items": 0,
+   "error": "403 Client Error: Forbidden for url: https://www.hltv.org/rss/news"
+  },
+  {
+   "game": "cs2",
+   "source": "Google News",
+   "items": 13,
    "error": null
   },
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 16,
-   "error": null
-  },
-  {
-   "game": "cs2",
-   "source": "Google News",
-   "items": 18,
+   "items": 17,
    "error": null
   },
   {
    "game": "dota2",
    "source": "Google News",
-   "items": 19,
+   "items": 15,
    "error": null
   },
   {
    "game": "dota2",
    "source": "Google News",
-   "items": 19,
+   "items": 17,
    "error": null
   }
  ],
  "items": [
   {
+   "game": "lol",
+   "source": "Latin Times",
+   "title": "China Reclaims the LoL Throne: BLG Defeats Gen.G and Ends Five Years of LPL Championship Pain",
+   "link": "https://news.google.com/rss/articles/CBMihgFBVV95cUxOMHlZWk03VUppZnlOUnBCbnZ1RGY1Wm9icGVkcWtyb1hzZFhVUUk0NXctSTZaeWIzZ3k5WDFfZ3I5Z2dCUS04RGJNR0ZHT3JpTFFCcGJvTDFhQ25UZGNJQi1yd2dod01lX0hnR3dPbUVYNzdRM05WMDBEZFE3TXlRREZUb2JpZw?oc=5",
+   "published": "2026-11-15T21:53:02+00:00",
+   "summary": "China Reclaims the LoL Throne: BLG Defeats Gen.G and Ends Five Years of LPL Championship Pain Latin Times",
+   "teams": [
+    "Gen.G"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "EsportsBets.com",
+   "title": "CHICHOO and nobody leave EDward Gaming after five years as Valorant rebuild begins",
+   "link": "https://news.google.com/rss/articles/CBMigAFBVV95cUxNZEM1MUJfM3NCWkwtckVuemRmNkcxTzBGWFljQnJ2Tmc1eS1xZkVucXdLVEREVklyUzZqVlNpU0taa2R5RHJDSUxORHZSd0pNRUJYa29vaUt1MHlzMVJKbmxETU9TT2lHR1c3T2oxY2ZnT1lUN01rRTJzN0g3TDhqZQ?oc=5",
+   "published": "2026-11-15T19:58:59+00:00",
+   "summary": "CHICHOO and nobody leave EDward Gaming after five years as Valorant rebuild begins EsportsBets.com",
+   "teams": [
+    "EDward Gaming"
+   ],
+   "players": [
+    {
+     "name": "CHICHOO",
+     "team": "EDward Gaming"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "TalkEsport",
+   "title": "TenZ Wants VALORANT to Copy League's Pro View After Knight's Worlds-Winning POV: 'Can Learn a Lot'",
+   "link": "https://news.google.com/rss/articles/CBMijwFBVV95cUxPSks4NEZDY01yYW5iRWVKNXR1QVJ3X3hOSUd1MlREZG40Yks3cm40WVBzSGRwaW1xcWl5VlJKNi1hS1M1RVR0TEpTekh1S3o2LWJ1bkNfX1ZBTGhfZFp5SVljUEs5ZUNCNUtHNVZtelZZeE13aGdFNGRvenNySmVLaU8ybXV3aWI0dktfWXdQcw?oc=5",
+   "published": "2026-11-15T19:19:46+00:00",
+   "summary": "TenZ Wants VALORANT to Copy League's Pro View After Knight's Worlds-Winning POV: 'Can Learn a Lot' TalkEsport",
+   "teams": [
+    "Bilibili Gaming"
+   ],
+   "players": [
+    {
+     "name": "Knight",
+     "team": "Bilibili Gaming"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "cs2",
-   "source": "The Manila Times",
+   "source": "Hawk Live",
+   "title": "The captain of Team Spirit fell ill right during the BLAST Rivals Fall tournament",
+   "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxOTVpGV1pBOGQxR3NQb0dvSGM5WkduYkU0enBnSW00SHU1NzBEaFVzX1VnSzlTTEFhN19POEJpcWNScG81UDNnMTQzVTlCMGlReENtWjU3RjNITF9Nd3lSSGY2ZF95eGtheVpNYVBoRm1KMnpkYVB1VnY5RHpRVDNLUVotUEQzalloS29sTDBhMHE?oc=5",
+   "published": "2026-11-15T19:02:00+00:00",
+   "summary": "The captain of Team Spirit fell ill right during the BLAST Rivals Fall tournament Hawk Live",
+   "teams": [
+    "Spirit"
+   ],
+   "players": [],
+   "score": -2,
+   "grade": "negative",
+   "rules": [
+    "illness/injury"
+   ],
+   "reasons": [
+    "a player is unwell or hurt"
+   ]
+  },
+  {
+   "game": "valorant",
+   "source": "Pley.gg",
+   "title": "ZmjjKK is the last Seoul champion left as nobody and CHICHOO exit EDG",
+   "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxQOUx2QjBsc1R1SzI3SUQ4T2xCa2MxZU9KUVVXc0xqX09GdkVKbWFab0h6Rng4cU52bVdOazA0cGNfMW56WlowRWRqS0NUZUYtdlBUdVZhcXU2NGhHME8xbzlCaFpUQmRvUldmWXFVdHhMZHEtRk91RDN5X3oxN2J3YUVFMElmbUk0d1E1RVVRS3Z2ZWlHNDk3Qk9Dbw?oc=5",
+   "published": "2026-11-15T18:00:30+00:00",
+   "summary": "ZmjjKK is the last Seoul champion left as nobody and CHICHOO exit EDG Pley.gg",
+   "teams": [
+    "EDward Gaming"
+   ],
+   "players": [
+    {
+     "name": "CHICHOO",
+     "team": "EDward Gaming"
+    },
+    {
+     "name": "ZmjjKK",
+     "team": "EDward Gaming"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Thailand Business News",
    "title": "FURIA crowned back-to-back BLAST Premier Rivals Hong Kong champions as 30,000 fans celebrate world-class Counter-Strike",
-   "link": "https://news.google.com/rss/articles/CBMimgJBVV95cUxPN1h5alVNX29Sa2ktOHNzR1R0NmZ6VDE2aUdYem0ya3lBTUdOc1RaeWZXQTZjWWh1U0Iya0tqVlRrZE12LUQyanY0NzQyOUNVMUR1bWQwdlRBcVZnYUhGcWs3ck1IV05jMTM4M1JWN3RQeGVyZFhpMFZ5Wk0xdFppWk9iNTRiWHpkWkxWa1U1NTI2dGloNnlNSVY0UGdmMVRTTUtiRHUybW43TjFMRklmUTBLWjVnMl9veG5rbnh4M3MwbVh6bXduTlFhYm1PT25CV2FORm4yOThNclc4ZEg2SlVLYlZYVkdUS1oyLXBMOFNvbExkMWotUU1uVF9XWkNmN1VOSmxfNUJraGdtNzZiMXZxOVNER2E2NWfSAZ8CQVVfeXFMTXI2djlZa2tUX1gzVE84S2lCektXTTdlWUVOdVBKNUZwSUVMb183WDdxa1hOTU5GMXZjdzFtTDFHZ1pCLUZQV1RKdTg3QzZpYmxGNkZQZkszZS1ka3VoVTVmSVZFd3NGQnhJMy1IREl6blRQVmRfUVlkSEViLVlHZ3VCajBlRm9UdFh6VENWWUZQM0JiYzl1dmVkV2pDUnIyRm1WcVcyX2FBN1BDOU1hSnVfR3B2TGNpdkY5VWlXb2JDN1B6dTNscmo2dlBGTmJHTERVZUc4Z2VmNHBNTEpJQUI5NUZScThQQ3g2UDhGXzQydlBzTkRpY1JqS2I2cGtSd2ctNDJqX3BlbE9ndERYdUdGSmZQb1V5RTFKZ0dNbk0?oc=5",
-   "published": "2026-11-15T15:44:53+00:00",
-   "summary": "FURIA crowned back-to-back BLAST Premier Rivals Hong Kong champions as 30,000 fans celebrate world-class Counter-Strike The Manila Times",
+   "link": "https://news.google.com/rss/articles/CBMi-AFBVV95cUxQbUtMYkFmaWM4alZIYU9iOFJZTnk2QjhIa3VKSGlhMW93ZF9BSmlQaG43UlMtNDVCYVotYWNUaVF2eVFPUmxOOTMzbDI4cE11UlZLckd4WjYyRGFmSmZJSWpyeU5yN2F2X25lNHpYbjhWVmI2cnNLM3RNSEF0STl0VTJrelJhZGxzc1hjQXNrNHc3dWxPeG5aTnN5TkEtcnhLaXVEeU9Md0YtT05sc3M0bEtWMXhPUW1oal9tcGo4Smx3dkcyTzNkemJ0RXhJRzF4akRmUVI0TW5YRHJfdkZIMEFfY2tOVUFJekl2TDNRYUFEMllPTS1KOQ?oc=5",
+   "published": "2026-11-15T15:12:00+00:00",
+   "summary": "FURIA crowned back-to-back BLAST Premier Rivals Hong Kong champions as 30,000 fans celebrate world-class Counter-Strike Thailand Business News",
    "teams": [
     "FURIA"
    ],
@@ -200,6 +303,23 @@
    "teams": [
     "Spirit",
     "FURIA"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "RG.org",
+   "title": "Bilibili Gaming Beat Gen.G 3-1 to Win Worlds 2026",
+   "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxPR1NEaVhRbFVseFVvZkduUzJkZ0tHM3Y1elljMkVrZE1nNmwyR0JFUUdHeUpjMFFaMm5xOWsxTE5WWG9aRFRZTEFYdU0wdW1GQTQ4STVYdU11MkwwSkktU21TYWVveHNVV0hKbnFsdHBubklsR0d3LWR2QnJtS0p2VWRBaDk3N0drZC1FSEVHQm1HejQ?oc=5",
+   "published": "2026-11-15T11:36:29+00:00",
+   "summary": "Bilibili Gaming Beat Gen.G 3-1 to Win Worlds 2026 RG.org",
+   "teams": [
+    "Gen.G",
+    "Bilibili Gaming"
    ],
    "players": [],
    "score": 0,
@@ -342,6 +462,24 @@
    ]
   },
   {
+   "game": "cs2",
+   "source": "Esports News UK",
+   "title": "FURIA sweep Team Falcons to set up BLAST Rivals Fall 2026 final with Spirit",
+   "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxNT3NmeGg4QTFyX0hmdWNvdnNWMnpFSnRRZlFQRE9vSnozQmU2VTVWY0JVQnYxLU12WU54UHlWTjR2ZnpETFdMck4zN1ZXOUJzSXFTSElKODNiZWtNcThVZU5FbDIzUFlDUFVDNjBTN3djdDRDaUpxQ2J5RnVSUWltQ3dOZFBpbVhwZW53YTN6dVZmcGp4VVB3MUxfeWdYRWp5OHZyc2lOZUpVb0hVOUl6QmlvOGo?oc=5",
+   "published": "2026-11-15T09:18:16+00:00",
+   "summary": "FURIA sweep Team Falcons to set up BLAST Rivals Fall 2026 final with Spirit Esports News UK",
+   "teams": [
+    "Spirit",
+    "FURIA",
+    "Falcons"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "valorant",
    "source": "Pley.gg",
    "title": "LOUD part ways with Darker after Champions win",
@@ -373,23 +511,6 @@
    "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxQZEp1Njh5UTF5RnJUZ1pnZ0gxMXdtQWZJNjVVSHlIQ1VzdWtoZXZDOWFBQXplQXNZRHZBWk1sR2MwZFo1SGVudUpYQ3VhTkxORmFWREhCeE83LWpYVlpUakZsRjNHNlRULTJObENFcVU5UWpVa2FsVUJTTlFmR1paSF8wbXVUcHJZbzdKOE9Jenp0WTZrcFdaSC1DaWdxWnc?oc=5",
    "published": "2026-11-15T08:38:21+00:00",
    "summary": "Bilibili Gaming defeats Gen.G in Worlds 2026 final — Korea Herald UA.NEWS",
-   "teams": [
-    "Gen.G",
-    "Bilibili Gaming"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "RG.org",
-   "title": "Bilibili Gaming Beat Gen.G 3-1 to Win Worlds 2026",
-   "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxPR1NEaVhRbFVseFVvZkduUzJkZ0tHM3Y1elljMkVrZE1nNmwyR0JFUUdHeUpjMFFaMm5xOWsxTE5WWG9aRFRZTEFYdU0wdW1GQTQ4STVYdU11MkwwSkktU21TYWVveHNVV0hKbnFsdHBubklsR0d3LWR2QnJtS0p2VWRBaDk3N0drZC1FSEVHQm1HejQ?oc=5",
-   "published": "2026-11-15T08:13:39+00:00",
-   "summary": "Bilibili Gaming Beat Gen.G 3-1 to Win Worlds 2026 RG.org",
    "teams": [
     "Gen.G",
     "Bilibili Gaming"
@@ -670,6 +791,22 @@
   },
   {
    "game": "lol",
+   "source": "Esports.gg",
+   "title": "Worlds 2026: All eligible champions for Gen.G Esports skins",
+   "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxNOFM5OS1UMEE1U19TTWgxYzhBZF9JRkpXX1U3WHBRUXpzU0oyYzVmbjFXRklaeUhXS2pGQ1BpYTJlWEN5TkktYmp5RDQxaEpydGxMcnBTMjQ4d2ZwTHU3N3o1WWVDTWc4MUptQTdsTU9IdnF3NnNfTWllTm5CemxtclB1M25NMldFRDBJdQ?oc=5",
+   "published": "2026-11-14T23:53:33+00:00",
+   "summary": "Worlds 2026: All eligible champions for Gen.G Esports skins Esports.gg",
+   "teams": [
+    "Gen.G"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
    "source": "Hotspawn",
    "title": "“ALL IN BLUE: Le Phénomène Karmine Corp”, a Documentary Retracing the Club’s History, Set to Hit Cinemas on December 10",
    "link": "https://news.google.com/rss/articles/CBMifEFVX3lxTE9IaC1Lc3pXVHZ2RUpwQTZYRjBXejFXZ09BVnphbXhBaHpTcE8xcGFxejhHSURQbFkxN1FZUFZoNEJENnRIQVZ3WDFMUThSQ0laY05UNnNzbmN0ckFTQjE3RG9ZQThuSHh5X2pkamVpNGdQcC1xSFpRUDFkdzQ?oc=5",
@@ -802,6 +939,23 @@
      "team": "FURIA"
     }
    ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "TalkEsport",
+   "title": "BLAST Rivals 2026 Season 2 Semifinals Recap: FURIA to Face Spirit in Grand Final",
+   "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxNRzM2TzJOZUFXQV9jcW9LRjJ6Ui00bWt5N002dzFEY2NPTUU4ZzF4aDhRNzRDQ3JDRlN2cW11UFBWbk5VX1gtdmF2cmJ0dXNaRFoyNEFOUFRDT3ZsRU01VTYxRzdKN0Nlc0puMHlPWThhbXNQSXpEaU56UHhmRTZTWlJHbXdzNUV4bmFnZEdwMnNaV012NFJxUzJR?oc=5",
+   "published": "2026-11-14T13:50:01+00:00",
+   "summary": "BLAST Rivals 2026 Season 2 Semifinals Recap: FURIA to Face Spirit in Grand Final TalkEsport",
+   "teams": [
+    "Spirit",
+    "FURIA"
+   ],
+   "players": [],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -4382,22 +4536,6 @@
    "summary": "MOUZ are the first team since 2019 to have all five players above a 1.15 rating at an MVP event, and are rewarded in kind.",
    "teams": [
     "MOUZ"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Esports.gg",
-   "title": "Worlds 2026: All eligible champions for Gen.G Esports skins",
-   "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxNOFM5OS1UMEE1U19TTWgxYzhBZF9JRkpXX1U3WHBRUXpzU0oyYzVmbjFXRklaeUhXS2pGQ1BpYTJlWEN5TkktYmp5RDQxaEpydGxMcnBTMjQ4d2ZwTHU3N3o1WWVDTWc4MUptQTdsTU9IdnF3NnNfTWllTm5CemxtclB1M25NMldFRDBJdQ?oc=5",
-   "published": "2026-11-09T14:52:01+00:00",
-   "summary": "Worlds 2026: All eligible champions for Gen.G Esports skins Esports.gg",
-   "teams": [
-    "Gen.G"
    ],
    "players": [],
    "score": 0,
@@ -8047,168 +8185,67 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Hotspawn",
-   "title": "Gen.G Announces Signings Of MaKo And Dambi, 5th Yet To Be Revealed",
-   "link": "https://news.google.com/rss/articles/CBMiZkFVX3lxTFBlVjBfSTUyVkRhSVNiTlBfNElUYWRBZlpSTnhreVp5Vk0tZzV0M0ppTnJCZ3JDM0l6QURnN3JMTzRrX3EwZnhxZDhHT3RGZ0ZUaS1JM200UkxjUkRKMkVhY1cxWVlRdw?oc=5",
-   "published": "2026-11-06T10:04:43+00:00",
-   "summary": "Gen.G Announces Signings Of MaKo And Dambi, 5th Yet To Be Revealed Hotspawn",
-   "teams": [
-    "Gen.G",
-    "KIWOOM DRX",
-    "Nongshim RedForce"
-   ],
-   "players": [
-    {
-     "name": "MaKo",
-     "team": "KIWOOM DRX"
-    },
-    {
-     "name": "Dambi",
-     "team": "Nongshim RedForce"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Sheep Esports",
-   "title": "Sources: ZmjjKK set to join Xi Lai Gaming ahead of 2027 VCT Season",
-   "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxNd1Rlbnc2MXp5LXJHR1ltVURxdDJvYURHVy11N1pCdWY2WWdYcE9tcnVDdjctS1c4T2toTHZiU3dOUFJISHVobERsaWh5SzR2M1VaRF9pZFZiWF9aeG9ZVUhkS0o1UHZyUzFHSEMzVGs4VHJSd3VDUWNFQkRuVnFhem03WElZMkNHRWxzczBabmxLNThESEEwN2FLbHB4VnVaNXBtcGZpTzhTUGpaUXVoNTFn?oc=5",
-   "published": "2026-11-06T09:30:00+00:00",
-   "summary": "Sources: ZmjjKK set to join Xi Lai Gaming ahead of 2027 VCT Season Sheep Esports",
-   "teams": [
-    "Xi Lai Gaming",
-    "EDward Gaming"
-   ],
-   "players": [
-    {
-     "name": "ZmjjKK",
-     "team": "EDward Gaming"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
-   "game": "valorant",
-   "source": "EsportsBets.com",
-   "title": "Alfajer leaves FNATIC after four and a half years as Valorant rebuild for 2027 continues",
-   "link": "https://news.google.com/rss/articles/CBMifEFVX3lxTFBIc1RzVVBTOFR4R1ZoVWNkMEttUGR2WkswMGZaUFhXVFlkQW1MSzFzQlhDMTRnaktEdFY4Ylc1Mk4yWTN6eWg2ZG5zX0dPRG9aRlM5QjA4VVlUMU1ocXA0Z3hEWjVlbzFieGtvMzRBNF9oTHBESVlMRTRpUGg?oc=5",
-   "published": "2026-11-06T08:25:51+00:00",
-   "summary": "Alfajer leaves FNATIC after four and a half years as Valorant rebuild for 2027 continues EsportsBets.com",
-   "teams": [
-    "FNATIC"
-   ],
-   "players": [
-    {
-     "name": "Alfajer",
-     "team": "FNATIC"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Traders Union",
-   "title": "LBank introduces prediction futures market for Gen.G vs Invictus Gaming at Worlds 2026",
-   "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxNcXo0cWcyODN0ZGxBcnl0UEQ2YjdMTk1mTTJzTEZZWC1WV0lyd1BIODlqU05Sejhaal9oaUh2TktpRFR6bW43US1GbEx2Yy1ZejJlb0tSdXFBN2x5T3lWckNoajhuQTdDdlRiRGRrcnN3bksyZF9pVndublF2UGdQdEpldGcxMTlQRld4cEI2UGk?oc=5",
-   "published": "2026-11-06T08:23:32+00:00",
-   "summary": "LBank introduces prediction futures market for Gen.G vs Invictus Gaming at Worlds 2026 Traders Union",
-   "teams": [
-    "Gen.G",
-    "Invictus Gaming"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
-   "game": "lol",
-   "source": "Sheep Esports",
-   "title": "Sources: SK Gaming set to part ways with Wunder ahead of 2027 LEC Season",
-   "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPWUF4aXZ1WVBvMkNxX21TYU56VHNlLUJyTVNCSTB2VFlGYnZTNHBUZWFQTVpwbWNwXy1LTXNIWklYdGU5WVRrbUtRTjJseXIwRWFCNzBHSXpjZ2ZKbGFWUFAtN2pjcnNwcE0ydlVLRGpFakpfaE1FMFdWZ3pHOTRGbERsdkdFUXlKb281SUN0REF2SUtwMkcxOUZwSE5fY0lpOWEzd0JBUGl2enJqaldhSGNMMkdfZw?oc=5",
-   "published": "2026-11-06T08:00:00+00:00",
-   "summary": "Sources: SK Gaming set to part ways with Wunder ahead of 2027 LEC Season Sheep Esports",
-   "teams": [
-    "SK Gaming"
-   ],
-   "players": [
-    {
-     "name": "Wunder",
-     "team": "SK Gaming"
-    }
-   ],
-   "score": -1,
-   "grade": "negative",
-   "rules": [
-    "departure"
-   ],
-   "reasons": [
-    "a player or coach leaves"
-   ]
-  },
-  {
-   "game": "lol",
-   "source": "Sheep Esports",
-   "title": "Sources: Jopa puts Team Vitality offer on hold while exploring other opportunities",
-   "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxQeWVIQTd5Rm1xQkF0RGhabVVINnpPM0JLdnB0YXkwLUY3WlVfc0c1bHVUSk9Sd1huOC1zME01UHZVZW9xZVRBakc5WTNwSTJVUlBCT3EzVTVmdW1fYkVDb1ZyaXMzSjNlSlhtU2pFbW5MQU1vMWR2eS1mMHc2M3h4UnVjOVJ0TDNVQnMtem52V3FqQlJ1c3c2bmZuVC1KcUlHQ0tPc0lDckFiVHMyUS1kNFpB?oc=5",
-   "published": "2026-11-06T08:00:00+00:00",
-   "summary": "Sources: Jopa puts Team Vitality offer on hold while exploring other opportunities Sheep Esports",
-   "teams": [
-    "Team Vitality",
-    "SK Gaming"
-   ],
-   "players": [
-    {
-     "name": "Jopa",
-     "team": "SK Gaming"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "Shane the Gamer",
-   "title": "Falcons Put CS2 Academy Falcons Force on Hold, Roster Available on Open Market",
-   "link": "https://news.google.com/rss/articles/CBMieEFVX3lxTE9ZZVdUaHliSTZENG1wSUZ3Qkt4Y3dfSjJJMDBVOU5hQm5XMmFXcEhYNGV4b2h5eHZRRVVNcTdDQWk2Z0NCWlRYUTR0Tm1YbFowMDRtSEZ4RnJzOEVtNlFBTmI3a0RWZlhrQkhOVDNXcUdpOWhoVG12Yg?oc=5",
-   "published": "2026-11-06T07:48:00+00:00",
-   "summary": "Falcons Put CS2 Academy Falcons Force on Hold, Roster Available on Open Market Shane the Gamer",
-   "teams": [
-    "Falcons",
-    "Falcons Force"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
   }
  ],
  "signals": {
+  "cs2": {
+   "Spirit": {
+    "score": -2,
+    "items": 1,
+    "rules": [
+     "illness/injury"
+    ]
+   },
+   "SAW": {
+    "score": -1,
+    "items": 2,
+    "rules": [
+     "benched",
+     "signing",
+     "coach"
+    ]
+   },
+   "SAW Youngsters": {
+    "score": -1,
+    "items": 2,
+    "rules": [
+     "benched",
+     "signing",
+     "coach"
+    ]
+   },
+   "FUT": {
+    "score": -4,
+    "items": 1,
+    "rules": [
+     "stand-in",
+     "visa"
+    ]
+   },
+   "Fluxo": {
+    "score": -1,
+    "items": 1,
+    "rules": [
+     "benched"
+    ]
+   },
+   "BET-M": {
+    "score": -3,
+    "items": 1,
+    "rules": [
+     "stand-in",
+     "benched"
+    ]
+   },
+   "Virtus!pro": {
+    "score": -3,
+    "items": 1,
+    "rules": [
+     "stand-in",
+     "benched"
+    ]
+   }
+  },
   "valorant": {
    "LOUD": {
     "score": -1,
@@ -8266,64 +8303,6 @@
     ]
    }
   },
-  "cs2": {
-   "SAW": {
-    "score": -1,
-    "items": 2,
-    "rules": [
-     "benched",
-     "signing",
-     "coach"
-    ]
-   },
-   "SAW Youngsters": {
-    "score": -1,
-    "items": 2,
-    "rules": [
-     "benched",
-     "signing",
-     "coach"
-    ]
-   },
-   "FUT": {
-    "score": -4,
-    "items": 1,
-    "rules": [
-     "stand-in",
-     "visa"
-    ]
-   },
-   "Fluxo": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "benched"
-    ]
-   },
-   "BET-M": {
-    "score": -3,
-    "items": 1,
-    "rules": [
-     "stand-in",
-     "benched"
-    ]
-   },
-   "Virtus!pro": {
-    "score": -3,
-    "items": 1,
-    "rules": [
-     "stand-in",
-     "benched"
-    ]
-   },
-   "ECSTATIC": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "departure"
-    ]
-   }
-  },
   "lol": {
    "Shopify Rebellion": {
     "score": -1,
@@ -8334,22 +8313,6 @@
     ]
    },
    "FlyQuest": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "departure",
-     "signing"
-    ]
-   },
-   "Movistar KOI": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "departure",
-     "signing"
-    ]
-   },
-   "G2 Esports": {
     "score": -1,
     "items": 1,
     "rules": [
