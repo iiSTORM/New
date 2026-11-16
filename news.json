@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-15T23:07:34.029766+00:00",
+ "generated_at": "2026-11-16T07:12:10.781067+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,13 +61,13 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 64,
+   "items": 68,
    "error": null
   },
   {
    "game": "lol",
    "source": "Google News",
-   "items": 36,
+   "items": 39,
    "error": null
   },
   {
@@ -79,47 +79,101 @@
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 14,
+   "items": 15,
    "error": null
   },
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 21,
+   "items": 24,
    "error": null
   },
   {
    "game": "cs2",
    "source": "HLTV",
-   "items": 0,
-   "error": "403 Client Error: Forbidden for url: https://www.hltv.org/rss/news"
-  },
-  {
-   "game": "cs2",
-   "source": "Google News",
-   "items": 13,
+   "items": 10,
    "error": null
   },
   {
    "game": "cs2",
-   "source": "Google News",
-   "items": 17,
-   "error": null
-  },
-  {
-   "game": "dota2",
    "source": "Google News",
    "items": 15,
    "error": null
   },
   {
+   "game": "cs2",
+   "source": "Google News",
+   "items": 19,
+   "error": null
+  },
+  {
    "game": "dota2",
    "source": "Google News",
-   "items": 17,
+   "items": 16,
+   "error": null
+  },
+  {
+   "game": "dota2",
+   "source": "Google News",
+   "items": 18,
    "error": null
   }
  ],
  "items": [
+  {
+   "game": "dota2",
+   "source": "Esports.gg",
+   "title": "Dota 2 1win Essence III: All teams, schedules, results",
+   "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxNMzVWUGlJLV9kVkhkLWNqNF8wdEs5LXd1NGhkZ1RVYjlXYl9nQ0ZVYTQyZUh1NG9zQUxtN0htenFhUGdkT096LU5IQWdwMkZ0aXQ3U3JHbWxsWm1MYXJlTlVXSEpkXzRoLXZwWlV5RHZ4dkF0b1RiTWZ3UkViQUh1dFJMc3Y0ZjQ5aElndHhFNHhMdw?oc=5",
+   "published": "2026-11-16T02:51:31+00:00",
+   "summary": "Dota 2 1win Essence III: All teams, schedules, results Esports.gg",
+   "teams": [
+    "1win"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Sources: Cryogen set to stay with FlyQuest for LCS 2027",
+   "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxOUWI2UGd5M05KU1VJTXh4WDQzWms4TEhSZE1NbG5aRlVEalp2MmpBVFJIbTRJNUtOekxBMENpbzBPOFZEODdxa25DbzEtRVFpbm83c0lxeFJOY1dLaVp6RThkeTcySlNXa2JEeUVBUThkTUhQTzdhMW5peE1NdV9xVnJYZkU0dFMyekpPYVRrUXdSbTJWSzQyXzdPWUh5dDQ?oc=5",
+   "published": "2026-11-16T01:12:13+00:00",
+   "summary": "Sources: Cryogen set to stay with FlyQuest for LCS 2027 Sheep Esports",
+   "teams": [
+    "FlyQuest"
+   ],
+   "players": [
+    {
+     "name": "Cryogen",
+     "team": "FlyQuest"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "dota2",
+   "source": "Robinhood",
+   "title": "November 16, 2026: Team Spirit vs. PARIVISION Esports Prediction Market",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxQdU9rQkRldC1VMG5uME5lVUZiZnU0UjZ5RUtoUDdRRmYyb21oUXNpaGNLdnMxQnRFRVNiV3o1VjU0Z1NoWmxpaUwzdmxMa01fekt4R1J5NlRMZGZkOWtpSzU5Mm1uYXRvOW9RVkF1ZnJfMU5TdlRzY29oQ3l0ZF8wS2FISVRORnctOXhZdTBPN0VYVUREM2d4REV4dGhPQ2tablE?oc=5",
+   "published": "2026-11-15T23:17:31+00:00",
+   "summary": "November 16, 2026: Team Spirit vs. PARIVISION Esports Prediction Market Robinhood",
+   "teams": [
+    "PARIVISION",
+    "Team Spirit"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
   {
    "game": "lol",
    "source": "Latin Times",
@@ -129,6 +183,22 @@
    "summary": "China Reclaims the LoL Throne: BLG Defeats Gen.G and Ends Five Years of LPL Championship Pain Latin Times",
    "teams": [
     "Gen.G"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Freetips.com",
+   "title": "PGL Major Singapore 2026 Betting Odds – Team Vitality Lead the Way As Top Contenders",
+   "link": "https://news.google.com/rss/articles/CBMijgFBVV95cUxNb28zUV9OZzRKQW1BMkFFMXZVME1kdUo5d2MzX2NtclJWNGltU0dldzF2MHJhU0hhcW5ERWZZWWFaNzQ0SVNySGpTZS1wUkh6Ni1GbUpRMGpUcXpEbDYyNHlUQkI1clZMbTZTZVhETnlTM1FIVy1DRTdfUjQycXJaTm02Wko4bElUS0JaaFp3?oc=5",
+   "published": "2026-11-15T19:59:12+00:00",
+   "summary": "PGL Major Singapore 2026 Betting Odds – Team Vitality Lead the Way As Top Contenders Freetips.com",
+   "teams": [
+    "Vitality"
    ],
    "players": [],
    "score": 0,
@@ -200,6 +270,31 @@
   },
   {
    "game": "valorant",
+   "source": "Dot Esports",
+   "title": "EDward Gaming part ways with CHICHOO and nobody after five years and a Champions title",
+   "link": "https://news.google.com/rss/articles/CBMifEFVX3lxTE9JRk52N1ZublUzT2pqRDBGT1JYWm13cmY3dWxSRTJlY19ZLVFBcVhJOEY1NU82Q0FxdmRDazJqdC1EZldCV0dVbV9OUDJmRjVLak1seFB6OVhQT3o4OUFPYjQybXp4aHQ2U0pucFY5QURBT1YwblU0bUVhQjg?oc=5",
+   "published": "2026-11-15T18:21:00+00:00",
+   "summary": "EDward Gaming part ways with CHICHOO and nobody after five years and a Champions title Dot Esports",
+   "teams": [
+    "EDward Gaming"
+   ],
+   "players": [
+    {
+     "name": "CHICHOO",
+     "team": "EDward Gaming"
+    }
+   ],
+   "score": -1,
+   "grade": "negative",
+   "rules": [
+    "departure"
+   ],
+   "reasons": [
+    "a player or coach leaves"
+   ]
+  },
+  {
+   "game": "valorant",
    "source": "Pley.gg",
    "title": "ZmjjKK is the last Seoul champion left as nobody and CHICHOO exit EDG",
    "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxQOUx2QjBsc1R1SzI3SUQ4T2xCa2MxZU9KUVVXc0xqX09GdkVKbWFab0h6Rng4cU52bVdOazA0cGNfMW56WlowRWRqS0NUZUYtdlBUdVZhcXU2NGhHME8xbzlCaFpUQmRvUldmWXFVdHhMZHEtRk91RDN5X3oxN2J3YUVFMElmbUk0d1E1RVVRS3Z2ZWlHNDk3Qk9Dbw?oc=5",
@@ -225,11 +320,11 @@
   },
   {
    "game": "cs2",
-   "source": "Thailand Business News",
+   "source": "巴士的報",
    "title": "FURIA crowned back-to-back BLAST Premier Rivals Hong Kong champions as 30,000 fans celebrate world-class Counter-Strike",
-   "link": "https://news.google.com/rss/articles/CBMi-AFBVV95cUxQbUtMYkFmaWM4alZIYU9iOFJZTnk2QjhIa3VKSGlhMW93ZF9BSmlQaG43UlMtNDVCYVotYWNUaVF2eVFPUmxOOTMzbDI4cE11UlZLckd4WjYyRGFmSmZJSWpyeU5yN2F2X25lNHpYbjhWVmI2cnNLM3RNSEF0STl0VTJrelJhZGxzc1hjQXNrNHc3dWxPeG5aTnN5TkEtcnhLaXVEeU9Md0YtT05sc3M0bEtWMXhPUW1oal9tcGo4Smx3dkcyTzNkemJ0RXhJRzF4akRmUVI0TW5YRHJfdkZIMEFfY2tOVUFJekl2TDNRYUFEMllPTS1KOQ?oc=5",
+   "link": "https://news.google.com/rss/articles/CBMi_wFBVV95cUxQUmllaEl1XzUzdnRtYi1ZbXB3Z1JXTE00S2N0X0dTX293cnBDZGRITXFrQ25VWUVsOFZqeURMWXpJUWJ6Zlo0Q05BUnI1VUhPM0NaTE1odjZKa2M5Qll4M0NuWFV5alhnLU9PalJ4RHpIQ2dYSnFkMUNpTjczbE04VTd1RjNvNlM4NVNPUUJ2R3R3eDZ3T3VJLVJnaklKSGFHamtKMjdISllBMUlsVGo0SHlnbHIwdVoyTmFtbzZ0NmF3X0pqTm1HTnU0bl9mSklhaGxRVVZLWFpEa28zd1BSY0todmxpMUVBVjNEWTNKdHMyQmttY1ZKRWtFYUVYMHc?oc=5",
    "published": "2026-11-15T15:12:00+00:00",
-   "summary": "FURIA crowned back-to-back BLAST Premier Rivals Hong Kong champions as 30,000 fans celebrate world-class Counter-Strike Thailand Business News",
+   "summary": "FURIA crowned back-to-back BLAST Premier Rivals Hong Kong champions as 30,000 fans celebrate world-class Counter-Strike 巴士的報",
    "teams": [
     "FURIA"
    ],
@@ -305,6 +400,27 @@
     "FURIA"
    ],
    "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "dota2",
+   "source": "Hawk Live",
+   "title": "Noticed frankly assessed the current level of preparation of PARIVISION",
+   "link": "https://news.google.com/rss/articles/CBMijgFBVV95cUxQa01nN3N1TFN4dno0aHZoVFlRTEhKMXhkZGx6WFRhMEJBTkI5RS1vd3JHeHV3dUJySGhidjd3b0t4V1lOUzVmS09fV3pNUlh6MHF1NGliV1hXOWo1cDJsNF9Ib2J4dGQ3djNRSXJQZFA4WnJiX1BWTmw2RjVkcjhmTUlWcHBieEFvVm1lRWxB?oc=5",
+   "published": "2026-11-15T11:38:00+00:00",
+   "summary": "Noticed frankly assessed the current level of preparation of PARIVISION Hawk Live",
+   "teams": [
+    "PARIVISION"
+   ],
+   "players": [
+    {
+     "name": "Noticed",
+     "team": "PARIVISION"
+    }
+   ],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -1119,6 +1235,22 @@
    "reasons": []
   },
   {
+   "game": "dota2",
+   "source": "Dot Esports",
+   "title": "Dota 2 1win Essence III: Schedule, results, teams, and how to watch",
+   "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9VWmlPQkptWnhtUXlrSVZIRmZ1dEZ1eFJyQmxOMUJBaFo2bG5ocU1wWjVRbVBGc2hLWk9CaEVaeDNYTGRxSHZ3cGhkc001ZjlvXzJVUmNvb19sVUE0YTdVUTN4SmdJSFh0a28zQzJmbXVZa0REOEpB?oc=5",
+   "published": "2026-11-14T02:28:00+00:00",
+   "summary": "Dota 2 1win Essence III: Schedule, results, teams, and how to watch Dot Esports",
+   "teams": [
+    "1win"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "lol",
    "source": "Dot Esports",
    "title": "Fnatic reportedly signs Yike and Labrov as it rebuilds 2027 LEC roster",
@@ -1724,22 +1856,6 @@
    "summary": "All Eligible Worlds 2026 Skins For Gen.G And BLG Hotspawn",
    "teams": [
     "Gen.G"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "dota2",
-   "source": "Dot Esports",
-   "title": "Dota 2 1win Essence III: Schedule, results, teams, and how to watch",
-   "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9VWmlPQkptWnhtUXlrSVZIRmZ1dEZ1eFJyQmxOMUJBaFo2bG5ocU1wWjVRbVBGc2hLWk9CaEVaeDNYTGRxSHZ3cGhkc001ZjlvXzJVUmNvb19sVUE0YTdVUTN4SmdJSFh0a28zQzJmbXVZa0REOEpB?oc=5",
-   "published": "2026-11-13T01:37:00+00:00",
-   "summary": "Dota 2 1win Essence III: Schedule, results, teams, and how to watch Dot Esports",
-   "teams": [
-    "1win"
    ],
    "players": [],
    "score": 0,
@@ -3211,17 +3327,17 @@
    "published": "2026-11-11T16:20:00+00:00",
    "summary": "MURASH GAMING unveils 2027 roster with Seoldam, Caedye and Xdll Sheep Esports",
    "teams": [
-    "DetonatioN FocusMe",
-    "ZETA DIVISION"
+    "ZETA DIVISION",
+    "DetonatioN FocusMe"
    ],
    "players": [
     {
-     "name": "Caedye",
-     "team": "DetonatioN FocusMe"
-    },
-    {
      "name": "Xdll",
      "team": "ZETA DIVISION"
+    },
+    {
+     "name": "Caedye",
+     "team": "DetonatioN FocusMe"
     }
    ],
    "score": 0,
@@ -6853,17 +6969,17 @@
    "summary": "Gen.G Add Dambi and MaKo to 2027 Valorant Roster EsportsBets.com",
    "teams": [
     "Gen.G",
-    "KIWOOM DRX",
-    "Nongshim RedForce"
+    "Nongshim RedForce",
+    "KIWOOM DRX"
    ],
    "players": [
     {
-     "name": "MaKo",
-     "team": "KIWOOM DRX"
-    },
-    {
      "name": "Dambi",
      "team": "Nongshim RedForce"
+    },
+    {
+     "name": "MaKo",
+     "team": "KIWOOM DRX"
     }
    ],
    "score": 0,
@@ -7776,17 +7892,17 @@
    "summary": "Gen.G Valorant Announces Dambi and MaKo Signings Insider Gaming",
    "teams": [
     "Gen.G",
-    "KIWOOM DRX",
-    "Nongshim RedForce"
+    "Nongshim RedForce",
+    "KIWOOM DRX"
    ],
    "players": [
     {
-     "name": "MaKo",
-     "team": "KIWOOM DRX"
-    },
-    {
      "name": "Dambi",
      "team": "Nongshim RedForce"
+    },
+    {
+     "name": "MaKo",
+     "team": "KIWOOM DRX"
     }
    ],
    "score": 0,
@@ -8041,17 +8157,17 @@
    "summary": "Gen.G sign Masters MVP Dambi and veteran MaKo for 2027 Pley.gg",
    "teams": [
     "Gen.G",
-    "KIWOOM DRX",
-    "Nongshim RedForce"
+    "Nongshim RedForce",
+    "KIWOOM DRX"
    ],
    "players": [
     {
-     "name": "MaKo",
-     "team": "KIWOOM DRX"
-    },
-    {
      "name": "Dambi",
      "team": "Nongshim RedForce"
+    },
+    {
+     "name": "MaKo",
+     "team": "KIWOOM DRX"
     }
    ],
    "score": 0,
@@ -8072,112 +8188,6 @@
    "summary": "T1 vs Karmine Corp in League of Legends Worlds 2026 quarterfinal: Prediction, head-to-head, and livestream details Sportskeeda",
    "teams": [
     "Karmine Corp",
-    "T1"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Sportskeeda",
-   "title": "League of Legends Worlds 2026 quarterfinal preview: Can Karmine Corp upset T1 and reach the semifinals?",
-   "link": "https://news.google.com/rss/articles/CBMixAFBVV95cUxQNkdvWTZfZU56SDN3ZkFvMHEtTE5McGZlN2JlTjl0VmFVWG0tLWxQY2pqTnZSejM2Tjg2U2pQUTR3STBFZXVvQ0RxUmJWVkV3WDJXd2dHSEVEblc1Z2xxcUk5ckZhRjJyZTN4VkhCWTFhbDdxT3lubDA2U0hmaENrQk1HdUNkRXJCcE5TdGUweURkZjdmY2hWVjFrb29tMDhUT2s0R1ZQX2x4YmR3YkRXeDFUS1Q0b21KVE1MdHNsMllSekxP?oc=5",
-   "published": "2026-11-06T10:55:00+00:00",
-   "summary": "League of Legends Worlds 2026 quarterfinal preview: Can Karmine Corp upset T1 and reach the semifinals? Sportskeeda",
-   "teams": [
-    "Karmine Corp",
-    "T1"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Esports Charts",
-   "title": "Worlds 2026 quarterfinals viewership: BLG vs Dplus KIA hits 1.64M",
-   "link": "https://news.google.com/rss/articles/CBMidkFVX3lxTE8wUVJTTGZfTUlsX0JIdnFtcGNjMnFnQndZekxMRUdmLVZwNzB2bmVEVGpHeS1GZk5Xa3RueHR5MFpESXI2OUllaHNqRnM5RnJBM0hLNDYxQkRFUkZ0NE5XUy05SEcteWR6T3lPTWo1dHpWaVBZZkE?oc=5",
-   "published": "2026-11-06T10:43:35+00:00",
-   "summary": "Worlds 2026 quarterfinals viewership: BLG vs Dplus KIA hits 1.64M Esports Charts",
-   "teams": [
-    "Dplus KIA"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Pley.gg",
-   "title": "ZmjjKK to leave EDG for Xi Lai Gaming ahead of 2027",
-   "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxPUUhMcHE1UDJIZ1RaWXdJYVp1Sm9kVUloZHdSeGExYmtBLTZCUlNKTFpqNjM4eUJ1dWp3bDVfa2FuX0c4TE5EcEFwaHpIRVh1Snp0SUlnZ3JaWGtRZGZ2R2J3MUxwREFUVkNpdkdMU2xPQmxNRUxoX3Z5UG9IYlJlcm5LOA?oc=5",
-   "published": "2026-11-06T10:24:32+00:00",
-   "summary": "ZmjjKK to leave EDG for Xi Lai Gaming ahead of 2027 Pley.gg",
-   "teams": [
-    "Xi Lai Gaming",
-    "EDward Gaming"
-   ],
-   "players": [
-    {
-     "name": "ZmjjKK",
-     "team": "EDward Gaming"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "HLTV",
-   "title": "NAVI reverse-sweep PARIVISION to make the semi-finals in Beijing",
-   "link": "https://www.hltv.org/news/45923/navi-reverse-sweep-parivision-to-make-the-semi-finals-in-beijing",
-   "published": "2026-11-06T10:24:00+00:00",
-   "summary": "NAVI's late-season resurgence reaches new heights with a semi-finals appearance in China.",
-   "teams": [
-    "PARIVISION"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "WIN.GG",
-   "title": "Karmine Corp vs T1 odds, best bets: The last act of a 2026 rivalry",
-   "link": "https://news.google.com/rss/articles/CBMiX0FVX3lxTE1NVl9CN08tYjk0RE9hdjZBUVY0MGdIS25JaGNZQU9vRWUtUkxJTDEtTXhvMkZodW9VMmhnUEdxUFRJRXhHN2pRZURZSUFqVUdHc01XNEJEYWNkdHlJc1dj?oc=5",
-   "published": "2026-11-06T10:18:00+00:00",
-   "summary": "Karmine Corp vs T1 odds, best bets: The last act of a 2026 rivalry WIN.GG",
-   "teams": [
-    "Karmine Corp",
-    "T1"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "RG.org",
-   "title": "BLG Sweep Dplus KIA to Worlds 2026 Semifinals; LCK Down to Gen.G and T1",
-   "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxPQ0Z0YVBmZzFUSkZMWFowMklBUkVXY0txbjI2VGQxbDVwSE5nYVIzb2RhQktRR1gtcTB6cnN3YzctQWJkN0hSTldNMTJJYU1qSHUxX2FFOGY1LVo0RzVwZVZCX0VfN1ZKQXUzNWtsYzJ5MWVuNnMwN3FpUFp4OGVJZ3Z0RWwzTDllU2JKSFhqYTczc1U?oc=5",
-   "published": "2026-11-06T10:13:46+00:00",
-   "summary": "BLG Sweep Dplus KIA to Worlds 2026 Semifinals; LCK Down to Gen.G and T1 RG.org",
-   "teams": [
-    "Gen.G",
-    "Dplus KIA",
     "T1"
    ],
    "players": [],
@@ -8247,6 +8257,14 @@
    }
   },
   "valorant": {
+   "EDward Gaming": {
+    "score": -1,
+    "items": 2,
+    "rules": [
+     "departure",
+     "signing"
+    ]
+   },
    "LOUD": {
     "score": -1,
     "items": 1,
@@ -8272,14 +8290,6 @@
     ]
    },
    "Bilibili Gaming": {
-    "score": -1,
-    "items": 1,
-    "rules": [
-     "departure",
-     "signing"
-    ]
-   },
-   "EDward Gaming": {
     "score": -1,
     "items": 1,
     "rules": [
