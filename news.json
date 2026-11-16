@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-16T07:12:10.781067+00:00",
+ "generated_at": "2026-11-16T19:48:58.628505+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -67,20 +67,20 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 39,
-   "error": null
+   "items": 0,
+   "error": "429 Client Error: Too Many Requests for url: https://news.google.com/rss/search?hl=en-US&gl=US&ceid=US:en&q=LCK+OR+LPL+O"
   },
   {
    "game": "lol",
    "source": "Google News",
-   "items": 100,
-   "error": null
+   "items": 0,
+   "error": "429 Client Error: Too Many Requests for url: https://news.google.com/rss/search?hl=en-US&gl=US&ceid=US:en&q=%22Worlds+20"
   },
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 15,
-   "error": null
+   "items": 0,
+   "error": "429 Client Error: Too Many Requests for url: https://news.google.com/rss/search?hl=en-US&gl=US&ceid=US:en&q=VCT+Valorant"
   },
   {
    "game": "valorant",
@@ -91,35 +91,111 @@
   {
    "game": "cs2",
    "source": "HLTV",
-   "items": 10,
+   "items": 0,
+   "error": "403 Client Error: Forbidden for url: https://www.hltv.org/rss/news"
+  },
+  {
+   "game": "cs2",
+   "source": "Google News",
+   "items": 17,
    "error": null
   },
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 15,
-   "error": null
+   "items": 0,
+   "error": "429 Client Error: Too Many Requests for url: https://news.google.com/rss/search?hl=en-US&gl=US&ceid=US:en&q=CS2+roster+w"
   },
   {
-   "game": "cs2",
+   "game": "dota2",
    "source": "Google News",
-   "items": 19,
+   "items": 17,
    "error": null
   },
   {
    "game": "dota2",
    "source": "Google News",
-   "items": 16,
-   "error": null
-  },
-  {
-   "game": "dota2",
-   "source": "Google News",
-   "items": 18,
-   "error": null
+   "items": 0,
+   "error": "429 Client Error: Too Many Requests for url: https://news.google.com/rss/search?hl=en-US&gl=US&ceid=US:en&q=Dota+2+roste"
   }
  ],
  "items": [
+  {
+   "game": "lol",
+   "source": "The Loadout",
+   "title": "Cryogen Staying at FlyQuest Is Only Half the Story",
+   "link": "https://news.google.com/rss/articles/CBMifkFVX3lxTFAxcVBjaFFnQzVhM1p1RVIyYzVWVVRIaUQta0VrNWRmR21jY2VJUXZocHBDQ1VvREVnRjRmVGI1TFNCVldTSUpOQkJIdW5FMV83VDJSbl9HMlVrSmtfY0tBVlFwZlBzNFo3QWRaUFFxYnJzeVlLZzBLWHdKeGRXQQ?oc=5",
+   "published": "2026-11-16T12:53:13+00:00",
+   "summary": "Cryogen Staying at FlyQuest Is Only Half the Story The Loadout",
+   "teams": [
+    "FlyQuest"
+   ],
+   "players": [
+    {
+     "name": "Cryogen",
+     "team": "FlyQuest"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Red Bull",
+   "title": "TenZ returns: T1 bring the VALORANT legend back for 2027",
+   "link": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE9XeVVCTU4tZFBYQy16dFctclJhcTR3Q19HYVpROUdYX3ZVZUkzbVlLNk5ZU2RHdG52dUpDQk8za191R2RGdTkwYVRuZkstUEZLNkpSOU0yT0UyNEN3cE5rbHhERlF4eTJ5?oc=5",
+   "published": "2026-11-16T12:04:28+00:00",
+   "summary": "TenZ returns: T1 bring the VALORANT legend back for 2027 Red Bull",
+   "teams": [
+    "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "TalkEsport",
+   "title": "Xi Lai Gaming Reportedly Lands Zeus for VCT 2027 After Dropping xavi8k",
+   "link": "https://news.google.com/rss/articles/CBMiggFBVV95cUxOUXdxS3ZNYUR6MTRyWHhfUkNfVDY0Uk4yandPenVjalZGQlFabFVBYUxwclNGQU1vVm1mYjEzanBmcnkyNU5SVGwwdm0yMFJVU2tyT2p2NTQtdUhGQVdLOXlUTnNheV9OMUJKVHdPS01rb3ZKWXpjUE5jZ04yRDB2TTN3?oc=5",
+   "published": "2026-11-16T11:45:45+00:00",
+   "summary": "Xi Lai Gaming Reportedly Lands Zeus for VCT 2027 After Dropping xavi8k TalkEsport",
+   "teams": [
+    "Xi Lai Gaming",
+    "Global Esports"
+   ],
+   "players": [
+    {
+     "name": "xavi8k",
+     "team": "Global Esports"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Esports News UK",
+   "title": "100 Thieves fight back to beat PARIVISION and reverse Esports World Cup defeat",
+   "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxPU3lRZkt2Y0ZfSi1vQ0Y5YkhnMl83ZHB1cXdFWDR0VlJZSkFUbEZ5RUh4UkRMQ3ZockJsVjhGbHNkXzEzVHVBYTZOd0hSbDFIekxBNVM3NFlaY2RWSUowZDJ2UEZIX1ZOVm5vMGVadGFjVGQzbkVDVVdISF9DM0FFX0ZBZ2djTWltb1RGWXRnY2dOVnNiZy1ZY2FGbi1fQWo5Z2VpTzNQaHdWcE14QnRxX3ktQXZoR1hx?oc=5",
+   "published": "2026-11-16T09:21:47+00:00",
+   "summary": "100 Thieves fight back to beat PARIVISION and reverse Esports World Cup defeat Esports News UK",
+   "teams": [
+    "PARIVISION",
+    "100 Thieves"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
   {
    "game": "dota2",
    "source": "Esports.gg",
@@ -469,7 +545,7 @@
    "source": "Sheep Esports",
    "title": "Which champion skins are available for Bilibili Gaming players after winning Worlds 2026?",
    "link": "https://news.google.com/rss/articles/CBMivAFBVV95cUxOZ2JMYk5vNVgyM2R0THdwdnVfMG8yZDN2WVNIMXAtM20zT0VwOWlJcWh0aHRQX3FxUEF5SUk0b2VnLW0zVC0tQVNRT05qbGpzNFBUME1SdWhPMUdHaU1ZVzhpSi1rNlNTdURFVVZ3enZmZUVld3hsRnZ3TjVKVHFkcExMWEpDZzhqVURzYmhKX1NsMzhpTlo0eEh0WXNDUlJzbzd6V0FseHJZVWxsQjhjb1J2cHJJcERXWDA5OQ?oc=5",
-   "published": "2026-11-15T11:21:17+00:00",
+   "published": "2026-11-15T11:25:15+00:00",
    "summary": "Which champion skins are available for Bilibili Gaming players after winning Worlds 2026? Sheep Esports",
    "teams": [
     "Bilibili Gaming"
@@ -875,22 +951,6 @@
   },
   {
    "game": "lol",
-   "source": "Sheep Esports",
-   "title": "Bilibili Gaming become 2026 LoL World Champions after slaying all four LCK teams",
-   "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxORzQwamhtYWotdU1aRFB3SGdjOVFtdEtWLWx2QW5tZHowblJLYWNaX2FuZmJmVkhkYXhsbS1DWWFHTFFzeTNvTTNuMU1ud0M2blVWQ2JqSnRHZHFTUnN6bE5oakFqQWFXU1RlczJCSHdTeG9Xa21HNGJ4RUxfS1kyNDNURUpTQXUyMTBhZ2tsN3VuX3h0aFFKV3RLUVdlX242b210bTN5WmU0MEotUUdOZmNoOEVZU2plbzB6Yk9DLWpXVXM?oc=5",
-   "published": "2026-11-15T00:05:19+00:00",
-   "summary": "Bilibili Gaming become 2026 LoL World Champions after slaying all four LCK teams Sheep Esports",
-   "teams": [
-    "Bilibili Gaming"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
    "source": "Insider Gaming",
    "title": "BLG Outclass Gen.G 3-1 to Win LoL Worlds 2026",
    "link": "https://news.google.com/rss/articles/CBMiggFBVV95cUxNbl80NmhPNmFiY2Y4TVJFUFg5OFBLWTRabVlJS1BjUDF4TFFrd05JSUg0ZkdzR0VGcV9aRVN2VjlNUjZwN1BmQmZZQlR4bVg3SkxmMG5RbmRyaHVXb01HLTdQenk1bE9EU3pGZWkzSjltbk4tZE5JRC13T1ZSR1RHQ3pB?oc=5",
@@ -930,6 +990,22 @@
    "summary": "“ALL IN BLUE: Le Phénomène Karmine Corp”, a Documentary Retracing the Club’s History, Set to Hit Cinemas on December 10 Hotspawn",
    "teams": [
     "Karmine Corp"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Bilibili Gaming become 2026 LoL World Champions after slaying all four LCK teams",
+   "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxORzQwamhtYWotdU1aRFB3SGdjOVFtdEtWLWx2QW5tZHowblJLYWNaX2FuZmJmVkhkYXhsbS1DWWFHTFFzeTNvTTNuMU1ud0M2blVWQ2JqSnRHZHFTUnN6bE5oakFqQWFXU1RlczJCSHdTeG9Xa21HNGJ4RUxfS1kyNDNURUpTQXUyMTBhZ2tsN3VuX3h0aFFKV3RLUVdlX242b210bTN5WmU0MEotUUdOZmNoOEVZU2plbzB6Yk9DLWpXVXM?oc=5",
+   "published": "2026-11-14T19:31:34+00:00",
+   "summary": "Bilibili Gaming become 2026 LoL World Champions after slaying all four LCK teams Sheep Esports",
+   "teams": [
+    "Bilibili Gaming"
    ],
    "players": [],
    "score": 0,
@@ -6010,32 +6086,6 @@
    "reasons": []
   },
   {
-   "game": "valorant",
-   "source": "Sheep Esports",
-   "title": "Sources: xavi8k set to join Xi Lai Gaming for the 2027 season",
-   "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxNUjhfdmdvV0NBcUl3T2RrQ0NKYk9SY1AyZGNkdVVob1c0NFF3c191Y0dOZmgyRkltemtXNXREcy14YTc0YWdSdTlJbFhjSmJGRERsWjZnelVaRi1QVVFCc3RZVjJfTzdDYlpQaXkzd3VSZjRnSHFaVzB1OUlud0ZXc0tVcXN1STlrSDhDRF9ybklxZFVGdWJFV04zMzhHT2hqRUVWNy1LYw?oc=5",
-   "published": "2026-11-08T11:20:53+00:00",
-   "summary": "Sources: xavi8k set to join Xi Lai Gaming for the 2027 season Sheep Esports",
-   "teams": [
-    "Xi Lai Gaming",
-    "Global Esports"
-   ],
-   "players": [
-    {
-     "name": "xavi8k",
-     "team": "Global Esports"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
    "game": "cs2",
    "source": "Skin.Club",
    "title": "xertioN Named MVP of IEM Beijing 2026 After MOUZ’s Perfect Run",
@@ -6226,6 +6276,32 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Sheep Esports",
+   "title": "Sources: xavi8k set to join Xi Lai Gaming for the 2027 season",
+   "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxNUjhfdmdvV0NBcUl3T2RrQ0NKYk9SY1AyZGNkdVVob1c0NFF3c191Y0dOZmgyRkltemtXNXREcy14YTc0YWdSdTlJbFhjSmJGRERsWjZnelVaRi1QVVFCc3RZVjJfTzdDYlpQaXkzd3VSZjRnSHFaVzB1OUlud0ZXc0tVcXN1STlrSDhDRF9ybklxZFVGdWJFV04zMzhHT2hqRUVWNy1LYw?oc=5",
+   "published": "2026-11-08T08:00:00+00:00",
+   "summary": "Sources: xavi8k set to join Xi Lai Gaming for the 2027 season Sheep Esports",
+   "teams": [
+    "Xi Lai Gaming",
+    "Global Esports"
+   ],
+   "players": [
+    {
+     "name": "xavi8k",
+     "team": "Global Esports"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
   },
   {
    "game": "lol",
@@ -8104,97 +8180,6 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "The Loadout",
-   "title": "Karmine Corp vs T1: Why T1 Will Crush KC at Worlds 2026",
-   "link": "https://news.google.com/rss/articles/CBMiU0FVX3lxTE8yWXRFYXFVWlp5M0NXdzdVYkJ0SjQ3eVI4eGY5M05CZW1TUHNGUUwyT25tMnBJRWs2RzBoWURtRjdDMWJzM1JUOFo2ZkFFU2xYbXlr?oc=5",
-   "published": "2026-11-06T12:14:50+00:00",
-   "summary": "Karmine Corp vs T1: Why T1 Will Crush KC at Worlds 2026 The Loadout",
-   "teams": [
-    "Karmine Corp",
-    "T1"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Sheep Esports",
-   "title": "Sources: MaKo set to join Gen.G Esports ahead of 2027 VCT Season",
-   "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxQUTBReG8tRFFpYllxRHJxQXNMeF8zRGJLUUdlNlZhakdubUJicUFLWVZlQ1NIUFhjc3RWbEx1aXE3b00tVFdURGxnSlRRLUlJaW1wUG83TFhjRFl5czROZTQ3MTU3eXMtbmh5US1IeFJ5ZnBoOGZueXF5dFRaU1VQek5rekxFb0UwQVp4RTFiR0dob1pqRG1aNTBtUXpnZVFQdEEtQ0VMRG1XWVk?oc=5",
-   "published": "2026-11-06T11:35:46+00:00",
-   "summary": "Sources: MaKo set to join Gen.G Esports ahead of 2027 VCT Season Sheep Esports",
-   "teams": [
-    "Gen.G",
-    "KIWOOM DRX"
-   ],
-   "players": [
-    {
-     "name": "MaKo",
-     "team": "KIWOOM DRX"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
-   "game": "valorant",
-   "source": "Pley.gg",
-   "title": "Gen.G sign Masters MVP Dambi and veteran MaKo for 2027",
-   "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxOaWF0Q3ZUU1NFaVlKOG44MHY5bWRIUHByOHcxNUpINFhLdE5yTmJJaDh6b1FXQ0x5V3Nnb0JGbTVYbWlsY055YVZIQ3lHNzNoRUJTNWx5Z1NZYjVCcmxyQTV6QmZaX1Y0U3h0aV9XNjE0aXVBZDNEaW8tbmVmWFRmVGtPOGJzOUk?oc=5",
-   "published": "2026-11-06T11:26:02+00:00",
-   "summary": "Gen.G sign Masters MVP Dambi and veteran MaKo for 2027 Pley.gg",
-   "teams": [
-    "Gen.G",
-    "Nongshim RedForce",
-    "KIWOOM DRX"
-   ],
-   "players": [
-    {
-     "name": "Dambi",
-     "team": "Nongshim RedForce"
-    },
-    {
-     "name": "MaKo",
-     "team": "KIWOOM DRX"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
-   "game": "lol",
-   "source": "Sportskeeda",
-   "title": "T1 vs Karmine Corp in League of Legends Worlds 2026 quarterfinal: Prediction, head-to-head, and livestream details",
-   "link": "https://news.google.com/rss/articles/CBMixAFBVV95cUxQNkdvWTZfZU56SDN3ZkFvMHEtTE5McGZlN2JlTjl0VmFVWG0tLWxQY2pqTnZSejM2Tjg2U2pQUTR3STBFZXVvQ0RxUmJWVkV3WDJXd2dHSEVEblc1Z2xxcUk5ckZhRjJyZTN4VkhCWTFhbDdxT3lubDA2U0hmaENrQk1HdUNkRXJCcE5TdGUweURkZjdmY2hWVjFrb29tMDhUT2s0R1ZQX2x4YmR3YkRXeDFUS1Q0b21KVE1MdHNsMllSekxP?oc=5",
-   "published": "2026-11-06T11:19:00+00:00",
-   "summary": "T1 vs Karmine Corp in League of Legends Worlds 2026 quarterfinal: Prediction, head-to-head, and livestream details Sportskeeda",
-   "teams": [
-    "Karmine Corp",
-    "T1"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
   }
  ],
  "signals": {
@@ -8298,18 +8283,10 @@
     ]
    },
    "Sentinels": {
-    "score": -3,
-    "items": 2,
-    "rules": [
-     "departure",
-     "stand-in"
-    ]
-   },
-   "Cloud9": {
-    "score": -2,
+    "score": -1,
     "items": 1,
     "rules": [
-     "stand-in"
+     "departure"
     ]
    }
   },
