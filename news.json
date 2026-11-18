@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-18T01:15:27.190664+00:00",
+ "generated_at": "2026-11-18T12:10:44.542839+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,7 +61,7 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 70,
+   "items": 69,
    "error": null
   },
   {
@@ -79,25 +79,25 @@
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 43,
+   "items": 45,
    "error": null
   },
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 15,
+   "items": 16,
    "error": null
   },
   {
    "game": "cs2",
    "source": "HLTV",
-   "items": 10,
-   "error": null
+   "items": 0,
+   "error": "403 Client Error: Forbidden for url: https://www.hltv.org/rss/news"
   },
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 18,
+   "items": 24,
    "error": null
   },
   {
@@ -120,6 +120,292 @@
   }
  ],
  "items": [
+  {
+   "game": "valorant",
+   "source": "Hotspawn",
+   "title": "FUT Esports Sign Aspas, Completing Shock 2027 Lineup",
+   "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTFBaWGJmcDI1RU9VWHpVWTB3VDJpU0Y3STEtTnRKbWFSZVlVWFU1RjZ1bkl3T3Q5YWdVLXdfYW05emY5NDdOVTctS3ZuTUtjUHZ5N3U0OFRBZjlZQ2Jua1d1UHZ6Ml82RTJiOFU0M1BB?oc=5",
+   "published": "2026-11-18T11:37:30+00:00",
+   "summary": "FUT Esports Sign Aspas, Completing Shock 2027 Lineup Hotspawn",
+   "teams": [
+    "FUT Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "valorant",
+   "source": "Insider Gaming",
+   "title": "FUT Confirms aspas Signing",
+   "link": "https://news.google.com/rss/articles/CBMiZEFVX3lxTFBmVWNRdlZuT0dOdlNUYkdhcko1Z0pHUFdZcDZtSGVDR0VmWHhLbnBJQTlMb05IZFkyUk1POGNBN2N0QlMzLTlja1NPWk9HWFVOSlRNS2J6VENHaGtFWGNESTl0dW0?oc=5",
+   "published": "2026-11-18T11:31:13+00:00",
+   "summary": "FUT Confirms aspas Signing Insider Gaming",
+   "teams": [
+    "FUT Esports",
+    "MIBR"
+   ],
+   "players": [
+    {
+     "name": "aspas",
+     "team": "MIBR"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "cs2",
+   "source": "Happy Gamer",
+   "title": "Counter-Strike and Team Vitality Land Game Awards Esports Nominations",
+   "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxPRThuZHBqX3FfWExsWVRWR2t0Vm1KazBybWZtSEN6VUJ6ZUg2Y0lQcXVQNm5kc29hUTFVMDNVblN1ZC1vTTJpd0Q0LWFMdnVBclI4OVoyR2RSb0VvR18xZnR2UEZpNzN1LTBpSU8zbS1LZzV1dkhuUjdYTm1OOFBHdWZXWlYwalZRdkw4OHVETEVZRjJKOEE?oc=5",
+   "published": "2026-11-18T11:30:42+00:00",
+   "summary": "Counter-Strike and Team Vitality Land Game Awards Esports Nominations Happy Gamer",
+   "teams": [
+    "Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Pley.gg",
+   "title": "ZywOo and Vitality lead CS2's big night at the Esports Awards 2026",
+   "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxPeEFNdWZEdDJPeXU2ZnhZMlF0eTZOUnJtejd0RUZBZnl1VzQzNUczQ0IyaEREdTIxbHBVSmFXRVhieUZMT1NJbXRJUUY2SE43MU15a0lra2F3MVh3WExNX042dVkxZkxfQkpVSFhHblpWMDJsazFOOHNaU3JTemgxek1HX284UEp6MFg1eUhMY2k1SE1lMWpv?oc=5",
+   "published": "2026-11-18T11:02:21+00:00",
+   "summary": "ZywOo and Vitality lead CS2's big night at the Esports Awards 2026 Pley.gg",
+   "teams": [
+    "Vitality"
+   ],
+   "players": [
+    {
+     "name": "ZywOo",
+     "team": "Vitality"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Sources: SkewMond set to join Karmine Corp for the LEC 2027 season",
+   "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxQM3FmYmhudHR3V2ItR0FGUExEOUlOQWdvZVB5OVAwR3YzV05RdFBPWlIxV0t1TjgzVE5XbU0zZDJSa0FsajFxeFdqRFEyOHE2X2E5dzVOR0IyVG9UOW9SMDlGYXVrNHhNeUZEcjFXbFJveDJfNzdOTGJ5V2FuRkhKREdZTkM4MzduNDZrOWx5Tm9jazlzMnl0RGZZSzJMTU15NmdKRXlGQnlSdkFaSFE?oc=5",
+   "published": "2026-11-18T10:41:19+00:00",
+   "summary": "Sources: SkewMond set to join Karmine Corp for the LEC 2027 season Sheep Esports",
+   "teams": [
+    "Karmine Corp",
+    "G2 Esports"
+   ],
+   "players": [
+    {
+     "name": "SkewMond",
+     "team": "G2 Esports"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "valorant",
+   "source": "spilled.gg",
+   "title": "VALORANT roster exits 2026 prediction: Asuna is fairly priced",
+   "link": "https://news.google.com/rss/articles/CBMiYEFVX3lxTE9kMGNjajlPUm12ZVN0WFBtaWo4bG9JSENValFvZVlhSDBMd01LQ1ZqaTYxUHlRRHBUbVVlcDRxSjd3eGFvV3g3UlVSSlc4NGlFa1V6UHp2RjBERWN2Z3ctcQ?oc=5",
+   "published": "2026-11-18T10:35:17+00:00",
+   "summary": "VALORANT roster exits 2026 prediction: Asuna is fairly priced spilled.gg",
+   "teams": [
+    "100 Thieves"
+   ],
+   "players": [
+    {
+     "name": "Asuna",
+     "team": "100 Thieves"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "EGamersWorld",
+   "title": "FlyQuest Land Free-Agent Marksman Zven to Replace Massu Ahead of 2027 LCS Season",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPcWxsb19xNXY2YUZLTnRtSHBDcUhPQnBHZlBpTXE2VEdHdUFUSVROQjdBdVAtRHBsNEJfUDdXd0QxOEJ3aW03d2ZIekhBenJkbi1OemFaNnIxcmRuNUQ3SXI3ZHZZNzRIaUdZaU4xWkEzanJCUkxfbFdKOWFKRnNRcUJDcmxNQXUwWXZUbWxFc2kzaEN4cVhSQnYydlp5dkNvY0E?oc=5",
+   "published": "2026-11-18T09:56:20+00:00",
+   "summary": "FlyQuest Land Free-Agent Marksman Zven to Replace Massu Ahead of 2027 LCS Season EGamersWorld",
+   "teams": [
+    "FlyQuest"
+   ],
+   "players": [
+    {
+     "name": "Massu",
+     "team": "FlyQuest"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "valorant",
+   "source": "Pley.gg",
+   "title": "aspas signs for FUT and returns to the city where he won Champions",
+   "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxPdnVnOHpYWVJ0Y1dQa05IbWtwUVpqZFlPSm9ONTJOaVlaT0lISEdGX1h1dHU5UFk2YUhMa2JDRWFMZF9wc1V3enVncm9LaVBQOU93cXlKZmc5NnpnUjdwbGNQbHBScG9ZTWQxV0lvNXNLNzFjX1JTdTMtYXlLVDVsSVFGSDdKRVJxcllhVEJIWWZIQy14cGx3?oc=5",
+   "published": "2026-11-18T09:29:52+00:00",
+   "summary": "aspas signs for FUT and returns to the city where he won Champions Pley.gg",
+   "teams": [
+    "FUT Esports",
+    "MIBR"
+   ],
+   "players": [
+    {
+     "name": "aspas",
+     "team": "MIBR"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Vincenzo set to join BNK FEARX for the upcoming 2027 LCK season",
+   "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPUVE3X2taMl9rVjZVaU5qaTdvY3NKdmRhbjU3Z1pRWjAtb29XcnAyXzFFdWpUTmNDZEEwUldNdHNyQWwzdjNFUEZ0OWNQcGMxUURVblVndkYwLUh3MFZtUENadDFZOE43TndVNW84al9WVkUyMFN5alpxdDh1Yy1YaVdKNUQ2ODk3Z25GTWN0ZXNwY1lZTXhqNGN6SVJXMVZjTl9aaTdEbEVnd0E?oc=5",
+   "published": "2026-11-18T08:00:08+00:00",
+   "summary": "Vincenzo set to join BNK FEARX for the upcoming 2027 LCK season Sheep Esports",
+   "teams": [
+    "BNK FearX"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Esports Awards 2026 results, Team Vitality, Caedrel and ZywOo among the winners",
+   "link": "https://news.google.com/rss/articles/CBMivgFBVV95cUxNeWh2Q3hhaE8wTUF5QnFOVFdrODgyU1RyTGM3WDcxVjJERVlsTThIZWRBdlJFUXRqOHNLdWZSRkdKSmZGYl9IV1pCVjVsd1p5MG90S2ZOTTRSXzBkYkNCTWhPcGlkcFZ5dEZlUXFzYVFGNVZDS2hUTEJkWWpOWHNkdzNXbGVURGw3Tk9BOVRrb0hHQjctbUNhQmF0SFdaOW51OTRib1BHdjhzNDNWZXB2NDNwUnRvb2hZMWpBeTNn?oc=5",
+   "published": "2026-11-18T08:00:00+00:00",
+   "summary": "Esports Awards 2026 results, Team Vitality, Caedrel and ZywOo among the winners Sheep Esports",
+   "teams": [
+    "Team Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "TalkEsport",
+   "title": "No Indian Winners at Esports Awards 2026 as S8UL's Four-Year Reign Ends and Thug, Snax Miss Out",
+   "link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxOSkZHXy0zdV9QVGFBdEF6MnNIa2JWanAwVnU3Ylg2MjhMSk1HbUQ4VE9VQjMtcnZVUkVnTUdpNEdnQjNiQmJPNkVwemducUo5TFFFS3BFSXRnVUhxRk1wY1pDVGdvSnhwcFBHUUxjd3ZXVkxPaFVUbmoyb1F5LV9XakdsUmpQMGlFNkFndVhPemgxSXBiWlBiNA?oc=5",
+   "published": "2026-11-18T06:43:43+00:00",
+   "summary": "No Indian Winners at Esports Awards 2026 as S8UL's Four-Year Reign Ends and Thug, Snax Miss Out TalkEsport",
+   "teams": [
+    "GamerLegion"
+   ],
+   "players": [
+    {
+     "name": "Snax",
+     "team": "GamerLegion"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Mynewsdesk",
+   "title": "The 2026 Esports Awards Presented by Thunderpick Celebrates the Industry’s Best, with iShowSpeed, Counter-Strike 2 and Team Vitality Taking Home Honours",
+   "link": "https://news.google.com/rss/articles/CBMimwNBVV95cUxNMWFLcW8wcXd0RDl6UWFFX2xMTEF0RWlZVk9EZllSdFpaREpGbkZRUVo4ZU1MOGRQM3FmNjlNX2hnMzNrTVJpLWxHa0ZJSGtsdnhwX3RzNDV3bkFVTHdKTl9JTEVVZ0ZQYklLQ3Z1WFFtZUZwTEE2ZWI3TWpfdzFoX0JmSnRMY3hQU212ZFhzMVVORW5LWEgxMy1wY3F4bzF4MjJyVmJHdzhFNzh5V1lIUWQ1dGxJNW5BY0ZNaENjRFpvLU55R0R4bFlTTU9CNS1OZkZheVZzeUxBbHpBa19KTFFWbXhJbVhwVnJnVEhzOHlnbFBhMzNjd0J1NE9rSjhGdi1JMUlzSlE0aV9fOFhfQTZKWktGMzF5R1dteDVERW52NVFxbU52YnNzRkxwOTlIM3hhTVFHTnUtbWkwc1VNdktHdTc4akRES2VLRDFwdDQ4NnlQZXpWTXl0di10c2g3a1AyVTZFUS1idzBwQ0JDbmRfQXVsbElULUpzOWRNcm9lM0xNeUgzVzJLWHBUdXNaWUVEbmgxQ19jSkE?oc=5",
+   "published": "2026-11-18T04:42:18+00:00",
+   "summary": "The 2026 Esports Awards Presented by Thunderpick Celebrates the Industry’s Best, with iShowSpeed, Counter-Strike 2 and Team Vitality Taking Home Honours Mynewsdesk",
+   "teams": [
+    "Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Sources: Zven set to join FlyQuest for LCS 2027",
+   "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxOYzdlSFdLUXd1WTlPcnRGa2FaWUI0bjROWTZwTXIzT3V5MTV1NE43aTdWSmFNREJkWlloaVJ4d1hGRTBZUElIdU42WmpXQ010WU52WFFqSnhTR1lnRUlqeXJzTzFZVXRKclk3RWlhT1Z0T1piMHFpeUJnbUh2M2dRQmhpQmRfQjNvaTRyRjE1STNkVHYy?oc=5",
+   "published": "2026-11-18T02:09:15+00:00",
+   "summary": "Sources: Zven set to join FlyQuest for LCS 2027 Sheep Esports",
+   "teams": [
+    "FlyQuest"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "valorant",
+   "source": "Inven Global",
+   "title": "Riot Games and GRID open official LoL and VALORANT esports data to the community for free",
+   "link": "https://news.google.com/rss/articles/CBMizAFBVV95cUxPMDlFRDNZUFhxTkFFaV96RHVhZ0dpRUowWlpkX01xaDRkX08zNXVaaDZHUUxRVjNoLWZqaVhtX2o2Wmo5Z3FncXJDUUhyUTJYa0R3RHZPczlwTGpfMExwVkpkSGpiN0lhdkRPeEtKblhDT2tURzhaZ3lFSFFXY3VPSHVuZGRVZ3B4ZEZpXzMxQzdrUUk3dkNnZjJXYjlUZlJ4eERjNGU2WjlfclNXRF9SRFdKeDRzcWlxNVRHYXV5dEh2NW5DWU8ycXdRX0o?oc=5",
+   "published": "2026-11-18T01:44:35+00:00",
+   "summary": "Riot Games and GRID open official LoL and VALORANT esports data to the community for free Inven Global",
+   "teams": [
+    "Global Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
   {
    "game": "lol",
    "source": "EGamersWorld",
@@ -353,6 +639,22 @@
    "reasons": []
   },
   {
+   "game": "valorant",
+   "source": "TalkEsport",
+   "title": "The TenZ Gamble: Why T1’s 2027 Roster Could Struggle",
+   "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxNUWVZd2pGY3Qwam1lbGZVMVMyX25BX1huQVJMSndTa29feGdIX1NmQ1JyZ29EMV9yeXhvYmRGQlR4cFRWSTctcXVuR1VqclBJVXJEQzY2c1Y2NE8teUw5QmNmOWtFSnFhOVNTVHplSU1JQWxtNFNBN0EtVF9iT2lvVUVNM3A2dDQ?oc=5",
+   "published": "2026-11-17T17:34:31+00:00",
+   "summary": "The TenZ Gamble: Why T1’s 2027 Roster Could Struggle TalkEsport",
+   "teams": [
+    "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "cs2",
    "source": "HLTV",
    "title": "100 Thieves and fnatic qualify for PGL Cluj-Napoca 2027",
@@ -457,14 +759,14 @@
    ]
   },
   {
-   "game": "valorant",
+   "game": "lol",
    "source": "Sheep Esports",
    "title": "Fnatic completed roster for VCT EMEA 2027",
    "link": "https://news.google.com/rss/articles/CBMijgFBVV95cUxPLVdJOGVnV3c1cGw2RFpnemhYSXdETGVQcnI4Z3JLTzc3bGkwTHlqVlE4M2tvWkowUkdaN2lrbm0tYm5pZEVOMTdJdVhxUDFqRm5zYmtJTE5ZTDJTSF9uUGx5ZWtfZjEtVE1KRmlZNEM2SVRSRFVDT1JfVXY3OEpUQ0t2bjdhcHBYTVI0bUZR?oc=5",
    "published": "2026-11-17T14:08:31+00:00",
    "summary": "Fnatic completed roster for VCT EMEA 2027 Sheep Esports",
    "teams": [
-    "FNATIC"
+    "Fnatic"
    ],
    "players": [],
    "score": 0,
@@ -795,7 +1097,7 @@
    "source": "Sheep Esports",
    "title": "Roach reportedly set to rejoin T1 as Head Coach ahead of 2027 LCK season",
    "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxQTkoyYVU1V0pjcEhmYTU4TEJuMGdIcVg1Q19OZ2NjOWI3dENSRF9YNDIyY0EwNXVQbkxhT0pIM3J5eVZULWlCaG1sa1JkdFNONFlkUXI2T05iTUl4ZWVQMkV6UXNCdVhORFBzeTJYUktNRk9vV3pCM2FWMGNFNEFqbEwyMkhVQm4zU1FXaElFaWROWmZXbGZiLTlTVkNha3diRXFjRWRMNE9YOFd0cVEtbnpoMnRMWWc?oc=5",
-   "published": "2026-11-17T01:25:05+00:00",
+   "published": "2026-11-17T01:25:29+00:00",
    "summary": "Roach reportedly set to rejoin T1 as Head Coach ahead of 2027 LCK season Sheep Esports",
    "teams": [
     "T1"
@@ -1516,6 +1818,32 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Ucal joins DN SOOPers for the 2027 LCK season",
+   "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxNdHJXNWVZVlI5YU9TN3NHeXJiY0ZLZDRGajFwNHJiY0VOZGRCQkFkcE5rV0tSVjh6VDJVRXFvZDQzZkZrUmlPWm1TY1RwYW45Qm44MGRISWhFRElXOEJyM2kzbGdQVzhjYXRWZUVKdW1pTXF4bnlCeDQ1UVBVUTEwUGZ0c0xUWGxoUE44YnpxRjlBbTQ?oc=5",
+   "published": "2026-11-16T08:00:00+00:00",
+   "summary": "Ucal joins DN SOOPers for the 2027 LCK season Sheep Esports",
+   "teams": [
+    "DN SOOPers",
+    "Kiwoom DRX"
+   ],
+   "players": [
+    {
+     "name": "Ucal",
+     "team": "Kiwoom DRX"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
   },
   {
    "game": "lol",
@@ -2304,6 +2632,22 @@
   },
   {
    "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Bilibili Gaming become 2026 LoL World Champions after slaying all four LCK teams",
+   "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxORzQwamhtYWotdU1aRFB3SGdjOVFtdEtWLWx2QW5tZHowblJLYWNaX2FuZmJmVkhkYXhsbS1DWWFHTFFzeTNvTTNuMU1ud0M2blVWQ2JqSnRHZHFTUnN6bE5oakFqQWFXU1RlczJCSHdTeG9Xa21HNGJ4RUxfS1kyNDNURUpTQXUyMTBhZ2tsN3VuX3h0aFFKV3RLUVdlX242b210bTN5WmU0MEotUUdOZmNoOEVZU2plbzB6Yk9DLWpXVXM?oc=5",
+   "published": "2026-11-15T00:02:09+00:00",
+   "summary": "Bilibili Gaming become 2026 LoL World Champions after slaying all four LCK teams Sheep Esports",
+   "teams": [
+    "Bilibili Gaming"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
    "source": "Insider Gaming",
    "title": "BLG Outclass Gen.G 3-1 to Win LoL Worlds 2026",
    "link": "https://news.google.com/rss/articles/CBMiggFBVV95cUxNbl80NmhPNmFiY2Y4TVJFUFg5OFBLWTRabVlJS1BjUDF4TFFrd05JSUg0ZkdzR0VGcV9aRVN2VjlNUjZwN1BmQmZZQlR4bVg3SkxmMG5RbmRyaHVXb01HLTdQenk1bE9EU3pGZWkzSjltbk4tZE5JRC13T1ZSR1RHQ3pB?oc=5",
@@ -2343,22 +2687,6 @@
    "summary": "“ALL IN BLUE: Le Phénomène Karmine Corp”, a Documentary Retracing the Club’s History, Set to Hit Cinemas on December 10 Hotspawn",
    "teams": [
     "Karmine Corp"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Sheep Esports",
-   "title": "Bilibili Gaming become 2026 LoL World Champions after slaying all four LCK teams",
-   "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxORzQwamhtYWotdU1aRFB3SGdjOVFtdEtWLWx2QW5tZHowblJLYWNaX2FuZmJmVkhkYXhsbS1DWWFHTFFzeTNvTTNuMU1ud0M2blVWQ2JqSnRHZHFTUnN6bE5oakFqQWFXU1RlczJCSHdTeG9Xa21HNGJ4RUxfS1kyNDNURUpTQXUyMTBhZ2tsN3VuX3h0aFFKV3RLUVdlX242b210bTN5WmU0MEotUUdOZmNoOEVZU2plbzB6Yk9DLWpXVXM?oc=5",
-   "published": "2026-11-14T19:31:34+00:00",
-   "summary": "Bilibili Gaming become 2026 LoL World Champions after slaying all four LCK teams Sheep Esports",
-   "teams": [
-    "Bilibili Gaming"
    ],
    "players": [],
    "score": 0,
@@ -2676,6 +3004,22 @@
    "summary": "G2 shock T1 at MSI 2026, ending one of League's greatest streaks Dot Esports",
    "teams": [
     "T1"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "Dexerto",
+   "title": "FaZe Clan stun fans with surprise addition of NEO to CS:GO line-up",
+   "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxQOEFja3JpM2Y1dVJsMk5Qc1EzVkZGc3JxRnpuR1BlTS1FcmhlLUk5ZFE3VTF4dGtOWWRVOFRoU0hKM2RxSlIwRzc0cjNoTVlYRXNlS2s5VU9CZ3hoNXQtb2Y5aUc3MDhiRm8xRFlzSWtCcmRQOGxBQVkwM05IN2x0aktDZWltaFBBWXhUNA?oc=5",
+   "published": "2026-11-14T08:00:00+00:00",
+   "summary": "FaZe Clan stun fans with surprise addition of NEO to CS:GO line-up Dexerto",
+   "teams": [
+    "FaZe"
    ],
    "players": [],
    "score": 0,
@@ -4049,6 +4393,22 @@
    "reasons": [
     "a new player joins; no record with the team yet"
    ]
+  },
+  {
+   "game": "lol",
+   "source": "Esports Charts",
+   "title": "Top Brands in Esports Teams’ Social Media (October 2026)",
+   "link": "https://news.google.com/rss/articles/CBMigAFBVV95cUxON2gzME5BQ1NsYUU4T0phMjh2bTh2OFRuNzN6TnBaZndtd2U4MWNhUll4d2FEd2g3VW5mbHIzTmZzNTBaNUZ6eHowSmVIVjU0Ny1YRWhtVDNwSlBrdURzREIwTS1neFk4Z1VFclRwZVhvcWJla1FaRXRnV2lXellmQw?oc=5",
+   "published": "2026-11-12T14:01:02+00:00",
+   "summary": "Top Brands in Esports Teams’ Social Media (October 2026) Esports Charts",
+   "teams": [
+    "Top Esports"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
   },
   {
    "game": "cs2",
@@ -5990,6 +6350,22 @@
    "reasons": []
   },
   {
+   "game": "dota2",
+   "source": "Esports Charts",
+   "title": "Novus Gaming Dota 2 (novus-gaming) Team Overview and Viewers Statistics",
+   "link": "https://news.google.com/rss/articles/CBMiWEFVX3lxTFBjUDJMRjg5QzVBQVBEXzNVaWRmVTBUdHBWRzFWcE02NGZ6aFlFWEp4anQzUW5TVEwwX0FNQXBfaDk5dENfZFhjWjl3dzRjbDdqVFdTd000RnI?oc=5",
+   "published": "2026-11-10T00:00:00+00:00",
+   "summary": "Novus Gaming Dota 2 (novus-gaming) Team Overview and Viewers Statistics Esports Charts",
+   "teams": [
+    "Novus Gaming"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "lol",
    "source": "Sheep Esports",
    "title": "T1 finished trophyless season for the first time since 2021",
@@ -6297,27 +6673,6 @@
   },
   {
    "game": "cs2",
-   "source": "Pley.gg",
-   "title": "PGL lock the Singapore Major rosters: apEX in for jL, BnTeT at GOSH",
-   "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxNcXpIRlg4MFpvOVI4UmJQNmdRMHVwb3lsNXdnVnVpdFc0TFVzbzU0Qk5jSDlUc2NleXVkenFMbWJhWTlvVWU2UHhiNzlTclVyY1J5QWZkenFWMHNtb0NXRkNIRG9hSl94QVY1WVZaWFBUdEFKU2I2V3hyUDhTQ3FTRkR1UVdQUU0?oc=5",
-   "published": "2026-11-09T12:00:09+00:00",
-   "summary": "PGL lock the Singapore Major rosters: apEX in for jL, BnTeT at GOSH Pley.gg",
-   "teams": [
-    "Vitality"
-   ],
-   "players": [
-    {
-     "name": "apEX",
-     "team": "Vitality"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
    "source": "Insider Gaming",
    "title": "s1mple to Play for 'GOSH' at PGL Singapore Major as Alt Logos and Names Unveiled",
    "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxNTVJya3pueHc3QzZNY1ZneWo2UWVxc3U1NDlQM0Q1U3BZM0lXLVFiU0U1ZTZBMWtLbGRXUnI2MndwT0FfSDU3aW1iSkExR1lDUlRJX2FTeWlvM0VKOGNsS1FkVHpJR3diNGJ3WUxYaDhBV2d1OHJmWmdOSzBuZFRZWTE4OA?oc=5",
@@ -6493,8 +6848,8 @@
    "published": "2026-11-09T10:15:50+00:00",
    "summary": "Valorant: Wo0t Returns to Turkey With FUT After Three Years at Heretics The Loadout",
    "teams": [
-    "FUT Esports",
-    "Team Heretics"
+    "Team Heretics",
+    "FUT Esports"
    ],
    "players": [
     {
@@ -6662,6 +7017,27 @@
     "a new player joins; no record with the team yet",
     "a coaching change"
    ]
+  },
+  {
+   "game": "cs2",
+   "source": "Pley.gg",
+   "title": "PGL lock the Singapore Major rosters: apEX in for jL, BnTeT at GOSH",
+   "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxNcXpIRlg4MFpvOVI4UmJQNmdRMHVwb3lsNXdnVnVpdFc0TFVzbzU0Qk5jSDlUc2NleXVkenFMbWJhWTlvVWU2UHhiNzlTclVyY1J5QWZkenFWMHNtb0NXRkNIRG9hSl94QVY1WVZaWFBUdEFKU2I2V3hyUDhTQ3FTRkR1UVdQUU0?oc=5",
+   "published": "2026-11-09T08:00:00+00:00",
+   "summary": "PGL lock the Singapore Major rosters: apEX in for jL, BnTeT at GOSH Pley.gg",
+   "teams": [
+    "Vitality"
+   ],
+   "players": [
+    {
+     "name": "apEX",
+     "team": "Vitality"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
   },
   {
    "game": "lol",
@@ -7859,402 +8235,6 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Shane the Gamer",
-   "title": "Cloud9 Valorant 2027 Roster Confirmed With alym, Derrek, and nightz",
-   "link": "https://news.google.com/rss/articles/CBMiigFBVV95cUxNaW5KQ1VCQi1hQkhXbWE2amRFNVphNFVKOW85ZjlJZTB1eDZ6STI5b2kzQ0I3VlUzYUpPaHpJV2FFXzBDaGhoZGpXSTlOYlJwcmc2WEx0blpZbWtZX3VpNHdGSTFtZkt4MlM1MWdEcTFvaWlhY1NzbFdNX0p4azdQamRnWVZEci1DekE?oc=5",
-   "published": "2026-11-08T02:42:00+00:00",
-   "summary": "Cloud9 Valorant 2027 Roster Confirmed With alym, Derrek, and nightz Shane the Gamer",
-   "teams": [
-    "Cloud9"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "Sheep Esports",
-   "title": "Gen.G sweep IG and become the first finalists of Worlds 2026",
-   "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxNLWtmX29OeXdFSUNKNXlMZUh5Q0t5bDNicERZbVpQbkc3NTZYeDE0dHZ1T0dsQ1h2VU45aEpBX3dqT3VDQ2hEeUhPYVpiQktjWHJxV2VXVVdIaWdFYWJmMkhlYlZmYi1RWW5DdzZZa2xUbnZ5TV90VlR3akoyRFQ2YllEd3NkRnltc0FUZGFjM2g1R0hQZ3VlbU1SZVFsX0IxTU1RNS1oWQ?oc=5",
-   "published": "2026-11-08T01:44:27+00:00",
-   "summary": "Gen.G sweep IG and become the first finalists of Worlds 2026 Sheep Esports",
-   "teams": [
-    "Gen.G"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "GosuGamers",
-   "title": "Gen.G sweep IG to become first team to advance to the Worlds 2026 grand finals",
-   "link": "https://news.google.com/rss/articles/CBMivAFBVV95cUxNQXZ3aWxWd2Z1cmI5U08wd0ZBV0JDdzVnWkVtaUpYdTJWM3dYM1BUS0l3LW40TjdfWURuR21xd3ZPRFdid1BZbDJSSXZ4elMyb1k2QWs5ZlMzQ001VkdsY1Jqd0ZidkhBMWlZb05sejRSYWY3WEd1NUxONXJLT1JDRTc2dXZuaXJzckFMSDNpNFNXZGtoWGVreGxDeHJxOWJtNzgzTkVBcGN3MHM2ZGgtRVpwSml2RzhpVWdneg?oc=5",
-   "published": "2026-11-08T01:17:38+00:00",
-   "summary": "Gen.G sweep IG to become first team to advance to the Worlds 2026 grand finals GosuGamers",
-   "teams": [
-    "Gen.G"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "EGamersWorld",
-   "title": "Gen.G Crush Invictus Gaming in Worlds 2026 Semifinals Behind Canyon Masterclass",
-   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxNdGNYTTJnbi05UXRtS3UyeXNTTFBiZnIwYzlKa2pscVJoVURJWVlmb0lPQ1VQY0UxVXpabjQ3ZDc0THRZTXRjOEVRRGdrUlY5UERHMGRtUW43UGN6Vi1McVVya2h4S3puM0NaUGh0RlBOY3JmbS1hLVpuRmxiRlF5c0lIcFJrTEtsNXYyRXlRSkROZmh0czBPNW1sU3hMVkRiY0E?oc=5",
-   "published": "2026-11-08T00:51:22+00:00",
-   "summary": "Gen.G Crush Invictus Gaming in Worlds 2026 Semifinals Behind Canyon Masterclass EGamersWorld",
-   "teams": [
-    "Gen.G",
-    "Invictus Gaming"
-   ],
-   "players": [
-    {
-     "name": "Canyon",
-     "team": "Gen.G"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Sheep Esports",
-   "title": "Sources: keiko set to join Sentinels for 2027",
-   "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxOdHMyY2UyUk92T3VEQlN2dWJhS0toVVhUdEQ1RF9qcTBla2RFU24zSUN4bmpGaC02cG5DVkkzOW14VlUwNVB4S1ZvOEtCNl9Bb2tkN1ktMVYxY3RRM2ZJWUFwYU8xaHVocm16NXZKM2k5VUpib2VzUC13YjEwa09FazIzM2RnYXVoODRQeFdmZGtaZw?oc=5",
-   "published": "2026-11-08T00:29:40+00:00",
-   "summary": "Sources: keiko set to join Sentinels for 2027 Sheep Esports",
-   "teams": [
-    "Sentinels",
-    "NRG"
-   ],
-   "players": [
-    {
-     "name": "keiko",
-     "team": "NRG"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
-   "game": "lol",
-   "source": "EGamersWorld",
-   "title": "G2 Esports Secure Mithy as Head Coach Following Perkz Dismissal",
-   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOS19VWldveGQtRk9zR05WM0g5T2VyZlplOEltYU9nVzQybW1mU2dOUTZ4Nm1FLUIwV0MxYU9NUjZ1Rzg3UHdHQ1UzMzFCaUxTV2dleEZpRWlQbC1vOVB6ekF6UG9NTTNqN0tjaHBoZzItRU1UYm5HQVpLS080d0Fka0FxazkyR0g0eU5TMU1sMzFxdjhWTk9nbHQtZjNJNHVIeEE?oc=5",
-   "published": "2026-11-08T00:09:31+00:00",
-   "summary": "G2 Esports Secure Mithy as Head Coach Following Perkz Dismissal EGamersWorld",
-   "teams": [
-    "G2 Esports"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "coach"
-   ],
-   "reasons": [
-    "a coaching change"
-   ]
-  },
-  {
-   "game": "cs2",
-   "source": "Shane the Gamer",
-   "title": "chopper Announces Retirement From CS2, Ending Major-Winning Spirit Career",
-   "link": "https://news.google.com/rss/articles/CBMiggFBVV95cUxONk93cDh4eldPWHFwVEFsRnNVb3R5V2ZvTTR4ZmIydzlLUi1IUF9QSkNLMGl1VHJmTnV4Q0tFWGFWN3Q2X0twMUZWNmJjY3lqdEExLTBTRnZjX3hMNWJKN0EtbTdGbFF6cGFaNkxFT0FpR3BnS2VJb01lTjZkeVhmMkln?oc=5",
-   "published": "2026-11-07T22:08:00+00:00",
-   "summary": "chopper Announces Retirement From CS2, Ending Major-Winning Spirit Career Shane the Gamer",
-   "teams": [
-    "Spirit"
-   ],
-   "players": [],
-   "score": -1,
-   "grade": "negative",
-   "rules": [
-    "departure"
-   ],
-   "reasons": [
-    "a player or coach leaves"
-   ]
-  },
-  {
-   "game": "cs2",
-   "source": "HLTV",
-   "title": "xelex: \"I'm not performing at the highest level [on stage], that's one thing I'm trying to work on\"",
-   "link": "https://www.hltv.org/news/45938/xelex-im-not-performing-at-the-highest-level-on-stage-thats-one-thing-im-trying-to-work-on",
-   "published": "2026-11-07T20:15:00+00:00",
-   "summary": "The Hungarian rifler is happy with his personal development, but wants to keep performing under the bright lights so he doesn't \"let the team down when the pressure is up.\"",
-   "teams": [
-    "MOUZ"
-   ],
-   "players": [
-    {
-     "name": "xelex",
-     "team": "MOUZ"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "Skin.Club",
-   "title": "NBK- becomes head coach of Phantom Esports",
-   "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxNRkw0Vy16OVRLQkZLdmgwWjAwdmd0cmVabDZMbXJlOWFRbk9HRzNlRHFFVzhId3lEQ212M3A2RXIzemJkUVBJTG9PQ28takpnTVNfRWZ6Ynl6RTY0N3Aya2hrdzFhZF9UU1BiU1VSTDRhZUJwQ0RMSGs2Wjc5cWp1SENsSQ?oc=5",
-   "published": "2026-11-07T19:42:34+00:00",
-   "summary": "NBK- becomes head coach of Phantom Esports Skin.Club",
-   "teams": [
-    "Phantom"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "coach"
-   ],
-   "reasons": [
-    "a coaching change"
-   ]
-  },
-  {
-   "game": "cs2",
-   "source": "FreeTips",
-   "title": "The MongolZ vs MOUZ Betting Tips – MOUZ To Run Over MongolZ in IEM Beijing 2026",
-   "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxPWmJxVUxqRnJqV05uZTJweTdTWkoxbUVJWXJMT3lkQ21sRXB6LXJQVk9HT2U4T04yOHdFRmtFd0NoQ0VkclRzMEI2SURwellhbUI0RjdoS1kwOWc0UHVOZlVPQXJ2YUgtYktPLXdHaXY5NEFuZENYMFphZ0tmVnZRYzdNLW1xMVE?oc=5",
-   "published": "2026-11-07T19:39:09+00:00",
-   "summary": "The MongolZ vs MOUZ Betting Tips – MOUZ To Run Over MongolZ in IEM Beijing 2026 FreeTips",
-   "teams": [
-    "MOUZ",
-    "The MongolZ"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "HLTV",
-   "title": "FL1T: \"This loss was very frustrating, but overall, I'm glad that we're growing as a team\"",
-   "link": "https://www.hltv.org/news/45931/fl1t-this-loss-was-very-frustrating-but-overall-im-glad-that-were-growing-as-a-team",
-   "published": "2026-11-07T19:00:00+00:00",
-   "summary": "Despite falling to NAVI in the quarters, FL1T is optimistic about PARIVISION's recent progress.",
-   "teams": [
-    "PARIVISION"
-   ],
-   "players": [
-    {
-     "name": "FL1T",
-     "team": "PARIVISION"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "HLTV",
-   "title": "9z bench meyern; add history as Major stand-in",
-   "link": "https://www.hltv.org/news/45940/9z-bench-meyern-add-history-as-major-stand-in",
-   "published": "2026-11-07T18:31:00+00:00",
-   "summary": "The South American team will be without the Argentinian AWPer for the season-ending event.",
-   "teams": [
-    "9z",
-    "EHISTO BASE"
-   ],
-   "players": [
-    {
-     "name": "meyern",
-     "team": "9z"
-    },
-    {
-     "name": "history",
-     "team": "EHISTO BASE"
-    }
-   ],
-   "score": -3,
-   "grade": "negative",
-   "rules": [
-    "stand-in",
-    "benched",
-    "signing"
-   ],
-   "reasons": [
-    "a stand-in plays; the team's record was built without them",
-    "a regular is out of the lineup",
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
-   "game": "lol",
-   "source": "Hotspawn",
-   "title": "T1 Doran: “What Makes You A Great Player Is How You Get Through The Pressure”",
-   "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxOOC1FMlZod3MwNWdyWTNDRlBtRVFOQjVoTXRWcFVhOWdiMmxiT1dFS2NCLW1sdHRIWHVDVUljUWl5MHBaVU1vU2xMVmt6cDlKY2NGb1dVVGpnVnVnck1ObDloMk8xX3E0d3htSEpKYmYxU3NsRFhCQ1EwRzZYcGpQbmFUZXE?oc=5",
-   "published": "2026-11-07T18:29:31+00:00",
-   "summary": "T1 Doran: “What Makes You A Great Player Is How You Get Through The Pressure” Hotspawn",
-   "teams": [
-    "T1"
-   ],
-   "players": [
-    {
-     "name": "Doran",
-     "team": "T1"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Sheep Esports",
-   "title": "T1 completed roster for VCT Pacific 2027",
-   "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxPRnB6TEVsWE9kRjN4T2YyUW9jbS0tM004OUFsald4WnVjeGpZNFZkbkJIdWhuN1FITkZ0bEFTbHljSjdXazg1T2lkSTYyZW9rbms4ZjZyZFRfbmdMcTlPb19QdXBnajVzSUlRU0syTFBYaVpEQmtrelpsSnMzcDQ3eFV4ZURnRkxlLXVr?oc=5",
-   "published": "2026-11-07T18:07:12+00:00",
-   "summary": "T1 completed roster for VCT Pacific 2027 Sheep Esports",
-   "teams": [
-    "T1"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "games.gg",
-   "title": "Fnatic parts ways with Boaster in VALORANT roster rebuild",
-   "link": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTFBibXhOaWtkZEwyOWdtZnl4SXFtdDdreVg2ekdFTFhfVFoxY2U2TFpNLXVtWkd6T1FZYjBIT3F5cW02YjBmQ3NEZDdNS1FuY25EaW5hdFFHY19obzhKanQ3M0F2S2RjY3M?oc=5",
-   "published": "2026-11-07T17:16:16+00:00",
-   "summary": "Fnatic parts ways with Boaster in VALORANT roster rebuild games.gg",
-   "teams": [
-    "FNATIC"
-   ],
-   "players": [
-    {
-     "name": "Boaster",
-     "team": "FNATIC"
-    }
-   ],
-   "score": -1,
-   "grade": "negative",
-   "rules": [
-    "departure"
-   ],
-   "reasons": [
-    "a player or coach leaves"
-   ]
-  },
-  {
-   "game": "cs2",
-   "source": "HLTV",
-   "title": "Official: Anlelele joins Astralis on loan for Major",
-   "link": "https://www.hltv.org/news/45939/official-anlelele-joins-astralis-on-loan-for-major",
-   "published": "2026-11-07T16:37:00+00:00",
-   "summary": "The Vietnamese player has been recruited on a short-term deal for the final event of the season.",
-   "teams": [
-    "Astralis",
-    "Sashi"
-   ],
-   "players": [
-    {
-     "name": "Anlelele",
-     "team": "Sashi"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
-   "game": "cs2",
-   "source": "Pley.gg",
-   "title": "NBK- lands his first head coach job at Phantom",
-   "link": "https://news.google.com/rss/articles/CBMidEFVX3lxTFB4d2tvdTM1UEkzSlpxcXBqMUFacjFCMTZtdmxQZ0FJYlBuRm83T1d3dkMwWEF4Q1Rxb3RBYlRvRzBIejJaSWZNOFpSOHVyWXMtOVd0QVpSYm5fLVBTdDVicHJ0ems3TUEtbDJZaGI1MXZiM2kt?oc=5",
-   "published": "2026-11-07T15:47:20+00:00",
-   "summary": "NBK- lands his first head coach job at Phantom Pley.gg",
-   "teams": [
-    "Phantom"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "coach"
-   ],
-   "reasons": [
-    "a coaching change"
-   ]
-  },
-  {
-   "game": "lol",
-   "source": "Sheep Esports",
-   "title": "Worlds 2026: Karmine Corp vs. T1 – Quarterfinal Player Ratings",
-   "link": "https://news.google.com/rss/articles/CBMipAFBVV95cUxPakFTTGkzcGF2Qkl5a3hscEdsWGQ0V245RkduZTZJR1ZDTGZ0NWpEbHBRQlNRTnJ1SEJYSnZDVDgxQ2ZqOVF5bXZaMmtXN2FQaFV6S3I5aHNmY0RBZzZtY2tLNGplZmpXcHY5eGFJUW80R0g3bERjZGxIbDlockF6LWZnZ3BCVkZ6WHItVmItNk5lcm9DQ1R0VHhCUFpzY1Q0Z1BGeg?oc=5",
-   "published": "2026-11-07T14:30:00+00:00",
-   "summary": "Worlds 2026: Karmine Corp vs. T1 – Quarterfinal Player Ratings Sheep Esports",
-   "teams": [
-    "Karmine Corp",
-    "T1"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "HLTV",
-   "title": "NBK- joins Phantom as head coach",
-   "link": "https://www.hltv.org/news/45937/nbk-joins-phantom-as-head-coach",
-   "published": "2026-11-07T14:25:00+00:00",
-   "summary": "The legend of the Counter-Strike scene takes on the head coach role for the first time.",
-   "teams": [
-    "Phantom"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing",
-    "coach"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet",
-    "a coaching change"
-   ]
   }
  ],
  "signals": {
