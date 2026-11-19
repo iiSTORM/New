@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-18T20:51:37.665350+00:00",
+ "generated_at": "2026-11-19T02:45:54.027660+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,14 +61,14 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 71,
+   "items": 75,
    "error": null
   },
   {
    "game": "lol",
    "source": "Google News",
-   "items": 63,
-   "error": null
+   "items": 0,
+   "error": "429 Client Error: Too Many Requests for url: https://news.google.com/rss/search?hl=en-US&gl=US&ceid=US:en&q=LCK+OR+LPL+O"
   },
   {
    "game": "lol",
@@ -79,25 +79,19 @@
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 75,
+   "items": 41,
    "error": null
   },
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 15,
+   "items": 14,
    "error": null
   },
   {
    "game": "cs2",
    "source": "HLTV",
-   "items": 0,
-   "error": "403 Client Error: Forbidden for url: https://www.hltv.org/rss/news"
-  },
-  {
-   "game": "cs2",
-   "source": "Google News",
-   "items": 25,
+   "items": 10,
    "error": null
   },
   {
@@ -107,15 +101,21 @@
    "error": null
   },
   {
-   "game": "dota2",
+   "game": "cs2",
    "source": "Google News",
-   "items": 17,
+   "items": 26,
    "error": null
   },
   {
    "game": "dota2",
    "source": "Google News",
-   "items": 22,
+   "items": 16,
+   "error": null
+  },
+  {
+   "game": "dota2",
+   "source": "Google News",
+   "items": 24,
    "error": null
   }
  ],
@@ -124,7 +124,7 @@
    "game": "lol",
    "source": "Sheep Esports",
    "title": "Sources: Berserker set to re-sign with LYON in the LCS",
-   "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxPejEyQjFLdk03U3RvNkRpUHF2TWpVckhScU5mQUdoMUFuQ2ZLajVudU1LUzhHanV4M0dobllBb1VhSlVPRnpJaTRSaUViczdRUVYzSGdqRExXRUc3MmRsZndXRGstZkE0cjBzcGRqWTdNTkFxOVpmX3RYQ0RScVpFa09xNEh4Y01rWndYTk5fdE5ybnUwbk9SaGs2ODh3VGVseEdmUjZPU0twZw?oc=5",
+   "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxONFdabXpTamw3ZmZVNTdfSHZqaG4zbXF0NHJXM0sweUpOV0VMWWFmTEx4QWY4YWJxM0ZXU01Lc2tnSktSU0hDaDFYcVhNTWx5bktSTEE5VTc3SnZDRWdYWWFFVV9VdjU2anZ5aHZRS2tnSTBuTUJtbmtsbDNZQU5aRnVvQ21BZDNxMXlzdFNKbVNteDRvY3d5V0xaMmlWSnYyZ2ZnVjc5RnBrb1Q0aFE?oc=5",
    "published": "2026-11-18T20:46:05+00:00",
    "summary": "Sources: Berserker set to re-sign with LYON in the LCS Sheep Esports",
    "teams": [
@@ -258,6 +258,22 @@
    ]
   },
   {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "Media: Inner Circle owner detained in Italy",
+   "link": "https://www.hltv.org/news/46012/media-inner-circle-owner-detained-in-italy",
+   "published": "2026-11-18T17:48:00+00:00",
+   "summary": "Reports from Ukraine say that Oleksandr Slobozhenko has been arrested on charges of tax evasion.",
+   "teams": [
+    "Inner Circle"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "lol",
    "source": "Insider Gaming",
    "title": "G2 Esports CEO Tries To Reassure League of Legends Fans",
@@ -274,6 +290,22 @@
    "reasons": []
   },
   {
+   "game": "dota2",
+   "source": "Hawk Live",
+   "title": "Nix named the condition under which Dota 2 will start to decline",
+   "link": "https://news.google.com/rss/articles/CBMieEFVX3lxTE5lc2RwNzhJcVJXRlNyV21wc29ZeWU2MEpyM0NSWEdTbi1NWXlVUlhRMkdzTzhBaWF4N3pReTJPdDVaMWhjai1QcVlpTm01OEltaW9qT3RlVDE1Y2hKMVFoQzVKN0xaSURkSExYQ0R3VTBJUGdhdWhndQ?oc=5",
+   "published": "2026-11-18T16:08:00+00:00",
+   "summary": "Nix named the condition under which Dota 2 will start to decline Hawk Live",
+   "teams": [
+    "Nix Team"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "valorant",
    "source": "Sheep Esports",
    "title": "Team Vitality completed roster for VCT EMEA 2027",
@@ -282,6 +314,22 @@
    "summary": "Team Vitality completed roster for VCT EMEA 2027 Sheep Esports",
    "teams": [
     "Team Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "ENCE through the years: Success, setbacks and reinvention",
+   "link": "https://www.hltv.org/news/45953/ence-through-the-years-success-setbacks-and-reinvention",
+   "published": "2026-11-18T15:00:00+00:00",
+   "summary": "As the Finnish organization closes its doors, we look back at the highs and lows of its time in Counter-Strike.",
+   "teams": [
+    "ENCE"
    ],
    "players": [],
    "score": 0,
@@ -7275,8 +7323,8 @@
    "published": "2026-11-09T10:15:50+00:00",
    "summary": "Valorant: Wo0t Returns to Turkey With FUT After Three Years at Heretics The Loadout",
    "teams": [
-    "Team Heretics",
-    "FUT Esports"
+    "FUT Esports",
+    "Team Heretics"
    ],
    "players": [
     {
@@ -7424,6 +7472,27 @@
    "reasons": []
   },
   {
+   "game": "cs2",
+   "source": "Pley.gg",
+   "title": "PGL lock the Singapore Major rosters: apEX in for jL, BnTeT at GOSH",
+   "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxNcXpIRlg4MFpvOVI4UmJQNmdRMHVwb3lsNXdnVnVpdFc0TFVzbzU0Qk5jSDlUc2NleXVkenFMbWJhWTlvVWU2UHhiNzlTclVyY1J5QWZkenFWMHNtb0NXRkNIRG9hSl94QVY1WVZaWFBUdEFKU2I2V3hyUDhTQ3FTRkR1UVdQUU0?oc=5",
+   "published": "2026-11-09T08:00:00+00:00",
+   "summary": "PGL lock the Singapore Major rosters: apEX in for jL, BnTeT at GOSH Pley.gg",
+   "teams": [
+    "Vitality"
+   ],
+   "players": [
+    {
+     "name": "apEX",
+     "team": "Vitality"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
    "game": "lol",
    "source": "Sheep Esports",
    "title": "Sources: Karmine Corp promote Nayas to LEC as positional coach",
@@ -7444,27 +7513,6 @@
     "a new player joins; no record with the team yet",
     "a coaching change"
    ]
-  },
-  {
-   "game": "cs2",
-   "source": "Pley.gg",
-   "title": "PGL lock the Singapore Major rosters: apEX in for jL, BnTeT at GOSH",
-   "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxNcXpIRlg4MFpvOVI4UmJQNmdRMHVwb3lsNXdnVnVpdFc0TFVzbzU0Qk5jSDlUc2NleXVkenFMbWJhWTlvVWU2UHhiNzlTclVyY1J5QWZkenFWMHNtb0NXRkNIRG9hSl94QVY1WVZaWFBUdEFKU2I2V3hyUDhTQ3FTRkR1UVdQUU0?oc=5",
-   "published": "2026-11-09T08:00:00+00:00",
-   "summary": "PGL lock the Singapore Major rosters: apEX in for jL, BnTeT at GOSH Pley.gg",
-   "teams": [
-    "Vitality"
-   ],
-   "players": [
-    {
-     "name": "apEX",
-     "team": "Vitality"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
   },
   {
    "game": "lol",
@@ -8172,71 +8220,6 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "GGRecon",
-   "title": "Gen.G reach Worlds 2026 final, T1 vs BLG at 10pm UK tonight",
-   "link": "https://news.google.com/rss/articles/CBMie0FVX3lxTE5MZ01sMVJiOG10VkdnaG94UlgtODRrRS1zbUprWmUyU2dheFZFZ1FfUFVHMVVObklldldkbXlicWszVW00U3NuZnlRd3EyZjN2VEtQN0ozR2d0Ry1XaUFWdEpibE1EZnBvemkxNFh1QU9rTzBkVU9zcEtURQ?oc=5",
-   "published": "2026-11-08T12:18:15+00:00",
-   "summary": "Gen.G reach Worlds 2026 final, T1 vs BLG at 10pm UK tonight GGRecon",
-   "teams": [
-    "Gen.G",
-    "T1"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "lol",
-   "source": "games.gg",
-   "title": "Chovy Reaches the League of Legends Worlds 2026 final",
-   "link": "https://news.google.com/rss/articles/CBMiggFBVV95cUxNNjlrRmNFMmZRTG1fSENVcHVDTGpMejJzeW0xSzJNUjJvQU9vM0xGVUh5dnVGSW9xQXRxY1ZkZHVaRVlrc3prbjY0OHQyYmg4SkgyV1E5NWdXbmdJbGxRUFVWZ2NyeXRkYXFXMldsSU5ua2N3bmp3NFpjaHM1SDFXMEtB?oc=5",
-   "published": "2026-11-08T12:03:15+00:00",
-   "summary": "Chovy Reaches the League of Legends Worlds 2026 final games.gg",
-   "teams": [
-    "Gen.G"
-   ],
-   "players": [
-    {
-     "name": "Chovy",
-     "team": "Gen.G"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "HLTV",
-   "title": "EYEBALLERS bench dex",
-   "link": "https://www.hltv.org/news/45944/eyeballers-bench-dex",
-   "published": "2026-11-08T12:00:00+00:00",
-   "summary": "The Swede departs the organization after over two years of service.",
-   "teams": [
-    "EYEBALLERS"
-   ],
-   "players": [
-    {
-     "name": "dex",
-     "team": "EYEBALLERS"
-    }
-   ],
-   "score": -2,
-   "grade": "negative",
-   "rules": [
-    "benched",
-    "departure"
-   ],
-   "reasons": [
-    "a regular is out of the lineup",
-    "a player or coach leaves"
-   ]
   }
  ],
  "signals": {
@@ -8325,7 +8308,7 @@
    },
    "T1": {
     "score": 0,
-    "items": 8,
+    "items": 7,
     "rules": [
      "return",
      "departure",
