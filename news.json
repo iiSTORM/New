@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-22T19:56:24.214808+00:00",
+ "generated_at": "2026-11-23T01:56:39.108598+00:00",
  "rules": [
   {
    "name": "stand-in",
@@ -61,19 +61,19 @@
   {
    "game": "lol",
    "source": "Google News",
-   "items": 99,
+   "items": 40,
    "error": null
   },
   {
    "game": "lol",
    "source": "Google News",
-   "items": 100,
+   "items": 84,
    "error": null
   },
   {
    "game": "lol",
    "source": "Google News",
-   "items": 52,
+   "items": 48,
    "error": null
   },
   {
@@ -85,7 +85,7 @@
   {
    "game": "valorant",
    "source": "Google News",
-   "items": 13,
+   "items": 12,
    "error": null
   },
   {
@@ -97,13 +97,13 @@
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 19,
+   "items": 21,
    "error": null
   },
   {
    "game": "cs2",
    "source": "Google News",
-   "items": 24,
+   "items": 23,
    "error": null
   },
   {
@@ -115,11 +115,67 @@
   {
    "game": "dota2",
    "source": "Google News",
-   "items": 19,
+   "items": 16,
    "error": null
   }
  ],
  "items": [
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "No longer a stepping stone for players, DENDELE are on an upward path",
+   "link": "https://www.hltv.org/news/46021/no-longer-a-stepping-stone-for-players-dendele-are-on-an-upward-path",
+   "published": "2026-11-22T20:53:00+00:00",
+   "summary": "The Brazilian team is headed to its second consecutive Major with a stable roster that has remained intact for over a year.",
+   "teams": [
+    "DENDELE"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "HLTV",
+   "title": "SINNERS beat Envy to win Tipsport RUSH Brno",
+   "link": "https://www.hltv.org/news/46027/sinners-beat-envy-to-win-tipsport-rush-brno",
+   "published": "2026-11-22T20:10:00+00:00",
+   "summary": "MoDo averaged a 1.33 rating over 13 maps to lead SINNERS to victory on home turf.",
+   "teams": [
+    "Envy",
+    "SINNERS",
+    "33",
+    "RUSH"
+   ],
+   "players": [
+    {
+     "name": "MoDo",
+     "team": "SINNERS"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "cs2",
+   "source": "The Esports Advocate",
+   "title": "Team Vitality Closes CS2 Academy After Seven Months as Tier 2 Money Shrinks",
+   "link": "https://news.google.com/rss/articles/CBMic0FVX3lxTE5maEc3a2hDUGVBUXY0ZUFJQVg1d2ZuTUc2RDlFbS1JZE9wckVNWHhGa2VMcE5lZzZZckFTRFZGbzQ3NTdteXdFZjlqQXcxYktMWENQNG1Wa1JpM1BJd1JjbTlGTHR3ZjR6REg0UFF4VlE0TVU?oc=5",
+   "published": "2026-11-22T20:01:57+00:00",
+   "summary": "Team Vitality Closes CS2 Academy After Seven Months as Tier 2 Money Shrinks The Esports Advocate",
+   "teams": [
+    "Vitality"
+   ],
+   "players": [],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
   {
    "game": "valorant",
    "source": "ABS-CBN",
@@ -157,6 +213,22 @@
      "team": "BC.Game"
     }
    ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [],
+   "reasons": []
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
+   "title": "Team Vitality's Completed 2027 LEC Roster",
+   "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxNTm5RMmRkaGY5bFBHb1piWlZ6TjlMLVNpZVBhX0RKbmRzTGE2Vk5TLWdSandLcDdyOEJocEZzeTF2TW00QkxUWHBIaU8wWG9aUlUzZVlnd0tWY3pzeXFWYlBPX3B3MkJwOVE4dnZuc1d5b25vM3V1S1FpTExIdHpVcUJNZmhCc1VoWlpaV3d5UEM?oc=5",
+   "published": "2026-11-22T16:15:00+00:00",
+   "summary": "Team Vitality's Completed 2027 LEC Roster Sheep Esports",
+   "teams": [
+    "Team Vitality"
+   ],
+   "players": [],
    "score": 0,
    "grade": "neutral",
    "rules": [],
@@ -455,17 +527,17 @@
    "published": "2026-11-21T09:22:05+00:00",
    "summary": "something and Jemkin become Pacific residents for 2027 Pley.gg",
    "teams": [
-    "Paper Rex",
-    "Rex Regum Qeon"
+    "Rex Regum Qeon",
+    "Paper Rex"
    ],
    "players": [
     {
-     "name": "something",
-     "team": "Paper Rex"
-    },
-    {
      "name": "Jemkin",
      "team": "Rex Regum Qeon"
+    },
+    {
+     "name": "something",
+     "team": "Paper Rex"
     }
    ],
    "score": 0,
@@ -915,17 +987,17 @@
    "published": "2026-11-20T10:00:02+00:00",
    "summary": "something and Jemkin officially become Pacific residents ahead of 2027 VCT season Sheep Esports",
    "teams": [
-    "Paper Rex",
-    "Rex Regum Qeon"
+    "Rex Regum Qeon",
+    "Paper Rex"
    ],
    "players": [
     {
-     "name": "something",
-     "team": "Paper Rex"
-    },
-    {
      "name": "Jemkin",
      "team": "Rex Regum Qeon"
+    },
+    {
+     "name": "something",
+     "team": "Paper Rex"
     }
    ],
    "score": 0,
@@ -1251,12 +1323,12 @@
    ],
    "players": [
     {
-     "name": "invy",
-     "team": "Paper Rex"
-    },
-    {
      "name": "PatMen",
      "team": "Global Esports"
+    },
+    {
+     "name": "invy",
+     "team": "Paper Rex"
     }
    ],
    "score": 0,
@@ -1934,16 +2006,16 @@
    ],
    "players": [
     {
+     "name": "Ash",
+     "team": "Gen.G"
+    },
+    {
      "name": "Foxy9",
      "team": "VARREL"
     },
     {
      "name": "XuNa",
      "team": "VARREL"
-    },
-    {
-     "name": "Ash",
-     "team": "Gen.G"
     }
    ],
    "score": 0,
@@ -1964,17 +2036,17 @@
    "summary": "Paper Rex land primmie and bring PatMen back for 2027 Pley.gg",
    "teams": [
     "Paper Rex",
-    "FULL SENSE",
-    "Global Esports"
+    "Global Esports",
+    "FULL SENSE"
    ],
    "players": [
     {
-     "name": "primmie",
-     "team": "FULL SENSE"
-    },
-    {
      "name": "PatMen",
      "team": "Global Esports"
+    },
+    {
+     "name": "primmie",
+     "team": "FULL SENSE"
     }
    ],
    "score": 0,
@@ -2011,8 +2083,8 @@
    "published": "2026-11-19T08:56:22+00:00",
    "summary": "Pinoy VALORANT pro Patrick \"PatMen\" Mendoza returns to Paper Rex for the 2027 VCT season after Global Esports’ disbandment. PatMen lifted the Masters: Toronto trophy and placed 4th in Champions: Paris with PRX before moving to GE. Also joining the Facebook",
    "teams": [
-    "Paper Rex",
-    "Global Esports"
+    "Global Esports",
+    "Paper Rex"
    ],
    "players": [
     {
@@ -2141,7 +2213,8 @@
    "summary": "ex-INOX Division CS2 (ex-inox-division) Team Overview and Viewers Statistics Esports Charts",
    "teams": [
     "ex-INOX",
-    "INOX Division"
+    "INOX Division",
+    "ex-INOX Division"
    ],
    "players": [],
    "score": 0,
@@ -3863,11 +3936,11 @@
    ],
    "players": [
     {
-     "name": "nobody",
+     "name": "CHICHOO",
      "team": "EDward Gaming"
     },
     {
-     "name": "CHICHOO",
+     "name": "nobody",
      "team": "EDward Gaming"
     }
    ],
@@ -4512,11 +4585,11 @@
    ],
    "players": [
     {
-     "name": "nobody",
+     "name": "CHICHOO",
      "team": "EDward Gaming"
     },
     {
-     "name": "CHICHOO",
+     "name": "nobody",
      "team": "EDward Gaming"
     }
    ],
@@ -5073,11 +5146,11 @@
    ],
    "players": [
     {
-     "name": "ZmjjKK",
+     "name": "CHICHOO",
      "team": "EDward Gaming"
     },
     {
-     "name": "CHICHOO",
+     "name": "ZmjjKK",
      "team": "EDward Gaming"
     }
    ],
@@ -5975,8 +6048,8 @@
    "published": "2026-11-14T10:48:11+00:00",
    "summary": "LOUD VS NRG VALORANT Esports",
    "teams": [
-    "NRG",
-    "LOUD"
+    "LOUD",
+    "NRG"
    ],
    "players": [],
    "score": 0,
@@ -7584,6 +7657,32 @@
   {
    "game": "lol",
    "source": "Sheep Esports",
+   "title": "Sources: Quad is set to join Shopify Rebellion for 2027",
+   "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxOUXByUHpaSDRJX2xJUVNkRjB6YlVuZkFVTTB6OEI0eWEzY3pwVHQwLVVXREZObnZwYnlpVnhnaXViU3pnSkVDQ0E3LVIwMEUydm9GTGs0YWdLZXRaZG5HQUlxZGpIbXlhcF92R1JjZ0p2NnJlZm5jUE5hd1Z6dHUzYjVnQ0xRdkhCVGZ4V1ctemdjOFRSMWRybkptaUlnVFU?oc=5",
+   "published": "2026-11-12T08:00:00+00:00",
+   "summary": "Sources: Quad is set to join Shopify Rebellion for 2027 Sheep Esports",
+   "teams": [
+    "Shopify Rebellion",
+    "FlyQuest"
+   ],
+   "players": [
+    {
+     "name": "Quad",
+     "team": "FlyQuest"
+    }
+   ],
+   "score": 0,
+   "grade": "neutral",
+   "rules": [
+    "signing"
+   ],
+   "reasons": [
+    "a new player joins; no record with the team yet"
+   ]
+  },
+  {
+   "game": "lol",
+   "source": "Sheep Esports",
    "title": "Sources: Yeon set to leave Team Liquid and join Cloud9 for the 2027 LCS season",
    "link": "https://news.google.com/rss/articles/CBMivgFBVV95cUxQcGxXQkJxSnFETmtVZkhqdkxILTd3anRic2Rpem5jU2MtWGJRVGt2RGhhRE5iVnZ2SzExbXNlaDBWWV80TVB1OWY4cnd5VTkxaEl0d2JmaG1LYlI1a0RRMnEyaWxDUzRwdnJfalpMaUdaeG53bEZIeVZjMVRjdVYtTXlBOGFKUGJZX0UzckdPYXFQWUlMWVlxcUJla3VkVm1xaDU4LTBRVmFCZ1Z3aVBhMWtEajBhWm1ubk56RjBB?oc=5",
    "published": "2026-11-12T08:00:00+00:00",
@@ -7711,32 +7810,6 @@
     {
      "name": "CoreJJ",
      "team": "Team Liquid"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
-  },
-  {
-   "game": "lol",
-   "source": "Sheep Esports",
-   "title": "Sources: Quad is set to join Shopify Rebellion for 2027",
-   "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxOUXByUHpaSDRJX2xJUVNkRjB6YlVuZkFVTTB6OEI0eWEzY3pwVHQwLVVXREZObnZwYnlpVnhnaXViU3pnSkVDQ0E3LVIwMEUydm9GTGs0YWdLZXRaZG5HQUlxZGpIbXlhcF92R1JjZ0p2NnJlZm5jUE5hd1Z6dHUzYjVnQ0xRdkhCVGZ4V1ctemdjOFRSMWRybkptaUlnVFU?oc=5",
-   "published": "2026-11-12T08:00:00+00:00",
-   "summary": "Sources: Quad is set to join Shopify Rebellion for 2027 Sheep Esports",
-   "teams": [
-    "Shopify Rebellion",
-    "FlyQuest"
-   ],
-   "players": [
-    {
-     "name": "Quad",
-     "team": "FlyQuest"
     }
    ],
    "score": 0,
@@ -8264,82 +8337,6 @@
    "grade": "neutral",
    "rules": [],
    "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "HLTV",
-   "title": "G2 snap loss streak with win over MOUZ",
-   "link": "https://www.hltv.org/news/45971/g2-snap-loss-streak-with-win-over-mouz",
-   "published": "2026-11-11T12:54:00+00:00",
-   "summary": "G2 took advantage of the classic championship hangover by taking down world No. 1 MOUZ, earning a playoff berth in Hong Kong.",
-   "teams": [
-    "MOUZ",
-    "G2"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "cs2",
-   "source": "The Esports Advocate",
-   "title": "Fluxo W7M Pauses Counter-Strike After Major Payout Changes and a Sponsor Exit",
-   "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE1XcXVPdExLUG9RNHFjTFVuWkVwU1RTdjFpQTVTOHVhSC1XZ1BpVHlQQ2I4SE84dFFqX2xQd2pUdHFtYTdzZzdyTUVNOVgxSFV4ZWxoV0VwVXZ1dmdGNVdDdk02djE3MTFyeGIzRm9RcjhyR1Zoa0VN?oc=5",
-   "published": "2026-11-11T12:41:22+00:00",
-   "summary": "Fluxo W7M Pauses Counter-Strike After Major Payout Changes and a Sponsor Exit The Esports Advocate",
-   "teams": [
-    "Fluxo",
-    "FLUXO W7M"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Happy Gamer",
-   "title": "Crashies Reunites With T1 for VCT 2027, Back Where It All Started",
-   "link": "https://news.google.com/rss/articles/CBMic0FVX3lxTE9oZGkxcENFSFJYcnlZZ2FTaTUtWXMxS0ExYVlVcDc0cjl4OGhMOU50dm16cXVOUG1ZaUhOWEtDdGtybkttWk1oRUZiWW1HY3RtSkZzSFpNVTZ6U3RWQzB0TnpZdFlieGZFN0lpREVOTmJYaUU?oc=5",
-   "published": "2026-11-11T12:34:20+00:00",
-   "summary": "Crashies Reunites With T1 for VCT 2027, Back Where It All Started Happy Gamer",
-   "teams": [
-    "T1"
-   ],
-   "players": [],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [],
-   "reasons": []
-  },
-  {
-   "game": "valorant",
-   "source": "Pley.gg",
-   "title": "Bilibili Gaming sign world champion Smoggy from EDG",
-   "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxQc0FBMjE4Tzlrb3hMVmVCNmo3MFB2MzY0ZnRvV2hxOTNDZE93dDBZX3dEQkgwQkRYNnIwaVpwZlJUYW9UMmtUYkxLZXltTlM4WHNFclZPd0JUa2s3QS1HMDB5U1FWeU1uMmhNall2Zm9Sd2hIdkhhQURCaFhzaDdHY3FRcw?oc=5",
-   "published": "2026-11-11T12:03:02+00:00",
-   "summary": "Bilibili Gaming sign world champion Smoggy from EDG Pley.gg",
-   "teams": [
-    "Bilibili Gaming",
-    "EDward Gaming"
-   ],
-   "players": [
-    {
-     "name": "Smoggy",
-     "team": "EDward Gaming"
-    }
-   ],
-   "score": 0,
-   "grade": "neutral",
-   "rules": [
-    "signing"
-   ],
-   "reasons": [
-    "a new player joins; no record with the team yet"
-   ]
   }
  ],
  "signals": {
